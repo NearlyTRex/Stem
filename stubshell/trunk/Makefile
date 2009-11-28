@@ -84,7 +84,7 @@ AR_linux = /usr/bin/ar
 RANLIB_linux = /usr/bin/ranlib
 ARCHS_linux = i686
 CCFLAGS_linux = 
-LINKFLAGS_linux = -lm
+LINKFLAGS_linux = -lm -lrt
 
 CC_windows_i686 = \\MinGW\\bin\\gcc.exe
 AR_windows = \\MinGW\\bin\\ar.exe
