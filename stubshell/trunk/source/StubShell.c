@@ -5,6 +5,8 @@
 #include <mach/mach_time.h>
 #elif defined(__linux)
 #include <time.h>
+#elif defined(WIN32)
+#include <windows.h>
 #endif
 
 #include <stdio.h>
@@ -25,8 +27,15 @@ double Shell_getCurrentTime() {
 	return mach_absolute_time() * timebaseInfo.numer / timebaseInfo.denom / 1000000000.0;
 	
 #elif defined(WIN32)
-	//QueryPerformanceCounter
-	return 0;
+	static LARGE_INTEGER frequency;
+	LARGE_INTEGER currentTime;
+	
+	if (frequency.QuadPart == 0) {
+		QueryPerformanceFrequency(&frequency);
+	}
+	QueryPerformanceCounter(&currentTime);
+	
+	return (double) currentTime.QuadPart / frequency.QuadPart;
 	
 #elif defined(__linux)
 	struct timespec currentTime;

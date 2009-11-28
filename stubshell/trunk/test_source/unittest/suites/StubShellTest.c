@@ -7,7 +7,7 @@
 #include <stdio.h>
 
 #ifdef WIN32
-#include <winbase.h>
+#include <windows.h>
 #define msleep(ms) Sleep(ms)
 #else
 #include <unistd.h>
