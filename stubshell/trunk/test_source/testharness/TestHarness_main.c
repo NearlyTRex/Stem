@@ -1,8 +1,11 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include "HelloWorld.h"
+#include "shell/Shell.h"
 
 int main() {
-	printf("%s\n", helloWorld());
+	double currentTime;
+	
+	currentTime = Shell_getCurrentTime();
+	printf("%f\n", currentTime);
 	return EXIT_SUCCESS;
 }

@@ -1,5 +1,5 @@
 .PHONY: all
-all: library unittest testharness test include
+all: library unittest testharness test
 
 UNAME = ${shell uname}
 ifeq (${UNAME},Linux)
@@ -96,7 +96,7 @@ LINKFLAGS_windows =
 #General compile/link settings
 DEFINE_CCFLAGS = -DVERSION_MAJOR=${VERSION_MAJOR}u -DVERSION_MINOR=${VERSION_MINOR}u -DVERSION_TWEAK=${VERSION_TWEAK}u
 WARNING_CCFLAGS = -Wall -Wextra -Wno-unused-parameter -Werror
-INCLUDE_CCFLAGS = -I source
+INCLUDE_CCFLAGS = -I source -I include
 OTHER_CCFLAGS = -std=gnu99
 CCFLAGS = ${DEFINE_CCFLAGS} ${WARNING_CCFLAGS} ${INCLUDE_CCFLAGS} ${OTHER_CCFLAGS}
 
@@ -108,11 +108,11 @@ LINKFLAGS = ${FRAMEWORK_LINKFLAGS} ${LIBRARY_LINKFLAGS} ${OTHER_LINKFLAGS}
 #Per-target source file lists
 
 SOURCES_library = \
-	source/HelloWorld.c
+	source/StubShell.c
 
 SOURCES_unittest = \
 	test_source/unittest/framework/unittest_main.c \
-	test_source/unittest/suites/HelloWorldTest.c \
+	test_source/unittest/suites/StubShellTest.c \
 	test_source/unittest/TestList.c
 
 SOURCES_testharness = \
@@ -120,8 +120,7 @@ SOURCES_testharness = \
 
 SOURCES = ${sort ${SOURCES_library} ${SOURCES_unittest} ${SOURCES_testharness}}
 
-INCLUDES = \
-	source/HelloWorld.h
+INCLUDES =
 
 
 
@@ -425,15 +424,10 @@ run_unittests_linux:
 run_unittests_windows:
 	./build/unittest/debug-windows/unittest.exe
 
-.PHONY: include
-include: ${INCLUDES}
-	mkdir -p build/include
-	cp $^ build/include
-
 .PHONY: full_dist
 full_dist: clean all
 	mkdir dist
-	cp -r build/include build/library build/testharness dist
+	cp -r build/library build/testharness dist
 	svn import -m "Automated release from ${HOST_PLATFORM}" dist ${SVNROOT}/Releases/${PROJECT_NAME}/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_TWEAK}
 
 .PHONY: append_dist
