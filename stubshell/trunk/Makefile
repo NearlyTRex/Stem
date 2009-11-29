@@ -16,7 +16,7 @@ TARGET_PLATFORMS_windows = windows
 
 include version
 
-PROJECT_NAME = template_stemlib
+PROJECT_NAME = stubshell
 IPHONESIMULATOR_APPLICATIONS_DIR = ${HOME}/Library/Application Support/iPhone Simulator/User/Applications
 CODESIGN_IDENTITY = "iPhone Developer"
 SVNROOT = http://sacredsoftware.net/svn/misc
@@ -29,7 +29,7 @@ CONFIGURATIONS = debug profile release
 PLATFORMS = ${filter ${TARGET_PLATFORMS_${HOST_PLATFORM}},macosx iphonesimulator iphoneos linux windows}
 ARCHS = ppc i386 i686 x86_64 armv6 armv7
 
-TARGET_NAME_library = libstem_template
+TARGET_NAME_library = libstemshell_stub
 TARGET_NAME_unittest = unittest
 TARGET_NAME_testharness = testharness
 
@@ -428,14 +428,14 @@ run_unittests_windows:
 full_dist: clean all
 	mkdir dist
 	cp -r build/library build/testharness dist
-	svn import -m "Automated release from ${HOST_PLATFORM}" dist ${SVNROOT}/Releases/${PROJECT_NAME}/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_TWEAK}
+	svn import --no-ignore -m "Automated release from ${HOST_PLATFORM}" dist ${SVNROOT}/Releases/${PROJECT_NAME}/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_TWEAK}
 
 .PHONY: append_dist
 append_dist: clean all
 	svn co ${SVNROOT}/Releases/${PROJECT_NAME}/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_TWEAK} dist_append
 	cp -r build/library/ dist_append/library
 	cp -r build/testharness/ dist_append/testharness
-	svn add dist_append/library/* dist_append/testharness/*
+	svn add --no-ignore dist_append/library/* dist_append/testharness/*
 	svn commit -m "Automated release append from ${HOST_PLATFORM}" dist_append
 
 .PHONY: clean
