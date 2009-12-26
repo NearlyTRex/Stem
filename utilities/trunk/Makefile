@@ -16,7 +16,7 @@ TARGET_PLATFORMS_windows = windows
 
 include version
 
-PROJECT_NAME = template_stemlib
+PROJECT_NAME = utilities
 IPHONESIMULATOR_APPLICATIONS_DIR = ${HOME}/Library/Application Support/iPhone Simulator/User/Applications
 CODESIGN_IDENTITY = "iPhone Developer"
 SVNROOT = http://sacredsoftware.net/svn/misc
@@ -29,7 +29,7 @@ CONFIGURATIONS = debug profile release
 PLATFORMS = ${filter ${TARGET_PLATFORMS_${HOST_PLATFORM}},macosx iphonesimulator iphoneos linux windows}
 ARCHS = ppc i386 i686 x86_64 armv6 armv7
 
-TARGET_NAME_library = libstem_template
+TARGET_NAME_library = libstem_utilities
 TARGET_NAME_unittest = unittest
 TARGET_NAME_testharness = testharness
 
@@ -44,7 +44,7 @@ PLATFORMS_unittest = ${filter ${PLATFORMS},macosx iphonesimulator linux windows}
 PLATFORMS_testharness = ${filter ${PLATFORMS},macosx iphonesimulator iphoneos linux windows}
 
 #Per-target compile/link settings
-CCFLAGS_unittest = -I test_source
+CCFLAGS_unittest = -I test_source -DSUITE_FILE_LIST='${foreach file,${SOURCES_unittest_suites},"${basename ${notdir ${file}}}",} NULL'
 
 #Per-configuration compile/link settings
 CCFLAGS_debug = -g
@@ -96,7 +96,7 @@ LINKFLAGS_windows =
 #General compile/link settings
 DEFINE_CCFLAGS = -DVERSION_MAJOR=${VERSION_MAJOR}u -DVERSION_MINOR=${VERSION_MINOR}u -DVERSION_TWEAK=${VERSION_TWEAK}u
 WARNING_CCFLAGS = -Wall -Wextra -Wno-unused-parameter -Werror
-INCLUDE_CCFLAGS = -I source
+INCLUDE_CCFLAGS = -I source -I include
 OTHER_CCFLAGS = -std=gnu99
 CCFLAGS = ${DEFINE_CCFLAGS} ${WARNING_CCFLAGS} ${INCLUDE_CCFLAGS} ${OTHER_CCFLAGS}
 
@@ -105,23 +105,46 @@ LIBRARY_LINKFLAGS =
 OTHER_LINKFLAGS = 
 LINKFLAGS = ${FRAMEWORK_LINKFLAGS} ${LIBRARY_LINKFLAGS} ${OTHER_LINKFLAGS}
 
+#Per-target depencies
+
+LIBRARY_DEPENDENCIES_unittest = stubshell/libstemshell_stub.a
+LIBRARY_DEPENDENCIES_testharness = stubshell/libstemshell_stub.a
+
 #Per-target source file lists
 
 SOURCES_library = \
-	source/HelloWorld.c
+	source/utilities/Atom.c \
+	source/utilities/AutoFreePool.c \
+	source/utilities/EventDispatcher.c \
+	source/utilities/FixedIntervalRunLoop.c \
+	source/utilities/IOUtilities.c \
+	source/utilities/UTFUtilities.c
 
 SOURCES_unittest = \
 	test_source/unittest/framework/unittest_main.c \
-	test_source/unittest/suites/HelloWorldTest.c \
-	test_source/unittest/TestList.c
+	test_source/unittest/framework/TestList.c \
+	${SOURCES_unittest_suites}
+
+SOURCES_unittest_suites = \
+	test_source/unittest/suites/AtomTest.c \
+	test_source/unittest/suites/AutoFreePoolTest.c \
+	test_source/unittest/suites/EventDispatcherTest.c \
+	test_source/unittest/suites/FixedIntervalRunLoopTest.c \
+	test_source/unittest/suites/IOUtilitiesTest.c \
+	test_source/unittest/suites/UTFUtilitiesTest.c
 
 SOURCES_testharness = \
 	test_source/testharness/TestHarness_main.c
 
-SOURCES = ${sort ${SOURCES_library} ${SOURCES_unittest} ${SOURCES_testharness}}
+SOURCES = ${sort ${foreach target,${TARGETS},${SOURCES_${target}}}}
 
 INCLUDES = \
-	source/HelloWorld.h
+	source/utilities/Atom.h \
+	source/utilities/AutoFreePool.h \
+	source/utilities/EventDispatcher.h \
+	source/utilities/FixedIntervalRunLoop.h \
+	source/utilities/IOUtilities.h \
+	source/utilities/UTFUtilities.h
 
 
 
@@ -197,12 +220,19 @@ build/intermediate/${2}-${3}-${4}/${5}: ${call arch_object_list_template,${1},${
 	${CC_${3}_${4}} ${LINKFLAGS} ${LINKFLAGS_${3}} -o $$@ $$^
 endef
 
+define library_dependency_template #(target, configuration, platform)
+	build/library/debug-${3}/${TARGET_NAME_library}.a \
+	${foreach library,${LIBRARY_DEPENDENCIES_${1}}, \
+		lib/${dir ${library}}${configuration}-${platform}/${notdir ${library}} \
+	}
+endef
+
 #Produces executable build targets for each arch/platform/target for executable and application targets
 ${foreach target,${EXECUTABLE_TARGETS} ${APPLICATION_TARGETS}, \
 	${foreach configuration,${CONFIGURATIONS_${target}}, \
 		${foreach platform,${PLATFORMS_${target}}, \
 			${foreach arch,${ARCHS_${platform}}, \
-				${eval ${call executable_template,${target},${configuration},${platform},${arch},${TARGET_NAME_${target}},build/library/debug-${platform}/${TARGET_NAME_library}.a}} \
+				${eval ${call executable_template,${target},${configuration},${platform},${arch},${TARGET_NAME_${target}},${call library_dependency_template,${target},${configuration},${platform}}}} \
 			} \
 		} \
 	} \
@@ -432,16 +462,17 @@ include: ${INCLUDES}
 
 .PHONY: full_dist
 full_dist: clean all
-	mkdir dist
-	cp -r build/include build/library build/testharness dist
-	svn import -m "Automated release from ${HOST_PLATFORM}" dist ${SVNROOT}/Releases/${PROJECT_NAME}/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_TWEAK}
+	mkdir dist dist/library dist/testharness
+	cp -r build/library/* dist/library
+	cp -r build/testharness/* dist/testharness
+	svn import --no-ignore -m "Automated release from ${HOST_PLATFORM}" dist ${SVNROOT}/Releases/${PROJECT_NAME}/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_TWEAK}
 
 .PHONY: append_dist
 append_dist: clean all
 	svn co ${SVNROOT}/Releases/${PROJECT_NAME}/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_TWEAK} dist_append
-	cp -r build/library/ dist_append/library
-	cp -r build/testharness/ dist_append/testharness
-	svn add dist_append/library/* dist_append/testharness/*
+	cp -r build/library/* dist_append/library
+	cp -r build/testharness/* dist_append/testharness
+	svn add --no-ignore dist_append/library/* dist_append/testharness/*
 	svn commit -m "Automated release append from ${HOST_PLATFORM}" dist_append
 
 .PHONY: clean
