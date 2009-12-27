@@ -16,6 +16,4 @@ static void testAtomFromString() {
 	TestCase_assert(!strcmp(atom2, atom2String), "Atom \"%s\" didn't match expected string \"%s\"", atom2, atom2String);
 }
 
-TestSuite * AtomTest_suite() {
-	return testSuite("AtomTest", testAtomFromString, NULL);
-}
+TEST_SUITE(AtomTest, testAtomFromString)

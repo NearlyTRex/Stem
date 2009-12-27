@@ -123,6 +123,4 @@ static void testMalformedness() {
 	}
 }
 
-TestSuite * UTFUtilitiesTest_suite() {
-	return testSuite("UTFUtilitiesTest", testConversions, testLength, testMalformedness, NULL);
-}
+TEST_SUITE(UTFUtilitiesTest, testConversions, testLength, testMalformedness)

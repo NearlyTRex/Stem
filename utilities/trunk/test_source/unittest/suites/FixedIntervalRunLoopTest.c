@@ -72,6 +72,4 @@ void testPauseResume() {
 	free(runLoop);
 }
 
-TestSuite * FixedIntervalRunLoopTest_suite() {
-	return testSuite("FixedIntervalRunLoopTest", testCallbackInterval, testPauseResume, NULL);
-}
+TEST_SUITE(FixedIntervalRunLoopTest, testCallbackInterval, testPauseResume)

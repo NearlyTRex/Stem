@@ -24,6 +24,18 @@
 	free(_failString); \
 }
 
+#ifdef WIN32
+#include <fcntl.h>
+#define _S_IREAD 256
+#define _S_IWRITE 128
+int mkstemp(char * template) {
+	int result = -1;
+	mktemp(template); 
+	result = open(template, O_RDWR | O_BINARY | O_CREAT | O_EXCL | _O_SHORT_LIVED, _S_IREAD | _S_IWRITE); 
+	return result;
+}
+#endif
+
 static void testMemreadContextInit() {
 	struct memreadContext context;
 	char * data1 = "abcd", * data2 = "efg";
@@ -232,14 +244,11 @@ static void testResourcePath() {
 	TestCase_assert(!strcmp(path, "/myfile"), "Expected \"/myfile\" but got \"%s\"", path);
 }
 
-TestSuite * IOUtilitiesTest_suite() {
-	return testSuite("IOUtilitiesTest",
-	                 testMemreadContextInit,
-	                 testMemread,
-	                 testMemwriteContextInit,
-	                 testMemwrite,
-	                 testReadFileSimple,
-	                 testWriteFileSimple,
-	                 testResourcePath,
-	                 NULL);
-}
+TEST_SUITE(IOUtilitiesTest,
+           testMemreadContextInit,
+           testMemread,
+           testMemwriteContextInit,
+           testMemwrite,
+           testReadFileSimple,
+           testWriteFileSimple,
+           testResourcePath)

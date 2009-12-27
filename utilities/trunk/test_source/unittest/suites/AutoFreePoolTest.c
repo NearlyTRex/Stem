@@ -38,6 +38,4 @@ static void testPushPop() {
 	TestCase_assert(calls == 3, "Callback not called the expected number of times (called %d, expected 3)", calls);
 }
 
-TestSuite * AutoFreePoolTest_suite() {
-	return testSuite("AutoFreePoolTest", testCallbacks, testPushPop, NULL);
-}
+TEST_SUITE(AutoFreePoolTest, testCallbacks, testPushPop)

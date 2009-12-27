@@ -64,6 +64,4 @@ static void testCallbacks() {
 	free(dispatcher);
 }
 
-TestSuite * EventDispatcherTest_suite() {
-	return testSuite("EventDispatcherTest", testCallbacks, NULL);
-}
+TEST_SUITE(EventDispatcherTest, testCallbacks)
