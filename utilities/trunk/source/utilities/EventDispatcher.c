@@ -1,4 +1,4 @@
-#import "utilities/EventDispatcher.h"
+#include "utilities/EventDispatcher.h"
 
 #include <stdlib.h>
 #include <string.h>

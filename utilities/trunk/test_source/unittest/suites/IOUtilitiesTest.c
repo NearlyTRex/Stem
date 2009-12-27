@@ -145,17 +145,22 @@ static void testMemwrite() {
 }
 
 static void testReadFileSimple() {
-	char * fileName;
+	char fileName[10];
+	int fileHandle;
 	size_t length;
 	void * result;
 	FILE * file;
 	
-	fileName = tmpnam(NULL);
+	strcpy(fileName, "tmpXXXXXX");
+	fileHandle = mkstemp(fileName);
+	close(fileHandle);
+	unlink(fileName);
 	result = readFileSimple(fileName, NULL);
 	TestCase_assert(result == NULL, "Expected NULL but got %p", result);
 	
-	fileName = tmpnam(NULL);
-	file = fopen(fileName, "wb");
+	strcpy(fileName, "tmpXXXXXX");
+	fileHandle = mkstemp(fileName);
+	file = fdopen(fileHandle, "wb");
 	fprintf(file, "foo bar\nbaz");
 	fclose(file);
 	result = readFileSimple(fileName, &length);
@@ -164,8 +169,9 @@ static void testReadFileSimple() {
 	TestCase_assert(length == 11, "Expected 11 but got %d", (int) length);
 	assertBytesMatch("foo bar\nbaz", result, 11);
 	
-	fileName = tmpnam(NULL);
-	file = fopen(fileName, "wb");
+	strcpy(fileName, "tmpXXXXXX");
+	fileHandle = mkstemp(fileName);
+	file = fdopen(fileHandle, "wb");
 	fprintf(file, "Hello, world!");
 	fclose(file);
 	result = readFileSimple(fileName, &length);
@@ -176,15 +182,17 @@ static void testReadFileSimple() {
 }
 
 static void testWriteFileSimple() {
-	char * fileName;
+	char fileName[10];
+	int fileHandle;
 	bool result;
 	FILE * file;
 	size_t fileLength;
 	char * fileContents;
 	
-	fileName = tmpnam(NULL);
+	strcpy(fileName, "tmpXXXXXX");
+	fileHandle = mkstemp(fileName);
 	result = writeFileSimple(fileName, "foo bar\nbaz", 11);
-	file = fopen(fileName, "rb");
+	file = fdopen(fileHandle, "rb");
 	TestCase_assert(file != NULL, "writeFileSimple failed to create target file");
 	fseek(file, 0, SEEK_END);
 	fileLength = ftell(file);
@@ -198,9 +206,10 @@ static void testWriteFileSimple() {
 	assertBytesMatch("foo bar\nbaz", fileContents, 11);
 	free(fileContents);
 	
-	fileName = tmpnam(NULL);
+	strcpy(fileName, "tmpXXXXXX");
+	fileHandle = mkstemp(fileName);
 	result = writeFileSimple(fileName, "Hello, world!", 13);
-	file = fopen(fileName, "rb");
+	file = fdopen(fileHandle, "rb");
 	TestCase_assert(file != NULL, "writeFileSimple failed to create target file");
 	fseek(file, 0, SEEK_END);
 	fileLength = ftell(file);

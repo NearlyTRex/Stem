@@ -73,6 +73,7 @@ void * readFileSimple(const char * filePath, size_t * outFileLength) {
 	FILE * file;
 	size_t fileLength;
 	void * fileContents;
+	size_t bytesRead;
 	
 	file = fopen(filePath, "rb");
 	if (file == NULL) {
@@ -82,8 +83,13 @@ void * readFileSimple(const char * filePath, size_t * outFileLength) {
 	fileLength = ftell(file);
 	fseek(file, 0, SEEK_SET);
 	fileContents = malloc(fileLength);
-	fread(fileContents, 1, fileLength, file);
+	bytesRead = fread(fileContents, 1, fileLength, file);
 	fclose(file);
+	
+	if (bytesRead < fileLength) {
+		free(fileContents);
+		return NULL;
+	}
 	
 	if (outFileLength != NULL) *outFileLength = fileLength;
 	return fileContents;
