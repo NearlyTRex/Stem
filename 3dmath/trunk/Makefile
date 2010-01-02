@@ -16,7 +16,7 @@ TARGET_PLATFORMS_windows = windows
 
 include version
 
-PROJECT_NAME = template_stemlib
+PROJECT_NAME = 3dmath
 IPHONESIMULATOR_APPLICATIONS_DIR = ${HOME}/Library/Application Support/iPhone Simulator/User/Applications
 CODESIGN_IDENTITY = "iPhone Developer"
 SVNROOT = http://sacredsoftware.net/svn/misc
@@ -29,9 +29,9 @@ CONFIGURATIONS = debug profile release
 PLATFORMS = ${filter ${TARGET_PLATFORMS_${HOST_PLATFORM}},macosx iphonesimulator iphoneos linux windows}
 ARCHS = ppc i386 i686 x86_64 armv6 armv7
 
-TARGET_NAME_library = libstem_template
+TARGET_NAME_library = libstem_3dmath
 TARGET_NAME_unittest = unittest
-TARGET_NAME_testharness = testharness
+TARGET_NAME_testharness = testharness_3dmath
 
 #Per-target configurations
 CONFIGURATIONS_library = debug profile release
@@ -113,7 +113,10 @@ LIBRARY_DEPENDENCIES_testharness =
 #Per-target source file lists
 
 SOURCES_library = \
-	source/HelloWorld.c
+	source/3dmath/Frustum.c \
+	source/3dmath/Matrix.c \
+	source/3dmath/Quaternion.c \
+	source/3dmath/Vector.c
 
 SOURCES_unittest = \
 	test_source/unittest/framework/unittest_main.c \
@@ -121,7 +124,10 @@ SOURCES_unittest = \
 	${SOURCES_unittest_suites}
 
 SOURCES_unittest_suites = \
-	test_source/unittest/suites/HelloWorldTest.c
+	test_source/unittest/suites/FrustumTest.c \
+	test_source/unittest/suites/MatrixTest.c \
+	test_source/unittest/suites/QuaternionTest.c \
+	test_source/unittest/suites/VectorTest.c
 
 SOURCES_testharness = \
 	test_source/testharness/TestHarness_main.c
@@ -129,7 +135,10 @@ SOURCES_testharness = \
 SOURCES = ${sort ${foreach target,${TARGETS},${SOURCES_${target}}}}
 
 INCLUDES = \
-	source/HelloWorld.h
+	source/3dmath/Frustum.h \
+	source/3dmath/Matrix.h \
+	source/3dmath/Quaternion.h \
+	source/3dmath/Vector.h
 
 
 

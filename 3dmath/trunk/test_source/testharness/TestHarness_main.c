@@ -1,8 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include "HelloWorld.h"
 
 int main() {
-	printf("%s\n", helloWorld());
+	printf("Test harness not implemented\n");
 	return EXIT_SUCCESS;
 }
