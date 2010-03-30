@@ -19,7 +19,7 @@ include version
 PROJECT_NAME = template_stemlib
 IPHONESIMULATOR_APPLICATIONS_DIR = ${HOME}/Library/Application Support/iPhone Simulator/User/Applications
 CODESIGN_IDENTITY = "iPhone Developer"
-SVNROOT = http://sacredsoftware.net/svn/misc
+SVNROOT = http://sacredsoftware.net/svn/misc#master_source_only
 
 LIBRARY_TARGETS = library
 EXECUTABLE_TARGETS = unittest
@@ -30,8 +30,8 @@ PLATFORMS = ${filter ${TARGET_PLATFORMS_${HOST_PLATFORM}},macosx iphonesimulator
 ARCHS = ppc i386 i686 x86_64 armv6 armv7
 
 TARGET_NAME_library = libstem_template
-TARGET_NAME_unittest = unittest
-TARGET_NAME_testharness = testharness
+TARGET_NAME_unittest = template_unittest
+TARGET_NAME_testharness = template_testharness
 
 #Per-target configurations
 CONFIGURATIONS_library = debug profile release
@@ -202,7 +202,7 @@ ${foreach target,${LIBRARY_TARGETS}, \
 
 define executable_template #(target, configuration, platform, arch, output_file, dependent_libraries)
 build/intermediate/${2}-${3}-${4}/${5}: ${call arch_object_list_template,${1},${2},${3},${4}} ${6}
-	${CC_${3}_${4}} ${LINKFLAGS} ${LINKFLAGS_${3}} -o $$@ $$^
+	${CC_${3}_${4}} -o $$@ $$^ ${LINKFLAGS} ${LINKFLAGS_${3}}
 endef
 
 define library_dependency_template #(target, configuration, platform)
@@ -425,26 +425,35 @@ test: unittest ${foreach platform,${PLATFORMS_unittest},run_unittests_${platform
 
 .PHONY: run_unittests_macosx
 run_unittests_macosx:
-	./build/unittest/debug-macosx/unittest
+	./build/unittest/debug-macosx/${TARGET_NAME_unittest}
 
 .PHONY: run_unittests_iphonesimulator
 run_unittests_iphonesimulator:
 	DYLD_ROOT_PATH=${SDKROOT_iphonesimulator} \
-	./build/unittest/debug-iphonesimulator/unittest
+	./build/unittest/debug-iphonesimulator/${TARGET_NAME_unittest}
 
 .PHONY: run_unittests_linux
 run_unittests_linux:
-	./build/unittest/debug-linux/unittest
+	./build/unittest/debug-linux/${TARGET_NAME_unittest}
 
 .PHONY: run_unittests_windows
 run_unittests_windows:
-	./build/unittest/debug-windows/unittest.exe
+	./build/unittest/debug-windows/${TARGET_NAME_unittest}.exe
 
 .PHONY: include
 include: ${INCLUDES}
 	mkdir -p build/include
-	cp $^ build/include
+	${foreach includeFile,$^, \
+		mkdir -p build/include/${notdir ${patsubst %/,%,${dir ${includeFile}}}}; \
+		cp ${includeFile} build/include/${notdir ${patsubst %/,%,${dir ${includeFile}}}}; \
+	}
 
+.PHONY: clean
+clean:
+	rm -rf build
+	rm -rf dist
+	rm -rf dist_append
+#master_source_only_begin
 .PHONY: full_dist
 full_dist: clean all
 	mkdir dist dist/include dist/library dist/testharness
@@ -461,8 +470,26 @@ append_dist: clean all
 	svn add --no-ignore dist_append/library/* dist_append/testharness/*
 	svn commit -m "Automated release append from ${HOST_PLATFORM}" dist_append
 
-.PHONY: clean
-clean:
-	rm -rf build
-	rm -rf dist
-	rm -rf dist_append
+define filter_source_dist_file #(infile, outfile)
+	ruby -e "print STDIN.read.gsub(/^.*#master_source_only\b.*$\n?/, '').gsub(/\n?#master_source_only_begin[\s\S]*?#master_source_only_end/, '').gsub(/#source_dist_only/, '')" < "${1}" > "${2}"
+endef
+
+.PHONY: source_dist
+source_dist:
+	mkdir -p build/source_dist/source
+	mkdir -p build/source_dist/test_resources
+	mkdir -p build/source_dist/test_source/testharness
+	mkdir -p build/source_dist/test_source/unittest/framework
+	mkdir -p build/source_dist/test_source/unittest/suites
+	
+	${call filter_source_dist_file,Makefile,build/source_dist/Makefile}
+	cp Changes.txt License.txt version build/source_dist
+	
+	cp source/* build/source_dist/source
+	
+	cp test_resources/* build/source_dist/test_resources
+	
+	cp test_source/testharness/* build/source_dist/test_source/testharness
+	cp test_source/unittest/framework/* build/source_dist/test_source/unittest/framework
+	cp test_source/unittest/suites/* build/source_dist/test_source/unittest/suites
+#master_source_only_end
