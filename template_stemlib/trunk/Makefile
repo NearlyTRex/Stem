@@ -326,30 +326,45 @@ PLIST_PLATFORM_CASED_iphoneos = iPhoneOS
 PLIST_PLATFORM_LOWER_iphoneos = iphoneos
 PLIST_SDK_NAME_iphoneos = iphoneos3.0
 
-define assemble_application_macosx #(target, configuration, platform)
-build/${1}/${2}-${3}/${TARGET_NAME_${1}}.app/Contents/MacOS/${TARGET_NAME_${1}}: ${THIN_BINARIES_${1}_${2}_${3}}
-	mkdir -p $${dir $$@}
-	mkdir -p $${dir $$@}../Resources
+define create_app_bundle #(target, platform, executable_dir, plist_dir, resources_dir)
+	mkdir -p ${3} ${4} ${5}
 	sed -e "s/\$$$${PRODUCT_NAME}/${TARGET_NAME_${1}}/g" \
 	    -e "s/\$$$${VERSION}/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_TWEAK}/g" \
 	    -e "s/\$$$${COPYRIGHT_YEAR}/"`date +%Y`"/g" \
 	    -e "s/\$$$${BUILD_NUMBER}/0/g" \
-	    -e "s/\$$$${PLATFORM_CASED}/${PLIST_PLATFORM_CASED_${3}}/g" \
-	    -e "s/\$$$${PLATFORM_LOWER}/${PLIST_PLATFORM_LOWER_${3}}/g" \
-	    -e "s/\$$$${SDK}/${PLIST_SDK_NAME_${3}}/g" \
-	    ${PLIST_FILE_${1}_${3}} > $${dir $$@}/../Info.plist
-	echo "APPL????" > $${dir $$@}../PkgInfo
+	    -e "s/\$$$${PLATFORM_CASED}/${PLIST_PLATFORM_CASED_${2}}/g" \
+	    -e "s/\$$$${PLATFORM_LOWER}/${PLIST_PLATFORM_LOWER_${2}}/g" \
+	    -e "s/\$$$${SDK}/${PLIST_SDK_NAME_${2}}/g" \
+	    ${PLIST_FILE_${1}_${2}} > ${4}/Info.plist
+	echo "APPL????" > ${4}/PkgInfo
+endef
+
+define assemble_application_macosx #(target, configuration)
+build/${1}/${2}-macosx/${TARGET_NAME_${1}}.app/Contents/MacOS/${TARGET_NAME_${1}}: ${THIN_BINARIES_${1}_${2}_macosx}
+	${call create_app_bundle,${1},macosx,$${dir $$@},$${dir $$@}../,$${dir $$@}../Resources/}
 	lipo -create -output $$@ $$^
 endef
 
-define assemble_application_linux #(target, configuration, platform)
-build/${1}/${2}-${3}/${TARGET_NAME_${1}}: ${THIN_BINARIES_${1}_${2}_${3}}
+define assemble_application_iphonesimulator #(target, configuration)
+build/${1}/${2}-iphonesimulator/${TARGET_NAME_${1}}.app/${TARGET_NAME_${1}}: ${THIN_BINARIES_${1}_${2}_iphonesimulator}
+	${call create_app_bundle,${1},iphonesimulator,$${dir $$@},$${dir $$@},$${dir $$@}}
+	lipo -create -output $$@ $$^
+endef
+
+define assemble_application_iphoneos #(target, configuration)
+build/${1}/${2}-iphoneos/${TARGET_NAME_${1}}.app/${TARGET_NAME_${1}}: ${THIN_BINARIES_${1}_${2}_iphoneos}
+	${call create_app_bundle,${1},iphoneos,$${dir $$@},$${dir $$@},$${dir $$@}}
+	lipo -create -output $$@ $$^
+endef
+
+define assemble_application_linux #(target, configuration)
+build/${1}/${2}-linux/${TARGET_NAME_${1}}: ${THIN_BINARIES_${1}_${2}_linux}
 	mkdir -p $${dir $$@}
 	cp $$^ $$@
 endef
 
-define assemble_application_windows #(target, configuration, platform)
-build/${1}/${2}-${3}/${TARGET_NAME_${1}}.exe: ${THIN_BINARIES_${1}_${2}_${3}}
+define assemble_application_windows #(target, configuration)
+build/${1}/${2}-windows/${TARGET_NAME_${1}}.exe: ${THIN_BINARIES_${1}_${2}_windows}
 	mkdir -p $${dir $$@}
 	cp $$^ $$@
 endef
@@ -358,66 +373,86 @@ endef
 ${foreach target,${APPLICATION_TARGETS}, \
 	${foreach configuration,${CONFIGURATIONS_${target}}, \
 		${foreach platform,${PLATFORMS_${target}}, \
-			${eval ${call assemble_application_${HOST_PLATFORM},${target},${configuration},${platform}}} \
+			${eval ${call assemble_application_${platform},${target},${configuration}}} \
 		} \
 	} \
 }
 
-define library_target_template_macosx #(target)
-.PHONY: ${1}
-${1}: ${foreach configuration,${CONFIGURATIONS_${1}},${foreach platform,${PLATFORMS_${1}},build/${1}/${configuration}-${platform}/${TARGET_NAME_${1}}.a}}
+define library_template_macosx #(target, configuration)
+	build/${1}/${2}-macosx/${TARGET_NAME_${1}}.a
 endef
 
-define library_target_template_linux #(target)
-.PHONY: ${1}
-${1}: ${foreach configuration,${CONFIGURATIONS_${1}},${foreach platform,${PLATFORMS_${1}},build/${1}/${configuration}-${platform}/${TARGET_NAME_${1}}.a}}
+define library_template_iphonesimulator #(target, configuration)
+	build/${1}/${2}-iphonesimulator/${TARGET_NAME_${1}}.a
 endef
 
-define library_target_template_windows #(target)
-.PHONY: ${1}
-${1}: ${foreach configuration,${CONFIGURATIONS_${1}},${foreach platform,${PLATFORMS_${1}},build/${1}/${configuration}-${platform}/${TARGET_NAME_${1}}.a}}
+define library_template_iphoneos #(target, configuration)
+	build/${1}/${2}-iphoneos/${TARGET_NAME_${1}}.a
 endef
 
-define executable_target_template_macosx #(target)
-.PHONY: ${1}
-${1}: ${foreach configuration,${CONFIGURATIONS_${1}},${foreach platform,${PLATFORMS_${1}},build/${1}/${configuration}-${platform}/${TARGET_NAME_${1}}}}
+define library_template_linux #(target, configuration)
+	build/${1}/${2}-linux/${TARGET_NAME_${1}}.a
 endef
 
-define executable_target_template_linux #(target)
-.PHONY: ${1}
-${1}: ${foreach configuration,${CONFIGURATIONS_${1}},${foreach platform,${PLATFORMS_${1}},build/${1}/${configuration}-${platform}/${TARGET_NAME_${1}}}}
+define library_template_windows #(target, configuration)
+	build/${1}/${2}-windows/${TARGET_NAME_${1}}.a
 endef
 
-define executable_target_template_windows #(target)
-.PHONY: ${1}
-${1}: ${foreach configuration,${CONFIGURATIONS_${1}},${foreach platform,${PLATFORMS_${1}},build/${1}/${configuration}-${platform}/${TARGET_NAME_${1}}.exe}}
+define executable_template_macosx #(target, configuration)
+	build/${1}/${2}-macosx/${TARGET_NAME_${1}}
 endef
 
-define application_target_template_macosx #(target)
-.PHONY: ${1}
-${1}: ${foreach configuration,${CONFIGURATIONS_${1}},${foreach platform,${PLATFORMS_${1}},build/${1}/${configuration}-${platform}/${TARGET_NAME_${1}}.app/Contents/MacOS/${TARGET_NAME_${1}}}}
+define executable_template_iphonesimulator #(target, configuration)
+	build/${1}/${2}-iphonesimulator/${TARGET_NAME_${1}}
 endef
 
-define application_target_template_linux #(target)
-.PHONY: ${1}
-${1}: ${foreach configuration,${CONFIGURATIONS_${1}},${foreach platform,${PLATFORMS_${1}},build/${1}/${configuration}-${platform}/${TARGET_NAME_${1}}}}
+define executable_template_iphoneos #(target, configuration)
+	build/${1}/${2}-iphoneos/${TARGET_NAME_${1}}
 endef
 
-define application_target_template_windows #(target)
+define executable_template_linux #(target, configuration)
+	build/${1}/${2}-linux/${TARGET_NAME_${1}}
+endef
+
+define executable_template_windows #(target, configuration)
+	build/${1}/${2}-windows/${TARGET_NAME_${1}}.exe
+endef
+
+define application_template_macosx #(target, configuration)
+	build/${1}/${2}-macosx/${TARGET_NAME_${1}}.app/Contents/MacOS/${TARGET_NAME_${1}}
+endef
+
+define application_template_iphonesimulator #(target, configuration)
+	build/${1}/${2}-iphonesimulator/${TARGET_NAME_${1}}.app/${TARGET_NAME_${1}}
+endef
+
+define application_template_iphoneos #(target, configuration)
+	build/${1}/${2}-iphoneos/${TARGET_NAME_${1}}.app/${TARGET_NAME_${1}}
+endef
+
+define application_template_linux #(target, configuration)
+	build/${1}/${2}-linux/${TARGET_NAME_${1}}
+endef
+
+define application_template_windows #(target, configuration)
+	build/${1}/${2}-windows/${TARGET_NAME_${1}}.exe
+endef
+
+define target_template #(target, target_type)
 .PHONY: ${1}
-${1}: ${foreach configuration,${CONFIGURATIONS_${1}},${foreach platform,${PLATFORMS_${1}},build/${1}/${configuration}-${platform}/${TARGET_NAME_${1}}.exe}}
+${1}: ${foreach configuration,${CONFIGURATIONS_${1}},${foreach platform,${PLATFORMS_${1}},${call ${2}_template_${platform},${1},${configuration}}}}
 endef
 
 ${foreach target,${LIBRARY_TARGETS}, \
-	${eval ${call library_target_template_${HOST_PLATFORM},${target}}} \
+	${eval ${call target_template,${target},library}} \
 }
 
 ${foreach target,${EXECUTABLE_TARGETS}, \
-	${eval ${call executable_target_template_${HOST_PLATFORM},${target}}} \
+	${eval ${call target_template,${target},executable}} \
 }
 
 ${foreach target,${APPLICATION_TARGETS}, \
-	${eval ${call application_target_template_${HOST_PLATFORM},${target}}} \
+	${eval ${call target_template,${target},application}} \
 }
 
 .PHONY: test
