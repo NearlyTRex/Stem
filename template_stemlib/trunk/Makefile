@@ -483,7 +483,7 @@ source_dist:
 	mkdir -p build/source_dist/test_source/unittest/suites
 	
 	${call filter_source_dist_file,Makefile,build/source_dist/Makefile}
-	cp Changes.txt License.txt version build/source_dist
+	cp Changes.txt License.txt ReadMe.txt version build/source_dist
 	
 	cp source/* build/source_dist/source
 	
