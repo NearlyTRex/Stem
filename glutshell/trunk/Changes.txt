@@ -1,0 +1,5 @@
+0.1.0
+ * Updated shell implementation for newly-defined Shell_isFullScreen(), Shell_setFullScreen(), Shell_getBatteryState(), and Shell_getBatteryLevel()
+ * Updated test harness to expose new shell functions
+ * Updated Makefile to match improvements made to template_stemlib
+ * Added Changes.txt, License.txt, ReadMe.txt

@@ -17,9 +17,7 @@ TARGET_PLATFORMS_windows = windows
 include version
 
 PROJECT_NAME = glutshell
-IPHONESIMULATOR_APPLICATIONS_DIR = ${HOME}/Library/Application Support/iPhone Simulator/User/Applications
-CODESIGN_IDENTITY = "iPhone Developer"
-SVNROOT = http://sacredsoftware.net/svn/misc
+SVNROOT = http://sacredsoftware.net/svn/misc#master_source_only
 
 LIBRARY_TARGETS = library
 EXECUTABLE_TARGETS = 
@@ -30,7 +28,7 @@ PLATFORMS = ${filter ${TARGET_PLATFORMS_${HOST_PLATFORM}},macosx linux windows}
 ARCHS = ppc i386 i686 x86_64 armv6 armv7
 
 TARGET_NAME_library = libstemshell_glut
-TARGET_NAME_testharness = testharness
+TARGET_NAME_testharness = glutshell_testharness
 
 #Per-target configurations
 CONFIGURATIONS_library = debug profile release
@@ -82,10 +80,14 @@ LIBRARY_LINKFLAGS =
 OTHER_LINKFLAGS = 
 LINKFLAGS = ${FRAMEWORK_LINKFLAGS} ${LIBRARY_LINKFLAGS} ${OTHER_LINKFLAGS}
 
+#Per-target depencies
+
+LIBRARY_DEPENDENCIES_testharness =
+
 #Per-target source file lists
 
 SOURCES_library = \
-	source/GLUTShell.c
+	source/glutshell/GLUTShell.c
 
 SOURCES_testharness = \
 	test_source/testharness/TestHarness_main.c
@@ -166,12 +168,19 @@ build/intermediate/${2}-${3}-${4}/${5}: ${call arch_object_list_template,${1},${
 	${CC_${3}_${4}} -o $$@ $$^ ${LINKFLAGS} ${LINKFLAGS_${3}}
 endef
 
+define library_dependency_template #(target, configuration, platform)
+	build/library/debug-${3}/${TARGET_NAME_library}.a \
+	${foreach library,${LIBRARY_DEPENDENCIES_${1}}, \
+		lib/${dir ${library}}${configuration}-${platform}/${notdir ${library}} \
+	}
+endef
+
 #Produces executable build targets for each arch/platform/target for executable and application targets
 ${foreach target,${EXECUTABLE_TARGETS} ${APPLICATION_TARGETS}, \
 	${foreach configuration,${CONFIGURATIONS_${target}}, \
 		${foreach platform,${PLATFORMS_${target}}, \
 			${foreach arch,${ARCHS_${platform}}, \
-				${eval ${call executable_template,${target},${configuration},${platform},${arch},${TARGET_NAME_${target}},build/library/debug-${platform}/${TARGET_NAME_library}.a}} \
+				${eval ${call executable_template,${target},${configuration},${platform},${arch},${TARGET_NAME_${target}},${call library_dependency_template,${target},${configuration},${platform}}}} \
 			} \
 		} \
 	} \
@@ -270,30 +279,33 @@ ${foreach target,${EXECUTABLE_TARGETS}, \
 
 PLIST_FILE_testharness_macosx = test_resources/Info_testharness_macosx.plist
 
-define assemble_application_macosx #(target, configuration, platform)
-build/${1}/${2}-${3}/${TARGET_NAME_${1}}.app/Contents/MacOS/${TARGET_NAME_${1}}: ${THIN_BINARIES_${1}_${2}_${3}}
-	mkdir -p $${dir $$@}
-	mkdir -p $${dir $$@}../Resources
+define create_app_bundle #(target, platform, executable_dir, plist_dir, resources_dir)
+	mkdir -p ${3} ${4} ${5}
 	sed -e "s/\$$$${PRODUCT_NAME}/${TARGET_NAME_${1}}/g" \
 	    -e "s/\$$$${VERSION}/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_TWEAK}/g" \
 	    -e "s/\$$$${COPYRIGHT_YEAR}/"`date +%Y`"/g" \
 	    -e "s/\$$$${BUILD_NUMBER}/0/g" \
-	    -e "s/\$$$${PLATFORM_CASED}/${PLIST_PLATFORM_CASED_${3}}/g" \
-	    -e "s/\$$$${PLATFORM_LOWER}/${PLIST_PLATFORM_LOWER_${3}}/g" \
-	    -e "s/\$$$${SDK}/${PLIST_SDK_NAME_${3}}/g" \
-	    ${PLIST_FILE_${1}_${3}} > $${dir $$@}/../Info.plist
-	echo "APPL????" > $${dir $$@}../PkgInfo
+	    -e "s/\$$$${PLATFORM_CASED}/${PLIST_PLATFORM_CASED_${2}}/g" \
+	    -e "s/\$$$${PLATFORM_LOWER}/${PLIST_PLATFORM_LOWER_${2}}/g" \
+	    -e "s/\$$$${SDK}/${PLIST_SDK_NAME_${2}}/g" \
+	    ${PLIST_FILE_${1}_${2}} > ${4}/Info.plist
+	echo "APPL????" > ${4}/PkgInfo
+endef
+
+define assemble_application_macosx #(target, configuration)
+build/${1}/${2}-macosx/${TARGET_NAME_${1}}.app/Contents/MacOS/${TARGET_NAME_${1}}: ${THIN_BINARIES_${1}_${2}_macosx}
+	${call create_app_bundle,${1},macosx,$${dir $$@},$${dir $$@}../,$${dir $$@}../Resources/}
 	lipo -create -output $$@ $$^
 endef
 
-define assemble_application_linux #(target, configuration, platform)
-build/${1}/${2}-${3}/${TARGET_NAME_${1}}: ${THIN_BINARIES_${1}_${2}_${3}}
+define assemble_application_linux #(target, configuration)
+build/${1}/${2}-linux/${TARGET_NAME_${1}}: ${THIN_BINARIES_${1}_${2}_linux}
 	mkdir -p $${dir $$@}
 	cp $$^ $$@
 endef
 
-define assemble_application_windows #(target, configuration, platform)
-build/${1}/${2}-${3}/${TARGET_NAME_${1}}.exe: ${THIN_BINARIES_${1}_${2}_${3}}
+define assemble_application_windows #(target, configuration)
+build/${1}/${2}-windows/${TARGET_NAME_${1}}.exe: ${THIN_BINARIES_${1}_${2}_windows}
 	mkdir -p $${dir $$@}
 	cp $$^ $$@
 endef
@@ -302,71 +314,74 @@ endef
 ${foreach target,${APPLICATION_TARGETS}, \
 	${foreach configuration,${CONFIGURATIONS_${target}}, \
 		${foreach platform,${PLATFORMS_${target}}, \
-			${eval ${call assemble_application_${HOST_PLATFORM},${target},${configuration},${platform}}} \
+			${eval ${call assemble_application_${platform},${target},${configuration}}} \
 		} \
 	} \
 }
 
-define library_target_template_macosx #(target)
-.PHONY: ${1}
-${1}: ${foreach configuration,${CONFIGURATIONS_${1}},${foreach platform,${PLATFORMS_${1}},build/${1}/${configuration}-${platform}/${TARGET_NAME_${1}}.a}}
+define library_template_macosx #(target, configuration)
+	build/${1}/${2}-macosx/${TARGET_NAME_${1}}.a
 endef
 
-define library_target_template_linux #(target)
-.PHONY: ${1}
-${1}: ${foreach configuration,${CONFIGURATIONS_${1}},${foreach platform,${PLATFORMS_${1}},build/${1}/${configuration}-${platform}/${TARGET_NAME_${1}}.a}}
+define library_template_linux #(target, configuration)
+	build/${1}/${2}-linux/${TARGET_NAME_${1}}.a
 endef
 
-define library_target_template_windows #(target)
-.PHONY: ${1}
-${1}: ${foreach configuration,${CONFIGURATIONS_${1}},${foreach platform,${PLATFORMS_${1}},build/${1}/${configuration}-${platform}/${TARGET_NAME_${1}}.a}}
+define library_template_windows #(target, configuration)
+	build/${1}/${2}-windows/${TARGET_NAME_${1}}.a
 endef
 
-define executable_target_template_macosx #(target)
-.PHONY: ${1}
-${1}: ${foreach configuration,${CONFIGURATIONS_${1}},${foreach platform,${PLATFORMS_${1}},build/${1}/${configuration}-${platform}/${TARGET_NAME_${1}}}}
+define executable_template_macosx #(target, configuration)
+	build/${1}/${2}-macosx/${TARGET_NAME_${1}}
 endef
 
-define executable_target_template_linux #(target)
-.PHONY: ${1}
-${1}: ${foreach configuration,${CONFIGURATIONS_${1}},${foreach platform,${PLATFORMS_${1}},build/${1}/${configuration}-${platform}/${TARGET_NAME_${1}}}}
+define executable_template_linux #(target, configuration)
+	build/${1}/${2}-linux/${TARGET_NAME_${1}}
 endef
 
-define executable_target_template_windows #(target)
-.PHONY: ${1}
-${1}: ${foreach configuration,${CONFIGURATIONS_${1}},${foreach platform,${PLATFORMS_${1}},build/${1}/${configuration}-${platform}/${TARGET_NAME_${1}}.exe}}
+define executable_template_windows #(target, configuration)
+	build/${1}/${2}-windows/${TARGET_NAME_${1}}.exe
 endef
 
-define application_target_template_macosx #(target)
-.PHONY: ${1}
-${1}: ${foreach configuration,${CONFIGURATIONS_${1}},${foreach platform,${PLATFORMS_${1}},build/${1}/${configuration}-${platform}/${TARGET_NAME_${1}}.app/Contents/MacOS/${TARGET_NAME_${1}}}}
+define application_template_macosx #(target, configuration)
+	build/${1}/${2}-macosx/${TARGET_NAME_${1}}.app/Contents/MacOS/${TARGET_NAME_${1}}
 endef
 
-define application_target_template_linux #(target)
-.PHONY: ${1}
-${1}: ${foreach configuration,${CONFIGURATIONS_${1}},${foreach platform,${PLATFORMS_${1}},build/${1}/${configuration}-${platform}/${TARGET_NAME_${1}}}}
+define application_template_linux #(target, configuration)
+	build/${1}/${2}-linux/${TARGET_NAME_${1}}
 endef
 
-define application_target_template_windows #(target)
+define application_template_windows #(target, configuration)
+	build/${1}/${2}-windows/${TARGET_NAME_${1}}.exe
+endef
+
+define target_template #(target, target_type)
 .PHONY: ${1}
-${1}: ${foreach configuration,${CONFIGURATIONS_${1}},${foreach platform,${PLATFORMS_${1}},build/${1}/${configuration}-${platform}/${TARGET_NAME_${1}}.exe}}
+${1}: ${foreach configuration,${CONFIGURATIONS_${1}},${foreach platform,${PLATFORMS_${1}},${call ${2}_template_${platform},${1},${configuration}}}}
 endef
 
 ${foreach target,${LIBRARY_TARGETS}, \
-	${eval ${call library_target_template_${HOST_PLATFORM},${target}}} \
+	${eval ${call target_template,${target},library}} \
 }
 
 ${foreach target,${EXECUTABLE_TARGETS}, \
-	${eval ${call executable_target_template_${HOST_PLATFORM},${target}}} \
+	${eval ${call target_template,${target},executable}} \
 }
 
 ${foreach target,${APPLICATION_TARGETS}, \
-	${eval ${call application_target_template_${HOST_PLATFORM},${target}}} \
+	${eval ${call target_template,${target},application}} \
 }
 
+.PHONY: clean
+clean:
+	rm -rf build
+	rm -rf dist
+	rm -rf dist_append
+#master_source_only_begin
 .PHONY: full_dist
 full_dist: clean all
-	mkdir dist dist/library dist/testharness
+	mkdir dist dist/include dist/library dist/testharness
+	cp -r build/include/* dist/include
 	cp -r build/library/* dist/library
 	cp -r build/testharness/* dist/testharness
 	svn import --no-ignore -m "Automated release from ${HOST_PLATFORM}" dist ${SVNROOT}/Releases/${PROJECT_NAME}/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_TWEAK}
@@ -379,8 +394,24 @@ append_dist: clean all
 	svn add --no-ignore dist_append/library/* dist_append/testharness/*
 	svn commit -m "Automated release append from ${HOST_PLATFORM}" dist_append
 
-.PHONY: clean
-clean:
-	rm -rf build
-	rm -rf dist
-	rm -rf dist_append
+define filter_source_dist_file #(infile, outfile)
+	ruby -e "print STDIN.read.gsub(/^.*#master_source_only\b.*$\n?/, '').gsub(/\n?#master_source_only_begin[\s\S]*?#master_source_only_end/, '').gsub(/#source_dist_only/, '')" < "${1}" > "${2}"
+endef
+
+.PHONY: source_dist
+source_dist:
+	mkdir -p build/source_dist/source/glutshell
+	mkdir -p build/source_dist/source/shell
+	mkdir -p build/source_dist/test_resources
+	mkdir -p build/source_dist/test_source/testharness
+	
+	${call filter_source_dist_file,Makefile,build/source_dist/Makefile}
+	cp Changes.txt License.txt ReadMe.txt version build/source_dist
+	
+	cp source/glutshell/* build/source_dist/source/glutshell
+	cp include/shell/* build/source_dist/source/shell
+	
+	cp test_resources/* build/source_dist/test_resources
+	
+	cp test_source/testharness/* build/source_dist/test_source/testharness
+#master_source_only_end

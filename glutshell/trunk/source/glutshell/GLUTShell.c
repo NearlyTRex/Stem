@@ -21,10 +21,16 @@
 #include <windows.h>
 #endif
 
+#include "shell/ShellBatteryInfo.h"
 #include "shell/ShellKeyCodes.h"
 #include "shell/Target.h"
 
 static int buttonMask = 0;
+static bool inFullScreenMode = false;
+static unsigned int lastWindowWidth = 800;
+static unsigned int lastWindowHeight = 600;
+static unsigned int lastWindowX = 2;
+static unsigned int lastWindowY = 28;
 
 void Shell_mainLoop() {
 	glutMainLoop();
@@ -32,6 +38,26 @@ void Shell_mainLoop() {
 
 void Shell_redisplay() {
 	glutPostRedisplay();
+}
+
+bool Shell_isFullScreen() {
+	return inFullScreenMode;
+}
+
+bool Shell_setFullScreen(bool fullScreen) {
+	if (fullScreen && !inFullScreenMode) {
+		inFullScreenMode = true;
+		lastWindowX = glutGet(GLUT_WINDOW_X);
+		lastWindowY = glutGet(GLUT_WINDOW_Y);
+		glutFullScreen();
+		
+	} else if (!fullScreen && inFullScreenMode) {
+		glutReshapeWindow(lastWindowWidth, lastWindowHeight);
+		glutPositionWindow(lastWindowX, lastWindowY);
+		inFullScreenMode = false;
+	}
+	
+	return true;
 }
 
 double Shell_getCurrentTime() {
@@ -79,6 +105,14 @@ const char * Shell_getResourcePath() {
 #endif
 }
 
+enum ShellBatteryState Shell_getBatteryState() {
+	return ShellBatteryState_unknown;
+}
+
+float Shell_getBatteryLevel() {
+	return -1.0f;
+}
+
 static void displayFunc() {
 	GLenum error;
 	
@@ -92,6 +126,11 @@ static void displayFunc() {
 }
 
 static void reshapeFunc(int newWidth, int newHeight) {
+	if (!inFullScreenMode) {
+		lastWindowWidth = newWidth;
+		lastWindowHeight = newHeight;
+	}
+	
 	Target_resized(newWidth, newHeight);
 	
 #ifndef __APPLE__
@@ -363,8 +402,8 @@ int main(int argc, char ** argv) {
 	glutInit(&argc, argv);
 	
 	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH);
-	glutInitWindowPosition(2, 28);
-	glutInitWindowSize(800, 600);
+	glutInitWindowPosition(lastWindowX, lastWindowY);
+	glutInitWindowSize(lastWindowWidth, lastWindowHeight);
 	glutCreateWindow(Target_getName());
 	
 	glutReshapeFunc(reshapeFunc);
