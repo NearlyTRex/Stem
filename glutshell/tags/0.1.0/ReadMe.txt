@@ -1,0 +1,1 @@
+GLUTShell is an implementation of a stem shell using GLUT, that builds for for Mac OS X, Windows, and Linux. Although it is not recommended that this shell be used for final products, it is reasonably complete; the only conspicuously missing feature is battery info.
