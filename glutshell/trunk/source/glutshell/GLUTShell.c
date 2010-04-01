@@ -52,8 +52,8 @@ bool Shell_setFullScreen(bool fullScreen) {
 		glutFullScreen();
 		
 	} else if (!fullScreen && inFullScreenMode) {
-		glutReshapeWindow(lastWindowWidth, lastWindowHeight);
 		glutPositionWindow(lastWindowX, lastWindowY);
+		glutReshapeWindow(lastWindowWidth, lastWindowHeight);
 		inFullScreenMode = false;
 	}
 	
