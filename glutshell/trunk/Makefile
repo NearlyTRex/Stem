@@ -381,7 +381,6 @@ clean:
 .PHONY: full_dist
 full_dist: clean all
 	mkdir dist dist/include dist/library dist/testharness
-	cp -r build/include/* dist/include
 	cp -r build/library/* dist/library
 	cp -r build/testharness/* dist/testharness
 	svn import --no-ignore -m "Automated release from ${HOST_PLATFORM}" dist ${SVNROOT}/Releases/${PROJECT_NAME}/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_TWEAK}
