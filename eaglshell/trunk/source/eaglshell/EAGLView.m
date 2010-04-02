@@ -1,6 +1,7 @@
 #import "eaglshell/EAGLView.h"
 #import <QuartzCore/QuartzCore.h>
 #include "shell/Target.h"
+#include "eaglshell/EAGLTarget.h"
 
 #ifndef __IPHONE_3_1
 @interface CADisplayLink : NSObject {
@@ -40,6 +41,16 @@
 		// TODO: kEAGLRenderingAPIOpenGLES2
 		context = [[EAGLContext alloc] initWithAPI: kEAGLRenderingAPIOpenGLES1];
 		
+		[EAGLContext setCurrentContext: context];
+		glGenFramebuffersOES(1, &framebuffer);
+		glGenRenderbuffersOES(1, &renderbuffer);
+		glGenRenderbuffersOES(1, &depthbuffer);
+		glBindFramebufferOES(GL_FRAMEBUFFER_OES, framebuffer);
+		glBindRenderbufferOES(GL_RENDERBUFFER_OES, renderbuffer);
+		glFramebufferRenderbufferOES(GL_FRAMEBUFFER_OES, GL_COLOR_ATTACHMENT0_OES, GL_RENDERBUFFER_OES, renderbuffer);
+		glBindRenderbufferOES(GL_RENDERBUFFER_OES, depthbuffer);
+		glFramebufferRenderbufferOES(GL_FRAMEBUFFER_OES, GL_DEPTH_ATTACHMENT_OES, GL_RENDERBUFFER_OES, depthbuffer);
+		
 		animating = NO;
 		displayLinkSupported = [[[UIDevice currentDevice] systemVersion] compare: @"3.1" options: NSNumericSearch] != NSOrderedAscending;
 		displayLinkSupported = NO;
@@ -64,21 +75,18 @@
 	GLint backingHeight;
 	
 	[EAGLContext setCurrentContext: context];
-	
-	glGenFramebuffersOES(1, &framebuffer);
-	glGenRenderbuffersOES(1, &renderbuffer);
-	glBindFramebufferOES(GL_FRAMEBUFFER_OES, framebuffer);
 	glBindRenderbufferOES(GL_RENDERBUFFER_OES, renderbuffer);
 	[context renderbufferStorage: GL_RENDERBUFFER_OES fromDrawable: (CAEAGLLayer *) self.layer];
-	glFramebufferRenderbufferOES(GL_FRAMEBUFFER_OES, GL_COLOR_ATTACHMENT0_OES, GL_RENDERBUFFER_OES, renderbuffer);
 	
 	glGetRenderbufferParameterivOES(GL_RENDERBUFFER_OES, GL_RENDERBUFFER_WIDTH_OES, &backingWidth);
 	glGetRenderbufferParameterivOES(GL_RENDERBUFFER_OES, GL_RENDERBUFFER_HEIGHT_OES, &backingHeight);
 	
-	glGenRenderbuffersOES(1, &depthbuffer);
 	glBindRenderbufferOES(GL_RENDERBUFFER_OES, depthbuffer);
 	glRenderbufferStorageOES(GL_RENDERBUFFER_OES, GL_DEPTH_COMPONENT16_OES, backingWidth, backingHeight);
-	glFramebufferRenderbufferOES(GL_FRAMEBUFFER_OES, GL_DEPTH_ATTACHMENT_OES, GL_RENDERBUFFER_OES, depthbuffer);
+	
+	glViewport(0, 0, backingWidth, backingHeight);
+	
+	Target_resized(backingWidth, backingHeight);
 }
 
 - (void) redisplayPosted {
@@ -224,6 +232,7 @@ static unsigned int lowestBitIndex(unsigned int value) {
 	unsigned int touchIndex, activeTouchIndex;
 	UITouch * touch;
 	CGPoint location;
+	unsigned int buttonMask = 0;
 	
 	allTouches = [touches allObjects];
 	for (touchIndex = 0; touchIndex < [allTouches count]; touchIndex++) {
@@ -232,6 +241,7 @@ static unsigned int lowestBitIndex(unsigned int value) {
 		
 		for (activeTouchIndex = 0; activeTouchIndex < activeTouchCount; activeTouchIndex++) {
 			if (activeTouches[activeTouchIndex].touch == touch) {
+				buttonMask |= 1 << activeTouches[activeTouchIndex].buttonNumber;
 				activeTouchCount--;
 				for (; activeTouchIndex < activeTouchCount; activeTouchIndex++) {
 					activeTouches[activeTouchIndex] = activeTouches[activeTouchIndex + 1];
@@ -239,6 +249,10 @@ static unsigned int lowestBitIndex(unsigned int value) {
 				break;
 			}
 		}
+	}
+	
+	if (buttonMask != 0) {
+		EAGLTarget_touchesCancelled(buttonMask);
 	}
 }
 

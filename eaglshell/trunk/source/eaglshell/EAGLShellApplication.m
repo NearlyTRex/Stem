@@ -2,6 +2,7 @@
 #import "eaglshell/EAGLView.h"
 #include "shell/ShellKeyCodes.h"
 #include "shell/Target.h"
+#include "eaglshell/EAGLTarget.h"
 
 int g_argc = 0;
 char ** g_argv = NULL;
@@ -11,9 +12,11 @@ extern bool mainLoopCalled;
 @implementation EAGLShellApplication
 
 - (void) applicationDidFinishLaunching: (UIApplication *) application {
+	[self setStatusBarOrientation: UIInterfaceOrientationPortrait animated: NO];
 	[self setStatusBarHidden: YES animated: NO];
-	window = [[UIWindow alloc] initWithFrame: CGRectMake(0, 0, 320, 480)];
-	view = [[EAGLView alloc] initWithFrame: CGRectMake(0, 0, 320, 480)];
+	self.applicationSupportsShakeToEdit = NO;
+	window = [[UIWindow alloc] initWithFrame: [UIScreen mainScreen].bounds];
+	view = [[EAGLView alloc] initWithFrame: [UIScreen mainScreen].applicationFrame];
 	textField = [[UITextField alloc] initWithFrame: CGRectMake(0, 0, 0, 0)];
 	textField.text = @" ";
 	textField.delegate = self;
@@ -40,6 +43,14 @@ extern bool mainLoopCalled;
 - (void) applicationWillTerminate: (UIApplication *) application {
 }
 
+- (void) application: (UIApplication *) application didChangeStatusBarOrientation: (UIInterfaceOrientation) oldStatusBarOrientation {
+	[self updateViewFrame];
+}
+
+- (void) application: (UIApplication *) application didChangeStatusBarFrame: (CGRect) oldStatusBarFrame {
+	[self updateViewFrame];
+}
+
 - (void) dealloc {
 	[textField release];
 	[view release];
@@ -61,6 +72,23 @@ extern bool mainLoopCalled;
 
 - (BOOL) isKeyboardVisible {
 	return [textField isFirstResponder];
+}
+
+- (void) updateViewFrame {
+	view.frame = [UIScreen mainScreen].applicationFrame;
+}
+
+- (void) enableAccelerometerWithInterval: (NSTimeInterval) interval {
+	[UIAccelerometer sharedAccelerometer].updateInterval = interval;
+	[UIAccelerometer sharedAccelerometer].delegate = self;
+}
+
+- (void) disableAccelerometer {
+	[UIAccelerometer sharedAccelerometer].delegate = nil;
+}
+
+- (void) accelerometer: (UIAccelerometer *) accelerometer didAccelerate: (UIAcceleration *) acceleration {
+	EAGLTarget_accelerometer(acceleration.x, acceleration.y, acceleration.z);
 }
 
 static unsigned int unicharToShellKeyCode(unichar charCode) {

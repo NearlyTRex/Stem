@@ -24,9 +24,8 @@ bool Shell_isFullScreen() {
 }
 
 bool Shell_setFullScreen(bool fullScreen) {
-	// TODO: Make this generate the appropriate Target_resized() events
-	// Also, in-call status bar should do it too!
 	[[UIApplication sharedApplication] setStatusBarHidden: fullScreen animated: YES];
+	[(EAGLShellApplication *) [UIApplication sharedApplication] updateViewFrame];
 	isFullScreen = fullScreen;
 	return true;
 }
@@ -83,10 +82,6 @@ void EAGLShell_hideKeyboard() {
 	[(EAGLShellApplication *) [UIApplication sharedApplication] hideKeyboard];
 }
 
-void EAGLShell_setBatteryMonitoringEnabled(bool enabled) {
-	[UIDevice currentDevice].batteryMonitoringEnabled = enabled;
-}
-
 void EAGLShell_setOrientation(enum EAGLShellOrientation orientation) {
 	UIInterfaceOrientation interfaceOrientation;
 	BOOL keyboardWasShown;
@@ -116,5 +111,17 @@ void EAGLShell_setOrientation(enum EAGLShellOrientation orientation) {
 	[[UIApplication sharedApplication] setStatusBarOrientation: interfaceOrientation animated: YES];
 	if (keyboardWasShown) {
 		EAGLShell_showKeyboard();
+	}
+}
+
+void EAGLShell_setBatteryMonitoringEnabled(bool enabled) {
+	[UIDevice currentDevice].batteryMonitoringEnabled = enabled;
+}
+
+void EAGLShell_setAccelerometerInterval(double interval) {
+	if (interval <= 0.0) {
+		[(EAGLShellApplication *) [UIApplication sharedApplication] disableAccelerometer];
+	} else {
+		[(EAGLShellApplication *) [UIApplication sharedApplication] enableAccelerometerWithInterval: interval];
 	}
 }

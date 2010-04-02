@@ -1,5 +1,7 @@
 #include "shell/Shell.h"
+#include "shell/Target.h"
 #include "eaglshell/EAGLShell.h"
+#include "eaglshell/EAGLTarget.h"
 
 #include <stdio.h>
 #include "shell/ShellBatteryInfo.h"
@@ -9,6 +11,18 @@
 #import <OpenGLES/ES1/glext.h>
 
 static bool postRedisplayAtEndOfTarget_draw = false;
+static bool darkClearColor = true;
+static unsigned int viewportWidth, viewportHeight;
+static struct {
+	bool active;
+	unsigned int x;
+	unsigned int y;
+} touches[32];
+struct {
+	double x;
+	double y;
+	double z;
+} lastAccelerometerReading;
 
 const char * Target_getName() {
 	return "EAGLShell Test Harness";
@@ -27,23 +41,82 @@ void Target_init(int argc, char ** argv) {
 }
 
 void Target_draw() {
-	static bool darkClearColor = false;
+	GLshort vertices[12];
+	unsigned int touchIndex;
 	
-	darkClearColor = !darkClearColor;
 	if (darkClearColor) {
 		glClearColor(0.0f, 0.25f, 0.5f, 0.0f);
 	} else {
-		glClearColor(0.5f, 0.75f, 1.0f, 0.0f);
+		glClearColor(0.25f, 0.5f, 0.75f, 0.0f);
 	}
 	glClear(GL_COLOR_BUFFER_BIT);
 	
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glOrthof(0, viewportWidth, viewportHeight, 0, -1, 1);
+	glMatrixMode(GL_MODELVIEW);
+	
+	if (lastAccelerometerReading.x != 0.0) {
+		vertices[0] = viewportWidth / 3 - 5; vertices[1] = viewportHeight / 2;
+		vertices[2] = viewportWidth / 3 + 5; vertices[3] = viewportHeight / 2;
+		vertices[4] = viewportWidth / 3 + 5; vertices[5] = viewportHeight / 2 + lastAccelerometerReading.x * viewportHeight / 6;
+		vertices[6] = viewportWidth / 3 - 5; vertices[7] = viewportHeight / 2 + lastAccelerometerReading.x * viewportHeight / 6;
+		glVertexPointer(2, GL_SHORT, 0, vertices);
+		glColor4ub(0xFF, 0x00, 0x00, 0xFF);
+		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+	}
+	if (lastAccelerometerReading.y != 0.0) {
+		vertices[0] = viewportWidth / 2 - 5; vertices[1] = viewportHeight / 2;
+		vertices[2] = viewportWidth / 2 + 5; vertices[3] = viewportHeight / 2;
+		vertices[4] = viewportWidth / 2 + 5; vertices[5] = viewportHeight / 2 + lastAccelerometerReading.y * viewportHeight / 6;
+		vertices[6] = viewportWidth / 2 - 5; vertices[7] = viewportHeight / 2 + lastAccelerometerReading.y * viewportHeight / 6;
+		glVertexPointer(2, GL_SHORT, 0, vertices);
+		glColor4ub(0x00, 0xFF, 0x00, 0xFF);
+		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+	}
+	if (lastAccelerometerReading.z != 0.0) {
+		vertices[0] = viewportWidth - viewportWidth / 3 - 5; vertices[1] = viewportHeight / 2;
+		vertices[2] = viewportWidth - viewportWidth / 3 + 5; vertices[3] = viewportHeight / 2;
+		vertices[4] = viewportWidth - viewportWidth / 3 + 5; vertices[5] = viewportHeight / 2 + lastAccelerometerReading.z * viewportHeight / 6;
+		vertices[6] = viewportWidth - viewportWidth / 3 - 5; vertices[7] = viewportHeight / 2 + lastAccelerometerReading.z * viewportHeight / 6;
+		glVertexPointer(2, GL_SHORT, 0, vertices);
+		glColor4ub(0x00, 0x00, 0xFF, 0xFF);
+		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+	}
+	
+	vertices[0] = 0; vertices[1] = 0;
+	vertices[2] = 16; vertices[3] = 0;
+	vertices[4] = 0; vertices[5] = 16;
+	
+	vertices[6] = viewportWidth; vertices[7] = viewportHeight;
+	vertices[8] = viewportWidth - 16; vertices[9] = viewportHeight;
+	vertices[10] = viewportWidth; vertices[11] = viewportHeight - 16;
+	
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glVertexPointer(2, GL_SHORT, 0, vertices);
+	glColor4ub(0xFF, 0xFF, 0xFF, 0xFF);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+	
+	for (touchIndex = 0; touchIndex < 32; touchIndex++) {
+		if (touches[touchIndex].active) {
+			vertices[0] = touches[touchIndex].x - 24; vertices[1] = touches[touchIndex].y - 24;
+			vertices[2] = touches[touchIndex].x - 24; vertices[3] = touches[touchIndex].y + 24;
+			vertices[4] = touches[touchIndex].x + 24; vertices[5] = touches[touchIndex].y + 24;
+			vertices[6] = touches[touchIndex].x + 24; vertices[7] = touches[touchIndex].y - 24;
+			glVertexPointer(2, GL_SHORT, 0, vertices);
+			glColor4ub(0x7F, 0xFF, 0x7F, 0xFF);
+			glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+		}
+	}
+	
 	if (postRedisplayAtEndOfTarget_draw) {
+		darkClearColor = !darkClearColor;
 		Shell_redisplay();
 	}
 }
 
 void Target_keyDown(unsigned int charCode, unsigned int keyCode) {
-	printf("Target_keyDown(%d, %d)\n", charCode, keyCode);
+	printf("Target_keyDown(%d, %d) (What? This should not have been called!)\n", charCode, keyCode);
 }
 
 void Target_keyUp(unsigned int charCode, unsigned int keyCode) {
@@ -65,6 +138,7 @@ void Target_keyUp(unsigned int charCode, unsigned int keyCode) {
 		postRedisplayAtEndOfTarget_draw = false;
 		
 	} else if (keyCode == KEYBOARD_D) {
+		darkClearColor = !darkClearColor;
 		Shell_redisplay();
 		
 	} else if (keyCode == KEYBOARD_F) {
@@ -72,6 +146,17 @@ void Target_keyUp(unsigned int charCode, unsigned int keyCode) {
 		
 	} else if (keyCode == KEYBOARD_G) {
 		printf("Shell_isFullScreen(): %d\n", Shell_isFullScreen());
+		
+	} else if (keyCode == KEYBOARD_Z) {
+		EAGLShell_setAccelerometerInterval(0);
+		lastAccelerometerReading.x = lastAccelerometerReading.y = lastAccelerometerReading.z = 0.0;
+		Shell_redisplay();
+		
+	} else if (keyCode == KEYBOARD_X) {
+		EAGLShell_setAccelerometerInterval(1.0 / 60.0);
+		
+	} else if (keyCode == KEYBOARD_C) {
+		EAGLShell_setAccelerometerInterval(1.0 / 10.0);
 		
 	} else if (keyCode == KEYBOARD_B) {
 		printf("Shell_getBatteryState(): %d\n", Shell_getBatteryState());
@@ -102,21 +187,63 @@ void Target_keyUp(unsigned int charCode, unsigned int keyCode) {
 
 void Target_mouseDown(unsigned int buttonNumber, float x, float y) {
 	printf("Target_mouseDown(%d, %f, %f)\n", buttonNumber, x, y);
+	touches[buttonNumber].active = true;
+	touches[buttonNumber].x = x;
+	touches[buttonNumber].y = y;
+	Shell_redisplay();
 }
 
 void Target_mouseUp(unsigned int buttonNumber, float x, float y) {
 	printf("Target_mouseUp(%d, %f, %f)\n", buttonNumber, x, y);
 	EAGLShell_showKeyboard();
+	touches[buttonNumber].active = false;
+	touches[buttonNumber].x = x;
+	touches[buttonNumber].y = y;
+	Shell_redisplay();
 }
 
 void Target_mouseMoved(float x, float y) {
-	printf("Target_mouseMoved(%f, %f)\n", x, y);
+	printf("Target_mouseMoved(%f, %f) (What? This should not have been called!)\n", x, y);
+}
+
+static unsigned int lowestBitIndex(unsigned int value) {
+	// See http://graphics.stanford.edu/~seander/bithacks.html#ZerosOnRightModLookup
+	
+	static const int mod37BitPosition[] = {
+	  32, 0, 1, 26, 2, 23, 27, 0, 3, 16, 24, 30, 28, 11, 0, 13, 4,
+	  7, 17, 0, 25, 22, 31, 15, 29, 10, 12, 6, 0, 21, 14, 9, 5,
+	  20, 8, 19, 18
+	};
+	return mod37BitPosition[(-value & value) % 37];
 }
 
 void Target_mouseDragged(unsigned int buttonMask, float x, float y) {
 	printf("Target_mouseDragged(0x%X, %f, %f)\n", buttonMask, x, y);
+	touches[lowestBitIndex(buttonMask)].x = x;
+	touches[lowestBitIndex(buttonMask)].y = y;
+	Shell_redisplay();
 }
 
 void Target_resized(unsigned int newWidth, unsigned int newHeight) {
 	printf("Target_resized(%d, %d)\n", newWidth, newHeight);
+	viewportWidth = newWidth;
+	viewportHeight = newHeight;
+}
+
+void EAGLTarget_touchesCancelled(unsigned int buttonMask) {
+	unsigned int buttonNumber;
+	
+	printf("EAGLTarget_touchesCancelled(0x%X)\n", buttonMask);
+	for (buttonNumber = 0; buttonNumber < 32; buttonNumber++) {
+		if (buttonMask & (1 << buttonNumber)) {
+			touches[buttonNumber].active = false;
+		}
+	}
+}
+
+void EAGLTarget_accelerometer(double x, double y, double z) {
+	lastAccelerometerReading.x = x;
+	lastAccelerometerReading.y = y;
+	lastAccelerometerReading.z = z;
+	Shell_redisplay();
 }
