@@ -17,7 +17,10 @@ TARGET_PLATFORMS_windows = windows
 include version
 
 PROJECT_NAME = template_stemlib
+IPHONE_SDK_VERSION = 3.1
 IPHONESIMULATOR_APPLICATIONS_DIR = ${HOME}/Library/Application Support/iPhone Simulator/User/Applications
+RESOURCE_RULES_PLIST = /Developer/Platforms/MacOSX.platform/ResourceRules.plist
+IPHONESIMULATOR_PATH = "/Developer/Platforms/iPhoneSimulator.platform/Developer/Applications/iPhone Simulator.app"
 CODESIGN_IDENTITY = "iPhone Developer"
 SVNROOT = http://sacredsoftware.net/svn/misc#master_source_only
 
@@ -32,6 +35,7 @@ ARCHS = ppc i386 i686 x86_64 armv6 armv7
 TARGET_NAME_library = libstem_template
 TARGET_NAME_unittest = template_unittest
 TARGET_NAME_testharness = template_testharness
+HUMAN_READABLE_TARGET_NAME_testharness = StemTemplate
 
 #Per-target configurations
 CONFIGURATIONS_library = debug profile release
@@ -65,7 +69,7 @@ LINKFLAGS_macosx = -isysroot ${SDKROOT_macosx} -mmacosx-version-min=10.5
 CC_iphonesimulator_i386 = /Developer/Platforms/iPhoneSimulator.platform/Developer/usr/bin/gcc-4.2 -arch i386
 AR_iphonesimulator = /Developer/Platforms/iPhoneSimulator.platform/Developer/usr/bin/ar
 RANLIB_iphonesimulator = /Developer/Platforms/iPhoneSimulator.platform/Developer/usr/bin/ranlib
-SDKROOT_iphonesimulator = /Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator3.0.sdk
+SDKROOT_iphonesimulator = /Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator${IPHONE_SDK_VERSION}.sdk
 ARCHS_iphonesimulator = i386
 CCFLAGS_iphonesimulator = -isysroot ${SDKROOT_iphonesimulator} -mmacosx-version-min=10.5 -D__IPHONE_OS_VERSION_MIN_REQUIRED=30000
 LINKFLAGS_iphonesimulator = -isysroot ${SDKROOT_iphonesimulator} -mmacosx-version-min=10.5
@@ -74,10 +78,10 @@ CC_iphoneos_armv6 = /Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/gcc
 CC_iphoneos_armv7 = /Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/gcc-4.2 -arch armv7
 AR_iphoneos = /Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/ar
 RANLIB_iphoneos = /Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/ranlib
-SDKROOT_iphoneos = /Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.0.sdk
+SDKROOT_iphoneos = /Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS${IPHONE_SDK_VERSION}.sdk
 ARCHS_iphoneos = armv6 armv7
-CCFLAGS_iphoneos = -isysroot ${SDKROOT_iphoneos} -miphoneos-version-min=3.0
-LINKFLAGS_iphoneos = -isysroot ${SDKROOT_iphoneos} -miphoneos-version-min=3.0
+CCFLAGS_iphoneos = -isysroot ${SDKROOT_iphoneos} -miphoneos-version-min=${IPHONE_SDK_VERSION}
+LINKFLAGS_iphoneos = -isysroot ${SDKROOT_iphoneos} -miphoneos-version-min=${IPHONE_SDK_VERSION}
 
 CC_linux_i686 = /usr/bin/gcc
 AR_linux = /usr/bin/ar
@@ -105,7 +109,7 @@ LIBRARY_LINKFLAGS =
 OTHER_LINKFLAGS = 
 LINKFLAGS = ${FRAMEWORK_LINKFLAGS} ${LIBRARY_LINKFLAGS} ${OTHER_LINKFLAGS}
 
-#Per-target depencies
+#Per-target dependencies
 
 LIBRARY_DEPENDENCIES_unittest =
 LIBRARY_DEPENDENCIES_testharness =
@@ -130,6 +134,8 @@ SOURCES = ${sort ${foreach target,${TARGETS},${SOURCES_${target}}}}
 
 INCLUDES = \
 	source/HelloWorld.h
+
+RESOURCES_testharness = 
 
 
 
@@ -319,16 +325,17 @@ PLIST_FILE_testharness_macosx = test_resources/Info_testharness_macosx.plist
 PLIST_FILE_testharness_iphonesimulator = test_resources/Info_testharness_iphone.plist
 PLIST_PLATFORM_CASED_iphonesimulator = iPhoneSimulator
 PLIST_PLATFORM_LOWER_iphonesimulator = iphonesimulator
-PLIST_SDK_NAME_iphonesimulator = iphonesimulator3.0
+PLIST_SDK_NAME_iphonesimulator = iphonesimulator${IPHONE_SDK_VERSION}
 
 PLIST_FILE_testharness_iphoneos = test_resources/Info_testharness_iphone.plist
 PLIST_PLATFORM_CASED_iphoneos = iPhoneOS
 PLIST_PLATFORM_LOWER_iphoneos = iphoneos
-PLIST_SDK_NAME_iphoneos = iphoneos3.0
+PLIST_SDK_NAME_iphoneos = iphoneos${IPHONE_SDK_VERSION}
 
 define create_app_bundle #(target, platform, executable_dir, plist_dir, resources_dir)
 	mkdir -p ${3} ${4} ${5}
 	sed -e "s/\$$$${PRODUCT_NAME}/${TARGET_NAME_${1}}/g" \
+	    -e "s/\$$$${HUMAN_READABLE_PRODUCT_NAME}/${HUMAN_READABLE_TARGET_NAME_${1}}/g" \
 	    -e "s/\$$$${VERSION}/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_TWEAK}/g" \
 	    -e "s/\$$$${COPYRIGHT_YEAR}/"`date +%Y`"/g" \
 	    -e "s/\$$$${BUILD_NUMBER}/0/g" \
@@ -337,36 +344,39 @@ define create_app_bundle #(target, platform, executable_dir, plist_dir, resource
 	    -e "s/\$$$${SDK}/${PLIST_SDK_NAME_${2}}/g" \
 	    ${PLIST_FILE_${1}_${2}} > ${4}/Info.plist
 	echo "APPL????" > ${4}/PkgInfo
+	${foreach resource,${RESOURCES_${1}}, \
+		cp ${resource} ${5}; \
+	}
 endef
 
 define assemble_application_macosx #(target, configuration)
-build/${1}/${2}-macosx/${TARGET_NAME_${1}}.app/Contents/MacOS/${TARGET_NAME_${1}}: ${THIN_BINARIES_${1}_${2}_macosx}
+build/${1}/${2}-macosx/${TARGET_NAME_${1}}.app/Contents/MacOS/${TARGET_NAME_${1}}: ${THIN_BINARIES_${1}_${2}_macosx} ${RESOURCES_${1}}
 	${call create_app_bundle,${1},macosx,$${dir $$@},$${dir $$@}../,$${dir $$@}../Resources/}
-	lipo -create -output $$@ $$^
+	lipo -create -output $$@ ${THIN_BINARIES_${1}_${2}_macosx}
 endef
 
 define assemble_application_iphonesimulator #(target, configuration)
-build/${1}/${2}-iphonesimulator/${TARGET_NAME_${1}}.app/${TARGET_NAME_${1}}: ${THIN_BINARIES_${1}_${2}_iphonesimulator}
+build/${1}/${2}-iphonesimulator/${TARGET_NAME_${1}}.app/${TARGET_NAME_${1}}: ${THIN_BINARIES_${1}_${2}_iphonesimulator} ${RESOURCES_${1}}
 	${call create_app_bundle,${1},iphonesimulator,$${dir $$@},$${dir $$@},$${dir $$@}}
-	lipo -create -output $$@ $$^
+	lipo -create -output $$@ ${THIN_BINARIES_${1}_${2}_iphonesimulator}
 endef
 
 define assemble_application_iphoneos #(target, configuration)
-build/${1}/${2}-iphoneos/${TARGET_NAME_${1}}.app/${TARGET_NAME_${1}}: ${THIN_BINARIES_${1}_${2}_iphoneos}
+build/${1}/${2}-iphoneos/${TARGET_NAME_${1}}.app/${TARGET_NAME_${1}}: ${THIN_BINARIES_${1}_${2}_iphoneos} ${RESOURCES_${1}}
 	${call create_app_bundle,${1},iphoneos,$${dir $$@},$${dir $$@},$${dir $$@}}
-	lipo -create -output $$@ $$^
+	lipo -create -output $$@ ${THIN_BINARIES_${1}_${2}_iphoneos}
 endef
 
 define assemble_application_linux #(target, configuration)
-build/${1}/${2}-linux/${TARGET_NAME_${1}}: ${THIN_BINARIES_${1}_${2}_linux}
+build/${1}/${2}-linux/${TARGET_NAME_${1}}: ${THIN_BINARIES_${1}_${2}_linux} ${RESOURCES_${1}}
 	mkdir -p $${dir $$@}
-	cp $$^ $$@
+	cp ${THIN_BINARIES_${1}_${2}_linux} $$@
 endef
 
 define assemble_application_windows #(target, configuration)
-build/${1}/${2}-windows/${TARGET_NAME_${1}}.exe: ${THIN_BINARIES_${1}_${2}_windows}
+build/${1}/${2}-windows/${TARGET_NAME_${1}}.exe: ${THIN_BINARIES_${1}_${2}_windows} ${RESOURCES_${1}}
 	mkdir -p $${dir $$@}
-	cp $$^ $$@
+	cp ${THIN_BINARIES_${1}_${2}_windows} $$@
 endef
 
 #Produces final application build targets
@@ -488,6 +498,30 @@ clean:
 	rm -rf build
 	rm -rf dist
 	rm -rf dist_append
+
+.PHONY: install_testharness_iphonesimulator
+install_testharness_iphonesimulator: testharness
+	-killall "iPhone Simulator"
+	rm -rf "${IPHONESIMULATOR_APPLICATIONS_DIR}/${TARGET_NAME_testharness}"
+	mkdir -p "${IPHONESIMULATOR_APPLICATIONS_DIR}/${TARGET_NAME_testharness}/Documents"
+	mkdir -p "${IPHONESIMULATOR_APPLICATIONS_DIR}/${TARGET_NAME_testharness}/Library/Preferences"
+	mkdir -p "${IPHONESIMULATOR_APPLICATIONS_DIR}/${TARGET_NAME_testharness}/tmp"
+	cp -r "build/testharness/debug-iphonesimulator/${TARGET_NAME_testharness}.app" "${IPHONESIMULATOR_APPLICATIONS_DIR}/${TARGET_NAME_testharness}"
+	open ${IPHONESIMULATOR_PATH}
+
+define add_blob_header #(source_file, target_file)
+	ruby -e "contents = \"\"; File.open(\"${1}\", \"r\") {|file| contents = file.read}; File.open(\"${2}\", \"w\") {|file| file.write(\"\xFA\xDE\x71\x71\"); file.write([contents.length + 8].pack(\"N\")); file.write(contents)}"
+endef
+
+.PHONY: codesign_testharness_iphoneos
+codesign_testharness_iphoneos: testharness
+	${call add_blob_header,support/Entitlements.plist,build/intermediate/Entitlements.xcent}
+	export CODESIGN_ALLOCATE=/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/codesign_allocate
+	${foreach configuration,${CONFIGURATIONS_testharness},\
+		cp "${RESOURCE_RULES_PLIST}" "build/testharness/${configuration}-iphoneos/${TARGET_NAME_testharness}.app"; \
+		/usr/bin/codesign -f -s ${CODESIGN_IDENTITY} --resource-rules=${RESOURCE_RULES_PLIST} --entitlements=build/intermediate/Entitlements.xcent "build/testharness/${configuration}-iphoneos/${TARGET_NAME_testharness}.app"; \
+	}
+
 #master_source_only_begin
 .PHONY: full_dist
 full_dist: clean all
@@ -512,6 +546,7 @@ endef
 .PHONY: source_dist
 source_dist:
 	mkdir -p build/source_dist/source
+	mkdir -p build/source_dist/support
 	mkdir -p build/source_dist/test_resources
 	mkdir -p build/source_dist/test_source/testharness
 	mkdir -p build/source_dist/test_source/unittest/framework
@@ -522,6 +557,7 @@ source_dist:
 	
 	cp source/* build/source_dist/source
 	
+	cp support/* build/source_dist/support
 	cp test_resources/* build/source_dist/test_resources
 	
 	cp test_source/testharness/* build/source_dist/test_source/testharness
