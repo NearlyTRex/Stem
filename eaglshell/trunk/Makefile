@@ -492,6 +492,7 @@ endef
 source_dist:
 	mkdir -p build/source_dist/source/eaglshell
 	mkdir -p build/source_dist/source/shell
+	mkdir -p build/source_dist/support
 	mkdir -p build/source_dist/test_resources
 	mkdir -p build/source_dist/test_source/testharness
 	
@@ -501,6 +502,7 @@ source_dist:
 	cp source/eaglshell/* build/source_dist/source/eaglshell
 	cp include/shell/* build/source_dist/source/shell
 	
+	cp support/* build/source_dist/support
 	cp test_resources/* build/source_dist/test_resources
 	
 	cp test_source/testharness/* build/source_dist/test_source/testharness
