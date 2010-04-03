@@ -1,4 +1,5 @@
 #import <UIKit/UIKit.h>
+#include "eaglshell/EAGLShell.h"
 
 extern int g_argc;
 extern char ** g_argv;
@@ -10,6 +11,8 @@ extern char ** g_argv;
 	EAGLView * view;
 	UITextField * textField;
 }
+
+- (enum EAGLShellOpenGLVersion) chosenOpenGLVersion;
 
 - (void) redisplayPosted;
 

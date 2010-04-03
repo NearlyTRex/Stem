@@ -10,6 +10,17 @@ enum EAGLShellOrientation {
 	EAGLShellOrientation_deviceUpsideDown
 };
 
+enum EAGLShellOpenGLVersion {
+	EAGLShellOpenGLVersion_invalid = 0x0,
+	EAGLShellOpenGLVersion_ES1 = 0x1,
+	EAGLShellOpenGLVersion_ES2 = 0x2
+};
+
+/** Returns the OpenGL API version that was chosen at initialization time. If your implementation of
+    EAGLTarget_getPreferredOpenGLAPIVersion() requests more than one version, you should call
+    EAGLShell_getOpenGLAPIVersion() to determine which one was actually chosen. */
+enum EAGLShellOpenGLVersion EAGLShell_getOpenGLAPIVersion();
+
 /** Shows the onscreen keyboard on the appropriate side of the screen based on the application's
     orientation. */
 void EAGLShell_showKeyboard();

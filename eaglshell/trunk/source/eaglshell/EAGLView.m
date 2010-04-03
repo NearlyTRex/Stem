@@ -1,6 +1,7 @@
 #import "eaglshell/EAGLView.h"
 #import <QuartzCore/QuartzCore.h>
 #include "shell/Target.h"
+#include "eaglshell/EAGLShell.h"
 #include "eaglshell/EAGLTarget.h"
 
 #ifndef __IPHONE_3_1
@@ -31,6 +32,7 @@
 - (id) initWithFrame: (CGRect) frame {
 	if ((self = [super initWithFrame: frame]) != nil) {
 		CAEAGLLayer * layer;
+		enum EAGLShellOpenGLVersion requestedOpenGLAPIVersion;
 		
 		self.multipleTouchEnabled = YES;
 		
@@ -38,8 +40,24 @@
 		layer.opaque = YES;
 		layer.drawableProperties = [NSDictionary dictionaryWithObjectsAndKeys: [NSNumber numberWithBool: NO], kEAGLDrawablePropertyRetainedBacking, kEAGLColorFormatRGBA8, kEAGLDrawablePropertyColorFormat, nil];
 		
-		// TODO: kEAGLRenderingAPIOpenGLES2
-		context = [[EAGLContext alloc] initWithAPI: kEAGLRenderingAPIOpenGLES1];
+		requestedOpenGLAPIVersion = EAGLTarget_getPreferredOpenGLAPIVersion();
+		if (requestedOpenGLAPIVersion & EAGLShellOpenGLVersion_ES2) {
+			context = [[EAGLContext alloc] initWithAPI: kEAGLRenderingAPIOpenGLES2];
+			if (context != nil) {
+				chosenOpenGLVersion = EAGLShellOpenGLVersion_ES2;
+			}
+		}
+		if (requestedOpenGLAPIVersion & EAGLShellOpenGLVersion_ES1 && context == nil) {
+			context = [[EAGLContext alloc] initWithAPI: kEAGLRenderingAPIOpenGLES1];
+			if (context != nil) {
+				chosenOpenGLVersion = EAGLShellOpenGLVersion_ES1;
+			}
+		}
+		
+		if (context == nil) {
+			[self release];
+			return nil;
+		}
 		
 		[EAGLContext setCurrentContext: context];
 		glGenFramebuffersOES(1, &framebuffer);
@@ -87,6 +105,10 @@
 	glViewport(0, 0, backingWidth, backingHeight);
 	
 	Target_resized(backingWidth, backingHeight);
+}
+
+- (enum EAGLShellOpenGLVersion) chosenOpenGLVersion {
+	return chosenOpenGLVersion;
 }
 
 - (void) redisplayPosted {

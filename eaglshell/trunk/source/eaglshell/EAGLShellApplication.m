@@ -58,6 +58,10 @@ extern bool mainLoopCalled;
 	[super dealloc];
 }
 
+- (enum EAGLShellOpenGLVersion) chosenOpenGLVersion {
+	return [view chosenOpenGLVersion];
+}
+
 - (void) redisplayPosted {
 	[view redisplayPosted];
 }

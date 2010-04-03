@@ -100,6 +100,10 @@ INCLUDES = \
 	source/eaglshell/EAGLShell.h \
 	source/eaglshell/EAGLTarget.h
 
+RESOURCES_testharness = \
+	test_resources/Fragment.frag \
+	test_resources/Vertex.vert
+
 
 
 define configuration_object_list_template #(target, configuration)
@@ -305,36 +309,39 @@ define create_app_bundle #(target, platform, executable_dir, plist_dir, resource
 	    -e "s/\$$$${SDK}/${PLIST_SDK_NAME_${2}}/g" \
 	    ${PLIST_FILE_${1}_${2}} > ${4}/Info.plist
 	echo "APPL????" > ${4}/PkgInfo
+	${foreach resource,${RESOURCES_${1}}, \
+		cp ${resource} ${5}; \
+	}
 endef
 
 define assemble_application_macosx #(target, configuration)
-build/${1}/${2}-macosx/${TARGET_NAME_${1}}.app/Contents/MacOS/${TARGET_NAME_${1}}: ${THIN_BINARIES_${1}_${2}_macosx}
+build/${1}/${2}-macosx/${TARGET_NAME_${1}}.app/Contents/MacOS/${TARGET_NAME_${1}}: ${THIN_BINARIES_${1}_${2}_macosx} ${RESOURCES_${1}}
 	${call create_app_bundle,${1},macosx,$${dir $$@},$${dir $$@}../,$${dir $$@}../Resources/}
-	lipo -create -output $$@ $$^
+	lipo -create -output $$@ ${THIN_BINARIES_${1}_${2}_macosx}
 endef
 
 define assemble_application_iphonesimulator #(target, configuration)
-build/${1}/${2}-iphonesimulator/${TARGET_NAME_${1}}.app/${TARGET_NAME_${1}}: ${THIN_BINARIES_${1}_${2}_iphonesimulator}
+build/${1}/${2}-iphonesimulator/${TARGET_NAME_${1}}.app/${TARGET_NAME_${1}}: ${THIN_BINARIES_${1}_${2}_iphonesimulator} ${RESOURCES_${1}}
 	${call create_app_bundle,${1},iphonesimulator,$${dir $$@},$${dir $$@},$${dir $$@}}
-	lipo -create -output $$@ $$^
+	lipo -create -output $$@ ${THIN_BINARIES_${1}_${2}_iphonesimulator}
 endef
 
 define assemble_application_iphoneos #(target, configuration)
-build/${1}/${2}-iphoneos/${TARGET_NAME_${1}}.app/${TARGET_NAME_${1}}: ${THIN_BINARIES_${1}_${2}_iphoneos}
+build/${1}/${2}-iphoneos/${TARGET_NAME_${1}}.app/${TARGET_NAME_${1}}: ${THIN_BINARIES_${1}_${2}_iphoneos} ${RESOURCES_${1}}
 	${call create_app_bundle,${1},iphoneos,$${dir $$@},$${dir $$@},$${dir $$@}}
-	lipo -create -output $$@ $$^
+	lipo -create -output $$@ ${THIN_BINARIES_${1}_${2}_iphoneos}
 endef
 
 define assemble_application_linux #(target, configuration)
-build/${1}/${2}-linux/${TARGET_NAME_${1}}: ${THIN_BINARIES_${1}_${2}_linux}
+build/${1}/${2}-linux/${TARGET_NAME_${1}}: ${THIN_BINARIES_${1}_${2}_linux} ${RESOURCES_${1}}
 	mkdir -p $${dir $$@}
-	cp $$^ $$@
+	cp ${THIN_BINARIES_${1}_${2}_linux} $$@
 endef
 
 define assemble_application_windows #(target, configuration)
-build/${1}/${2}-windows/${TARGET_NAME_${1}}.exe: ${THIN_BINARIES_${1}_${2}_windows}
+build/${1}/${2}-windows/${TARGET_NAME_${1}}.exe: ${THIN_BINARIES_${1}_${2}_windows} ${RESOURCES_${1}}
 	mkdir -p $${dir $$@}
-	cp $$^ $$@
+	cp ${THIN_BINARIES_${1}_${2}_windows} $$@
 endef
 
 #Produces final application build targets

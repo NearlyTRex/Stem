@@ -74,6 +74,10 @@ float Shell_getBatteryLevel() {
 	return [UIDevice currentDevice].batteryLevel;
 }
 
+enum EAGLShellOpenGLVersion EAGLShell_getOpenGLAPIVersion() {
+	return [(EAGLShellApplication *) [UIApplication sharedApplication] chosenOpenGLVersion];
+}
+
 void EAGLShell_showKeyboard() {
 	[(EAGLShellApplication *) [UIApplication sharedApplication] showKeyboard];
 }

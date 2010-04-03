@@ -3,6 +3,7 @@
 #import <OpenGLES/EAGLDrawable.h>
 #import <OpenGLES/ES1/gl.h>
 #import <OpenGLES/ES1/glext.h>
+#include "eaglshell/EAGLShell.h"
 
 #define ACTIVE_TOUCH_MAX 32
 
@@ -24,8 +25,11 @@
 		CGPoint lastLocation;
 		unsigned int buttonNumber;
 	} activeTouches[ACTIVE_TOUCH_MAX];
+	
+	enum EAGLShellOpenGLVersion chosenOpenGLVersion;
 }
 
+- (enum EAGLShellOpenGLVersion) chosenOpenGLVersion;
 - (void) redisplayPosted;
 - (void) drawView: (id) sender;
 - (void) startAnimation;

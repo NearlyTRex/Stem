@@ -3,12 +3,16 @@
 #include "eaglshell/EAGLShell.h"
 #include "eaglshell/EAGLTarget.h"
 
+#include <limits.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include "shell/ShellBatteryInfo.h"
 #include "shell/ShellKeyCodes.h"
 
 #import <OpenGLES/ES1/gl.h>
 #import <OpenGLES/ES1/glext.h>
+#import <OpenGLES/ES2/gl.h>
+#import <OpenGLES/ES2/glext.h>
 
 static bool postRedisplayAtEndOfTarget_draw = false;
 static bool darkClearColor = true;
@@ -24,6 +28,13 @@ struct {
 	double z;
 } lastAccelerometerReading;
 
+GLuint shaderProgram;
+GLint projectionMatrixUniform;
+GLint modelviewMatrixUniform;
+GLint constantColorUniform;
+
+#define VERTEX_ATTRIB_INDEX 0
+
 const char * Target_getName() {
 	return "EAGLShell Test Harness";
 }
@@ -36,6 +47,59 @@ void Target_init(int argc, char ** argv) {
 		printf(", \"%s\"", argv[argIndex]);
 	}
 	printf(")\n");
+	
+	printf("EAGLShell_getOpenGLAPIVersion(): %d\n", EAGLShell_getOpenGLAPIVersion());
+	
+	if (EAGLShell_getOpenGLAPIVersion() == EAGLShellOpenGLVersion_ES2) {
+		FILE * file;
+		char filePath[PATH_MAX];
+		GLchar * fileContents;
+		GLint fileLength;
+		GLuint vertexShader, fragmentShader;
+		
+		shaderProgram = glCreateProgram();
+		vertexShader = glCreateShader(GL_VERTEX_SHADER);
+		fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+		
+		sprintf(filePath, "%s/%s", Shell_getResourcePath(), "Vertex.vert");
+		file = fopen(filePath, "rb");
+		fseek(file, 0, SEEK_END);
+		fileLength = ftell(file);
+		fseek(file, 0, SEEK_SET);
+		fileContents = malloc(fileLength);
+		fread(fileContents, 1, fileLength, file);
+		fclose(file);
+		glShaderSource(vertexShader, 1, (const GLchar **) &fileContents, &fileLength);
+		free(fileContents);
+		
+		sprintf(filePath, "%s/%s", Shell_getResourcePath(), "Fragment.frag");
+		file = fopen(filePath, "rb");
+		fseek(file, 0, SEEK_END);
+		fileLength = ftell(file);
+		fseek(file, 0, SEEK_SET);
+		fileContents = malloc(fileLength);
+		fread(fileContents, 1, fileLength, file);
+		fclose(file);
+		glShaderSource(fragmentShader, 1, (const GLchar **) &fileContents, &fileLength);
+		free(fileContents);
+		
+		glCompileShader(vertexShader);
+		glCompileShader(fragmentShader);
+		glAttachShader(shaderProgram, vertexShader);
+		glAttachShader(shaderProgram, fragmentShader);
+		glBindAttribLocation(shaderProgram, VERTEX_ATTRIB_INDEX, "vertexPosition");
+		glLinkProgram(shaderProgram);
+		projectionMatrixUniform = glGetUniformLocation(shaderProgram, "projectionMatrix");
+		modelviewMatrixUniform = glGetUniformLocation(shaderProgram, "modelviewMatrix");
+		constantColorUniform = glGetUniformLocation(shaderProgram, "constantColor");
+		glDeleteShader(vertexShader);
+		glDeleteShader(fragmentShader);
+		
+		glEnableVertexAttribArray(VERTEX_ATTRIB_INDEX);
+		
+	} else {
+		glEnableClientState(GL_VERTEX_ARRAY);
+	}
 	
 	Shell_mainLoop();
 }
@@ -51,61 +115,132 @@ void Target_draw() {
 	}
 	glClear(GL_COLOR_BUFFER_BIT);
 	
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	glOrthof(0, viewportWidth, viewportHeight, 0, -1, 1);
-	glMatrixMode(GL_MODELVIEW);
-	
-	if (lastAccelerometerReading.x != 0.0) {
-		vertices[0] = viewportWidth / 3 - 5; vertices[1] = viewportHeight / 2;
-		vertices[2] = viewportWidth / 3 + 5; vertices[3] = viewportHeight / 2;
-		vertices[4] = viewportWidth / 3 + 5; vertices[5] = viewportHeight / 2 + lastAccelerometerReading.x * viewportHeight / 6;
-		vertices[6] = viewportWidth / 3 - 5; vertices[7] = viewportHeight / 2 + lastAccelerometerReading.x * viewportHeight / 6;
-		glVertexPointer(2, GL_SHORT, 0, vertices);
-		glColor4ub(0xFF, 0x00, 0x00, 0xFF);
-		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-	}
-	if (lastAccelerometerReading.y != 0.0) {
-		vertices[0] = viewportWidth / 2 - 5; vertices[1] = viewportHeight / 2;
-		vertices[2] = viewportWidth / 2 + 5; vertices[3] = viewportHeight / 2;
-		vertices[4] = viewportWidth / 2 + 5; vertices[5] = viewportHeight / 2 + lastAccelerometerReading.y * viewportHeight / 6;
-		vertices[6] = viewportWidth / 2 - 5; vertices[7] = viewportHeight / 2 + lastAccelerometerReading.y * viewportHeight / 6;
-		glVertexPointer(2, GL_SHORT, 0, vertices);
-		glColor4ub(0x00, 0xFF, 0x00, 0xFF);
-		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-	}
-	if (lastAccelerometerReading.z != 0.0) {
-		vertices[0] = viewportWidth - viewportWidth / 3 - 5; vertices[1] = viewportHeight / 2;
-		vertices[2] = viewportWidth - viewportWidth / 3 + 5; vertices[3] = viewportHeight / 2;
-		vertices[4] = viewportWidth - viewportWidth / 3 + 5; vertices[5] = viewportHeight / 2 + lastAccelerometerReading.z * viewportHeight / 6;
-		vertices[6] = viewportWidth - viewportWidth / 3 - 5; vertices[7] = viewportHeight / 2 + lastAccelerometerReading.z * viewportHeight / 6;
-		glVertexPointer(2, GL_SHORT, 0, vertices);
-		glColor4ub(0x00, 0x00, 0xFF, 0xFF);
-		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-	}
-	
-	vertices[0] = 0; vertices[1] = 0;
-	vertices[2] = 16; vertices[3] = 0;
-	vertices[4] = 0; vertices[5] = 16;
-	
-	vertices[6] = viewportWidth; vertices[7] = viewportHeight;
-	vertices[8] = viewportWidth - 16; vertices[9] = viewportHeight;
-	vertices[10] = viewportWidth; vertices[11] = viewportHeight - 16;
-	
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glVertexPointer(2, GL_SHORT, 0, vertices);
-	glColor4ub(0xFF, 0xFF, 0xFF, 0xFF);
-	glDrawArrays(GL_TRIANGLES, 0, 6);
-	
-	for (touchIndex = 0; touchIndex < 32; touchIndex++) {
-		if (touches[touchIndex].active) {
-			vertices[0] = touches[touchIndex].x - 24; vertices[1] = touches[touchIndex].y - 24;
-			vertices[2] = touches[touchIndex].x - 24; vertices[3] = touches[touchIndex].y + 24;
-			vertices[4] = touches[touchIndex].x + 24; vertices[5] = touches[touchIndex].y + 24;
-			vertices[6] = touches[touchIndex].x + 24; vertices[7] = touches[touchIndex].y - 24;
+	if (EAGLShell_getOpenGLAPIVersion() == EAGLShellOpenGLVersion_ES1) {
+		glMatrixMode(GL_PROJECTION);
+		glLoadIdentity();
+		glOrthof(0, viewportWidth, viewportHeight, 0, -1, 1);
+		glMatrixMode(GL_MODELVIEW);
+		
+		if (lastAccelerometerReading.x != 0.0) {
+			vertices[0] = viewportWidth / 3 - 5; vertices[1] = viewportHeight / 2;
+			vertices[2] = viewportWidth / 3 + 5; vertices[3] = viewportHeight / 2;
+			vertices[4] = viewportWidth / 3 + 5; vertices[5] = viewportHeight / 2 + lastAccelerometerReading.x * viewportHeight / 6;
+			vertices[6] = viewportWidth / 3 - 5; vertices[7] = viewportHeight / 2 + lastAccelerometerReading.x * viewportHeight / 6;
 			glVertexPointer(2, GL_SHORT, 0, vertices);
-			glColor4ub(0x7F, 0xFF, 0x7F, 0xFF);
+			glColor4ub(0xFF, 0x00, 0x00, 0xFF);
 			glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+		}
+		if (lastAccelerometerReading.y != 0.0) {
+			vertices[0] = viewportWidth / 2 - 5; vertices[1] = viewportHeight / 2;
+			vertices[2] = viewportWidth / 2 + 5; vertices[3] = viewportHeight / 2;
+			vertices[4] = viewportWidth / 2 + 5; vertices[5] = viewportHeight / 2 + lastAccelerometerReading.y * viewportHeight / 6;
+			vertices[6] = viewportWidth / 2 - 5; vertices[7] = viewportHeight / 2 + lastAccelerometerReading.y * viewportHeight / 6;
+			glVertexPointer(2, GL_SHORT, 0, vertices);
+			glColor4ub(0x00, 0xFF, 0x00, 0xFF);
+			glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+		}
+		if (lastAccelerometerReading.z != 0.0) {
+			vertices[0] = viewportWidth - viewportWidth / 3 - 5; vertices[1] = viewportHeight / 2;
+			vertices[2] = viewportWidth - viewportWidth / 3 + 5; vertices[3] = viewportHeight / 2;
+			vertices[4] = viewportWidth - viewportWidth / 3 + 5; vertices[5] = viewportHeight / 2 + lastAccelerometerReading.z * viewportHeight / 6;
+			vertices[6] = viewportWidth - viewportWidth / 3 - 5; vertices[7] = viewportHeight / 2 + lastAccelerometerReading.z * viewportHeight / 6;
+			glVertexPointer(2, GL_SHORT, 0, vertices);
+			glColor4ub(0x00, 0x00, 0xFF, 0xFF);
+			glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+		}
+		
+		vertices[0] = 0; vertices[1] = 0;
+		vertices[2] = 16; vertices[3] = 0;
+		vertices[4] = 0; vertices[5] = 16;
+		
+		vertices[6] = viewportWidth; vertices[7] = viewportHeight;
+		vertices[8] = viewportWidth - 16; vertices[9] = viewportHeight;
+		vertices[10] = viewportWidth; vertices[11] = viewportHeight - 16;
+		
+		glVertexPointer(2, GL_SHORT, 0, vertices);
+		glColor4ub(0xFF, 0xFF, 0xFF, 0xFF);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+		
+		for (touchIndex = 0; touchIndex < 32; touchIndex++) {
+			if (touches[touchIndex].active) {
+				vertices[0] = touches[touchIndex].x - 24; vertices[1] = touches[touchIndex].y - 24;
+				vertices[2] = touches[touchIndex].x - 24; vertices[3] = touches[touchIndex].y + 24;
+				vertices[4] = touches[touchIndex].x + 24; vertices[5] = touches[touchIndex].y + 24;
+				vertices[6] = touches[touchIndex].x + 24; vertices[7] = touches[touchIndex].y - 24;
+				glVertexPointer(2, GL_SHORT, 0, vertices);
+				glColor4ub(0x7F, 0xFF, 0x7F, 0xFF);
+				glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+			}
+		}
+		
+	} else {
+		GLfloat projectionMatrix[16] = {
+			 2.0f / viewportWidth,  0.0f,                   0.0f, 0.0f,
+			 0.0f,                 -2.0f / viewportHeight,  0.0f, 0.0f,
+			 0.0f,                  0.0f,                  -1.0f, 0.0f,
+			-1.0f,                  1.0f,                   0.0f, 1.0f
+		};
+		GLfloat modelviewMatrix[16] = {
+			1.0f, 0.0f, 0.0f, 0.0f,
+			0.0f, 1.0f, 0.0f, 0.0f,
+			0.0f, 0.0f, 1.0f, 0.0f,
+			0.0f, 0.0f, 0.0f, 1.0f
+		};
+		
+		glUseProgram(shaderProgram);
+		glUniformMatrix4fv(projectionMatrixUniform, 1, GL_FALSE, projectionMatrix);
+		glUniformMatrix4fv(modelviewMatrixUniform, 1, GL_FALSE, modelviewMatrix);
+		
+		if (lastAccelerometerReading.x != 0.0) {
+			vertices[0] = viewportWidth / 3 - 5; vertices[1] = viewportHeight / 2;
+			vertices[2] = viewportWidth / 3 + 5; vertices[3] = viewportHeight / 2;
+			vertices[4] = viewportWidth / 3 + 5; vertices[5] = viewportHeight / 2 + lastAccelerometerReading.x * viewportHeight / 6;
+			vertices[6] = viewportWidth / 3 - 5; vertices[7] = viewportHeight / 2 + lastAccelerometerReading.x * viewportHeight / 6;
+			glVertexAttribPointer(VERTEX_ATTRIB_INDEX, 2, GL_SHORT, GL_FALSE, 0, vertices);
+			glUniform4f(constantColorUniform, 1.0f, 0.0f, 0.0f, 1.0f);
+			glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+		}
+		if (lastAccelerometerReading.y != 0.0) {
+			vertices[0] = viewportWidth / 2 - 5; vertices[1] = viewportHeight / 2;
+			vertices[2] = viewportWidth / 2 + 5; vertices[3] = viewportHeight / 2;
+			vertices[4] = viewportWidth / 2 + 5; vertices[5] = viewportHeight / 2 + lastAccelerometerReading.y * viewportHeight / 6;
+			vertices[6] = viewportWidth / 2 - 5; vertices[7] = viewportHeight / 2 + lastAccelerometerReading.y * viewportHeight / 6;
+			glVertexAttribPointer(VERTEX_ATTRIB_INDEX, 2, GL_SHORT, GL_FALSE, 0, vertices);
+			glUniform4f(constantColorUniform, 0.0f, 1.0f, 0.0f, 1.0f);
+			glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+		}
+		if (lastAccelerometerReading.z != 0.0) {
+			vertices[0] = viewportWidth - viewportWidth / 3 - 5; vertices[1] = viewportHeight / 2;
+			vertices[2] = viewportWidth - viewportWidth / 3 + 5; vertices[3] = viewportHeight / 2;
+			vertices[4] = viewportWidth - viewportWidth / 3 + 5; vertices[5] = viewportHeight / 2 + lastAccelerometerReading.z * viewportHeight / 6;
+			vertices[6] = viewportWidth - viewportWidth / 3 - 5; vertices[7] = viewportHeight / 2 + lastAccelerometerReading.z * viewportHeight / 6;
+			glVertexAttribPointer(VERTEX_ATTRIB_INDEX, 2, GL_SHORT, GL_FALSE, 0, vertices);
+			glUniform4f(constantColorUniform, 0.0f, 0.0f, 1.0f, 1.0f);
+			glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+		}
+		
+		vertices[0] = 0; vertices[1] = 0;
+		vertices[2] = 16; vertices[3] = 0;
+		vertices[4] = 0; vertices[5] = 16;
+		
+		vertices[6] = viewportWidth; vertices[7] = viewportHeight;
+		vertices[8] = viewportWidth - 16; vertices[9] = viewportHeight;
+		vertices[10] = viewportWidth; vertices[11] = viewportHeight - 16;
+		
+		glVertexAttribPointer(VERTEX_ATTRIB_INDEX, 2, GL_SHORT, GL_FALSE, 0, vertices);
+		glUniform4f(constantColorUniform, 1.0f, 1.0f, 1.0f, 1.0f);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+		
+		for (touchIndex = 0; touchIndex < 32; touchIndex++) {
+			if (touches[touchIndex].active) {
+				vertices[0] = touches[touchIndex].x - 24; vertices[1] = touches[touchIndex].y - 24;
+				vertices[2] = touches[touchIndex].x - 24; vertices[3] = touches[touchIndex].y + 24;
+				vertices[4] = touches[touchIndex].x + 24; vertices[5] = touches[touchIndex].y + 24;
+				vertices[6] = touches[touchIndex].x + 24; vertices[7] = touches[touchIndex].y - 24;
+				glVertexAttribPointer(VERTEX_ATTRIB_INDEX, 2, GL_SHORT, GL_FALSE, 0, vertices);
+				glUniform4f(constantColorUniform, 0.5f, 1.0f, 0.5f, 1.0f);
+				glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+			}
 		}
 	}
 	
@@ -228,6 +363,11 @@ void Target_resized(unsigned int newWidth, unsigned int newHeight) {
 	printf("Target_resized(%d, %d)\n", newWidth, newHeight);
 	viewportWidth = newWidth;
 	viewportHeight = newHeight;
+}
+
+enum EAGLShellOpenGLVersion EAGLTarget_getPreferredOpenGLAPIVersion() {
+	printf("EAGLTarget_getPreferredOpenGLAPIVersion()\n");
+	return EAGLShellOpenGLVersion_ES1 | EAGLShellOpenGLVersion_ES2;
 }
 
 void EAGLTarget_touchesCancelled(unsigned int buttonMask) {
