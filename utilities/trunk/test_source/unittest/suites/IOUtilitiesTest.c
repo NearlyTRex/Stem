@@ -1,5 +1,6 @@
 #include "unittest/framework/TestSuite.h"
 #include "utilities/IOUtilities.h"
+#include "stubshell/StubShell.h"
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -236,12 +237,25 @@ static void testWriteFileSimple() {
 	free(fileContents);
 }
 
+static const char * customResourcePath = "";
+
+static const char * customGetResourcePath() {
+	return customResourcePath;
+}
+
 static void testResourcePath() {
-	// TODO: Implement better test when StubShell allows resourcePath return value to be customized
 	const char * path;
 	
+	StubShellCallback_getResourcePath = customGetResourcePath;
+	customResourcePath = "foo";
 	path = resourcePath("myfile");
-	TestCase_assert(!strcmp(path, "/myfile"), "Expected \"/myfile\" but got \"%s\"", path);
+	TestCase_assert(!strcmp(path, "foo/myfile"), "Expected \"foo/myfile\" but got \"%s\"", path);
+	
+	customResourcePath = "bar";
+	path = resourcePath("myfile2");
+	TestCase_assert(!strcmp(path, "bar/myfile2"), "Expected \"bar/myfile2\" but got \"%s\"", path);
+	
+	StubShellCallback_getResourcePath = NULL;
 }
 
 TEST_SUITE(IOUtilitiesTest,
