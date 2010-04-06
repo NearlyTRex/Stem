@@ -515,7 +515,7 @@ endef
 
 .PHONY: codesign_testharness_iphoneos
 codesign_testharness_iphoneos: testharness
-	${call add_blob_header,support/Entitlements.plist,build/intermediate/Entitlements.xcent}
+	${call add_blob_header,test_resources/Entitlements.plist,build/intermediate/Entitlements.xcent}
 	export CODESIGN_ALLOCATE=/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/codesign_allocate
 	${foreach configuration,${CONFIGURATIONS_testharness},\
 		cp "${RESOURCE_RULES_PLIST}" "build/testharness/${configuration}-iphoneos/${TARGET_NAME_testharness}.app"; \
@@ -546,7 +546,6 @@ endef
 .PHONY: source_dist
 source_dist:
 	mkdir -p build/source_dist/source/template_stemlib
-	mkdir -p build/source_dist/support
 	mkdir -p build/source_dist/test_resources
 	mkdir -p build/source_dist/test_source/testharness
 	mkdir -p build/source_dist/test_source/unittest/framework
@@ -557,7 +556,6 @@ source_dist:
 	
 	cp source/template_stemlib/* build/source_dist/source/template_stemlib
 	
-	cp support/* build/source_dist/support
 	cp test_resources/* build/source_dist/test_resources
 	
 	cp test_source/testharness/* build/source_dist/test_source/testharness

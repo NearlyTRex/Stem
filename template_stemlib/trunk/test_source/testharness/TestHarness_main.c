@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include "HelloWorld.h"
+#include "template_stemlib/HelloWorld.h"
 
 int main() {
 	printf("%s\n", helloWorld());

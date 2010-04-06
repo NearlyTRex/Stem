@@ -1,5 +1,5 @@
 #include <string.h>
-#include "HelloWorld.h"
+#include "template_stemlib/HelloWorld.h"
 #include "unittest/framework/TestSuite.h"
 
 static void testHelloWorld() {
