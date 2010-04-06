@@ -117,7 +117,7 @@ LIBRARY_DEPENDENCIES_testharness =
 #Per-target source file lists
 
 SOURCES_library = \
-	source/HelloWorld.c
+	source/template_stemlib/HelloWorld.c
 
 SOURCES_unittest = \
 	test_source/unittest/framework/unittest_main.c \
@@ -133,7 +133,7 @@ SOURCES_testharness = \
 SOURCES = ${sort ${foreach target,${TARGETS},${SOURCES_${target}}}}
 
 INCLUDES = \
-	source/HelloWorld.h
+	source/template_stemlib/HelloWorld.h
 
 RESOURCES_testharness = 
 
@@ -545,7 +545,7 @@ endef
 
 .PHONY: source_dist
 source_dist:
-	mkdir -p build/source_dist/source
+	mkdir -p build/source_dist/source/template_stemlib
 	mkdir -p build/source_dist/support
 	mkdir -p build/source_dist/test_resources
 	mkdir -p build/source_dist/test_source/testharness
@@ -555,7 +555,7 @@ source_dist:
 	${call filter_source_dist_file,Makefile,build/source_dist/Makefile}
 	cp Changes.txt License.txt ReadMe.txt version build/source_dist
 	
-	cp source/* build/source_dist/source
+	cp source/template_stemlib/* build/source_dist/source/template_stemlib
 	
 	cp support/* build/source_dist/support
 	cp test_resources/* build/source_dist/test_resources
