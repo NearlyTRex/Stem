@@ -1,0 +1,4 @@
+0.1.0:
+ * Updated for new shell Stable_2010-03-31 APIs
+ * Refreshed Makefile and other project files from template_stemlib Stable_2010-03-29
+ * Added instrumentation capabilities
