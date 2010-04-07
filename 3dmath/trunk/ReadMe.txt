@@ -1,0 +1,1 @@
+3DMath defines functions and structs for working with transformations and other mathematical constructs in 3D space.
