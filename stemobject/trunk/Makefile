@@ -1,5 +1,5 @@
 .PHONY: all
-all: library unittest testharness test include
+all: library unittest test include
 
 UNAME = ${shell uname}
 ifeq (${UNAME},Linux)
@@ -16,7 +16,7 @@ TARGET_PLATFORMS_windows = windows
 
 include version
 
-PROJECT_NAME = template_stemlib
+PROJECT_NAME = stemobject
 IPHONE_SDK_VERSION = 3.1
 IPHONESIMULATOR_APPLICATIONS_DIR = ${HOME}/Library/Application Support/iPhone Simulator/User/Applications
 RESOURCE_RULES_PLIST = /Developer/Platforms/MacOSX.platform/ResourceRules.plist
@@ -26,26 +26,22 @@ SVNROOT = http://sacredsoftware.net/svn/misc#master_source_only
 
 LIBRARY_TARGETS = library
 EXECUTABLE_TARGETS = unittest
-APPLICATION_TARGETS = testharness
+APPLICATION_TARGETS = 
 TARGETS = ${LIBRARY_TARGETS} ${EXECUTABLE_TARGETS} ${APPLICATION_TARGETS}
 CONFIGURATIONS = debug profile release
 PLATFORMS = ${filter ${TARGET_PLATFORMS_${HOST_PLATFORM}},macosx iphonesimulator iphoneos linux windows}
 ARCHS = ppc i386 i686 x86_64 armv6 armv7
 
-TARGET_NAME_library = libstem_template
-TARGET_NAME_unittest = template_unittest
-TARGET_NAME_testharness = template_testharness
-HUMAN_READABLE_TARGET_NAME_testharness = StemTemplate
+TARGET_NAME_library = libstem_stemobject
+TARGET_NAME_unittest = stemobject_unittest
 
 #Per-target configurations
 CONFIGURATIONS_library = debug profile release
 CONFIGURATIONS_unittest = debug
-CONFIGURATIONS_testharness = debug profile
 
 #Per-target platforms
 PLATFORMS_library = ${filter ${PLATFORMS},macosx iphonesimulator iphoneos linux windows}
 PLATFORMS_unittest = ${filter ${PLATFORMS},macosx iphonesimulator linux windows}
-PLATFORMS_testharness = ${filter ${PLATFORMS},macosx iphonesimulator iphoneos linux windows}
 
 #Per-target compile/link settings
 CCFLAGS_unittest = -I test_source -DSUITE_FILE_LIST='${foreach file,${SOURCES_unittest_suites},"${basename ${notdir ${file}}}",} NULL'
@@ -112,12 +108,11 @@ LINKFLAGS = ${FRAMEWORK_LINKFLAGS} ${LIBRARY_LINKFLAGS} ${OTHER_LINKFLAGS}
 #Per-target dependencies
 
 LIBRARY_DEPENDENCIES_unittest =
-LIBRARY_DEPENDENCIES_testharness =
 
 #Per-target source file lists
 
 SOURCES_library = \
-	source/template_stemlib/HelloWorld.c
+	source/stemobject/StemObject.c
 
 SOURCES_unittest = \
 	test_source/unittest/framework/unittest_main.c \
@@ -125,17 +120,12 @@ SOURCES_unittest = \
 	${SOURCES_unittest_suites}
 
 SOURCES_unittest_suites = \
-	test_source/unittest/suites/HelloWorldTest.c
-
-SOURCES_testharness = \
-	test_source/testharness/TestHarness_main.c
+	test_source/unittest/suites/StemObjectTest.c
 
 SOURCES = ${sort ${foreach target,${TARGETS},${SOURCES_${target}}}}
 
 INCLUDES = \
-	source/template_stemlib/HelloWorld.h
-
-RESOURCES_testharness = 
+	source/stemobject/StemObject.h
 
 
 
@@ -320,14 +310,10 @@ ${foreach target,${EXECUTABLE_TARGETS}, \
 	} \
 }
 
-PLIST_FILE_testharness_macosx = test_resources/Info_testharness_macosx.plist
-
-PLIST_FILE_testharness_iphonesimulator = test_resources/Info_testharness_iphone.plist
 PLIST_PLATFORM_CASED_iphonesimulator = iPhoneSimulator
 PLIST_PLATFORM_LOWER_iphonesimulator = iphonesimulator
 PLIST_SDK_NAME_iphonesimulator = iphonesimulator${IPHONE_SDK_VERSION}
 
-PLIST_FILE_testharness_iphoneos = test_resources/Info_testharness_iphone.plist
 PLIST_PLATFORM_CASED_iphoneos = iPhoneOS
 PLIST_PLATFORM_LOWER_iphoneos = iphoneos
 PLIST_SDK_NAME_iphoneos = iphoneos${IPHONE_SDK_VERSION}
@@ -499,44 +485,19 @@ clean:
 	rm -rf dist
 	rm -rf dist_append
 
-.PHONY: install_testharness_iphonesimulator
-install_testharness_iphonesimulator: testharness
-	-killall "iPhone Simulator"
-	rm -rf "${IPHONESIMULATOR_APPLICATIONS_DIR}/${TARGET_NAME_testharness}"
-	mkdir -p "${IPHONESIMULATOR_APPLICATIONS_DIR}/${TARGET_NAME_testharness}/Documents"
-	mkdir -p "${IPHONESIMULATOR_APPLICATIONS_DIR}/${TARGET_NAME_testharness}/Library/Preferences"
-	mkdir -p "${IPHONESIMULATOR_APPLICATIONS_DIR}/${TARGET_NAME_testharness}/tmp"
-	cp -r "build/testharness/debug-iphonesimulator/${TARGET_NAME_testharness}.app" "${IPHONESIMULATOR_APPLICATIONS_DIR}/${TARGET_NAME_testharness}"
-	open ${IPHONESIMULATOR_PATH}
-
-define add_blob_header #(source_file, target_file)
-	ruby -e "contents = \"\"; File.open(\"${1}\", \"r\") {|file| contents = file.read}; File.open(\"${2}\", \"w\") {|file| file.write(\"\xFA\xDE\x71\x71\"); file.write([contents.length + 8].pack(\"N\")); file.write(contents)}"
-endef
-
-.PHONY: codesign_testharness_iphoneos
-codesign_testharness_iphoneos: testharness
-	${call add_blob_header,test_resources/Entitlements.plist,build/intermediate/Entitlements.xcent}
-	export CODESIGN_ALLOCATE=/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/codesign_allocate
-	${foreach configuration,${CONFIGURATIONS_testharness},\
-		cp "${RESOURCE_RULES_PLIST}" "build/testharness/${configuration}-iphoneos/${TARGET_NAME_testharness}.app"; \
-		/usr/bin/codesign -f -s ${CODESIGN_IDENTITY} --resource-rules=${RESOURCE_RULES_PLIST} --entitlements=build/intermediate/Entitlements.xcent "build/testharness/${configuration}-iphoneos/${TARGET_NAME_testharness}.app"; \
-	}
-
 #master_source_only_begin
 .PHONY: full_dist
 full_dist: clean all
-	mkdir dist dist/include dist/library dist/testharness
+	mkdir dist dist/include dist/library
 	cp -r build/include/* dist/include
 	cp -r build/library/* dist/library
-	cp -r build/testharness/* dist/testharness
 	svn import --no-ignore -m "Automated release from ${HOST_PLATFORM}" dist ${SVNROOT}/Releases/${PROJECT_NAME}/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_TWEAK}
 
 .PHONY: append_dist
 append_dist: clean all
 	svn co ${SVNROOT}/Releases/${PROJECT_NAME}/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_TWEAK} dist_append
 	cp -r build/library/* dist_append/library
-	cp -r build/testharness/* dist_append/testharness
-	svn add --no-ignore dist_append/library/* dist_append/testharness/*
+	svn add --no-ignore dist_append/library/*
 	svn commit -m "Automated release append from ${HOST_PLATFORM}" dist_append
 
 define filter_source_dist_file #(infile, outfile)
@@ -545,20 +506,15 @@ endef
 
 .PHONY: source_dist
 source_dist:
-	mkdir -p build/source_dist/source/template_stemlib
-	mkdir -p build/source_dist/test_resources
-	mkdir -p build/source_dist/test_source/testharness
+	mkdir -p build/source_dist/source/stemobject
 	mkdir -p build/source_dist/test_source/unittest/framework
 	mkdir -p build/source_dist/test_source/unittest/suites
 	
 	${call filter_source_dist_file,Makefile,build/source_dist/Makefile}
 	cp Changes.txt License.txt ReadMe.txt version build/source_dist
 	
-	cp source/template_stemlib/* build/source_dist/source/template_stemlib
+	cp source/stemobject/* build/source_dist/source/stemobject
 	
-	cp test_resources/* build/source_dist/test_resources
-	
-	cp test_source/testharness/* build/source_dist/test_source/testharness
 	cp test_source/unittest/framework/* build/source_dist/test_source/unittest/framework
 	cp test_source/unittest/suites/* build/source_dist/test_source/unittest/suites
 #master_source_only_end
