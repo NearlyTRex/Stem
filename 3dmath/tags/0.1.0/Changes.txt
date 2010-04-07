@@ -1,0 +1,2 @@
+0.1.0:
+ * Refreshed Makefile and other project files from template_stemlib Stable_2010-04-06
