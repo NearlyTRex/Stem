@@ -1,0 +1,6 @@
+0.2.0:
+ * Implemented Matrix_ortho() and Matrix_applyOrtho()
+ * Refreshed Makefile and svn:externals from template_stemlib Stable_2010-04-23
+
+0.1.0:
+ * Refreshed Makefile and other project files from template_stemlib Stable_2010-04-06
