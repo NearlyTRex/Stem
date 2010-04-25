@@ -240,6 +240,24 @@ Matrix Matrix_perspective(Matrix matrix, float fovY, float aspect, float zNear, 
 	return matrix;
 }
 
+void Matrix_applyOrtho(Matrix * matrix, float left, float right, float bottom, float top, float zNear, float zFar) {
+	Matrix orthoMatrix;
+	
+	Matrix_loadIdentity(&orthoMatrix);
+	orthoMatrix.m[0] = 2.0f / (right - left);
+	orthoMatrix.m[5] = 2.0f / (top - bottom);
+	orthoMatrix.m[10] = -2.0f / (zFar - zNear);
+	orthoMatrix.m[12] = -((right + left) / (right - left));
+	orthoMatrix.m[13] = -((top + bottom) / (top - bottom));
+	orthoMatrix.m[14] = -((zFar + zNear) / (zFar - zNear));
+	Matrix_multiply(matrix, orthoMatrix);
+}
+
+Matrix Matrix_ortho(Matrix matrix, float left, float right, float bottom, float top, float zNear, float zFar) {
+	Matrix_applyOrtho(&matrix, left, right, bottom, top, zNear, zFar);
+	return matrix;
+}
+
 void Matrix_transpose(Matrix * matrix) {
 	*matrix = Matrix_init(matrix->m[0],  matrix->m[1],  matrix->m[2],  matrix->m[3],
 	                      matrix->m[4],  matrix->m[5],  matrix->m[6],  matrix->m[7],

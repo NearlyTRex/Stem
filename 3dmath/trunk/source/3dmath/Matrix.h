@@ -64,6 +64,9 @@ Matrix Matrix_shearedZ(Matrix matrix, float x, float y);
 void Matrix_applyPerspective(Matrix * matrix, float fovY, float aspect, float zNear, float zFar);
 Matrix Matrix_perspective(Matrix matrix, float fovY, float aspect, float zNear, float zFar);
 
+void Matrix_applyOrtho(Matrix * matrix, float left, float right, float bottom, float top, float zNear, float zFar);
+Matrix Matrix_ortho(Matrix matrix, float left, float right, float bottom, float top, float zNear, float zFar);
+
 void Matrix_transpose(Matrix * matrix);
 Matrix Matrix_transposed(Matrix matrix);
 

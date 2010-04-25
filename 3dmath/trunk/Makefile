@@ -18,7 +18,7 @@ include version
 
 PROJECT_NAME = 3dmath
 IPHONE_SDK_VERSION = 3.1
-IPHONESIMULATOR_APPLICATIONS_DIR = ${HOME}/Library/Application Support/iPhone Simulator/User/Applications
+IPHONESIMULATOR_APPLICATIONS_DIR = ${HOME}/Library/Application Support/iPhone Simulator/3.1.3/Applications
 RESOURCE_RULES_PLIST = /Developer/Platforms/MacOSX.platform/ResourceRules.plist
 IPHONESIMULATOR_PATH = "/Developer/Platforms/iPhoneSimulator.platform/Developer/Applications/iPhone Simulator.app"
 CODESIGN_IDENTITY = "iPhone Developer"
@@ -162,7 +162,7 @@ endef
 
 define arch_object_list_template #(target, configuration, platform, arch)
 	${foreach source,${SOURCES_${1}}, \
-		build/intermediate/${2}-${3}-${4}/${notdir ${basename ${source}}}.o \
+		build/intermediate/${1}-${2}-${3}-${4}/${notdir ${basename ${source}}}.o \
 	}
 endef
 
@@ -176,8 +176,8 @@ ${foreach target,${TARGETS}, \
 
 
 define compile_template #(target, configuration, platform, arch, source_file)
-build/intermediate/${2}-${3}-${4}/${notdir ${basename ${5}}}.o: ${5}
-	mkdir -p build/intermediate/${2}-${3}-${4}
+build/intermediate/${1}-${2}-${3}-${4}/${notdir ${basename ${5}}}.o: ${5}
+	mkdir -p build/intermediate/${1}-${2}-${3}-${4}
 	${CC_${3}_${4}} ${CCFLAGS} ${CCFLAGS_${1}} ${CCFLAGS_${2}} ${CCFLAGS_${3}} -c -o $$@ $$^
 endef
 
@@ -197,7 +197,7 @@ ${foreach target,${TARGETS}, \
 
 
 define library_template #(target, configuration, platform, arch, output_file)
-build/intermediate/${2}-${3}-${4}/${5}: ${call arch_object_list_template,${1},${2},${3},${4}}
+build/intermediate/${1}-${2}-${3}-${4}/${5}: ${call arch_object_list_template,${1},${2},${3},${4}}
 	${AR_${3}} rc $$@ $$^
 	${RANLIB_${3}} $$@
 endef
@@ -216,7 +216,7 @@ ${foreach target,${LIBRARY_TARGETS}, \
 
 
 define executable_template #(target, configuration, platform, arch, output_file, dependent_libraries)
-build/intermediate/${2}-${3}-${4}/${5}: ${call arch_object_list_template,${1},${2},${3},${4}} ${6}
+build/intermediate/${1}-${2}-${3}-${4}/${5}: ${call arch_object_list_template,${1},${2},${3},${4}} ${6}
 	${CC_${3}_${4}} -o $$@ $$^ ${LINKFLAGS} ${LINKFLAGS_${3}}
 endef
 
@@ -240,9 +240,9 @@ ${foreach target,${EXECUTABLE_TARGETS} ${APPLICATION_TARGETS}, \
 
 
 
-define thin_binary_list_template #(target_name, configuration, platform)
+define thin_binary_list_template #(target, configuration, platform, target_name)
 	${foreach arch,${ARCHS_${3}}, \
-		build/intermediate/${2}-${3}-${arch}/${1} \
+		build/intermediate/${1}-${2}-${3}-${arch}/${4} \
 	}
 endef
 
@@ -250,7 +250,7 @@ endef
 ${foreach target,${LIBRARY_TARGETS}, \
 	${foreach configuration,${CONFIGURATIONS_${target}}, \
 		${foreach platform,${PLATFORMS_${target}}, \
-			${eval THIN_BINARIES_${target}_${configuration}_${platform} = ${call thin_binary_list_template,${TARGET_NAME_${target}}.a,${configuration},${platform}}} \
+			${eval THIN_BINARIES_${target}_${configuration}_${platform} = ${call thin_binary_list_template,${target},${configuration},${platform},${TARGET_NAME_${target}}.a}} \
 		} \
 	} \
 }
@@ -259,7 +259,7 @@ ${foreach target,${LIBRARY_TARGETS}, \
 ${foreach target,${EXECUTABLE_TARGETS}, \
 	${foreach configuration,${CONFIGURATIONS_${target}}, \
 		${foreach platform,${PLATFORMS_${target}}, \
-			${eval THIN_BINARIES_${target}_${configuration}_${platform} = ${call thin_binary_list_template,${TARGET_NAME_${target}},${configuration},${platform}}} \
+			${eval THIN_BINARIES_${target}_${configuration}_${platform} = ${call thin_binary_list_template,${target},${configuration},${platform},${TARGET_NAME_${target}}}} \
 		} \
 	} \
 }
@@ -268,7 +268,7 @@ ${foreach target,${EXECUTABLE_TARGETS}, \
 ${foreach target,${APPLICATION_TARGETS}, \
 	${foreach configuration,${CONFIGURATIONS_${target}}, \
 		${foreach platform,${PLATFORMS_${target}}, \
-			${eval THIN_BINARIES_${target}_${configuration}_${platform} = ${call thin_binary_list_template,${TARGET_NAME_${target}},${configuration},${platform}}} \
+			${eval THIN_BINARIES_${target}_${configuration}_${platform} = ${call thin_binary_list_template,${target},${configuration},${platform},${TARGET_NAME_${target}}}} \
 		} \
 	} \
 }

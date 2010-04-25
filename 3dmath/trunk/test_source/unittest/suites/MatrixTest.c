@@ -408,6 +408,36 @@ static void testPerspective() {
 	                                0.0f,              0.0f,              -1.0f,               0.0f, EPSILON);
 }
 
+static void testOrtho() {
+	Matrix matrix;
+	
+	matrix = Matrix_ortho(Matrix_identity(), -1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
+	assertMatrixApproximate(matrix, 1.0f, 0.0f,  0.0f, 0.0f,
+	                                0.0f, 1.0f,  0.0f, 0.0f,
+	                                0.0f, 0.0f, -1.0f, 0.0f,
+	                                0.0f, 0.0f,  0.0f, 1.0f, EPSILON);
+	
+	matrix = Matrix_ortho(Matrix_identity(), 0.0f, 4.0f, 8.0f, 0.0f, 0.0f, 10.0f);
+	assertMatrixApproximate(matrix, 0.5f,  0.0f,   0.0f, -1.0f,
+	                                0.0f, -0.25f,  0.0f,  1.0f,
+	                                0.0f,  0.0f,  -0.2f, -1.0f,
+	                                0.0f,  0.0f,   0.0f,  1.0f, EPSILON);
+	
+	matrix = Matrix_identity();
+	Matrix_applyOrtho(&matrix, -1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
+	assertMatrixApproximate(matrix, 1.0f, 0.0f,  0.0f, 0.0f,
+	                                0.0f, 1.0f,  0.0f, 0.0f,
+	                                0.0f, 0.0f, -1.0f, 0.0f,
+	                                0.0f, 0.0f,  0.0f, 1.0f, EPSILON);
+	
+	matrix = Matrix_identity();
+	Matrix_applyOrtho(&matrix, 0.0f, 4.0f, 8.0f, 0.0f, 0.0f, 10.0f);
+	assertMatrixApproximate(matrix, 0.5f,  0.0f,   0.0f, -1.0f,
+	                                0.0f, -0.25f,  0.0f,  1.0f,
+	                                0.0f,  0.0f,  -0.2f, -1.0f,
+	                                0.0f,  0.0f,   0.0f,  1.0f, EPSILON);
+}
+
 static void testTranspose() {
 	Matrix matrix;
 	
@@ -544,6 +574,7 @@ TEST_SUITE(MatrixTest,
            testRotate,
            testShear,
            testPerspective,
+           testOrtho,
            testTranspose,
            testDeterminant,
            testInvert,
