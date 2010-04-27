@@ -1,1 +1,1 @@
-This project serves as a starting point for all Stem library projects, as well as (temporarily) executable projects that use the stem build system and libraries. It is meant to be copied and modified to suit the specific project being created.
+Serialization defines a generic interface for reading, writing, and validating structured data. It is intended to be used by model objects that wish to be serializable, facilitated by concrete subclasses of SerializationContext and DeserializationContext.
