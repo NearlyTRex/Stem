@@ -136,7 +136,8 @@ SOURCES = ${sort ${foreach target,${TARGETS},${SOURCES_${target}}}}
 
 INCLUDES = \
 	source/serialization/DeserializationContext.h \
-	source/serialization/SerializationContext.h
+	source/serialization/SerializationContext.h \
+	source/serialization/SerializationShared.h
 
 RESOURCES_testharness = 
 

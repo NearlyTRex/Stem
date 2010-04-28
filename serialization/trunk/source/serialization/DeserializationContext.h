@@ -1,6 +1,7 @@
 #ifndef __DESERIALIZATION_CONTEXT_H__
 #define __DESERIALIZATION_CONTEXT_H__
 
+#include "serialization/SerializationShared.h"
 #include "stemobject/StemObject.h"
 #include <stdint.h>
 #include <setjmp.h>
@@ -31,7 +32,13 @@ typedef struct DeserializationContext DeserializationContext;
 	double   (* readDouble)(void * self, char * key); \
 	char *   (* readNextDictionaryKey)(void * self); \
 	char *   (* readString)(void * self, char * key); \
+	\
+	/* Additional args: Pairs of strings naming constants, and the values described by them, terminated by */ \
+	/* NULL. You can use the enumKV macro from serialization/SerializationShared.h for convenience. */ \
 	int      (* readEnumeration)(void * self, char * key, ...); \
+	\
+	/* Additional args: Strings naming each bit from least significant to most significant, up to the maximum */ \
+	/* number of bits in the field, or terminated by NULL if there are unused bits at the top. */ \
 	uint8_t  (* readBitfield8)(void * self, char * key, ...); \
 	uint16_t (* readBitfield16)(void * self, char * key, ...); \
 	uint32_t (* readBitfield32)(void * self, char * key, ...); \

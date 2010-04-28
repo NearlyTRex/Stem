@@ -1,6 +1,7 @@
 #ifndef __SERIALIZATION_H__
 #define __SERIALIZATION_H__
 
+#include "serialization/SerializationShared.h"
 #include "stemobject/StemObject.h"
 #include <stdint.h>
 #include <setjmp.h>
@@ -30,7 +31,13 @@ typedef struct SerializationContext SerializationContext;
 	void (* writeFloat)(void * self, char * key, float value); \
 	void (* writeDouble)(void * self, char * key, double value); \
 	void (* writeString)(void * self, char * key, char * value); \
+	\
+	/* Additional args: Pairs of strings naming constants, and the values described by them, terminated by */ \
+	/* NULL. You can use the enumKV macro from serialization/SerializationShared.h for convenience. */ \
 	void (* writeEnumeration)(void * self, char * key, int value, ...); \
+	\
+	/* Additional args: Strings naming each bit from least significant to most significant, up to the maximum */ \
+	/* number of bits in the field, or terminated by NULL if there are unused bits at the top. */ \
 	void (* writeBitfield8)(void * self, char * key, uint8_t value, ...); \
 	void (* writeBitfield16)(void * self, char * key, uint16_t value, ...); \
 	void (* writeBitfield32)(void * self, char * key, uint32_t value, ...); \
