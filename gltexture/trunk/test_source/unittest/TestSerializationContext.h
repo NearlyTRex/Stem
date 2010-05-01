@@ -45,6 +45,7 @@ struct TestSerializationContext_expectedCall {
 	unsigned int nextExpectedCallIndex; \
 	\
 	void (* expectCall)(void * self, void * functionPtr, ...); \
+	void (* failNthCall)(void * self, unsigned int callIndex, int status); \
 	void (* finish)(void * self);
 
 struct TestSerializationContext {
@@ -79,6 +80,7 @@ void TestSerializationContext_writeBitfield16(void * self, char * key, uint16_t 
 void TestSerializationContext_writeBitfield32(void * self, char * key, uint32_t value, ...);
 void TestSerializationContext_writeBitfield64(void * self, char * key, uint64_t value, ...);
 
+// selfPtr, functionPtr, key (if applicable), value (if applicable), additional args (if applicable)
 void TestSerializationContext_expectCall(void * selfPtr, void * functionPtr, ...);
 void TestSerializationContext_failNthCall(void * selfPtr, unsigned int callIndex, int status);
 void TestSerializationContext_finish(void * selfPtr);

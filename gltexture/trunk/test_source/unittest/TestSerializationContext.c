@@ -49,6 +49,7 @@ void TestSerializationContext_init(TestSerializationContext * self, jmp_buf * se
 	self->writeBitfield32 = TestSerializationContext_writeBitfield32;
 	self->writeBitfield64 = TestSerializationContext_writeBitfield64;
 	self->expectCall = TestSerializationContext_expectCall;
+	self->failNthCall = TestSerializationContext_failNthCall;
 	self->finish = TestSerializationContext_finish;
 }
 
@@ -298,94 +299,121 @@ static void verifyCallIsInSequence(TestSerializationContext * self, void * funct
 	self->nextExpectedCallIndex++;
 }
 
+static void failIfRequested(TestSerializationContext * self) {
+	if (self->nextExpectedCallIndex - 1 == self->callIndexToFail) {
+		self->status = self->failStatus;
+		if (self->jmpBuf != NULL) {
+			longjmp(*self->jmpBuf, self->status);
+		}
+	}
+}
+
 void TestSerializationContext_beginStructure(void * selfPtr, char * key) {
 	TestSerializationContext * self = selfPtr;
 	verifyCallIsInSequence(self, self->beginStructure, key);
+	failIfRequested(self);
 }
 
 void TestSerializationContext_beginDictionary(void * selfPtr, char * key) {
 	TestSerializationContext * self = selfPtr;
 	verifyCallIsInSequence(self, self->beginDictionary, key);
+	failIfRequested(self);
 }
 
 void TestSerializationContext_beginArray(void * selfPtr, char * key) {
 	TestSerializationContext * self = selfPtr;
 	verifyCallIsInSequence(self, self->beginArray, key);
+	failIfRequested(self);
 }
 
 void TestSerializationContext_endStructure(void * selfPtr) {
 	TestSerializationContext * self = selfPtr;
 	verifyCallIsInSequence(self, self->endStructure);
+	failIfRequested(self);
 }
 
 void TestSerializationContext_endDictionary(void * selfPtr) {
 	TestSerializationContext * self = selfPtr;
 	verifyCallIsInSequence(self, self->endDictionary);
+	failIfRequested(self);
 }
 
 void TestSerializationContext_endArray(void * selfPtr) {
 	TestSerializationContext * self = selfPtr;
 	verifyCallIsInSequence(self, self->endArray);
+	failIfRequested(self);
 }
 
 void TestSerializationContext_writeInt8(void * selfPtr, char * key, int8_t value) {
 	TestSerializationContext * self = selfPtr;
 	verifyCallIsInSequence(self, self->writeInt8, key, value);
+	failIfRequested(self);
 }
 
 void TestSerializationContext_writeUInt8(void * selfPtr, char * key, uint8_t value) {
 	TestSerializationContext * self = selfPtr;
 	verifyCallIsInSequence(self, self->writeUInt8, key, value);
+	failIfRequested(self);
 }
 
 void TestSerializationContext_writeInt16(void * selfPtr, char * key, int16_t value) {
 	TestSerializationContext * self = selfPtr;
 	verifyCallIsInSequence(self, self->writeInt16, key, value);
+	failIfRequested(self);
 }
 
 void TestSerializationContext_writeUInt16(void * selfPtr, char * key, uint16_t value) {
 	TestSerializationContext * self = selfPtr;
 	verifyCallIsInSequence(self, self->writeUInt16, key, value);
+	failIfRequested(self);
 }
 
 void TestSerializationContext_writeInt32(void * selfPtr, char * key, int32_t value) {
 	TestSerializationContext * self = selfPtr;
 	verifyCallIsInSequence(self, self->writeInt32, key, value);
+	failIfRequested(self);
 }
 
 void TestSerializationContext_writeUInt32(void * selfPtr, char * key, uint32_t value) {
 	TestSerializationContext * self = selfPtr;
 	verifyCallIsInSequence(self, self->writeUInt32, key, value);
+	failIfRequested(self);
 }
 
 void TestSerializationContext_writeInt64(void * selfPtr, char * key, int64_t value) {
 	TestSerializationContext * self = selfPtr;
 	verifyCallIsInSequence(self, self->writeInt64, key, value);
+	failIfRequested(self);
 }
 
 void TestSerializationContext_writeUInt64(void * selfPtr, char * key, uint64_t value) {
 	TestSerializationContext * self = selfPtr;
 	verifyCallIsInSequence(self, self->writeUInt64, key, value);
+	failIfRequested(self);
 }
 
 void TestSerializationContext_writeFloat(void * selfPtr, char * key, float value) {
 	TestSerializationContext * self = selfPtr;
 	verifyCallIsInSequence(self, self->writeFloat, key, value);
+	failIfRequested(self);
 }
 
 void TestSerializationContext_writeDouble(void * selfPtr, char * key, double value) {
 	TestSerializationContext * self = selfPtr;
 	verifyCallIsInSequence(self, self->writeDouble, key, value);
+	failIfRequested(self);
 }
 
 void TestSerializationContext_writeString(void * selfPtr, char * key, char * value) {
 	TestSerializationContext * self = selfPtr;
 	verifyCallIsInSequence(self, self->writeString, key, value);
+	failIfRequested(self);
 }
 
 void TestSerializationContext_writeBoolean(void * selfPtr, char * key, bool value) {
 	TestSerializationContext * self = selfPtr;
 	verifyCallIsInSequence(self, self->writeBoolean, key, value);
+	failIfRequested(self);
 }
 
 void TestSerializationContext_writeEnumeration(void * selfPtr, char * key, int value, ...) {
@@ -395,6 +423,7 @@ void TestSerializationContext_writeEnumeration(void * selfPtr, char * key, int v
 	va_start(args, value);
 	verifyCallIsInSequence(self, self->writeEnumeration, key, value, &args);
 	va_end(args);
+	failIfRequested(self);
 }
 
 void TestSerializationContext_writeBitfield8(void * selfPtr, char * key, uint8_t value, ...) {
@@ -404,6 +433,7 @@ void TestSerializationContext_writeBitfield8(void * selfPtr, char * key, uint8_t
 	va_start(args, value);
 	verifyCallIsInSequence(self, self->writeBitfield8, key, value, &args);
 	va_end(args);
+	failIfRequested(self);
 }
 
 void TestSerializationContext_writeBitfield16(void * selfPtr, char * key, uint16_t value, ...) {
@@ -413,6 +443,7 @@ void TestSerializationContext_writeBitfield16(void * selfPtr, char * key, uint16
 	va_start(args, value);
 	verifyCallIsInSequence(self, self->writeBitfield16, key, value, &args);
 	va_end(args);
+	failIfRequested(self);
 }
 
 void TestSerializationContext_writeBitfield32(void * selfPtr, char * key, uint32_t value, ...) {
@@ -422,6 +453,7 @@ void TestSerializationContext_writeBitfield32(void * selfPtr, char * key, uint32
 	va_start(args, value);
 	verifyCallIsInSequence(self, self->writeBitfield32, key, value, &args);
 	va_end(args);
+	failIfRequested(self);
 }
 
 void TestSerializationContext_writeBitfield64(void * selfPtr, char * key, uint64_t value, ...) {
@@ -431,6 +463,7 @@ void TestSerializationContext_writeBitfield64(void * selfPtr, char * key, uint64
 	va_start(args, value);
 	verifyCallIsInSequence(self, self->writeBitfield64, key, value, &args);
 	va_end(args);
+	failIfRequested(self);
 }
 
 void TestSerializationContext_expectCall(void * selfPtr, void * functionPtr, ...) {
@@ -512,6 +545,13 @@ void TestSerializationContext_expectCall(void * selfPtr, void * functionPtr, ...
 	va_end(args);
 	
 	self->numExpectedCalls++;
+}
+
+void TestSerializationContext_failNthCall(void * selfPtr, unsigned int callIndex, int status) {
+	TestSerializationContext * self = selfPtr;
+	
+	self->callIndexToFail = callIndex;
+	self->failStatus = status;
 }
 
 void TestSerializationContext_finish(void * selfPtr) {

@@ -66,7 +66,7 @@ void GLTexture_init(GLTexture * self,
 void GLTexture_dispose(void * selfPtr);
 
 GLTexture * GLTexture_deserialize(DeserializationContext * context);
-void GLTexture_loadSerializedData(GLTexture * self, DeserializationContext * context);
+bool GLTexture_loadSerializedData(GLTexture * self, DeserializationContext * context);
 void GLTexture_serialize(GLTexture * self, SerializationContext * context);
 
 void GLTexture_setImage(void * self, GLint mipmapLevel, GLsizei width, GLsizei height, void * bitmapData);

@@ -59,10 +59,48 @@ void GLTexture_dispose(void * selfPtr) {
 }
 
 GLTexture * GLTexture_deserialize(DeserializationContext * context) {
-	return NULL;
+	GLTexture * self;
+	
+	self = malloc(sizeof(GLTexture));
+	if (!GLTexture_loadSerializedData(self, context)) {
+		free(self);
+		return NULL;
+	}
+	self->allocated = true;
+	
+	return self;
 }
 
-void GLTexture_loadSerializedData(GLTexture * self, DeserializationContext * context) {
+bool GLTexture_loadSerializedData(GLTexture * self, DeserializationContext * context) {
+	char * imageName;
+	GLenum bitmapDataFormat;
+	GLenum bitmapDataType;
+	GLenum minFilter;
+	GLenum magFilter;
+	GLenum wrapS;
+	GLenum wrapT;
+	enum GLTextureAutoBlendMode autoBlendMode;
+	bool autoMipmap;
+	
+	context->beginStructure(context, "gltexture");
+	imageName        = context->readString(context, "imageName");
+	bitmapDataFormat = context->readEnumeration(context, "bitmapDataFormat", enumKV(GL_ALPHA), enumKV(GL_LUMINANCE), enumKV(GL_LUMINANCE_ALPHA), enumKV(GL_RGB), enumKV(GL_RGBA), NULL);
+	bitmapDataType   = context->readEnumeration(context, "bitmapDataType", enumKV(GL_UNSIGNED_BYTE), enumKV(GL_UNSIGNED_SHORT_5_6_5), enumKV(GL_UNSIGNED_SHORT_4_4_4_4), enumKV(GL_UNSIGNED_SHORT_5_5_5_1), NULL);
+	minFilter        = context->readEnumeration(context, "minFilter", enumKV(GL_NEAREST), enumKV(GL_LINEAR), enumKV(GL_NEAREST_MIPMAP_NEAREST), enumKV(GL_LINEAR_MIPMAP_NEAREST), enumKV(GL_NEAREST_MIPMAP_LINEAR), enumKV(GL_LINEAR_MIPMAP_LINEAR), NULL);
+	magFilter        = context->readEnumeration(context, "magFilter", enumKV(GL_NEAREST), enumKV(GL_LINEAR), NULL);
+	wrapS            = context->readEnumeration(context, "wrapS", enumKV(GL_CLAMP_TO_EDGE), enumKV(GL_REPEAT), NULL);
+	wrapT            = context->readEnumeration(context, "wrapT", enumKV(GL_CLAMP_TO_EDGE), enumKV(GL_REPEAT), NULL);
+	autoBlendMode    = context->readEnumeration(context, "autoBlendMode", enumKV(AUTO_BLEND_MODE_NONE), enumKV(AUTO_BLEND_MODE_OPAQUE), enumKV(AUTO_BLEND_MODE_TRANSPARENT_NONPREMULTIPLIED), enumKV(AUTO_BLEND_MODE_TRANSPARENT_PREMULTIPLIED), NULL);
+	autoMipmap       = context->readBoolean(context, "autoMipmap");
+	context->endStructure(context);
+	
+	if (context->status != SERIALIZATION_ERROR_OK) {
+		return false;
+	}
+	
+	GLTexture_init(self, bitmapDataFormat, bitmapDataType, minFilter, magFilter, wrapS, wrapT, autoBlendMode, autoMipmap);
+	self->imageName = imageName;
+	return true;
 }
 
 void GLTexture_serialize(GLTexture * self, SerializationContext * context) {
