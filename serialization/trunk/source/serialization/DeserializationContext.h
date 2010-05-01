@@ -32,6 +32,7 @@ typedef struct DeserializationContext DeserializationContext;
 	double   (* readDouble)(void * self, char * key); \
 	char *   (* readNextDictionaryKey)(void * self); \
 	char *   (* readString)(void * self, char * key); \
+	bool     (* readBoolean)(void * self, char * key); \
 	\
 	/* Additional args: Pairs of strings naming constants, and the values described by them, terminated by */ \
 	/* NULL. You can use the enumKV macro from serialization/SerializationShared.h for convenience. */ \

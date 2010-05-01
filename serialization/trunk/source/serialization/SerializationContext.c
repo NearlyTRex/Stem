@@ -3,7 +3,7 @@
 
 void SerializationContext_init(SerializationContext * self) {
 	self->jmpBuf = NULL;
-	self->status = 0;
+	self->status = SERIALIZATION_ERROR_OK;
 	self->beginStructure = NULL;
 	self->beginDictionary = NULL;
 	self->beginArray = NULL;
@@ -20,8 +20,9 @@ void SerializationContext_init(SerializationContext * self) {
 	self->writeUInt64 = NULL;
 	self->writeFloat = NULL;
 	self->writeDouble = NULL;
-	self->writeEnumeration = NULL;
 	self->writeString = NULL;
+	self->writeBoolean = NULL;
+	self->writeEnumeration = NULL;
 	self->writeBitfield8 = NULL;
 	self->writeBitfield16 = NULL;
 	self->writeBitfield32 = NULL;

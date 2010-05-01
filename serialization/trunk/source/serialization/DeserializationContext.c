@@ -3,7 +3,7 @@
 
 void DeserializationContext_init(DeserializationContext * self) {
 	self->jmpBuf = NULL;
-	self->status = 0;
+	self->status = SERIALIZATION_ERROR_OK;
 	self->beginStructure = NULL;
 	self->beginDictionary = NULL;
 	self->beginArray = NULL;
@@ -22,6 +22,7 @@ void DeserializationContext_init(DeserializationContext * self) {
 	self->readDouble = NULL;
 	self->readNextDictionaryKey = NULL;
 	self->readString = NULL;
+	self->readBoolean = NULL;
 	self->readEnumeration = NULL;
 	self->readBitfield8 = NULL;
 	self->readBitfield16 = NULL;

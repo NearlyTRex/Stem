@@ -31,6 +31,7 @@ typedef struct SerializationContext SerializationContext;
 	void (* writeFloat)(void * self, char * key, float value); \
 	void (* writeDouble)(void * self, char * key, double value); \
 	void (* writeString)(void * self, char * key, char * value); \
+	void (* writeBoolean)(void * self, char * key, bool value); \
 	\
 	/* Additional args: Pairs of strings naming constants, and the values described by them, terminated by */ \
 	/* NULL. You can use the enumKV macro from serialization/SerializationShared.h for convenience. */ \
