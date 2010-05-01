@@ -16,7 +16,7 @@ TARGET_PLATFORMS_windows = windows
 
 include version
 
-PROJECT_NAME = template_stemlib
+PROJECT_NAME = gltexture
 IPHONE_SDK_VERSION = 3.1
 IPHONESIMULATOR_APPLICATIONS_DIR = ${HOME}/Library/Application Support/iPhone Simulator/3.1.3/Applications
 RESOURCE_RULES_PLIST = /Developer/Platforms/MacOSX.platform/ResourceRules.plist
@@ -32,10 +32,10 @@ CONFIGURATIONS = debug profile release
 PLATFORMS = ${filter ${TARGET_PLATFORMS_${HOST_PLATFORM}},macosx iphonesimulator iphoneos linux windows}
 ARCHS = ppc i386 i686 x86_64 armv6 armv7
 
-TARGET_NAME_library = libstem_template
-TARGET_NAME_unittest = template_unittest
-TARGET_NAME_testharness = template_testharness
-HUMAN_READABLE_TARGET_NAME_testharness = StemTemplate
+TARGET_NAME_library = libstem_gltexture
+TARGET_NAME_unittest = gltexture_unittest
+TARGET_NAME_testharness = gltexture_testharness
+HUMAN_READABLE_TARGET_NAME_testharness = GLTexture
 
 #Per-target configurations
 CONFIGURATIONS_library = debug profile release
@@ -64,7 +64,7 @@ RANLIB_macosx = /usr/bin/ranlib
 SDKROOT_macosx = /Developer/SDKs/MacOSX10.5.sdk
 ARCHS_macosx = ppc i386 x86_64
 CCFLAGS_macosx = -isysroot ${SDKROOT_macosx} -mmacosx-version-min=10.5
-LINKFLAGS_macosx = -isysroot ${SDKROOT_macosx} -mmacosx-version-min=10.5
+LINKFLAGS_macosx = -isysroot ${SDKROOT_macosx} -mmacosx-version-min=10.5 -framework OpenGL
 
 CC_iphonesimulator_i386 = /Developer/Platforms/iPhoneSimulator.platform/Developer/usr/bin/gcc-4.2 -arch i386
 AR_iphonesimulator = /Developer/Platforms/iPhoneSimulator.platform/Developer/usr/bin/ar
@@ -72,7 +72,7 @@ RANLIB_iphonesimulator = /Developer/Platforms/iPhoneSimulator.platform/Developer
 SDKROOT_iphonesimulator = /Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator${IPHONE_SDK_VERSION}.sdk
 ARCHS_iphonesimulator = i386
 CCFLAGS_iphonesimulator = -isysroot ${SDKROOT_iphonesimulator} -mmacosx-version-min=10.5 -D__IPHONE_OS_VERSION_MIN_REQUIRED=30000
-LINKFLAGS_iphonesimulator = -isysroot ${SDKROOT_iphonesimulator} -mmacosx-version-min=10.5
+LINKFLAGS_iphonesimulator = -isysroot ${SDKROOT_iphonesimulator} -mmacosx-version-min=10.5 -framework OpenGLES
 
 CC_iphoneos_armv6 = /Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/gcc-4.2 -arch armv6
 CC_iphoneos_armv7 = /Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/gcc-4.2 -arch armv7
@@ -81,26 +81,26 @@ RANLIB_iphoneos = /Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/ranli
 SDKROOT_iphoneos = /Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS${IPHONE_SDK_VERSION}.sdk
 ARCHS_iphoneos = armv6 armv7
 CCFLAGS_iphoneos = -isysroot ${SDKROOT_iphoneos} -miphoneos-version-min=${IPHONE_SDK_VERSION}
-LINKFLAGS_iphoneos = -isysroot ${SDKROOT_iphoneos} -miphoneos-version-min=${IPHONE_SDK_VERSION}
+LINKFLAGS_iphoneos = -isysroot ${SDKROOT_iphoneos} -miphoneos-version-min=${IPHONE_SDK_VERSION} -framework OpenGLES
 
 CC_linux_i686 = /usr/bin/gcc
 AR_linux = /usr/bin/ar
 RANLIB_linux = /usr/bin/ranlib
 ARCHS_linux = i686
 CCFLAGS_linux = 
-LINKFLAGS_linux = -lm -ldl -Wl,-E
+LINKFLAGS_linux = -lm -ldl -Wl,-E -lGL
 
 CC_windows_i686 = \\MinGW\\bin\\gcc.exe
 AR_windows = \\MinGW\\bin\\ar.exe
 RANLIB_windows = \\MinGW\\bin\\ranlib.exe
 ARCHS_windows = i686
 CCFLAGS_windows = 
-LINKFLAGS_windows = 
+LINKFLAGS_windows = -lopengl32
 
 #General compile/link settings
 DEFINE_CCFLAGS = -DVERSION_MAJOR=${VERSION_MAJOR}u -DVERSION_MINOR=${VERSION_MINOR}u -DVERSION_TWEAK=${VERSION_TWEAK}u
 WARNING_CCFLAGS = -Wall -Wextra -Wno-unused-parameter -Werror
-INCLUDE_CCFLAGS = -I source
+INCLUDE_CCFLAGS = -I source -I include
 OTHER_CCFLAGS = -std=gnu99
 CCFLAGS = ${DEFINE_CCFLAGS} ${WARNING_CCFLAGS} ${INCLUDE_CCFLAGS} ${OTHER_CCFLAGS}
 
@@ -111,21 +111,22 @@ LINKFLAGS = ${FRAMEWORK_LINKFLAGS} ${LIBRARY_LINKFLAGS} ${OTHER_LINKFLAGS}
 
 #Per-target dependencies
 
-LIBRARY_DEPENDENCIES_unittest =
+LIBRARY_DEPENDENCIES_unittest = glgraphics/libstem_glgraphics.a serialization/libstem_serialization.a stemobject/libstem_stemobject.a
 LIBRARY_DEPENDENCIES_testharness =
 
 #Per-target source file lists
 
 SOURCES_library = \
-	source/template_stemlib/HelloWorld.c
+	source/gltexture/GLTexture.c
 
 SOURCES_unittest = \
 	test_source/unittest/framework/unittest_main.c \
 	test_source/unittest/framework/TestList.c \
+	test_source/unittest/TestSerializationContext.c \
 	${SOURCES_unittest_suites}
 
 SOURCES_unittest_suites = \
-	test_source/unittest/suites/HelloWorldTest.c
+	test_source/unittest/suites/GLTextureTest.c
 
 SOURCES_testharness = \
 	test_source/testharness/TestHarness_main.c
@@ -133,7 +134,7 @@ SOURCES_testharness = \
 SOURCES = ${sort ${foreach target,${TARGETS},${SOURCES_${target}}}}
 
 INCLUDES = \
-	source/template_stemlib/HelloWorld.h
+	source/gltexture/GLTexture.h
 
 RESOURCES_testharness = 
 
@@ -545,7 +546,7 @@ endef
 
 .PHONY: source_dist
 source_dist:
-	mkdir -p build/source_dist/source/template_stemlib
+	mkdir -p build/source_dist/source/gltexture
 	mkdir -p build/source_dist/test_resources
 	mkdir -p build/source_dist/test_source/testharness
 	mkdir -p build/source_dist/test_source/unittest/framework
@@ -554,7 +555,16 @@ source_dist:
 	${call filter_source_dist_file,Makefile,build/source_dist/Makefile}
 	cp Changes.txt License.txt ReadMe.txt version build/source_dist
 	
-	cp source/template_stemlib/* build/source_dist/source/template_stemlib
+	cp -r include/* build/source_dist/include
+	cp -r lib/* build/source_dist/lib
+ifneq (${HOST_PLATFORM},windows)
+	find build/source_dist/include -name .svn -print0 | xargs -0 rm -rf
+	find build/source_dist/lib -name .svn -print0 | xargs -0 rm -rf
+else
+	${warning build/source_dist/include and build/source_dist/lib may contain .svn directories}
+endif
+	
+	cp source/gltexture/* build/source_dist/source/gltexture
 	
 	cp test_resources/* build/source_dist/test_resources
 	
