@@ -118,6 +118,7 @@ LIBRARY_DEPENDENCIES_testharness =
 
 SOURCES_library = \
 	source/glgraphics/Camera.c \
+	source/glgraphics/GLInfo.c \
 	source/glgraphics/GLUtilities.c
 
 SOURCES_unittest = \
@@ -137,6 +138,7 @@ SOURCES = ${sort ${foreach target,${TARGETS},${SOURCES_${target}}}}
 INCLUDES = \
 	source/glgraphics/Camera.h \
 	source/glgraphics/GLIncludes.h \
+	source/glgraphics/GLInfo.h \
 	source/glgraphics/GLUtilities.h
 
 RESOURCES_testharness = 

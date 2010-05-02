@@ -1,3 +1,6 @@
+0.2.0:
+ * Added GLInfo
+
 0.1.0:
  * Added OpenGL ES2 includes to GLIncludes.h
  * Updated Camera to use newly-created stemobject 1.0.0
