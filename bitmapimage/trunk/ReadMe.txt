@@ -1,1 +1,1 @@
-This project serves as a starting point for all Stem library projects, as well as (temporarily) executable projects that use the stem build system and libraries. It is meant to be copied and modified to suit the specific project being created.
+BitmapImage defines an object that represents an uncompressed pixel map. No I/O operations, transformations, or other functionality is provided; these are implemented by other stem libraries that depend on bitmapimage.
