@@ -28,9 +28,10 @@
 typedef struct BitmapImage BitmapImage;
 
 enum BitmapPixelFormat {
-	BITMAP_PIXEL_FORMAT_RGBA_8888,
-	BITMAP_PIXEL_FORMAT_RGB_888,
-	BITMAP_PIXEL_FORMAT_GRAY_8
+	BITMAP_PIXEL_FORMAT_RGBA_8888 = 0,
+	BITMAP_PIXEL_FORMAT_RGB_888 = 1,
+	BITMAP_PIXEL_FORMAT_GRAYALPHA_88 = 2,
+	BITMAP_PIXEL_FORMAT_GRAY_8 = 3
 };
 
 #define BitmapImage_structContents \
@@ -45,6 +46,8 @@ enum BitmapPixelFormat {
 struct BitmapImage {
 	BitmapImage_structContents
 };
+
+#define BitmapImage_pixelFormatBytes(pixelFormat) (4 - pixelFormat)
 
 BitmapImage * BitmapImage_create(enum BitmapPixelFormat pixelFormat,
                                  unsigned int width,

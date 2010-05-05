@@ -8,6 +8,10 @@ static void testInit() {
 		0xFF, 0xBF, 0x00,
 		0x7F, 0x3F, 0x00
 	};
+	unsigned char pixelsGrayAlpha2x2r4[] = {
+		0xFF,0xFF, 0xBF,0x7F,
+		0x7F,0x00, 0x3F,0xFF
+	};
 	unsigned char pixelsRGB3x2r9[] = {
 		0xFF,0x00,0x00, 0x00,0xFF,0x00, 0x00,0x00,0xFF,
 		0xFF,0xFF,0x00, 0xFF,0x00,0xFF, 0x00,0xFF,0xFF
@@ -25,6 +29,15 @@ static void testInit() {
 	TestCase_assert(bitmapImage.bytesPerRow == 3, "Expected 3 but got %u", bitmapImage.bytesPerRow);
 	TestCase_assert(bitmapImage.pixels != NULL, "Expected non-NULL but got NULL");
 	TestCase_assert(!memcmp(pixelsGray2x2r3, bitmapImage.pixels, 6), "Expected image:\n  %02X %02X %02X\n  %02X %02X %02X\nActual image:\n  %02X %02X %02X\n  %02X %02X %02X", pixelsGray2x2r3[0], pixelsGray2x2r3[1], pixelsGray2x2r3[2], pixelsGray2x2r3[3], pixelsGray2x2r3[4], pixelsGray2x2r3[5], bitmapImage.pixels[0], bitmapImage.pixels[1], bitmapImage.pixels[2], bitmapImage.pixels[3], bitmapImage.pixels[4], bitmapImage.pixels[5]);
+	bitmapImage.dispose(&bitmapImage);
+	
+	BitmapImage_init(&bitmapImage, BITMAP_PIXEL_FORMAT_GRAYALPHA_88, 2, 2, 4, pixelsGrayAlpha2x2r4);
+	TestCase_assert(bitmapImage.pixelFormat == BITMAP_PIXEL_FORMAT_GRAYALPHA_88, "Expected %d but got %d", BITMAP_PIXEL_FORMAT_GRAYALPHA_88, bitmapImage.pixelFormat);
+	TestCase_assert(bitmapImage.width == 2, "Expected 2 but got %u", bitmapImage.width);
+	TestCase_assert(bitmapImage.height == 2, "Expected 2 but got %u", bitmapImage.height);
+	TestCase_assert(bitmapImage.bytesPerRow == 4, "Expected 3 but got %u", bitmapImage.bytesPerRow);
+	TestCase_assert(bitmapImage.pixels != NULL, "Expected non-NULL but got NULL");
+	TestCase_assert(!memcmp(pixelsGrayAlpha2x2r4, bitmapImage.pixels, 8), "Expected image:\n  %02X%02X %02X%02X\n  %02X%02X %02X%02X\nActual image:\n  %02X%02X %02X%02X\n  %02X%02X %02X%02X", pixelsGrayAlpha2x2r4[0], pixelsGrayAlpha2x2r4[1], pixelsGrayAlpha2x2r4[2], pixelsGrayAlpha2x2r4[3], pixelsGrayAlpha2x2r4[4], pixelsGrayAlpha2x2r4[5], pixelsGrayAlpha2x2r4[6], pixelsGrayAlpha2x2r4[7], bitmapImage.pixels[0], bitmapImage.pixels[1], bitmapImage.pixels[2], bitmapImage.pixels[3], bitmapImage.pixels[4], bitmapImage.pixels[5], bitmapImage.pixels[6], bitmapImage.pixels[7]);
 	bitmapImage.dispose(&bitmapImage);
 	
 	BitmapImage_init(&bitmapImage, BITMAP_PIXEL_FORMAT_RGB_888, 3, 2, 9, pixelsRGB3x2r9);
@@ -53,6 +66,16 @@ static void testInit() {
 	TestCase_assert(bitmapImagePtr->bytesPerRow == 3, "Expected 3 but got %u", bitmapImagePtr->bytesPerRow);
 	TestCase_assert(bitmapImagePtr->pixels != NULL, "Expected non-NULL but got NULL");
 	TestCase_assert(!memcmp(pixelsGray2x2r3, bitmapImagePtr->pixels, 6), "Expected image:\n  %02X %02X %02X\n  %02X %02X %02X\nActual image:\n  %02X %02X %02X\n  %02X %02X %02X", pixelsGray2x2r3[0], pixelsGray2x2r3[1], pixelsGray2x2r3[2], pixelsGray2x2r3[3], pixelsGray2x2r3[4], pixelsGray2x2r3[5], bitmapImagePtr->pixels[0], bitmapImagePtr->pixels[1], bitmapImagePtr->pixels[2], bitmapImagePtr->pixels[3], bitmapImagePtr->pixels[4], bitmapImagePtr->pixels[5]);
+	bitmapImagePtr->dispose(bitmapImagePtr);
+	
+	bitmapImagePtr = BitmapImage_create(BITMAP_PIXEL_FORMAT_GRAYALPHA_88, 2, 2, 4, pixelsGrayAlpha2x2r4);
+	TestCase_assert(bitmapImagePtr != NULL, "BitmapImage_create unexpectedly returned NULL");
+	TestCase_assert(bitmapImagePtr->pixelFormat == BITMAP_PIXEL_FORMAT_GRAYALPHA_88, "Expected %d but got %d", BITMAP_PIXEL_FORMAT_GRAYALPHA_88, bitmapImagePtr->pixelFormat);
+	TestCase_assert(bitmapImagePtr->width == 2, "Expected 2 but got %u", bitmapImagePtr->width);
+	TestCase_assert(bitmapImagePtr->height == 2, "Expected 2 but got %u", bitmapImagePtr->height);
+	TestCase_assert(bitmapImagePtr->bytesPerRow == 4, "Expected 3 but got %u", bitmapImagePtr->bytesPerRow);
+	TestCase_assert(bitmapImagePtr->pixels != NULL, "Expected non-NULL but got NULL");
+	TestCase_assert(!memcmp(pixelsGrayAlpha2x2r4, bitmapImagePtr->pixels, 8), "Expected image:\n  %02X%02X %02X%02X\n  %02X%02X %02X%02X\nActual image:\n  %02X%02X %02X%02X\n  %02X%02X %02X%02X", pixelsGrayAlpha2x2r4[0], pixelsGrayAlpha2x2r4[1], pixelsGrayAlpha2x2r4[2], pixelsGrayAlpha2x2r4[3], pixelsGrayAlpha2x2r4[4], pixelsGrayAlpha2x2r4[5], pixelsGrayAlpha2x2r4[6], pixelsGrayAlpha2x2r4[7], bitmapImagePtr->pixels[0], bitmapImagePtr->pixels[1], bitmapImagePtr->pixels[2], bitmapImagePtr->pixels[3], bitmapImagePtr->pixels[4], bitmapImagePtr->pixels[5], bitmapImagePtr->pixels[6], bitmapImagePtr->pixels[7]);
 	bitmapImagePtr->dispose(bitmapImagePtr);
 	
 	bitmapImagePtr = BitmapImage_create(BITMAP_PIXEL_FORMAT_RGB_888, 3, 2, 9, pixelsRGB3x2r9);

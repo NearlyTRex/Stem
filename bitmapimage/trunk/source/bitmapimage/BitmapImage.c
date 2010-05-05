@@ -53,7 +53,7 @@ void BitmapImage_init(BitmapImage * self,
 	self->height = height;
 	self->bytesPerRow = bytesPerRow;
 	
-	bytesPerPixel = (pixelFormat == BITMAP_PIXEL_FORMAT_RGBA_8888 ? 4 : pixelFormat == BITMAP_PIXEL_FORMAT_RGB_888 ? 3 : 1);
+	bytesPerPixel = BitmapImage_pixelFormatBytes(pixelFormat);
 	self->pixels = malloc(bytesPerRow * height * bytesPerPixel);
 	memcpy(self->pixels, pixels, bytesPerRow * height * bytesPerPixel);
 	
