@@ -4,4 +4,6 @@ GLGraphics provides some miscellaneous general-purpose OpenGL utility code. Incl
 
  - GLIncludes.h is a convenience header that #includes the appropriate OpenGL headers for the target platform.
 
+ - GLInfo provides general information about the OpenGL environment at runtime.
+
  - GLUtilities provides general-purpose OpenGL utility functions. Currently, the only included functions translate between string representations and GLenum representations of OpenGL constants.

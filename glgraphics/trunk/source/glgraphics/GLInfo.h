@@ -31,6 +31,6 @@ enum GLAPIVersion {
 	GL_API_VERSION_ES2
 };
 
-extern enum GLAPIVersion openGLAPIVersion;
+extern enum GLAPIVersion g_openGLAPIVersion;
 
 #endif

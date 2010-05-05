@@ -22,4 +22,4 @@
 
 #include "glgraphics/GLInfo.h"
 
-enum GLAPIVersion openGLAPIVersion = GL_API_VERSION_DESKTOP_1;
+enum GLAPIVersion g_openGLAPIVersion = GL_API_VERSION_DESKTOP_1;
