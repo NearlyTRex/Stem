@@ -1,8 +1,8 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include "template_stemlib/HelloWorld.h"
 
 int main() {
-	printf("%s\n", helloWorld());
+	// Should read and write PNGs and raw pixel data, with optional format conversions
+	printf("No test harness yet\n");
 	return EXIT_SUCCESS;
 }

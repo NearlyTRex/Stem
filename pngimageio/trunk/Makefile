@@ -16,7 +16,7 @@ TARGET_PLATFORMS_windows = windows
 
 include version
 
-PROJECT_NAME = template_stemlib
+PROJECT_NAME = pngimageio
 IPHONE_SDK_VERSION = 3.1
 IPHONESIMULATOR_APPLICATIONS_DIR = ${HOME}/Library/Application Support/iPhone Simulator/3.1.3/Applications
 RESOURCE_RULES_PLIST = /Developer/Platforms/MacOSX.platform/ResourceRules.plist
@@ -32,10 +32,10 @@ CONFIGURATIONS = debug profile release
 PLATFORMS = ${filter ${TARGET_PLATFORMS_${HOST_PLATFORM}},macosx iphonesimulator iphoneos linux windows}
 ARCHS = ppc i386 i686 x86_64 armv6 armv7
 
-TARGET_NAME_library = libstem_template
-TARGET_NAME_unittest = template_unittest
-TARGET_NAME_testharness = template_testharness
-HUMAN_READABLE_TARGET_NAME_testharness = StemTemplate
+TARGET_NAME_library = libstem_pngimageio
+TARGET_NAME_unittest = pngimageio_unittest
+TARGET_NAME_testharness = pngimageio_testharness
+HUMAN_READABLE_TARGET_NAME_testharness = PNGImageIO
 
 #Per-target configurations
 CONFIGURATIONS_library = debug profile release
@@ -100,7 +100,7 @@ LINKFLAGS_windows =
 #General compile/link settings
 DEFINE_CCFLAGS = -DVERSION_MAJOR=${VERSION_MAJOR}u -DVERSION_MINOR=${VERSION_MINOR}u -DVERSION_TWEAK=${VERSION_TWEAK}u
 WARNING_CCFLAGS = -Wall -Wextra -Wno-unused-parameter -Werror
-INCLUDE_CCFLAGS = -I source
+INCLUDE_CCFLAGS = -I source -I include -I include/libpng
 OTHER_CCFLAGS = -std=gnu99
 CCFLAGS = ${DEFINE_CCFLAGS} ${WARNING_CCFLAGS} ${INCLUDE_CCFLAGS} ${OTHER_CCFLAGS}
 
@@ -111,13 +111,15 @@ LINKFLAGS = ${FRAMEWORK_LINKFLAGS} ${LIBRARY_LINKFLAGS} ${OTHER_LINKFLAGS}
 
 #Per-target dependencies
 
-LIBRARY_DEPENDENCIES_unittest =
-LIBRARY_DEPENDENCIES_testharness =
+STEM_LIBRARY_DEPENDENCIES_unittest = bitmapimage/libstem_bitmapimage.a stemobject/libstem_stemobject.a stubshell/libstemshell_stub.a utilities/libstem_utilities.a
+STEM_LIBRARY_DEPENDENCIES_testharness =
+THIRDPARTY_LIBRARY_DEPENDENCIES_unittest = libpng/libpng.a zlib/libz.a
+THIRDPARTY_LIBRARY_DEPENDENCIES_testharness = 
 
 #Per-target source file lists
 
 SOURCES_library = \
-	source/template_stemlib/HelloWorld.c
+	source/pngimageio/PNGImageIO.c
 
 SOURCES_unittest = \
 	test_source/unittest/framework/unittest_main.c \
@@ -125,7 +127,7 @@ SOURCES_unittest = \
 	${SOURCES_unittest_suites}
 
 SOURCES_unittest_suites = \
-	test_source/unittest/suites/HelloWorldTest.c
+	test_source/unittest/suites/PNGImageIOTest.c
 
 SOURCES_testharness = \
 	test_source/testharness/TestHarness_main.c
@@ -133,7 +135,7 @@ SOURCES_testharness = \
 SOURCES = ${sort ${foreach target,${TARGETS},${SOURCES_${target}}}}
 
 INCLUDES = \
-	source/template_stemlib/HelloWorld.h
+	source/pngimageio/PNGImageIO.h
 
 RESOURCES_testharness = 
 
@@ -213,8 +215,11 @@ endef
 
 define library_dependency_template #(target, configuration, platform)
 	build/library/debug-${3}/${TARGET_NAME_library}.a \
-	${foreach library,${LIBRARY_DEPENDENCIES_${1}}, \
+	${foreach library,${STEM_LIBRARY_DEPENDENCIES_${1}}, \
 		lib/${dir ${library}}${configuration}-${platform}/${notdir ${library}} \
+	} \
+	${foreach library,${THIRDPARTY_LIBRARY_DEPENDENCIES_${1}}, \
+		lib/${dir ${library}}${platform}/${notdir ${library}} \
 	}
 endef
 
@@ -470,20 +475,20 @@ test: unittest ${foreach platform,${PLATFORMS_unittest},run_unittests_${platform
 
 .PHONY: run_unittests_macosx
 run_unittests_macosx:
-	./build/unittest/debug-macosx/${TARGET_NAME_unittest}
+	./build/unittest/debug-macosx/${TARGET_NAME_unittest} "${CURDIR}/test_resources"
 
 .PHONY: run_unittests_iphonesimulator
 run_unittests_iphonesimulator:
 	DYLD_ROOT_PATH=${SDKROOT_iphonesimulator} \
-	./build/unittest/debug-iphonesimulator/${TARGET_NAME_unittest}
+	./build/unittest/debug-iphonesimulator/${TARGET_NAME_unittest} "${CURDIR}/test_resources"
 
 .PHONY: run_unittests_linux
 run_unittests_linux:
-	./build/unittest/debug-linux/${TARGET_NAME_unittest}
+	./build/unittest/debug-linux/${TARGET_NAME_unittest} "${CURDIR}/test_resources"
 
 .PHONY: run_unittests_windows
 run_unittests_windows:
-	./build/unittest/debug-windows/${TARGET_NAME_unittest}.exe
+	./build/unittest/debug-windows/${TARGET_NAME_unittest}.exe "${CURDIR}/test_resources"
 
 .PHONY: include
 include: ${INCLUDES}
@@ -545,7 +550,7 @@ endef
 
 .PHONY: source_dist
 source_dist:
-	mkdir -p build/source_dist/source/template_stemlib
+	mkdir -p build/source_dist/source/pngimageio
 	mkdir -p build/source_dist/test_resources
 	mkdir -p build/source_dist/test_source/testharness
 	mkdir -p build/source_dist/test_source/unittest/framework
@@ -554,7 +559,7 @@ source_dist:
 	${call filter_source_dist_file,Makefile,build/source_dist/Makefile}
 	cp Changes.txt License.txt ReadMe.txt version build/source_dist
 	
-	cp source/template_stemlib/* build/source_dist/source/template_stemlib
+	cp source/pngimageio/* build/source_dist/source/pngimageio
 	
 	cp test_resources/* build/source_dist/test_resources
 	
