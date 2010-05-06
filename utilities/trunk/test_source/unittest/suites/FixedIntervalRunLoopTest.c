@@ -30,7 +30,6 @@ static void testCallbackInterval() {
 	TestCase_assert(callbackCalls == 4, "Expected 4 but got %d", callbackCalls);
 	
 	runLoop->dispose(runLoop);
-	free(runLoop);
 }
 
 void testPauseResume() {
@@ -69,7 +68,6 @@ void testPauseResume() {
 	TestCase_assert(callbackCalls == 5, "Expected 5 but got %d", callbackCalls);
 	
 	runLoop->dispose(runLoop);
-	free(runLoop);
 }
 
 TEST_SUITE(FixedIntervalRunLoopTest, testCallbackInterval, testPauseResume)

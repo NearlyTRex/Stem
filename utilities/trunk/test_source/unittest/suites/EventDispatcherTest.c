@@ -53,7 +53,6 @@ static void testCallbacks() {
 	TestCase_assert(callback2Context == 4, "Expected 4 but got %d", callback2Context);
 	
 	dispatcher->dispose(dispatcher);
-	free(dispatcher);
 	
 	dispatcher = EventDispatcher_create(sender2);
 	dispatcher->registerForEvent(dispatcher, "event1", callback1, &callback1Context);
@@ -61,7 +60,6 @@ static void testCallbacks() {
 	TestCase_assert(lastSender == sender2, "Expected %p but got %p", sender2, lastSender);
 	
 	dispatcher->dispose(dispatcher);
-	free(dispatcher);
 }
 
 TEST_SUITE(EventDispatcherTest, testCallbacks)

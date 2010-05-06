@@ -23,7 +23,7 @@
 #ifndef __EVENT_DISPATCHER_H__
 #define __EVENT_DISPATCHER_H__
 
-#include <stdbool.h>
+#include "stemobject/StemObject.h"
 
 typedef struct EventDispatcher EventDispatcher;
 
@@ -40,13 +40,14 @@ typedef bool (* EventDispatcherCallback)(void * sender, const char * eventID, vo
 struct EventTarget;
 
 #define EventDispatcher_structContents \
+	StemObject_structContents \
+	\
 	void * owner; \
 	\
 	int numberOfTargets; \
 	int targetListSize; \
 	struct EventTarget * targets; \
 	\
-	void (* dispose)(void * self); \
 	void (* registerForEvent)(void * self, const char * eventID, EventDispatcherCallback callback, void * context); \
 	void (* unregisterForEvent)(void * self, const char * eventID, EventDispatcherCallback callback); \
 	bool (* dispatchEvent)(void * self, const char * eventID, void * eventData);
@@ -63,8 +64,8 @@ EventDispatcher * EventDispatcher_create(void * owner);
    sender parameter. */
 void EventDispatcher_init(EventDispatcher * self, void * owner);
 
-/* Free all memory allocated by EventDispatcher and remove all registered listeners. Does NOT free
-   the EventDispatcher itself. */
+/* Free all memory allocated by EventDispatcher (including self if allocated with
+   EventDispatcher_create()), and remove all registered listeners. */
 void EventDispatcher_dispose(void * selfPtr);
 
 /* Register for notification of events of type eventID */

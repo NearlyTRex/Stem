@@ -23,12 +23,14 @@
 #ifndef __FIXED_INTERVAL_RUN_LOOP_H__
 #define __FIXED_INTERVAL_RUN_LOOP_H__
 
-#include <stdbool.h>
+#include "stemobject/StemObject.h"
 
 typedef struct FixedIntervalRunLoop FixedIntervalRunLoop;
 typedef void (* FixedIntervalRunLoopCallback)(void * context);
 
 #define FixedIntervalRunLoop_structContents \
+	StemObject_structContents \
+	\
 	double (* timeFunction)(); \
 	double stepInterval; \
 	FixedIntervalRunLoopCallback stepCallback; \
@@ -38,7 +40,6 @@ typedef void (* FixedIntervalRunLoopCallback)(void * context);
 	bool paused; \
 	double pauseTime; \
 	\
-	void (* dispose)(void * self); \
 	void (* run)(void * self); \
 	void (* pause)(void * self); \
 	void (* resume)(void * self);

@@ -33,6 +33,8 @@ FixedIntervalRunLoop * FixedIntervalRunLoop_create(double (* timeFunction)(), do
 }
 
 void FixedIntervalRunLoop_init(FixedIntervalRunLoop * self, double (* timeFunction)(), double stepInterval, FixedIntervalRunLoopCallback stepCallback, void * stepContext) {
+	StemObject_init((StemObject *) self);
+	
 	self->timeFunction = timeFunction;
 	self->stepInterval = stepInterval;
 	self->stepCallback = stepCallback;
@@ -48,6 +50,7 @@ void FixedIntervalRunLoop_init(FixedIntervalRunLoop * self, double (* timeFuncti
 }
 
 void FixedIntervalRunLoop_dispose(void * selfPtr) {
+	StemObject_dispose(selfPtr);
 }
 
 void FixedIntervalRunLoop_run(void * selfPtr) {

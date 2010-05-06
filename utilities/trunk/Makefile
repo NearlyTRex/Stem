@@ -18,7 +18,7 @@ include version
 
 PROJECT_NAME = utilities
 IPHONE_SDK_VERSION = 3.1
-IPHONESIMULATOR_APPLICATIONS_DIR = ${HOME}/Library/Application Support/iPhone Simulator/User/Applications
+IPHONESIMULATOR_APPLICATIONS_DIR = ${HOME}/Library/Application Support/iPhone Simulator/3.1.3/Applications
 RESOURCE_RULES_PLIST = /Developer/Platforms/MacOSX.platform/ResourceRules.plist
 IPHONESIMULATOR_PATH = "/Developer/Platforms/iPhoneSimulator.platform/Developer/Applications/iPhone Simulator.app"
 CODESIGN_IDENTITY = "iPhone Developer"
@@ -71,7 +71,7 @@ AR_iphonesimulator = /Developer/Platforms/iPhoneSimulator.platform/Developer/usr
 RANLIB_iphonesimulator = /Developer/Platforms/iPhoneSimulator.platform/Developer/usr/bin/ranlib
 SDKROOT_iphonesimulator = /Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator${IPHONE_SDK_VERSION}.sdk
 ARCHS_iphonesimulator = i386
-CCFLAGS_iphonesimulator = -isysroot ${SDKROOT_iphonesimulator} -mmacosx-version-min=10.5 -D__IPHONE_OS_VERSION_MIN_REQUIRED=30000
+CCFLAGS_iphonesimulator = -isysroot ${SDKROOT_iphonesimulator} -mmacosx-version-min=10.5 -D__IPHONE_OS_VERSION_MIN_REQUIRED=31000
 LINKFLAGS_iphonesimulator = -isysroot ${SDKROOT_iphonesimulator} -mmacosx-version-min=10.5
 
 CC_iphoneos_armv6 = /Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/gcc-4.2 -arch armv6
@@ -90,9 +90,9 @@ ARCHS_linux = i686
 CCFLAGS_linux = 
 LINKFLAGS_linux = -lm -lrt -ldl -Wl,-E
 
-CC_windows_i686 = \\MinGW\\bin\\gcc.exe
-AR_windows = \\MinGW\\bin\\ar.exe
-RANLIB_windows = \\MinGW\\bin\\ranlib.exe
+CC_windows_i686 = C:\\MinGW\\bin\\gcc.exe
+AR_windows = C:\\MinGW\\bin\\ar.exe
+RANLIB_windows = C:\\MinGW\\bin\\ranlib.exe
 ARCHS_windows = i686
 CCFLAGS_windows = 
 LINKFLAGS_windows = 
@@ -111,8 +111,8 @@ LINKFLAGS = ${FRAMEWORK_LINKFLAGS} ${LIBRARY_LINKFLAGS} ${OTHER_LINKFLAGS}
 
 #Per-target dependencies
 
-LIBRARY_DEPENDENCIES_unittest = stubshell/libstemshell_stub.a
-LIBRARY_DEPENDENCIES_testharness = stubshell/libstemshell_stub.a
+LIBRARY_DEPENDENCIES_unittest = stemobject/libstem_stemobject.a stubshell/libstemshell_stub.a
+LIBRARY_DEPENDENCIES_testharness = stemobject/libstem_stemobject.a stubshell/libstemshell_stub.a
 
 #Per-target source file lists
 
@@ -171,7 +171,7 @@ endef
 
 define arch_object_list_template #(target, configuration, platform, arch)
 	${foreach source,${SOURCES_${1}}, \
-		build/intermediate/${2}-${3}-${4}/${notdir ${basename ${source}}}.o \
+		build/intermediate/${1}-${2}-${3}-${4}/${notdir ${basename ${source}}}.o \
 	}
 endef
 
@@ -185,8 +185,8 @@ ${foreach target,${TARGETS}, \
 
 
 define compile_template #(target, configuration, platform, arch, source_file)
-build/intermediate/${2}-${3}-${4}/${notdir ${basename ${5}}}.o: ${5}
-	mkdir -p build/intermediate/${2}-${3}-${4}
+build/intermediate/${1}-${2}-${3}-${4}/${notdir ${basename ${5}}}.o: ${5}
+	mkdir -p build/intermediate/${1}-${2}-${3}-${4}
 	${CC_${3}_${4}} ${CCFLAGS} ${CCFLAGS_${1}} ${CCFLAGS_${2}} ${CCFLAGS_${3}} -c -o $$@ $$^
 endef
 
@@ -206,7 +206,7 @@ ${foreach target,${TARGETS}, \
 
 
 define library_template #(target, configuration, platform, arch, output_file)
-build/intermediate/${2}-${3}-${4}/${5}: ${call arch_object_list_template,${1},${2},${3},${4}}
+build/intermediate/${1}-${2}-${3}-${4}/${5}: ${call arch_object_list_template,${1},${2},${3},${4}}
 	${AR_${3}} rc $$@ $$^
 	${RANLIB_${3}} $$@
 endef
@@ -225,7 +225,7 @@ ${foreach target,${LIBRARY_TARGETS}, \
 
 
 define executable_template #(target, configuration, platform, arch, output_file, dependent_libraries)
-build/intermediate/${2}-${3}-${4}/${5}: ${call arch_object_list_template,${1},${2},${3},${4}} ${6}
+build/intermediate/${1}-${2}-${3}-${4}/${5}: ${call arch_object_list_template,${1},${2},${3},${4}} ${6}
 	${CC_${3}_${4}} -o $$@ $$^ ${LINKFLAGS} ${LINKFLAGS_${3}}
 endef
 
@@ -249,9 +249,9 @@ ${foreach target,${EXECUTABLE_TARGETS} ${APPLICATION_TARGETS}, \
 
 
 
-define thin_binary_list_template #(target_name, configuration, platform)
+define thin_binary_list_template #(target, configuration, platform, target_name)
 	${foreach arch,${ARCHS_${3}}, \
-		build/intermediate/${2}-${3}-${arch}/${1} \
+		build/intermediate/${1}-${2}-${3}-${arch}/${4} \
 	}
 endef
 
@@ -259,7 +259,7 @@ endef
 ${foreach target,${LIBRARY_TARGETS}, \
 	${foreach configuration,${CONFIGURATIONS_${target}}, \
 		${foreach platform,${PLATFORMS_${target}}, \
-			${eval THIN_BINARIES_${target}_${configuration}_${platform} = ${call thin_binary_list_template,${TARGET_NAME_${target}}.a,${configuration},${platform}}} \
+			${eval THIN_BINARIES_${target}_${configuration}_${platform} = ${call thin_binary_list_template,${target},${configuration},${platform},${TARGET_NAME_${target}}.a}} \
 		} \
 	} \
 }
@@ -268,7 +268,7 @@ ${foreach target,${LIBRARY_TARGETS}, \
 ${foreach target,${EXECUTABLE_TARGETS}, \
 	${foreach configuration,${CONFIGURATIONS_${target}}, \
 		${foreach platform,${PLATFORMS_${target}}, \
-			${eval THIN_BINARIES_${target}_${configuration}_${platform} = ${call thin_binary_list_template,${TARGET_NAME_${target}},${configuration},${platform}}} \
+			${eval THIN_BINARIES_${target}_${configuration}_${platform} = ${call thin_binary_list_template,${target},${configuration},${platform},${TARGET_NAME_${target}}}} \
 		} \
 	} \
 }
@@ -277,7 +277,7 @@ ${foreach target,${EXECUTABLE_TARGETS}, \
 ${foreach target,${APPLICATION_TARGETS}, \
 	${foreach configuration,${CONFIGURATIONS_${target}}, \
 		${foreach platform,${PLATFORMS_${target}}, \
-			${eval THIN_BINARIES_${target}_${configuration}_${platform} = ${call thin_binary_list_template,${TARGET_NAME_${target}},${configuration},${platform}}} \
+			${eval THIN_BINARIES_${target}_${configuration}_${platform} = ${call thin_binary_list_template,${target},${configuration},${platform},${TARGET_NAME_${target}}}} \
 		} \
 	} \
 }
@@ -506,16 +506,15 @@ run_unittests_windows:
 .PHONY: include
 include: ${INCLUDES}
 	mkdir -p build/include
-	${foreach includeFile,$^, \
-		mkdir -p build/include/${notdir ${patsubst %/,%,${dir ${includeFile}}}}; \
-		cp ${includeFile} build/include/${notdir ${patsubst %/,%,${dir ${includeFile}}}}; \
+	${foreach include_file,$^, \
+		mkdir -p build/include/${notdir ${patsubst %/,%,${dir ${include_file}}}}; \
+		cp ${include_file} build/include/${notdir ${patsubst %/,%,${dir ${include_file}}}}; \
 	}
 
 .PHONY: clean
 clean:
 	rm -rf build
 	rm -rf dist
-	rm -rf dist_append
 
 .PHONY: install_testharness_iphonesimulator
 install_testharness_iphonesimulator: testharness
@@ -547,15 +546,14 @@ full_dist: clean all
 	cp -r build/include/* dist/include
 	cp -r build/library/* dist/library
 	cp -r build/testharness/* dist/testharness
-	svn import --no-ignore -m "Automated release from ${HOST_PLATFORM}" dist ${SVNROOT}/Releases/${PROJECT_NAME}/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_TWEAK}
 
 .PHONY: append_dist
-append_dist: clean all
-	svn co ${SVNROOT}/Releases/${PROJECT_NAME}/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_TWEAK} dist_append
-	cp -r build/library/* dist_append/library
-	cp -r build/testharness/* dist_append/testharness
-	svn add --no-ignore dist_append/library/* dist_append/testharness/*
-	svn commit -m "Automated release append from ${HOST_PLATFORM}" dist_append
+append_dist: all
+	cp -r build/library/* dist/library
+	cp -r build/testharness/* dist/testharness
+
+.PHONY: commit_dist
+	svn import --no-ignore -m "Automated release of ${PROJECT_NAME} ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_TWEAK} from ${HOST_PLATFORM}" dist ${SVNROOT}/Releases/${PROJECT_NAME}/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_TWEAK}
 
 define filter_source_dist_file #(infile, outfile)
 	ruby -e "print STDIN.read.gsub(/^.*#master_source_only\b.*$\n?/, '').gsub(/\n?#master_source_only_begin[\s\S]*?#master_source_only_end/, '').gsub(/#source_dist_only/, '')" < "${1}" > "${2}"
@@ -563,9 +561,8 @@ endef
 
 .PHONY: source_dist
 source_dist:
-	mkdir -p build/source_dist/include/shell
-	mkdir -p build/source_dist/include/stubshell
-	mkdir -p build/source_dist/lib/stubshell
+	mkdir -p build/source_dist/include
+	mkdir -p build/source_dist/lib
 	mkdir -p build/source_dist/source/utilities
 	mkdir -p build/source_dist/test_resources
 	mkdir -p build/source_dist/test_source/testharness
@@ -575,14 +572,13 @@ source_dist:
 	${call filter_source_dist_file,Makefile,build/source_dist/Makefile}
 	cp Changes.txt License.txt ReadMe.txt version build/source_dist
 	
-	cp include/shell/* build/source_dist/include/shell
-	cp include/stubshell/* build/source_dist/include/stubshell
-	
+	cp -r include/* build/source_dist/include
 	cp -r lib/* build/source_dist/lib
 ifneq (${HOST_PLATFORM},windows)
+	find build/source_dist/include -name .svn -print0 | xargs -0 rm -rf
 	find build/source_dist/lib -name .svn -print0 | xargs -0 rm -rf
 else
-	${warning build/source_dist/lib may contain .svn directories}
+	${warning build/source_dist/include and build/source_dist/lib may contain .svn directories}
 endif
 	
 	cp source/utilities/* build/source_dist/source/utilities

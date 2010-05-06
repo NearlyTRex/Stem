@@ -40,6 +40,8 @@ EventDispatcher * EventDispatcher_create(void * owner) {
 }
 
 void EventDispatcher_init(EventDispatcher * self, void * owner) {
+	StemObject_init((StemObject *) self);
+	
 	self->dispose = EventDispatcher_dispose;
 	self->registerForEvent = EventDispatcher_registerForEvent;
 	self->unregisterForEvent = EventDispatcher_unregisterForEvent;
@@ -59,6 +61,8 @@ void EventDispatcher_dispose(void * selfPtr) {
 		free(self->targets[targetIndex].eventID);
 	}
 	free(self->targets);
+	
+	StemObject_dispose(selfPtr);
 }
 
 void EventDispatcher_registerForEvent(void * selfPtr, const char * eventID, EventDispatcherCallback callback, void * context) {
