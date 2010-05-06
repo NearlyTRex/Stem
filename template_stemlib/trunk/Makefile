@@ -32,9 +32,9 @@ CONFIGURATIONS = debug profile release
 PLATFORMS = ${filter ${TARGET_PLATFORMS_${HOST_PLATFORM}},macosx iphonesimulator iphoneos linux windows}
 ARCHS = ppc i386 i686 x86_64 armv6 armv7
 
-TARGET_NAME_library = libstem_template
-TARGET_NAME_unittest = template_unittest
-TARGET_NAME_testharness = template_testharness
+TARGET_NAME_library = libstem_template_stemlib
+TARGET_NAME_unittest = template_stemlib_unittest
+TARGET_NAME_testharness = template_stemlib_testharness
 HUMAN_READABLE_TARGET_NAME_testharness = StemTemplate
 
 #Per-target configurations
@@ -100,7 +100,7 @@ LINKFLAGS_windows =
 #General compile/link settings
 DEFINE_CCFLAGS = -DVERSION_MAJOR=${VERSION_MAJOR}u -DVERSION_MINOR=${VERSION_MINOR}u -DVERSION_TWEAK=${VERSION_TWEAK}u
 WARNING_CCFLAGS = -Wall -Wextra -Wno-unused-parameter -Werror
-INCLUDE_CCFLAGS = -I source
+INCLUDE_CCFLAGS = -I source# -I include
 OTHER_CCFLAGS = -std=gnu99
 CCFLAGS = ${DEFINE_CCFLAGS} ${WARNING_CCFLAGS} ${INCLUDE_CCFLAGS} ${OTHER_CCFLAGS}
 
@@ -543,6 +543,8 @@ endef
 
 .PHONY: source_dist
 source_dist:
+	#mkdir -p build/source_dist/include
+	#mkdir -p build/source_dist/lib
 	mkdir -p build/source_dist/source/template_stemlib
 	mkdir -p build/source_dist/test_resources
 	mkdir -p build/source_dist/test_source/testharness
@@ -551,6 +553,15 @@ source_dist:
 	
 	${call filter_source_dist_file,Makefile,build/source_dist/Makefile}
 	cp Changes.txt License.txt ReadMe.txt version build/source_dist
+	
+	#cp -r include/* build/source_dist/include
+	#cp -r lib/* build/source_dist/lib
+#ifneq (${HOST_PLATFORM},windows)
+	#find build/source_dist/include -name .svn -print0 | xargs -0 rm -rf
+	#find build/source_dist/lib -name .svn -print0 | xargs -0 rm -rf
+#else
+	#${warning build/source_dist/include and build/source_dist/lib may contain .svn directories}
+#endif
 	
 	cp source/template_stemlib/* build/source_dist/source/template_stemlib
 	
