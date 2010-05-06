@@ -67,7 +67,7 @@ AR_iphonesimulator = /Developer/Platforms/iPhoneSimulator.platform/Developer/usr
 RANLIB_iphonesimulator = /Developer/Platforms/iPhoneSimulator.platform/Developer/usr/bin/ranlib
 SDKROOT_iphonesimulator = /Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator${IPHONE_SDK_VERSION}.sdk
 ARCHS_iphonesimulator = i386
-CCFLAGS_iphonesimulator = -isysroot ${SDKROOT_iphonesimulator} -mmacosx-version-min=10.5 -D__IPHONE_OS_VERSION_MIN_REQUIRED=30000
+CCFLAGS_iphonesimulator = -isysroot ${SDKROOT_iphonesimulator} -mmacosx-version-min=10.5 -D__IPHONE_OS_VERSION_MIN_REQUIRED=31000
 LINKFLAGS_iphonesimulator = -isysroot ${SDKROOT_iphonesimulator} -mmacosx-version-min=10.5
 
 CC_iphoneos_armv6 = /Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/gcc-4.2 -arch armv6
@@ -86,9 +86,9 @@ ARCHS_linux = i686
 CCFLAGS_linux = 
 LINKFLAGS_linux = -lm -ldl -Wl,-E
 
-CC_windows_i686 = \\MinGW\\bin\\gcc.exe
-AR_windows = \\MinGW\\bin\\ar.exe
-RANLIB_windows = \\MinGW\\bin\\ranlib.exe
+CC_windows_i686 = C:\\MinGW\\bin\\gcc.exe
+AR_windows = C:\\MinGW\\bin\\ar.exe
+RANLIB_windows = C:\\MinGW\\bin\\ranlib.exe
 ARCHS_windows = i686
 CCFLAGS_windows = 
 LINKFLAGS_windows = 
@@ -474,16 +474,15 @@ run_unittests_windows:
 .PHONY: include
 include: ${INCLUDES}
 	mkdir -p build/include
-	${foreach includeFile,$^, \
-		mkdir -p build/include/${notdir ${patsubst %/,%,${dir ${includeFile}}}}; \
-		cp ${includeFile} build/include/${notdir ${patsubst %/,%,${dir ${includeFile}}}}; \
+	${foreach include_file,$^, \
+		mkdir -p build/include/${notdir ${patsubst %/,%,${dir ${include_file}}}}; \
+		cp ${include_file} build/include/${notdir ${patsubst %/,%,${dir ${include_file}}}}; \
 	}
 
 .PHONY: clean
 clean:
 	rm -rf build
 	rm -rf dist
-	rm -rf dist_append
 
 #master_source_only_begin
 .PHONY: full_dist
@@ -491,14 +490,13 @@ full_dist: clean all
 	mkdir dist dist/include dist/library
 	cp -r build/include/* dist/include
 	cp -r build/library/* dist/library
-	svn import --no-ignore -m "Automated release from ${HOST_PLATFORM}" dist ${SVNROOT}/Releases/${PROJECT_NAME}/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_TWEAK}
 
 .PHONY: append_dist
-append_dist: clean all
-	svn co ${SVNROOT}/Releases/${PROJECT_NAME}/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_TWEAK} dist_append
-	cp -r build/library/* dist_append/library
-	svn add --no-ignore dist_append/library/*
-	svn commit -m "Automated release append from ${HOST_PLATFORM}" dist_append
+append_dist: all
+	cp -r build/library/* dist/library
+
+.PHONY: commit_dist
+	svn import --no-ignore -m "Automated release of ${PROJECT_NAME} ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_TWEAK} from ${HOST_PLATFORM}" dist ${SVNROOT}/Releases/${PROJECT_NAME}/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_TWEAK}
 
 define filter_source_dist_file #(infile, outfile)
 	ruby -e "print STDIN.read.gsub(/^.*#master_source_only\b.*$\n?/, '').gsub(/\n?#master_source_only_begin[\s\S]*?#master_source_only_end/, '').gsub(/#source_dist_only/, '')" < "${1}" > "${2}"
@@ -506,17 +504,25 @@ endef
 
 .PHONY: source_dist
 source_dist:
+	mkdir -p build/source_dist/include
+	mkdir -p build/source_dist/lib
 	mkdir -p build/source_dist/source/bitmapimage
-	mkdir -p build/source_dist/test_resources
 	mkdir -p build/source_dist/test_source/unittest/framework
 	mkdir -p build/source_dist/test_source/unittest/suites
 	
 	${call filter_source_dist_file,Makefile,build/source_dist/Makefile}
 	cp Changes.txt License.txt ReadMe.txt version build/source_dist
 	
-	cp source/bitmapimage/* build/source_dist/source/bitmapimage
+	cp -r include/* build/source_dist/include
+	cp -r lib/* build/source_dist/lib
+ifneq (${HOST_PLATFORM},windows)
+	find build/source_dist/include -name .svn -print0 | xargs -0 rm -rf
+	find build/source_dist/lib -name .svn -print0 | xargs -0 rm -rf
+else
+	${warning build/source_dist/include and build/source_dist/lib may contain .svn directories}
+endif
 	
-	cp test_resources/* build/source_dist/test_resources
+	cp source/bitmapimage/* build/source_dist/source/bitmapimage
 	
 	cp test_source/unittest/framework/* build/source_dist/test_source/unittest/framework
 	cp test_source/unittest/suites/* build/source_dist/test_source/unittest/suites

@@ -1,3 +1,6 @@
+1.1.1
+ * Refreshed Makefile from template_stemlib Stable_2010-05-06
+
 1.1.0
  * Added BITMAP_PIXEL_FORMAT_GRAYALPHA_8
  * Added BitmapImage_pixelFormatBytes macro
