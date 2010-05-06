@@ -556,12 +556,8 @@ source_dist:
 	
 	#cp -r include/* build/source_dist/include
 	#cp -r lib/* build/source_dist/lib
-#ifneq (${HOST_PLATFORM},windows)
 	#find build/source_dist/include -name .svn -print0 | xargs -0 rm -rf
 	#find build/source_dist/lib -name .svn -print0 | xargs -0 rm -rf
-#else
-	#${warning build/source_dist/include and build/source_dist/lib may contain .svn directories}
-#endif
 	
 	cp source/template_stemlib/* build/source_dist/source/template_stemlib
 	
