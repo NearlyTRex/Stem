@@ -4,6 +4,18 @@
 #include <stdio.h>
 #include <unistd.h>
 
+#ifdef WIN32
+#include <fcntl.h>
+#define _S_IREAD 256
+#define _S_IWRITE 128
+int mkstemp(char * template) {
+	int result = -1;
+	mktemp(template); 
+	result = open(template, O_RDWR | O_BINARY | O_CREAT | O_EXCL | _O_SHORT_LIVED, _S_IREAD | _S_IWRITE); 
+	return result;
+}
+#endif
+
 #define assertPixelMatch(expectedPixels, actualPixels, width, height, bytesPerPixel, bytesPerRow, rgbTolerance, testIndex) { \
 	bool different = false; \
 	\

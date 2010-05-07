@@ -154,7 +154,7 @@ int main(int argc, char ** argv) {
 		return EXIT_FAILURE;
 	}
 	if (inputIsRaw && infileLength % (inputWidth * BitmapImage_pixelFormatBytes(inputFormat)) != 0) {
-		fprintf(stderr, "Raw image data length is not divisible by specified pixel width (%lu bytes left at the end of the file when expecting rows of %d bytes)\n", infileLength % (inputWidth * BitmapImage_pixelFormatBytes(inputFormat)), inputWidth * BitmapImage_pixelFormatBytes(inputFormat));
+		fprintf(stderr, "Raw image data length is not divisible by specified pixel width (%d bytes left at the end of the file when expecting rows of %d bytes)\n", (int) (infileLength % (inputWidth * BitmapImage_pixelFormatBytes(inputFormat))), (int) (inputWidth * BitmapImage_pixelFormatBytes(inputFormat)));
 		return EXIT_FAILURE;
 	}
 	if (inputIsRaw && flipInput) {

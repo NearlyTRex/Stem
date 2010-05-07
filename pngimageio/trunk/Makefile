@@ -10,6 +10,11 @@ else
 HOST_PLATFORM = windows
 endif
 
+define newline_and_tab
+
+	
+endef
+
 TARGET_PLATFORMS_macosx = macosx iphonesimulator iphoneos
 TARGET_PLATFORMS_linux = linux
 TARGET_PLATFORMS_windows = windows
@@ -328,7 +333,7 @@ ${foreach target,${LIBRARY_TARGETS}, \
 
 define copy_target_resources #(target, resources_dir)
 	${foreach resource,${RESOURCES_${1}}, \
-		cp -r ${resource} ${2}; \
+		cp -r ${resource} ${2}${newline_and_tab} \
 	}
 	find ${2} -name .svn -print0 | xargs -0 rm -rf
 endef
@@ -530,24 +535,24 @@ run_unittests_windows:
 test_pngsuite: testharness
 	mkdir -p build/pngsuite
 	${foreach file,${PNGSUITE_FILES}, \
-		${call executable_template_${HOST_PLATFORM},testharness,debug} ${file} -itype png -otype png -o build/pngsuite/${basename ${notdir ${file}}}_auto.png; \
-		${call executable_template_${HOST_PLATFORM},testharness,debug} ${file} -itype png -otype png -iformat rgba -o build/pngsuite/${basename ${notdir ${file}}}_rgba.png; \
-		${call executable_template_${HOST_PLATFORM},testharness,debug} ${file} -itype png -otype png -iformat rgb -o build/pngsuite/${basename ${notdir ${file}}}_rgb.png; \
-		${call executable_template_${HOST_PLATFORM},testharness,debug} ${file} -itype png -otype png -iformat grayalpha -o build/pngsuite/${basename ${notdir ${file}}}_grayalpha.png; \
-		${call executable_template_${HOST_PLATFORM},testharness,debug} ${file} -itype png -otype png -iformat gray -o build/pngsuite/${basename ${notdir ${file}}}_gray.png; \
-		${call executable_template_${HOST_PLATFORM},testharness,debug} ${file} -itype png -otype png -iflip -o build/pngsuite/${basename ${notdir ${file}}}-flip_auto.png; \
-		${call executable_template_${HOST_PLATFORM},testharness,debug} ${file} -itype png -otype png -iflip -iformat rgba -o build/pngsuite/${basename ${notdir ${file}}}-flip_rgba.png; \
-		${call executable_template_${HOST_PLATFORM},testharness,debug} ${file} -itype png -otype png -iflip -iformat rgb -o build/pngsuite/${basename ${notdir ${file}}}-flip_rgb.png; \
-		${call executable_template_${HOST_PLATFORM},testharness,debug} ${file} -itype png -otype png -iflip -iformat grayalpha -o build/pngsuite/${basename ${notdir ${file}}}-flip_grayalpha.png; \
-		${call executable_template_${HOST_PLATFORM},testharness,debug} ${file} -itype png -otype png -iflip -iformat gray -o build/pngsuite/${basename ${notdir ${file}}}-flip_gray.png; \
+		${call executable_template_${HOST_PLATFORM},testharness,debug} ${file} -itype png -otype png -o build/pngsuite/${basename ${notdir ${file}}}_auto.png${newline_and_tab} \
+		${call executable_template_${HOST_PLATFORM},testharness,debug} ${file} -itype png -otype png -iformat rgba -o build/pngsuite/${basename ${notdir ${file}}}_rgba.png${newline_and_tab} \
+		${call executable_template_${HOST_PLATFORM},testharness,debug} ${file} -itype png -otype png -iformat rgb -o build/pngsuite/${basename ${notdir ${file}}}_rgb.png${newline_and_tab} \
+		${call executable_template_${HOST_PLATFORM},testharness,debug} ${file} -itype png -otype png -iformat grayalpha -o build/pngsuite/${basename ${notdir ${file}}}_grayalpha.png${newline_and_tab} \
+		${call executable_template_${HOST_PLATFORM},testharness,debug} ${file} -itype png -otype png -iformat gray -o build/pngsuite/${basename ${notdir ${file}}}_gray.png${newline_and_tab} \
+		${call executable_template_${HOST_PLATFORM},testharness,debug} ${file} -itype png -otype png -iflip -o build/pngsuite/${basename ${notdir ${file}}}-flip_auto.png${newline_and_tab} \
+		${call executable_template_${HOST_PLATFORM},testharness,debug} ${file} -itype png -otype png -iflip -iformat rgba -o build/pngsuite/${basename ${notdir ${file}}}-flip_rgba.png${newline_and_tab} \
+		${call executable_template_${HOST_PLATFORM},testharness,debug} ${file} -itype png -otype png -iflip -iformat rgb -o build/pngsuite/${basename ${notdir ${file}}}-flip_rgb.png${newline_and_tab} \
+		${call executable_template_${HOST_PLATFORM},testharness,debug} ${file} -itype png -otype png -iflip -iformat grayalpha -o build/pngsuite/${basename ${notdir ${file}}}-flip_grayalpha.png${newline_and_tab} \
+		${call executable_template_${HOST_PLATFORM},testharness,debug} ${file} -itype png -otype png -iflip -iformat gray -o build/pngsuite/${basename ${notdir ${file}}}-flip_gray.png${newline_and_tab} \
 	}
 
 .PHONY: include
 include: ${INCLUDES}
 	mkdir -p build/include
 	${foreach include_file,$^, \
-		mkdir -p build/include/${notdir ${patsubst %/,%,${dir ${include_file}}}}; \
-		cp ${include_file} build/include/${notdir ${patsubst %/,%,${dir ${include_file}}}}; \
+		mkdir -p build/include/${notdir ${patsubst %/,%,${dir ${include_file}}}}${newline_and_tab} \
+		cp ${include_file} build/include/${notdir ${patsubst %/,%,${dir ${include_file}}}}${newline_and_tab} \
 	}
 
 .PHONY: clean
@@ -574,8 +579,8 @@ codesign_testharness_iphoneos: testharness
 	${call add_blob_header,test_resources/Entitlements.plist,build/intermediate/Entitlements.xcent}
 	export CODESIGN_ALLOCATE=/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/codesign_allocate
 	${foreach configuration,${CONFIGURATIONS_testharness},\
-		cp "${RESOURCE_RULES_PLIST}" "build/testharness/${configuration}-iphoneos/${TARGET_NAME_testharness}.app"; \
-		/usr/bin/codesign -f -s ${CODESIGN_IDENTITY} --resource-rules=${RESOURCE_RULES_PLIST} --entitlements=build/intermediate/Entitlements.xcent "build/testharness/${configuration}-iphoneos/${TARGET_NAME_testharness}.app"; \
+		cp "${RESOURCE_RULES_PLIST}" "build/testharness/${configuration}-iphoneos/${TARGET_NAME_testharness}.app"${newline_and_tab} \
+		/usr/bin/codesign -f -s ${CODESIGN_IDENTITY} --resource-rules=${RESOURCE_RULES_PLIST} --entitlements=build/intermediate/Entitlements.xcent "build/testharness/${configuration}-iphoneos/${TARGET_NAME_testharness}.app"${newline_and_tab} \
 	}
 
 #master_source_only_begin
