@@ -111,8 +111,16 @@ LINKFLAGS = ${FRAMEWORK_LINKFLAGS} ${LIBRARY_LINKFLAGS} ${OTHER_LINKFLAGS}
 
 #Per-target dependencies
 
-LIBRARY_DEPENDENCIES_unittest = stemobject/libstem_stemobject.a stubshell/libstemshell_stub.a
-LIBRARY_DEPENDENCIES_testharness = stemobject/libstem_stemobject.a stubshell/libstemshell_stub.a
+STEM_LIBRARY_DEPENDENCIES_unittest = stemobject/libstem_stemobject.a stubshell/libstemshell_stub.a
+STEM_LIBRARY_DEPENDENCIES_testharness = stemobject/libstem_stemobject.a stubshell/libstemshell_stub.a
+THIRDPARTY_LIBRARY_DEPENDENCIES_unittest = 
+THIRDPARTY_LIBRARY_DEPENDENCIES_testharness = 
+
+#Per-target per-platform dependencies
+
+STEM_LIBRARY_DEPENDENCIES_unittest_macosx = 
+THIRDPARTY_LIBRARY_DEPENDENCIES_unittest_macosx = 
+#...
 
 #Per-target source file lists
 
@@ -154,6 +162,7 @@ INCLUDES = \
 	source/utilities/UTFUtilities.h
 
 RESOURCES_testharness = 
+RESOURCES_unittest = 
 
 
 
@@ -231,8 +240,11 @@ endef
 
 define library_dependency_template #(target, configuration, platform)
 	build/library/debug-${3}/${TARGET_NAME_library}.a \
-	${foreach library,${LIBRARY_DEPENDENCIES_${1}}, \
+	${foreach library,${STEM_LIBRARY_DEPENDENCIES_${1}} ${STEM_LIBRARY_DEPENDENCIES_${1}_${3}}, \
 		lib/${dir ${library}}${configuration}-${platform}/${notdir ${library}} \
+	} \
+	${foreach library,${THIRDPARTY_LIBRARY_DEPENDENCIES_${1}} ${THIRDPARTY_LIBRARY_DEPENDENCIES_${1}_${3}}, \
+		lib/${dir ${library}}${platform}/${notdir ${library}} \
 	}
 endef
 
@@ -311,22 +323,32 @@ ${foreach target,${LIBRARY_TARGETS}, \
 	} \
 }
 
+define copy_target_resources #(target, resources_dir)
+	${foreach resource,${RESOURCES_${1}}, \
+		cp -r ${resource} ${2}; \
+	}
+	find ${2} -name .svn -print0 | xargs -0 rm -rf
+endef
+
 define assemble_executable_macosx #(target, configuration, platform)
-build/${1}/${2}-${3}/${TARGET_NAME_${1}}: ${THIN_BINARIES_${1}_${2}_${3}}
+build/${1}/${2}-${3}/${TARGET_NAME_${1}}: ${THIN_BINARIES_${1}_${2}_${3}} ${RESOURCES_${1}}
 	mkdir -p $${dir $$@}
-	lipo -create -output $$@ $$^
+	lipo -create -output $$@ ${THIN_BINARIES_${1}_${2}_${3}}
+	${call copy_target_resources,${1},$${dir $$@}}
 endef
 
 define assemble_executable_linux #(target, configuration, platform)
-build/${1}/${2}-${3}/${TARGET_NAME_${1}}: ${THIN_BINARIES_${1}_${2}_${3}}
+build/${1}/${2}-${3}/${TARGET_NAME_${1}}: ${THIN_BINARIES_${1}_${2}_${3}} ${RESOURCES_${1}}
 	mkdir -p $${dir $$@}
-	cp $$^ $$@
+	cp ${THIN_BINARIES_${1}_${2}_${3}} $$@
+	${call copy_target_resources,${1},$${dir $$@}}
 endef
 
 define assemble_executable_windows #(target, configuration, platform)
-build/${1}/${2}-${3}/${TARGET_NAME_${1}}.exe: ${THIN_BINARIES_${1}_${2}_${3}}
+build/${1}/${2}-${3}/${TARGET_NAME_${1}}.exe: ${THIN_BINARIES_${1}_${2}_${3}} ${RESOURCES_${1}}
 	mkdir -p $${dir $$@}
-	cp $$^ $$@
+	cp ${THIN_BINARIES_${1}_${2}_${3}} $$@
+	${call copy_target_resources,${1},$${dir $$@}}
 endef
 
 #Produces final executable build targets
@@ -362,14 +384,12 @@ define create_app_bundle #(target, platform, executable_dir, plist_dir, resource
 	    -e "s/\$$$${SDK}/${PLIST_SDK_NAME_${2}}/g" \
 	    ${PLIST_FILE_${1}_${2}} > ${4}/Info.plist
 	echo "APPL????" > ${4}/PkgInfo
-	${foreach resource,${RESOURCES_${1}}, \
-		cp ${resource} ${5}; \
-	}
+	${call copy_target_resources,${1},${5}}
 endef
 
 define assemble_application_macosx #(target, configuration)
 build/${1}/${2}-macosx/${TARGET_NAME_${1}}.app/Contents/MacOS/${TARGET_NAME_${1}}: ${THIN_BINARIES_${1}_${2}_macosx} ${RESOURCES_${1}}
-	${call create_app_bundle,${1},macosx,$${dir $$@},$${dir $$@}../,$${dir $$@}../Resources/}
+	${call create_app_bundle,${1},macosx,$${dir $$@},build/${1}/${2}-macosx/${TARGET_NAME_${1}}.app/Contents,build/${1}/${2}-macosx/${TARGET_NAME_${1}}.app/Contents/Resources}
 	lipo -create -output $$@ ${THIN_BINARIES_${1}_${2}_macosx}
 endef
 
@@ -488,20 +508,20 @@ test: unittest ${foreach platform,${PLATFORMS_unittest},run_unittests_${platform
 
 .PHONY: run_unittests_macosx
 run_unittests_macosx:
-	./build/unittest/debug-macosx/${TARGET_NAME_unittest}
+	./build/unittest/debug-macosx/${TARGET_NAME_unittest} "${CURDIR}/build/unittest/debug-macosx"
 
 .PHONY: run_unittests_iphonesimulator
 run_unittests_iphonesimulator:
 	DYLD_ROOT_PATH=${SDKROOT_iphonesimulator} \
-	./build/unittest/debug-iphonesimulator/${TARGET_NAME_unittest}
+	./build/unittest/debug-iphonesimulator/${TARGET_NAME_unittest} "${CURDIR}/build/unittest/debug-iphonesimulator"
 
 .PHONY: run_unittests_linux
 run_unittests_linux:
-	./build/unittest/debug-linux/${TARGET_NAME_unittest}
+	./build/unittest/debug-linux/${TARGET_NAME_unittest} "${CURDIR}/build/unittest/debug-linux"
 
 .PHONY: run_unittests_windows
 run_unittests_windows:
-	./build/unittest/debug-windows/${TARGET_NAME_unittest}.exe
+	./build/unittest/debug-windows/${TARGET_NAME_unittest}.exe "${CURDIR}/build/unittest/debug-windows"
 
 .PHONY: include
 include: ${INCLUDES}
@@ -553,6 +573,7 @@ append_dist: all
 	cp -r build/testharness/* dist/testharness
 
 .PHONY: commit_dist
+commit_dist:
 	svn import --no-ignore -m "Automated release of ${PROJECT_NAME} ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_TWEAK} from ${HOST_PLATFORM}" dist ${SVNROOT}/Releases/${PROJECT_NAME}/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_TWEAK}
 
 define filter_source_dist_file #(infile, outfile)
