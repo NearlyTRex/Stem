@@ -51,8 +51,8 @@ BitmapImage * PNGImageIO_loadPNGData(const void * data, size_t length, int pixel
 	struct memreadContext readContext;
 	unsigned int width, height;
 	png_int_32 bitDepth, colorType;
-	png_bytep * rows;
-	unsigned char * pixels;
+	png_bytep * rows = NULL;
+	unsigned char * pixels = NULL;
 	unsigned int rowIndex;
 	enum BitmapPixelFormat chosenPixelFormat = BITMAP_PIXEL_FORMAT_RGBA_8888;
 	BitmapImage * image;
@@ -67,6 +67,8 @@ BitmapImage * PNGImageIO_loadPNGData(const void * data, size_t length, int pixel
 	
 	if (setjmp(png_jmpbuf(pngReadStruct))) {
 		png_destroy_read_struct(&pngReadStruct, &pngInfoStruct, NULL);
+		free(rows);
+		free(pixels);
 		return NULL;
 	}
 	
@@ -176,9 +178,229 @@ BitmapImage * PNGImageIO_loadPNGData(const void * data, size_t length, int pixel
 }
 
 bool PNGImageIO_writePNGFile(BitmapImage * image, const char * filePath, int pixelFormat, bool flipVertical) {
-	return false;
+	void * data;
+	size_t dataLength;
+	bool success;
+	
+	data = PNGImageIO_writePNGData(image, pixelFormat, flipVertical, &dataLength);
+	if (data == NULL) {
+		return false;
+	}
+	
+	success = writeFileSimple(filePath, data, dataLength);
+	free(data);
+	
+	return success;
+}
+
+static void pngWriteFnMemwrite(png_structp pngWriteStruct, png_bytep data, png_size_t length) {
+	memwrite((struct memwriteContext *) png_get_io_ptr(pngWriteStruct), length, data);
+}
+
+static void pngFlushFnNoOp(png_structp pngWriteStruct) {
+}
+
+static void copyAlpha(unsigned char * targetPixels, unsigned char * sourcePixels, unsigned int width, unsigned int height, unsigned int targetBytesPerPixel, unsigned int sourceBytesPerPixel) {
+	unsigned int rowIndex, columnIndex;
+	
+	for (rowIndex = 0; rowIndex < height; rowIndex++) {
+		for (columnIndex = 0; columnIndex < width; columnIndex++) {
+			targetPixels[rowIndex * width * targetBytesPerPixel + columnIndex * targetBytesPerPixel + targetBytesPerPixel - 1] = sourcePixels[rowIndex * width * sourceBytesPerPixel + columnIndex * sourceBytesPerPixel + sourceBytesPerPixel - 1];
+		}
+	}
+}
+
+static void addAlphaByte(unsigned char * pixels, unsigned int width, unsigned int height, unsigned int bytesPerPixel) {
+	unsigned int rowIndex, columnIndex;
+	
+	for (rowIndex = 0; rowIndex < height; rowIndex++) {
+		for (columnIndex = 0; columnIndex < width; columnIndex++) {
+			pixels[rowIndex * width * bytesPerPixel + columnIndex * bytesPerPixel + bytesPerPixel - 1] = 0xFF;
+		}
+	}
+}
+
+static void copyGrayToRGB(unsigned char * targetPixels, unsigned char * sourcePixels, unsigned int width, unsigned int height, unsigned int targetBytesPerPixel, unsigned int sourceBytesPerPixel) {
+	unsigned int rowIndex, columnIndex;
+	unsigned char gray;
+	
+	for (rowIndex = 0; rowIndex < height; rowIndex++) {
+		for (columnIndex = 0; columnIndex < width; columnIndex++) {
+			gray = sourcePixels[rowIndex * width * sourceBytesPerPixel + columnIndex * sourceBytesPerPixel];
+			targetPixels[rowIndex * width * targetBytesPerPixel + columnIndex * targetBytesPerPixel + 0] = gray;
+			targetPixels[rowIndex * width * targetBytesPerPixel + columnIndex * targetBytesPerPixel + 1] = gray;
+			targetPixels[rowIndex * width * targetBytesPerPixel + columnIndex * targetBytesPerPixel + 2] = gray;
+		}
+	}
+}
+
+static void copyRGB(unsigned char * targetPixels, unsigned char * sourcePixels, unsigned int width, unsigned int height, unsigned int targetBytesPerPixel, unsigned int sourceBytesPerPixel) {
+	unsigned int rowIndex, columnIndex;
+	
+	for (rowIndex = 0; rowIndex < height; rowIndex++) {
+		for (columnIndex = 0; columnIndex < width; columnIndex++) {
+			targetPixels[rowIndex * width * targetBytesPerPixel + columnIndex * targetBytesPerPixel + 0] = sourcePixels[rowIndex * width * sourceBytesPerPixel + columnIndex * sourceBytesPerPixel + 0];
+			targetPixels[rowIndex * width * targetBytesPerPixel + columnIndex * targetBytesPerPixel + 1] = sourcePixels[rowIndex * width * sourceBytesPerPixel + columnIndex * sourceBytesPerPixel + 1];
+			targetPixels[rowIndex * width * targetBytesPerPixel + columnIndex * targetBytesPerPixel + 2] = sourcePixels[rowIndex * width * sourceBytesPerPixel + columnIndex * sourceBytesPerPixel + 2];
+		}
+	}
+}
+
+static void copyGray(unsigned char * targetPixels, unsigned char * sourcePixels, unsigned int width, unsigned int height, unsigned int targetBytesPerPixel, unsigned int sourceBytesPerPixel) {
+	unsigned int rowIndex, columnIndex;
+	
+	for (rowIndex = 0; rowIndex < height; rowIndex++) {
+		for (columnIndex = 0; columnIndex < width; columnIndex++) {
+			targetPixels[rowIndex * width * targetBytesPerPixel + columnIndex * targetBytesPerPixel] = sourcePixels[rowIndex * width * sourceBytesPerPixel + columnIndex * sourceBytesPerPixel];
+		}
+	}
+}
+
+static void copyRGBToGray(unsigned char * targetPixels, unsigned char * sourcePixels, unsigned int width, unsigned int height, unsigned int targetBytesPerPixel, unsigned int sourceBytesPerPixel) {
+	unsigned int rowIndex, columnIndex;
+	int gray;
+	
+	for (rowIndex = 0; rowIndex < height; rowIndex++) {
+		for (columnIndex = 0; columnIndex < width; columnIndex++) {
+			gray = sourcePixels[rowIndex * width * sourceBytesPerPixel + columnIndex * sourceBytesPerPixel + 0] +
+			       sourcePixels[rowIndex * width * sourceBytesPerPixel + columnIndex * sourceBytesPerPixel + 1] +
+			       sourcePixels[rowIndex * width * sourceBytesPerPixel + columnIndex * sourceBytesPerPixel + 2];
+			targetPixels[rowIndex * width * targetBytesPerPixel + columnIndex * targetBytesPerPixel] = gray / 3;
+		}
+	}
 }
 
 void * PNGImageIO_writePNGData(BitmapImage * image, int pixelFormat, bool flipVertical, size_t * outLength) {
-	return NULL;
+	png_structp pngWriteStruct;
+	png_infop pngInfoStruct;
+	png_byte ** rows = NULL;
+	struct memwriteContext writeContext;
+	int colorType;
+	enum BitmapPixelFormat outputPixelFormat;
+	unsigned char * transformedPixels = NULL, * pixels;
+	unsigned int rowIndex;
+	
+	pngWriteStruct = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+	pngInfoStruct = png_create_info_struct(pngWriteStruct);
+	
+	if (setjmp(png_jmpbuf(pngWriteStruct))) {
+		png_destroy_write_struct(&pngWriteStruct, &pngInfoStruct);
+		free(rows);
+		return NULL;
+	}
+	
+	switch (image->pixelFormat) {
+		case BITMAP_PIXEL_FORMAT_RGBA_8888:
+			colorType = PNG_COLOR_TYPE_RGB_ALPHA;
+			break;
+			
+		case BITMAP_PIXEL_FORMAT_RGB_888:
+			colorType = PNG_COLOR_TYPE_RGB;
+			break;
+			
+		case BITMAP_PIXEL_FORMAT_GRAYALPHA_88:
+			colorType = PNG_COLOR_TYPE_GRAY_ALPHA;
+			break;
+			
+		case BITMAP_PIXEL_FORMAT_GRAY_8:
+			colorType = PNG_COLOR_TYPE_GRAY;
+			break;
+			
+		default:
+			png_destroy_write_struct(&pngWriteStruct, &pngInfoStruct);
+			return NULL;
+	}
+	
+	switch (pixelFormat) {
+		case PNG_PIXEL_FORMAT_AUTOMATIC:
+			outputPixelFormat = image->pixelFormat;
+			break;
+			
+		case BITMAP_PIXEL_FORMAT_RGBA_8888:
+			if ((int) image->pixelFormat != pixelFormat) {
+				transformedPixels = malloc(image->width * image->height * 4);
+				if (colorType & PNG_COLOR_MASK_ALPHA) {
+					copyAlpha(transformedPixels, image->pixels, image->width, image->height, 4, BitmapImage_pixelFormatBytes(image->pixelFormat));
+				} else {
+					addAlphaByte(transformedPixels, image->width, image->height, 4);
+				}
+				if (colorType & PNG_COLOR_MASK_COLOR) {
+					copyRGB(transformedPixels, image->pixels, image->width, image->height, 4, BitmapImage_pixelFormatBytes(image->pixelFormat));
+				} else {
+					copyGrayToRGB(transformedPixels, image->pixels, image->width, image->height, 4, BitmapImage_pixelFormatBytes(image->pixelFormat));
+				}
+			}
+			colorType = PNG_COLOR_TYPE_RGB_ALPHA;
+			outputPixelFormat = BITMAP_PIXEL_FORMAT_RGBA_8888;
+			break;
+			
+		case BITMAP_PIXEL_FORMAT_RGB_888:
+			if ((int) image->pixelFormat != pixelFormat) {
+				transformedPixels = malloc(image->width * image->height * 3);
+				if (colorType & PNG_COLOR_MASK_COLOR) {
+					copyRGB(transformedPixels, image->pixels, image->width, image->height, 3, BitmapImage_pixelFormatBytes(image->pixelFormat));
+				} else {
+					copyGrayToRGB(transformedPixels, image->pixels, image->width, image->height, 3, BitmapImage_pixelFormatBytes(image->pixelFormat));
+				}
+			}
+			colorType = PNG_COLOR_TYPE_RGB;
+			outputPixelFormat = BITMAP_PIXEL_FORMAT_RGB_888;
+			break;
+			
+		case BITMAP_PIXEL_FORMAT_GRAYALPHA_88:
+			if ((int) image->pixelFormat != pixelFormat) {
+				transformedPixels = malloc(image->width * image->height * 2);
+				if (colorType & PNG_COLOR_MASK_ALPHA) {
+					copyAlpha(transformedPixels, image->pixels, image->width, image->height, 2, BitmapImage_pixelFormatBytes(image->pixelFormat));
+				} else {
+					addAlphaByte(transformedPixels, image->width, image->height, 2);
+				}
+				if (colorType & PNG_COLOR_MASK_COLOR) {
+					copyRGBToGray(transformedPixels, image->pixels, image->width, image->height, 2, BitmapImage_pixelFormatBytes(image->pixelFormat));
+				} else {
+					copyGray(transformedPixels, image->pixels, image->width, image->height, 2, BitmapImage_pixelFormatBytes(image->pixelFormat));
+				}
+			}
+			colorType = PNG_COLOR_TYPE_GRAY_ALPHA;
+			outputPixelFormat = BITMAP_PIXEL_FORMAT_GRAYALPHA_88;
+			break;
+			
+		case BITMAP_PIXEL_FORMAT_GRAY_8:
+			if ((int) image->pixelFormat != pixelFormat) {
+				transformedPixels = malloc(image->width * image->height);
+				if (colorType & PNG_COLOR_MASK_COLOR) {
+					copyRGBToGray(transformedPixels, image->pixels, image->width, image->height, 1, BitmapImage_pixelFormatBytes(image->pixelFormat));
+				} else {
+					copyGray(transformedPixels, image->pixels, image->width, image->height, 1, BitmapImage_pixelFormatBytes(image->pixelFormat));
+				}
+			}
+			colorType = PNG_COLOR_TYPE_GRAY;
+			outputPixelFormat = BITMAP_PIXEL_FORMAT_GRAY_8;
+			break;
+			
+		default:
+			png_destroy_write_struct(&pngWriteStruct, &pngInfoStruct);
+			return NULL;
+	}
+	
+	writeContext = memwriteContextInit(malloc(1), 0, 1, true);
+	png_set_write_fn(pngWriteStruct, &writeContext, pngWriteFnMemwrite, pngFlushFnNoOp);
+	
+	png_set_IHDR(pngWriteStruct, pngInfoStruct, image->width, image->height, 8, colorType, PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
+	
+	rows = malloc(sizeof(png_byte *) * image->height);
+	pixels = transformedPixels == NULL ? image->pixels : transformedPixels;
+	for (rowIndex = 0; rowIndex < image->height; rowIndex++) {
+		rows[rowIndex] = pixels + ((flipVertical ? image->height - rowIndex - 1 : rowIndex) * image->width * BitmapImage_pixelFormatBytes(outputPixelFormat));
+	}
+	
+	png_set_rows(pngWriteStruct, pngInfoStruct, rows);
+	png_write_png(pngWriteStruct, pngInfoStruct, PNG_TRANSFORM_IDENTITY, NULL);
+	
+	free(rows);
+	free(transformedPixels);
+	png_destroy_write_struct(&pngWriteStruct, &pngInfoStruct);
+	
+	*outLength = writeContext.position;
+	return writeContext.data;
 }

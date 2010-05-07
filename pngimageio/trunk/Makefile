@@ -25,8 +25,8 @@ CODESIGN_IDENTITY = "iPhone Developer"
 SVNROOT = http://sacredsoftware.net/svn/misc#master_source_only
 
 LIBRARY_TARGETS = library
-EXECUTABLE_TARGETS = unittest
-APPLICATION_TARGETS = testharness
+EXECUTABLE_TARGETS = unittest testharness
+APPLICATION_TARGETS = 
 TARGETS = ${LIBRARY_TARGETS} ${EXECUTABLE_TARGETS} ${APPLICATION_TARGETS}
 CONFIGURATIONS = debug profile release
 PLATFORMS = ${filter ${TARGET_PLATFORMS_${HOST_PLATFORM}},macosx iphonesimulator iphoneos linux windows}
@@ -71,7 +71,7 @@ AR_iphonesimulator = /Developer/Platforms/iPhoneSimulator.platform/Developer/usr
 RANLIB_iphonesimulator = /Developer/Platforms/iPhoneSimulator.platform/Developer/usr/bin/ranlib
 SDKROOT_iphonesimulator = /Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator${IPHONE_SDK_VERSION}.sdk
 ARCHS_iphonesimulator = i386
-CCFLAGS_iphonesimulator = -isysroot ${SDKROOT_iphonesimulator} -mmacosx-version-min=10.5 -D__IPHONE_OS_VERSION_MIN_REQUIRED=30000
+CCFLAGS_iphonesimulator = -isysroot ${SDKROOT_iphonesimulator} -mmacosx-version-min=10.5 -D__IPHONE_OS_VERSION_MIN_REQUIRED=31000
 LINKFLAGS_iphonesimulator = -isysroot ${SDKROOT_iphonesimulator} -mmacosx-version-min=10.5
 
 CC_iphoneos_armv6 = /Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/gcc-4.2 -arch armv6
@@ -88,11 +88,11 @@ AR_linux = /usr/bin/ar
 RANLIB_linux = /usr/bin/ranlib
 ARCHS_linux = i686
 CCFLAGS_linux = 
-LINKFLAGS_linux = -lm -ldl -Wl,-E
+LINKFLAGS_linux = -lm -lrt -ldl -Wl,-E
 
-CC_windows_i686 = \\MinGW\\bin\\gcc.exe
-AR_windows = \\MinGW\\bin\\ar.exe
-RANLIB_windows = \\MinGW\\bin\\ranlib.exe
+CC_windows_i686 = C:\\MinGW\\bin\\gcc.exe
+AR_windows = C:\\MinGW\\bin\\ar.exe
+RANLIB_windows = C:\\MinGW\\bin\\ranlib.exe
 ARCHS_windows = i686
 CCFLAGS_windows = 
 LINKFLAGS_windows = 
@@ -100,7 +100,7 @@ LINKFLAGS_windows =
 #General compile/link settings
 DEFINE_CCFLAGS = -DVERSION_MAJOR=${VERSION_MAJOR}u -DVERSION_MINOR=${VERSION_MINOR}u -DVERSION_TWEAK=${VERSION_TWEAK}u
 WARNING_CCFLAGS = -Wall -Wextra -Wno-unused-parameter -Werror
-INCLUDE_CCFLAGS = -I source -I include -I include/libpng
+INCLUDE_CCFLAGS = -I source -I include -I include/libpng -I include/zlib
 OTHER_CCFLAGS = -std=gnu99
 CCFLAGS = ${DEFINE_CCFLAGS} ${WARNING_CCFLAGS} ${INCLUDE_CCFLAGS} ${OTHER_CCFLAGS}
 
@@ -111,10 +111,16 @@ LINKFLAGS = ${FRAMEWORK_LINKFLAGS} ${LIBRARY_LINKFLAGS} ${OTHER_LINKFLAGS}
 
 #Per-target dependencies
 
-STEM_LIBRARY_DEPENDENCIES_unittest = bitmapimage/libstem_bitmapimage.a stemobject/libstem_stemobject.a stubshell/libstemshell_stub.a utilities/libstem_utilities.a
-STEM_LIBRARY_DEPENDENCIES_testharness =
+STEM_LIBRARY_DEPENDENCIES_unittest = bitmapimage/libstem_bitmapimage.a stemobject/libstem_stemobject.a utilities/libstem_utilities.a stubshell/libstemshell_stub.a
+STEM_LIBRARY_DEPENDENCIES_testharness = bitmapimage/libstem_bitmapimage.a stemobject/libstem_stemobject.a utilities/libstem_utilities.a stubshell/libstemshell_stub.a
 THIRDPARTY_LIBRARY_DEPENDENCIES_unittest = libpng/libpng.a zlib/libz.a
-THIRDPARTY_LIBRARY_DEPENDENCIES_testharness = 
+THIRDPARTY_LIBRARY_DEPENDENCIES_testharness = libpng/libpng.a zlib/libz.a
+
+#Per-target per-platform dependencies
+
+STEM_LIBRARY_DEPENDENCIES_unittest_macosx = 
+THIRDPARTY_LIBRARY_DEPENDENCIES_unittest_macosx = 
+#...
 
 #Per-target source file lists
 
@@ -138,6 +144,28 @@ INCLUDES = \
 	source/pngimageio/PNGImageIO.h
 
 RESOURCES_testharness = 
+RESOURCES_unittest = \
+	test_resources/reference2x2rgba.png \
+	test_resources/reference2x3grayalpha.png \
+	test_resources/reference3x2gray.png \
+	test_resources/reference3x3rgb.png
+
+PNGSUITE_FILES = \
+	test_resources/pngsuite/basn0g01.png \
+	test_resources/pngsuite/basn0g02.png \
+	test_resources/pngsuite/basn0g04.png \
+	test_resources/pngsuite/basn0g08.png \
+	test_resources/pngsuite/basn0g16.png \
+	test_resources/pngsuite/basn2c08.png \
+	test_resources/pngsuite/basn2c16.png \
+	test_resources/pngsuite/basn3p01.png \
+	test_resources/pngsuite/basn3p02.png \
+	test_resources/pngsuite/basn3p04.png \
+	test_resources/pngsuite/basn3p08.png \
+	test_resources/pngsuite/basn4a08.png \
+	test_resources/pngsuite/basn4a16.png \
+	test_resources/pngsuite/basn6a08.png \
+	test_resources/pngsuite/basn6a16.png
 
 
 
@@ -215,10 +243,10 @@ endef
 
 define library_dependency_template #(target, configuration, platform)
 	build/library/debug-${3}/${TARGET_NAME_library}.a \
-	${foreach library,${STEM_LIBRARY_DEPENDENCIES_${1}}, \
+	${foreach library,${STEM_LIBRARY_DEPENDENCIES_${1}} ${STEM_LIBRARY_DEPENDENCIES_${1}_${3}}, \
 		lib/${dir ${library}}${configuration}-${platform}/${notdir ${library}} \
 	} \
-	${foreach library,${THIRDPARTY_LIBRARY_DEPENDENCIES_${1}}, \
+	${foreach library,${THIRDPARTY_LIBRARY_DEPENDENCIES_${1}} ${THIRDPARTY_LIBRARY_DEPENDENCIES_${1}_${3}}, \
 		lib/${dir ${library}}${platform}/${notdir ${library}} \
 	}
 endef
@@ -298,22 +326,32 @@ ${foreach target,${LIBRARY_TARGETS}, \
 	} \
 }
 
+define copy_target_resources #(target, resources_dir)
+	${foreach resource,${RESOURCES_${1}}, \
+		cp -r ${resource} ${2}; \
+	}
+	find ${2} -name .svn -print0 | xargs -0 rm -rf
+endef
+
 define assemble_executable_macosx #(target, configuration, platform)
-build/${1}/${2}-${3}/${TARGET_NAME_${1}}: ${THIN_BINARIES_${1}_${2}_${3}}
+build/${1}/${2}-${3}/${TARGET_NAME_${1}}: ${THIN_BINARIES_${1}_${2}_${3}} ${RESOURCES_${1}}
 	mkdir -p $${dir $$@}
-	lipo -create -output $$@ $$^
+	lipo -create -output $$@ ${THIN_BINARIES_${1}_${2}_${3}}
+	${call copy_target_resources,${1},$${dir $$@}}
 endef
 
 define assemble_executable_linux #(target, configuration, platform)
-build/${1}/${2}-${3}/${TARGET_NAME_${1}}: ${THIN_BINARIES_${1}_${2}_${3}}
+build/${1}/${2}-${3}/${TARGET_NAME_${1}}: ${THIN_BINARIES_${1}_${2}_${3}} ${RESOURCES_${1}}
 	mkdir -p $${dir $$@}
-	cp $$^ $$@
+	cp ${THIN_BINARIES_${1}_${2}_${3}} $$@
+	${call copy_target_resources,${1},$${dir $$@}}
 endef
 
 define assemble_executable_windows #(target, configuration, platform)
-build/${1}/${2}-${3}/${TARGET_NAME_${1}}.exe: ${THIN_BINARIES_${1}_${2}_${3}}
+build/${1}/${2}-${3}/${TARGET_NAME_${1}}.exe: ${THIN_BINARIES_${1}_${2}_${3}} ${RESOURCES_${1}}
 	mkdir -p $${dir $$@}
-	cp $$^ $$@
+	cp ${THIN_BINARIES_${1}_${2}_${3}} $$@
+	${call copy_target_resources,${1},$${dir $$@}}
 endef
 
 #Produces final executable build targets
@@ -349,14 +387,12 @@ define create_app_bundle #(target, platform, executable_dir, plist_dir, resource
 	    -e "s/\$$$${SDK}/${PLIST_SDK_NAME_${2}}/g" \
 	    ${PLIST_FILE_${1}_${2}} > ${4}/Info.plist
 	echo "APPL????" > ${4}/PkgInfo
-	${foreach resource,${RESOURCES_${1}}, \
-		cp ${resource} ${5}; \
-	}
+	${call copy_target_resources,${1},${5}}
 endef
 
 define assemble_application_macosx #(target, configuration)
 build/${1}/${2}-macosx/${TARGET_NAME_${1}}.app/Contents/MacOS/${TARGET_NAME_${1}}: ${THIN_BINARIES_${1}_${2}_macosx} ${RESOURCES_${1}}
-	${call create_app_bundle,${1},macosx,$${dir $$@},$${dir $$@}../,$${dir $$@}../Resources/}
+	${call create_app_bundle,${1},macosx,$${dir $$@},build/${1}/${2}-macosx/${TARGET_NAME_${1}}.app/Contents,build/${1}/${2}-macosx/${TARGET_NAME_${1}}.app/Contents/Resources}
 	lipo -create -output $$@ ${THIN_BINARIES_${1}_${2}_macosx}
 endef
 
@@ -475,34 +511,49 @@ test: unittest ${foreach platform,${PLATFORMS_unittest},run_unittests_${platform
 
 .PHONY: run_unittests_macosx
 run_unittests_macosx:
-	./build/unittest/debug-macosx/${TARGET_NAME_unittest} "${CURDIR}/test_resources"
+	./build/unittest/debug-macosx/${TARGET_NAME_unittest} "${CURDIR}/build/unittest/debug-macosx"
 
 .PHONY: run_unittests_iphonesimulator
 run_unittests_iphonesimulator:
 	DYLD_ROOT_PATH=${SDKROOT_iphonesimulator} \
-	./build/unittest/debug-iphonesimulator/${TARGET_NAME_unittest} "${CURDIR}/test_resources"
+	./build/unittest/debug-iphonesimulator/${TARGET_NAME_unittest} "${CURDIR}/build/unittest/debug-iphonesimulator"
 
 .PHONY: run_unittests_linux
 run_unittests_linux:
-	./build/unittest/debug-linux/${TARGET_NAME_unittest} "${CURDIR}/test_resources"
+	./build/unittest/debug-linux/${TARGET_NAME_unittest} "${CURDIR}/build/unittest/debug-linux"
 
 .PHONY: run_unittests_windows
 run_unittests_windows:
-	./build/unittest/debug-windows/${TARGET_NAME_unittest}.exe "${CURDIR}/test_resources"
+	./build/unittest/debug-windows/${TARGET_NAME_unittest}.exe "${CURDIR}/build/unittest/debug-windows"
+
+.PHONY: test_pngsuite
+test_pngsuite: testharness
+	mkdir -p build/pngsuite
+	${foreach file,${PNGSUITE_FILES}, \
+		${call executable_template_${HOST_PLATFORM},testharness,debug} ${file} -itype png -otype png -o build/pngsuite/${basename ${notdir ${file}}}_auto.png; \
+		${call executable_template_${HOST_PLATFORM},testharness,debug} ${file} -itype png -otype png -iformat rgba -o build/pngsuite/${basename ${notdir ${file}}}_rgba.png; \
+		${call executable_template_${HOST_PLATFORM},testharness,debug} ${file} -itype png -otype png -iformat rgb -o build/pngsuite/${basename ${notdir ${file}}}_rgb.png; \
+		${call executable_template_${HOST_PLATFORM},testharness,debug} ${file} -itype png -otype png -iformat grayalpha -o build/pngsuite/${basename ${notdir ${file}}}_grayalpha.png; \
+		${call executable_template_${HOST_PLATFORM},testharness,debug} ${file} -itype png -otype png -iformat gray -o build/pngsuite/${basename ${notdir ${file}}}_gray.png; \
+		${call executable_template_${HOST_PLATFORM},testharness,debug} ${file} -itype png -otype png -iflip -o build/pngsuite/${basename ${notdir ${file}}}-flip_auto.png; \
+		${call executable_template_${HOST_PLATFORM},testharness,debug} ${file} -itype png -otype png -iflip -iformat rgba -o build/pngsuite/${basename ${notdir ${file}}}-flip_rgba.png; \
+		${call executable_template_${HOST_PLATFORM},testharness,debug} ${file} -itype png -otype png -iflip -iformat rgb -o build/pngsuite/${basename ${notdir ${file}}}-flip_rgb.png; \
+		${call executable_template_${HOST_PLATFORM},testharness,debug} ${file} -itype png -otype png -iflip -iformat grayalpha -o build/pngsuite/${basename ${notdir ${file}}}-flip_grayalpha.png; \
+		${call executable_template_${HOST_PLATFORM},testharness,debug} ${file} -itype png -otype png -iflip -iformat gray -o build/pngsuite/${basename ${notdir ${file}}}-flip_gray.png; \
+	}
 
 .PHONY: include
 include: ${INCLUDES}
 	mkdir -p build/include
-	${foreach includeFile,$^, \
-		mkdir -p build/include/${notdir ${patsubst %/,%,${dir ${includeFile}}}}; \
-		cp ${includeFile} build/include/${notdir ${patsubst %/,%,${dir ${includeFile}}}}; \
+	${foreach include_file,$^, \
+		mkdir -p build/include/${notdir ${patsubst %/,%,${dir ${include_file}}}}; \
+		cp ${include_file} build/include/${notdir ${patsubst %/,%,${dir ${include_file}}}}; \
 	}
 
 .PHONY: clean
 clean:
 	rm -rf build
 	rm -rf dist
-	rm -rf dist_append
 
 .PHONY: install_testharness_iphonesimulator
 install_testharness_iphonesimulator: testharness
@@ -534,15 +585,15 @@ full_dist: clean all
 	cp -r build/include/* dist/include
 	cp -r build/library/* dist/library
 	cp -r build/testharness/* dist/testharness
-	svn import --no-ignore -m "Automated release from ${HOST_PLATFORM}" dist ${SVNROOT}/Releases/${PROJECT_NAME}/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_TWEAK}
 
 .PHONY: append_dist
-append_dist: clean all
-	svn co ${SVNROOT}/Releases/${PROJECT_NAME}/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_TWEAK} dist_append
-	cp -r build/library/* dist_append/library
-	cp -r build/testharness/* dist_append/testharness
-	svn add --no-ignore dist_append/library/* dist_append/testharness/*
-	svn commit -m "Automated release append from ${HOST_PLATFORM}" dist_append
+append_dist: all
+	cp -r build/library/* dist/library
+	cp -r build/testharness/* dist/testharness
+
+.PHONY: commit_dist
+commit_dist:
+	svn import --no-ignore -m "Automated release of ${PROJECT_NAME} ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_TWEAK} from ${HOST_PLATFORM}" dist ${SVNROOT}/Releases/${PROJECT_NAME}/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_TWEAK}
 
 define filter_source_dist_file #(infile, outfile)
 	ruby -e "print STDIN.read.gsub(/^.*#master_source_only\b.*$\n?/, '').gsub(/\n?#master_source_only_begin[\s\S]*?#master_source_only_end/, '').gsub(/#source_dist_only/, '')" < "${1}" > "${2}"
@@ -550,6 +601,8 @@ endef
 
 .PHONY: source_dist
 source_dist:
+	mkdir -p build/source_dist/include
+	mkdir -p build/source_dist/lib
 	mkdir -p build/source_dist/source/pngimageio
 	mkdir -p build/source_dist/test_resources
 	mkdir -p build/source_dist/test_source/testharness
@@ -559,9 +612,15 @@ source_dist:
 	${call filter_source_dist_file,Makefile,build/source_dist/Makefile}
 	cp Changes.txt License.txt ReadMe.txt version build/source_dist
 	
+	cp -r include/* build/source_dist/include
+	cp -r lib/* build/source_dist/lib
+	find build/source_dist/include -name .svn -print0 | xargs -0 rm -rf
+	find build/source_dist/lib -name .svn -print0 | xargs -0 rm -rf
+	
 	cp source/pngimageio/* build/source_dist/source/pngimageio
 	
-	cp test_resources/* build/source_dist/test_resources
+	cp -r test_resources/* build/source_dist/test_resources
+	find build/source_dist/test_resources -name .svn -print0 | xargs -0 rm -rf
 	
 	cp test_source/testharness/* build/source_dist/test_source/testharness
 	cp test_source/unittest/framework/* build/source_dist/test_source/unittest/framework
