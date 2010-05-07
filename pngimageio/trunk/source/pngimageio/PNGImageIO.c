@@ -160,12 +160,12 @@ BitmapImage * PNGImageIO_loadPNGData(const void * data, size_t length, int pixel
 	}
 	
 	pixels = malloc(width * height * BitmapImage_pixelFormatBytes(chosenPixelFormat));
-	rows = malloc(height * sizeof(png_bytep));
+	rows = malloc(sizeof(png_bytep) * height);
 	for (rowIndex = 0; rowIndex < height; rowIndex++) {
 		rows[rowIndex] = pixels + ((flipVertical ? height - rowIndex - 1 : rowIndex) * width * BitmapImage_pixelFormatBytes(chosenPixelFormat));
 	}
 	
-	png_read_image(pngReadStruct, rows);
+	png_read_rows(pngReadStruct, rows, NULL, height);
 	png_read_end(pngReadStruct, NULL);
 	
 	png_destroy_read_struct(&pngReadStruct, &pngInfoStruct, NULL);
