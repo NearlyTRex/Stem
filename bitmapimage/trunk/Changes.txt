@@ -1,4 +1,5 @@
 1.1.1
+ * Fixed a memory-stomping bug in BitmapImage_init
  * Refreshed Makefile from template_stemlib Stable_2010-05-06
 
 1.1.0

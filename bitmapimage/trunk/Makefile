@@ -10,6 +10,11 @@ else
 HOST_PLATFORM = windows
 endif
 
+define newline_and_tab
+
+	
+endef
+
 TARGET_PLATFORMS_macosx = macosx iphonesimulator iphoneos
 TARGET_PLATFORMS_linux = linux
 TARGET_PLATFORMS_windows = windows
@@ -297,7 +302,7 @@ ${foreach target,${LIBRARY_TARGETS}, \
 
 define copy_target_resources #(target, resources_dir)
 	${foreach resource,${RESOURCES_${1}}, \
-		cp -r ${resource} ${2}; \
+		cp -r ${resource} ${2}${newline_and_tab} \
 	}
 	find ${2} -name .svn -print0 | xargs -0 rm -rf
 endef
@@ -495,8 +500,8 @@ run_unittests_windows:
 include: ${INCLUDES}
 	mkdir -p build/include
 	${foreach include_file,$^, \
-		mkdir -p build/include/${notdir ${patsubst %/,%,${dir ${include_file}}}}; \
-		cp ${include_file} build/include/${notdir ${patsubst %/,%,${dir ${include_file}}}}; \
+		mkdir -p build/include/${notdir ${patsubst %/,%,${dir ${include_file}}}}${newline_and_tab} \
+		cp ${include_file} build/include/${notdir ${patsubst %/,%,${dir ${include_file}}}}${newline_and_tab} \
 	}
 
 .PHONY: clean

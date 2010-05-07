@@ -55,7 +55,7 @@ void BitmapImage_init(BitmapImage * self,
 	
 	bytesPerPixel = BitmapImage_pixelFormatBytes(pixelFormat);
 	self->pixels = malloc(bytesPerRow * height * bytesPerPixel);
-	memcpy(self->pixels, pixels, bytesPerRow * height * bytesPerPixel);
+	memcpy(self->pixels, pixels, bytesPerRow * height);
 	
 	self->dispose = BitmapImage_dispose;
 }
