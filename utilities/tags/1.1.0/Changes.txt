@@ -1,0 +1,7 @@
+1.1.0:
+ * Updated EventDispatcher and FixedIntervalRunLoop to inherit from StemObject
+ * Refreshed Makefile from template_stemlib Stable_2010-05-06
+
+1.0.0:
+ * Added Random
+ * Refreshed Makefile and other project files from template_stemlib Stable_2010-03-29
