@@ -83,6 +83,7 @@ BitmapImage * PNGImageIO_loadPNGData(const void * data, size_t length, int pixel
 	
 	if (colorType == PNG_COLOR_TYPE_PALETTE) {
 		png_set_palette_to_rgb(pngReadStruct);
+		colorType = PNG_COLOR_TYPE_RGB;
 	}
 	if (colorType == PNG_COLOR_TYPE_GRAY && bitDepth < 8) {
 		png_set_expand_gray_1_2_4_to_8(pngReadStruct);
