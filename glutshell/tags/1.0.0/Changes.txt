@@ -1,0 +1,9 @@
+0.2.0
+ * g_openGLAPIVersion (glgraphics/GLInfo.h) is now set to GL_API_VERSION_DESKTOP_1 at startup
+ * Refreshed Makefile from template_stemlib Stable_2010-05-06
+
+0.1.0
+ * Updated shell implementation for newly-defined Shell_isFullScreen(), Shell_setFullScreen(), Shell_getBatteryState(), and Shell_getBatteryLevel()
+ * Updated test harness to expose new shell functions
+ * Updated Makefile to match improvements made to template_stemlib
+ * Added Changes.txt, License.txt, ReadMe.txt
