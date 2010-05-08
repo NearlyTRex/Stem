@@ -405,7 +405,7 @@ ${foreach target,${APPLICATION_TARGETS}, \
 .PHONY: clean
 clean:
 	rm -rf build
-	rm -rf dist#master_source_only
+	rm -rf dist #master_source_only
 
 #master_source_only_begin
 .PHONY: full_dist
