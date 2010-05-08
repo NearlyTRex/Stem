@@ -10,6 +10,11 @@ else
 HOST_PLATFORM = windows
 endif
 
+define newline_and_tab
+
+	
+endef
+
 TARGET_PLATFORMS_macosx = iphonesimulator iphoneos
 TARGET_PLATFORMS_linux = 
 TARGET_PLATFORMS_windows = 
@@ -18,7 +23,7 @@ include version
 
 PROJECT_NAME = eaglshell
 IPHONE_SDK_VERSION = 3.1
-IPHONESIMULATOR_APPLICATIONS_DIR = ${HOME}/Library/Application Support/iPhone Simulator/User/Applications
+IPHONESIMULATOR_APPLICATIONS_DIR = ${HOME}/Library/Application Support/iPhone Simulator/3.1.3/Applications
 RESOURCE_RULES_PLIST = /Developer/Platforms/MacOSX.platform/ResourceRules.plist
 IPHONESIMULATOR_PATH = "/Developer/Platforms/iPhoneSimulator.platform/Developer/Applications/iPhone Simulator.app"
 CODESIGN_IDENTITY = "iPhone Developer"
@@ -45,8 +50,8 @@ PLATFORMS_library = ${filter ${PLATFORMS},iphonesimulator iphoneos}
 PLATFORMS_testharness = ${filter ${PLATFORMS},iphonesimulator iphoneos}
 
 #Per-configuration compile/link settings
-CCFLAGS_debug = -gdwarf-2
-CCFLAGS_profile = -gdwarf-2 -O3
+CCFLAGS_debug = -g
+CCFLAGS_profile = -g -O3
 CCFLAGS_release = -O3
 
 #Per-platform compile/link settings
@@ -55,7 +60,7 @@ AR_iphonesimulator = /Developer/Platforms/iPhoneSimulator.platform/Developer/usr
 RANLIB_iphonesimulator = /Developer/Platforms/iPhoneSimulator.platform/Developer/usr/bin/ranlib
 SDKROOT_iphonesimulator = /Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator${IPHONE_SDK_VERSION}.sdk
 ARCHS_iphonesimulator = i386
-CCFLAGS_iphonesimulator = -isysroot ${SDKROOT_iphonesimulator} -mmacosx-version-min=10.5 -D__IPHONE_OS_VERSION_MIN_REQUIRED=30000 -x objective-c
+CCFLAGS_iphonesimulator = -isysroot ${SDKROOT_iphonesimulator} -mmacosx-version-min=10.5 -D__IPHONE_OS_VERSION_MIN_REQUIRED=31000 -x objective-c
 LINKFLAGS_iphonesimulator = -isysroot ${SDKROOT_iphonesimulator} -mmacosx-version-min=10.5 -framework Foundation -framework UIKit -framework QuartzCore -framework OpenGLES -framework CoreFoundation
 
 CC_iphoneos_armv6 = /Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/gcc-4.2 -arch armv6
@@ -81,7 +86,14 @@ LINKFLAGS = ${FRAMEWORK_LINKFLAGS} ${LIBRARY_LINKFLAGS} ${OTHER_LINKFLAGS}
 
 #Per-target dependencies
 
-LIBRARY_DEPENDENCIES_testharness =
+STEM_LIBRARY_DEPENDENCIES_testharness = glgraphics/libstem_glgraphics.a
+THIRDPARTY_LIBRARY_DEPENDENCIES_testharness = 
+
+#Per-target per-platform dependencies
+
+STEM_LIBRARY_DEPENDENCIES_testharness_iphoneos = 
+THIRDPARTY_LIBRARY_DEPENDENCIES_testharness_iphoneos = 
+#...
 
 #Per-target source file lists
 
@@ -120,7 +132,7 @@ endef
 
 define arch_object_list_template #(target, configuration, platform, arch)
 	${foreach source,${SOURCES_${1}}, \
-		build/intermediate/${2}-${3}-${4}/${notdir ${basename ${source}}}.o \
+		build/intermediate/${1}-${2}-${3}-${4}/${notdir ${basename ${source}}}.o \
 	}
 endef
 
@@ -134,8 +146,8 @@ ${foreach target,${TARGETS}, \
 
 
 define compile_template #(target, configuration, platform, arch, source_file)
-build/intermediate/${2}-${3}-${4}/${notdir ${basename ${5}}}.o: ${5}
-	mkdir -p build/intermediate/${2}-${3}-${4}
+build/intermediate/${1}-${2}-${3}-${4}/${notdir ${basename ${5}}}.o: ${5}
+	mkdir -p build/intermediate/${1}-${2}-${3}-${4}
 	${CC_${3}_${4}} ${CCFLAGS} ${CCFLAGS_${1}} ${CCFLAGS_${2}} ${CCFLAGS_${3}} -c -o $$@ $$^
 endef
 
@@ -155,7 +167,7 @@ ${foreach target,${TARGETS}, \
 
 
 define library_template #(target, configuration, platform, arch, output_file)
-build/intermediate/${2}-${3}-${4}/${5}: ${call arch_object_list_template,${1},${2},${3},${4}}
+build/intermediate/${1}-${2}-${3}-${4}/${5}: ${call arch_object_list_template,${1},${2},${3},${4}}
 	${AR_${3}} rc $$@ $$^
 	${RANLIB_${3}} $$@
 endef
@@ -174,14 +186,17 @@ ${foreach target,${LIBRARY_TARGETS}, \
 
 
 define executable_template #(target, configuration, platform, arch, output_file, dependent_libraries)
-build/intermediate/${2}-${3}-${4}/${5}: ${call arch_object_list_template,${1},${2},${3},${4}} ${6}
+build/intermediate/${1}-${2}-${3}-${4}/${5}: ${call arch_object_list_template,${1},${2},${3},${4}} ${6}
 	${CC_${3}_${4}} -o $$@ $$^ ${LINKFLAGS} ${LINKFLAGS_${3}}
 endef
 
 define library_dependency_template #(target, configuration, platform)
 	build/library/debug-${3}/${TARGET_NAME_library}.a \
-	${foreach library,${LIBRARY_DEPENDENCIES_${1}}, \
+	${foreach library,${STEM_LIBRARY_DEPENDENCIES_${1}} ${STEM_LIBRARY_DEPENDENCIES_${1}_${3}}, \
 		lib/${dir ${library}}${configuration}-${platform}/${notdir ${library}} \
+	} \
+	${foreach library,${THIRDPARTY_LIBRARY_DEPENDENCIES_${1}} ${THIRDPARTY_LIBRARY_DEPENDENCIES_${1}_${3}}, \
+		lib/${dir ${library}}${platform}/${notdir ${library}} \
 	}
 endef
 
@@ -198,9 +213,9 @@ ${foreach target,${EXECUTABLE_TARGETS} ${APPLICATION_TARGETS}, \
 
 
 
-define thin_binary_list_template #(target_name, configuration, platform)
+define thin_binary_list_template #(target, configuration, platform, target_name)
 	${foreach arch,${ARCHS_${3}}, \
-		build/intermediate/${2}-${3}-${arch}/${1} \
+		build/intermediate/${1}-${2}-${3}-${arch}/${4} \
 	}
 endef
 
@@ -208,7 +223,7 @@ endef
 ${foreach target,${LIBRARY_TARGETS}, \
 	${foreach configuration,${CONFIGURATIONS_${target}}, \
 		${foreach platform,${PLATFORMS_${target}}, \
-			${eval THIN_BINARIES_${target}_${configuration}_${platform} = ${call thin_binary_list_template,${TARGET_NAME_${target}}.a,${configuration},${platform}}} \
+			${eval THIN_BINARIES_${target}_${configuration}_${platform} = ${call thin_binary_list_template,${target},${configuration},${platform},${TARGET_NAME_${target}}.a}} \
 		} \
 	} \
 }
@@ -217,7 +232,7 @@ ${foreach target,${LIBRARY_TARGETS}, \
 ${foreach target,${EXECUTABLE_TARGETS}, \
 	${foreach configuration,${CONFIGURATIONS_${target}}, \
 		${foreach platform,${PLATFORMS_${target}}, \
-			${eval THIN_BINARIES_${target}_${configuration}_${platform} = ${call thin_binary_list_template,${TARGET_NAME_${target}},${configuration},${platform}}} \
+			${eval THIN_BINARIES_${target}_${configuration}_${platform} = ${call thin_binary_list_template,${target},${configuration},${platform},${TARGET_NAME_${target}}}} \
 		} \
 	} \
 }
@@ -226,7 +241,7 @@ ${foreach target,${EXECUTABLE_TARGETS}, \
 ${foreach target,${APPLICATION_TARGETS}, \
 	${foreach configuration,${CONFIGURATIONS_${target}}, \
 		${foreach platform,${PLATFORMS_${target}}, \
-			${eval THIN_BINARIES_${target}_${configuration}_${platform} = ${call thin_binary_list_template,${TARGET_NAME_${target}},${configuration},${platform}}} \
+			${eval THIN_BINARIES_${target}_${configuration}_${platform} = ${call thin_binary_list_template,${target},${configuration},${platform},${TARGET_NAME_${target}}}} \
 		} \
 	} \
 }
@@ -239,18 +254,6 @@ build/${1}/${2}-${3}/${TARGET_NAME_${1}}.a: ${THIN_BINARIES_${1}_${2}_${3}}
 	lipo -create -output $$@ $$^
 endef
 
-define assemble_library_linux #(target, configuration, platform)
-build/${1}/${2}-${3}/${TARGET_NAME_${1}}.a: ${THIN_BINARIES_${1}_${2}_${3}}
-	mkdir -p $${dir $$@}
-	cp $$^ $$@
-endef
-
-define assemble_library_windows #(target, configuration, platform)
-build/${1}/${2}-${3}/${TARGET_NAME_${1}}.a: ${THIN_BINARIES_${1}_${2}_${3}}
-	mkdir -p $${dir $$@}
-	cp $$^ $$@
-endef
-
 #Produces final library build targets
 ${foreach target,${LIBRARY_TARGETS}, \
 	${foreach configuration,${CONFIGURATIONS_${target}}, \
@@ -260,22 +263,18 @@ ${foreach target,${LIBRARY_TARGETS}, \
 	} \
 }
 
+define copy_target_resources #(target, resources_dir)
+	${foreach resource,${RESOURCES_${1}}, \
+		cp -r ${resource} ${2}${newline_and_tab} \
+	}
+	find ${2} -name .svn -print0 | xargs -0 rm -rf
+endef
+
 define assemble_executable_macosx #(target, configuration, platform)
-build/${1}/${2}-${3}/${TARGET_NAME_${1}}: ${THIN_BINARIES_${1}_${2}_${3}}
+build/${1}/${2}-${3}/${TARGET_NAME_${1}}: ${THIN_BINARIES_${1}_${2}_${3}} ${RESOURCES_${1}}
 	mkdir -p $${dir $$@}
-	lipo -create -output $$@ $$^
-endef
-
-define assemble_executable_linux #(target, configuration, platform)
-build/${1}/${2}-${3}/${TARGET_NAME_${1}}: ${THIN_BINARIES_${1}_${2}_${3}}
-	mkdir -p $${dir $$@}
-	cp $$^ $$@
-endef
-
-define assemble_executable_windows #(target, configuration, platform)
-build/${1}/${2}-${3}/${TARGET_NAME_${1}}.exe: ${THIN_BINARIES_${1}_${2}_${3}}
-	mkdir -p $${dir $$@}
-	cp $$^ $$@
+	lipo -create -output $$@ ${THIN_BINARIES_${1}_${2}_${3}}
+	${call copy_target_resources,${1},$${dir $$@}}
 endef
 
 #Produces final executable build targets
@@ -309,15 +308,7 @@ define create_app_bundle #(target, platform, executable_dir, plist_dir, resource
 	    -e "s/\$$$${SDK}/${PLIST_SDK_NAME_${2}}/g" \
 	    ${PLIST_FILE_${1}_${2}} > ${4}/Info.plist
 	echo "APPL????" > ${4}/PkgInfo
-	${foreach resource,${RESOURCES_${1}}, \
-		cp ${resource} ${5}; \
-	}
-endef
-
-define assemble_application_macosx #(target, configuration)
-build/${1}/${2}-macosx/${TARGET_NAME_${1}}.app/Contents/MacOS/${TARGET_NAME_${1}}: ${THIN_BINARIES_${1}_${2}_macosx} ${RESOURCES_${1}}
-	${call create_app_bundle,${1},macosx,$${dir $$@},$${dir $$@}../,$${dir $$@}../Resources/}
-	lipo -create -output $$@ ${THIN_BINARIES_${1}_${2}_macosx}
+	${call copy_target_resources,${1},${5}}
 endef
 
 define assemble_application_iphonesimulator #(target, configuration)
@@ -332,18 +323,6 @@ build/${1}/${2}-iphoneos/${TARGET_NAME_${1}}.app/${TARGET_NAME_${1}}: ${THIN_BIN
 	lipo -create -output $$@ ${THIN_BINARIES_${1}_${2}_iphoneos}
 endef
 
-define assemble_application_linux #(target, configuration)
-build/${1}/${2}-linux/${TARGET_NAME_${1}}: ${THIN_BINARIES_${1}_${2}_linux} ${RESOURCES_${1}}
-	mkdir -p $${dir $$@}
-	cp ${THIN_BINARIES_${1}_${2}_linux} $$@
-endef
-
-define assemble_application_windows #(target, configuration)
-build/${1}/${2}-windows/${TARGET_NAME_${1}}.exe: ${THIN_BINARIES_${1}_${2}_windows} ${RESOURCES_${1}}
-	mkdir -p $${dir $$@}
-	cp ${THIN_BINARIES_${1}_${2}_windows} $$@
-endef
-
 #Produces final application build targets
 ${foreach target,${APPLICATION_TARGETS}, \
 	${foreach configuration,${CONFIGURATIONS_${target}}, \
@@ -353,28 +332,12 @@ ${foreach target,${APPLICATION_TARGETS}, \
 	} \
 }
 
-define library_template_macosx #(target, configuration)
-	build/${1}/${2}-macosx/${TARGET_NAME_${1}}.a
-endef
-
 define library_template_iphonesimulator #(target, configuration)
 	build/${1}/${2}-iphonesimulator/${TARGET_NAME_${1}}.a
 endef
 
 define library_template_iphoneos #(target, configuration)
 	build/${1}/${2}-iphoneos/${TARGET_NAME_${1}}.a
-endef
-
-define library_template_linux #(target, configuration)
-	build/${1}/${2}-linux/${TARGET_NAME_${1}}.a
-endef
-
-define library_template_windows #(target, configuration)
-	build/${1}/${2}-windows/${TARGET_NAME_${1}}.a
-endef
-
-define executable_template_macosx #(target, configuration)
-	build/${1}/${2}-macosx/${TARGET_NAME_${1}}
 endef
 
 define executable_template_iphonesimulator #(target, configuration)
@@ -385,32 +348,12 @@ define executable_template_iphoneos #(target, configuration)
 	build/${1}/${2}-iphoneos/${TARGET_NAME_${1}}
 endef
 
-define executable_template_linux #(target, configuration)
-	build/${1}/${2}-linux/${TARGET_NAME_${1}}
-endef
-
-define executable_template_windows #(target, configuration)
-	build/${1}/${2}-windows/${TARGET_NAME_${1}}.exe
-endef
-
-define application_template_macosx #(target, configuration)
-	build/${1}/${2}-macosx/${TARGET_NAME_${1}}.app/Contents/MacOS/${TARGET_NAME_${1}}
-endef
-
 define application_template_iphonesimulator #(target, configuration)
 	build/${1}/${2}-iphonesimulator/${TARGET_NAME_${1}}.app/${TARGET_NAME_${1}}
 endef
 
 define application_template_iphoneos #(target, configuration)
 	build/${1}/${2}-iphoneos/${TARGET_NAME_${1}}.app/${TARGET_NAME_${1}}
-endef
-
-define application_template_linux #(target, configuration)
-	build/${1}/${2}-linux/${TARGET_NAME_${1}}
-endef
-
-define application_template_windows #(target, configuration)
-	build/${1}/${2}-windows/${TARGET_NAME_${1}}.exe
 endef
 
 define target_template #(target, target_type)
@@ -433,16 +376,15 @@ ${foreach target,${APPLICATION_TARGETS}, \
 .PHONY: include
 include: ${INCLUDES}
 	mkdir -p build/include
-	${foreach includeFile,$^, \
-		mkdir -p build/include/${notdir ${patsubst %/,%,${dir ${includeFile}}}}; \
-		cp ${includeFile} build/include/${notdir ${patsubst %/,%,${dir ${includeFile}}}}; \
+	${foreach include_file,$^, \
+		mkdir -p build/include/${notdir ${patsubst %/,%,${dir ${include_file}}}}${newline_and_tab} \
+		cp ${include_file} build/include/${notdir ${patsubst %/,%,${dir ${include_file}}}}${newline_and_tab} \
 	}
 
 .PHONY: clean
 clean:
 	rm -rf build
-	rm -rf dist
-	rm -rf dist_append
+	rm -rf dist #master_source_only
 
 .PHONY: install_testharness_iphonesimulator
 install_testharness_iphonesimulator: testharness
@@ -460,11 +402,11 @@ endef
 
 .PHONY: codesign_testharness_iphoneos
 codesign_testharness_iphoneos: testharness
-	${call add_blob_header,support/Entitlements.plist,build/intermediate/Entitlements.xcent}
+	${call add_blob_header,test_resources/Entitlements.plist,build/intermediate/Entitlements.xcent}
 	export CODESIGN_ALLOCATE=/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/codesign_allocate
 	${foreach configuration,${CONFIGURATIONS_testharness},\
-		cp "${RESOURCE_RULES_PLIST}" "build/testharness/${configuration}-iphoneos/${TARGET_NAME_testharness}.app"; \
-		/usr/bin/codesign -f -s ${CODESIGN_IDENTITY} --resource-rules=${RESOURCE_RULES_PLIST} --entitlements=build/intermediate/Entitlements.xcent "build/testharness/${configuration}-iphoneos/${TARGET_NAME_testharness}.app"; \
+		cp "${RESOURCE_RULES_PLIST}" "build/testharness/${configuration}-iphoneos/${TARGET_NAME_testharness}.app"${newline_and_tab} \
+		/usr/bin/codesign -f -s ${CODESIGN_IDENTITY} --resource-rules=${RESOURCE_RULES_PLIST} --entitlements=build/intermediate/Entitlements.xcent "build/testharness/${configuration}-iphoneos/${TARGET_NAME_testharness}.app"${newline_and_tab} \
 	}
 
 #master_source_only_begin
@@ -474,15 +416,15 @@ full_dist: clean all
 	cp -r build/include/* dist/include
 	cp -r build/library/* dist/library
 	cp -r build/testharness/* dist/testharness
-	svn import --no-ignore -m "Automated release from ${HOST_PLATFORM}" dist ${SVNROOT}/Releases/${PROJECT_NAME}/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_TWEAK}
 
 .PHONY: append_dist
-append_dist: clean all
-	svn co ${SVNROOT}/Releases/${PROJECT_NAME}/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_TWEAK} dist_append
-	cp -r build/library/* dist_append/library
-	cp -r build/testharness/* dist_append/testharness
-	svn add --no-ignore dist_append/library/* dist_append/testharness/*
-	svn commit -m "Automated release append from ${HOST_PLATFORM}" dist_append
+append_dist: all
+	cp -r build/library/* dist/library
+	cp -r build/testharness/* dist/testharness
+
+.PHONY: commit_dist
+commit_dist:
+	svn import --no-ignore -m "Automated release of ${PROJECT_NAME} ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_TWEAK} from ${HOST_PLATFORM}" dist ${SVNROOT}/Releases/${PROJECT_NAME}/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_TWEAK}
 
 define filter_source_dist_file #(infile, outfile)
 	ruby -e "print STDIN.read.gsub(/^.*#master_source_only\b.*$\n?/, '').gsub(/\n?#master_source_only_begin[\s\S]*?#master_source_only_end/, '').gsub(/#source_dist_only/, '')" < "${1}" > "${2}"
@@ -490,19 +432,22 @@ endef
 
 .PHONY: source_dist
 source_dist:
+	mkdir -p build/source_dist/include
+	mkdir -p build/source_dist/lib
 	mkdir -p build/source_dist/source/eaglshell
-	mkdir -p build/source_dist/source/shell
-	mkdir -p build/source_dist/support
 	mkdir -p build/source_dist/test_resources
 	mkdir -p build/source_dist/test_source/testharness
 	
 	${call filter_source_dist_file,Makefile,build/source_dist/Makefile}
 	cp Changes.txt License.txt ReadMe.txt version build/source_dist
 	
-	cp source/eaglshell/* build/source_dist/source/eaglshell
-	cp include/shell/* build/source_dist/source/shell
+	cp -r include/* build/source_dist/include
+	cp -r lib/* build/source_dist/lib
+	find build/source_dist/include -name .svn -print0 | xargs -0 rm -rf
+	find build/source_dist/lib -name .svn -print0 | xargs -0 rm -rf
 	
-	cp support/* build/source_dist/support
+	cp source/eaglshell/* build/source_dist/source/eaglshell
+	
 	cp test_resources/* build/source_dist/test_resources
 	
 	cp test_source/testharness/* build/source_dist/test_source/testharness
