@@ -94,9 +94,6 @@ BitmapImage * PNGImageIO_loadPNGData(const void * data, size_t length, int pixel
 		png_set_strip_16(pngReadStruct);
 	}
 	
-	png_read_update_info(pngReadStruct, pngInfoStruct);
-	colorType = png_get_color_type(pngReadStruct, pngInfoStruct);
-	
 	switch (pixelFormat) {
 		case PNG_PIXEL_FORMAT_AUTOMATIC:
 			switch (colorType) {
@@ -116,12 +113,14 @@ BitmapImage * PNGImageIO_loadPNGData(const void * data, size_t length, int pixel
 					chosenPixelFormat = BITMAP_PIXEL_FORMAT_RGBA_8888;
 					break;
 			}
+			png_read_update_info(pngReadStruct, pngInfoStruct);
 			break;
 			
 		case BITMAP_PIXEL_FORMAT_RGBA_8888:
 			if (!(colorType & PNG_COLOR_MASK_ALPHA)) {
 				png_set_add_alpha(pngReadStruct, 0xFF, PNG_FILLER_AFTER);
 			}
+			png_read_update_info(pngReadStruct, pngInfoStruct);
 			if (!(colorType & PNG_COLOR_MASK_COLOR)) {
 				png_set_gray_to_rgb(pngReadStruct);
 			}
@@ -132,6 +131,7 @@ BitmapImage * PNGImageIO_loadPNGData(const void * data, size_t length, int pixel
 			if (colorType & PNG_COLOR_MASK_ALPHA) {
 				png_set_strip_alpha(pngReadStruct);
 			}
+			png_read_update_info(pngReadStruct, pngInfoStruct);
 			if (!(colorType & PNG_COLOR_MASK_COLOR)) {
 				png_set_gray_to_rgb(pngReadStruct);
 			}
@@ -142,6 +142,7 @@ BitmapImage * PNGImageIO_loadPNGData(const void * data, size_t length, int pixel
 			if (!(colorType & PNG_COLOR_MASK_ALPHA)) {
 				png_set_add_alpha(pngReadStruct, 0xFF, PNG_FILLER_AFTER);
 			}
+			png_read_update_info(pngReadStruct, pngInfoStruct);
 			if (colorType & PNG_COLOR_MASK_COLOR) {
 				png_set_rgb_to_gray(pngReadStruct, 1, (float) 0x55 / 0xFF, (float) 0x55 / 0xFF);
 			}
@@ -152,6 +153,7 @@ BitmapImage * PNGImageIO_loadPNGData(const void * data, size_t length, int pixel
 			if (colorType & PNG_COLOR_MASK_ALPHA) {
 				png_set_strip_alpha(pngReadStruct);
 			}
+			png_read_update_info(pngReadStruct, pngInfoStruct);
 			if (colorType & PNG_COLOR_MASK_COLOR) {
 				png_set_rgb_to_gray(pngReadStruct, 1, (float) 0x55 / 0xFF, (float) 0x55 / 0xFF);
 			}
@@ -159,7 +161,7 @@ BitmapImage * PNGImageIO_loadPNGData(const void * data, size_t length, int pixel
 			break;
 	}
 	
-	pixels = malloc(width * height * BitmapImage_pixelFormatBytes(chosenPixelFormat));
+	pixels = calloc(width * height, BitmapImage_pixelFormatBytes(chosenPixelFormat));
 	rows = malloc(sizeof(png_bytep) * height);
 	for (rowIndex = 0; rowIndex < height; rowIndex++) {
 		rows[rowIndex] = pixels + ((flipVertical ? height - rowIndex - 1 : rowIndex) * width * BitmapImage_pixelFormatBytes(chosenPixelFormat));
