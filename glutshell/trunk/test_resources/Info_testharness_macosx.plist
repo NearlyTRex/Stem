@@ -5,11 +5,11 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
 	<key>CFBundleDisplayName</key>
-	<string>${PRODUCT_NAME}</string>
+	<string>${HUMAN_READABLE_PRODUCT_NAME}</string>
 	<key>CFBundleExecutable</key>
 	<string>${PRODUCT_NAME}</string>
 	<key>CFBundleGetInfoString</key>
-	<string>${PRODUCT_NAME} ${VERSION} Copyright © ${COPYRIGHT_YEAR} Alex Diener
+	<string>${HUMAN_READABLE_PRODUCT_NAME} ${VERSION} Copyright © ${COPYRIGHT_YEAR} Alex Diener
 http://sacredsoftware.net/</string>
 	<key>CFBundleIdentifier</key>
 	<string>com.sacredsoftware.${PRODUCT_NAME}</string>
@@ -22,7 +22,7 @@ http://sacredsoftware.net/</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleShortVersionString</key>
-	<string>${PRODUCT_NAME} ${VERSION}</string>
+	<string>${HUMAN_READABLE_PRODUCT_NAME} ${VERSION}</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>Copyright © ${COPYRIGHT_YEAR} Alex Diener
 http://sacredsoftware.net/</string>

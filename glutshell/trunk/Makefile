@@ -10,6 +10,11 @@ else
 HOST_PLATFORM = windows
 endif
 
+define newline_and_tab
+
+	
+endef
+
 TARGET_PLATFORMS_macosx = macosx
 TARGET_PLATFORMS_linux = linux
 TARGET_PLATFORMS_windows = windows
@@ -29,6 +34,7 @@ ARCHS = ppc i386 i686 x86_64 armv6 armv7
 
 TARGET_NAME_library = libstemshell_glut
 TARGET_NAME_testharness = glutshell_testharness
+HUMAN_READABLE_TARGET_NAME_testharness = GLUTShell
 
 #Per-target configurations
 CONFIGURATIONS_library = debug profile release
@@ -61,9 +67,9 @@ ARCHS_linux = i686
 CCFLAGS_linux = 
 LINKFLAGS_linux = -lm -lrt -lglut
 
-CC_windows_i686 = \\MinGW\\bin\\gcc.exe
-AR_windows = \\MinGW\\bin\\ar.exe
-RANLIB_windows = \\MinGW\\bin\\ranlib.exe
+CC_windows_i686 = C:\\MinGW\\bin\\gcc.exe
+AR_windows = C:\\MinGW\\bin\\ar.exe
+RANLIB_windows = C:\\MinGW\\bin\\ranlib.exe
 ARCHS_windows = i686
 CCFLAGS_windows = -DFREEGLUT_STATIC
 LINKFLAGS_windows = -lfreeglut_static -lopengl32 -lglu32 -lwinmm -lgdi32 -mwindows -mconsole
@@ -80,9 +86,16 @@ LIBRARY_LINKFLAGS =
 OTHER_LINKFLAGS = 
 LINKFLAGS = ${FRAMEWORK_LINKFLAGS} ${LIBRARY_LINKFLAGS} ${OTHER_LINKFLAGS}
 
-#Per-target depencies
+#Per-target dependencies
 
-LIBRARY_DEPENDENCIES_testharness =
+STEM_LIBRARY_DEPENDENCIES_testharness = glgraphics/libstem_glgraphics.a
+THIRDPARTY_LIBRARY_DEPENDENCIES_testharness = 
+
+#Per-target per-platform dependencies
+
+STEM_LIBRARY_DEPENDENCIES_testharness_macosx = 
+THIRDPARTY_LIBRARY_DEPENDENCIES_testharness_macosx = 
+#...
 
 #Per-target source file lists
 
@@ -93,6 +106,8 @@ SOURCES_testharness = \
 	test_source/testharness/TestHarness_main.c
 
 SOURCES = ${sort ${foreach target,${TARGETS},${SOURCES_${target}}}}
+
+RESOURCES_testharness = 
 
 
 
@@ -110,7 +125,7 @@ endef
 
 define arch_object_list_template #(target, configuration, platform, arch)
 	${foreach source,${SOURCES_${1}}, \
-		build/intermediate/${2}-${3}-${4}/${notdir ${basename ${source}}}.o \
+		build/intermediate/${1}-${2}-${3}-${4}/${notdir ${basename ${source}}}.o \
 	}
 endef
 
@@ -124,8 +139,8 @@ ${foreach target,${TARGETS}, \
 
 
 define compile_template #(target, configuration, platform, arch, source_file)
-build/intermediate/${2}-${3}-${4}/${notdir ${basename ${5}}}.o: ${5}
-	mkdir -p build/intermediate/${2}-${3}-${4}
+build/intermediate/${1}-${2}-${3}-${4}/${notdir ${basename ${5}}}.o: ${5}
+	mkdir -p build/intermediate/${1}-${2}-${3}-${4}
 	${CC_${3}_${4}} ${CCFLAGS} ${CCFLAGS_${1}} ${CCFLAGS_${2}} ${CCFLAGS_${3}} -c -o $$@ $$^
 endef
 
@@ -145,7 +160,7 @@ ${foreach target,${TARGETS}, \
 
 
 define library_template #(target, configuration, platform, arch, output_file)
-build/intermediate/${2}-${3}-${4}/${5}: ${call arch_object_list_template,${1},${2},${3},${4}}
+build/intermediate/${1}-${2}-${3}-${4}/${5}: ${call arch_object_list_template,${1},${2},${3},${4}}
 	${AR_${3}} rc $$@ $$^
 	${RANLIB_${3}} $$@
 endef
@@ -164,14 +179,17 @@ ${foreach target,${LIBRARY_TARGETS}, \
 
 
 define executable_template #(target, configuration, platform, arch, output_file, dependent_libraries)
-build/intermediate/${2}-${3}-${4}/${5}: ${call arch_object_list_template,${1},${2},${3},${4}} ${6}
+build/intermediate/${1}-${2}-${3}-${4}/${5}: ${call arch_object_list_template,${1},${2},${3},${4}} ${6}
 	${CC_${3}_${4}} -o $$@ $$^ ${LINKFLAGS} ${LINKFLAGS_${3}}
 endef
 
 define library_dependency_template #(target, configuration, platform)
 	build/library/debug-${3}/${TARGET_NAME_library}.a \
-	${foreach library,${LIBRARY_DEPENDENCIES_${1}}, \
+	${foreach library,${STEM_LIBRARY_DEPENDENCIES_${1}} ${STEM_LIBRARY_DEPENDENCIES_${1}_${3}}, \
 		lib/${dir ${library}}${configuration}-${platform}/${notdir ${library}} \
+	} \
+	${foreach library,${THIRDPARTY_LIBRARY_DEPENDENCIES_${1}} ${THIRDPARTY_LIBRARY_DEPENDENCIES_${1}_${3}}, \
+		lib/${dir ${library}}${platform}/${notdir ${library}} \
 	}
 endef
 
@@ -188,9 +206,9 @@ ${foreach target,${EXECUTABLE_TARGETS} ${APPLICATION_TARGETS}, \
 
 
 
-define thin_binary_list_template #(target_name, configuration, platform)
+define thin_binary_list_template #(target, configuration, platform, target_name)
 	${foreach arch,${ARCHS_${3}}, \
-		build/intermediate/${2}-${3}-${arch}/${1} \
+		build/intermediate/${1}-${2}-${3}-${arch}/${4} \
 	}
 endef
 
@@ -198,7 +216,7 @@ endef
 ${foreach target,${LIBRARY_TARGETS}, \
 	${foreach configuration,${CONFIGURATIONS_${target}}, \
 		${foreach platform,${PLATFORMS_${target}}, \
-			${eval THIN_BINARIES_${target}_${configuration}_${platform} = ${call thin_binary_list_template,${TARGET_NAME_${target}}.a,${configuration},${platform}}} \
+			${eval THIN_BINARIES_${target}_${configuration}_${platform} = ${call thin_binary_list_template,${target},${configuration},${platform},${TARGET_NAME_${target}}.a}} \
 		} \
 	} \
 }
@@ -207,7 +225,7 @@ ${foreach target,${LIBRARY_TARGETS}, \
 ${foreach target,${EXECUTABLE_TARGETS}, \
 	${foreach configuration,${CONFIGURATIONS_${target}}, \
 		${foreach platform,${PLATFORMS_${target}}, \
-			${eval THIN_BINARIES_${target}_${configuration}_${platform} = ${call thin_binary_list_template,${TARGET_NAME_${target}},${configuration},${platform}}} \
+			${eval THIN_BINARIES_${target}_${configuration}_${platform} = ${call thin_binary_list_template,${target},${configuration},${platform},${TARGET_NAME_${target}}}} \
 		} \
 	} \
 }
@@ -216,7 +234,7 @@ ${foreach target,${EXECUTABLE_TARGETS}, \
 ${foreach target,${APPLICATION_TARGETS}, \
 	${foreach configuration,${CONFIGURATIONS_${target}}, \
 		${foreach platform,${PLATFORMS_${target}}, \
-			${eval THIN_BINARIES_${target}_${configuration}_${platform} = ${call thin_binary_list_template,${TARGET_NAME_${target}},${configuration},${platform}}} \
+			${eval THIN_BINARIES_${target}_${configuration}_${platform} = ${call thin_binary_list_template,${target},${configuration},${platform},${TARGET_NAME_${target}}}} \
 		} \
 	} \
 }
@@ -250,22 +268,32 @@ ${foreach target,${LIBRARY_TARGETS}, \
 	} \
 }
 
+define copy_target_resources #(target, resources_dir)
+	${foreach resource,${RESOURCES_${1}}, \
+		cp -r ${resource} ${2}${newline_and_tab} \
+	}
+	find ${2} -name .svn -print0 | xargs -0 rm -rf
+endef
+
 define assemble_executable_macosx #(target, configuration, platform)
-build/${1}/${2}-${3}/${TARGET_NAME_${1}}: ${THIN_BINARIES_${1}_${2}_${3}}
+build/${1}/${2}-${3}/${TARGET_NAME_${1}}: ${THIN_BINARIES_${1}_${2}_${3}} ${RESOURCES_${1}}
 	mkdir -p $${dir $$@}
-	lipo -create -output $$@ $$^
+	lipo -create -output $$@ ${THIN_BINARIES_${1}_${2}_${3}}
+	${call copy_target_resources,${1},$${dir $$@}}
 endef
 
 define assemble_executable_linux #(target, configuration, platform)
-build/${1}/${2}-${3}/${TARGET_NAME_${1}}: ${THIN_BINARIES_${1}_${2}_${3}}
+build/${1}/${2}-${3}/${TARGET_NAME_${1}}: ${THIN_BINARIES_${1}_${2}_${3}} ${RESOURCES_${1}}
 	mkdir -p $${dir $$@}
-	cp $$^ $$@
+	cp ${THIN_BINARIES_${1}_${2}_${3}} $$@
+	${call copy_target_resources,${1},$${dir $$@}}
 endef
 
 define assemble_executable_windows #(target, configuration, platform)
-build/${1}/${2}-${3}/${TARGET_NAME_${1}}.exe: ${THIN_BINARIES_${1}_${2}_${3}}
+build/${1}/${2}-${3}/${TARGET_NAME_${1}}.exe: ${THIN_BINARIES_${1}_${2}_${3}} ${RESOURCES_${1}}
 	mkdir -p $${dir $$@}
-	cp $$^ $$@
+	cp ${THIN_BINARIES_${1}_${2}_${3}} $$@
+	${call copy_target_resources,${1},$${dir $$@}}
 endef
 
 #Produces final executable build targets
@@ -282,6 +310,7 @@ PLIST_FILE_testharness_macosx = test_resources/Info_testharness_macosx.plist
 define create_app_bundle #(target, platform, executable_dir, plist_dir, resources_dir)
 	mkdir -p ${3} ${4} ${5}
 	sed -e "s/\$$$${PRODUCT_NAME}/${TARGET_NAME_${1}}/g" \
+	    -e "s/\$$$${HUMAN_READABLE_PRODUCT_NAME}/${HUMAN_READABLE_TARGET_NAME_${1}}/g" \
 	    -e "s/\$$$${VERSION}/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_TWEAK}/g" \
 	    -e "s/\$$$${COPYRIGHT_YEAR}/"`date +%Y`"/g" \
 	    -e "s/\$$$${BUILD_NUMBER}/0/g" \
@@ -290,24 +319,25 @@ define create_app_bundle #(target, platform, executable_dir, plist_dir, resource
 	    -e "s/\$$$${SDK}/${PLIST_SDK_NAME_${2}}/g" \
 	    ${PLIST_FILE_${1}_${2}} > ${4}/Info.plist
 	echo "APPL????" > ${4}/PkgInfo
+	${call copy_target_resources,${1},${5}}
 endef
 
 define assemble_application_macosx #(target, configuration)
-build/${1}/${2}-macosx/${TARGET_NAME_${1}}.app/Contents/MacOS/${TARGET_NAME_${1}}: ${THIN_BINARIES_${1}_${2}_macosx}
-	${call create_app_bundle,${1},macosx,$${dir $$@},$${dir $$@}../,$${dir $$@}../Resources/}
-	lipo -create -output $$@ $$^
+build/${1}/${2}-macosx/${TARGET_NAME_${1}}.app/Contents/MacOS/${TARGET_NAME_${1}}: ${THIN_BINARIES_${1}_${2}_macosx} ${RESOURCES_${1}}
+	${call create_app_bundle,${1},macosx,$${dir $$@},build/${1}/${2}-macosx/${TARGET_NAME_${1}}.app/Contents,build/${1}/${2}-macosx/${TARGET_NAME_${1}}.app/Contents/Resources}
+	lipo -create -output $$@ ${THIN_BINARIES_${1}_${2}_macosx}
 endef
 
 define assemble_application_linux #(target, configuration)
-build/${1}/${2}-linux/${TARGET_NAME_${1}}: ${THIN_BINARIES_${1}_${2}_linux}
+build/${1}/${2}-linux/${TARGET_NAME_${1}}: ${THIN_BINARIES_${1}_${2}_linux} ${RESOURCES_${1}}
 	mkdir -p $${dir $$@}
-	cp $$^ $$@
+	cp ${THIN_BINARIES_${1}_${2}_linux} $$@
 endef
 
 define assemble_application_windows #(target, configuration)
-build/${1}/${2}-windows/${TARGET_NAME_${1}}.exe: ${THIN_BINARIES_${1}_${2}_windows}
+build/${1}/${2}-windows/${TARGET_NAME_${1}}.exe: ${THIN_BINARIES_${1}_${2}_windows} ${RESOURCES_${1}}
 	mkdir -p $${dir $$@}
-	cp $$^ $$@
+	cp ${THIN_BINARIES_${1}_${2}_windows} $$@
 endef
 
 #Produces final application build targets
@@ -375,23 +405,24 @@ ${foreach target,${APPLICATION_TARGETS}, \
 .PHONY: clean
 clean:
 	rm -rf build
-	rm -rf dist
-	rm -rf dist_append
+	rm -rf dist#master_source_only
+
 #master_source_only_begin
 .PHONY: full_dist
 full_dist: clean all
 	mkdir dist dist/include dist/library dist/testharness
+	cp -r build/include/* dist/include
 	cp -r build/library/* dist/library
 	cp -r build/testharness/* dist/testharness
-	svn import --no-ignore -m "Automated release from ${HOST_PLATFORM}" dist ${SVNROOT}/Releases/${PROJECT_NAME}/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_TWEAK}
 
 .PHONY: append_dist
-append_dist: clean all
-	svn co ${SVNROOT}/Releases/${PROJECT_NAME}/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_TWEAK} dist_append
-	cp -r build/library/* dist_append/library
-	cp -r build/testharness/* dist_append/testharness
-	svn add --no-ignore dist_append/library/* dist_append/testharness/*
-	svn commit -m "Automated release append from ${HOST_PLATFORM}" dist_append
+append_dist: all
+	cp -r build/library/* dist/library
+	cp -r build/testharness/* dist/testharness
+
+.PHONY: commit_dist
+commit_dist:
+	svn import --no-ignore -m "Automated release of ${PROJECT_NAME} ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_TWEAK} from ${HOST_PLATFORM}" dist ${SVNROOT}/Releases/${PROJECT_NAME}/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_TWEAK}
 
 define filter_source_dist_file #(infile, outfile)
 	ruby -e "print STDIN.read.gsub(/^.*#master_source_only\b.*$\n?/, '').gsub(/\n?#master_source_only_begin[\s\S]*?#master_source_only_end/, '').gsub(/#source_dist_only/, '')" < "${1}" > "${2}"
@@ -399,16 +430,21 @@ endef
 
 .PHONY: source_dist
 source_dist:
+	mkdir -p build/source_dist/include
+	mkdir -p build/source_dist/lib
 	mkdir -p build/source_dist/source/glutshell
-	mkdir -p build/source_dist/source/shell
 	mkdir -p build/source_dist/test_resources
 	mkdir -p build/source_dist/test_source/testharness
 	
 	${call filter_source_dist_file,Makefile,build/source_dist/Makefile}
 	cp Changes.txt License.txt ReadMe.txt version build/source_dist
 	
+	cp -r include/* build/source_dist/include
+	cp -r lib/* build/source_dist/lib
+	find build/source_dist/include -name .svn -print0 | xargs -0 rm -rf
+	find build/source_dist/lib -name .svn -print0 | xargs -0 rm -rf
+	
 	cp source/glutshell/* build/source_dist/source/glutshell
-	cp include/shell/* build/source_dist/source/shell
 	
 	cp test_resources/* build/source_dist/test_resources
 	
