@@ -1,0 +1,4 @@
+1.1.0
+ * EAGLShell now sets g_openGLAPIVersion appropriately
+ * Refreshed Makefile and other project files from template_stemlib Stable_2010-05-06
+ * Fixed a bug that could cause framebuffer garbage to be displayed when switching between fullscreen and non-fullscreen mode
