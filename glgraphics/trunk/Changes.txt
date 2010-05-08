@@ -1,5 +1,6 @@
 0.2.0:
  * Added GLInfo
+ * Refreshed Makefile from template_stemlib Stable_2010-05-06
 
 0.1.0:
  * Added OpenGL ES2 includes to GLIncludes.h
