@@ -419,12 +419,16 @@ define assemble_application_linux #(target, configuration)
 build/${1}/${2}-linux/${TARGET_NAME_${1}}: ${THIN_BINARIES_${1}_${2}_linux} ${RESOURCES_${1}}
 	mkdir -p $${dir $$@}
 	cp ${THIN_BINARIES_${1}_${2}_linux} $$@
+	mkdir -p build/${1}/${2}-linux/Resources
+	${call copy_target_resources,${1},build/${1}/${2}-linux/Resources}
 endef
 
 define assemble_application_windows #(target, configuration)
 build/${1}/${2}-windows/${TARGET_NAME_${1}}.exe: ${THIN_BINARIES_${1}_${2}_windows} ${RESOURCES_${1}}
 	mkdir -p $${dir $$@}
 	cp ${THIN_BINARIES_${1}_${2}_windows} $$@
+	mkdir -p build/${1}/${2}-windows/Resources
+	${call copy_target_resources,${1},build/${1}/${2}-windows/Resources}
 endef
 
 #Produces final application build targets
@@ -549,7 +553,7 @@ include: ${INCLUDES}
 .PHONY: clean
 clean:
 	rm -rf build
-	rm -rf dist
+	rm -rf dist #master_source_only
 
 .PHONY: install_testharness_iphonesimulator
 install_testharness_iphonesimulator: testharness
