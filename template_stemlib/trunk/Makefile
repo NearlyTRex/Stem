@@ -10,6 +10,11 @@ else
 HOST_PLATFORM = windows
 endif
 
+define newline_and_tab
+
+	
+endef
+
 TARGET_PLATFORMS_macosx = macosx iphonesimulator iphoneos
 TARGET_PLATFORMS_linux = linux
 TARGET_PLATFORMS_windows = windows
@@ -111,6 +116,8 @@ LINKFLAGS = ${FRAMEWORK_LINKFLAGS} ${LIBRARY_LINKFLAGS} ${OTHER_LINKFLAGS}
 
 #Per-target dependencies
 
+PROJECT_LIBRARY_DEPENDENCIES_unittest = library
+PROJECT_LIBRARY_DEPENDENCIES_testharness = library
 STEM_LIBRARY_DEPENDENCIES_unittest =
 STEM_LIBRARY_DEPENDENCIES_testharness =
 THIRDPARTY_LIBRARY_DEPENDENCIES_unittest = 
@@ -118,6 +125,7 @@ THIRDPARTY_LIBRARY_DEPENDENCIES_testharness =
 
 #Per-target per-platform dependencies
 
+PROJECT_LIBRARY_DEPENDENCIES_unittest_macosx = 
 STEM_LIBRARY_DEPENDENCIES_unittest_macosx = 
 THIRDPARTY_LIBRARY_DEPENDENCIES_unittest_macosx = 
 #...
@@ -221,12 +229,14 @@ build/intermediate/${1}-${2}-${3}-${4}/${5}: ${call arch_object_list_template,${
 endef
 
 define library_dependency_template #(target, configuration, platform)
-	build/library/debug-${3}/${TARGET_NAME_library}.a \
+	${foreach library,${PROJECT_LIBRARY_DEPENDENCIES_${1}} ${PROJECT_LIBRARY_DEPENDENCIES_${1}_${3}}, \
+		build/${library}/${2}-${3}/${TARGET_NAME_${library}}.a \
+	} \
 	${foreach library,${STEM_LIBRARY_DEPENDENCIES_${1}} ${STEM_LIBRARY_DEPENDENCIES_${1}_${3}}, \
-		lib/${dir ${library}}${configuration}-${platform}/${notdir ${library}} \
+		lib/${dir ${library}}${2}-${3}/${notdir ${library}} \
 	} \
 	${foreach library,${THIRDPARTY_LIBRARY_DEPENDENCIES_${1}} ${THIRDPARTY_LIBRARY_DEPENDENCIES_${1}_${3}}, \
-		lib/${dir ${library}}${platform}/${notdir ${library}} \
+		lib/${dir ${library}}${3}/${notdir ${library}} \
 	}
 endef
 
@@ -307,7 +317,7 @@ ${foreach target,${LIBRARY_TARGETS}, \
 
 define copy_target_resources #(target, resources_dir)
 	${foreach resource,${RESOURCES_${1}}, \
-		cp -r ${resource} ${2}; \
+		cp -r ${resource} ${2}${newline_and_tab} \
 	}
 	find ${2} -name .svn -print0 | xargs -0 rm -rf
 endef
@@ -391,12 +401,16 @@ define assemble_application_linux #(target, configuration)
 build/${1}/${2}-linux/${TARGET_NAME_${1}}: ${THIN_BINARIES_${1}_${2}_linux} ${RESOURCES_${1}}
 	mkdir -p $${dir $$@}
 	cp ${THIN_BINARIES_${1}_${2}_linux} $$@
+	mkdir -p build/${1}/${2}-linux/Resources
+	${call copy_target_resources,${1},build/${1}/${2}-linux/Resources}
 endef
 
 define assemble_application_windows #(target, configuration)
 build/${1}/${2}-windows/${TARGET_NAME_${1}}.exe: ${THIN_BINARIES_${1}_${2}_windows} ${RESOURCES_${1}}
 	mkdir -p $${dir $$@}
 	cp ${THIN_BINARIES_${1}_${2}_windows} $$@
+	mkdir -p build/${1}/${2}-windows/Resources
+	${call copy_target_resources,${1},build/${1}/${2}-windows/Resources}
 endef
 
 #Produces final application build targets
@@ -509,14 +523,14 @@ run_unittests_windows:
 include: ${INCLUDES}
 	mkdir -p build/include
 	${foreach include_file,$^, \
-		mkdir -p build/include/${notdir ${patsubst %/,%,${dir ${include_file}}}}; \
-		cp ${include_file} build/include/${notdir ${patsubst %/,%,${dir ${include_file}}}}; \
+		mkdir -p build/include/${notdir ${patsubst %/,%,${dir ${include_file}}}}${newline_and_tab} \
+		cp ${include_file} build/include/${notdir ${patsubst %/,%,${dir ${include_file}}}}${newline_and_tab} \
 	}
 
 .PHONY: clean
 clean:
 	rm -rf build
-	rm -rf dist
+	rm -rf dist #master_source_only
 
 .PHONY: install_testharness_iphonesimulator
 install_testharness_iphonesimulator: testharness
@@ -537,8 +551,8 @@ codesign_testharness_iphoneos: testharness
 	${call add_blob_header,test_resources/Entitlements.plist,build/intermediate/Entitlements.xcent}
 	export CODESIGN_ALLOCATE=/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/codesign_allocate
 	${foreach configuration,${CONFIGURATIONS_testharness},\
-		cp "${RESOURCE_RULES_PLIST}" "build/testharness/${configuration}-iphoneos/${TARGET_NAME_testharness}.app"; \
-		/usr/bin/codesign -f -s ${CODESIGN_IDENTITY} --resource-rules=${RESOURCE_RULES_PLIST} --entitlements=build/intermediate/Entitlements.xcent "build/testharness/${configuration}-iphoneos/${TARGET_NAME_testharness}.app"; \
+		cp "${RESOURCE_RULES_PLIST}" "build/testharness/${configuration}-iphoneos/${TARGET_NAME_testharness}.app"${newline_and_tab} \
+		/usr/bin/codesign -f -s ${CODESIGN_IDENTITY} --resource-rules=${RESOURCE_RULES_PLIST} --entitlements=build/intermediate/Entitlements.xcent "build/testharness/${configuration}-iphoneos/${TARGET_NAME_testharness}.app"${newline_and_tab} \
 	}
 
 #master_source_only_begin
