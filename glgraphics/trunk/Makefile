@@ -59,9 +59,9 @@ PLATFORMS_unittest_noglew = ${filter ${PLATFORMS},macosx iphonesimulator linux w
 PLATFORMS_testharness = ${filter ${PLATFORMS},macosx iphonesimulator iphoneos linux windows}
 
 #Per-target compile/link settings
-CCFLAGS_library = -I include/glew
+CCFLAGS_library = -I include/glew -DGLEW_STATIC
 CCFLAGS_library_noglew = -DGLGRAPHICS_NO_GLEW
-CCFLAGS_unittest = -I include/glew -I test_source -DSUITE_FILE_LIST='${foreach file,${SOURCES_unittest_suites},"${basename ${notdir ${file}}}",} NULL'
+CCFLAGS_unittest = -I include/glew -DGLEW_STATIC -I test_source -DSUITE_FILE_LIST='${foreach file,${SOURCES_unittest_suites},"${basename ${notdir ${file}}}",} NULL'
 CCFLAGS_unittest_noglew = -DGLGRAPHICS_NO_GLEW -I test_source -DSUITE_FILE_LIST='${foreach file,${SOURCES_unittest_suites},"${basename ${notdir ${file}}}",} NULL'
 
 #Per-configuration compile/link settings
