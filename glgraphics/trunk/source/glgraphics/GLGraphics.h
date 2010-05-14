@@ -20,6 +20,18 @@
   Alex Diener adiener@sacredsoftware.net
 */
 
-#include "glgraphics/GLInfo.h"
+#ifndef __GL_GRAPHICS_H__
+#define __GL_GRAPHICS_H__
 
-enum GLAPIVersion g_openGLAPIVersion = GL_API_VERSION_DESKTOP_1;
+enum GLAPIVersion {
+	GL_API_VERSION_DESKTOP_1,
+	GL_API_VERSION_DESKTOP_2,
+	GL_API_VERSION_DESKTOP_3,
+	GL_API_VERSION_ES1,
+	GL_API_VERSION_ES2
+};
+
+void GLGraphics_init(enum GLAPIVersion apiVersion);
+enum GLAPIVersion GLGraphics_getOpenGLAPIVersion();
+
+#endif

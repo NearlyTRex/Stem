@@ -1,3 +1,8 @@
+0.3.0:
+ * Removed GLInfo.c/h; superseded by GLGraphics.c/h
+ * Added glew dependency
+ * Added no-glew library and unit test builds
+
 0.2.0:
  * Added GLInfo
  * Refreshed Makefile from template_stemlib Stable_2010-05-06

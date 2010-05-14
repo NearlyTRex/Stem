@@ -1,5 +1,5 @@
 .PHONY: all
-all: library unittest testharness test include
+all: library library_noglew unittest unittest_noglew testharness test include
 
 UNAME = ${shell uname}
 ifeq (${UNAME},Linux)
@@ -29,8 +29,8 @@ IPHONESIMULATOR_PATH = "/Developer/Platforms/iPhoneSimulator.platform/Developer/
 CODESIGN_IDENTITY = "iPhone Developer"
 SVNROOT = http://sacredsoftware.net/svn/misc#master_source_only
 
-LIBRARY_TARGETS = library
-EXECUTABLE_TARGETS = unittest
+LIBRARY_TARGETS = library library_noglew
+EXECUTABLE_TARGETS = unittest unittest_noglew
 APPLICATION_TARGETS = testharness
 TARGETS = ${LIBRARY_TARGETS} ${EXECUTABLE_TARGETS} ${APPLICATION_TARGETS}
 CONFIGURATIONS = debug profile release
@@ -38,22 +38,31 @@ PLATFORMS = ${filter ${TARGET_PLATFORMS_${HOST_PLATFORM}},macosx iphonesimulator
 ARCHS = ppc i386 i686 x86_64 armv6 armv7
 
 TARGET_NAME_library = libstem_glgraphics
+TARGET_NAME_library_noglew = libstem_glgraphics_noglew
 TARGET_NAME_unittest = glgraphics_unittest
+TARGET_NAME_unittest_noglew = glgraphics_unittest_noglew
 TARGET_NAME_testharness = glgraphics_testharness
 HUMAN_READABLE_TARGET_NAME_testharness = GLGraphics
 
 #Per-target configurations
 CONFIGURATIONS_library = debug profile release
+CONFIGURATIONS_library_noglew = debug profile release
 CONFIGURATIONS_unittest = debug
+CONFIGURATIONS_unittest_noglew = debug
 CONFIGURATIONS_testharness = debug profile
 
 #Per-target platforms
 PLATFORMS_library = ${filter ${PLATFORMS},macosx iphonesimulator iphoneos linux windows}
+PLATFORMS_library_noglew = ${filter ${PLATFORMS},macosx iphonesimulator iphoneos linux windows}
 PLATFORMS_unittest = ${filter ${PLATFORMS},macosx iphonesimulator linux windows}
+PLATFORMS_unittest_noglew = ${filter ${PLATFORMS},macosx iphonesimulator linux windows}
 PLATFORMS_testharness = ${filter ${PLATFORMS},macosx iphonesimulator iphoneos linux windows}
 
 #Per-target compile/link settings
-CCFLAGS_unittest = -I test_source -DSUITE_FILE_LIST='${foreach file,${SOURCES_unittest_suites},"${basename ${notdir ${file}}}",} NULL'
+CCFLAGS_library = -I include/glew
+CCFLAGS_library_noglew = -DGLGRAPHICS_NO_GLEW
+CCFLAGS_unittest = -I include/glew -I test_source -DSUITE_FILE_LIST='${foreach file,${SOURCES_unittest_suites},"${basename ${notdir ${file}}}",} NULL'
+CCFLAGS_unittest_noglew = -DGLGRAPHICS_NO_GLEW -I test_source -DSUITE_FILE_LIST='${foreach file,${SOURCES_unittest_suites},"${basename ${notdir ${file}}}",} NULL'
 
 #Per-configuration compile/link settings
 CCFLAGS_debug = -g
@@ -116,31 +125,36 @@ LINKFLAGS = ${FRAMEWORK_LINKFLAGS} ${LIBRARY_LINKFLAGS} ${OTHER_LINKFLAGS}
 
 #Per-target dependencies
 
+PROJECT_LIBRARY_DEPENDENCIES_unittest = library
+PROJECT_LIBRARY_DEPENDENCIES_unittest_noglew = library_noglew
 STEM_LIBRARY_DEPENDENCIES_unittest = 3dmath/libstem_3dmath.a stemobject/libstem_stemobject.a
-STEM_LIBRARY_DEPENDENCIES_testharness =
-THIRDPARTY_LIBRARY_DEPENDENCIES_unittest = 
-THIRDPARTY_LIBRARY_DEPENDENCIES_testharness = 
+STEM_LIBRARY_DEPENDENCIES_unittest_noglew = 3dmath/libstem_3dmath.a stemobject/libstem_stemobject.a
 
 #Per-target per-platform dependencies
 
-STEM_LIBRARY_DEPENDENCIES_unittest_macosx = 
-THIRDPARTY_LIBRARY_DEPENDENCIES_unittest_macosx = 
-#...
+THIRDPARTY_LIBRARY_DEPENDENCIES_unittest_macosx = glew/libglew.a
+THIRDPARTY_LIBRARY_DEPENDENCIES_unittest_windows = glew/libglew.a
+THIRDPARTY_LIBRARY_DEPENDENCIES_unittest_linux = glew/libglew.a
 
 #Per-target source file lists
 
 SOURCES_library = \
 	source/glgraphics/Camera.c \
-	source/glgraphics/GLInfo.c \
+	source/glgraphics/GLGraphics.c \
 	source/glgraphics/GLUtilities.c
+
+SOURCES_library_noglew = ${SOURCES_library}
 
 SOURCES_unittest = \
 	test_source/unittest/framework/unittest_main.c \
 	test_source/unittest/framework/TestList.c \
 	${SOURCES_unittest_suites}
 
+SOURCES_unittest_noglew = ${SOURCES_unittest}
+
 SOURCES_unittest_suites = \
 	test_source/unittest/suites/CameraTest.c \
+	test_source/unittest/suites/GLGraphicsTest.c \
 	test_source/unittest/suites/GLUtilitiesTest.c
 
 SOURCES_testharness = \
@@ -150,12 +164,13 @@ SOURCES = ${sort ${foreach target,${TARGETS},${SOURCES_${target}}}}
 
 INCLUDES = \
 	source/glgraphics/Camera.h \
+	source/glgraphics/GLGraphics.h \
 	source/glgraphics/GLIncludes.h \
-	source/glgraphics/GLInfo.h \
 	source/glgraphics/GLUtilities.h
 
 RESOURCES_testharness = 
 RESOURCES_unittest = 
+RESOURCES_unittest_noglew = 
 
 
 
@@ -232,12 +247,14 @@ build/intermediate/${1}-${2}-${3}-${4}/${5}: ${call arch_object_list_template,${
 endef
 
 define library_dependency_template #(target, configuration, platform)
-	build/library/debug-${3}/${TARGET_NAME_library}.a \
+	${foreach library,${PROJECT_LIBRARY_DEPENDENCIES_${1}} ${PROJECT_LIBRARY_DEPENDENCIES_${1}_${3}}, \
+		build/${library}/${2}-${3}/${TARGET_NAME_${library}}.a \
+	} \
 	${foreach library,${STEM_LIBRARY_DEPENDENCIES_${1}} ${STEM_LIBRARY_DEPENDENCIES_${1}_${3}}, \
-		lib/${dir ${library}}${configuration}-${platform}/${notdir ${library}} \
+		lib/${dir ${library}}${2}-${3}/${notdir ${library}} \
 	} \
 	${foreach library,${THIRDPARTY_LIBRARY_DEPENDENCIES_${1}} ${THIRDPARTY_LIBRARY_DEPENDENCIES_${1}_${3}}, \
-		lib/${dir ${library}}${platform}/${notdir ${library}} \
+		lib/${dir ${library}}${3}/${notdir ${library}} \
 	}
 endef
 
@@ -497,24 +514,29 @@ ${foreach target,${APPLICATION_TARGETS}, \
 }
 
 .PHONY: test
-test: unittest ${foreach platform,${PLATFORMS_unittest},run_unittests_${platform}}
+test: unittest unittest_noglew ${foreach platform,${PLATFORMS_unittest},run_unittests_${platform}}
 
 .PHONY: run_unittests_macosx
 run_unittests_macosx:
 	./build/unittest/debug-macosx/${TARGET_NAME_unittest} "${CURDIR}/build/unittest/debug-macosx"
+	./build/unittest_noglew/debug-macosx/${TARGET_NAME_unittest_noglew} "${CURDIR}/build/unittest_noglew/debug-macosx"
 
 .PHONY: run_unittests_iphonesimulator
 run_unittests_iphonesimulator:
 	DYLD_ROOT_PATH=${SDKROOT_iphonesimulator} \
 	./build/unittest/debug-iphonesimulator/${TARGET_NAME_unittest} "${CURDIR}/build/unittest/debug-iphonesimulator"
+	DYLD_ROOT_PATH=${SDKROOT_iphonesimulator} \
+	./build/unittest_noglew/debug-iphonesimulator/${TARGET_NAME_unittest_noglew} "${CURDIR}/build/unittest_noglew/debug-iphonesimulator"
 
 .PHONY: run_unittests_linux
 run_unittests_linux:
 	./build/unittest/debug-linux/${TARGET_NAME_unittest} "${CURDIR}/build/unittest/debug-linux"
+	./build/unittest_noglew/debug-linux/${TARGET_NAME_unittest_noglew} "${CURDIR}/build/unittest_noglew/debug-linux"
 
 .PHONY: run_unittests_windows
 run_unittests_windows:
 	./build/unittest/debug-windows/${TARGET_NAME_unittest}.exe "${CURDIR}/build/unittest/debug-windows"
+	./build/unittest_noglew/debug-windows/${TARGET_NAME_unittest_noglew}.exe "${CURDIR}/build/unittest_noglew/debug-windows"
 
 .PHONY: include
 include: ${INCLUDES}
@@ -558,11 +580,13 @@ full_dist: clean all
 	mkdir dist dist/include dist/library dist/testharness
 	cp -r build/include/* dist/include
 	cp -r build/library/* dist/library
+	cp -r build/library_noglew/* dist/library
 	cp -r build/testharness/* dist/testharness
 
 .PHONY: append_dist
 append_dist: all
 	cp -r build/library/* dist/library
+	cp -r build/library_noglew/* dist/library
 	cp -r build/testharness/* dist/testharness
 
 .PHONY: commit_dist

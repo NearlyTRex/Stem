@@ -20,17 +20,27 @@
   Alex Diener adiener@sacredsoftware.net
 */
 
-#ifndef __GL_INFO_H__
-#define __GL_INFO_H__
-
-enum GLAPIVersion {
-	GL_API_VERSION_DESKTOP_1,
-	GL_API_VERSION_DESKTOP_2,
-	GL_API_VERSION_DESKTOP_3,
-	GL_API_VERSION_ES1,
-	GL_API_VERSION_ES2
-};
-
-extern enum GLAPIVersion g_openGLAPIVersion;
-
+#include "glgraphics/GLGraphics.h"
+#include "glgraphics/GLIncludes.h"
+#include <stdbool.h>
+#ifndef GLGRAPHICS_NO_GLEW
+#include <stdio.h>
 #endif
+
+static enum GLAPIVersion openGLAPIVersion = GL_API_VERSION_DESKTOP_1;
+
+void GLGraphics_init(enum GLAPIVersion apiVersion) {
+#ifndef GLGRAPHICS_NO_GLEW
+	GLenum glewStatus;
+	
+	glewStatus = glewInit();
+	if (glewStatus != GLEW_OK) {
+		fprintf(stderr, "Warning: glewInit() failed: %s\n", glewGetErrorString(glewStatus));
+	}
+#endif
+	openGLAPIVersion = apiVersion;
+}
+
+enum GLAPIVersion GLGraphics_getOpenGLAPIVersion() {
+	return openGLAPIVersion;
+}
