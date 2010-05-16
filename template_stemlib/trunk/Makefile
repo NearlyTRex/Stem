@@ -54,7 +54,7 @@ PLATFORMS_unittest = ${filter ${PLATFORMS},macosx iphonesimulator linux windows}
 PLATFORMS_testharness = ${filter ${PLATFORMS},macosx iphonesimulator iphoneos linux windows}
 
 #Per-target compile/link settings
-CCFLAGS_unittest = -I test_source -DSUITE_FILE_LIST='${foreach file,${SOURCES_unittest_suites},"${basename ${notdir ${file}}}",} NULL'
+CCFLAGS_unittest = -I test_source -include build/intermediate/TestList.h
 
 #Per-target analyzer settings
 CLANGFLAGS_unittest = ${CCFLAGS_unittest}
@@ -112,7 +112,7 @@ CC_windows_i686 = C:/MinGW/bin/gcc.exe
 AR_windows = C:/MinGW/bin/ar.exe
 RANLIB_windows = C:/MinGW/bin/ranlib.exe
 SPLINT_windows = C:/splint-3.1.1/bin/splint.exe
-CLANG_windows = C:/llvm/bin/Debug/clang.exe
+CLANG_windows = C:/llvm/bin/clang.exe
 ARCHS_windows = i686
 CCFLAGS_windows = 
 LINKFLAGS_windows = 
@@ -131,6 +131,7 @@ LINKFLAGS = ${FRAMEWORK_LINKFLAGS} ${LIBRARY_LINKFLAGS} ${OTHER_LINKFLAGS}
 
 #General analyzer settings
 CLANGFLAGS = 
+CLANGFLAGS_windows = -I C:/MinGW/include -I C:/MinGW/lib/gcc/mingw32/4.3.2/include
 SPLINTFLAGS = 
 
 #Per-target dependencies
@@ -173,6 +174,12 @@ RESOURCES_unittest =
 
 ANALYZER_EXCLUDE_SOURCES_clang = 
 ANALYZER_EXCLUDE_SOURCES_splint = ${SOURCES_unittest}
+
+PREREQS_unittest = build/intermediate/TestList.h
+
+build/intermediate/TestList.h:
+	mkdir -p build/intermediate
+	echo '#define SUITE_FILE_LIST ${foreach file,${SOURCES_unittest_suites},"${basename ${notdir ${file}}}",} NULL' > $@
 
 
 
@@ -223,7 +230,7 @@ ${foreach target,${TARGETS}, \
 
 
 define compile_template #(target, configuration, platform, arch, source_file)
-build/intermediate/$1-$2-$3-$4/${notdir ${basename $5}}.o: build/intermediate/$1-$2-$3-$4 $5
+build/intermediate/$1-$2-$3-$4/${notdir ${basename $5}}.o: build/intermediate/$1-$2-$3-$4 $5 ${PREREQS_$1}
 	${CC_$3_$4} ${CCFLAGS} ${CCFLAGS_$1} ${CCFLAGS_$2} ${CCFLAGS_$3} -c -o $$@ $5
 endef
 
@@ -550,14 +557,14 @@ run_unittests_windows:
 	./build/unittest/debug-windows/${TARGET_NAME_unittest}.exe "${CURDIR}/build/unittest/debug-windows"
 
 define analyze_file_template_clang #(target, platform, file)
-build/analyzer-results/clang-$1-$2/${basename ${notdir $3}}.txt: build/analyzer-results/clang-$1-$2 $3
-	${CLANG_$2} --analyze ${INCLUDE_CCFLAGS} ${CLANGFLAGS} ${CLANGFLAGS_$1} -o ${basename $4}.plist $3 > $$@ 2>&1
+build/analyzer-results/clang-$1-$2/${basename ${notdir $3}}.txt: build/analyzer-results/clang-$1-$2 $3 ${PREREQS_$1}
+	${CLANG_$2} --analyze ${INCLUDE_CCFLAGS} ${CLANGFLAGS} ${CLANGFLAGS_$1} ${CLANGFLAGS_$2} -o $${basename $$@}.plist $3 > $$@ 2>&1; true
 	@cat $$@
 endef
 
 define analyze_file_template_splint #(target, platform, file)
-build/analyzer-results/splint-$1-$2/${basename ${notdir $3}}.txt: build/analyzer-results/splint-$1-$2 $3
-	${SPLINT_$2} ${INCLUDE_CCFLAGS} ${SPLINTFLAGS} ${SPLINTFLAGS_$1} $3 > $$@ 2>&1; true
+build/analyzer-results/splint-$1-$2/${basename ${notdir $3}}.txt: build/analyzer-results/splint-$1-$2 $3 ${PREREQS_$1}
+	${SPLINT_$2} ${INCLUDE_CCFLAGS} ${SPLINTFLAGS} ${SPLINTFLAGS_$1} ${SPLINTFLAGS_$2} $3 > $$@ 2>&1; true
 	@cat $$@
 endef
 

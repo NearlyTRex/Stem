@@ -1,4 +1,4 @@
-#include "HelloWorld.h"
+#include "template_stemlib/HelloWorld.h"
 #include <stdlib.h>
 
 const char * helloWorld() {
