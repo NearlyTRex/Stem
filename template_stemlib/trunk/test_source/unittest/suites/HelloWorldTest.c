@@ -3,7 +3,7 @@
 #include "unittest/framework/TestSuite.h"
 
 static void testHelloWorld() {
-	char * hello;
+	const char * hello;
 	
 	hello = helloWorld();
 	TestCase_assert(!strcmp("Hello, world!", hello), "Unexpected result \"%s\" from call to helloWorld (expected \"Hello, world!\")", hello);
