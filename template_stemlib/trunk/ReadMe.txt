@@ -46,7 +46,15 @@ Building with the stem build system on Windows:
 
 		* splint: splint doesn't build from source on Windows without significant effort, but you can download a pre-built binary from http://splint.org/win32.html. Follow the instructions on that page to set up your installation.
 
-		* clang: Checkout and build instructions can be found at http://clang.llvm.org/get_started. I wasn't able to build successfully using MSYS and MinGW, but the Visual Studio build instructions worked using Visual Studio Express 2008.
+		* clang: Checkout and build instructions can be found at http://clang.llvm.org/get_started. The "Unix-like" build instructions didn't work for me out of the box, but I was able to build successfully using MinGW by using the Visual Studio build instructions with some small modifications:
+
+			* When invoking cmake, instead of passing -G "Visual Studio 9 2008", pass -G "MinGW Makefiles". cmake will barf if you do this in the same directory as your llvm checkout, so I created a directory next to it and ran cmake from there, passing the path to the llvm checkout as the last argument to cmake.
+			
+			* cmake will also barf on creating a MinGW makefile when C:/msys/1.0/bin is in your PATH, so you may need to temporarily remove it from your PATH before running cmake.
+			
+			* After cmake completes, run mingw32-make, and copy bin/clang.exe to C:/llvm/bin/clang.exe (or change CLANG_windows in the Makefile to the path to your clang build), and you're ready to go.
+			
+			* Note that clang invocations need extra include paths provided to them, since it doesn't have a standard location like /usr/include to search by default. This is done in the makefile with CLANGFLAGS_windows.
 
 Building with the stem build system on Linux:
 
