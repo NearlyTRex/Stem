@@ -44,7 +44,7 @@
 #include <windows.h>
 #endif
 
-#include "glgraphics/GLInfo.h"
+#include "glgraphics/GLGraphics.h"
 #include "shell/ShellBatteryInfo.h"
 #include "shell/ShellKeyCodes.h"
 #include "shell/Target.h"
@@ -471,7 +471,7 @@ int main(int argc, char ** argv) {
 	CGLSetParameter(CGLGetCurrentContext(), kCGLCPSwapInterval, &VBL);
 #endif
 	
-	g_openGLAPIVersion = GL_API_VERSION_DESKTOP_1;
+	GLGraphics_init(GL_API_VERSION_DESKTOP_1);
 	
 	Target_init(argc, argv);
 	
