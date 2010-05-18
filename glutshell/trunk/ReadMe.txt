@@ -1,1 +1,3 @@
 GLUTShell is an implementation of a stem shell using GLUT, that builds for Mac OS X, Windows, and Linux. Although it is not recommended that this shell be used for final products, it is reasonably complete, and suitable for test/example projects.
+
+Building on Windows requires freeglut (http://freeglut.sourceforge.net/) to be added to your MinGW installation. A pre-built freeglut for MinGW is available at http://www.transmissionzero.co.uk/software/freeglut-devel/

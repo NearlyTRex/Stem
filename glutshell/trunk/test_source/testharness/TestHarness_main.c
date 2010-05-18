@@ -1,4 +1,5 @@
 #include "shell/Shell.h"
+#include "glutshell/GLUTTarget.h"
 
 #include <stdio.h>
 #include "shell/ShellBatteryInfo.h"
@@ -10,19 +11,32 @@
 #include <GL/gl.h>
 #endif
 
-const char * Target_getName() {
-	return "GLUTShell Test Harness";
-}
-
-void Target_init(int argc, char ** argv) {
+void GLUTTarget_configure(int argc, char ** argv, struct GLUTShellConfiguration * configuration) {
 	int argIndex;
 	
-	printf("Target_init(%d", argc);
+	printf("GLUTTarget_configure(%d", argc);
 	for (argIndex = 0; argIndex < argc; argIndex++) {
 		printf(", \"%s\"", argv[argIndex]);
 	}
-	printf(")\n");
+	printf(", %p)\n", configuration);
 	
+	printf("configuration->windowX: %d\n", configuration->windowX);
+	printf("configuration->windowY: %d\n", configuration->windowY);
+	printf("configuration->windowWidth: %d\n", configuration->windowWidth);
+	printf("configuration->windowHeight: %d\n", configuration->windowHeight);
+	printf("configuration->windowTitle: %s\n", configuration->windowTitle);
+	printf("configuration->displayMode.doubleBuffer: %d\n", configuration->displayMode.doubleBuffer);
+	printf("configuration->displayMode.depthBuffer: %d\n", configuration->displayMode.depthBuffer);
+	printf("configuration->displayMode.stencilBuffer: %d\n", configuration->displayMode.stencilBuffer);
+	printf("configuration->displayMode.accumBuffer: %d\n", configuration->displayMode.accumBuffer);
+	printf("configuration->displayMode.multisample: %d\n", configuration->displayMode.multisample);
+	
+	configuration->windowTitle = "GLUTShell Test Harness";
+	printf("configuration->windowTitle = \"%s\"\n", configuration->windowTitle);
+}
+
+void Target_init() {
+	printf("Target_init()\n");
 	Shell_mainLoop();
 }
 

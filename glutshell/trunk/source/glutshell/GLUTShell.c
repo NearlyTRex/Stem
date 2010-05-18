@@ -21,6 +21,7 @@
 */
 
 #include "shell/Shell.h"
+#include "glutshell/GLUTTarget.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -50,10 +51,7 @@
 
 static int buttonMask = 0;
 static bool inFullScreenMode = false;
-static unsigned int lastWindowWidth = 800;
-static unsigned int lastWindowHeight = 600;
-static unsigned int lastWindowX = 2;
-static unsigned int lastWindowY = 28;
+static struct GLUTShellConfiguration configuration;
 
 void Shell_mainLoop() {
 	glutMainLoop();
@@ -70,13 +68,13 @@ bool Shell_isFullScreen() {
 bool Shell_setFullScreen(bool fullScreen) {
 	if (fullScreen && !inFullScreenMode) {
 		inFullScreenMode = true;
-		lastWindowX = glutGet(GLUT_WINDOW_X);
-		lastWindowY = glutGet(GLUT_WINDOW_Y);
+		configuration.windowX = glutGet(GLUT_WINDOW_X);
+		configuration.windowY = glutGet(GLUT_WINDOW_Y);
 		glutFullScreen();
 		
 	} else if (!fullScreen && inFullScreenMode) {
-		glutPositionWindow(lastWindowX, lastWindowY);
-		glutReshapeWindow(lastWindowWidth, lastWindowHeight);
+		glutPositionWindow(configuration.windowX, configuration.windowY);
+		glutReshapeWindow(configuration.windowWidth, configuration.windowHeight);
 		inFullScreenMode = false;
 	}
 	
@@ -150,8 +148,8 @@ static void displayFunc() {
 
 static void reshapeFunc(int newWidth, int newHeight) {
 	if (!inFullScreenMode) {
-		lastWindowWidth = newWidth;
-		lastWindowHeight = newHeight;
+		configuration.windowWidth = newWidth;
+		configuration.windowHeight = newHeight;
 	}
 	
 	Target_resized(newWidth, newHeight);
@@ -418,16 +416,46 @@ static void motionFunc(int x, int y) {
 }
 
 int main(int argc, char ** argv) {
+	unsigned int displayMode;
 #ifdef __APPLE__
 	GLint VBL = 1;
 #endif
 	
-	glutInit(&argc, argv);
+	configuration.windowX = 2;
+	configuration.windowY = 28;
+	configuration.windowWidth = 800;
+	configuration.windowHeight = 600;
+	configuration.windowTitle = "GLUTShell";
+	configuration.displayMode.doubleBuffer = true;
+	configuration.displayMode.depthBuffer = false;
+	configuration.displayMode.stencilBuffer = false;
+	configuration.displayMode.accumBuffer = false;
+	configuration.displayMode.multisample = false;
 	
-	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH);
-	glutInitWindowPosition(lastWindowX, lastWindowY);
-	glutInitWindowSize(lastWindowWidth, lastWindowHeight);
-	glutCreateWindow(Target_getName());
+	GLUTTarget_configure(argc, argv, &configuration);
+	
+	displayMode = GLUT_RGBA;
+	if (configuration.displayMode.doubleBuffer) {
+		displayMode |= GLUT_DOUBLE;
+	}
+	if (configuration.displayMode.depthBuffer) {
+		displayMode |= GLUT_DEPTH;
+	}
+	if (configuration.displayMode.stencilBuffer) {
+		displayMode |= GLUT_STENCIL;
+	}
+	if (configuration.displayMode.accumBuffer) {
+		displayMode |= GLUT_ACCUM;
+	}
+	if (configuration.displayMode.multisample) {
+		displayMode |= GLUT_MULTISAMPLE;
+	}
+	
+	glutInit(&argc, argv);
+	glutInitDisplayMode(displayMode);
+	glutInitWindowPosition(configuration.windowX, configuration.windowY);
+	glutInitWindowSize(configuration.windowWidth, configuration.windowHeight);
+	glutCreateWindow(configuration.windowTitle);
 	
 	glutReshapeFunc(reshapeFunc);
 	glutDisplayFunc(displayFunc);
