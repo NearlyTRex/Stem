@@ -2,9 +2,6 @@ EAGLShell is an implementation of a stem shell using EAGL, that builds for iPhon
 
 EAGLShell includes some extensions to the standard shell interface. You should #include "eaglshell/EAGLShell.h" to get the extended interface. It provides facilities for working with the iPhone's status bar, keyboard, and accelerometer. See the documentation in EAGLShell.h for details. Some things to note:
 
- - You must express a preference for the OpenGL ES API version to be used by implementing EAGLTarget_getPreferredOpenGLAPIVersion(). You can subsequently find out which API version was chosen by calling EAGLShell_getOpenGLAPIVersion(), or reading g_openGLAPIVersion (from glgraphics/GLInfo.h), which
- will have been set to either GL_API_VERSION_ES1 or GL_API_VERSION_ES2.
-
  - In order to receive keyboard events, you must call EAGLShell_showKeyboard() to bring up the onscreen keyboard. Due to API limitations imposed by Apple, key codes passed to Target_keyUp() are not generally trustworthy for any keyboard other than US English, though character codes are reliable. Target_keyDown() is never called.
 
  - EAGLShell_setOrientation() does not transform your OpenGL coordinate space. It is your responsibility to do so if necessary.
@@ -19,7 +16,7 @@ EAGLShell includes some extensions to the standard shell interface. You should #
 
 
 
-The target interface has also been extended, with EAGLTarget.h defining the new functions that targets must implement in order to receive notifications of accelerometer acceleration and cancelled touch events. There are some differences in behavior for the standard Target functions, as well:
+The target interface has also been extended, with EAGLTarget.h defining the new functions that targets must implement. Details on each function are in EAGLTarget.h. There are some differences in behavior for the standard Target functions, as well:
 
  - Touch events are processed as mouse events. Each finger generates a Target_mouseDown() with a unique ID buttonNumber for multiple fingers at a time. Target_mouseDragged() is called once per finger that moved, with exactly one bit in buttonMask set each time. Target_mouseUp() is called for each finger lifted. Target_mouseMoved() is never called.
 

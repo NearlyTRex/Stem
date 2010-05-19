@@ -38,9 +38,45 @@ enum EAGLShellOpenGLVersion {
 	EAGLShellOpenGLVersion_ES2 = 0x2
 };
 
-/** Returns the OpenGL API version that was chosen at initialization time. If your implementation of
-    EAGLTarget_getPreferredOpenGLAPIVersion() requests more than one version, you should call
-    EAGLShell_getOpenGLAPIVersion() to determine which one was actually chosen. */
+struct EAGLShellConfiguration {
+	/* Your EAGLTarget_configure() function can change this value to express a preference for the
+	   OpenGL API version to be used. If your code is compatible with multiple OpenGL API versions,
+	   you can use the bitwise OR operator to combine multiple options. The default value is
+	   EAGLShellOpenGLVersion_ES1 | EAGLShellOpenGLVersion_ES2. To find out which version was chosen,
+	   you can call EAGLShell_getOpenGLAPIVersion() any time after Target_init() has been called.
+	   If your requested version is unavailable (for example, requesting EAGLShellOpenGLVersion_ES2
+	   on PowerVR MBX hardware), exit() will be called. */
+	enum EAGLShellOpenGLVersion preferredOpenGLAPIVersion;
+	
+	struct {
+		/* kEAGLDrawablePropertyRetainedBacking */
+		bool retainedBacking;
+		
+		/* Precision specified by depthPrecision field */
+		bool depthAttachment;
+		
+		/* Stencil attachments, if enabled, always have 8 bits of precision */
+		bool stencilAttachment;
+		
+		/* Currently valid values: 16 (RGB 565), 32 (RGBA 8888); all other values will be interpreted
+		   as 32 */
+		int colorPrecision;
+		
+		/* Currently valid values: 16, 24 (ignored if depthAttachment is false); all other values will
+		   be interpreted as 16 */
+		int depthPrecision;
+		
+		/* If true, depth and stencil attachments are packed into a single buffer. The default value
+		   is false. This is ignored if depthAttachment or stencilAttachment is false, or depthPrecision
+		   is not 24. */
+		bool packedDepthAndStencil;
+		
+	} displayMode;
+};
+
+/** Returns the OpenGL API version that was chosen at initialization time. If you requested more
+    than one version in your EAGLShellConfiguration struct, you should call this function after
+    Target_init() has been called to determine which version was actually chosen. */
 enum EAGLShellOpenGLVersion EAGLShell_getOpenGLAPIVersion();
 
 /** Shows the onscreen keyboard on the appropriate side of the screen based on the application's

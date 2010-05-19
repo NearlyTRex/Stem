@@ -25,11 +25,19 @@
 
 #include "eaglshell/EAGLShell.h"
 
-/** Called at startup to allow the target to express a preference for the OpenGL API to be used.
-    You may request multiple versions by combining EAGLShellOpenGLVersion values with the bitwise OR
-    operator. If multiple versions are requested, the newest one will be preferred. You can query the
-    version chosen by calling EAGLShell_getOpenGLAPIVersion(). */
-enum EAGLShellOpenGLVersion EAGLTarget_getPreferredOpenGLAPIVersion();
+/** Called prior to Target_init() to allow the target to express a preference for the OpenGL API to
+    be used, pixel format, etc. If you're writing a cross-platform target, the fact that
+    EAGLTarget_configure() is called allows you to determine at runtime that you're executing on an
+    iPhone platform. */
+void EAGLTarget_configure(int argc, char ** argv, struct EAGLShellConfiguration * configuration);
+
+/** Called when -application:handleOpenURL: is received. If you define CFBundleURLTypes in Info.plist,
+    you can register a custom URL scheme that will open your app when such a URL is loaded. Return
+    true if the URL was handled successfully. Note that if this function is called, it will be called
+    BEFORE Target_init(), so you may want to save the results of parsing the URL for later handling.
+    However, you shouldn't save the url pointer itself, because it will be released immediately after
+    this function is invoked. */
+void EAGLTarget_openURL(const char * url);
 
 /** Called when touch events have been cancelled, meaning touches that were in progress should no
     longer be handled. A bit in buttonMask is set indicating which touches have been canceled,

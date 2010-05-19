@@ -9,10 +9,10 @@
 #include "shell/ShellBatteryInfo.h"
 #include "shell/ShellKeyCodes.h"
 
-#import <OpenGLES/ES1/gl.h>
-#import <OpenGLES/ES1/glext.h>
-#import <OpenGLES/ES2/gl.h>
-#import <OpenGLES/ES2/glext.h>
+#include <OpenGLES/ES1/gl.h>
+#include <OpenGLES/ES1/glext.h>
+#include <OpenGLES/ES2/gl.h>
+#include <OpenGLES/ES2/glext.h>
 
 static bool postRedisplayAtEndOfTarget_draw = false;
 static bool darkClearColor = true;
@@ -35,18 +35,8 @@ GLint constantColorUniform;
 
 #define VERTEX_ATTRIB_INDEX 0
 
-const char * Target_getName() {
-	return "EAGLShell Test Harness";
-}
-
-void Target_init(int argc, char ** argv) {
-	int argIndex;
-	
-	printf("Target_init(%d", argc);
-	for (argIndex = 0; argIndex < argc; argIndex++) {
-		printf(", \"%s\"", argv[argIndex]);
-	}
-	printf(")\n");
+void Target_init() {
+	printf("Target_init()\n");
 	
 	printf("EAGLShell_getOpenGLAPIVersion(): %d\n", EAGLShell_getOpenGLAPIVersion());
 	
@@ -365,9 +355,50 @@ void Target_resized(unsigned int newWidth, unsigned int newHeight) {
 	viewportHeight = newHeight;
 }
 
-enum EAGLShellOpenGLVersion EAGLTarget_getPreferredOpenGLAPIVersion() {
-	printf("EAGLTarget_getPreferredOpenGLAPIVersion()\n");
-	return EAGLShellOpenGLVersion_ES1 | EAGLShellOpenGLVersion_ES2;
+static int preferredOpenGLAPIVersion = EAGLShellOpenGLVersion_ES1 | EAGLShellOpenGLVersion_ES2;
+static int retainedBacking = 1;
+static int depthAttachment = 0;
+static int stencilAttachment = 0;
+static int colorPrecision = 32;
+static int depthPrecision = 16;
+static int packedDepthAndStencil = 0;
+
+void EAGLTarget_configure(int argc, char ** argv, struct EAGLShellConfiguration * configuration) {
+	int argIndex;
+	
+	printf("EAGLTarget_configure(%d", argc);
+	for (argIndex = 0; argIndex < argc; argIndex++) {
+		printf(", \"%s\"", argv[argIndex]);
+	}
+	printf(", %p)\n", configuration);
+	
+	printf("configuration->preferredOpenGLAPIVersion: 0x%X\n", configuration->preferredOpenGLAPIVersion);
+	printf("configuration->displayMode.retainedBacking: %d\n", configuration->displayMode.retainedBacking);
+	printf("configuration->displayMode.depthAttachment: %d\n", configuration->displayMode.depthAttachment);
+	printf("configuration->displayMode.stencilAttachment: %d\n", configuration->displayMode.stencilAttachment);
+	printf("configuration->displayMode.colorPrecision: %d\n", configuration->displayMode.colorPrecision);
+	printf("configuration->displayMode.depthPrecision: %d\n", configuration->displayMode.depthPrecision);
+	printf("configuration->displayMode.packedDepthAndStencil: %d\n", configuration->displayMode.packedDepthAndStencil);
+	
+	configuration->preferredOpenGLAPIVersion = preferredOpenGLAPIVersion;
+	printf("configuration->preferredOpenGLAPIVersion = 0x%X\n", configuration->preferredOpenGLAPIVersion);
+	configuration->displayMode.retainedBacking = retainedBacking;
+	printf("configuration->displayMode.retainedBacking = %d\n", configuration->displayMode.retainedBacking);
+	configuration->displayMode.depthAttachment = depthAttachment;
+	printf("configuration->displayMode.depthAttachment = %d\n", configuration->displayMode.depthAttachment);
+	configuration->displayMode.stencilAttachment = stencilAttachment;
+	printf("configuration->displayMode.stencilAttachment = %d\n", configuration->displayMode.stencilAttachment);
+	configuration->displayMode.colorPrecision = colorPrecision;
+	printf("configuration->displayMode.colorPrecision = %d\n", configuration->displayMode.colorPrecision);
+	configuration->displayMode.depthPrecision = depthPrecision;
+	printf("configuration->displayMode.depthPrecision = %d\n", configuration->displayMode.depthPrecision);
+	configuration->displayMode.packedDepthAndStencil = packedDepthAndStencil;
+	printf("configuration->displayMode.packedDepthAndStencil = %d\n", configuration->displayMode.packedDepthAndStencil);
+}
+
+void EAGLTarget_openURL(const char * url) {
+	printf("Got URL: %s\n", url);
+	sscanf(url, "eaglshell://%d,%d,%d,%d,%d,%d,%d", &preferredOpenGLAPIVersion, &retainedBacking, &depthAttachment, &stencilAttachment, &colorPrecision, &depthPrecision, &packedDepthAndStencil);
 }
 
 void EAGLTarget_touchesCancelled(unsigned int buttonMask) {

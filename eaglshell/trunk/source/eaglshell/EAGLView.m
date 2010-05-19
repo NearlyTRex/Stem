@@ -21,11 +21,11 @@
 */
 
 #import "eaglshell/EAGLView.h"
+#import "eaglshell/EAGLShellApplication.h"
 #import <QuartzCore/QuartzCore.h>
 #include "shell/Target.h"
-#include "eaglshell/EAGLShell.h"
 #include "eaglshell/EAGLTarget.h"
-#include "glgraphics/GLInfo.h"
+#include "glgraphics/GLGraphics.h"
 
 #ifndef __IPHONE_3_1
 @interface CADisplayLink : NSObject {
@@ -55,27 +55,36 @@
 - (id) initWithFrame: (CGRect) frame {
 	if ((self = [super initWithFrame: frame]) != nil) {
 		CAEAGLLayer * layer;
-		enum EAGLShellOpenGLVersion requestedOpenGLAPIVersion;
 		
 		self.multipleTouchEnabled = YES;
 		
+		configuration.preferredOpenGLAPIVersion = EAGLShellOpenGLVersion_ES1 | EAGLShellOpenGLVersion_ES2;
+		configuration.displayMode.retainedBacking = true;
+		configuration.displayMode.depthAttachment = false;
+		configuration.displayMode.stencilAttachment = false;
+		configuration.displayMode.colorPrecision = 32;
+		configuration.displayMode.depthPrecision = 16;
+		configuration.displayMode.packedDepthAndStencil = false;
+		
+		EAGLTarget_configure(g_argc, g_argv, &configuration);
+		
 		layer = (CAEAGLLayer *) self.layer;
 		layer.opaque = YES;
-		layer.drawableProperties = [NSDictionary dictionaryWithObjectsAndKeys: [NSNumber numberWithBool: NO], kEAGLDrawablePropertyRetainedBacking, kEAGLColorFormatRGBA8, kEAGLDrawablePropertyColorFormat, nil];
+		layer.drawableProperties = [NSDictionary dictionaryWithObjectsAndKeys:
+			[NSNumber numberWithBool: configuration.displayMode.retainedBacking], kEAGLDrawablePropertyRetainedBacking,
+			configuration.displayMode.colorPrecision == 16 ? kEAGLColorFormatRGB565 : kEAGLColorFormatRGBA8, kEAGLDrawablePropertyColorFormat,
+		nil];
 		
-		requestedOpenGLAPIVersion = EAGLTarget_getPreferredOpenGLAPIVersion();
-		if (requestedOpenGLAPIVersion & EAGLShellOpenGLVersion_ES2) {
+		if (configuration.preferredOpenGLAPIVersion & EAGLShellOpenGLVersion_ES2) {
 			context = [[EAGLContext alloc] initWithAPI: kEAGLRenderingAPIOpenGLES2];
 			if (context != nil) {
 				chosenOpenGLVersion = EAGLShellOpenGLVersion_ES2;
-				g_openGLAPIVersion = GL_API_VERSION_ES2;
 			}
 		}
-		if (requestedOpenGLAPIVersion & EAGLShellOpenGLVersion_ES1 && context == nil) {
+		if (configuration.preferredOpenGLAPIVersion & EAGLShellOpenGLVersion_ES1 && context == nil) {
 			context = [[EAGLContext alloc] initWithAPI: kEAGLRenderingAPIOpenGLES1];
 			if (context != nil) {
 				chosenOpenGLVersion = EAGLShellOpenGLVersion_ES1;
-				g_openGLAPIVersion = GL_API_VERSION_ES1;
 			}
 		}
 		
@@ -87,18 +96,41 @@
 		[EAGLContext setCurrentContext: context];
 		glGenFramebuffersOES(1, &framebuffer);
 		glGenRenderbuffersOES(1, &renderbuffer);
-		glGenRenderbuffersOES(1, &depthbuffer);
-		glBindFramebufferOES(GL_FRAMEBUFFER_OES, framebuffer);
-		glBindRenderbufferOES(GL_RENDERBUFFER_OES, renderbuffer);
-		glFramebufferRenderbufferOES(GL_FRAMEBUFFER_OES, GL_COLOR_ATTACHMENT0_OES, GL_RENDERBUFFER_OES, renderbuffer);
-		glBindRenderbufferOES(GL_RENDERBUFFER_OES, depthbuffer);
-		glFramebufferRenderbufferOES(GL_FRAMEBUFFER_OES, GL_DEPTH_ATTACHMENT_OES, GL_RENDERBUFFER_OES, depthbuffer);
+		glBindFramebufferOES(GL_FRAMEBUFFER, framebuffer);
+		glBindRenderbufferOES(GL_RENDERBUFFER, renderbuffer);
+		glFramebufferRenderbufferOES(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, renderbuffer);
+		
+		if (configuration.displayMode.depthAttachment &&
+		    configuration.displayMode.stencilAttachment &&
+		    configuration.displayMode.depthPrecision == 24 &&
+		    configuration.displayMode.packedDepthAndStencil) {
+			glGenRenderbuffersOES(1, &packedDepthStencilBuffer);
+			glBindRenderbufferOES(GL_RENDERBUFFER, packedDepthStencilBuffer);
+			glFramebufferRenderbufferOES(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_OES, GL_RENDERBUFFER, packedDepthStencilBuffer);
+			
+		} else {
+			if (configuration.displayMode.depthAttachment) {
+				glGenRenderbuffersOES(1, &depthBuffer);
+				glBindRenderbufferOES(GL_RENDERBUFFER, depthBuffer);
+				glFramebufferRenderbufferOES(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthBuffer);
+			}
+			if (configuration.displayMode.stencilAttachment) {
+				glGenRenderbuffersOES(1, &stencilBuffer);
+				glBindRenderbufferOES(GL_RENDERBUFFER, stencilBuffer);
+				glFramebufferRenderbufferOES(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, stencilBuffer);
+			}
+		}
+		
+		GLGraphics_init(chosenOpenGLVersion == EAGLShellOpenGLVersion_ES2 ? GL_API_VERSION_ES2 : GL_API_VERSION_ES1);
 		
 		animating = NO;
 		displayLinkSupported = [[[UIDevice currentDevice] systemVersion] compare: @"3.1" options: NSNumericSearch] != NSOrderedAscending;
 		displayLinkSupported = NO;
 		displayLink = nil;
 		animationTimer = nil;
+		
+		lastResizeWidth = 320;
+		lastResizeHeight = 480;
 		
 		activeTouchCount = 0;
 	}
@@ -109,6 +141,15 @@
 	[self stopAnimation];
 	glDeleteFramebuffersOES(1, &framebuffer);
 	glDeleteRenderbuffersOES(1, &renderbuffer);
+	if (depthBuffer != 0) {
+		glDeleteRenderbuffersOES(1, &depthBuffer);
+	}
+	if (stencilBuffer != 0) {
+		glDeleteRenderbuffersOES(1, &stencilBuffer);
+	}
+	if (packedDepthStencilBuffer != 0) {
+		glDeleteRenderbuffersOES(1, &packedDepthStencilBuffer);
+	}
 	[context release];
 	[super dealloc];
 }
@@ -118,19 +159,39 @@
 	GLint backingHeight;
 	
 	[EAGLContext setCurrentContext: context];
-	glBindRenderbufferOES(GL_RENDERBUFFER_OES, renderbuffer);
-	[context renderbufferStorage: GL_RENDERBUFFER_OES fromDrawable: (CAEAGLLayer *) self.layer];
+	glBindRenderbufferOES(GL_RENDERBUFFER, renderbuffer);
+	[context renderbufferStorage: GL_RENDERBUFFER fromDrawable: (CAEAGLLayer *) self.layer];
 	
-	glGetRenderbufferParameterivOES(GL_RENDERBUFFER_OES, GL_RENDERBUFFER_WIDTH_OES, &backingWidth);
-	glGetRenderbufferParameterivOES(GL_RENDERBUFFER_OES, GL_RENDERBUFFER_HEIGHT_OES, &backingHeight);
+	glGetRenderbufferParameterivOES(GL_RENDERBUFFER, GL_RENDERBUFFER_WIDTH, &backingWidth);
+	glGetRenderbufferParameterivOES(GL_RENDERBUFFER, GL_RENDERBUFFER_HEIGHT, &backingHeight);
 	
-	glBindRenderbufferOES(GL_RENDERBUFFER_OES, depthbuffer);
-	glRenderbufferStorageOES(GL_RENDERBUFFER_OES, GL_DEPTH_COMPONENT16_OES, backingWidth, backingHeight);
+	if (depthBuffer != 0) {
+		glBindRenderbufferOES(GL_RENDERBUFFER, depthBuffer);
+		glRenderbufferStorageOES(GL_RENDERBUFFER, configuration.displayMode.depthPrecision == 24 ? GL_DEPTH_COMPONENT24_OES : GL_DEPTH_COMPONENT16, backingWidth, backingHeight);
+	}
+	if (stencilBuffer != 0) {
+		glBindRenderbufferOES(GL_RENDERBUFFER, stencilBuffer);
+		glRenderbufferStorageOES(GL_RENDERBUFFER, GL_STENCIL_INDEX8, backingWidth, backingHeight);
+	}
+	if (packedDepthStencilBuffer != 0) {
+		glBindRenderbufferOES(GL_RENDERBUFFER, packedDepthStencilBuffer);
+		glRenderbufferStorageOES(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8_OES, backingWidth, backingHeight);
+	}
 	
 	glViewport(0, 0, backingWidth, backingHeight);
 	
-	[self redisplayPosted];
-	Target_resized(backingWidth, backingHeight);
+	if (backingWidth != lastResizeWidth || backingHeight != lastResizeHeight) {
+		lastResizeWidth = backingWidth;
+		lastResizeHeight = backingHeight;
+		Target_resized(backingWidth, backingHeight);
+	}
+	
+	glBindFramebufferOES(GL_FRAMEBUFFER, framebuffer);
+	
+	Target_draw();
+	
+	glBindRenderbufferOES(GL_RENDERBUFFER, renderbuffer);
+	[context presentRenderbuffer: GL_RENDERBUFFER];
 }
 
 - (enum EAGLShellOpenGLVersion) chosenOpenGLVersion {
@@ -173,15 +234,12 @@
 
 - (void) drawView: (id) sender {
 	[EAGLContext setCurrentContext: context];
-	if (framebuffer == 0) {
-		[self layoutSubviews];
-	}
-	glBindFramebufferOES(GL_FRAMEBUFFER_OES, framebuffer);
+	glBindFramebufferOES(GL_FRAMEBUFFER, framebuffer);
 	
 	Target_draw();
 	
-	glBindRenderbufferOES(GL_RENDERBUFFER_OES, renderbuffer);
-	[context presentRenderbuffer: GL_RENDERBUFFER_OES];
+	glBindRenderbufferOES(GL_RENDERBUFFER, renderbuffer);
+	[context presentRenderbuffer: GL_RENDERBUFFER];
 	
 	if (!redisplayWasPosted) {
 		[self stopAnimation];
@@ -279,13 +337,11 @@ static unsigned int lowestBitIndex(unsigned int value) {
 	NSArray * allTouches;
 	unsigned int touchIndex, activeTouchIndex;
 	UITouch * touch;
-	CGPoint location;
 	unsigned int buttonMask = 0;
 	
 	allTouches = [touches allObjects];
 	for (touchIndex = 0; touchIndex < [allTouches count]; touchIndex++) {
 		touch = [allTouches objectAtIndex: touchIndex];
-		location = [touch locationInView: self];
 		
 		for (activeTouchIndex = 0; activeTouchIndex < activeTouchCount; activeTouchIndex++) {
 			if (activeTouches[activeTouchIndex].touch == touch) {

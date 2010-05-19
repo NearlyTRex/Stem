@@ -33,12 +33,22 @@ extern bool mainLoopCalled;
 
 @implementation EAGLShellApplication
 
-- (void) applicationDidFinishLaunching: (UIApplication *) application {
+- (BOOL) application: (UIApplication *) application didFinishLaunchingWithOptions: (NSDictionary *) dictionary {
 	[self setStatusBarOrientation: UIInterfaceOrientationPortrait animated: NO];
 	[self setStatusBarHidden: YES animated: NO];
 	self.applicationSupportsShakeToEdit = NO;
+	
+	if ([dictionary objectForKey: UIApplicationLaunchOptionsURLKey] != nil) {
+		EAGLTarget_openURL([[[dictionary objectForKey: UIApplicationLaunchOptionsURLKey] absoluteString] UTF8String]);
+	}
+	
 	window = [[UIWindow alloc] initWithFrame: [UIScreen mainScreen].bounds];
 	view = [[EAGLView alloc] initWithFrame: [UIScreen mainScreen].applicationFrame];
+	
+	if (view == nil) {
+		exit(EXIT_FAILURE);
+	}
+	
 	textField = [[UITextField alloc] initWithFrame: CGRectMake(0, 0, 0, 0)];
 	textField.text = @" ";
 	textField.delegate = self;
@@ -47,13 +57,15 @@ extern bool mainLoopCalled;
 	[window makeKeyAndVisible];
 	
 	Target_resized(320, 480);
-	Target_init(g_argc, g_argv);
+	Target_init();
 	
 	if (!mainLoopCalled) {
-		exit(0);
+		exit(EXIT_SUCCESS);
 	}
 	
 	[view startAnimation];
+	
+	return YES;
 }
 
 - (void) applicationWillResignActive: (UIApplication *) application {

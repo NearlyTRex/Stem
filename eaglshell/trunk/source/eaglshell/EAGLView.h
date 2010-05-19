@@ -25,6 +25,8 @@
 #import <OpenGLES/EAGLDrawable.h>
 #import <OpenGLES/ES1/gl.h>
 #import <OpenGLES/ES1/glext.h>
+#import <OpenGLES/ES2/gl.h>
+#import <OpenGLES/ES2/glext.h>
 #include "eaglshell/EAGLShell.h"
 
 #define ACTIVE_TOUCH_MAX 32
@@ -32,7 +34,9 @@
 @interface EAGLView : UIView {
 	EAGLContext * context;
 	GLuint framebuffer;
-	GLuint depthbuffer;
+	GLuint depthBuffer;
+	GLuint stencilBuffer;
+	GLuint packedDepthStencilBuffer;
 	GLuint renderbuffer;
 	
 	BOOL animating;
@@ -41,6 +45,9 @@
 	id displayLink;
 	NSTimer * animationTimer;
 	
+	int lastResizeWidth;
+	int lastResizeHeight;
+	
 	unsigned int activeTouchCount;
 	struct {
 		UITouch * touch;
@@ -48,6 +55,7 @@
 		unsigned int buttonNumber;
 	} activeTouches[ACTIVE_TOUCH_MAX];
 	
+	struct EAGLShellConfiguration configuration;
 	enum EAGLShellOpenGLVersion chosenOpenGLVersion;
 }
 
