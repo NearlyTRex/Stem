@@ -23,7 +23,7 @@ include version
 
 PROJECT_NAME = template_stemlib
 IPHONE_SDK_VERSION = 3.1
-IPHONESIMULATOR_APPLICATIONS_DIR = ${HOME}/Library/Application Support/iPhone Simulator/3.1.3/Applications
+IPHONESIMULATOR_APPLICATIONS_DIR = ${HOME}/Library/Application Support/iPhone Simulator/${IPHONE_SDK_VERSION}/Applications
 RESOURCE_RULES_PLIST = /Developer/Platforms/MacOSX.platform/ResourceRules.plist
 IPHONESIMULATOR_PATH = "/Developer/Platforms/iPhoneSimulator.platform/Developer/Applications/iPhone Simulator.app"
 CODESIGN_IDENTITY = "iPhone Developer"
@@ -230,7 +230,7 @@ ${foreach target,${TARGETS}, \
 
 
 define compile_template #(target, configuration, platform, arch, source_file)
-build/intermediate/$1-$2-$3-$4/${notdir ${basename $5}}.o: build/intermediate/$1-$2-$3-$4 $5 ${PREREQS_$1}
+build/intermediate/$1-$2-$3-$4/${notdir ${basename $5}}.o: $5 ${PREREQS_$1} | build/intermediate/$1-$2-$3-$4
 	${CC_$3_$4} ${CCFLAGS} ${CCFLAGS_$1} ${CCFLAGS_$2} ${CCFLAGS_$3} -c -o $$@ $5
 endef
 
@@ -334,17 +334,17 @@ ${foreach target,${APPLICATION_TARGETS}, \
 
 
 define assemble_library_macosx #(target, configuration, platform)
-build/$1/$2-$3/${TARGET_NAME_$1}.a: ${THIN_BINARIES_$1_$2_$3} build/$1/$2-$3
+build/$1/$2-$3/${TARGET_NAME_$1}.a: ${THIN_BINARIES_$1_$2_$3} | build/$1/$2-$3
 	lipo -create -output $$@ ${THIN_BINARIES_$1_$2_$3}
 endef
 
 define assemble_library_linux #(target, configuration, platform)
-build/$1/$2-$3/${TARGET_NAME_$1}.a: ${THIN_BINARIES_$1_$2_$3} build/$1/$2-$3
+build/$1/$2-$3/${TARGET_NAME_$1}.a: ${THIN_BINARIES_$1_$2_$3} | build/$1/$2-$3
 	cp ${THIN_BINARIES_$1_$2_$3} $$@
 endef
 
 define assemble_library_windows #(target, configuration, platform)
-build/$1/$2-$3/${TARGET_NAME_$1}.a: ${THIN_BINARIES_$1_$2_$3} build/$1/$2-$3
+build/$1/$2-$3/${TARGET_NAME_$1}.a: ${THIN_BINARIES_$1_$2_$3} | build/$1/$2-$3
 	cp ${THIN_BINARIES_$1_$2_$3} $$@
 endef
 
@@ -365,19 +365,19 @@ define copy_target_resources #(target, resources_dir)
 endef
 
 define assemble_executable_macosx #(target, configuration, platform)
-build/$1/$2-$3/${TARGET_NAME_$1}: ${THIN_BINARIES_$1_$2_$3} ${RESOURCES_$1} build/$1/$2-$3
+build/$1/$2-$3/${TARGET_NAME_$1}: ${THIN_BINARIES_$1_$2_$3} ${RESOURCES_$1} | build/$1/$2-$3
 	lipo -create -output $$@ ${THIN_BINARIES_$1_$2_$3}
 	${call copy_target_resources,$1,$${dir $$@}}
 endef
 
 define assemble_executable_linux #(target, configuration, platform)
-build/$1/$2-$3/${TARGET_NAME_$1}: ${THIN_BINARIES_$1_$2_$3} ${RESOURCES_$1} build/$1/$2-$3
+build/$1/$2-$3/${TARGET_NAME_$1}: ${THIN_BINARIES_$1_$2_$3} ${RESOURCES_$1} | build/$1/$2-$3
 	cp ${THIN_BINARIES_$1_$2_$3} $$@
 	${call copy_target_resources,$1,$${dir $$@}}
 endef
 
 define assemble_executable_windows #(target, configuration, platform)
-build/$1/$2-$3/${TARGET_NAME_$1}.exe: ${THIN_BINARIES_$1_$2_$3} ${RESOURCES_$1} build/$1/$2-$3
+build/$1/$2-$3/${TARGET_NAME_$1}.exe: ${THIN_BINARIES_$1_$2_$3} ${RESOURCES_$1} | build/$1/$2-$3
 	cp ${THIN_BINARIES_$1_$2_$3} $$@
 	${call copy_target_resources,$1,$${dir $$@}}
 endef
@@ -419,32 +419,32 @@ define create_app_bundle #(target, platform, executable_dir, plist_dir, resource
 endef
 
 define assemble_application_macosx #(target, configuration)
-build/$1/$2-macosx/${TARGET_NAME_$1}.app/Contents/MacOS/${TARGET_NAME_$1}: ${THIN_BINARIES_$1_$2_macosx} ${RESOURCES_$1} build/$1/$2-macosx
+build/$1/$2-macosx/${TARGET_NAME_$1}.app/Contents/MacOS/${TARGET_NAME_$1}: ${THIN_BINARIES_$1_$2_macosx} ${RESOURCES_$1} | build/$1/$2-macosx
 	${call create_app_bundle,$1,macosx,$${dir $$@},build/$1/$2-macosx/${TARGET_NAME_$1}.app/Contents,build/$1/$2-macosx/${TARGET_NAME_$1}.app/Contents/Resources}
 	lipo -create -output $$@ ${THIN_BINARIES_$1_$2_macosx}
 endef
 
 define assemble_application_iphonesimulator #(target, configuration)
-build/$1/$2-iphonesimulator/${TARGET_NAME_$1}.app/${TARGET_NAME_$1}: ${THIN_BINARIES_$1_$2_iphonesimulator} ${RESOURCES_$1} build/$1/$2-iphonesimulator
+build/$1/$2-iphonesimulator/${TARGET_NAME_$1}.app/${TARGET_NAME_$1}: ${THIN_BINARIES_$1_$2_iphonesimulator} ${RESOURCES_$1} | build/$1/$2-iphonesimulator
 	${call create_app_bundle,$1,iphonesimulator,$${dir $$@},$${dir $$@},$${dir $$@}}
 	lipo -create -output $$@ ${THIN_BINARIES_$1_$2_iphonesimulator}
 endef
 
 define assemble_application_iphoneos #(target, configuration)
-build/$1/$2-iphoneos/${TARGET_NAME_$1}.app/${TARGET_NAME_$1}: ${THIN_BINARIES_$1_$2_iphoneos} ${RESOURCES_$1} build/$1/$2-iphoneos
+build/$1/$2-iphoneos/${TARGET_NAME_$1}.app/${TARGET_NAME_$1}: ${THIN_BINARIES_$1_$2_iphoneos} ${RESOURCES_$1} | build/$1/$2-iphoneos
 	${call create_app_bundle,$1,iphoneos,$${dir $$@},$${dir $$@},$${dir $$@}}
 	lipo -create -output $$@ ${THIN_BINARIES_$1_$2_iphoneos}
 endef
 
 define assemble_application_linux #(target, configuration)
-build/$1/$2-linux/${TARGET_NAME_$1}: ${THIN_BINARIES_$1_$2_linux} ${RESOURCES_$1} build/$1/$2-linux
+build/$1/$2-linux/${TARGET_NAME_$1}: ${THIN_BINARIES_$1_$2_linux} ${RESOURCES_$1} | build/$1/$2-linux
 	mkdir -p build/$1/$2-linux/Resources
 	${call copy_target_resources,$1,build/$1/$2-linux/Resources}
 	cp ${THIN_BINARIES_$1_$2_linux} $$@
 endef
 
 define assemble_application_windows #(target, configuration)
-build/$1/$2-windows/${TARGET_NAME_$1}.exe: ${THIN_BINARIES_$1_$2_windows} ${RESOURCES_$1} build/$1/$2-windows
+build/$1/$2-windows/${TARGET_NAME_$1}.exe: ${THIN_BINARIES_$1_$2_windows} ${RESOURCES_$1} | build/$1/$2-windows
 	mkdir -p build/$1/$2-windows/Resources
 	${call copy_target_resources,$1,build/$1/$2-windows/Resources}
 	cp ${THIN_BINARIES_$1_$2_windows} $$@
@@ -557,13 +557,13 @@ run_unittests_windows:
 	./build/unittest/debug-windows/${TARGET_NAME_unittest}.exe "${CURDIR}/build/unittest/debug-windows"
 
 define analyze_file_template_clang #(target, platform, file)
-build/analyzer-results/clang-$1-$2/${basename ${notdir $3}}.txt: build/analyzer-results/clang-$1-$2 $3 ${PREREQS_$1}
+build/analyzer-results/clang-$1-$2/${basename ${notdir $3}}.txt: $3 ${PREREQS_$1} | build/analyzer-results/clang-$1-$2
 	${CLANG_$2} --analyze ${INCLUDE_CCFLAGS} ${CLANGFLAGS} ${CLANGFLAGS_$1} ${CLANGFLAGS_$2} -o $${basename $$@}.plist $3 > $$@ 2>&1; true
 	@cat $$@
 endef
 
 define analyze_file_template_splint #(target, platform, file)
-build/analyzer-results/splint-$1-$2/${basename ${notdir $3}}.txt: build/analyzer-results/splint-$1-$2 $3 ${PREREQS_$1}
+build/analyzer-results/splint-$1-$2/${basename ${notdir $3}}.txt: $3 ${PREREQS_$1} | build/analyzer-results/splint-$1-$2
 	${SPLINT_$2} ${INCLUDE_CCFLAGS} ${SPLINTFLAGS} ${SPLINTFLAGS_$1} ${SPLINTFLAGS_$2} $3 > $$@ 2>&1; true
 	@cat $$@
 endef
@@ -633,6 +633,7 @@ install_$1_iphonesimulator: $1
 	mkdir -p "${IPHONESIMULATOR_APPLICATIONS_DIR}/${TARGET_NAME_$1}/Library/Preferences"
 	mkdir -p "${IPHONESIMULATOR_APPLICATIONS_DIR}/${TARGET_NAME_$1}/tmp"
 	cp -r "build/$1/debug-iphonesimulator/${TARGET_NAME_$1}.app" "${IPHONESIMULATOR_APPLICATIONS_DIR}/${TARGET_NAME_$1}"
+	defaults write com.apple.iphonesimulator SimulateSDKRoot -string "${SDKROOT_iphonesimulator}"
 	open ${IPHONESIMULATOR_PATH}
 endef
 
