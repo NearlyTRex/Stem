@@ -21,7 +21,7 @@
 */
 
 #include "gltexture/GLTexture.h"
-#include "glgraphics/GLInfo.h"
+#include "glgraphics/GLGraphics.h"
 
 GLTexture * GLTexture_create(GLenum bitmapDataFormat,
                              GLenum bitmapDataType,
@@ -180,7 +180,7 @@ void GLTexture_setImage(void * selfPtr, GLint mipmapLevel, GLsizei width, GLsize
 	
 #if !TARGET_OPENGL_ES
 	if (self->autoMipmap) {
-		switch (g_openGLAPIVersion) {
+		switch (GLGraphics_getOpenGLAPIVersion()) {
 			case GL_API_VERSION_DESKTOP_1:
 			case GL_API_VERSION_DESKTOP_2:
 			case GL_API_VERSION_DESKTOP_3:
@@ -196,7 +196,7 @@ void GLTexture_setImage(void * selfPtr, GLint mipmapLevel, GLsizei width, GLsize
 	
 #if TARGET_OPENGL_ES
 	if (self->autoMipmap) {
-		switch (g_openGLAPIVersion) {
+		switch (GLGraphics_getOpenGLAPIVersion()) {
 			case GL_API_VERSION_ES1:
 				glGenerateMipmapOES(GL_TEXTURE_2D);
 				break;

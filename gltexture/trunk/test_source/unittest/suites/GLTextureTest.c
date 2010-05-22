@@ -8,6 +8,7 @@ static void testInit() {
 	
 	texturePtr = GLTexture_create(GL_RGBA, GL_UNSIGNED_BYTE, GL_NEAREST, GL_LINEAR, GL_REPEAT, GL_CLAMP_TO_EDGE, AUTO_BLEND_MODE_NONE, false, false);
 	TestCase_assert(texturePtr != NULL, "GLTexture_create unexpectedly returned NULL");
+	if (texturePtr == NULL) { return; } // To shut up false positive clang warning
 	TestCase_assert(texturePtr->imageName == NULL, "Expected NULL but got %p", texturePtr->imageName);
 	TestCase_assert(texturePtr->textureName == 0, "Expected 0 but got %u", texturePtr->textureName);
 	TestCase_assert(texturePtr->bitmapDataFormat == GL_RGBA, "Expected 0x%04X but got 0x%04X", GL_RGBA, texturePtr->bitmapDataFormat);
@@ -28,6 +29,7 @@ static void testInit() {
 	
 	texturePtr = GLTexture_create(GL_RGB, GL_UNSIGNED_SHORT_4_4_4_4, GL_NEAREST_MIPMAP_NEAREST, GL_NEAREST, GL_CLAMP_TO_EDGE, GL_REPEAT, AUTO_BLEND_MODE_TRANSPARENT_NONPREMULTIPLIED, true, true);
 	TestCase_assert(texturePtr != NULL, "GLTexture_create unexpectedly returned NULL");
+	if (texturePtr == NULL) { return; } // To shut up false positive clang warning
 	TestCase_assert(texturePtr->imageName == NULL, "Expected NULL but got %p", texturePtr->imageName);
 	TestCase_assert(texturePtr->textureName == 0, "Expected 0 but got %u", texturePtr->textureName);
 	TestCase_assert(texturePtr->bitmapDataFormat == GL_RGB, "Expected 0x%04X but got 0x%04X", GL_RGB, texturePtr->bitmapDataFormat);
@@ -48,6 +50,7 @@ static void testInit() {
 	
 	GLTexture_init(&texture, GL_RGBA, GL_UNSIGNED_BYTE, GL_NEAREST, GL_LINEAR, GL_REPEAT, GL_CLAMP_TO_EDGE, AUTO_BLEND_MODE_NONE, false, false);
 	TestCase_assert(texture.imageName == NULL, "Expected NULL but got %p", texture.imageName);
+	if (texturePtr == NULL) { return; } // To shut up false positive clang warning
 	TestCase_assert(texture.textureName == 0, "Expected 0 but got %u", texture.textureName);
 	TestCase_assert(texture.bitmapDataFormat == GL_RGBA, "Expected 0x%04X but got 0x%04X", GL_RGBA, texture.bitmapDataFormat);
 	TestCase_assert(texture.bitmapDataType == GL_UNSIGNED_BYTE, "Expected 0x%04X but got 0x%04X", GL_UNSIGNED_BYTE, texture.bitmapDataType);
@@ -67,6 +70,7 @@ static void testInit() {
 	
 	GLTexture_init(&texture, GL_RGB, GL_UNSIGNED_SHORT_4_4_4_4, GL_NEAREST_MIPMAP_NEAREST, GL_NEAREST, GL_CLAMP_TO_EDGE, GL_REPEAT, AUTO_BLEND_MODE_TRANSPARENT_NONPREMULTIPLIED, true, true);
 	TestCase_assert(texture.imageName == NULL, "Expected NULL but got %p", texture.imageName);
+	if (texturePtr == NULL) { return; } // To shut up false positive clang warning
 	TestCase_assert(texture.textureName == 0, "Expected 0 but got %u", texture.textureName);
 	TestCase_assert(texture.bitmapDataFormat == GL_RGB, "Expected 0x%04X but got 0x%04X", GL_RGB, texture.bitmapDataFormat);
 	TestCase_assert(texture.bitmapDataType == GL_UNSIGNED_SHORT_4_4_4_4, "Expected 0x%04X but got 0x%04X", GL_UNSIGNED_SHORT_4_4_4_4, texture.bitmapDataType);
@@ -116,6 +120,7 @@ static void testDeserialization() {
 	context->dispose(context);
 	
 	TestCase_assert(texturePtr != NULL, "GLTexture_deserialize unexpectedly returned NULL");
+	if (texturePtr == NULL) { return; } // To shut up false positive clang warning
 	TestCase_assert(!strcmp(texturePtr->imageName, "foo"), "Expected \"foo\" but got \"%s\"", texturePtr->imageName);
 	TestCase_assert(texturePtr->textureName == 0, "Expected 0 but got %u", texturePtr->textureName);
 	TestCase_assert(texturePtr->bitmapDataFormat == GL_RGBA, "Expected 0x%04X but got 0x%04X", GL_RGBA, texturePtr->bitmapDataFormat);
@@ -158,6 +163,7 @@ static void testDeserialization() {
 	context->dispose(context);
 	
 	TestCase_assert(texturePtr != NULL, "GLTexture_deserialize unexpectedly returned NULL");
+	if (texturePtr == NULL) { return; } // To shut up false positive clang warning
 	TestCase_assert(!strcmp(texturePtr->imageName, "bar"), "Expected \"bar\" but got \"%s\"", texturePtr->imageName);
 	TestCase_assert(texturePtr->textureName == 0, "Expected 0 but got %u", texturePtr->textureName);
 	TestCase_assert(texturePtr->bitmapDataFormat == GL_RGB, "Expected 0x%04X but got 0x%04X", GL_RGB, texturePtr->bitmapDataFormat);

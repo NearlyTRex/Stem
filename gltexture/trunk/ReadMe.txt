@@ -1,1 +1,1 @@
-GLTexture provides support for OpenGL texturing. TODO write more here
+GLTexture provides support for OpenGL texturing. (TODO: write more here)

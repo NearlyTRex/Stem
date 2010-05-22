@@ -4,6 +4,7 @@
 #include "eaglshell/EAGLShell.h"
 #include "eaglshell/EAGLTarget.h"
 #include "3dmath/Matrix.h"
+#include "glutshell/GLUTTarget.h"
 #include "glgraphics/GLIncludes.h"
 #include "gltexture/GLTexture.h"
 #include "pngimageio/PNGImageIO.h"
@@ -77,27 +78,28 @@ enum GLTextureAutoBlendMode autoBlendModes[NUM_AUTO_BLEND_MODES] = {
 };
 
 static unsigned int viewportWidth = 800, viewportHeight = 600;
-GLTexture * texture = NULL;
-int textureIndex = 0;
-int minFilterIndex = 0;
-int magFilterIndex = 0;
-int wrapSModeIndex = 0;
-int wrapTModeIndex = 0;
-int autoBlendModeIndex = 0;
-bool autoMipmap = false;
-bool anisotropicFilter = false;
-bool whiteBackground = false;
-bool zoomedOut = false;
-bool extendedTexCoords = false;
+static GLTexture * texture = NULL;
+static int textureIndex = 0;
+static int minFilterIndex = 0;
+static int magFilterIndex = 0;
+static int wrapSModeIndex = 0;
+static int wrapTModeIndex = 0;
+static int autoBlendModeIndex = 0;
+static bool autoMipmap = false;
+static bool anisotropicFilter = false;
+static bool whiteBackground = false;
+static bool zoomedOut = false;
+static bool extendedTexCoords = false;
+static bool iPhoneMode = false;
 
-struct vertex {
+struct vertex_p3f_t2f {
 	float position[3];
 	float texCoords[2];
 };
 
-const char * Target_getName() {
-	return "GLTexture Test Harness";
-}
+struct vertex_p2f {
+	float position[2];
+};
 
 static void loadTextureImage() {
 	BitmapImage * image;
@@ -119,13 +121,47 @@ static void loadTextureImage() {
 	image->dispose(image);
 }
 
-void Target_init(int argc, char ** argv) {
+void Target_init() {
 	loadTextureImage();
 	
 	glEnableClientState(GL_VERTEX_ARRAY);
-	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	
 	Shell_mainLoop();
+}
+
+static void drawControl(float x, float y, float scale, int parameter) {
+	struct vertex_p2f vertices[] = {
+		{{0.5f, 0.0f}},
+		{{1.0f, 0.5f}},
+		{{0.5f, 1.0f}},
+		{{0.0f, 0.5f}}
+	};
+	Matrix matrix;
+	
+	matrix = Matrix_scaled(Matrix_translated(Matrix_identity(), x, y, 0.0f), scale, scale, 1.0f);
+	glLoadMatrixf(matrix.m);
+	switch (parameter) {
+		case 0:
+			glColor4ub(0xFF, 0x00, 0x00, 0xFF);
+			break;
+		case 1:
+			glColor4ub(0x00, 0xFF, 0x00, 0xFF);
+			break;
+		case 2:
+			glColor4ub(0x00, 0x00, 0xFF, 0xFF);
+			break;
+		case 3:
+			glColor4ub(0xFF, 0xFF, 0x00, 0xFF);
+			break;
+		case 4:
+			glColor4ub(0xFF, 0x00, 0xFF, 0xFF);
+			break;
+		case 5:
+			glColor4ub(0x00, 0xFF, 0xff, 0xFF);
+			break;
+	}
+	glVertexPointer(2, GL_FLOAT, sizeof(struct vertex_p2f), vertices[0].position);
+	glDrawArrays(GL_TRIANGLE_FAN, 0, sizeof(vertices) / sizeof(struct vertex_p2f));
 }
 
 void Target_draw() {
@@ -134,7 +170,7 @@ void Target_draw() {
 	float maxTexCoordX = (ratio > 1.0f ?  0.5f :  0.5f / ratio) * (extendedTexCoords ? 2.0f : 1.0f) + 0.5f;
 	float minTexCoordY = (ratio < 1.0f ? -0.5f : -0.5f * ratio) * (extendedTexCoords ? 2.0f : 1.0f) + 0.5f;
 	float maxTexCoordY = (ratio < 1.0f ?  0.5f :  0.5f * ratio) * (extendedTexCoords ? 2.0f : 1.0f) + 0.5f;
-	struct vertex vertices[] = {
+	struct vertex_p3f_t2f vertices[] = {
 		{{-0.5f, -0.5f, 0.0f}, {minTexCoordX, minTexCoordY}},
 		{{ 0.5f, -0.5f, 0.0f}, {maxTexCoordX, minTexCoordY}},
 		{{ 0.5f,  0.5f, 0.0f}, {maxTexCoordX, maxTexCoordY}},
@@ -174,10 +210,36 @@ void Target_draw() {
 	glTranslatef(0.0f, 0.0f, zoomedOut ? -5.0f : -2.0f);
 	
 	texture->activate(texture);
-	glVertexPointer(3, GL_FLOAT, sizeof(struct vertex), vertices[0].position);
-	glTexCoordPointer(2, GL_FLOAT, sizeof(struct vertex), vertices[0].texCoords);
-	glDrawArrays(GL_TRIANGLES, 0, sizeof(vertices) / sizeof(struct vertex));
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	glColor4ub(0xFF, 0xFF, 0xFF, 0xFF);
+	glVertexPointer(3, GL_FLOAT, sizeof(struct vertex_p3f_t2f), vertices[0].position);
+	glTexCoordPointer(2, GL_FLOAT, sizeof(struct vertex_p3f_t2f), vertices[0].texCoords);
+	glDrawArrays(GL_TRIANGLES, 0, sizeof(vertices) / sizeof(struct vertex_p3f_t2f));
+	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	texture->deactivate(texture);
+	
+	if (iPhoneMode) {
+		float viewRatio = (float) viewportWidth / viewportHeight;
+		
+		glMatrixMode(GL_PROJECTION);
+		glLoadIdentity();
+		matrix = Matrix_ortho(Matrix_identity(), 0.0f, viewRatio, 0.0f, 1.0f, -1.0f, 1.0f);
+		glMultMatrixf(matrix.m);
+		glMatrixMode(GL_MODELVIEW);
+		
+		drawControl(0.0f, 0.0f / 6.0f, 1.0f / 6.0f, textureIndex);
+		drawControl(0.0f, 1.0f / 6.0f, 1.0f / 6.0f, autoBlendModeIndex);
+		drawControl(0.0f, 2.0f / 6.0f, 1.0f / 6.0f, minFilterIndex);
+		drawControl(0.0f, 3.0f / 6.0f, 1.0f / 6.0f, magFilterIndex);
+		drawControl(0.0f, 4.0f / 6.0f, 1.0f / 6.0f, wrapSModeIndex);
+		drawControl(0.0f, 5.0f / 6.0f, 1.0f / 6.0f, wrapTModeIndex);
+		drawControl(viewRatio - 1.0f / 6.0f, 0.0f / 6.0f, 1.0f / 6.0f, autoMipmap);
+		drawControl(viewRatio - 1.0f / 6.0f, 1.0f / 6.0f, 1.0f / 6.0f, anisotropicFilter);
+		drawControl(viewRatio - 1.0f / 6.0f, 2.0f / 6.0f, 1.0f / 6.0f, extendedTexCoords);
+		drawControl(viewRatio - 1.0f / 6.0f, 3.0f / 6.0f, 1.0f / 6.0f, whiteBackground);
+		drawControl(viewRatio - 1.0f / 6.0f, 4.0f / 6.0f, 1.0f / 6.0f, zoomedOut);
+		drawControl(viewRatio - 1.0f / 6.0f, 5.0f / 6.0f, 1.0f / 6.0f, 0);
+	}
 }
 
 void Target_resized(unsigned int newWidth, unsigned int newHeight) {
@@ -186,137 +248,163 @@ void Target_resized(unsigned int newWidth, unsigned int newHeight) {
 	viewportHeight = newHeight;
 }
 
+static void cycleTextures(int direction) {
+	textureIndex += direction;
+	if (textureIndex < 0) {
+		textureIndex += NUM_TEXTURES;
+	} else if (textureIndex >= NUM_TEXTURES) {
+		textureIndex -= NUM_TEXTURES;
+	}
+	loadTextureImage();
+	Shell_redisplay();
+}
+
+static void cycleAutoBlendModes(int direction) {
+	autoBlendModeIndex += direction;
+	if (autoBlendModeIndex < 0) {
+		autoBlendModeIndex += NUM_AUTO_BLEND_MODES;
+	} else if (autoBlendModeIndex >= NUM_AUTO_BLEND_MODES) {
+		autoBlendModeIndex -= NUM_AUTO_BLEND_MODES;
+	}
+	texture->autoBlendMode = autoBlendModes[autoBlendModeIndex];
+	Shell_redisplay();
+}
+
+static void cycleMinFilters(int direction) {
+	minFilterIndex += direction;
+	if (minFilterIndex < 0) {
+		minFilterIndex += NUM_MIN_FILTERS;
+	} else if (minFilterIndex >= NUM_MIN_FILTERS) {
+		minFilterIndex -= NUM_MIN_FILTERS;
+	}
+	texture->minFilter = minFilters[minFilterIndex];
+	texture->updateTexParams(texture);
+	Shell_redisplay();
+}
+
+static void cycleMagFilters(int direction) {
+	magFilterIndex += direction;
+	if (magFilterIndex < 0) {
+		magFilterIndex += NUM_MAG_FILTERS;
+	} else if (magFilterIndex >= NUM_MAG_FILTERS) {
+		magFilterIndex -= NUM_MAG_FILTERS;
+	}
+	texture->magFilter = magFilters[magFilterIndex];
+	texture->updateTexParams(texture);
+	Shell_redisplay();
+}
+
+static void cycleWrapS(int direction) {
+	wrapSModeIndex += direction;
+	if (wrapSModeIndex < 0) {
+		wrapSModeIndex += NUM_WRAP_MODES;
+	} else if (wrapSModeIndex >= NUM_WRAP_MODES) {
+		wrapSModeIndex -= NUM_WRAP_MODES;
+	}
+	texture->wrapS = wrapModes[wrapSModeIndex];
+	texture->updateTexParams(texture);
+	Shell_redisplay();
+}
+
+static void cycleWrapT(int direction) {
+	wrapTModeIndex += direction;
+	if (wrapTModeIndex < 0) {
+		wrapTModeIndex += NUM_WRAP_MODES;
+	} else if (wrapTModeIndex >= NUM_WRAP_MODES) {
+		wrapTModeIndex -= NUM_WRAP_MODES;
+	}
+	texture->wrapT = wrapModes[wrapTModeIndex];
+	texture->updateTexParams(texture);
+	Shell_redisplay();
+}
+
+static void toggleAutoMipmap() {
+	autoMipmap = !autoMipmap;
+	loadTextureImage();
+	Shell_redisplay();
+}
+
+static void toggleAnisotropy() {
+	anisotropicFilter = !anisotropicFilter;
+	texture->anisotropicFilter = anisotropicFilter;
+	texture->updateTexParams(texture);
+	Shell_redisplay();
+}
+
+static void toggleExtendedTexCoords() {
+	extendedTexCoords = !extendedTexCoords;
+	Shell_redisplay();
+}
+
+static void toggleBackgroundColor() {
+	whiteBackground = !whiteBackground;
+	Shell_redisplay();
+}
+
+static void toggleZoomLevel() {
+	zoomedOut = !zoomedOut;
+	Shell_redisplay();
+}
+
+static void updateTextureImage() {
+	texture->updateImage(texture, 0, 0, 0, 2, 2, textureImages[textureIndex].subImageRowBytes, textureImages[textureIndex].subImage2x2);
+	Shell_redisplay();
+}
+
 void Target_keyDown(unsigned int charCode, unsigned int keyCode) {
 	if (charCode == '[') {
-		textureIndex--;
-		if (textureIndex < 0) {
-			textureIndex += NUM_TEXTURES;
-		}
-		loadTextureImage();
-		Shell_redisplay();
+		cycleTextures(-1);
 		
 	} else if (charCode == ']') {
-		textureIndex++;
-		if (textureIndex >= NUM_TEXTURES) {
-			textureIndex -= NUM_TEXTURES;
-		}
-		loadTextureImage();
-		Shell_redisplay();
+		cycleTextures(1);
 		
 	} else if (charCode == '{') {
-		autoBlendModeIndex--;
-		if (autoBlendModeIndex < 0) {
-			autoBlendModeIndex += NUM_AUTO_BLEND_MODES;
-		}
-		texture->autoBlendMode = autoBlendModes[autoBlendModeIndex];
-		Shell_redisplay();
+		cycleAutoBlendModes(-1);
 		
 	} else if (charCode == '}') {
-		autoBlendModeIndex++;
-		if (autoBlendModeIndex >= NUM_AUTO_BLEND_MODES) {
-			autoBlendModeIndex -= NUM_AUTO_BLEND_MODES;
-		}
-		texture->autoBlendMode = autoBlendModes[autoBlendModeIndex];
-		Shell_redisplay();
+		cycleAutoBlendModes(1);
 		
 	} else if (charCode == ',') {
-		minFilterIndex--;
-		if (minFilterIndex < 0) {
-			minFilterIndex += NUM_MIN_FILTERS;
-		}
-		texture->minFilter = minFilters[minFilterIndex];
-		texture->updateTexParams(texture);
-		Shell_redisplay();
+		cycleMinFilters(-1);
 		
 	} else if (charCode == '.') {
-		minFilterIndex++;
-		if (minFilterIndex >= NUM_MIN_FILTERS) {
-			minFilterIndex -= NUM_MIN_FILTERS;
-		}
-		texture->minFilter = minFilters[minFilterIndex];
-		texture->updateTexParams(texture);
-		Shell_redisplay();
+		cycleMinFilters(1);
 		
 	} else if (charCode == '<') {
-		magFilterIndex--;
-		if (magFilterIndex < 0) {
-			magFilterIndex += NUM_MAG_FILTERS;
-		}
-		texture->magFilter = magFilters[magFilterIndex];
-		texture->updateTexParams(texture);
-		Shell_redisplay();
+		cycleMagFilters(-1);
 		
 	} else if (charCode == '>') {
-		magFilterIndex++;
-		if (magFilterIndex >= NUM_MAG_FILTERS) {
-			magFilterIndex -= NUM_MAG_FILTERS;
-		}
-		texture->magFilter = magFilters[magFilterIndex];
-		texture->updateTexParams(texture);
-		Shell_redisplay();
+		cycleMagFilters(1);
 		
 	} else if (keyCode == KEYBOARD_LEFT_ARROW) {
-		wrapSModeIndex--;
-		if (wrapSModeIndex < 0) {
-			wrapSModeIndex += NUM_WRAP_MODES;
-		}
-		texture->wrapS = wrapModes[wrapSModeIndex];
-		texture->updateTexParams(texture);
-		Shell_redisplay();
+		cycleWrapS(-1);
 		
 	} else if (keyCode == KEYBOARD_RIGHT_ARROW) {
-		wrapSModeIndex++;
-		if (wrapSModeIndex >= NUM_WRAP_MODES) {
-			wrapSModeIndex -= NUM_WRAP_MODES;
-		}
-		texture->wrapS = wrapModes[wrapSModeIndex];
-		texture->updateTexParams(texture);
-		Shell_redisplay();
+		cycleWrapS(1);
 		
 	} else if (keyCode == KEYBOARD_DOWN_ARROW) {
-		wrapTModeIndex--;
-		if (wrapTModeIndex < 0) {
-			wrapTModeIndex += NUM_WRAP_MODES;
-		}
-		texture->wrapT = wrapModes[wrapTModeIndex];
-		texture->updateTexParams(texture);
-		Shell_redisplay();
+		cycleWrapT(-1);
 		
 	} else if (keyCode == KEYBOARD_UP_ARROW) {
-		wrapTModeIndex++;
-		if (wrapTModeIndex >= NUM_WRAP_MODES) {
-			wrapTModeIndex -= NUM_WRAP_MODES;
-		}
-		texture->wrapT = wrapModes[wrapTModeIndex];
-		texture->updateTexParams(texture);
-		Shell_redisplay();
+		cycleWrapT(1);
 		
 	} else if (keyCode == KEYBOARD_M) {
-		autoMipmap = !autoMipmap;
-		loadTextureImage();
-		Shell_redisplay();
+		toggleAutoMipmap();
 		
 	} else if (keyCode == KEYBOARD_A) {
-		anisotropicFilter = !anisotropicFilter;
-		texture->anisotropicFilter = anisotropicFilter;
-		texture->updateTexParams(texture);
-		Shell_redisplay();
+		toggleAnisotropy();
 		
 	} else if (keyCode == KEYBOARD_E) {
-		extendedTexCoords = !extendedTexCoords;
-		Shell_redisplay();
+		toggleExtendedTexCoords();
 		
 	} else if (keyCode == KEYBOARD_B) {
-		whiteBackground = !whiteBackground;
-		Shell_redisplay();
+		toggleBackgroundColor();
 		
 	} else if (keyCode == KEYBOARD_Z) {
-		zoomedOut = !zoomedOut;
-		Shell_redisplay();
+		toggleZoomLevel();
 		
 	} else if (keyCode == KEYBOARD_S) {
-		texture->updateImage(texture, 0, 0, 0, 2, 2, textureImages[textureIndex].subImageRowBytes, textureImages[textureIndex].subImage2x2);
-		Shell_redisplay();
+		updateTextureImage();
 	}
 }
 
@@ -324,30 +412,48 @@ void Target_keyUp(unsigned int charCode, unsigned int keyCode) {
 }
 
 void Target_mouseDown(unsigned int buttonNumber, float x, float y) {
-	/*
-	if (y < viewportHeight / 4) {
-		whiteBackground = !whiteBackground;
-		Shell_redisplay();
-		
-	} else if (y > viewportHeight - viewportHeight / 4) {
-		zoomedOut = !zoomedOut;
-		Shell_redisplay();
-		
-	} else if (x < viewportWidth / 4) {
-		textureIndex--;
-		if (textureIndex < 0) {
-			textureIndex += NUM_TEXTURES;
+	if (iPhoneMode) {
+		if (x < viewportHeight / 6) {
+			if (y > viewportHeight - viewportHeight / 6 * 1) {
+				cycleTextures(1);
+				
+			} else if (y > viewportHeight - viewportHeight / 6 * 2) {
+				cycleAutoBlendModes(1);
+				
+			} else if (y > viewportHeight - viewportHeight / 6 * 3) {
+				cycleMinFilters(1);
+				
+			} else if (y > viewportHeight - viewportHeight / 6 * 4) {
+				cycleMagFilters(1);
+				
+			} else if (y > viewportHeight - viewportHeight / 6 * 5) {
+				cycleWrapS(1);
+				
+			} else {
+				cycleWrapT(1);
+			}
+			
+		} else if (x > viewportWidth - viewportHeight / 6) {
+			if (y > viewportHeight - viewportHeight / 6 * 1) {
+				toggleAutoMipmap();
+				
+			} else if (y > viewportHeight - viewportHeight / 6 * 2) {
+				toggleAnisotropy();
+				
+			} else if (y > viewportHeight - viewportHeight / 6 * 3) {
+				toggleExtendedTexCoords();
+				
+			} else if (y > viewportHeight - viewportHeight / 6 * 4) {
+				toggleBackgroundColor();
+				
+			} else if (y > viewportHeight - viewportHeight / 6 * 5) {
+				toggleZoomLevel();
+				
+			} else {
+				updateTextureImage();
+			}
 		}
-		Shell_redisplay();
-		
-	} else if (x > viewportWidth - viewportWidth / 4) {
-		textureIndex++;
-		if (textureIndex >= NUM_TEXTURES) {
-			textureIndex -= NUM_TEXTURES;
-		}
-		Shell_redisplay();
 	}
-	*/
 }
 
 void Target_mouseUp(unsigned int buttonNumber, float x, float y) {
@@ -359,8 +465,17 @@ void Target_mouseMoved(float x, float y) {
 void Target_mouseDragged(unsigned int buttonMask, float x, float y) {
 }
 
-enum EAGLShellOpenGLVersion EAGLTarget_getPreferredOpenGLAPIVersion() {
-	return EAGLShellOpenGLVersion_ES1 /*| EAGLShellOpenGLVersion_ES2*/;
+void GLUTTarget_configure(int argc, char ** argv, struct GLUTShellConfiguration * configuration) {
+	configuration->windowTitle = "GLTexture Test Harness";
+}
+
+void EAGLTarget_configure(int argc, char ** argv, struct EAGLShellConfiguration * configuration) {
+	iPhoneMode = true;
+	
+	configuration->preferredOpenGLAPIVersion = EAGLShellOpenGLVersion_ES1 /*| EAGLShellOpenGLVersion_ES2*/;
+}
+
+void EAGLTarget_openURL(const char * url) {
 }
 
 void EAGLTarget_touchesCancelled(unsigned int buttonMask) {
