@@ -48,7 +48,7 @@ struct {
 	unsigned char * subImage2x2;
 	unsigned int subImageRowBytes;
 } textureImages[NUM_TEXTURES] = {
-	{"reference3x2gray.png", GL_ALPHA, 3.0f / 2.0f, subImageAlpha, 2},
+	{"reference4x2gray.png", GL_ALPHA, 2.0f, subImageAlpha, 2},
 	{"basn0g01.png", GL_LUMINANCE, 1.0f, subImageLuminance, 2},
 	{"basn4a16.png", GL_LUMINANCE_ALPHA, 1.0f, subImageLuminanceAlpha, 4},
 	{"basn2c16.png", GL_RGB, 1.0f, subImageRGB, 6},

@@ -179,7 +179,7 @@ RESOURCES_testharness = \
 	test_resources/basn2c16.png \
 	test_resources/basn4a16.png \
 	test_resources/basn6a16.png \
-	test_resources/reference3x2gray.png
+	test_resources/reference4x2gray.png
 RESOURCES_unittest = 
 
 ANALYZER_EXCLUDE_SOURCES_clang = 
