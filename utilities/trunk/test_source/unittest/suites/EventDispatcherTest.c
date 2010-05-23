@@ -51,6 +51,7 @@ static void testCallbacks() {
 	incrementation = 1;
 	handled = dispatcher->dispatchEvent(dispatcher, "event2", &incrementation);
 	TestCase_assert(callback2Context == 4, "Expected 4 but got %d", callback2Context);
+	TestCase_assert(!handled, "Expected false but got true");
 	
 	dispatcher->dispose(dispatcher);
 	

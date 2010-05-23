@@ -258,6 +258,60 @@ static void testResourcePath() {
 	StubShellCallback_getResourcePath = NULL;
 }
 
+static void testTemporaryFilePath() {
+	int fd;
+	const char * template, * path;
+	const char * uniqueString;
+	bool success;
+	FILE * file;
+	size_t fileLength;
+	char * fileContents;
+	
+	template = "tmpXXXXXX";
+	uniqueString = "Unique string 1";
+	fd = -1;
+	path = temporaryFilePath(template, &fd);
+	TestCase_assert(path != NULL, "temporaryFilePath unexpectedly returned NULL");
+	TestCase_assert(strlen(path) >= strlen(template), "temporaryFilePath returned a shorter path (\"%s\") than the provided template", path);
+	TestCase_assert(!strncmp(path + strlen(path) - strlen(template), template, 3), "Template prefix not preserved in path (\"%s\")", path);
+	TestCase_assert(fd != -1, "temporaryFilePath didn't return a file descriptor");
+	success = writeFileSimple(path, uniqueString, strlen(uniqueString));
+	TestCase_assert(success, "Failed to write to returned path \"%s\"", path);
+	file = fdopen(fd, "rb");
+	TestCase_assert(file != NULL, "temporaryFilePath didn't return a file descriptor that could be opened with fdopen");
+	fseek(file, 0, SEEK_END);
+	fileLength = ftell(file);
+	TestCase_assert(fileLength == strlen(uniqueString), "File length (%d) didn't match length of string written to path (%d)", (int) fileLength, (int) strlen(uniqueString));
+	fseek(file, 0, SEEK_SET);
+	fileContents = malloc(fileLength);
+	fread(fileContents, 1, fileLength, file);
+	TestCase_assert(!memcmp(fileContents, uniqueString, fileLength), "File contents \"%.*s\" didn't match expected string \"%s\"", (int) fileLength, fileContents, uniqueString);
+	fclose(file);
+	unlink(path);
+	
+	template = "helloXXXX";
+	uniqueString = "Unique string 2";
+	fd = -1;
+	path = temporaryFilePath(template, &fd);
+	TestCase_assert(path != NULL, "temporaryFilePath unexpectedly returned NULL");
+	TestCase_assert(strlen(path) >= strlen(template), "temporaryFilePath returned a shorter path (\"%s\") than the provided template", path);
+	TestCase_assert(!strncmp(path + strlen(path) - strlen(template), template, 5), "Template prefix not preserved in path (\"%s\")", path);
+	TestCase_assert(fd != -1, "temporaryFilePath didn't return a file descriptor");
+	success = writeFileSimple(path, uniqueString, strlen(uniqueString));
+	TestCase_assert(success, "Failed to write to returned path \"%s\"", path);
+	file = fdopen(fd, "rb");
+	TestCase_assert(file != NULL, "temporaryFilePath didn't return a file descriptor that could be opened with fdopen");
+	fseek(file, 0, SEEK_END);
+	fileLength = ftell(file);
+	TestCase_assert(fileLength == strlen(uniqueString), "File length (%d) didn't match length of string written to path (%d)", (int) fileLength, (int) strlen(uniqueString));
+	fseek(file, 0, SEEK_SET);
+	fileContents = malloc(fileLength);
+	fread(fileContents, 1, fileLength, file);
+	TestCase_assert(!memcmp(fileContents, uniqueString, fileLength), "File contents \"%.*s\" didn't match expected string \"%s\"", (int) fileLength, fileContents, uniqueString);
+	fclose(file);
+	unlink(path);
+}
+
 TEST_SUITE(IOUtilitiesTest,
            testMemreadContextInit,
            testMemread,
@@ -265,4 +319,5 @@ TEST_SUITE(IOUtilitiesTest,
            testMemwrite,
            testReadFileSimple,
            testWriteFileSimple,
-           testResourcePath)
+           testResourcePath,
+           testTemporaryFilePath)

@@ -22,6 +22,7 @@
 
 #include "utilities/IOUtilities.h"
 
+#include <errno.h>
 #include <limits.h>
 #include <stdio.h>
 #include <string.h>
@@ -117,7 +118,7 @@ void * readFileSimple(const char * filePath, size_t * outFileLength) {
 	return fileContents;
 }
 
-bool writeFileSimple(const char * filePath, void * contents, size_t length) {
+bool writeFileSimple(const char * filePath, const void * contents, size_t length) {
 	FILE * file;
 	
 	file = fopen(filePath, "wb");
@@ -138,4 +139,50 @@ const char * resourcePath(const char * filePath) {
 	AutoFreePool_add(path);
 	
 	return path;
+}
+
+const char * temporaryFilePath(const char * fileNameTemplate, int * outFD) {
+	char * fileName;
+	char * tempDirEnvironmentVariables[] = {
+		"TMPDIR",
+		"TEMPDIR",
+		"TEMP",
+		"TMP"
+	};
+	unsigned int variableIndex;
+	char * environmentTempDir;
+	int fd;
+	
+	for (variableIndex = 0; variableIndex < sizeof(tempDirEnvironmentVariables) / sizeof(char *); variableIndex++) {
+		environmentTempDir = getenv("TMPDIR");
+		if (environmentTempDir != NULL) {
+			break;
+		}
+	}
+	if (environmentTempDir == NULL) {
+#ifdef DEBUG
+		fprintf(stderr, "Warning: Couldn't find any of the expected temporary directory environment variables (%s", tempDirEnvironmentVariables[0]);
+		for (variableIndex = 1; variableIndex < sizeof(tempDirEnvironmentVariables) / sizeof(char *); variableIndex++) {
+			fprintf(stderr, ", %s", tempDirEnvironmentVariables[variableIndex]);
+		}
+		fprintf(stderr, "); unable to create a temporary file\n");
+#endif
+		return NULL;
+	}
+	
+	fileName = malloc(strlen(environmentTempDir) + strlen(fileNameTemplate) + 2);
+	sprintf(fileName, "%s/%s", environmentTempDir, fileNameTemplate);
+	fd = mkstemp(fileName);
+	
+	if (fd == -1) {
+#ifdef DEBUG
+		fprintf(stderr, "Warning: Couldn't create temporary file \"%s\"; errno = %d\n", fileName, errno);
+#endif
+		return NULL;
+	}
+	
+	if (outFD != NULL) {
+		*outFD = fd;
+	}
+	return AutoFreePool_add(fileName);
 }

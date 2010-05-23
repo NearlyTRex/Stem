@@ -27,7 +27,7 @@
 
 static size_t numberOfAtoms = 0;
 static size_t atomListSize = 1;
-static Atom * atoms = NULL;
+static Atom * atoms;
 
 Atom Atom_fromString(const char * string) {
 	unsigned int atomIndex;

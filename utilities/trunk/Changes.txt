@@ -1,3 +1,8 @@
+1.2.0:
+ * Added temporaryFilePath to IOUtilities
+ * Arg 2 of writeFileSimple is now const
+ * Refreshed Makefile from template_stemlib Stable_2010-05-22
+
 1.1.0:
  * Updated EventDispatcher and FixedIntervalRunLoop to inherit from StemObject
  * Refreshed Makefile from template_stemlib Stable_2010-05-06
