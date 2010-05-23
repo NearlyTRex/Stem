@@ -29,7 +29,7 @@
 #include <fcntl.h>
 #define _S_IREAD 256
 #define _S_IWRITE 128
-int mkstemp(char * template) {
+static int mkstemp(char * template) {
 	int result = -1;
 	mktemp(template); 
 	result = open(template, O_RDWR | O_BINARY | O_CREAT | O_EXCL | _O_SHORT_LIVED, _S_IREAD | _S_IWRITE); 

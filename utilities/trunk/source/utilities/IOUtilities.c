@@ -26,6 +26,7 @@
 #include <limits.h>
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "shell/Shell.h"
 #include "utilities/AutoFreePool.h"
@@ -141,6 +142,18 @@ const char * resourcePath(const char * filePath) {
 	return path;
 }
 
+#ifdef WIN32
+#include <fcntl.h>
+#define _S_IREAD 256
+#define _S_IWRITE 128
+static int mkstemp(char * template) {
+	int result = -1;
+	mktemp(template); 
+	result = open(template, O_RDWR | O_BINARY | O_CREAT | O_EXCL | _O_SHORT_LIVED, _S_IREAD | _S_IWRITE); 
+	return result;
+}
+#endif
+
 const char * temporaryFilePath(const char * fileNameTemplate, int * outFD) {
 	char * fileName;
 	char * tempDirEnvironmentVariables[] = {
@@ -154,7 +167,7 @@ const char * temporaryFilePath(const char * fileNameTemplate, int * outFD) {
 	int fd;
 	
 	for (variableIndex = 0; variableIndex < sizeof(tempDirEnvironmentVariables) / sizeof(char *); variableIndex++) {
-		environmentTempDir = getenv("TMPDIR");
+		environmentTempDir = getenv(tempDirEnvironmentVariables[variableIndex]);
 		if (environmentTempDir != NULL) {
 			break;
 		}
