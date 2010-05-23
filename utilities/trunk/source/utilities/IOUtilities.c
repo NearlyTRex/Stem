@@ -163,16 +163,23 @@ const char * temporaryFilePath(const char * fileNameTemplate, int * outFD) {
 		"TMP"
 	};
 	unsigned int variableIndex;
-	char * environmentTempDir;
+	char * tempDir = NULL;
 	int fd;
 	
 	for (variableIndex = 0; variableIndex < sizeof(tempDirEnvironmentVariables) / sizeof(char *); variableIndex++) {
-		environmentTempDir = getenv(tempDirEnvironmentVariables[variableIndex]);
-		if (environmentTempDir != NULL) {
+		tempDir = getenv(tempDirEnvironmentVariables[variableIndex]);
+		if (tempDir != NULL) {
 			break;
 		}
 	}
-	if (environmentTempDir == NULL) {
+	
+#ifndef WIN32
+	if (tempDir == NULL) {
+		tempDir = "/tmp";
+	}
+#endif
+	
+	if (tempDir == NULL) {
 #ifdef DEBUG
 		fprintf(stderr, "Warning: Couldn't find any of the expected temporary directory environment variables (%s", tempDirEnvironmentVariables[0]);
 		for (variableIndex = 1; variableIndex < sizeof(tempDirEnvironmentVariables) / sizeof(char *); variableIndex++) {
@@ -183,8 +190,8 @@ const char * temporaryFilePath(const char * fileNameTemplate, int * outFD) {
 		return NULL;
 	}
 	
-	fileName = malloc(strlen(environmentTempDir) + strlen(fileNameTemplate) + 2);
-	sprintf(fileName, "%s/%s", environmentTempDir, fileNameTemplate);
+	fileName = malloc(strlen(tempDir) + strlen(fileNameTemplate) + 2);
+	sprintf(fileName, "%s/%s", tempDir, fileNameTemplate);
 	fd = mkstemp(fileName);
 	
 	if (fd == -1) {

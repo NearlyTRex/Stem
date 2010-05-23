@@ -289,7 +289,7 @@ static void testTemporaryFilePath() {
 	fclose(file);
 	unlink(path);
 	
-	template = "helloXXXX";
+	template = "helloXXXXXX";
 	uniqueString = "Unique string 2";
 	fd = -1;
 	path = temporaryFilePath(template, &fd);
