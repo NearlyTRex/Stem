@@ -21,7 +21,7 @@ TARGET_PLATFORMS_windows = windows
 
 include version
 
-PROJECT_NAME = template_stemlib
+PROJECT_NAME = jsonio
 IPHONE_SDK_VERSION = 3.1
 IPHONESIMULATOR_APPLICATIONS_DIR = ${HOME}/Library/Application Support/iPhone Simulator/${IPHONE_SDK_VERSION}/Applications
 RESOURCE_RULES_PLIST = /Developer/Platforms/MacOSX.platform/ResourceRules.plist
@@ -38,15 +38,15 @@ PLATFORMS = ${filter ${TARGET_PLATFORMS_${HOST_PLATFORM}},macosx iphonesimulator
 ARCHS = ppc i386 i686 x86_64 armv6 armv7
 ANALYZERS = splint clang
 
-TARGET_NAME_library = libstem_template_stemlib
-TARGET_NAME_unittest = template_stemlib_unittest
-TARGET_NAME_testharness = template_stemlib_testharness
+TARGET_NAME_library = libstem_jsonio
+TARGET_NAME_unittest = jsonio_unittest
+TARGET_NAME_testharness = jsonio_testharness
 HUMAN_READABLE_TARGET_NAME_testharness = StemTemplate
 
 #Per-target configurations
 CONFIGURATIONS_library = debug profile release
 CONFIGURATIONS_unittest = debug
-CONFIGURATIONS_testharness = debug profile
+CONFIGURATIONS_testharness = debug profile release
 
 #Per-target platforms
 PLATFORMS_library = ${filter ${PLATFORMS},macosx iphonesimulator iphoneos linux windows}
@@ -61,7 +61,7 @@ CLANGFLAGS_unittest = ${CCFLAGS_unittest}
 SPLINTFLAGS_unittest = ${CCFLAGS_unittest}
 
 #Per-configuration compile/link settings
-CCFLAGS_debug = -g
+CCFLAGS_debug = -g -DDEBUG
 CCFLAGS_profile = -g -O3
 CCFLAGS_release = -O3
 
@@ -120,7 +120,7 @@ LINKFLAGS_windows =
 #General compile/link settings
 DEFINE_CCFLAGS = -DVERSION_MAJOR=${VERSION_MAJOR}u -DVERSION_MINOR=${VERSION_MINOR}u -DVERSION_TWEAK=${VERSION_TWEAK}u
 WARNING_CCFLAGS = -Wall -Wextra -Wno-unused-parameter -Werror
-INCLUDE_CCFLAGS = -I source# -I include
+INCLUDE_CCFLAGS = -I source -I include
 OTHER_CCFLAGS = -std=gnu99
 CCFLAGS = ${DEFINE_CCFLAGS} ${WARNING_CCFLAGS} ${INCLUDE_CCFLAGS} ${OTHER_CCFLAGS}
 
@@ -138,8 +138,8 @@ SPLINTFLAGS =
 
 PROJECT_LIBRARY_DEPENDENCIES_unittest = library
 PROJECT_LIBRARY_DEPENDENCIES_testharness = library
-STEM_LIBRARY_DEPENDENCIES_unittest =
-STEM_LIBRARY_DEPENDENCIES_testharness =
+STEM_LIBRARY_DEPENDENCIES_unittest = utilities/libstem_utilities.a stemobject/libstem_stemobject.a stubshell/libstemshell_stub.a
+STEM_LIBRARY_DEPENDENCIES_testharness = utilities/libstem_utilities.a stemobject/libstem_stemobject.a stubshell/libstemshell_stub.a
 THIRDPARTY_LIBRARY_DEPENDENCIES_unittest = 
 THIRDPARTY_LIBRARY_DEPENDENCIES_testharness = 
 
@@ -153,7 +153,8 @@ THIRDPARTY_LIBRARY_DEPENDENCIES_unittest_macosx =
 #Per-target source file lists
 
 SOURCES_library = \
-	source/template_stemlib/HelloWorld.c
+	source/jsonio/JSONIO.c \
+	source/jsonio/JSONParser.c
 
 SOURCES_unittest = \
 	test_source/unittest/framework/unittest_main.c \
@@ -161,13 +162,15 @@ SOURCES_unittest = \
 	${SOURCES_unittest_suites}
 
 SOURCES_unittest_suites = \
-	test_source/unittest/suites/HelloWorldTest.c
+	test_source/unittest/suites/JSONIOTest.c \
+	test_source/unittest/suites/JSONParserTest.c
 
 SOURCES_testharness = \
 	test_source/testharness/TestHarness_main.c
 
 INCLUDES = \
-	source/template_stemlib/HelloWorld.h
+	source/jsonio/JSONIO.h \
+	source/jsonio/JSONParser.h
 
 RESOURCES_testharness = 
 RESOURCES_unittest = 
@@ -611,11 +614,13 @@ ${foreach analyzer,${ANALYZERS}, \
 .PHONY: analyze
 analyze: ${foreach analyzer,${ANALYZERS},analyze_${analyzer}}
 
+${foreach dir,${sort ${foreach include_file,${INCLUDES},build/include/${notdir ${patsubst %/,%,${dir ${include_file}}}}}}, \
+	${eval ${call create_directory_target_template,${dir}}} \
+}
+
 .PHONY: include
-include: ${INCLUDES}
-	mkdir -p build/include
-	${foreach include_file,$^, \
-		mkdir -p build/include/${notdir ${patsubst %/,%,${dir ${include_file}}}}${newline_and_tab} \
+include: ${INCLUDES} | ${foreach include_file,${INCLUDES},build/include/${notdir ${patsubst %/,%,${dir ${include_file}}}}}
+	${foreach include_file,${INCLUDES}, \
 		cp ${include_file} build/include/${notdir ${patsubst %/,%,${dir ${include_file}}}}${newline_and_tab} \
 	}
 
@@ -627,7 +632,7 @@ clean:
 define install_target_iphonesimulator_template #(target)
 .PHONY: install_$1_iphonesimulator
 install_$1_iphonesimulator: $1
-	-killall "iPhone Simulator"
+	killall "iPhone Simulator"; true
 	rm -rf "${IPHONESIMULATOR_APPLICATIONS_DIR}/${TARGET_NAME_$1}"
 	mkdir -p "${IPHONESIMULATOR_APPLICATIONS_DIR}/${TARGET_NAME_$1}/Documents"
 	mkdir -p "${IPHONESIMULATOR_APPLICATIONS_DIR}/${TARGET_NAME_$1}/Library/Preferences"
@@ -681,9 +686,9 @@ endef
 
 .PHONY: source_dist
 source_dist:
-	#mkdir -p build/source_dist/include
-	#mkdir -p build/source_dist/lib
-	mkdir -p build/source_dist/source/template_stemlib
+	mkdir -p build/source_dist/include
+	mkdir -p build/source_dist/lib
+	mkdir -p build/source_dist/source/jsonio
 	mkdir -p build/source_dist/test_resources
 	mkdir -p build/source_dist/test_source/testharness
 	mkdir -p build/source_dist/test_source/unittest/framework
@@ -692,12 +697,12 @@ source_dist:
 	${call filter_source_dist_file,Makefile,build/source_dist/Makefile}
 	cp Changes.txt License.txt ReadMe.txt version build/source_dist
 	
-	#cp -r include/* build/source_dist/include
-	#cp -r lib/* build/source_dist/lib
-	#find build/source_dist/include -name .svn -print0 | xargs -0 rm -rf
-	#find build/source_dist/lib -name .svn -print0 | xargs -0 rm -rf
+	cp -r include/* build/source_dist/include
+	cp -r lib/* build/source_dist/lib
+	find build/source_dist/include -name .svn -print0 | xargs -0 rm -rf
+	find build/source_dist/lib -name .svn -print0 | xargs -0 rm -rf
 	
-	cp source/template_stemlib/* build/source_dist/source/template_stemlib
+	cp source/jsonio/* build/source_dist/source/jsonio
 	
 	cp test_resources/* build/source_dist/test_resources
 	
