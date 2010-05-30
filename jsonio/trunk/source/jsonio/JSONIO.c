@@ -21,17 +21,237 @@
 */
 
 #include "jsonio/JSONIO.h"
+#include "utilities/UTFUtilities.h"
+#include <stdio.h>
+#include <string.h>
 
-size_t escapeJSONString(const char * unescapedString, char * outEscapedString, size_t bufferSize) {
-	return 0;
+static void escapeJSONStringInternal(const char * string, size_t length, char * outString, size_t * outLength) {
+	size_t charIndex, escapedCharIndex;
+	
+	escapedCharIndex = 0;
+	for (charIndex = 0; charIndex < length; charIndex++) {
+		if (string[charIndex] == '"') {
+			if (outString != NULL) {
+				outString[escapedCharIndex] = '\\';
+				outString[escapedCharIndex + 1] = '"';
+			}
+			escapedCharIndex += 2;
+			
+		} else if (string[charIndex] == '\\') {
+			if (outString != NULL) {
+				outString[escapedCharIndex] = '\\';
+				outString[escapedCharIndex + 1] = '\\';
+			}
+			escapedCharIndex += 2;
+			
+		} else if (string[charIndex] == '\b') {
+			if (outString != NULL) {
+				outString[escapedCharIndex] = '\\';
+				outString[escapedCharIndex + 1] = 'b';
+			}
+			escapedCharIndex += 2;
+			
+		} else if (string[charIndex] == '\n') {
+			if (outString != NULL) {
+				outString[escapedCharIndex] = '\\';
+				outString[escapedCharIndex + 1] = 'n';
+			}
+			escapedCharIndex += 2;
+			
+		} else if (string[charIndex] == '\f') {
+			if (outString != NULL) {
+				outString[escapedCharIndex] = '\\';
+				outString[escapedCharIndex + 1] = 'f';
+			}
+			escapedCharIndex += 2;
+			
+		} else if (string[charIndex] == '\r') {
+			if (outString != NULL) {
+				outString[escapedCharIndex] = '\\';
+				outString[escapedCharIndex + 1] = 'r';
+			}
+			escapedCharIndex += 2;
+			
+		} else if ((unsigned char) string[charIndex] < ' ' && (unsigned char) string[charIndex] != '\t') {
+			if (outString != NULL) {
+				char hex[5];
+				
+				outString[escapedCharIndex] = '\\';
+				outString[escapedCharIndex + 1] = 'u';
+				sprintf(hex, "%04X", string[charIndex]);
+				outString[escapedCharIndex + 2] = hex[0];
+				outString[escapedCharIndex + 3] = hex[1];
+				outString[escapedCharIndex + 4] = hex[2];
+				outString[escapedCharIndex + 5] = hex[3];
+			}
+			escapedCharIndex += 6;
+			
+		} else {
+			if (outString != NULL) {
+				outString[escapedCharIndex] = string[charIndex];
+			}
+			escapedCharIndex++;
+		}
+	}
+	if (outString != NULL) {
+		outString[escapedCharIndex] = '\x00';
+	}
+	if (outLength != NULL) {
+		*outLength = escapedCharIndex;
+	}
 }
 
-size_t unescapeJSONString(const char * escapedString, char * outUnescapedString, size_t bufferSize) {
-	return 0;
+char * escapeJSONString(const char * string, size_t length, size_t * outLength) {
+	char * escapedString;
+	size_t escapedLength;
+	
+	escapeJSONStringInternal(string, length, NULL, &escapedLength);
+	escapedString = malloc(escapedLength + 1);
+	escapeJSONStringInternal(string, length, escapedString, outLength);
+	
+	return escapedString;
 }
 
-struct JSONNode * JSONNode_subitemForKey(struct JSONNode * objectNode, const char * key) {
-	return NULL;
+static bool unescapeJSONStringInternal(const char * string, size_t length, char * outString, size_t * outLength) {
+	size_t charIndex, charIndex2, unescapedCharIndex;
+	bool escaped = false;
+	uint16_t * utf16String;
+	uint8_t * utf8String;
+	unsigned int utf16Char;
+	size_t utf16Length, utf8Length;
+	
+	unescapedCharIndex = 0;
+	for (charIndex = 0; charIndex < length; charIndex++) {
+		if (!escaped && string[charIndex] == '\\') {
+			escaped = true;
+			
+		} else {
+			if (escaped) {
+				escaped = false;
+				switch (string[charIndex]) {
+					case 'b':
+						if (outString != NULL) {
+							outString[unescapedCharIndex] = '\b';
+						}
+						unescapedCharIndex++;
+						break;
+					case 'f':
+						if (outString != NULL) {
+							outString[unescapedCharIndex] = '\f';
+						}
+						unescapedCharIndex++;
+						break;
+					case 'n':
+						if (outString != NULL) {
+							outString[unescapedCharIndex] = '\n';
+						}
+						unescapedCharIndex++;
+						break;
+					case 'r':
+						if (outString != NULL) {
+							outString[unescapedCharIndex] = '\r';
+						}
+						unescapedCharIndex++;
+						break;
+					case 't':
+						if (outString != NULL) {
+							outString[unescapedCharIndex] = '\t';
+						}
+						unescapedCharIndex++;
+						break;
+						
+					case 'u':
+						charIndex2 = charIndex - 1;
+						while (charIndex < length) {
+							if (charIndex >= length - 4) {
+								return false;
+							}
+							charIndex += 4;
+							if (charIndex < length - 2 && string[charIndex + 1] == '\\' && string[charIndex + 2] == 'u') {
+								charIndex += 2;
+							} else {
+								break;
+							}
+						}
+						
+						utf16String = malloc(sizeof(uint16_t) * (charIndex - charIndex2 + 1) / 6);
+						utf16Length = 0;
+						while (charIndex2 < charIndex) {
+							charIndex2 += 2;
+							if (!sscanf(string + charIndex2, "%4x", &utf16Char)) {
+								free(utf16String);
+								return false;
+							}
+							charIndex2 += 4;
+							utf16String[utf16Length++] = utf16Char;
+						}
+						
+						if (!utf16StringIsWellFormed(utf16String, utf16Length)) {
+							free(utf16String);
+							return false;
+						}
+						
+						utf8String = utf16StringToUTF8String(utf16String, utf16Length);
+						utf8Length = utf16StringUTF8Length(utf16String, utf16Length);
+						free(utf16String);
+						
+						if (outString != NULL) {
+							strncpy(outString + unescapedCharIndex, (char *) utf8String, utf8Length);
+						}
+						unescapedCharIndex += utf8Length;
+						
+						free(utf8String);
+						break;
+						
+					default:
+						if (outString != NULL) {
+							outString[unescapedCharIndex] = string[charIndex];
+						}
+						unescapedCharIndex++;
+						break;
+				}
+			} else {
+				if (outString != NULL) {
+					outString[unescapedCharIndex] = string[charIndex];
+				}
+				unescapedCharIndex++;
+			}
+		}
+	}
+	if (outString != NULL) {
+		outString[unescapedCharIndex] = '\x00';
+	}
+	if (outLength != NULL) {
+		*outLength = unescapedCharIndex;
+	}
+	
+	return true;
+}
+
+char * unescapeJSONString(const char * string, size_t length, size_t * outLength) {
+	char * unescapedString;
+	size_t unescapedLength;
+	
+	if (!unescapeJSONStringInternal(string, length, NULL, &unescapedLength)) {
+		return NULL;
+	}
+	unescapedString = malloc(unescapedLength + 1);
+	unescapeJSONStringInternal(string, length, unescapedString, outLength);
+	
+	return unescapedString;
+}
+
+size_t JSONNode_subitemIndexForKey(struct JSONNode * objectNode, const char * key, size_t keyLength) {
+	if (objectNode->type == JSON_TYPE_OBJECT) {
+		size_t subitemIndex;
+		
+		for (subitemIndex = 0; subitemIndex < objectNode->value.count; subitemIndex++) {
+			if (objectNode->subitems[subitemIndex].keyLength == keyLength && !memcmp(objectNode->subitems[subitemIndex].key, key, keyLength)) {
+				return subitemIndex;
+			}
+		}
+	}
+	return JSON_SUBITEM_NOT_FOUND;
 }
 
 void JSONNode_dispose(struct JSONNode * node) {

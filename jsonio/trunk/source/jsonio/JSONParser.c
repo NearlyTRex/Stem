@@ -21,18 +21,19 @@
 */
 
 #include "jsonio/JSONParser.h"
+#include "jsonio/JSONIO.h"
 #include "utilities/IOUtilities.h"
 #include "utilities/UTFUtilities.h"
 #include <stdio.h>
 #include <string.h>
 
-struct JSONNode * JSONParser_loadFile(const char * filePath) {
+struct JSONNode * JSONParser_loadFile(const char * filePath, struct JSONParseError * outError) {
 	char * fileContents;
 	size_t fileLength = 0;
 	struct JSONNode * node;
 	
 	fileContents = readFileSimple(filePath, &fileLength);
-	node = JSONParser_loadString(fileContents, fileLength);
+	node = JSONParser_loadString(fileContents, fileLength, outError);
 	free(fileContents);
 	return node;
 }
@@ -272,136 +273,7 @@ static enum JSONToken nextJSONToken(const char * string, size_t length, size_t *
 	return JSON_TOKEN_INVALID;
 }
 
-static bool unescapeStringInternal(const char * string, size_t length, char * outString, size_t * outLength) {
-	size_t charIndex, charIndex2, unescapedCharIndex;
-	bool escaped = false;
-	uint16_t * utf16String;
-	uint8_t * utf8String;
-	unsigned int utf16Char;
-	size_t utf16Length, utf8Length;
-	
-	unescapedCharIndex = 0;
-	for (charIndex = 0; charIndex < length; charIndex++) {
-		if (!escaped && string[charIndex] == '\\') {
-			escaped = true;
-			
-		} else {
-			if (escaped) {
-				escaped = false;
-				switch (string[charIndex]) {
-					case 'b':
-						if (outString != NULL) {
-							outString[unescapedCharIndex] = '\b';
-						}
-						unescapedCharIndex++;
-						break;
-					case 'f':
-						if (outString != NULL) {
-							outString[unescapedCharIndex] = '\f';
-						}
-						unescapedCharIndex++;
-						break;
-					case 'n':
-						if (outString != NULL) {
-							outString[unescapedCharIndex] = '\n';
-						}
-						unescapedCharIndex++;
-						break;
-					case 'r':
-						if (outString != NULL) {
-							outString[unescapedCharIndex] = '\r';
-						}
-						unescapedCharIndex++;
-						break;
-					case 't':
-						if (outString != NULL) {
-							outString[unescapedCharIndex] = '\t';
-						}
-						unescapedCharIndex++;
-						break;
-						
-					case 'u':
-						charIndex2 = charIndex - 1;
-						while (charIndex < length) {
-							if (charIndex >= length - 4) {
-								return false;
-							}
-							charIndex += 4;
-							if (charIndex < length - 2 && string[charIndex + 1] == '\\' && string[charIndex + 2] == 'u') {
-								charIndex += 2;
-							} else {
-								break;
-							}
-						}
-						
-						utf16String = malloc(sizeof(uint16_t) * (charIndex - charIndex2 + 1) / 6);
-						utf16Length = 0;
-						while (charIndex2 < charIndex) {
-							charIndex2 += 2;
-							if (!sscanf(string + charIndex2, "%4x", &utf16Char)) {
-								free(utf16String);
-								return false;
-							}
-							charIndex2 += 4;
-							utf16String[utf16Length++] = utf16Char;
-						}
-						
-						if (!utf16StringIsWellFormed(utf16String, utf16Length)) {
-							free(utf16String);
-							return false;
-						}
-						
-						utf8String = utf16StringToUTF8String(utf16String, utf16Length);
-						free(utf16String);
-						
-						utf8Length = utf8StringLength(utf8String);
-						if (outString != NULL) {
-							strncpy(outString + unescapedCharIndex, (char *) utf8String, utf8Length);
-						}
-						unescapedCharIndex += utf8Length;
-						
-						free(utf8String);
-						break;
-						
-					default:
-						if (outString != NULL) {
-							outString[unescapedCharIndex] = string[charIndex];
-						}
-						unescapedCharIndex++;
-						break;
-				}
-			} else {
-				if (outString != NULL) {
-					outString[unescapedCharIndex] = string[charIndex];
-				}
-				unescapedCharIndex++;
-			}
-		}
-	}
-	if (outString != NULL) {
-		outString[unescapedCharIndex] = '\x00';
-	}
-	if (outLength != NULL) {
-		*outLength = unescapedCharIndex;
-	}
-	
-	return true;
-}
-
-static char * unescapeString(const char * string, size_t length, size_t * outLength) {
-	char * unescapedString;
-	size_t unescapedLength;
-	
-	if (!unescapeStringInternal(string, length, NULL, &unescapedLength)) {
-		return NULL;
-	}
-	unescapedString = malloc(unescapedLength + 1);
-	unescapeStringInternal(string, length, unescapedString, outLength);
-	
-	return unescapedString;
-}
-
-struct JSONNode * JSONParser_loadString(const char * string, size_t length) {
+struct JSONNode * JSONParser_loadString(const char * string, size_t length, struct JSONParseError * outError) {
 	struct JSONNode * rootNode, * containerNode, node;
 	struct JSONNode nodePrototype = {JSON_TYPE_NULL, NULL, 0, NULL, 0, {.string = NULL}};
 	size_t charIndex = 0, tokenLength;
@@ -421,6 +293,11 @@ struct JSONNode * JSONParser_loadString(const char * string, size_t length) {
 		
 	} else {
 		JSONNode_dispose(rootNode);
+		if (outError != NULL) {
+			outError->charIndex = charIndex - tokenLength;
+			outError->code = JSONParseError_rootNodeNotFound;
+			outError->description = "Didn't find \"[\" or \"{\" at beginning of document";
+		}
 		return NULL;
 	}
 	
@@ -453,13 +330,28 @@ struct JSONNode * JSONParser_loadString(const char * string, size_t length) {
 			if (token != JSON_TOKEN_STRING) {
 				JSONNode_dispose(rootNode);
 				free(nodeStack);
+				if (outError != NULL) {
+					outError->charIndex = charIndex - tokenLength;
+					if (charIndex >= length) {
+						outError->code = JSONParseError_unexpectedEOF;
+						outError->description = "Unexpected end of file when seeking object key";
+					} else {
+						outError->code = JSONParseError_objectKeyNotFound;
+						outError->description = "Didn't get object key string when expected";
+					}
+				}
 				return NULL;
 			}
 			
-			node.key = unescapeString(string + charIndex - tokenLength + 1, tokenLength - 2, &node.keyLength);
+			node.key = unescapeJSONString(string + charIndex - tokenLength + 1, tokenLength - 2, &node.keyLength);
 			if (node.key == NULL) {
 				JSONNode_dispose(rootNode);
 				free(nodeStack);
+				if (outError != NULL) {
+					outError->charIndex = charIndex - tokenLength;
+					outError->code = JSONParseError_malformedString;
+					outError->description = "Couldn't unescape key string";
+				}
 				return NULL;
 			}
 			
@@ -468,6 +360,11 @@ struct JSONNode * JSONParser_loadString(const char * string, size_t length) {
 				JSONNode_disposeContents(&node);
 				JSONNode_dispose(rootNode);
 				free(nodeStack);
+				if (outError != NULL) {
+					outError->charIndex = charIndex - tokenLength;
+					outError->code = JSONParseError_keyNotFollowedByColon;
+					outError->description = "Object key not followed by colon";
+				}
 				return NULL;
 			}
 			token = nextJSONToken(string, length, &charIndex, &tokenLength);
@@ -494,34 +391,36 @@ struct JSONNode * JSONParser_loadString(const char * string, size_t length) {
 			containerNode->subitems[containerNode->value.count - 1] = node;
 			
 		} else if (token == JSON_TOKEN_NUMBER) {
-			char * endPtr;
-			
 			if (charIndex >= length) {
 				// strtod is potentially dangerous, so make sure it isn't called if we're at the end of a potentially-not-null-terminated string (which would be invalid json anyway)
 				JSONNode_disposeContents(&node);
 				JSONNode_dispose(rootNode);
 				free(nodeStack);
+				if (outError != NULL) {
+					outError->charIndex = length;
+					outError->code = JSONParseError_unexpectedEOF;
+					outError->description = "Unexpected end of file when seeking number value";
+				}
 				return NULL;
 			}
 			node.type = JSON_TYPE_NUMBER;
-			node.value.number = strtod(string + charIndex - tokenLength, &endPtr);
-			if (endPtr != string + charIndex) {
-				JSONNode_disposeContents(&node);
-				JSONNode_dispose(rootNode);
-				free(nodeStack);
-				return NULL;
-			}
+			node.value.number = strtod(string + charIndex - tokenLength, NULL);
 			containerNode->value.count++;
 			containerNode->subitems = realloc(containerNode->subitems, sizeof(struct JSONNode) * containerNode->value.count);
 			containerNode->subitems[containerNode->value.count - 1] = node;
 			
 		} else if (token == JSON_TOKEN_STRING) {
 			node.type = JSON_TYPE_STRING;
-			node.value.string = unescapeString(string + charIndex - tokenLength + 1, tokenLength - 2, &node.stringLength);
+			node.value.string = unescapeJSONString(string + charIndex - tokenLength + 1, tokenLength - 2, &node.stringLength);
 			if (node.value.string == NULL) {
 				JSONNode_disposeContents(&node);
 				JSONNode_dispose(rootNode);
 				free(nodeStack);
+				if (outError != NULL) {
+					outError->charIndex = charIndex - tokenLength;
+					outError->code = JSONParseError_malformedString;
+					outError->description = "Couldn't unescape value string";
+				}
 				return NULL;
 			}
 			containerNode->value.count++;
@@ -545,6 +444,16 @@ struct JSONNode * JSONParser_loadString(const char * string, size_t length) {
 			JSONNode_disposeContents(&node);
 			JSONNode_dispose(rootNode);
 			free(nodeStack);
+			if (outError != NULL) {
+				outError->charIndex = charIndex - tokenLength;
+				if (charIndex >= length) {
+					outError->code = JSONParseError_unexpectedEOF;
+					outError->description = "Unexpected end of file when seeking value";
+				} else {
+					outError->code = JSONParseError_unexpectedToken;
+					outError->description = "Unexpected token when seeking value";
+				}
+			}
 			return NULL;
 		}
 	}
@@ -555,6 +464,11 @@ struct JSONNode * JSONParser_loadString(const char * string, size_t length) {
 	}
 	if (charIndex != length) {
 		JSONNode_dispose(rootNode);
+		if (outError != NULL) {
+			outError->charIndex = charIndex;
+			outError->code = JSONParseError_unexpectedToken;
+			outError->description = "Extra data after expected end of file";
+		}
 		return NULL;
 	}
 	

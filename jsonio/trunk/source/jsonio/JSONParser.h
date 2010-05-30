@@ -25,12 +25,29 @@
 
 #include "jsonio/JSONIO.h"
 
-/* Attempts to load the file at filePath as JSON, returning a pointer to the top-level node if successful, or
-   NULL if not. It is the caller's resposibility to free the returned node with JSONParser_disposeNode. */
-struct JSONNode * JSONParser_loadFile(const char * filePath);
+enum JSONParseErrorCode {
+	JSONParseError_rootNodeNotFound,
+	JSONParseError_objectKeyNotFound,
+	JSONParseError_malformedString,
+	JSONParseError_keyNotFollowedByColon,
+	JSONParseError_unexpectedEOF,
+	JSONParseError_unexpectedToken
+};
 
-/* Attempts to load string as JSON, returning a pointer to the top-level node if successful, or NULL if not.
-   It is the caller's resposibility to free the returned node with JSONParser_disposeNode. */
-struct JSONNode * JSONParser_loadString(const char * string, size_t length);
+struct JSONParseError {
+	size_t charIndex;
+	enum JSONParseErrorCode code;
+	const char * description;
+};
+
+/* Attempts to load the file at filePath as JSON, returning a pointer to the top-level node if successful. It is
+   the caller's resposibility to free the returned node with JSONNode_dispose. If parsing fails, NULL is returned,
+   and information about the parse error will be stored in outError if outError is not NULL. */
+struct JSONNode * JSONParser_loadFile(const char * filePath, struct JSONParseError * outError);
+
+/* Attempts to load string as JSON, returning a pointer to the top-level node if successful. It is the caller's
+   resposibility to free the returned node with JSONNode_dispose. If parsing fails, NULL is returned, and
+   information about the parse error will be stored in outError if outError is not NULL. */
+struct JSONNode * JSONParser_loadString(const char * string, size_t length, struct JSONParseError * outError);
 
 #endif

@@ -23,6 +23,7 @@
 #ifndef __JSON_IO_H__
 #define __JSON_IO_H__
 
+#include <limits.h>
 #include <stdbool.h>
 #include <stdlib.h>
 
@@ -34,6 +35,8 @@ enum JSONType {
 	JSON_TYPE_BOOLEAN = 4,
 	JSON_TYPE_NULL = 5
 };
+
+#define JSON_SUBITEM_NOT_FOUND SIZE_T_MAX
 
 struct JSONNode {
 	// Defined for all nodes
@@ -66,10 +69,11 @@ struct JSONNode {
 	} value;
 };
 
-size_t escapeJSONString(const char * unescapedString, char * outEscapedString, size_t bufferSize);
-size_t unescapeJSONString(const char * escapedString, char * outUnescapedString, size_t bufferSize);
+char * escapeJSONString(const char * string, size_t length, size_t * outLength);
+char * unescapeJSONString(const char * string, size_t length, size_t * outLength);
 
-struct JSONNode * JSONNode_subitemForKey(struct JSONNode * objectNode, const char * key);
+// Returns JSON_SUBITEM_NOT_FOUND if no subitem with the specified key exists in objectNode, or if objectNode is not of JSON_TYPE_OBJECT
+size_t JSONNode_subitemIndexForKey(struct JSONNode * objectNode, const char * key, size_t keyLength);
 
 /* Frees node, its contents, and all subitems. */
 void JSONNode_dispose(struct JSONNode * node);
