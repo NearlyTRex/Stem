@@ -35,6 +35,7 @@ bool JSONEmitter_writeFile(struct JSONNode * rootNode, enum JSONEmitterFormat fo
 		return false;
 	}
 	success = writeFileSimple(filePath, string, length);
+	free(string);
 	return success;
 }
 
@@ -49,7 +50,7 @@ char * JSONEmitter_writeString(struct JSONNode * rootNode, enum JSONEmitterForma
 	struct JSONNode * containerNode;
 	struct nodeStackItem * nodeStack;
 	size_t nodeStackAllocatedSize, nodeStackCurrentDepth;
-	unsigned int indentIndex;
+	size_t indentIndex;
 	
 	context = memwriteContextInit(malloc(1), 0, 1, true);
 	
@@ -134,6 +135,7 @@ char * JSONEmitter_writeString(struct JSONNode * rootNode, enum JSONEmitterForma
 					outError->code = JSONEmissionError_nullKeyString;
 					outError->description = "Null key string";
 				}
+				free(nodeStack);
 				return NULL;
 			}
 			
@@ -164,6 +166,7 @@ char * JSONEmitter_writeString(struct JSONNode * rootNode, enum JSONEmitterForma
 					outError->code = JSONEmissionError_nullValueString;
 					outError->description = "Null value string";
 				}
+				free(nodeStack);
 				return NULL;
 			}
 			
@@ -191,6 +194,7 @@ char * JSONEmitter_writeString(struct JSONNode * rootNode, enum JSONEmitterForma
 					outError->code = JSONEmissionError_nullSubitems;
 					outError->description = "Null subitems with nonzero count";
 				}
+				free(nodeStack);
 				return NULL;
 			}
 			
@@ -218,6 +222,7 @@ char * JSONEmitter_writeString(struct JSONNode * rootNode, enum JSONEmitterForma
 					outError->code = JSONEmissionError_nullSubitems;
 					outError->description = "Null subitems with nonzero count";
 				}
+				free(nodeStack);
 				return NULL;
 			}
 			
@@ -244,6 +249,7 @@ char * JSONEmitter_writeString(struct JSONNode * rootNode, enum JSONEmitterForma
 				outError->code = JSONEmissionError_invalidNodeType;
 				outError->description = "Invalid node type";
 			}
+			free(nodeStack);
 			return NULL;
 		}
 		

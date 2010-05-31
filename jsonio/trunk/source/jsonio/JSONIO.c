@@ -72,13 +72,13 @@ static void escapeJSONStringInternal(const char * string, size_t length, char * 
 			}
 			escapedCharIndex += 2;
 			
-		} else if ((unsigned char) string[charIndex] < ' ' && (unsigned char) string[charIndex] != '\t') {
+		} else if (string[charIndex] >= '\0' && string[charIndex] < ' ' && string[charIndex] != '\t') {
 			if (outString != NULL) {
 				char hex[5];
 				
 				outString[escapedCharIndex] = '\\';
 				outString[escapedCharIndex + 1] = 'u';
-				sprintf(hex, "%04X", string[charIndex]);
+				sprintf(hex, "%04X", (unsigned int) string[charIndex]);
 				outString[escapedCharIndex + 2] = hex[0];
 				outString[escapedCharIndex + 3] = hex[1];
 				outString[escapedCharIndex + 4] = hex[2];
@@ -183,7 +183,7 @@ static bool unescapeJSONStringInternal(const char * string, size_t length, char 
 								return false;
 							}
 							charIndex2 += 4;
-							utf16String[utf16Length++] = utf16Char;
+							utf16String[utf16Length++] = (uint16_t) utf16Char;
 						}
 						
 						if (!utf16StringIsWellFormed(utf16String, utf16Length)) {
@@ -267,7 +267,7 @@ void JSONNode_disposeContents(struct JSONNode * node) {
 	}
 	
 	if (node->type == JSON_TYPE_ARRAY || node->type == JSON_TYPE_OBJECT) {
-		unsigned int subitemIndex;
+		size_t subitemIndex;
 		
 		for (subitemIndex = 0; subitemIndex < node->value.count; subitemIndex++) {
 			JSONNode_disposeContents(&node->subitems[subitemIndex]);
