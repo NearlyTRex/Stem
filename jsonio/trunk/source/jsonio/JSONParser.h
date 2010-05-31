@@ -31,7 +31,8 @@ enum JSONParseErrorCode {
 	JSONParseError_malformedString,
 	JSONParseError_keyNotFollowedByColon,
 	JSONParseError_unexpectedEOF,
-	JSONParseError_unexpectedToken
+	JSONParseError_unexpectedToken,
+	JSONParseError_fileNotFound
 };
 
 struct JSONParseError {

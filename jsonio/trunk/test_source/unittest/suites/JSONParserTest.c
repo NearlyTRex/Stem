@@ -924,6 +924,12 @@ static void testErrorReporting() {
 	TestCase_assert(error.charIndex == 2, "Expected 2 but got %zu", error.charIndex);
 	TestCase_assert(error.code == JSONParseError_unexpectedToken, "Expected %d but got %d", JSONParseError_unexpectedToken, error.code);
 	TestCase_assert(error.description != NULL, "Expected non-NULL but got NULL");
+	
+	error = errorPrototype;
+	node = JSONParser_loadFile("If this file exists, unit tests will fail", &error);
+	TestCase_assert(node == NULL, "Expected NULL but got %p", node);
+	TestCase_assert(error.code == JSONParseError_fileNotFound, "Expected %d but got %d", JSONParseError_fileNotFound, error.code);
+	TestCase_assert(error.description != NULL, "Expected non-NULL but got NULL");
 }
 
 TEST_SUITE(JSONParserTest,

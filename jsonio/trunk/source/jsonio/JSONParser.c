@@ -33,7 +33,16 @@ struct JSONNode * JSONParser_loadFile(const char * filePath, struct JSONParseErr
 	struct JSONNode * node;
 	
 	fileContents = readFileSimple(filePath, &fileLength);
+	if (fileContents == NULL) {
+		if (outError != NULL) {
+			outError->code = JSONParseError_fileNotFound;
+			outError->description = "File not found";
+		}
+		return NULL;
+	}
+	
 	node = JSONParser_loadString(fileContents, fileLength, outError);
+	
 	free(fileContents);
 	return node;
 }

@@ -30,8 +30,8 @@ CODESIGN_IDENTITY = "iPhone Developer"
 SVNROOT = http://sacredsoftware.net/svn/misc#master_source_only
 
 LIBRARY_TARGETS = library
-EXECUTABLE_TARGETS = unittest
-APPLICATION_TARGETS = testharness
+EXECUTABLE_TARGETS = unittest testharness
+APPLICATION_TARGETS = 
 TARGETS = ${LIBRARY_TARGETS} ${EXECUTABLE_TARGETS} ${APPLICATION_TARGETS}
 CONFIGURATIONS = debug profile release
 PLATFORMS = ${filter ${TARGET_PLATFORMS_${HOST_PLATFORM}},macosx iphonesimulator iphoneos linux windows}
@@ -51,7 +51,7 @@ CONFIGURATIONS_testharness = debug profile release
 #Per-target platforms
 PLATFORMS_library = ${filter ${PLATFORMS},macosx iphonesimulator iphoneos linux windows}
 PLATFORMS_unittest = ${filter ${PLATFORMS},macosx iphonesimulator linux windows}
-PLATFORMS_testharness = ${filter ${PLATFORMS},macosx iphonesimulator iphoneos linux windows}
+PLATFORMS_testharness = ${filter ${PLATFORMS},macosx iphonesimulator linux windows}
 
 #Per-target compile/link settings
 CCFLAGS_unittest = -I test_source -include build/intermediate/TestList.h
