@@ -123,7 +123,7 @@ int main(int argc, char ** argv) {
 				}
 			}
 			
-			fprintf(stderr, "Line %zu, char %zu (%zu overall)\n", lineCount + 1, parseError.charIndex - lineFirstCharIndex + 1, parseError.charIndex);
+			fprintf(stderr, "Line %lu, char %lu (%lu overall)\n", (unsigned long) lineCount + 1, (unsigned long) (parseError.charIndex - lineFirstCharIndex + 1), (unsigned long) parseError.charIndex + 1);
 			fprintf(stderr, "%.*s\n", (int) (lineEndCharIndex - lineFirstCharIndex), infileData + lineFirstCharIndex);
 			for (charIndex = lineFirstCharIndex; charIndex < parseError.charIndex && charIndex < infileLength; charIndex++) {
 				if (isspace(infileData[charIndex])) {
