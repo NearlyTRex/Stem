@@ -153,6 +153,7 @@ THIRDPARTY_LIBRARY_DEPENDENCIES_unittest_macosx =
 #Per-target source file lists
 
 SOURCES_library = \
+	source/jsonio/JSONEmitter.c \
 	source/jsonio/JSONIO.c \
 	source/jsonio/JSONParser.c
 
@@ -162,6 +163,7 @@ SOURCES_unittest = \
 	${SOURCES_unittest_suites}
 
 SOURCES_unittest_suites = \
+	test_source/unittest/suites/JSONEmitterTest.c \
 	test_source/unittest/suites/JSONIOTest.c \
 	test_source/unittest/suites/JSONParserTest.c
 
@@ -169,6 +171,7 @@ SOURCES_testharness = \
 	test_source/testharness/TestHarness_main.c
 
 INCLUDES = \
+	source/jsonio/JSONEmitter.h \
 	source/jsonio/JSONIO.h \
 	source/jsonio/JSONParser.h
 
@@ -180,7 +183,7 @@ ANALYZER_EXCLUDE_SOURCES_splint = ${SOURCES_unittest}
 
 PREREQS_unittest = build/intermediate/TestList.h
 
-build/intermediate/TestList.h:
+build/intermediate/TestList.h: ${SOURCES_unittest_suites}
 	mkdir -p build/intermediate
 	echo '#define SUITE_FILE_LIST ${foreach file,${SOURCES_unittest_suites},"${basename ${notdir ${file}}}",} NULL' > $@
 

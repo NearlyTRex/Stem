@@ -19,16 +19,16 @@ static void testEscapeJSONString() {
 	TestCase_assert(!strcmp(string, "\\\""), "Expected \"\\\"\" but got \"%s\"", string);
 	free(string);
 	
-	string = escapeJSONString(stringAndLength("\b\n\f\r\t"), &length);
+	string = escapeJSONString(stringAndLength("\b\f\n\r\t"), &length);
 	TestCase_assert(string != NULL, "Expected non-NULL but got NULL");
 	TestCase_assert(length == 9, "Expected 9 but got %zu", length);
-	TestCase_assert(!strcmp(string, "\\b\\n\\f\\r\t"), "Expected \"\\b\\n\\f\\r\t\" but got \"%s\"", string);
+	TestCase_assert(!strcmp(string, "\\b\\f\\n\\r\t"), "Expected \"\\b\\f\\n\\r\t\" but got \"%s\"", string);
 	free(string);
 	
 	string = escapeJSONString(stringAndLength("\x20\xE2\x9A\xA0\xF0\x9D\x84\x9E"), &length);
 	TestCase_assert(string != NULL, "Expected non-NULL but got NULL");
 	TestCase_assert(length == 8, "Expected 8 but got %zu", length);
-	TestCase_assert(!memcmp(string, "\x20\xE2\x9A\xA0\xF0\x9D\x84\x9E", 9), "Expected \"\x20\xE2\x9A\xA0\xF0\x9D\x84\x9E\" but got \"%s\"", string);
+	TestCase_assert(!strcmp(string, "\x20\xE2\x9A\xA0\xF0\x9D\x84\x9E"), "Expected \"\x20\xE2\x9A\xA0\xF0\x9D\x84\x9E\" but got \"%s\"", string);
 	free(string);
 	
 	string = escapeJSONString("a\0b", 3, &length);
@@ -60,16 +60,16 @@ static void testUnescapeJSONString() {
 	TestCase_assert(!strcmp(string, "\""), "Expected \"\"\" but got \"%s\"", string);
 	free(string);
 	
-	string = unescapeJSONString(stringAndLength("\\b\\n\\f\\r\\t"), &length);
+	string = unescapeJSONString(stringAndLength("\\b\\f\\n\\r\\t"), &length);
 	TestCase_assert(string != NULL, "Expected non-NULL but got NULL");
 	TestCase_assert(length == 5, "Expected 5 but got %zu", length);
-	TestCase_assert(!strcmp(string, "\b\n\f\r\t"), "Expected \"\b\n\f\r\t\" but got \"%s\"", string);
+	TestCase_assert(!strcmp(string, "\b\f\n\r\t"), "Expected \"\b\f\n\r\t\" but got \"%s\"", string);
 	free(string);
 	
 	string = unescapeJSONString(stringAndLength("\\u0020\\u26A0\\uD834\\udd1e"), &length);
 	TestCase_assert(string != NULL, "Expected non-NULL but got NULL");
 	TestCase_assert(length == 8, "Expected 8 but got %zu", length);
-	TestCase_assert(!memcmp(string, "\x20\xE2\x9A\xA0\xF0\x9D\x84\x9E", 9), "Expected \"\x20\xE2\x9A\xA0\xF0\x9D\x84\x9E\" but got \"%s\"", string);
+	TestCase_assert(!strcmp(string, "\x20\xE2\x9A\xA0\xF0\x9D\x84\x9E"), "Expected \"\x20\xE2\x9A\xA0\xF0\x9D\x84\x9E\" but got \"%s\"", string);
 	free(string);
 	
 	string = unescapeJSONString(stringAndLength("a\\u0000b"), &length);

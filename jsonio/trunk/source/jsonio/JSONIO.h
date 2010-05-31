@@ -69,7 +69,10 @@ struct JSONNode {
 	} value;
 };
 
+/* Caller is responsible for freeing return value. */
 char * escapeJSONString(const char * string, size_t length, size_t * outLength);
+
+/* Returns NULL if string contains invalid escapes. Caller is responsible for freeing return value. */
 char * unescapeJSONString(const char * string, size_t length, size_t * outLength);
 
 // Returns JSON_SUBITEM_NOT_FOUND if no subitem with the specified key exists in objectNode, or if objectNode is not of JSON_TYPE_OBJECT

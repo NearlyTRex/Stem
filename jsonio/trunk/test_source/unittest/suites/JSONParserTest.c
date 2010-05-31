@@ -565,7 +565,7 @@ static void testStringEscapes() {
 	TestCase_assert(!strcmp(node->subitems[0].value.string, "\""), "Expected \"\"\" but got \"%s\"", node->subitems[0].value.string);
 	JSONNode_dispose(node);
 	
-	node = JSONParser_loadString(stringAndLength("[\"\\b\\n\\f\\r\\t\"]"), NULL);
+	node = JSONParser_loadString(stringAndLength("[\"\\b\\f\\n\\r\\t\"]"), NULL);
 	TestCase_assert(node != NULL, "Expected non-NULL but got NULL");
 	TestCase_assert(node->type == JSON_TYPE_ARRAY, "Expected %d but got %d", JSON_TYPE_ARRAY, node->type);
 	TestCase_assert(node->key == NULL, "Expected NULL but got \"%s\"", node->key);
@@ -574,7 +574,7 @@ static void testStringEscapes() {
 	TestCase_assert(node->subitems[0].type == JSON_TYPE_STRING, "Expected %d but got %d", JSON_TYPE_STRING, node->subitems[0].type);
 	TestCase_assert(node->subitems[0].key == NULL, "Expected NULL but got %p", node->subitems[0].key);
 	TestCase_assert(node->subitems[0].stringLength == 5, "Expected 5 but got %zu", node->subitems[0].stringLength);
-	TestCase_assert(!strcmp(node->subitems[0].value.string, "\b\n\f\r\t"), "Expected \"\b\n\f\r\t\" but got \"%s\"", node->subitems[0].value.string);
+	TestCase_assert(!strcmp(node->subitems[0].value.string, "\b\f\n\r\t"), "Expected \"\b\f\n\r\t\" but got \"%s\"", node->subitems[0].value.string);
 	JSONNode_dispose(node);
 	
 	node = JSONParser_loadString(stringAndLength("[\"\\u0020\\u26A0\\uD834\\udd1e\"]"), NULL);
@@ -586,7 +586,7 @@ static void testStringEscapes() {
 	TestCase_assert(node->subitems[0].type == JSON_TYPE_STRING, "Expected %d but got %d", JSON_TYPE_STRING, node->subitems[0].type);
 	TestCase_assert(node->subitems[0].key == NULL, "Expected NULL but got %p", node->subitems[0].key);
 	TestCase_assert(node->subitems[0].stringLength == 8, "Expected 8 but got %zu", node->subitems[0].stringLength);
-	TestCase_assert(!memcmp(node->subitems[0].value.string, "\x20\xE2\x9A\xA0\xF0\x9D\x84\x9E", 9), "Expected \"\x20\xE2\x9A\xA0\xF0\x9D\x84\x9E\" but got \"%s\"", node->subitems[0].value.string);
+	TestCase_assert(!strcmp(node->subitems[0].value.string, "\x20\xE2\x9A\xA0\xF0\x9D\x84\x9E"), "Expected \"\x20\xE2\x9A\xA0\xF0\x9D\x84\x9E\" but got \"%s\"", node->subitems[0].value.string);
 	JSONNode_dispose(node);
 	
 	node = JSONParser_loadString(stringAndLength("[\"a\\u0000b\"]"), NULL);
@@ -637,7 +637,7 @@ static void testStringEscapes() {
 	TestCase_assert(!strcmp(node->subitems[0].value.string, "\""), "Expected \"\"\" but got \"%s\"", node->subitems[0].value.string);
 	JSONNode_dispose(node);
 	
-	loadConstantStringFromTemporaryFile(node, "[\"\\b\\n\\f\\r\\t\"]", NULL);
+	loadConstantStringFromTemporaryFile(node, "[\"\\b\\f\\n\\r\\t\"]", NULL);
 	TestCase_assert(node != NULL, "Expected non-NULL but got NULL");
 	TestCase_assert(node->type == JSON_TYPE_ARRAY, "Expected %d but got %d", JSON_TYPE_ARRAY, node->type);
 	TestCase_assert(node->key == NULL, "Expected NULL but got \"%s\"", node->key);
@@ -646,7 +646,7 @@ static void testStringEscapes() {
 	TestCase_assert(node->subitems[0].type == JSON_TYPE_STRING, "Expected %d but got %d", JSON_TYPE_STRING, node->subitems[0].type);
 	TestCase_assert(node->subitems[0].key == NULL, "Expected NULL but got %p", node->subitems[0].key);
 	TestCase_assert(node->subitems[0].stringLength == 5, "Expected 5 but got %zu", node->subitems[0].stringLength);
-	TestCase_assert(!strcmp(node->subitems[0].value.string, "\b\n\f\r\t"), "Expected \"\b\n\f\r\t\" but got \"%s\"", node->subitems[0].value.string);
+	TestCase_assert(!strcmp(node->subitems[0].value.string, "\b\f\n\r\t"), "Expected \"\b\f\n\r\t\" but got \"%s\"", node->subitems[0].value.string);
 	JSONNode_dispose(node);
 	
 	loadConstantStringFromTemporaryFile(node, "[\"\\u0020\\u26A0\\uD834\\udd1e\"]", NULL);
@@ -658,7 +658,7 @@ static void testStringEscapes() {
 	TestCase_assert(node->subitems[0].type == JSON_TYPE_STRING, "Expected %d but got %d", JSON_TYPE_STRING, node->subitems[0].type);
 	TestCase_assert(node->subitems[0].key == NULL, "Expected NULL but got %p", node->subitems[0].key);
 	TestCase_assert(node->subitems[0].stringLength == 8, "Expected 8 but got %zu", node->subitems[0].stringLength);
-	TestCase_assert(!memcmp(node->subitems[0].value.string, "\x20\xE2\x9A\xA0\xF0\x9D\x84\x9E", 9), "Expected \"\x20\xE2\x9A\xA0\xF0\x9D\x84\x9E\" but got \"%s\"", node->subitems[0].value.string);
+	TestCase_assert(!strcmp(node->subitems[0].value.string, "\x20\xE2\x9A\xA0\xF0\x9D\x84\x9E"), "Expected \"\x20\xE2\x9A\xA0\xF0\x9D\x84\x9E\" but got \"%s\"", node->subitems[0].value.string);
 	JSONNode_dispose(node);
 	
 	loadConstantStringFromTemporaryFile(node, "[\"a\\u0000b\"]", NULL);
