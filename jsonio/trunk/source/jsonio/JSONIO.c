@@ -119,6 +119,7 @@ static bool unescapeJSONStringInternal(const char * string, size_t length, char 
 	uint8_t * utf8String;
 	unsigned int utf16Char;
 	size_t utf16Length, utf8Length;
+	char hex[5] = {0, 0, 0, 0, 0};
 	
 	unescapedCharIndex = 0;
 	for (charIndex = 0; charIndex < length; charIndex++) {
@@ -178,7 +179,11 @@ static bool unescapeJSONStringInternal(const char * string, size_t length, char 
 						utf16Length = 0;
 						while (charIndex2 < charIndex) {
 							charIndex2 += 2;
-							if (!sscanf(string + charIndex2, "%4x", &utf16Char)) {
+							hex[0] = string[charIndex2];
+							hex[1] = string[charIndex2 + 1];
+							hex[2] = string[charIndex2 + 2];
+							hex[3] = string[charIndex2 + 3];
+							if (!sscanf(hex, "%4x", &utf16Char)) {
 								free(utf16String);
 								return false;
 							}
