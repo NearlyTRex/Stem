@@ -25,6 +25,7 @@
 
 #include <limits.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdlib.h>
 
 enum JSONType {
@@ -36,6 +37,9 @@ enum JSONType {
 	JSON_TYPE_NULL = 5
 };
 
+#ifndef SIZE_T_MAX
+#define SIZE_T_MAX ((size_t) SIZE_MAX)
+#endif
 #define JSON_SUBITEM_NOT_FOUND SIZE_T_MAX
 
 struct JSONNode {
