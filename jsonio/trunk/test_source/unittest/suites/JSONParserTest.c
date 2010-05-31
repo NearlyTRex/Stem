@@ -766,6 +766,18 @@ static void testInvalidSyntax() {
 	
 	node = JSONParser_loadString(stringAndLength("{}[]"), NULL);
 	TestCase_assert(node == NULL, "Expected NULL but got %p", node);
+	
+	node = JSONParser_loadString(stringAndLength("[, 0]"), NULL);
+	TestCase_assert(node == NULL, "Expected NULL but got %p", node);
+	
+	node = JSONParser_loadString(stringAndLength("{ , \"a\": 0}"), NULL);
+	TestCase_assert(node == NULL, "Expected NULL but got %p", node);
+	
+	node = JSONParser_loadString(stringAndLength("[1 2]"), NULL);
+	TestCase_assert(node == NULL, "Expected NULL but got %p", node);
+	
+	node = JSONParser_loadString(stringAndLength("{\"a\": 0 \"b\": 1}"), NULL);
+	TestCase_assert(node == NULL, "Expected NULL but got %p", node);
 }
 
 static void testThatLengthIsRespected() {
@@ -929,6 +941,34 @@ static void testErrorReporting() {
 	node = JSONParser_loadFile("If this file exists, unit tests will fail", &error);
 	TestCase_assert(node == NULL, "Expected NULL but got %p", node);
 	TestCase_assert(error.code == JSONParseError_fileNotFound, "Expected %d but got %d", JSONParseError_fileNotFound, error.code);
+	TestCase_assert(error.description != NULL, "Expected non-NULL but got NULL");
+	
+	error = errorPrototype;
+	node = JSONParser_loadString(stringAndLength("[, 0]"), &error);
+	TestCase_assert(node == NULL, "Expected NULL but got %p", node);
+	TestCase_assert(error.charIndex == 1, "Expected 1 but got %zu", error.charIndex);
+	TestCase_assert(error.code == JSONParseError_unexpectedToken, "Expected %d but got %d", JSONParseError_unexpectedToken, error.code);
+	TestCase_assert(error.description != NULL, "Expected non-NULL but got NULL");
+	
+	error = errorPrototype;
+	node = JSONParser_loadString(stringAndLength("{ , \"a\": 0}"), &error);
+	TestCase_assert(node == NULL, "Expected NULL but got %p", node);
+	TestCase_assert(error.charIndex == 2, "Expected 2 but got %zu", error.charIndex);
+	TestCase_assert(error.code == JSONParseError_unexpectedToken, "Expected %d but got %d", JSONParseError_unexpectedToken, error.code);
+	TestCase_assert(error.description != NULL, "Expected non-NULL but got NULL");
+	
+	error = errorPrototype;
+	node = JSONParser_loadString(stringAndLength("[1 2]"), &error);
+	TestCase_assert(node == NULL, "Expected NULL but got %p", node);
+	TestCase_assert(error.charIndex == 3, "Expected 3 but got %zu", error.charIndex);
+	TestCase_assert(error.code == JSONParseError_unexpectedToken, "Expected %d but got %d", JSONParseError_unexpectedToken, error.code);
+	TestCase_assert(error.description != NULL, "Expected non-NULL but got NULL");
+	
+	error = errorPrototype;
+	node = JSONParser_loadString(stringAndLength("{\"a\": 0 \"b\": 1}"), &error);
+	TestCase_assert(node == NULL, "Expected NULL but got %p", node);
+	TestCase_assert(error.charIndex == 8, "Expected 8 but got %zu", error.charIndex);
+	TestCase_assert(error.code == JSONParseError_unexpectedToken, "Expected %d but got %d", JSONParseError_unexpectedToken, error.code);
 	TestCase_assert(error.description != NULL, "Expected non-NULL but got NULL");
 }
 

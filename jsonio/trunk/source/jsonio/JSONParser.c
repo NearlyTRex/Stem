@@ -284,12 +284,14 @@ static enum JSONToken nextJSONToken(const char * string, size_t length, size_t *
 
 struct JSONNode * JSONParser_loadString(const char * string, size_t length, struct JSONParseError * outError) {
 	struct JSONNode * rootNode, * containerNode, node;
-	struct JSONNode nodePrototype = {JSON_TYPE_NULL, NULL, 0, NULL, 0, {.string = NULL}};
+	struct JSONNode nodePrototype;
 	size_t charIndex = 0, tokenLength;
 	enum JSONToken token;
 	struct JSONNode ** nodeStack;
 	size_t nodeStackAllocatedSize, nodeStackCurrentDepth;
 	
+	memset(&nodePrototype, 0, sizeof(nodePrototype));
+	nodePrototype.type = JSON_TYPE_NULL;
 	rootNode = malloc(sizeof(struct JSONNode));
 	*rootNode = nodePrototype;
 	
@@ -329,8 +331,32 @@ struct JSONNode * JSONParser_loadString(const char * string, size_t length, stru
 			continue;
 		}
 		
-		if (token == JSON_TOKEN_COMMA && containerNode->value.count > 0) {
+		if (containerNode->value.count > 0) {
+			if (token != JSON_TOKEN_COMMA) {
+				JSONNode_dispose(rootNode);
+				free(nodeStack);
+				if (outError != NULL) {
+					outError->charIndex = charIndex - tokenLength;
+					outError->code = JSONParseError_unexpectedToken;
+					outError->description = "Unexpected token when seeking comma";
+				}
+				return NULL;
+			}
 			token = nextJSONToken(string, length, &charIndex, &tokenLength);
+			
+		} else if (token == JSON_TOKEN_COMMA) {
+			JSONNode_dispose(rootNode);
+			free(nodeStack);
+			if (outError != NULL) {
+				outError->charIndex = charIndex - tokenLength;
+				outError->code = JSONParseError_unexpectedToken;
+				if (containerNode->type == JSON_TYPE_OBJECT) {
+					outError->description = "Unexpected comma when seeking key";
+				} else {
+					outError->description = "Unexpected comma when seeking value";
+				}
+			}
+			return NULL;
 		}
 		
 		node = nodePrototype;
