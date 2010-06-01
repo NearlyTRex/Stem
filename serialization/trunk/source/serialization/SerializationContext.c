@@ -2,8 +2,11 @@
 #include <stdlib.h>
 
 void SerializationContext_init(SerializationContext * self) {
+	StemObject_init((StemObject *) self);
+	
 	self->jmpBuf = NULL;
 	self->status = SERIALIZATION_ERROR_OK;
+	self->dispose = SerializationContext_dispose;
 	self->beginStructure = NULL;
 	self->beginDictionary = NULL;
 	self->beginArray = NULL;

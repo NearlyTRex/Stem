@@ -2,8 +2,11 @@
 #include <stdlib.h>
 
 void DeserializationContext_init(DeserializationContext * self) {
+	StemObject_init((StemObject *) self);
+	
 	self->jmpBuf = NULL;
 	self->status = SERIALIZATION_ERROR_OK;
+	self->dispose = DeserializationContext_dispose;
 	self->beginStructure = NULL;
 	self->beginDictionary = NULL;
 	self->beginArray = NULL;

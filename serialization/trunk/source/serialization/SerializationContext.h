@@ -17,9 +17,11 @@ typedef struct SerializationContext SerializationContext;
 	void (* beginStructure)(void * self, char * key); \
 	void (* beginDictionary)(void * self, char * key); \
 	void (* beginArray)(void * self, char * key); \
+	\
 	void (* endStructure)(void * self); \
 	void (* endDictionary)(void * self); \
 	void (* endArray)(void * self); \
+	\
 	void (* writeInt8)(void * self, char * key, int8_t value); \
 	void (* writeUInt8)(void * self, char * key, uint8_t value); \
 	void (* writeInt16)(void * self, char * key, int16_t value); \

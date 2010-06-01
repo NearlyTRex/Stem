@@ -14,12 +14,15 @@ typedef struct DeserializationContext DeserializationContext;
 	jmp_buf * jmpBuf; \
 	int status; \
 	\
+	/* Implementations should return the number of elements in the container */ \
 	unsigned int (* beginStructure)(void * self, char * key); \
 	unsigned int (* beginDictionary)(void * self, char * key); \
 	unsigned int (* beginArray)(void * self, char * key); \
+	\
 	void (* endStructure)(void * self); \
 	void (* endDictionary)(void * self); \
 	void (* endArray)(void * self); \
+	\
 	int8_t   (* readInt8)(void * self, char * key); \
 	uint8_t  (* readUInt8)(void * self, char * key); \
 	int16_t  (* readInt16)(void * self, char * key); \
