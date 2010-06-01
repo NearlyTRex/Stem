@@ -1,1 +1,0 @@
-Serialization defines a generic interface for reading, writing, and validating structured data. It is intended to be used by model objects that wish to be serializable, facilitated by concrete subclasses of SerializationContext and DeserializationContext.
