@@ -23,7 +23,6 @@ void DeserializationContext_init(DeserializationContext * self) {
 	self->readUInt64 = NULL;
 	self->readFloat = NULL;
 	self->readDouble = NULL;
-	self->readNextDictionaryKey = NULL;
 	self->readString = NULL;
 	self->readBoolean = NULL;
 	self->readEnumeration = NULL;
@@ -31,6 +30,8 @@ void DeserializationContext_init(DeserializationContext * self) {
 	self->readBitfield16 = NULL;
 	self->readBitfield32 = NULL;
 	self->readBitfield64 = NULL;
+	self->readNextDictionaryKey = NULL;
+	self->hasDictionaryKey = NULL;
 }
 
 void DeserializationContext_dispose(void * selfPtr) {

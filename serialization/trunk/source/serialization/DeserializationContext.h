@@ -33,7 +33,6 @@ typedef struct DeserializationContext DeserializationContext;
 	uint64_t (* readUInt64)(void * self, char * key); \
 	float    (* readFloat)(void * self, char * key); \
 	double   (* readDouble)(void * self, char * key); \
-	char *   (* readNextDictionaryKey)(void * self); \
 	char *   (* readString)(void * self, char * key); \
 	bool     (* readBoolean)(void * self, char * key); \
 	\
@@ -42,11 +41,17 @@ typedef struct DeserializationContext DeserializationContext;
 	int      (* readEnumeration)(void * self, char * key, ...); \
 	\
 	/* Additional args: Strings naming each bit from least significant to most significant, up to the maximum */ \
-	/* number of bits in the field, or terminated by NULL if there are unused bits at the top. */ \
+	/* number of bits in the field, or terminated by NULL if there are unused high bits. */ \
 	uint8_t  (* readBitfield8)(void * self, char * key, ...); \
 	uint16_t (* readBitfield16)(void * self, char * key, ...); \
 	uint32_t (* readBitfield32)(void * self, char * key, ...); \
-	uint64_t (* readBitfield64)(void * self, char * key, ...);
+	uint64_t (* readBitfield64)(void * self, char * key, ...); \
+	\
+	/* Valid only when reading an ordered dictionary */ \
+	char *   (* readNextDictionaryKey)(void * self); \
+	\
+	/* Valid only when reading an unordered dictionary */ \
+	bool     (* hasDictionaryKey)(void * self, char * key);
 
 struct DeserializationContext {
 	DeserializationContext_structContents

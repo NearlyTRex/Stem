@@ -1,6 +1,7 @@
 1.0.0
  * StemObject_init is now called from SerializationContext_init and DeserializationContext_init
- * Added SERIALIZATION_ERROR_INVALID_OPERATION
+ * Added SERIALIZATION_ERROR_INVALID_OPERATION and SERIALIZATION_ERROR_KEY_NOT_FOUND to SerializationShared.h
+ * Added hasDictionaryKey() to DeserializationContext
  * Refreshed makefile from template_stemlib 2010-05-22
 
 0.1.0
