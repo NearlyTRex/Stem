@@ -1,6 +1,6 @@
 = Overview =
 
-This project serves as a starting point for all Stem library projects. It is meant to be copied and modified to suit the specific project being created. The centerpiece of this template is a robust, sophisticated makefile suitable for a wide range of build tasks and environments. Currently supported target platforms are Mac OS X, Windows, Linux, iPhone Simulator, and iPhone OS. Cross compilation is not supported except in the case of compiling for iPhone Simulator and iPhone OS from Mac OS X.
+This project serves as a starting point for all Stem library projects. It is meant to be copied and modified to suit the specific project being created. The centerpiece of this template is a robust, sophisticated makefile suitable for a wide range of build tasks and environments. Currently supported target platforms are Mac OS X, Windows, Linux, iPhone Simulator, iPhone OS, iPhone Simulator for iPad, and iPhone OS for iPad. Cross compilation is not supported except in the case of compiling for iPhone platforms from Mac OS X.
 
 
 
@@ -15,8 +15,12 @@ The makefile's default task will build all configurations of all targets for all
 		* You can also run each analyzer separately by invoking the analyze_splint and analyze_clang tasks. splint tends to produce significantly more output than clang, so it may be useful to only work with clang output until its analyzer warnings are resolved before moving on to splint.
 
 	* install_<application_target>_iphonesimulator: Build <application_target> and deploy it to the iPhone Simulator. If the iPhone Simulator is running when this task is invoked, it will be killed. The simulator is launched when this task completes. Due to limitations of the iPhone SDK, this task is unable to launch the deployed application itself inside the simulator; you must start it manually from the simulator's Springboard.
-	
+
+	* install_<application_target>_iphonesimulator_ipad: Same as above, but deploys the iPad executable and runs the iPhone simulator in iPad mode
+
 	* codesign_<application_target>_iphoneos: Build <application_target> and sign it for deployment to a provisioned iPhone OS device. Due to limitations of the iPhone SDK, this task is unable to actually deploy the signed application to a connected device; you must deploy it manually by dragging the app bundle (in build/<application_target>/<configuration>-iphoneos) into the Xcode Organizer.
+
+	* codesign_<application_target>_iphoneos_ipad: Same as above, for the iPad executable rather than the iPhone-only one
 
 
 
