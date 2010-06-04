@@ -49,6 +49,7 @@ bool Shell_setFullScreen(bool fullScreen) {
 	return true;
 }
 
+#ifndef S_SPLINT_S
 double Shell_getCurrentTime() {
 	if (StubShellCallback_getCurrentTime != NULL) {
 		return StubShellCallback_getCurrentTime(StubShell_callbackContext);
@@ -81,6 +82,7 @@ double Shell_getCurrentTime() {
 #error Unimplemented target OS
 #endif
 }
+#endif
 
 const char * Shell_getResourcePath() {
 	if (StubShellCallback_getResourcePath != NULL) {
