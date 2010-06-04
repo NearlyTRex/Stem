@@ -641,7 +641,7 @@ ${foreach target,${APPLICATION_TARGETS}, \
 }
 
 .PHONY: test
-test: unittest unittest_noglew ${foreach platform,${PLATFORMS_unittest},run_unittests_${platform}}
+test: unittest unittest_noglew ${foreach platform,${sort ${PLATFORMS_unittest} ${PLATFORMS_unittest_noglew}},run_unittests_${platform}}
 
 .PHONY: run_unittests_macosx
 run_unittests_macosx:
@@ -651,14 +651,10 @@ run_unittests_macosx:
 .PHONY: run_unittests_iphonesimulator
 run_unittests_iphonesimulator:
 	DYLD_ROOT_PATH=${SDKROOT_iphonesimulator} \
-	./build/unittest/debug-iphonesimulator/${TARGET_NAME_unittest} "${CURDIR}/build/unittest/debug-iphonesimulator"
-	DYLD_ROOT_PATH=${SDKROOT_iphonesimulator} \
 	./build/unittest_noglew/debug-iphonesimulator/${TARGET_NAME_unittest_noglew} "${CURDIR}/build/unittest_noglew/debug-iphonesimulator"
 
 .PHONY: run_unittests_iphonesimulator_ipad
 run_unittests_iphonesimulator_ipad:
-	DYLD_ROOT_PATH=${SDKROOT_iphonesimulator_ipad} \
-	./build/unittest/debug-iphonesimulator_ipad/${TARGET_NAME_unittest} "${CURDIR}/build/unittest/debug-iphonesimulator_ipad"
 	DYLD_ROOT_PATH=${SDKROOT_iphonesimulator_ipad} \
 	./build/unittest_noglew/debug-iphonesimulator_ipad/${TARGET_NAME_unittest_noglew} "${CURDIR}/build/unittest_noglew/debug-iphonesimulator_ipad"
 
