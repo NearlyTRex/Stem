@@ -76,7 +76,7 @@ SPLINT_linux = /usr/local/bin/splint
 CLANG_linux = /usr/local/bin/clang
 ARCHS_linux = i686
 CCFLAGS_linux = 
-LINKFLAGS_linux = -lm -lrt -lglut
+LINKFLAGS_linux = -lm -lrt -lglut -lGLU
 
 CC_windows_i686 = C:/MinGW/bin/gcc.exe
 AR_windows = C:/MinGW/bin/ar.exe
