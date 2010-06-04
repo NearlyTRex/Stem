@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>application-identifier</key>
-	<string>RG9TZQDS75.com.sacredsoftware.glgraphics_testharness</string>
+	<string>RG9TZQDS75.com.sacredsoftware.${PRODUCT_NAME}</string>
 	<key>get-task-allow</key>
 	<true/>
 </dict>

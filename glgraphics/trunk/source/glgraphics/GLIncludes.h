@@ -37,7 +37,7 @@
 	#elif TARGET_OS_MAC
 		#define TARGET_OPENGL_ES 0
 		#ifndef GLGRAPHICS_NO_GLEW
-			#include "glew/GL/glew.h"
+			#include "GL/glew.h"
 		#endif
 		#include <OpenGL/gl.h>
 		#include <OpenGL/glu.h>
@@ -48,7 +48,7 @@
 #else
 	#define TARGET_OPENGL_ES 0
 	#ifndef GLGRAPHICS_NO_GLEW
-		#include "glew/GL/glew.h"
+		#include "GL/glew.h"
 	#endif
 	#include <GL/gl.h>
 	#include <GL/glu.h>
