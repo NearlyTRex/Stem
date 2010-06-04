@@ -50,7 +50,7 @@ Quaternion Quaternion_normalized(Quaternion quaternion);
 
 void Quaternion_multiply(Quaternion * quaternion1, Quaternion quaternion2);
 Quaternion Quaternion_multiplied(Quaternion quaternion1, Quaternion quaternion2);
-Quaternion Quaternion_slerp(Quaternion start, Quaternion end, float alpha);
+Quaternion Quaternion_slerp(Quaternion left, Quaternion right, float phase);
 
 void Quaternion_rotate(Quaternion * quaternion, Vector3 axis, float angle);
 Quaternion Quaternion_rotated(Quaternion quaternion, Vector3 axis, float angle);

@@ -130,27 +130,27 @@ Vector4 Vector4_normalized(Vector4 vector) {
 }
 
 float Vector2_magnitude(Vector2 vector) {
-	return sqrt((vector.x * vector.x) + (vector.y * vector.y));
+	return sqrtf(vector.x * vector.x + vector.y * vector.y);
 }
 
 float Vector3_magnitude(Vector3 vector) {
-	return sqrt((vector.x * vector.x) + (vector.y * vector.y) + (vector.z * vector.z));
+	return sqrtf(vector.x * vector.x + vector.y * vector.y + vector.z * vector.z);
 }
 
 float Vector4_magnitude(Vector4 vector) {
-	return sqrt((vector.x * vector.x) + (vector.y * vector.y) + (vector.z * vector.z) + (vector.w * vector.w));
+	return sqrtf(vector.x * vector.x + vector.y * vector.y + vector.z * vector.z + vector.w * vector.w);
 }
 
 float Vector2_magnitudeSquared(Vector2 vector) {
-	return (vector.x * vector.x) + (vector.y * vector.y);
+	return vector.x * vector.x + vector.y * vector.y;
 }
 
 float Vector3_magnitudeSquared(Vector3 vector) {
-	return (vector.x * vector.x) + (vector.y * vector.y) + (vector.z * vector.z);
+	return vector.x * vector.x + vector.y * vector.y + vector.z * vector.z;
 }
 
 float Vector4_magnitudeSquared(Vector4 vector) {
-	return (vector.x * vector.x) + (vector.y * vector.y) + (vector.z * vector.z) + (vector.w * vector.w);
+	return vector.x * vector.x + vector.y * vector.y + vector.z * vector.z + vector.w * vector.w;
 }
 
 Vector2 Vector2_add(Vector2 vector1, Vector2 vector2) {
@@ -201,45 +201,45 @@ Vector4 Vector4_divideScalar(Vector4 vector, float scalar) {
 	return Vector4_init(vector.x / scalar, vector.y / scalar, vector.z / scalar, vector.w / scalar);
 }
 
-Vector2 Vector2_interpolate(Vector2 left, Vector2 right, float value) {
-	return Vector2_init(left.x * (1.0f - value) + right.x * value,
-	                    left.y * (1.0f - value) + right.y * value);
+Vector2 Vector2_interpolate(Vector2 left, Vector2 right, float phase) {
+	return Vector2_init(left.x * (1.0f - phase) + right.x * phase,
+	                    left.y * (1.0f - phase) + right.y * phase);
 }
 
-Vector3 Vector3_interpolate(Vector3 left, Vector3 right, float value) {
-	return Vector3_init(left.x * (1.0f - value) + right.x * value,
-	                    left.y * (1.0f - value) + right.y * value,
-	                    left.z * (1.0f - value) + right.z * value);
+Vector3 Vector3_interpolate(Vector3 left, Vector3 right, float phase) {
+	return Vector3_init(left.x * (1.0f - phase) + right.x * phase,
+	                    left.y * (1.0f - phase) + right.y * phase,
+	                    left.z * (1.0f - phase) + right.z * phase);
 }
 
-Vector4 Vector4_interpolate(Vector4 left, Vector4 right, float value) {
-	return Vector4_init(left.x * (1.0f - value) + right.x * value,
-	                    left.y * (1.0f - value) + right.y * value,
-	                    left.z * (1.0f - value) + right.z * value,
-	                    left.w * (1.0f - value) + right.w * value);
+Vector4 Vector4_interpolate(Vector4 left, Vector4 right, float phase) {
+	return Vector4_init(left.x * (1.0f - phase) + right.x * phase,
+	                    left.y * (1.0f - phase) + right.y * phase,
+	                    left.z * (1.0f - phase) + right.z * phase,
+	                    left.w * (1.0f - phase) + right.w * phase);
 }
 
 float Vector2_dot(Vector2 vector1, Vector2 vector2) {
-	return (vector1.x * vector2.x) + (vector1.y * vector2.y);
+	return vector1.x * vector2.x + vector1.y * vector2.y;
 }
 
 float Vector3_dot(Vector3 vector1, Vector3 vector2) {
-	return (vector1.x * vector2.x) + (vector1.y * vector2.y) + (vector1.z * vector2.z);
+	return vector1.x * vector2.x + vector1.y * vector2.y + vector1.z * vector2.z;
 }
 
 float Vector4_dot(Vector4 vector1, Vector4 vector2) {
-	return (vector1.x * vector2.x) + (vector1.y * vector2.y) + (vector1.z * vector2.z) + (vector1.w * vector2.w);
+	return vector1.x * vector2.x + vector1.y * vector2.y + vector1.z * vector2.z + vector1.w * vector2.w;
 }
 
 float Vector2_cross(Vector2 vector1, Vector2 vector2) {
-	return (vector1.x * vector2.y) - (vector1.y * vector2.x);
+	return vector1.x * vector2.y - vector1.y * vector2.x;
 }
 
 Vector3 Vector3_cross(Vector3 vector1, Vector3 vector2) {
 	Vector3 result;
 	
-	result.x = (vector1.y * vector2.z) - (vector1.z * vector2.y);
-	result.y = (vector1.z * vector2.x) - (vector1.x * vector2.z);
-	result.z = (vector1.x * vector2.y) - (vector1.y * vector2.x);
+	result.x = vector1.y * vector2.z - vector1.z * vector2.y;
+	result.y = vector1.z * vector2.x - vector1.x * vector2.z;
+	result.z = vector1.x * vector2.y - vector1.y * vector2.x;
 	return result;
 }

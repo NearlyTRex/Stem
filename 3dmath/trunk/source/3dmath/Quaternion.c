@@ -79,9 +79,9 @@ Quaternion Quaternion_fromAxisAngle(Vector3 axis, float angle) {
 	angle *= 0.5f;
 	Vector3_normalize(&axis);
 	sinAngle = sin(angle);
-	quaternion.x = (axis.x * sinAngle);
-	quaternion.y = (axis.y * sinAngle);
-	quaternion.z = (axis.z * sinAngle);
+	quaternion.x = axis.x * sinAngle;
+	quaternion.y = axis.y * sinAngle;
+	quaternion.z = axis.z * sinAngle;
 	quaternion.w = cos(angle);
 	
 	return quaternion;
@@ -91,34 +91,36 @@ void Quaternion_toAxisAngle(Quaternion quaternion, Vector3 * axis, float * angle
 	float sinAngle;
 	
 	Quaternion_normalize(&quaternion);
-	sinAngle = sqrt(1.0f - (quaternion.w * quaternion.w));
-	if (fabs(sinAngle) < 0.0005f) sinAngle = 1.0f;
+	sinAngle = sqrtf(1.0f - quaternion.w * quaternion.w);
+	if (fabsf(sinAngle) < 0.0005f) {
+		sinAngle = 1.0f;
+	}
 	
 	if (axis != NULL) {
-		axis->x = (quaternion.x / sinAngle);
-		axis->y = (quaternion.y / sinAngle);
-		axis->z = (quaternion.z / sinAngle);
+		axis->x = quaternion.x / sinAngle;
+		axis->y = quaternion.y / sinAngle;
+		axis->z = quaternion.z / sinAngle;
 	}
 	
 	if (angle != NULL) {
-		*angle = (acos(quaternion.w) * 2.0f);
+		*angle = acos(quaternion.w) * 2.0f;
 	}
 }
 
 Matrix Quaternion_toMatrix(Quaternion quaternion) {
 	Matrix matrix;
 	
-	matrix.m[0]  = (1.0f - (2.0f * ((quaternion.y * quaternion.y) + (quaternion.z * quaternion.z))));
-	matrix.m[1]  =         (2.0f * ((quaternion.x * quaternion.y) + (quaternion.z * quaternion.w)));
-	matrix.m[2]  =         (2.0f * ((quaternion.x * quaternion.z) - (quaternion.y * quaternion.w)));
+	matrix.m[0]  = 1.0f - 2.0f * (quaternion.y * quaternion.y + quaternion.z * quaternion.z);
+	matrix.m[1]  =        2.0f * (quaternion.x * quaternion.y + quaternion.z * quaternion.w);
+	matrix.m[2]  =        2.0f * (quaternion.x * quaternion.z - quaternion.y * quaternion.w);
 	matrix.m[3]  = 0.0f;
-	matrix.m[4]  =         (2.0f * ((quaternion.x * quaternion.y) - (quaternion.z * quaternion.w)));
-	matrix.m[5]  = (1.0f - (2.0f * ((quaternion.x * quaternion.x) + (quaternion.z * quaternion.z))));
-	matrix.m[6]  =         (2.0f * ((quaternion.y * quaternion.z) + (quaternion.x * quaternion.w)));
+	matrix.m[4]  =        2.0f * (quaternion.x * quaternion.y - quaternion.z * quaternion.w);
+	matrix.m[5]  = 1.0f - 2.0f * (quaternion.x * quaternion.x + quaternion.z * quaternion.z);
+	matrix.m[6]  =        2.0f * (quaternion.y * quaternion.z + quaternion.x * quaternion.w);
 	matrix.m[7]  = 0.0f;
-	matrix.m[8]  =         (2.0f * ((quaternion.x * quaternion.z) + (quaternion.y * quaternion.w)));
-	matrix.m[9]  =         (2.0f * ((quaternion.y * quaternion.z) - (quaternion.x * quaternion.w)));
-	matrix.m[10] = (1.0f - (2.0f * ((quaternion.x * quaternion.x) + (quaternion.y * quaternion.y))));
+	matrix.m[8]  =        2.0f * (quaternion.x * quaternion.z + quaternion.y * quaternion.w);
+	matrix.m[9]  =        2.0f * (quaternion.y * quaternion.z - quaternion.x * quaternion.w);
+	matrix.m[10] = 1.0f - 2.0f * (quaternion.x * quaternion.x + quaternion.y * quaternion.y);
 	matrix.m[11] = 0.0f;
 	matrix.m[12] = 0.0f;
 	matrix.m[13] = 0.0f;
@@ -131,10 +133,10 @@ Matrix Quaternion_toMatrix(Quaternion quaternion) {
 void Quaternion_normalize(Quaternion * quaternion) {
 	float magnitude;
 	
-	magnitude = sqrt((quaternion->x * quaternion->x) +
-	                 (quaternion->y * quaternion->y) +
-	                 (quaternion->z * quaternion->z) +
-	                 (quaternion->w * quaternion->w));
+	magnitude = sqrtf(quaternion->x * quaternion->x +
+	                  quaternion->y * quaternion->y +
+	                  quaternion->z * quaternion->z +
+	                  quaternion->w * quaternion->w);
 	quaternion->x /= magnitude;
 	quaternion->y /= magnitude;
 	quaternion->z /= magnitude;
@@ -152,7 +154,7 @@ void Quaternion_multiply(Quaternion * quaternion1, Quaternion quaternion2) {
 	
 	vector1 = Quaternion_toVector(*quaternion1);
 	vector2 = Quaternion_toVector(quaternion2);
-	angle = (quaternion1->w * quaternion2.w) - Vector3_dot(vector1, vector2);
+	angle = quaternion1->w * quaternion2.w - Vector3_dot(vector1, vector2);
 	
 	cross = Vector3_cross(vector1, vector2);
 	vector1.x *= quaternion2.w;
@@ -175,29 +177,29 @@ Quaternion Quaternion_multiplied(Quaternion quaternion1, Quaternion quaternion2)
 
 #define SLERP_TO_LERP_SWITCH_THRESHOLD 0.01f
 
-Quaternion Quaternion_slerp(Quaternion start, Quaternion end, float alpha) {
-	float startWeight, endWeight, difference;
+Quaternion Quaternion_slerp(Quaternion left, Quaternion right, float phase) {
+	float leftWeight, rightWeight, difference;
 	Quaternion result;
 	
-	difference = (start.x * end.x) + (start.y * end.y) + (start.z * end.z) + (start.w * end.w);
-	if ((1.0f - fabs(difference)) > SLERP_TO_LERP_SWITCH_THRESHOLD) {
+	difference = left.x * right.x + left.y * right.y + left.z * right.z + left.w * right.w;
+	if (1.0f - fabs(difference) > SLERP_TO_LERP_SWITCH_THRESHOLD) {
 		float theta, oneOverSinTheta;
 		
 		theta = acos(fabs(difference));
 		oneOverSinTheta = 1.0f / sin(theta);
-		startWeight = sin(theta * (1.0f - alpha)) * oneOverSinTheta;
-		endWeight = sin(theta * alpha) * oneOverSinTheta;
+		leftWeight = sin(theta * (1.0f - phase)) * oneOverSinTheta;
+		rightWeight = sin(theta * phase) * oneOverSinTheta;
 		if (difference < 0.0f) {
-			startWeight = -startWeight;
+			leftWeight = -leftWeight;
 		}
 	} else {
-		startWeight = 1.0f - alpha;
-		endWeight = alpha;
+		leftWeight = 1.0f - phase;
+		rightWeight = phase;
 	}
-	result.x = (start.x * startWeight) + (end.x * endWeight);
-	result.y = (start.y * startWeight) + (end.y * endWeight);
-	result.z = (start.z * startWeight) + (end.z * endWeight);
-	result.w = (start.w * startWeight) + (end.w * endWeight);
+	result.x = left.x * leftWeight + right.x * rightWeight;
+	result.y = left.y * leftWeight + right.y * rightWeight;
+	result.z = left.z * leftWeight + right.z * rightWeight;
+	result.w = left.w * leftWeight + right.w * rightWeight;
 	Quaternion_normalize(&result);
 	
 	return result;
@@ -218,10 +220,10 @@ Quaternion Quaternion_rotated(Quaternion quaternion, Vector3 axis, float angle) 
 void Quaternion_invert(Quaternion * quaternion) {
 	float length;
 	
-	length = 1.0f / ((quaternion->x * quaternion->x) +
-	                 (quaternion->y * quaternion->y) +
-	                 (quaternion->z * quaternion->z) +
-	                 (quaternion->w * quaternion->w));
+	length = 1.0f / (quaternion->x * quaternion->x +
+	                 quaternion->y * quaternion->y +
+	                 quaternion->z * quaternion->z +
+	                 quaternion->w * quaternion->w);
 	quaternion->x *= -length;
 	quaternion->y *= -length;
 	quaternion->z *= -length;

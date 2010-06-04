@@ -31,22 +31,22 @@
 #define radiansToDegrees(radians) (((radians) * 180.0f) / M_PI)
 
 void Matrix_loadIdentity(Matrix * matrix) {
-	matrix->m[0] = 1.0;
-	matrix->m[1] = 0.0;
-	matrix->m[2] = 0.0;
-	matrix->m[3] = 0.0;
-	matrix->m[4] = 0.0;
-	matrix->m[5] = 1.0;
-	matrix->m[6] = 0.0;
-	matrix->m[7] = 0.0;
-	matrix->m[8] = 0.0;
-	matrix->m[9] = 0.0;
-	matrix->m[10] = 1.0;
-	matrix->m[11] = 0.0;
-	matrix->m[12] = 0.0;
-	matrix->m[13] = 0.0;
-	matrix->m[14] = 0.0;
-	matrix->m[15] = 1.0;
+	matrix->m[0] = 1.0f;
+	matrix->m[1] = 0.0f;
+	matrix->m[2] = 0.0f;
+	matrix->m[3] = 0.0f;
+	matrix->m[4] = 0.0f;
+	matrix->m[5] = 1.0f;
+	matrix->m[6] = 0.0f;
+	matrix->m[7] = 0.0f;
+	matrix->m[8] = 0.0f;
+	matrix->m[9] = 0.0f;
+	matrix->m[10] = 1.0f;
+	matrix->m[11] = 0.0f;
+	matrix->m[12] = 0.0f;
+	matrix->m[13] = 0.0f;
+	matrix->m[14] = 0.0f;
+	matrix->m[15] = 1.0f;
 }
 
 Matrix Matrix_identity() {
@@ -217,20 +217,20 @@ void Matrix_applyPerspective(Matrix * matrix, float fovY, float aspect, float zN
 	Matrix perspectiveMatrix;
 	float sine, cotangent, deltaZ;
 	
-	fovY = (degreesToRadians(fovY) / 2.0f);
-	deltaZ = (zFar - zNear);
+	fovY = degreesToRadians(fovY) / 2.0f;
+	deltaZ = zFar - zNear;
 	sine = sin(fovY);
 	if (deltaZ == 0.0f || sine == 0.0f || aspect == 0.0f) {
 		return;
 	}
-	cotangent = (cos(fovY) / sine);
+	cotangent = cos(fovY) / sine;
 	
 	Matrix_loadIdentity(&perspectiveMatrix);
-	perspectiveMatrix.m[0] = (cotangent / aspect);
+	perspectiveMatrix.m[0] = cotangent / aspect;
 	perspectiveMatrix.m[5] = cotangent;
-	perspectiveMatrix.m[10] = (-(zFar + zNear) / deltaZ);
+	perspectiveMatrix.m[10] = -(zFar + zNear) / deltaZ;
 	perspectiveMatrix.m[11] = -1.0f;
-	perspectiveMatrix.m[14] = ((-2.0f * zNear * zFar) / deltaZ);
+	perspectiveMatrix.m[14] = -2.0f * zNear * zFar / deltaZ;
 	perspectiveMatrix.m[15] = 0.0f;
 	Matrix_multiply(matrix, perspectiveMatrix);
 }
@@ -313,8 +313,8 @@ void Matrix_invert(Matrix * matrix) {
 	
 	determinant = Matrix_determinant(*matrix);
 	for (index = 0; index < 16; index++) {
-		sign = 1 - (((index % 4) + (index / 4)) % 2) * 2;
-		indexTransposed = (index % 4) * 4 + index / 4;
+		sign = 1 - (index % 4 + index / 4) % 2 * 2;
+		indexTransposed = index % 4 * 4 + index / 4;
 		result.m[indexTransposed] = Matrix_subdeterminant(*matrix, index) * sign / determinant;
 	}
 	
@@ -329,35 +329,35 @@ Matrix Matrix_inverted(Matrix matrix) {
 Vector2 Matrix_multiplyVector2(Matrix matrix, Vector2 vector) {
 	Vector2 result;
 	
-	result.x = ((matrix.m[0] * vector.x) + (matrix.m[4] * vector.y) + matrix.m[12]);
-	result.y = ((matrix.m[1] * vector.x) + (matrix.m[5] * vector.y) + matrix.m[13]);
+	result.x = matrix.m[0] * vector.x + matrix.m[4] * vector.y + matrix.m[12];
+	result.y = matrix.m[1] * vector.x + matrix.m[5] * vector.y + matrix.m[13];
 	return result;
 }
 
 Vector3 Matrix_multiplyVector3(Matrix matrix, Vector3 vector) {
 	Vector3 result;
 	
-	result.x = ((matrix.m[0] * vector.x) + (matrix.m[4] * vector.y) + (matrix.m[8]  * vector.z) + matrix.m[12]);
-	result.y = ((matrix.m[1] * vector.x) + (matrix.m[5] * vector.y) + (matrix.m[9]  * vector.z) + matrix.m[13]);
-	result.z = ((matrix.m[2] * vector.x) + (matrix.m[6] * vector.y) + (matrix.m[10] * vector.z) + matrix.m[14]);
+	result.x = matrix.m[0] * vector.x + matrix.m[4] * vector.y + matrix.m[8]  * vector.z + matrix.m[12];
+	result.y = matrix.m[1] * vector.x + matrix.m[5] * vector.y + matrix.m[9]  * vector.z + matrix.m[13];
+	result.z = matrix.m[2] * vector.x + matrix.m[6] * vector.y + matrix.m[10] * vector.z + matrix.m[14];
 	return result;
 }
 
 Vector4 Matrix_multiplyVector4(Matrix matrix, Vector4 vector) {
 	Vector4 result;
 	
-	result.x = ((matrix.m[0] * vector.x) + (matrix.m[4] * vector.y) + (matrix.m[8]  * vector.z) + (matrix.m[12] * vector.w));
-	result.y = ((matrix.m[1] * vector.x) + (matrix.m[5] * vector.y) + (matrix.m[9]  * vector.z) + (matrix.m[13] * vector.w));
-	result.z = ((matrix.m[2] * vector.x) + (matrix.m[6] * vector.y) + (matrix.m[10] * vector.z) + (matrix.m[14] * vector.w));
-	result.w = ((matrix.m[3] * vector.x) + (matrix.m[7] * vector.y) + (matrix.m[11] * vector.z) + (matrix.m[15] * vector.w));
+	result.x = matrix.m[0] * vector.x + matrix.m[4] * vector.y + matrix.m[8]  * vector.z + matrix.m[12] * vector.w;
+	result.y = matrix.m[1] * vector.x + matrix.m[5] * vector.y + matrix.m[9]  * vector.z + matrix.m[13] * vector.w;
+	result.z = matrix.m[2] * vector.x + matrix.m[6] * vector.y + matrix.m[10] * vector.z + matrix.m[14] * vector.w;
+	result.w = matrix.m[3] * vector.x + matrix.m[7] * vector.y + matrix.m[11] * vector.z + matrix.m[15] * vector.w;
 	return result;
 }
 
 Vector3 Matrix_multiplyVector3_rotationOnly(Matrix matrix, Vector3 vector) {
 	Vector3 result;
 	
-	result.x = (matrix.m[0] * vector.x) + (matrix.m[4] * vector.y) + (matrix.m[8]  * vector.z);
-	result.y = (matrix.m[1] * vector.x) + (matrix.m[5] * vector.y) + (matrix.m[9]  * vector.z);
-	result.z = (matrix.m[2] * vector.x) + (matrix.m[6] * vector.y) + (matrix.m[10] * vector.z);
+	result.x = matrix.m[0] * vector.x + matrix.m[4] * vector.y + matrix.m[8]  * vector.z;
+	result.y = matrix.m[1] * vector.x + matrix.m[5] * vector.y + matrix.m[9]  * vector.z;
+	result.z = matrix.m[2] * vector.x + matrix.m[6] * vector.y + matrix.m[10] * vector.z;
 	return result;
 }
