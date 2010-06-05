@@ -60,6 +60,7 @@ static void testInit() {
 	
 	bitmapImagePtr = BitmapImage_create(BITMAP_PIXEL_FORMAT_GRAY_8, 2, 2, 3, pixelsGray2x2r3);
 	TestCase_assert(bitmapImagePtr != NULL, "BitmapImage_create unexpectedly returned NULL");
+	if (bitmapImagePtr == NULL) {return;} // Suppress clang warning
 	TestCase_assert(bitmapImagePtr->pixelFormat == BITMAP_PIXEL_FORMAT_GRAY_8, "Expected %d but got %d", BITMAP_PIXEL_FORMAT_GRAY_8, bitmapImagePtr->pixelFormat);
 	TestCase_assert(bitmapImagePtr->width == 2, "Expected 2 but got %u", bitmapImagePtr->width);
 	TestCase_assert(bitmapImagePtr->height == 2, "Expected 2 but got %u", bitmapImagePtr->height);
@@ -70,6 +71,7 @@ static void testInit() {
 	
 	bitmapImagePtr = BitmapImage_create(BITMAP_PIXEL_FORMAT_GRAYALPHA_88, 2, 2, 4, pixelsGrayAlpha2x2r4);
 	TestCase_assert(bitmapImagePtr != NULL, "BitmapImage_create unexpectedly returned NULL");
+	if (bitmapImagePtr == NULL) {return;} // Suppress clang warning
 	TestCase_assert(bitmapImagePtr->pixelFormat == BITMAP_PIXEL_FORMAT_GRAYALPHA_88, "Expected %d but got %d", BITMAP_PIXEL_FORMAT_GRAYALPHA_88, bitmapImagePtr->pixelFormat);
 	TestCase_assert(bitmapImagePtr->width == 2, "Expected 2 but got %u", bitmapImagePtr->width);
 	TestCase_assert(bitmapImagePtr->height == 2, "Expected 2 but got %u", bitmapImagePtr->height);
@@ -80,6 +82,7 @@ static void testInit() {
 	
 	bitmapImagePtr = BitmapImage_create(BITMAP_PIXEL_FORMAT_RGB_888, 3, 2, 9, pixelsRGB3x2r9);
 	TestCase_assert(bitmapImagePtr != NULL, "BitmapImage_create unexpectedly returned NULL");
+	if (bitmapImagePtr == NULL) {return;} // Suppress clang warning
 	TestCase_assert(bitmapImagePtr->pixelFormat == BITMAP_PIXEL_FORMAT_RGB_888, "Expected %d but got %d", BITMAP_PIXEL_FORMAT_RGB_888, bitmapImagePtr->pixelFormat);
 	TestCase_assert(bitmapImagePtr->width == 3, "Expected 3 but got %u", bitmapImagePtr->width);
 	TestCase_assert(bitmapImagePtr->height == 2, "Expected 2 but got %u", bitmapImagePtr->height);
@@ -90,6 +93,7 @@ static void testInit() {
 	
 	bitmapImagePtr = BitmapImage_create(BITMAP_PIXEL_FORMAT_RGBA_8888, 2, 3, 8, pixelsRGBA2x3r8);
 	TestCase_assert(bitmapImagePtr != NULL, "BitmapImage_create unexpectedly returned NULL");
+	if (bitmapImagePtr == NULL) {return;} // Suppress clang warning
 	TestCase_assert(bitmapImagePtr->pixelFormat == BITMAP_PIXEL_FORMAT_RGBA_8888, "Expected %d but got %d", BITMAP_PIXEL_FORMAT_RGBA_8888, bitmapImagePtr->pixelFormat);
 	TestCase_assert(bitmapImagePtr->width == 2, "Expected 2 but got %u", bitmapImagePtr->width);
 	TestCase_assert(bitmapImagePtr->height == 3, "Expected 3 but got %u", bitmapImagePtr->height);
