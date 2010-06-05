@@ -1,0 +1,1 @@
+JSONIO implements parsing and formatted output of JSON data (http://json.org/). The parser is document-based, and strictly conforms to the JSON specification.
