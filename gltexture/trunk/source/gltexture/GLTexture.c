@@ -22,6 +22,7 @@
 
 #include "gltexture/GLTexture.h"
 #include "glgraphics/GLGraphics.h"
+#include <string.h>
 
 GLTexture * GLTexture_create(GLenum bitmapDataFormat,
                              GLenum bitmapDataType,
@@ -99,7 +100,7 @@ GLTexture * GLTexture_deserialize(DeserializationContext * context) {
 }
 
 bool GLTexture_loadSerializedData(GLTexture * self, DeserializationContext * context) {
-	char * imageName;
+	const char * imageName;
 	GLenum bitmapDataFormat;
 	GLenum bitmapDataType;
 	GLenum minFilter;
@@ -128,7 +129,9 @@ bool GLTexture_loadSerializedData(GLTexture * self, DeserializationContext * con
 	}
 	
 	GLTexture_init(self, bitmapDataFormat, bitmapDataType, minFilter, magFilter, wrapS, wrapT, autoBlendMode, autoMipmap, anisotropicFilter);
-	self->imageName = imageName;
+	self->imageName = malloc(strlen(imageName) + 1);
+	strcpy(self->imageName, imageName);
+	self->imageNameAllocated = true;
 	return true;
 }
 

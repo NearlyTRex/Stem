@@ -36,9 +36,16 @@ http://sacredsoftware.net/</string>
 	<string>${SDK}</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>UILaunchImageFile</key>
+	<string>Default.png</string>
+	<key>UILaunchImageFile~ipad</key>
+	<string>Default_ipad.png</string>
 	<key>UIDeviceFamily</key>
 	<array>
 		<integer>1</integer>
+		<integer>2</integer>
 	</array>
+	<key>UIStatusBarHidden</key>
+	<true/>
 </dict>
 </plist>

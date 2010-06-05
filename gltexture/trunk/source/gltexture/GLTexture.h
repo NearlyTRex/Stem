@@ -38,12 +38,6 @@ enum GLTextureAutoBlendMode {
 	AUTO_BLEND_MODE_TRANSPARENT_PREMULTIPLIED
 };
 
-/* For performance and/or fine-grained control over texturing, you may not want to use active() and deactivate().
-   They're provided only for convenience, and have some properties that may be undesirable in large applications;
-   for example, if autoBlendMode is set to anything other than AUTO_BLEND_MODE_NONE, GL_BLEND will be enabled and/or
-   disabled every time a texture is activated or deactivated. Accessing the textureName directly to bind it yourself
-   is perfectly normal usage of the GLTexture API. */
-
 #define GLTexture_structContents \
 	StemObject_structContents \
 	\

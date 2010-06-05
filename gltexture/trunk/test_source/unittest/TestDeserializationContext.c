@@ -48,6 +48,8 @@ void TestDeserializationContext_init(TestDeserializationContext * self, jmp_buf 
 	self->readBitfield16 = TestDeserializationContext_readBitfield16;
 	self->readBitfield32 = TestDeserializationContext_readBitfield32;
 	self->readBitfield64 = TestDeserializationContext_readBitfield64;
+	self->readNextDictionaryKey = TestDeserializationContext_readNextDictionaryKey;
+	self->hasDictionaryKey = TestDeserializationContext_hasDictionaryKey;
 	self->expectCall = TestDeserializationContext_expectCall;
 	self->failNthCall = TestDeserializationContext_failNthCall;
 	self->finish = TestDeserializationContext_finish;
@@ -90,6 +92,8 @@ static char * functionNameForPtr(TestDeserializationContext * self, void * funct
 	tryFunctionName(readBitfield16)
 	tryFunctionName(readBitfield32)
 	tryFunctionName(readBitfield64)
+	tryFunctionName(readNextDictionaryKey)
+	tryFunctionName(hasDictionaryKey)
 #undef tryFunctionName
 	return "<invalid>";
 }
@@ -108,7 +112,7 @@ static void verifyCallIsInSequence(TestDeserializationContext * self, void * fun
 	}
 	
 	va_start(args, functionPtr);
-	if (functionPtr != self->endStructure && functionPtr != self->endDictionary && functionPtr != self->endArray) {
+	if (functionPtr != self->endStructure && functionPtr != self->endDictionary && functionPtr != self->endArray && functionPtr != self->readNextDictionaryKey) {
 		char * key;
 		
 		key = va_arg(args, char *);
@@ -191,21 +195,21 @@ static void failIfRequested(TestDeserializationContext * self) {
 	}
 }
 
-unsigned int TestDeserializationContext_beginStructure(void * selfPtr, char * key) {
+unsigned int TestDeserializationContext_beginStructure(void * selfPtr, const char * key) {
 	TestDeserializationContext * self = selfPtr;
 	verifyCallIsInSequence(self, self->beginStructure, key);
 	failIfRequested(self);
 	return self->expectedCalls[self->nextExpectedCallIndex - 1].returnValue.unsignedIntValue;
 }
 
-unsigned int TestDeserializationContext_beginDictionary(void * selfPtr, char * key) {
+unsigned int TestDeserializationContext_beginDictionary(void * selfPtr, const char * key) {
 	TestDeserializationContext * self = selfPtr;
 	verifyCallIsInSequence(self, self->beginDictionary, key);
 	failIfRequested(self);
 	return self->expectedCalls[self->nextExpectedCallIndex - 1].returnValue.unsignedIntValue;
 }
 
-unsigned int TestDeserializationContext_beginArray(void * selfPtr, char * key) {
+unsigned int TestDeserializationContext_beginArray(void * selfPtr, const char * key) {
 	TestDeserializationContext * self = selfPtr;
 	verifyCallIsInSequence(self, self->beginArray, key);
 	failIfRequested(self);
@@ -230,91 +234,91 @@ void TestDeserializationContext_endArray(void * selfPtr) {
 	failIfRequested(self);
 }
 
-int8_t TestDeserializationContext_readInt8(void * selfPtr, char * key) {
+int8_t TestDeserializationContext_readInt8(void * selfPtr, const char * key) {
 	TestDeserializationContext * self = selfPtr;
 	verifyCallIsInSequence(self, self->readInt8, key);
 	failIfRequested(self);
 	return self->expectedCalls[self->nextExpectedCallIndex - 1].returnValue.int8Value;
 }
 
-uint8_t TestDeserializationContext_readUInt8(void * selfPtr, char * key) {
+uint8_t TestDeserializationContext_readUInt8(void * selfPtr, const char * key) {
 	TestDeserializationContext * self = selfPtr;
 	verifyCallIsInSequence(self, self->readUInt8, key);
 	failIfRequested(self);
 	return self->expectedCalls[self->nextExpectedCallIndex - 1].returnValue.uint8Value;
 }
 
-int16_t TestDeserializationContext_readInt16(void * selfPtr, char * key) {
+int16_t TestDeserializationContext_readInt16(void * selfPtr, const char * key) {
 	TestDeserializationContext * self = selfPtr;
 	verifyCallIsInSequence(self, self->readInt16, key);
 	failIfRequested(self);
 	return self->expectedCalls[self->nextExpectedCallIndex - 1].returnValue.int16Value;
 }
 
-uint16_t TestDeserializationContext_readUInt16(void * selfPtr, char * key) {
+uint16_t TestDeserializationContext_readUInt16(void * selfPtr, const char * key) {
 	TestDeserializationContext * self = selfPtr;
 	verifyCallIsInSequence(self, self->readUInt16, key);
 	failIfRequested(self);
 	return self->expectedCalls[self->nextExpectedCallIndex - 1].returnValue.uint16Value;
 }
 
-int32_t TestDeserializationContext_readInt32(void * selfPtr, char * key) {
+int32_t TestDeserializationContext_readInt32(void * selfPtr, const char * key) {
 	TestDeserializationContext * self = selfPtr;
 	verifyCallIsInSequence(self, self->readInt32, key);
 	failIfRequested(self);
 	return self->expectedCalls[self->nextExpectedCallIndex - 1].returnValue.int32Value;
 }
 
-uint32_t TestDeserializationContext_readUInt32(void * selfPtr, char * key) {
+uint32_t TestDeserializationContext_readUInt32(void * selfPtr, const char * key) {
 	TestDeserializationContext * self = selfPtr;
 	verifyCallIsInSequence(self, self->readUInt32, key);
 	failIfRequested(self);
 	return self->expectedCalls[self->nextExpectedCallIndex - 1].returnValue.uint32Value;
 }
 
-int64_t TestDeserializationContext_readInt64(void * selfPtr, char * key) {
+int64_t TestDeserializationContext_readInt64(void * selfPtr, const char * key) {
 	TestDeserializationContext * self = selfPtr;
 	verifyCallIsInSequence(self, self->readInt64, key);
 	failIfRequested(self);
 	return self->expectedCalls[self->nextExpectedCallIndex - 1].returnValue.int64Value;
 }
 
-uint64_t TestDeserializationContext_readUInt64(void * selfPtr, char * key) {
+uint64_t TestDeserializationContext_readUInt64(void * selfPtr, const char * key) {
 	TestDeserializationContext * self = selfPtr;
 	verifyCallIsInSequence(self, self->readUInt64, key);
 	failIfRequested(self);
 	return self->expectedCalls[self->nextExpectedCallIndex - 1].returnValue.uint64Value;
 }
 
-float TestDeserializationContext_readFloat(void * selfPtr, char * key) {
+float TestDeserializationContext_readFloat(void * selfPtr, const char * key) {
 	TestDeserializationContext * self = selfPtr;
 	verifyCallIsInSequence(self, self->readFloat, key);
 	failIfRequested(self);
 	return self->expectedCalls[self->nextExpectedCallIndex - 1].returnValue.floatValue;
 }
 
-double TestDeserializationContext_readDouble(void * selfPtr, char * key) {
+double TestDeserializationContext_readDouble(void * selfPtr, const char * key) {
 	TestDeserializationContext * self = selfPtr;
 	verifyCallIsInSequence(self, self->readDouble, key);
 	failIfRequested(self);
 	return self->expectedCalls[self->nextExpectedCallIndex - 1].returnValue.doubleValue;
 }
 
-char * TestDeserializationContext_readString(void * selfPtr, char * key) {
+const char * TestDeserializationContext_readString(void * selfPtr, const char * key) {
 	TestDeserializationContext * self = selfPtr;
 	verifyCallIsInSequence(self, self->readString, key);
 	failIfRequested(self);
 	return self->expectedCalls[self->nextExpectedCallIndex - 1].returnValue.stringValue;
 }
 
-bool TestDeserializationContext_readBoolean(void * selfPtr, char * key) {
+bool TestDeserializationContext_readBoolean(void * selfPtr, const char * key) {
 	TestDeserializationContext * self = selfPtr;
 	verifyCallIsInSequence(self, self->readBoolean, key);
 	failIfRequested(self);
 	return self->expectedCalls[self->nextExpectedCallIndex - 1].returnValue.boolValue;
 }
 
-int TestDeserializationContext_readEnumeration(void * selfPtr, char * key, ...) {
+int TestDeserializationContext_readEnumeration(void * selfPtr, const char * key, ...) {
 	TestDeserializationContext * self = selfPtr;
 	va_list args;
 	
@@ -325,7 +329,7 @@ int TestDeserializationContext_readEnumeration(void * selfPtr, char * key, ...) 
 	return self->expectedCalls[self->nextExpectedCallIndex - 1].returnValue.enumValue;
 }
 
-uint8_t TestDeserializationContext_readBitfield8(void * selfPtr, char * key, ...) {
+uint8_t TestDeserializationContext_readBitfield8(void * selfPtr, const char * key, ...) {
 	TestDeserializationContext * self = selfPtr;
 	va_list args;
 	
@@ -336,7 +340,7 @@ uint8_t TestDeserializationContext_readBitfield8(void * selfPtr, char * key, ...
 	return self->expectedCalls[self->nextExpectedCallIndex - 1].returnValue.uint8Value;
 }
 
-uint16_t TestDeserializationContext_readBitfield16(void * selfPtr, char * key, ...) {
+uint16_t TestDeserializationContext_readBitfield16(void * selfPtr, const char * key, ...) {
 	TestDeserializationContext * self = selfPtr;
 	va_list args;
 	
@@ -347,7 +351,7 @@ uint16_t TestDeserializationContext_readBitfield16(void * selfPtr, char * key, .
 	return self->expectedCalls[self->nextExpectedCallIndex - 1].returnValue.uint16Value;
 }
 
-uint32_t TestDeserializationContext_readBitfield32(void * selfPtr, char * key, ...) {
+uint32_t TestDeserializationContext_readBitfield32(void * selfPtr, const char * key, ...) {
 	TestDeserializationContext * self = selfPtr;
 	va_list args;
 	
@@ -358,7 +362,7 @@ uint32_t TestDeserializationContext_readBitfield32(void * selfPtr, char * key, .
 	return self->expectedCalls[self->nextExpectedCallIndex - 1].returnValue.uint32Value;
 }
 
-uint64_t TestDeserializationContext_readBitfield64(void * selfPtr, char * key, ...) {
+uint64_t TestDeserializationContext_readBitfield64(void * selfPtr, const char * key, ...) {
 	TestDeserializationContext * self = selfPtr;
 	va_list args;
 	
@@ -367,6 +371,20 @@ uint64_t TestDeserializationContext_readBitfield64(void * selfPtr, char * key, .
 	va_end(args);
 	failIfRequested(self);
 	return self->expectedCalls[self->nextExpectedCallIndex - 1].returnValue.uint64Value;
+}
+
+const char * TestDeserializationContext_readNextDictionaryKey(void * selfPtr) {
+	TestDeserializationContext * self = selfPtr;
+	verifyCallIsInSequence(self, self->readNextDictionaryKey);
+	failIfRequested(self);
+	return self->expectedCalls[self->nextExpectedCallIndex - 1].returnValue.stringValue;
+}
+
+bool TestDeserializationContext_hasDictionaryKey(void * selfPtr, const char * key) {
+	TestDeserializationContext * self = selfPtr;
+	verifyCallIsInSequence(self, self->hasDictionaryKey, key);
+	failIfRequested(self);
+	return self->expectedCalls[self->nextExpectedCallIndex - 1].returnValue.boolValue;
 }
 
 void TestDeserializationContext_expectCall(void * selfPtr, void * functionPtr, ...) {
@@ -378,7 +396,7 @@ void TestDeserializationContext_expectCall(void * selfPtr, void * functionPtr, .
 	self->expectedCalls[self->numExpectedCalls].additionalArgs = NULL;
 	
 	va_start(args, functionPtr);
-	if (functionPtr != self->endStructure && functionPtr != self->endDictionary && functionPtr != self->endArray) {
+	if (functionPtr != self->endStructure && functionPtr != self->endDictionary && functionPtr != self->endArray && functionPtr != self->readNextDictionaryKey) {
 		self->expectedCalls[self->numExpectedCalls].key = va_arg(args, char *);
 	}
 	
@@ -420,6 +438,12 @@ void TestDeserializationContext_expectCall(void * selfPtr, void * functionPtr, .
 		
 	} else if (functionPtr == self->readEnumeration) {
 		self->expectedCalls[self->numExpectedCalls].returnValue.enumValue = va_arg(args, int);
+		
+	} else if (functionPtr == self->readNextDictionaryKey) {
+		self->expectedCalls[self->numExpectedCalls].returnValue.stringValue = va_arg(args, char *);
+		
+	} else if (functionPtr == self->hasDictionaryKey) {
+		self->expectedCalls[self->numExpectedCalls].returnValue.boolValue = va_arg(args, int);
 	}
 	
 	if (functionPtr == self->readEnumeration) {
