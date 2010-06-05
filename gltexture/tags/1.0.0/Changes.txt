@@ -1,0 +1,13 @@
+1.0.0
+ * Updated dependencies:
+  * 3dmath 0.2.0 -> 1.0.0
+  * bitmapimage 1.1.1 -> 1.2.0
+  * eaglshell 2.0.0 -> 2.1.0
+  * glgraphics 0.3.0 -> 1.0.0
+  * glutshell 1.1.0 -> 1.2.0
+  * pngimageio 1.0.0 -> 1.1.0
+  * serialization 0.1.0 -> 1.0.0
+  * stemobject 1.0.0 -> 1.1.0
+  * utilities 1.1.0 -> 1.3.0
+ * Refreshed makefile from template_stemlib 2010-06-02
+ * Fixed a memory bug in GLTexture deserialization
