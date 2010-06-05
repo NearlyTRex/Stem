@@ -1,4 +1,4 @@
-Utilities contains miscellaneous convenience functions for working with files, strings, memory blocks, and other things. The following sets of functionality are included:
+Utilities contains miscellaneous convenience functions for working with files, strings, memory, and other things. The following sets of functionality are included:
 
  - Atom: Pointer-comparable strings (not currently thread-safe)
  - AutoFreePool: Deferred memory deallocation (not currently thread-safe)
