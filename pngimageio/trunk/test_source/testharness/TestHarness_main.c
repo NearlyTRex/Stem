@@ -9,7 +9,7 @@
 
 static void printUsage() {
 	fprintf(stderr, "Usage: pngimageio_testharness [-itype {png | raw}] [-iwidth width_in_pixels] [-iformat {rgba | rgb | grayalpha | gray}] [-iflip] [-o outfile] [-otype {png | raw}] [-oformat {rgba | rgb | grayalpha | gray}] [-oflip] file\n");
-	fprintf(stderr, "if infile is \"-\", stdin will be used.\n");
+	fprintf(stderr, "if file is \"-\", stdin will be used.\n");
 	fprintf(stderr, "if outfile is \"-\", stdout will be used.\n");
 	fprintf(stderr, "If -itype raw is used, -iwidth and -iformat must be specified. If -itype png is used, -iwidth is ignored.\n");
 }

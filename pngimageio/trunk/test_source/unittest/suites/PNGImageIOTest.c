@@ -147,6 +147,7 @@ int mkstemp(char * template) {
 
 #define assertImageWellFormed(image, expectedPixelFormat, expectedWidth, expectedHeight, expectedBytesPerRow, expectedPixels, pixelCompareMacro, rgbTolerance, testIndex, imageLoadFunction) \
 	TestCase_assert(image != NULL, "%s unexpectedly returned NULL (test %u)", #imageLoadFunction, (unsigned int) (testIndex)); \
+	if (image == NULL) {return;} /* Suppress clang warning */ \
 	TestCase_assert(image->pixelFormat == expectedPixelFormat, "Expected pixelFormat %d but got %d (test %u)", expectedPixelFormat, image->pixelFormat, (unsigned int) (testIndex)); \
 	TestCase_assert(image->width == expectedWidth, "Expected width %u but got %u (test %u)", expectedWidth, image->width, (unsigned int) (testIndex)); \
 	TestCase_assert(image->height == expectedHeight, "Expected height %u but got %u (test %u)", expectedHeight, image->height, (unsigned int) (testIndex)); \
