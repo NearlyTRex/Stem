@@ -59,7 +59,7 @@
 		self.multipleTouchEnabled = YES;
 		
 		configuration.preferredOpenGLAPIVersion = EAGLShellOpenGLVersion_ES1 | EAGLShellOpenGLVersion_ES2;
-		configuration.displayMode.retainedBacking = true;
+		configuration.displayMode.retainedBacking = false;
 		configuration.displayMode.depthAttachment = false;
 		configuration.displayMode.stencilAttachment = false;
 		configuration.displayMode.colorPrecision = 32;
@@ -129,8 +129,8 @@
 		displayLink = nil;
 		animationTimer = nil;
 		
-		lastResizeWidth = 320;
-		lastResizeHeight = 480;
+		lastResizeWidth = [UIScreen mainScreen].bounds.size.width;
+		lastResizeHeight = [UIScreen mainScreen].bounds.size.height;
 		
 		activeTouchCount = 0;
 	}
@@ -160,7 +160,11 @@
 	
 	[EAGLContext setCurrentContext: context];
 	glBindRenderbufferOES(GL_RENDERBUFFER, renderbuffer);
-	[context renderbufferStorage: GL_RENDERBUFFER fromDrawable: (CAEAGLLayer *) self.layer];
+	if (!setRenderbufferStorage) {
+		// For some reason, doing this more than once causes framebuffer garbage and crashes
+		[context renderbufferStorage: GL_RENDERBUFFER fromDrawable: (CAEAGLLayer *) self.layer];
+		setRenderbufferStorage = YES;
+	}
 	
 	glGetRenderbufferParameterivOES(GL_RENDERBUFFER, GL_RENDERBUFFER_WIDTH, &backingWidth);
 	glGetRenderbufferParameterivOES(GL_RENDERBUFFER, GL_RENDERBUFFER_HEIGHT, &backingHeight);

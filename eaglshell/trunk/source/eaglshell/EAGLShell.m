@@ -46,7 +46,11 @@ bool Shell_isFullScreen() {
 }
 
 bool Shell_setFullScreen(bool fullScreen) {
+#if defined(__IPHONE_OS_VERSION_MIN_REQUIRED) && defined(__IPHONE_3_2) && __IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_3_2
+	[[UIApplication sharedApplication] setStatusBarHidden: fullScreen withAnimation: UIStatusBarAnimationSlide];
+#else
 	[[UIApplication sharedApplication] setStatusBarHidden: fullScreen animated: YES];
+#endif
 	[(EAGLShellApplication *) [UIApplication sharedApplication] updateViewFrame];
 	isFullScreen = fullScreen;
 	return true;

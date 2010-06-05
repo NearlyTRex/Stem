@@ -1,4 +1,4 @@
-EAGLShell is an implementation of a stem shell using EAGL, that builds for iPhone Simulator and iPhone OS. It is a feature complete, production-ready shell.
+EAGLShell is an implementation of a stem shell using EAGL, that builds for iPhone Simulator and iPhone OS (iPhone and iPad). It is a feature complete, production-ready shell.
 
 EAGLShell includes some extensions to the standard shell interface. You should #include "eaglshell/EAGLShell.h" to get the extended interface. It provides facilities for working with the iPhone's status bar, keyboard, and accelerometer. See the documentation in EAGLShell.h for details. Some things to note:
 
@@ -28,6 +28,6 @@ The target interface has also been extended, with EAGLTarget.h defining the new 
 
 Other things to be aware of:
  
- - EAGLShell compiles against the 3.1 iPhone SDK. This is due only to bugs and instability in iPhone OS 3.0; it doesn't actually use any OS 3.1 features (except CADisplayLink, which is linked in at runtime if available; if not, a timer is used instead).
+ - The non-iPad version of EAGLShell compiles against the 3.1 iPhone SDK. This is due only to bugs and instability in iPhone OS 3.0; it doesn't actually use any OS 3.1 features (except CADisplayLink, which is linked in at runtime if available; if not, a timer is used instead), so if desired, you can safely build against the 3.0 SDK.
 
  - Due to an Apple bug, as of iPhone OS 3.1.3, Target_resized() will not be called when the status bar changes size due to a phone call or voice recording starting or ending. See http://openradar.appspot.com/6475681 for details.

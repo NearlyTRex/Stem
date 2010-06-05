@@ -42,6 +42,7 @@
 	BOOL animating;
 	BOOL redisplayWasPosted;
 	BOOL displayLinkSupported;
+	BOOL setRenderbufferStorage;
 	id displayLink;
 	NSTimer * animationTimer;
 	

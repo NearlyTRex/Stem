@@ -35,7 +35,11 @@ extern bool mainLoopCalled;
 
 - (BOOL) application: (UIApplication *) application didFinishLaunchingWithOptions: (NSDictionary *) dictionary {
 	[self setStatusBarOrientation: UIInterfaceOrientationPortrait animated: NO];
+#if defined(__IPHONE_OS_VERSION_MIN_REQUIRED) && defined(__IPHONE_3_2) && __IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_3_2
+	[self setStatusBarHidden: YES withAnimation: UIStatusBarAnimationNone];
+#else
 	[self setStatusBarHidden: YES animated: NO];
+#endif
 	self.applicationSupportsShakeToEdit = NO;
 	
 	if ([dictionary objectForKey: UIApplicationLaunchOptionsURLKey] != nil) {
@@ -56,7 +60,7 @@ extern bool mainLoopCalled;
 	[window addSubview: view];
 	[window makeKeyAndVisible];
 	
-	Target_resized(320, 480);
+	Target_resized([UIScreen mainScreen].bounds.size.width, [UIScreen mainScreen].bounds.size.height);
 	Target_init();
 	
 	if (!mainLoopCalled) {

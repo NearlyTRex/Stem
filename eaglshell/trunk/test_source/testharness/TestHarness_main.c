@@ -356,7 +356,7 @@ void Target_resized(unsigned int newWidth, unsigned int newHeight) {
 }
 
 static int preferredOpenGLAPIVersion = EAGLShellOpenGLVersion_ES1 | EAGLShellOpenGLVersion_ES2;
-static int retainedBacking = 1;
+static int retainedBacking = 0;
 static int depthAttachment = 0;
 static int stencilAttachment = 0;
 static int colorPrecision = 32;

@@ -1,3 +1,9 @@
+2.1.0
+ * Refreshed Makefile from template_stemlib 2010-06-02
+ * Added iPad support
+ * Fixed a bug that could cause framebuffer garbage or a crash when the application status bar was toggled
+ * Retained backing now defaults to false
+
 2.0.0
  * Updated for shell Stable_2010-05-18. Important changes to note:
   * Target_getName() is no longer defined and will not be called.
