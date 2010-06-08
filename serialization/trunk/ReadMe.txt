@@ -16,6 +16,10 @@ Structured data understood by serialization is categorized into three container 
 
 		* To read an unordered dictionary, you must know the keys you wish to read ahead of time. Do not call readNextDictionaryKey(); simply call value read functions with the keys you wish to read, in any order. To check whether a key is present in an unordered dictionary, you can call hasDictionaryKey(); note that it is an error to attempt to read a value with a key that is not present in the dictionary. Unordered reading does not allow for non-unique keys; behavior is undefined when reading a duplicated key.
 
+= Error Handling =
+
+The SerializationContext and DeserializationContext APIs are designed to be concise and easy to use. Rather than each call returning a status result and requiring the caller to check the return code every time, error handling is left out of main API function signatures entirely. Instead, each object has a status field, which can be checked at any time to determine the success of the last operation. However, the recommended way to handle serialization errors is to set the jmpBuf field and use setjmp. longjmp will be called immediately when any error occurs. If you'd rather check the status and handle errors yourself without using setjmp, simply don't set the jmpBuf field.
+
 = Examples =
 
 Example usage of SerializationContext:
