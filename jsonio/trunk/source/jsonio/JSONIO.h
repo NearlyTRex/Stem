@@ -88,4 +88,10 @@ void JSONNode_dispose(struct JSONNode * node);
 /* Frees node's contents without freeing node itself */
 void JSONNode_disposeContents(struct JSONNode * node);
 
+/* Performs a deep copy of node. */
+struct JSONNode * JSONNode_copy(struct JSONNode * node);
+
+/* Performs a deep copy of node's contents, writing them to outNode. */
+void JSONNode_copyContents(struct JSONNode * node, struct JSONNode * outNode);
+
 #endif

@@ -1,5 +1,7 @@
 #include "jsonio/JSONIO.h"
 #include "unittest/framework/TestSuite.h"
+#include "jsonio/JSONParser.h"
+#include "jsonio/JSONEmitter.h"
 
 #define stringAndLength(str) str, strlen(str)
 
@@ -150,4 +152,77 @@ static void testJSONNode_subitemForKey() {
 	TestCase_assert(subitemIndex == JSON_SUBITEM_NOT_FOUND, "Expected %zu but got %zu", JSON_SUBITEM_NOT_FOUND, subitemIndex);
 }
 
-TEST_SUITE(JSONIOTest, testEscapeJSONString, testUnescapeJSONString, testJSONNode_subitemForKey)
+static void testJSONNode_copy() {
+	struct JSONNode * node1, * node2;
+	char * string1, * string2;
+	
+	node1 = JSONParser_loadString(stringAndLength("[{\"item\": 0}, [1, {\"item\": 2, \"item\": 3, \"item\": 4, \"item\": 5, \"item\": 6, \"item\": 7}, 8, 9, \"10\", true, \"enum\", [\"13\"], [\"14\"], [\"15\"], [\"16\"]]]"), NULL);
+	TestCase_assert(node1 != NULL, "Expected non-NULL but got NULL");
+	if (node1 == NULL) {return;} // Suppress clang warning
+	node2 = JSONNode_copy(node1);
+	TestCase_assert(node2 != NULL, "Expected non-NULL but got NULL");
+	if (node2 == NULL) {return;} // Suppress clang warning
+	TestCase_assert(node1 != node2, "Pointers expected to differ, but didn't");
+	string1 = JSONEmitter_writeString(node1, JSONEmitterFormat_compact, NULL, NULL);
+	TestCase_assert(string1 != NULL, "Expected non-NULL but got NULL");
+	string2 = JSONEmitter_writeString(node2, JSONEmitterFormat_compact, NULL, NULL);
+	TestCase_assert(string2 != NULL, "Expected non-NULL but got NULL");
+	TestCase_assert(!strcmp(string1, string2), "Strings didn't match:\n  %s\n  %s", string1, string2);
+	free(string1);
+	free(string2);
+	TestCase_assert(node1->subitems != node2->subitems, "Pointers expected to differ, but didn't");
+	TestCase_assert(node1->subitems[0].subitems != node2->subitems[0].subitems, "Pointers expected to differ, but didn't");
+	TestCase_assert(node1->subitems[0].subitems[0].key != node2->subitems[0].subitems[0].key, "Pointers expected to differ, but didn't");
+	TestCase_assert(node1->subitems[1].subitems != node2->subitems[1].subitems, "Pointers expected to differ, but didn't");
+	TestCase_assert(node1->subitems[1].subitems[1].subitems != node2->subitems[1].subitems[1].subitems, "Pointers expected to differ, but didn't");
+	TestCase_assert(node1->subitems[1].subitems[1].subitems[0].key != node2->subitems[1].subitems[1].subitems[0].key, "Pointers expected to differ, but didn't");
+	TestCase_assert(node1->subitems[1].subitems[1].subitems[1].key != node2->subitems[1].subitems[1].subitems[1].key, "Pointers expected to differ, but didn't");
+	TestCase_assert(node1->subitems[1].subitems[1].subitems[2].key != node2->subitems[1].subitems[1].subitems[2].key, "Pointers expected to differ, but didn't");
+	TestCase_assert(node1->subitems[1].subitems[1].subitems[3].key != node2->subitems[1].subitems[1].subitems[3].key, "Pointers expected to differ, but didn't");
+	TestCase_assert(node1->subitems[1].subitems[1].subitems[4].key != node2->subitems[1].subitems[1].subitems[4].key, "Pointers expected to differ, but didn't");
+	TestCase_assert(node1->subitems[1].subitems[1].subitems[5].key != node2->subitems[1].subitems[1].subitems[5].key, "Pointers expected to differ, but didn't");
+	TestCase_assert(node1->subitems[1].subitems[4].value.string != node2->subitems[1].subitems[4].value.string, "Pointers expected to differ, but didn't");
+	TestCase_assert(node1->subitems[1].subitems[6].value.string != node2->subitems[1].subitems[6].value.string, "Pointers expected to differ, but didn't");
+	TestCase_assert(node1->subitems[1].subitems[7].subitems[0].value.string != node2->subitems[1].subitems[7].subitems[0].value.string, "Pointers expected to differ, but didn't");
+	TestCase_assert(node1->subitems[1].subitems[8].subitems[0].value.string != node2->subitems[1].subitems[8].subitems[0].value.string, "Pointers expected to differ, but didn't");
+	TestCase_assert(node1->subitems[1].subitems[9].subitems[0].value.string != node2->subitems[1].subitems[9].subitems[0].value.string, "Pointers expected to differ, but didn't");
+	TestCase_assert(node1->subitems[1].subitems[10].subitems[0].value.string != node2->subitems[1].subitems[10].subitems[0].value.string, "Pointers expected to differ, but didn't");
+	JSONNode_dispose(node2);
+	
+	node2 = malloc(sizeof(struct JSONNode));
+	JSONNode_copyContents(node1, node2);
+	TestCase_assert(node2 != NULL, "Expected non-NULL but got NULL");
+	if (node2 == NULL) {return;} // Suppress clang warning
+	string1 = JSONEmitter_writeString(node1, JSONEmitterFormat_compact, NULL, NULL);
+	TestCase_assert(string1 != NULL, "Expected non-NULL but got NULL");
+	string2 = JSONEmitter_writeString(node2, JSONEmitterFormat_compact, NULL, NULL);
+	TestCase_assert(string2 != NULL, "Expected non-NULL but got NULL");
+	TestCase_assert(!strcmp(string1, string2), "Strings didn't match:\n  %s\n  %s", string1, string2);
+	free(string1);
+	free(string2);
+	TestCase_assert(node1->subitems != node2->subitems, "Pointers expected to differ, but didn't");
+	TestCase_assert(node1->subitems[0].subitems != node2->subitems[0].subitems, "Pointers expected to differ, but didn't");
+	TestCase_assert(node1->subitems[0].subitems[0].key != node2->subitems[0].subitems[0].key, "Pointers expected to differ, but didn't");
+	TestCase_assert(node1->subitems[1].subitems != node2->subitems[1].subitems, "Pointers expected to differ, but didn't");
+	TestCase_assert(node1->subitems[1].subitems[1].subitems != node2->subitems[1].subitems[1].subitems, "Pointers expected to differ, but didn't");
+	TestCase_assert(node1->subitems[1].subitems[1].subitems[0].key != node2->subitems[1].subitems[1].subitems[0].key, "Pointers expected to differ, but didn't");
+	TestCase_assert(node1->subitems[1].subitems[1].subitems[1].key != node2->subitems[1].subitems[1].subitems[1].key, "Pointers expected to differ, but didn't");
+	TestCase_assert(node1->subitems[1].subitems[1].subitems[2].key != node2->subitems[1].subitems[1].subitems[2].key, "Pointers expected to differ, but didn't");
+	TestCase_assert(node1->subitems[1].subitems[1].subitems[3].key != node2->subitems[1].subitems[1].subitems[3].key, "Pointers expected to differ, but didn't");
+	TestCase_assert(node1->subitems[1].subitems[1].subitems[4].key != node2->subitems[1].subitems[1].subitems[4].key, "Pointers expected to differ, but didn't");
+	TestCase_assert(node1->subitems[1].subitems[1].subitems[5].key != node2->subitems[1].subitems[1].subitems[5].key, "Pointers expected to differ, but didn't");
+	TestCase_assert(node1->subitems[1].subitems[4].value.string != node2->subitems[1].subitems[4].value.string, "Pointers expected to differ, but didn't");
+	TestCase_assert(node1->subitems[1].subitems[6].value.string != node2->subitems[1].subitems[6].value.string, "Pointers expected to differ, but didn't");
+	TestCase_assert(node1->subitems[1].subitems[7].subitems[0].value.string != node2->subitems[1].subitems[7].subitems[0].value.string, "Pointers expected to differ, but didn't");
+	TestCase_assert(node1->subitems[1].subitems[8].subitems[0].value.string != node2->subitems[1].subitems[8].subitems[0].value.string, "Pointers expected to differ, but didn't");
+	TestCase_assert(node1->subitems[1].subitems[9].subitems[0].value.string != node2->subitems[1].subitems[9].subitems[0].value.string, "Pointers expected to differ, but didn't");
+	TestCase_assert(node1->subitems[1].subitems[10].subitems[0].value.string != node2->subitems[1].subitems[10].subitems[0].value.string, "Pointers expected to differ, but didn't");
+	JSONNode_dispose(node2);
+	JSONNode_dispose(node1);
+}
+
+TEST_SUITE(JSONIOTest,
+           testEscapeJSONString,
+           testUnescapeJSONString,
+           testJSONNode_subitemForKey,
+           testJSONNode_copy)

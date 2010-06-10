@@ -280,3 +280,33 @@ void JSONNode_disposeContents(struct JSONNode * node) {
 		free(node->subitems);
 	}
 }
+
+struct JSONNode * JSONNode_copy(struct JSONNode * node) {
+	struct JSONNode * outNode;
+	
+	outNode = malloc(sizeof(struct JSONNode));
+	JSONNode_copyContents(node, outNode);
+	return outNode;
+}
+
+void JSONNode_copyContents(struct JSONNode * node, struct JSONNode * outNode) {
+	*outNode = *node;
+	
+	if (outNode->key != NULL) {
+		outNode->key = malloc(node->keyLength + 1);
+		memcpy(outNode->key, node->key, node->keyLength + 1);
+	}
+	
+	if (outNode->type == JSON_TYPE_STRING) {
+		outNode->value.string = malloc(node->stringLength + 1);
+		memcpy(outNode->value.string, node->value.string, node->stringLength + 1);
+		
+	} else if (outNode->type == JSON_TYPE_ARRAY || outNode->type == JSON_TYPE_OBJECT) {
+		size_t subitemIndex;
+		
+		outNode->subitems = malloc(sizeof(struct JSONNode) * node->value.count);
+		for (subitemIndex = 0; subitemIndex < outNode->value.count; subitemIndex++) {
+			JSONNode_copyContents(&node->subitems[subitemIndex], &outNode->subitems[subitemIndex]);
+		}
+	}
+}
