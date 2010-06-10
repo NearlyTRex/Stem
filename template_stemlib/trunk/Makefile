@@ -8,8 +8,6 @@ else ifeq (${UNAME},Darwin)
 HOST_PLATFORM = macosx
 else
 HOST_PLATFORM = windows
-EXECUTABLE_SUFFIX = .exe
-APPLICATION_SUFFIX = .exe
 endif
 
 include version
@@ -142,6 +140,7 @@ CLANG_windows = C:/llvm/bin/clang.exe
 ARCHS_windows = i686
 CCFLAGS_windows = 
 LINKFLAGS_windows = 
+EXECUTABLE_SUFFIX_windows = .exe
 
 #General compile/link settings
 DEFINE_CCFLAGS = -DVERSION_MAJOR=${VERSION_MAJOR}u -DVERSION_MINOR=${VERSION_MINOR}u -DVERSION_TWEAK=${VERSION_TWEAK}u
@@ -356,7 +355,7 @@ ${foreach target,${EXECUTABLE_TARGETS} ${APPLICATION_TARGETS}, \
 	${foreach configuration,${CONFIGURATIONS_${target}}, \
 		${foreach platform,${PLATFORMS_${target}}, \
 			${foreach arch,${ARCHS_${platform}}, \
-				${eval ${call executable_template,${target},${configuration},${platform},${arch},${TARGET_NAME_${target}}${EXECUTABLE_SUFFIX},${call library_dependency_template,${target},${configuration},${platform}}}} \
+				${eval ${call executable_template,${target},${configuration},${platform},${arch},${TARGET_NAME_${target}}${EXECUTABLE_SUFFIX_${platform}},${call library_dependency_template,${target},${configuration},${platform}}}} \
 			} \
 		} \
 	} \
@@ -383,7 +382,7 @@ ${foreach target,${LIBRARY_TARGETS}, \
 ${foreach target,${EXECUTABLE_TARGETS}, \
 	${foreach configuration,${CONFIGURATIONS_${target}}, \
 		${foreach platform,${PLATFORMS_${target}}, \
-			${eval THIN_BINARIES_${target}_${configuration}_${platform} = ${call thin_binary_list_template,${target},${configuration},${platform},${TARGET_NAME_${target}}${EXECUTABLE_SUFFIX}}} \
+			${eval THIN_BINARIES_${target}_${configuration}_${platform} = ${call thin_binary_list_template,${target},${configuration},${platform},${TARGET_NAME_${target}}${EXECUTABLE_SUFFIX_${platform}}}} \
 		} \
 	} \
 }
@@ -392,7 +391,7 @@ ${foreach target,${EXECUTABLE_TARGETS}, \
 ${foreach target,${APPLICATION_TARGETS}, \
 	${foreach configuration,${CONFIGURATIONS_${target}}, \
 		${foreach platform,${PLATFORMS_${target}}, \
-			${eval THIN_BINARIES_${target}_${configuration}_${platform} = ${call thin_binary_list_template,${target},${configuration},${platform},${TARGET_NAME_${target}}${APPLICATION_SUFFIX}}} \
+			${eval THIN_BINARIES_${target}_${configuration}_${platform} = ${call thin_binary_list_template,${target},${configuration},${platform},${TARGET_NAME_${target}}${EXECUTABLE_SUFFIX_${platform}}}} \
 		} \
 	} \
 }
@@ -547,93 +546,49 @@ ${foreach target,${APPLICATION_TARGETS}, \
 	} \
 }
 
-define library_template_macosx #(target, configuration)
-	build/$1/$2-macosx/${TARGET_NAME_$1}.a
+define library_template #(target, configuration, platform)
+build/$1/$2-$3/${TARGET_NAME_$1}.a
 endef
 
-define library_template_iphonesimulator #(target, configuration)
-	build/$1/$2-iphonesimulator/${TARGET_NAME_$1}.a
+define executable_template #(target, configuration, platform)
+build/$1/$2-$3/${TARGET_NAME_$1}${EXECUTABLE_SUFFIX_$3}
 endef
 
-define library_template_iphoneos #(target, configuration)
-	build/$1/$2-iphoneos/${TARGET_NAME_$1}.a
+define application_template #(target, configuration, platform)
+build/$1/$2-$3/${call application_file_template_$3,$1}
 endef
 
-define library_template_iphonesimulator_ipad #(target, configuration)
-	build/$1/$2-iphonesimulator_ipad/${TARGET_NAME_$1}.a
+define application_file_template_macosx #(target)
+${TARGET_NAME_$1}.app/Contents/MacOS/${TARGET_NAME_$1}
 endef
 
-define library_template_iphoneos_ipad #(target, configuration)
-	build/$1/$2-iphoneos_ipad/${TARGET_NAME_$1}.a
+define application_file_template_iphonesimulator #(target)
+${TARGET_NAME_$1}.app/${TARGET_NAME_$1}
 endef
 
-define library_template_linux #(target, configuration)
-	build/$1/$2-linux/${TARGET_NAME_$1}.a
+define application_file_template_iphoneos #(target)
+${TARGET_NAME_$1}.app/${TARGET_NAME_$1}
 endef
 
-define library_template_windows #(target, configuration)
-	build/$1/$2-windows/${TARGET_NAME_$1}.a
+define application_file_template_iphonesimulator_ipad #(target)
+${TARGET_NAME_$1}.app/${TARGET_NAME_$1}
 endef
 
-define executable_template_macosx #(target, configuration)
-	build/$1/$2-macosx/${TARGET_NAME_$1}
+define application_file_template_iphoneos_ipad #(target)
+${TARGET_NAME_$1}.app/${TARGET_NAME_$1}
 endef
 
-define executable_template_iphonesimulator #(target, configuration)
-	build/$1/$2-iphonesimulator/${TARGET_NAME_$1}
+define application_file_template_linux #(target)
+${TARGET_NAME_$1}
 endef
 
-define executable_template_iphoneos #(target, configuration)
-	build/$1/$2-iphoneos/${TARGET_NAME_$1}
-endef
-
-define executable_template_iphonesimulator_ipad #(target, configuration)
-	build/$1/$2-iphonesimulator_ipad/${TARGET_NAME_$1}
-endef
-
-define executable_template_iphoneos_ipad #(target, configuration)
-	build/$1/$2-iphoneos_ipad/${TARGET_NAME_$1}
-endef
-
-define executable_template_linux #(target, configuration)
-	build/$1/$2-linux/${TARGET_NAME_$1}
-endef
-
-define executable_template_windows #(target, configuration)
-	build/$1/$2-windows/${TARGET_NAME_$1}.exe
-endef
-
-define application_template_macosx #(target, configuration)
-	build/$1/$2-macosx/${TARGET_NAME_$1}.app/Contents/MacOS/${TARGET_NAME_$1}
-endef
-
-define application_template_iphonesimulator #(target, configuration)
-	build/$1/$2-iphonesimulator/${TARGET_NAME_$1}.app/${TARGET_NAME_$1}
-endef
-
-define application_template_iphoneos #(target, configuration)
-	build/$1/$2-iphoneos/${TARGET_NAME_$1}.app/${TARGET_NAME_$1}
-endef
-
-define application_template_iphonesimulator_ipad #(target, configuration)
-	build/$1/$2-iphonesimulator_ipad/${TARGET_NAME_$1}.app/${TARGET_NAME_$1}
-endef
-
-define application_template_iphoneos_ipad #(target, configuration)
-	build/$1/$2-iphoneos_ipad/${TARGET_NAME_$1}.app/${TARGET_NAME_$1}
-endef
-
-define application_template_linux #(target, configuration)
-	build/$1/$2-linux/${TARGET_NAME_$1}
-endef
-
-define application_template_windows #(target, configuration)
-	build/$1/$2-windows/${TARGET_NAME_$1}.exe
+define application_file_template_windows #(target)
+${TARGET_NAME_$1}.exe
 endef
 
 define target_template #(target, target_type)
 .PHONY: $1
-$1: ${foreach configuration,${CONFIGURATIONS_$1},${foreach platform,${PLATFORMS_$1},${call $2_template_${platform},$1,${configuration}}}}
+$1: ${foreach configuration,${CONFIGURATIONS_$1},${foreach platform,${PLATFORMS_$1},${call $2_template,$1,${configuration},${platform}}}}
 endef
 
 ${foreach target,${LIBRARY_TARGETS}, \
