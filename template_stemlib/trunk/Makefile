@@ -39,7 +39,6 @@ APPLICATION_TARGETS = testharness
 TARGETS = ${LIBRARY_TARGETS} ${EXECUTABLE_TARGETS} ${APPLICATION_TARGETS}
 CONFIGURATIONS = debug profile release
 PLATFORMS = ${filter ${TARGET_PLATFORMS_${HOST_PLATFORM}},macosx iphonesimulator iphoneos iphonesimulator_ipad iphoneos_ipad linux windows}
-ARCHS = ppc i386 i686 x86_64 armv6 armv7
 ANALYZERS = splint clang
 
 TARGET_NAME_library = libstem_template_stemlib
@@ -157,7 +156,7 @@ LINKFLAGS = ${FRAMEWORK_LINKFLAGS} ${LIBRARY_LINKFLAGS} ${OTHER_LINKFLAGS}
 #General analyzer settings
 CLANGFLAGS = 
 CLANGFLAGS_windows = -I C:/MinGW/include -I C:/MinGW/lib/gcc/mingw32/4.3.2/include
-SPLINTFLAGS = 
+SPLINTFLAGS = -exportlocal
 
 #Per-target dependencies
 
@@ -212,9 +211,16 @@ ANALYZER_EXCLUDE_SOURCES_splint = ${SOURCES_unittest}
 
 PREREQS_unittest = build/intermediate/TestList.h
 
-build/intermediate/TestList.h: ${SOURCES_unittest_suites}
-	mkdir -p build/intermediate
+#TestList.h is automatically generated from ${SOURCES_unittest_suites}. It is used by the unit test framework to determine which tests to run.
+build/intermediate/TestList.h: build/intermediate/TestSuites.txt | build/intermediate
 	echo '#define SUITE_FILE_LIST ${foreach file,${SOURCES_unittest_suites},"${basename ${notdir ${file}}}",} NULL' > $@
+
+#TestSuites.txt tracks the state of ${SOURCES_unittest_suites} so that TestList.h can be updated if and only if ${SOURCES_unittest_suites} has changed. .PHONY is abused slightly to cause the target to be conditionally remade.
+ifneq (${shell echo "${SOURCES_unittest_suites}" | cmp - build/intermediate/TestSuites.txt 2>&1},)
+.PHONY: build/intermediate/TestSuites.txt
+endif
+build/intermediate/TestSuites.txt: | build/intermediate
+	echo "${SOURCES_unittest_suites}" > $@
 
 
 
@@ -261,6 +267,29 @@ ${foreach target,${TARGETS}, \
 		} \
 	} \
 }
+${eval ${call create_directory_target_template,build/intermediate}}
+
+
+
+define dependency_template #(target, configuration, platform, arch, source_file)
+build/intermediate/$1-$2-$3-$4/${notdir ${basename $5}}.d: $5 ${PREREQS_$1} | build/intermediate/$1-$2-$3-$4
+	${CC_$3_$4} ${CCFLAGS} ${CCFLAGS_$1} ${CCFLAGS_$2} ${CCFLAGS_$3} -MM -o $$@.temp $5
+	sed 's,\(${notdir ${basename $5}}\)\.o[ :]*,$${basename $$@}.o $${basename $$@}.d: ,g' < $$@.temp > $$@
+endef
+
+#Produces dependency build targets for all source files in each configuration/platform/arch
+${foreach target,${TARGETS}, \
+	${foreach configuration,${CONFIGURATIONS_${target}}, \
+		${foreach platform,${PLATFORMS_${target}}, \
+			${foreach arch,${ARCHS_${platform}}, \
+				${foreach source,${SOURCES_${target}}, \
+					${eval ${call dependency_template,${target},${configuration},${platform},${arch},${source}}} \
+					${eval -include build/intermediate/${target}-${configuration}-${platform}-${arch}/${notdir ${basename ${source}}}.d} \
+				} \
+			} \
+		} \
+	} \
+}
 
 
 
@@ -271,7 +300,7 @@ endef
 
 #Produces object build targets for all source files in each configuration/platform/arch
 ${foreach target,${TARGETS}, \
-	${foreach configuration,${CONFIGURATIONS}, \
+	${foreach configuration,${CONFIGURATIONS_${target}}, \
 		${foreach platform,${PLATFORMS_${target}}, \
 			${foreach arch,${ARCHS_${platform}}, \
 				${foreach source,${SOURCES_${target}}, \
