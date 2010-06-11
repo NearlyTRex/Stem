@@ -464,24 +464,18 @@ ${foreach target,${EXECUTABLE_TARGETS}, \
 	} \
 }
 
-PLIST_FILE_testharness_macosx = test_resources/Info_testharness_macosx.plist
-
-PLIST_FILE_testharness_iphonesimulator = test_resources/Info_testharness_iphone.plist
 PLIST_PLATFORM_CASED_iphonesimulator = iPhoneSimulator
 PLIST_PLATFORM_LOWER_iphonesimulator = iphonesimulator
 PLIST_SDK_NAME_iphonesimulator = iphonesimulator${IPHONE_SDK_VERSION}
 
-PLIST_FILE_testharness_iphoneos = test_resources/Info_testharness_iphone.plist
 PLIST_PLATFORM_CASED_iphoneos = iPhoneOS
 PLIST_PLATFORM_LOWER_iphoneos = iphoneos
 PLIST_SDK_NAME_iphoneos = iphoneos${IPHONE_SDK_VERSION}
 
-PLIST_FILE_testharness_iphonesimulator_ipad = test_resources/Info_testharness_ipad.plist
 PLIST_PLATFORM_CASED_iphonesimulator_ipad = iPhoneSimulator
 PLIST_PLATFORM_LOWER_iphonesimulator_ipad = iphonesimulator
 PLIST_SDK_NAME_iphonesimulator_ipad = iphonesimulator${IPHONE_SDK_VERSION_IPAD}
 
-PLIST_FILE_testharness_iphoneos_ipad = test_resources/Info_testharness_ipad.plist
 PLIST_PLATFORM_CASED_iphoneos_ipad = iPhoneOS
 PLIST_PLATFORM_LOWER_iphoneos_ipad = iphoneos
 PLIST_SDK_NAME_iphoneos_ipad = iphoneos${IPHONE_SDK_VERSION_IPAD}
@@ -795,7 +789,6 @@ source_dist:
 	mkdir -p build/source_dist/include
 	mkdir -p build/source_dist/lib
 	mkdir -p build/source_dist/source/jsonio
-	mkdir -p build/source_dist/test_resources
 	mkdir -p build/source_dist/test_source/testharness
 	mkdir -p build/source_dist/test_source/unittest/framework
 	mkdir -p build/source_dist/test_source/unittest/suites
@@ -809,8 +802,6 @@ source_dist:
 	find build/source_dist/lib -name .svn -print0 | xargs -0 rm -rf
 	
 	cp source/jsonio/* build/source_dist/source/jsonio
-	
-	cp test_resources/* build/source_dist/test_resources
 	
 	cp test_source/testharness/* build/source_dist/test_source/testharness
 	cp test_source/unittest/framework/* build/source_dist/test_source/unittest/framework
