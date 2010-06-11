@@ -72,6 +72,7 @@ JSONSerializationContext * JSONSerializationContext_create() {
 
 void JSONSerializationContext_init(JSONSerializationContext * self) {
 	SerializationContext_init((SerializationContext *) self);
+	self->dispose = JSONSerializationContext_dispose;
 	self->beginStructure = JSONSerializationContext_beginStructure;
 	self->beginDictionary = JSONSerializationContext_beginDictionary;
 	self->beginArray = JSONSerializationContext_beginArray;
@@ -110,7 +111,7 @@ void JSONSerializationContext_init(JSONSerializationContext * self) {
 void JSONSerializationContext_dispose(void * selfPtr) {
 	JSONSerializationContext * self = selfPtr;
 	
-	if (self->rootNodeOwnedBySelf) {
+	if (self->rootNodeOwnedBySelf && self->rootNode != NULL) {
 		JSONNode_dispose(self->rootNode);
 	}
 	free(self->nodeStack);

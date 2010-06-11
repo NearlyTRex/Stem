@@ -56,6 +56,7 @@ JSONDeserializationContext * JSONDeserializationContext_createWithJSONNode(struc
 
 static void JSONDeserializationContext_init(JSONDeserializationContext * self) {
 	DeserializationContext_init((DeserializationContext *) self);
+	self->dispose = JSONDeserializationContext_dispose;
 	self->beginStructure = JSONDeserializationContext_beginStructure;
 	self->beginDictionary = JSONDeserializationContext_beginDictionary;
 	self->beginArray = JSONDeserializationContext_beginArray;
@@ -117,7 +118,10 @@ void JSONDeserializationContext_initWithJSONNode(JSONDeserializationContext * se
 void JSONDeserializationContext_dispose(void * selfPtr) {
 	JSONDeserializationContext * self = selfPtr;
 	
-	JSONNode_dispose(self->rootNode);
+	if (self->rootNode != NULL) {
+		JSONNode_dispose(self->rootNode);
+	}
+	free(self->nodeStack);
 	DeserializationContext_dispose(selfPtr);
 }
 

@@ -49,6 +49,7 @@ static void testInit() {
 	TestCase_assert(context.readBitfield64 != NULL, "Expected non-NULL but got NULL");
 	TestCase_assert(context.readNextDictionaryKey != NULL, "Expected non-NULL but got NULL");
 	TestCase_assert(context.hasDictionaryKey != NULL, "Expected non-NULL but got NULL");
+	context.dispose(&context);
 	
 	memset(&context, 0, sizeof(context));
 	tempFilePath = temporaryFilePath("tmpXXXXXX", &fd);
@@ -84,6 +85,7 @@ static void testInit() {
 	TestCase_assert(context.readBitfield64 != NULL, "Expected non-NULL but got NULL");
 	TestCase_assert(context.readNextDictionaryKey != NULL, "Expected non-NULL but got NULL");
 	TestCase_assert(context.hasDictionaryKey != NULL, "Expected non-NULL but got NULL");
+	context.dispose(&context);
 	
 	memset(&context, 0, sizeof(context));
 	JSONDeserializationContext_initWithJSONNode(&context, &node);
@@ -115,6 +117,7 @@ static void testInit() {
 	TestCase_assert(context.readBitfield64 != NULL, "Expected non-NULL but got NULL");
 	TestCase_assert(context.readNextDictionaryKey != NULL, "Expected non-NULL but got NULL");
 	TestCase_assert(context.hasDictionaryKey != NULL, "Expected non-NULL but got NULL");
+	context.dispose(&context);
 	
 	contextPtr = JSONDeserializationContext_createWithString(stringAndLength("[]"));
 	TestCase_assert(contextPtr != NULL, "Expected non-NULL but got NULL");
