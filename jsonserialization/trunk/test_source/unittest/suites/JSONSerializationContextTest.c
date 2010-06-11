@@ -1856,7 +1856,7 @@ static void testErrorReporting() {
 	             context->writeBoolean(context, NULL, false);)
 	_testFailure(SERIALIZATION_ERROR_NULL_KEY,
 	             context->beginDictionary(context, "key");,
-	             context->writeEnumeration(context, NULL, 0, "", 0);)
+	             context->writeEnumeration(context, NULL, 0, "", 0, NULL);)
 	_testFailure(SERIALIZATION_ERROR_NULL_KEY,
 	             context->beginDictionary(context, "key");,
 	             context->writeBitfield8(context, NULL, 0, NULL);)
@@ -1908,7 +1908,7 @@ static void testErrorReporting() {
 	             context->writeBoolean(context, NULL, false);)
 	_testFailure(SERIALIZATION_ERROR_NULL_KEY,
 	             context->beginStructure(context, "key");,
-	             context->writeEnumeration(context, NULL, 0, "", 0);)
+	             context->writeEnumeration(context, NULL, 0, "", 0, NULL);)
 	_testFailure(SERIALIZATION_ERROR_NULL_KEY,
 	             context->beginStructure(context, "key");,
 	             context->writeBitfield8(context, NULL, 0, NULL);)

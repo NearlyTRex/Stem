@@ -447,7 +447,13 @@ int64_t JSONDeserializationContext_readInt64(void * selfPtr, const char * key) {
 		double doubleValue;
 		int conversions, charsConsumed;
 		
-		conversions = sscanf(self->currentNode->subitems[nextNodeIndex].value.string, "%lld%n", &value, &charsConsumed);
+		conversions = sscanf(self->currentNode->subitems[nextNodeIndex].value.string,
+#ifdef __WIN32
+		                     "%I64d%n", (int *) &value,
+#else
+		                     "%lld%n", &value,
+#endif
+		                     &charsConsumed);
 		if (conversions != 1 || (size_t) charsConsumed != self->currentNode->subitems[nextNodeIndex].stringLength) {
 			failWithStatus(SERIALIZATION_ERROR_INCORRECT_TYPE,)
 		}
@@ -474,7 +480,13 @@ uint64_t JSONDeserializationContext_readUInt64(void * selfPtr, const char * key)
 		double doubleValue;
 		int conversions, charsConsumed;
 		
-		conversions = sscanf(self->currentNode->subitems[nextNodeIndex].value.string, "%llu%n", &value, &charsConsumed);
+		conversions = sscanf(self->currentNode->subitems[nextNodeIndex].value.string,
+#ifdef __WIN32
+		                     "%I64u%n", (unsigned int *) &value,
+#else
+		                     "%llu%n", &value,
+#endif
+		                     &charsConsumed);
 		if (conversions != 1 || (size_t) charsConsumed != self->currentNode->subitems[nextNodeIndex].stringLength) {
 			failWithStatus(SERIALIZATION_ERROR_INCORRECT_TYPE,)
 		}
