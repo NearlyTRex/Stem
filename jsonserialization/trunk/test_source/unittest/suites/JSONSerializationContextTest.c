@@ -1684,175 +1684,349 @@ static void testErrorReporting() {
 	TestCase_assert(context->status == ERROR_STATUS, "Expected %d but got %d (context->status setjmp)", ERROR_STATUS, context->status); \
 	context->dispose(context);
 	
-	_testFailure(JSON_SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER, , context->writeInt8(context, "key", 0);)
-	_testFailure(JSON_SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER, , context->writeUInt8(context, "key", 0);)
-	_testFailure(JSON_SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER, , context->writeInt16(context, "key", 0);)
-	_testFailure(JSON_SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER, , context->writeUInt16(context, "key", 0);)
-	_testFailure(JSON_SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER, , context->writeInt32(context, "key", 0);)
-	_testFailure(JSON_SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER, , context->writeUInt32(context, "key", 0);)
-	_testFailure(JSON_SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER, , context->writeInt64(context, "key", 0);)
-	_testFailure(JSON_SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER, , context->writeUInt64(context, "key", 0);)
-	_testFailure(JSON_SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER, , context->writeFloat(context, "key", 0);)
-	_testFailure(JSON_SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER, , context->writeDouble(context, "key", 0);)
-	_testFailure(JSON_SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER, , context->writeString(context, "key", "");)
-	_testFailure(JSON_SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER, , context->writeBoolean(context, "key", false);)
-	_testFailure(JSON_SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER, , context->writeEnumeration(context, "key", 0, "", 0, NULL);)
-	_testFailure(JSON_SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER, , context->writeBitfield8(context, "key", 0, NULL);)
-	_testFailure(JSON_SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER, , context->writeBitfield16(context, "key", 0, NULL);)
-	_testFailure(JSON_SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER, , context->writeBitfield32(context, "key", 0, NULL);)
-	_testFailure(JSON_SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER, , context->writeBitfield64(context, "key", 0, NULL);)
+	_testFailure(SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, , context->writeInt8(context, "key", 0);)
+	_testFailure(SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, , context->writeUInt8(context, "key", 0);)
+	_testFailure(SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, , context->writeInt16(context, "key", 0);)
+	_testFailure(SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, , context->writeUInt16(context, "key", 0);)
+	_testFailure(SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, , context->writeInt32(context, "key", 0);)
+	_testFailure(SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, , context->writeUInt32(context, "key", 0);)
+	_testFailure(SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, , context->writeInt64(context, "key", 0);)
+	_testFailure(SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, , context->writeUInt64(context, "key", 0);)
+	_testFailure(SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, , context->writeFloat(context, "key", 0);)
+	_testFailure(SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, , context->writeDouble(context, "key", 0);)
+	_testFailure(SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, , context->writeString(context, "key", "");)
+	_testFailure(SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, , context->writeBoolean(context, "key", false);)
+	_testFailure(SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, , context->writeEnumeration(context, "key", 0, "", 0, NULL);)
+	_testFailure(SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, , context->writeBitfield8(context, "key", 0, NULL);)
+	_testFailure(SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, , context->writeBitfield16(context, "key", 0, NULL);)
+	_testFailure(SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, , context->writeBitfield32(context, "key", 0, NULL);)
+	_testFailure(SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, , context->writeBitfield64(context, "key", 0, NULL);)
 	
-	_testFailure(JSON_SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH,
+	_testFailure(SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->writeInt8(context, "key", 0);)
+	_testFailure(SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->writeUInt8(context, "key", 0);)
+	_testFailure(SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->writeInt16(context, "key", 0);)
+	_testFailure(SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->writeUInt16(context, "key", 0);)
+	_testFailure(SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->writeInt32(context, "key", 0);)
+	_testFailure(SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->writeUInt32(context, "key", 0);)
+	_testFailure(SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->writeInt64(context, "key", 0);)
+	_testFailure(SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->writeUInt64(context, "key", 0);)
+	_testFailure(SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->writeFloat(context, "key", 0);)
+	_testFailure(SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->writeDouble(context, "key", 0);)
+	_testFailure(SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->writeString(context, "key", "");)
+	_testFailure(SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->writeBoolean(context, "key", false);)
+	_testFailure(SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->writeEnumeration(context, "key", 0, "", 0, NULL);)
+	_testFailure(SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->writeBitfield8(context, "key", 0, NULL);)
+	_testFailure(SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->writeBitfield16(context, "key", 0, NULL);)
+	_testFailure(SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->writeBitfield32(context, "key", 0, NULL);)
+	_testFailure(SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->writeBitfield64(context, "key", 0, NULL);)
+	
+	_testFailure(SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH,
 	             context->beginArray(context, "key");,
 	             context->endStructure(context);)
-	_testFailure(JSON_SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH,
+	_testFailure(SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH,
 	             context->beginArray(context, "key");
 	             context->beginArray(context, "key");,
 	             context->endStructure(context);)
-	_testFailure(JSON_SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH,
+	_testFailure(SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH,
 	             context->beginArray(context, "key");,
 	             context->endDictionary(context);)
-	_testFailure(JSON_SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH,
+	_testFailure(SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH,
 	             context->beginArray(context, "key");
 	             context->beginArray(context, "key");,
 	             context->endDictionary(context);)
-	_testFailure(JSON_SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH,
+	_testFailure(SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH,
 	             context->beginStructure(context, "key");,
 	             context->endArray(context);)
-	_testFailure(JSON_SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH,
+	_testFailure(SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH,
 	             context->beginStructure(context, "key");
 	             context->beginStructure(context, "key");,
 	             context->endArray(context);)
-	_testFailure(JSON_SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH,
+	_testFailure(SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH,
 	             context->beginStructure(context, "key");,
 	             context->endDictionary(context);)
-	_testFailure(JSON_SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH,
+	_testFailure(SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH,
 	             context->beginStructure(context, "key");
 	             context->beginStructure(context, "key");,
 	             context->endDictionary(context);)
-	_testFailure(JSON_SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH,
+	_testFailure(SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH,
 	             context->beginDictionary(context, "key");,
 	             context->endArray(context);)
-	_testFailure(JSON_SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH,
+	_testFailure(SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH,
 	             context->beginDictionary(context, "key");
 	             context->beginDictionary(context, "key");,
 	             context->endArray(context);)
-	_testFailure(JSON_SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH,
+	_testFailure(SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH,
 	             context->beginDictionary(context, "key");,
 	             context->endStructure(context);)
-	_testFailure(JSON_SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH,
+	_testFailure(SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH,
 	             context->beginDictionary(context, "key");
 	             context->beginDictionary(context, "key");,
 	             context->endStructure(context);)
 	
-	_testFailure(JSON_SERIALIZATION_ERROR_CONTAINER_UNDERFLOW, , context->endArray(context);)
-	_testFailure(JSON_SERIALIZATION_ERROR_CONTAINER_UNDERFLOW, , context->endDictionary(context);)
-	_testFailure(JSON_SERIALIZATION_ERROR_CONTAINER_UNDERFLOW, , context->endStructure(context);)
+	_testFailure(SERIALIZATION_ERROR_CONTAINER_UNDERFLOW, , context->endArray(context);)
+	_testFailure(SERIALIZATION_ERROR_CONTAINER_UNDERFLOW, , context->endDictionary(context);)
+	_testFailure(SERIALIZATION_ERROR_CONTAINER_UNDERFLOW, , context->endStructure(context);)
 	
-	_testFailure(JSON_SERIALIZATION_ERROR_MULTIPLE_TOP_LEVEL_CONTAINERS,
+	_testFailure(SERIALIZATION_ERROR_MULTIPLE_TOP_LEVEL_CONTAINERS,
 	             context->beginArray(context, "key");
 	             context->endArray(context);,
 	             context->beginArray(context, "key");)
-	_testFailure(JSON_SERIALIZATION_ERROR_MULTIPLE_TOP_LEVEL_CONTAINERS,
+	_testFailure(SERIALIZATION_ERROR_MULTIPLE_TOP_LEVEL_CONTAINERS,
 	             context->beginStructure(context, "key");
 	             context->endStructure(context);,
 	             context->beginStructure(context, "key");)
-	_testFailure(JSON_SERIALIZATION_ERROR_MULTIPLE_TOP_LEVEL_CONTAINERS,
+	_testFailure(SERIALIZATION_ERROR_MULTIPLE_TOP_LEVEL_CONTAINERS,
 	             context->beginDictionary(context, "key");
 	             context->endDictionary(context);,
 	             context->beginDictionary(context, "key");)
 	
-	_testFailure(JSON_SERIALIZATION_ERROR_UNNAMED_BIT,
+	_testFailure(SERIALIZATION_ERROR_UNNAMED_BIT,
 	             context->beginArray(context, "key");,
 	             context->writeBitfield8(context, "key", 0x08, "bit0", "bit1", "bit2", NULL);)
-	_testFailure(JSON_SERIALIZATION_ERROR_UNNAMED_BIT,
+	_testFailure(SERIALIZATION_ERROR_UNNAMED_BIT,
 	             context->beginArray(context, "key");,
 	             context->writeBitfield16(context, "key", 0x0004, "bit0", "bit1", NULL);)
-	_testFailure(JSON_SERIALIZATION_ERROR_UNNAMED_BIT,
+	_testFailure(SERIALIZATION_ERROR_UNNAMED_BIT,
 	             context->beginArray(context, "key");,
 	             context->writeBitfield32(context, "key", 0x00000002, "bit0", NULL);)
-	_testFailure(JSON_SERIALIZATION_ERROR_UNNAMED_BIT,
+	_testFailure(SERIALIZATION_ERROR_UNNAMED_BIT,
 	             context->beginArray(context, "key");,
 	             context->writeBitfield64(context, "key", 0x0000000000000001ull, NULL);)
 	
-	_testFailure(JSON_SERIALIZATION_ERROR_DUPLICATE_BIT,
+	_testFailure(SERIALIZATION_ERROR_DUPLICATE_BIT,
 	             context->beginArray(context, "key");,
 	             context->writeBitfield8(context, "key", 0, "bit0", "bit0", "bit1", NULL);)
-	_testFailure(JSON_SERIALIZATION_ERROR_DUPLICATE_BIT,
+	_testFailure(SERIALIZATION_ERROR_DUPLICATE_BIT,
 	             context->beginArray(context, "key");,
 	             context->writeBitfield16(context, "key", 0, "bit0", "bit1", "bit0", NULL);)
-	_testFailure(JSON_SERIALIZATION_ERROR_DUPLICATE_BIT,
+	_testFailure(SERIALIZATION_ERROR_DUPLICATE_BIT,
 	             context->beginArray(context, "key");,
 	             context->writeBitfield32(context, "key", 0, "bit0", "bit1", "bit1", NULL);)
-	_testFailure(JSON_SERIALIZATION_ERROR_DUPLICATE_BIT,
+	_testFailure(SERIALIZATION_ERROR_DUPLICATE_BIT,
 	             context->beginArray(context, "key");,
 	             context->writeBitfield64(context, "key", 0, "bit0", "bit0", NULL);)
 	
-	_testFailure(JSON_SERIALIZATION_ERROR_ENUM_VALUE_NOT_NAMED,
+	_testFailure(SERIALIZATION_ERROR_ENUM_NOT_NAMED,
 	             context->beginArray(context, "key");,
 	             context->writeEnumeration(context, "key", 0, "", 1, NULL);)
 	
-	_testFailure(JSON_SERIALIZATION_ERROR_DUPLICATE_ENUM_VALUE,
+	_testFailure(SERIALIZATION_ERROR_DUPLICATE_ENUM_VALUE,
 	             context->beginArray(context, "key");,
 	             context->writeEnumeration(context, "key", 0, "enum0", 0, "enum1", 0, NULL);)
 	
-	_testFailure(JSON_SERIALIZATION_ERROR_DUPLICATE_ENUM_NAME,
+	_testFailure(SERIALIZATION_ERROR_DUPLICATE_ENUM_NAME,
 	             context->beginArray(context, "key");,
 	             context->writeEnumeration(context, "key", 0, "enum0", 0, "enum0", 1, NULL);)
 	
-	_testFailure(JSON_SERIALIZATION_ERROR_NULL_KEY,
+	_testFailure(SERIALIZATION_ERROR_NULL_KEY,
 	             context->beginDictionary(context, "key");,
 	             context->writeInt8(context, NULL, 0);)
-	_testFailure(JSON_SERIALIZATION_ERROR_NULL_KEY,
+	_testFailure(SERIALIZATION_ERROR_NULL_KEY,
 	             context->beginDictionary(context, "key");,
 	             context->writeUInt8(context, NULL, 0);)
-	_testFailure(JSON_SERIALIZATION_ERROR_NULL_KEY,
+	_testFailure(SERIALIZATION_ERROR_NULL_KEY,
 	             context->beginDictionary(context, "key");,
 	             context->writeInt16(context, NULL, 0);)
-	_testFailure(JSON_SERIALIZATION_ERROR_NULL_KEY,
+	_testFailure(SERIALIZATION_ERROR_NULL_KEY,
 	             context->beginDictionary(context, "key");,
 	             context->writeUInt16(context, NULL, 0);)
-	_testFailure(JSON_SERIALIZATION_ERROR_NULL_KEY,
+	_testFailure(SERIALIZATION_ERROR_NULL_KEY,
 	             context->beginDictionary(context, "key");,
 	             context->writeInt32(context, NULL, 0);)
-	_testFailure(JSON_SERIALIZATION_ERROR_NULL_KEY,
+	_testFailure(SERIALIZATION_ERROR_NULL_KEY,
 	             context->beginDictionary(context, "key");,
 	             context->writeUInt32(context, NULL, 0);)
-	_testFailure(JSON_SERIALIZATION_ERROR_NULL_KEY,
+	_testFailure(SERIALIZATION_ERROR_NULL_KEY,
 	             context->beginDictionary(context, "key");,
 	             context->writeInt64(context, NULL, 0);)
-	_testFailure(JSON_SERIALIZATION_ERROR_NULL_KEY,
+	_testFailure(SERIALIZATION_ERROR_NULL_KEY,
 	             context->beginDictionary(context, "key");,
 	             context->writeUInt64(context, NULL, 0);)
-	_testFailure(JSON_SERIALIZATION_ERROR_NULL_KEY,
+	_testFailure(SERIALIZATION_ERROR_NULL_KEY,
 	             context->beginDictionary(context, "key");,
 	             context->writeFloat(context, NULL, 0);)
-	_testFailure(JSON_SERIALIZATION_ERROR_NULL_KEY,
+	_testFailure(SERIALIZATION_ERROR_NULL_KEY,
 	             context->beginDictionary(context, "key");,
 	             context->writeDouble(context, NULL, 0);)
-	_testFailure(JSON_SERIALIZATION_ERROR_NULL_KEY,
+	_testFailure(SERIALIZATION_ERROR_NULL_KEY,
 	             context->beginDictionary(context, "key");,
 	             context->writeString(context, NULL, "");)
-	_testFailure(JSON_SERIALIZATION_ERROR_NULL_KEY,
+	_testFailure(SERIALIZATION_ERROR_NULL_KEY,
 	             context->beginDictionary(context, "key");,
 	             context->writeBoolean(context, NULL, false);)
-	_testFailure(JSON_SERIALIZATION_ERROR_NULL_KEY,
+	_testFailure(SERIALIZATION_ERROR_NULL_KEY,
 	             context->beginDictionary(context, "key");,
 	             context->writeEnumeration(context, NULL, 0, "", 0);)
-	_testFailure(JSON_SERIALIZATION_ERROR_NULL_KEY,
+	_testFailure(SERIALIZATION_ERROR_NULL_KEY,
 	             context->beginDictionary(context, "key");,
 	             context->writeBitfield8(context, NULL, 0, NULL);)
-	_testFailure(JSON_SERIALIZATION_ERROR_NULL_KEY,
+	_testFailure(SERIALIZATION_ERROR_NULL_KEY,
 	             context->beginDictionary(context, "key");,
 	             context->writeBitfield16(context, NULL, 0, NULL);)
-	_testFailure(JSON_SERIALIZATION_ERROR_NULL_KEY,
+	_testFailure(SERIALIZATION_ERROR_NULL_KEY,
 	             context->beginDictionary(context, "key");,
 	             context->writeBitfield32(context, NULL, 0, NULL);)
-	_testFailure(JSON_SERIALIZATION_ERROR_NULL_KEY,
+	_testFailure(SERIALIZATION_ERROR_NULL_KEY,
 	             context->beginDictionary(context, "key");,
 	             context->writeBitfield64(context, NULL, 0, NULL);)
 	
+	_testFailure(SERIALIZATION_ERROR_NULL_KEY,
+	             context->beginStructure(context, "key");,
+	             context->writeInt8(context, NULL, 0);)
+	_testFailure(SERIALIZATION_ERROR_NULL_KEY,
+	             context->beginStructure(context, "key");,
+	             context->writeUInt8(context, NULL, 0);)
+	_testFailure(SERIALIZATION_ERROR_NULL_KEY,
+	             context->beginStructure(context, "key");,
+	             context->writeInt16(context, NULL, 0);)
+	_testFailure(SERIALIZATION_ERROR_NULL_KEY,
+	             context->beginStructure(context, "key");,
+	             context->writeUInt16(context, NULL, 0);)
+	_testFailure(SERIALIZATION_ERROR_NULL_KEY,
+	             context->beginStructure(context, "key");,
+	             context->writeInt32(context, NULL, 0);)
+	_testFailure(SERIALIZATION_ERROR_NULL_KEY,
+	             context->beginStructure(context, "key");,
+	             context->writeUInt32(context, NULL, 0);)
+	_testFailure(SERIALIZATION_ERROR_NULL_KEY,
+	             context->beginStructure(context, "key");,
+	             context->writeInt64(context, NULL, 0);)
+	_testFailure(SERIALIZATION_ERROR_NULL_KEY,
+	             context->beginStructure(context, "key");,
+	             context->writeUInt64(context, NULL, 0);)
+	_testFailure(SERIALIZATION_ERROR_NULL_KEY,
+	             context->beginStructure(context, "key");,
+	             context->writeFloat(context, NULL, 0);)
+	_testFailure(SERIALIZATION_ERROR_NULL_KEY,
+	             context->beginStructure(context, "key");,
+	             context->writeDouble(context, NULL, 0);)
+	_testFailure(SERIALIZATION_ERROR_NULL_KEY,
+	             context->beginStructure(context, "key");,
+	             context->writeString(context, NULL, "");)
+	_testFailure(SERIALIZATION_ERROR_NULL_KEY,
+	             context->beginStructure(context, "key");,
+	             context->writeBoolean(context, NULL, false);)
+	_testFailure(SERIALIZATION_ERROR_NULL_KEY,
+	             context->beginStructure(context, "key");,
+	             context->writeEnumeration(context, NULL, 0, "", 0);)
+	_testFailure(SERIALIZATION_ERROR_NULL_KEY,
+	             context->beginStructure(context, "key");,
+	             context->writeBitfield8(context, NULL, 0, NULL);)
+	_testFailure(SERIALIZATION_ERROR_NULL_KEY,
+	             context->beginStructure(context, "key");,
+	             context->writeBitfield16(context, NULL, 0, NULL);)
+	_testFailure(SERIALIZATION_ERROR_NULL_KEY,
+	             context->beginStructure(context, "key");,
+	             context->writeBitfield32(context, NULL, 0, NULL);)
+	_testFailure(SERIALIZATION_ERROR_NULL_KEY,
+	             context->beginStructure(context, "key");,
+	             context->writeBitfield64(context, NULL, 0, NULL);)
+	
+#define _testFailureDuplicateStructureKey(FAIL_WRITE_CALL) \
+	_testFailure(JSON_SERIALIZATION_ERROR_DUPLICATE_STRUCTURE_KEY, \
+	             context->beginStructure(context, "key"); \
+	             context->writeBoolean(context, "key", false);, \
+	             context->FAIL_WRITE_CALL;) \
+	_testFailure(JSON_SERIALIZATION_ERROR_DUPLICATE_STRUCTURE_KEY, \
+	             context->beginStructure(context, "key"); \
+	             context->writeBoolean(context, "key", false); \
+	             context->writeBoolean(context, "key2", true);, \
+	             context->FAIL_WRITE_CALL;) \
+	_testFailure(JSON_SERIALIZATION_ERROR_DUPLICATE_STRUCTURE_KEY, \
+	             context->beginStructure(context, "key"); \
+	             context->writeBoolean(context, "key2", false); \
+	             context->writeBoolean(context, "key", true);, \
+	             context->FAIL_WRITE_CALL;)
+	
+	_testFailureDuplicateStructureKey(writeInt8(context, "key", 0))
+	_testFailureDuplicateStructureKey(writeUInt8(context, "key", 0))
+	_testFailureDuplicateStructureKey(writeInt16(context, "key", 0))
+	_testFailureDuplicateStructureKey(writeUInt16(context, "key", 0))
+	_testFailureDuplicateStructureKey(writeInt32(context, "key", 0))
+	_testFailureDuplicateStructureKey(writeUInt32(context, "key", 0))
+	_testFailureDuplicateStructureKey(writeInt64(context, "key", 0))
+	_testFailureDuplicateStructureKey(writeUInt64(context, "key", 0))
+	_testFailureDuplicateStructureKey(writeFloat(context, "key", 0))
+	_testFailureDuplicateStructureKey(writeDouble(context, "key", 0))
+	_testFailureDuplicateStructureKey(writeString(context, "key", ""))
+	_testFailureDuplicateStructureKey(writeBoolean(context, "key", false))
+	_testFailureDuplicateStructureKey(writeEnumeration(context, "key", 0, "", 0, NULL))
+	_testFailureDuplicateStructureKey(writeBitfield8(context, "key", 0, NULL))
+	_testFailureDuplicateStructureKey(writeBitfield16(context, "key", 0, NULL))
+	_testFailureDuplicateStructureKey(writeBitfield32(context, "key", 0, NULL))
+	_testFailureDuplicateStructureKey(writeBitfield64(context, "key", 0, NULL))
+#undef _testFailureDuplicateStructureKey
+	
 #undef _testFailure
+}
+
+static void testThatNodeIsCopiedWhenRequestedMultipleTimes() {
+	JSONSerializationContext * context;
+	struct JSONNode * node1, * node2;
+	char * string1, * string2;
+	
+	context = JSONSerializationContext_create();
+	TestCase_assert(context != NULL, "Expected non-NULL but got NULL");
+	if (context == NULL) {return;} // Suppress clang warning
+	context->beginArray(context, "key");
+		context->beginStructure(context, "item");
+			context->writeInt8(context, "item", 0);
+		context->endStructure(context);
+		context->beginArray(context, "item");
+			context->writeUInt8(context, "item", 1);
+			context->beginDictionary(context, "item");
+				context->writeInt16(context, "item", 2);
+				context->writeUInt16(context, "item", 3);
+				context->writeInt32(context, "item", 4);
+				context->writeUInt32(context, "item", 5);
+				context->writeInt64(context, "item", 6);
+				context->writeUInt64(context, "item", 7);
+			context->endDictionary(context);
+			context->writeFloat(context, "item", 8);
+			context->writeDouble(context, "item", 9);
+			context->writeString(context, "item", "10");
+			context->writeBoolean(context, "item", true);
+			context->writeEnumeration(context, "item", 12, "enum", 12, NULL);
+			context->writeBitfield8(context, "item", 1, "13", NULL);
+			context->writeBitfield16(context, "item", 1, "14", NULL);
+			context->writeBitfield32(context, "item", 1, "15", NULL);
+			context->writeBitfield64(context, "item", 1, "16", NULL);
+		context->endArray(context);
+	context->endArray(context);
+	node1 = context->writeToJSONNode(context);
+	node2 = context->writeToJSONNode(context);
+	context->dispose(context);
+	TestCase_assert(node1 != NULL, "Expected non-NULL but got NULL");
+	if (node1 == NULL) {return;} // Suppress clang warning
+	TestCase_assert(node2 != NULL, "Expected non-NULL but got NULL");
+	if (node2 == NULL) {return;} // Suppress clang warning
+	TestCase_assert(node1 != node2, "Pointers expected to differ, but didn't");
+	string1 = JSONEmitter_writeString(node1, JSONEmitterFormat_compact, NULL, NULL);
+	TestCase_assert(string1 != NULL, "Expected non-NULL but got NULL");
+	string2 = JSONEmitter_writeString(node2, JSONEmitterFormat_compact, NULL, NULL);
+	TestCase_assert(string2 != NULL, "Expected non-NULL but got NULL");
+	TestCase_assert(!strcmp(string1, string2), "Strings didn't match:\n  %s\n  %s", string1, string2);
+	free(string1);
+	free(string2);
+	TestCase_assert(node1->subitems != node2->subitems, "Pointers expected to differ, but didn't");
+	TestCase_assert(node1->subitems[0].subitems != node2->subitems[0].subitems, "Pointers expected to differ, but didn't");
+	TestCase_assert(node1->subitems[0].subitems[0].key != node2->subitems[0].subitems[0].key, "Pointers expected to differ, but didn't");
+	TestCase_assert(node1->subitems[1].subitems != node2->subitems[1].subitems, "Pointers expected to differ, but didn't");
+	TestCase_assert(node1->subitems[1].subitems[1].subitems != node2->subitems[1].subitems[1].subitems, "Pointers expected to differ, but didn't");
+	TestCase_assert(node1->subitems[1].subitems[1].subitems[0].key != node2->subitems[1].subitems[1].subitems[0].key, "Pointers expected to differ, but didn't");
+	TestCase_assert(node1->subitems[1].subitems[1].subitems[1].key != node2->subitems[1].subitems[1].subitems[1].key, "Pointers expected to differ, but didn't");
+	TestCase_assert(node1->subitems[1].subitems[1].subitems[2].key != node2->subitems[1].subitems[1].subitems[2].key, "Pointers expected to differ, but didn't");
+	TestCase_assert(node1->subitems[1].subitems[1].subitems[3].key != node2->subitems[1].subitems[1].subitems[3].key, "Pointers expected to differ, but didn't");
+	TestCase_assert(node1->subitems[1].subitems[1].subitems[4].key != node2->subitems[1].subitems[1].subitems[4].key, "Pointers expected to differ, but didn't");
+	TestCase_assert(node1->subitems[1].subitems[1].subitems[5].key != node2->subitems[1].subitems[1].subitems[5].key, "Pointers expected to differ, but didn't");
+	TestCase_assert(node1->subitems[1].subitems[4].value.string != node2->subitems[1].subitems[4].value.string, "Pointers expected to differ, but didn't");
+	TestCase_assert(node1->subitems[1].subitems[6].value.string != node2->subitems[1].subitems[6].value.string, "Pointers expected to differ, but didn't");
+	TestCase_assert(node1->subitems[1].subitems[7].subitems[0].value.string != node2->subitems[1].subitems[7].subitems[0].value.string, "Pointers expected to differ, but didn't");
+	TestCase_assert(node1->subitems[1].subitems[8].subitems[0].value.string != node2->subitems[1].subitems[8].subitems[0].value.string, "Pointers expected to differ, but didn't");
+	TestCase_assert(node1->subitems[1].subitems[9].subitems[0].value.string != node2->subitems[1].subitems[9].subitems[0].value.string, "Pointers expected to differ, but didn't");
+	TestCase_assert(node1->subitems[1].subitems[10].subitems[0].value.string != node2->subitems[1].subitems[10].subitems[0].value.string, "Pointers expected to differ, but didn't");
+	JSONNode_dispose(node1);
+	JSONNode_dispose(node2);
 }
 
 TEST_SUITE(JSONSerializationContextTest,
@@ -1871,4 +2045,5 @@ TEST_SUITE(JSONSerializationContextTest,
            testWriteToString,
            testWriteToFile,
            testInvalidOperations,
-           testErrorReporting)
+           testErrorReporting,
+           testThatNodeIsCopiedWhenRequestedMultipleTimes)

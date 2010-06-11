@@ -26,40 +26,26 @@
 #include "serialization/SerializationContext.h"
 #include "jsonio/JSONEmitter.h"
 #include "jsonio/JSONIO.h"
+#include "jsonserialization/JSONSerializationShared.h"
 
 typedef struct JSONSerializationContext JSONSerializationContext;
 
-#define JSON_SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER 100
-#define JSON_SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH 101
-#define JSON_SERIALIZATION_ERROR_CONTAINER_UNDERFLOW 102
-#define JSON_SERIALIZATION_ERROR_MULTIPLE_TOP_LEVEL_CONTAINERS 103
-#define JSON_SERIALIZATION_ERROR_UNNAMED_BIT 104
-#define JSON_SERIALIZATION_ERROR_DUPLICATE_BIT 105
-#define JSON_SERIALIZATION_ERROR_ENUM_VALUE_NOT_NAMED 106
-#define JSON_SERIALIZATION_ERROR_DUPLICATE_ENUM_VALUE 107
-#define JSON_SERIALIZATION_ERROR_DUPLICATE_ENUM_NAME 108
-#define JSON_SERIALIZATION_ERROR_NULL_KEY 109
-
-enum JSONSerializationContext_containerType {
-	CONTAINER_TYPE_ARRAY,
-	CONTAINER_TYPE_STRUCTURE,
-	CONTAINER_TYPE_DICTIONARY
-};
-
 struct JSONSerializationContext_nodeStackItem {
 	struct JSONNode * node;
-	enum JSONSerializationContext_containerType containerType;
+	enum JSONSerializationContainerType containerType;
 };
 
 #define JSONSerializationContext_structContents \
 	SerializationContext_structContents \
 	\
 	struct JSONNode * rootNode; \
-	enum JSONSerializationContext_containerType rootContainerType; \
 	struct JSONNode * currentNode; \
+	enum JSONSerializationContainerType rootContainerType; \
+	enum JSONSerializationContainerType currentContainerType; \
 	struct JSONSerializationContext_nodeStackItem * nodeStack; \
 	size_t nodeStackAllocatedSize; \
 	size_t nodeStackCurrentDepth; \
+	bool rootNodeOwnedBySelf; \
 	\
 	char * (* writeToString)(void * self, enum JSONEmitterFormat format, size_t * outLength, struct JSONEmissionError * outError); \
 	bool (* writeToFile)(void * self, enum JSONEmitterFormat format, const char * filePath, struct JSONEmissionError * outError); \
@@ -73,8 +59,10 @@ JSONSerializationContext * JSONSerializationContext_create();
 void JSONSerializationContext_init(JSONSerializationContext * self);
 void JSONSerializationContext_dispose(void * selfPtr);
 
+// Returned object owned by caller; free when done
 char * JSONSerializationContext_writeToString(void * selfPtr, enum JSONEmitterFormat format, size_t * outLength, struct JSONEmissionError * outError);
 bool JSONSerializationContext_writeToFile(void * selfPtr, enum JSONEmitterFormat format, const char * filePath, struct JSONEmissionError * outError);
+// Returned object owned by caller; free when done with JSONNode_dispose()
 struct JSONNode * JSONSerializationContext_writeToJSONNode(void * selfPtr);
 
 void JSONSerializationContext_beginStructure(void * selfPtr, const char * key);

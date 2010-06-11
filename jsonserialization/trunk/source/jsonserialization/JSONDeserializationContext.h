@@ -25,11 +25,28 @@
 
 #include "serialization/DeserializationContext.h"
 #include "jsonio/JSONIO.h"
+#include "jsonserialization/JSONSerializationShared.h"
 
 typedef struct JSONDeserializationContext JSONDeserializationContext;
 
+struct JSONDeserializationContext_nodeStackItem {
+	struct JSONNode * node;
+	size_t index;
+	enum JSONSerializationContainerType containerType;
+};
+
 #define JSONDeserializationContext_structContents \
-	DeserializationContext_structContents
+	DeserializationContext_structContents \
+	\
+	struct JSONNode * rootNode; \
+	struct JSONNode * currentNode; \
+	enum JSONSerializationContainerType rootContainerType; \
+	enum JSONSerializationContainerType currentContainerType; \
+	struct JSONDeserializationContext_nodeStackItem * nodeStack; \
+	size_t nodeStackAllocatedSize; \
+	size_t nodeStackCurrentDepth; \
+	size_t nextNodeIndex; \
+	bool finished;
 
 struct JSONDeserializationContext {
 	JSONDeserializationContext_structContents
@@ -43,9 +60,9 @@ void JSONDeserializationContext_initWithString(JSONDeserializationContext * self
 void JSONDeserializationContext_initWithJSONNode(JSONDeserializationContext * self, struct JSONNode * node);
 void JSONDeserializationContext_dispose(void * selfPtr);
 
-unsigned int JSONDeserializationContext_beginStructure(void * selfPtr, const char * key);
-unsigned int JSONDeserializationContext_beginDictionary(void * selfPtr, const char * key);
-unsigned int JSONDeserializationContext_beginArray(void * selfPtr, const char * key);
+size_t JSONDeserializationContext_beginStructure(void * selfPtr, const char * key);
+size_t JSONDeserializationContext_beginDictionary(void * selfPtr, const char * key);
+size_t JSONDeserializationContext_beginArray(void * selfPtr, const char * key);
 void JSONDeserializationContext_endStructure(void * selfPtr);
 void JSONDeserializationContext_endDictionary(void * selfPtr);
 void JSONDeserializationContext_endArray(void * selfPtr);

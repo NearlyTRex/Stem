@@ -25,15 +25,26 @@
 #include <stdio.h>
 #include <string.h>
 
-#define writeNode(TARGET, CONTAINER_TYPE, KEY, TYPE, VALUE_FIELD, VALUE) \
+#define failWithStatus(STATUS, RETURN_CODE) \
+	self->status = (STATUS); \
+	if (self->jmpBuf != NULL) { \
+		longjmp(*self->jmpBuf, self->status); \
+	} \
+	RETURN_CODE;
+
+#define writeNode(TARGET, CONTAINER, KEY, TYPE, VALUE_FIELD, VALUE) \
 	(TARGET).type = (TYPE); \
-	if ((CONTAINER_TYPE) == JSON_TYPE_OBJECT) { \
+	if ((CONTAINER) != NULL && (CONTAINER)->type == JSON_TYPE_OBJECT) { \
 		if ((KEY) == NULL) { \
-			self->status = JSON_SERIALIZATION_ERROR_NULL_KEY; \
-			if (self->jmpBuf != NULL) { \
-				longjmp(*self->jmpBuf, self->status); \
+			failWithStatus(SERIALIZATION_ERROR_NULL_KEY, return) \
+		} \
+		if (self->currentContainerType == JSON_SERIALIZATION_CONTAINER_TYPE_STRUCTURE) { \
+			size_t nodeIndex; \
+			for (nodeIndex = 0; nodeIndex < (CONTAINER)->value.count; nodeIndex++) { \
+				if (!strcmp((CONTAINER)->subitems[nodeIndex].key, (KEY))) { \
+					failWithStatus(JSON_SERIALIZATION_ERROR_DUPLICATE_STRUCTURE_KEY, return) \
+				} \
 			} \
-			return; \
 		} \
 		(TARGET).keyLength = strlen(KEY); \
 		(TARGET).key = malloc((TARGET).keyLength + 1); \
@@ -43,7 +54,12 @@
 	} \
 	(TARGET).value.VALUE_FIELD = (VALUE);
 
-#define writeNodeCommonArgs(TYPE, VALUE_FIELD) writeNode(self->currentNode->subitems[self->currentNode->value.count], self->currentNode->type, key, TYPE, VALUE_FIELD, value)
+#define writeNodeCommonArgs(TYPE, VALUE_FIELD) writeNode(self->currentNode->subitems[self->currentNode->value.count], self->currentNode, key, TYPE, VALUE_FIELD, value)
+
+#define failIfContainerNotStarted() \
+	if (self->currentNode == NULL) { \
+		failWithStatus(SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, return) \
+	}
 
 JSONSerializationContext * JSONSerializationContext_create() {
 	JSONSerializationContext * self;
@@ -88,12 +104,15 @@ void JSONSerializationContext_init(JSONSerializationContext * self) {
 	self->nodeStack = NULL;
 	self->nodeStackAllocatedSize = 0;
 	self->nodeStackCurrentDepth = 0;
+	self->rootNodeOwnedBySelf = true;
 }
 
 void JSONSerializationContext_dispose(void * selfPtr) {
 	JSONSerializationContext * self = selfPtr;
 	
-	free(self->rootNode);
+	if (self->rootNodeOwnedBySelf) {
+		JSONNode_dispose(self->rootNode);
+	}
 	free(self->nodeStack);
 	SerializationContext_dispose((SerializationContext *) self);
 }
@@ -133,142 +152,130 @@ struct JSONNode * JSONSerializationContext_writeToJSONNode(void * selfPtr) {
 	if (self->rootNode == NULL) {
 		self->status = JSON_SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER;
 	}
-	return self->rootNode;
+	if (self->rootNodeOwnedBySelf) {
+		self->rootNodeOwnedBySelf = false;
+		return self->rootNode;
+	}
+	
+	return JSONNode_copy(self->rootNode);
 }
 
 void JSONSerializationContext_beginStructure(void * selfPtr, const char * key) {
 	JSONSerializationContext * self = selfPtr;
-	enum JSONType containerType;
 	
 	if (self->rootNode == NULL) {
 		self->rootNode = malloc(sizeof(struct JSONNode));
 		self->currentNode = self->rootNode;
-		self->rootContainerType = CONTAINER_TYPE_STRUCTURE;
-		containerType = JSON_TYPE_ARRAY;
+		self->rootContainerType = JSON_SERIALIZATION_CONTAINER_TYPE_STRUCTURE;
+		self->currentContainerType = JSON_SERIALIZATION_CONTAINER_TYPE_STRUCTURE;
+		self->rootNode->type = JSON_TYPE_NULL;
+		self->rootNode->subitems = NULL;
+		writeNode(*self->rootNode, (struct JSONNode *) NULL, key, JSON_TYPE_OBJECT, count, 0);
 		
 	} else {
 		if (self->currentNode == NULL) {
-			self->status = JSON_SERIALIZATION_ERROR_MULTIPLE_TOP_LEVEL_CONTAINERS;
-			if (self->jmpBuf != NULL) {
-				longjmp(*self->jmpBuf, self->status);
-			}
-			return;
+			failWithStatus(SERIALIZATION_ERROR_MULTIPLE_TOP_LEVEL_CONTAINERS, return)
 		}
 		if (self->nodeStackAllocatedSize <= self->nodeStackCurrentDepth) {
 			self->nodeStackAllocatedSize++;
 			self->nodeStack = realloc(self->nodeStack, sizeof(struct JSONSerializationContext_nodeStackItem) * self->nodeStackAllocatedSize);
 		}
 		self->nodeStack[self->nodeStackCurrentDepth].node = self->currentNode;
-		self->nodeStack[self->nodeStackCurrentDepth].containerType = CONTAINER_TYPE_STRUCTURE;
+		self->nodeStack[self->nodeStackCurrentDepth].containerType = JSON_SERIALIZATION_CONTAINER_TYPE_STRUCTURE;
 		self->nodeStackCurrentDepth++;
 		
-		containerType = self->currentNode->type;
 		self->currentNode->subitems = realloc(self->currentNode->subitems, sizeof(struct JSONNode) * (self->currentNode->value.count + 1));
+		self->currentNode->subitems[self->currentNode->value.count].type = JSON_TYPE_NULL;
+		self->currentNode->subitems[self->currentNode->value.count].subitems = NULL;
+		writeNode(self->currentNode->subitems[self->currentNode->value.count], self->currentNode, key, JSON_TYPE_OBJECT, count, 0);
 		self->currentNode = &self->currentNode->subitems[self->currentNode->value.count++];
+		self->currentContainerType = JSON_SERIALIZATION_CONTAINER_TYPE_STRUCTURE;
 	}
-	
-	self->currentNode->subitems = NULL;
-	writeNode(*self->currentNode, containerType, key, JSON_TYPE_OBJECT, count, 0);
 }
 
 void JSONSerializationContext_beginDictionary(void * selfPtr, const char * key) {
 	JSONSerializationContext * self = selfPtr;
-	enum JSONType containerType;
 	
 	if (self->rootNode == NULL) {
 		self->rootNode = malloc(sizeof(struct JSONNode));
 		self->currentNode = self->rootNode;
-		self->rootContainerType = CONTAINER_TYPE_DICTIONARY;
-		containerType = JSON_TYPE_ARRAY;
+		self->rootContainerType = JSON_SERIALIZATION_CONTAINER_TYPE_DICTIONARY;
+		self->currentContainerType = JSON_SERIALIZATION_CONTAINER_TYPE_DICTIONARY;
+		self->rootNode->type = JSON_TYPE_NULL;
+		self->rootNode->subitems = NULL;
+		writeNode(*self->rootNode, (struct JSONNode *) NULL, key, JSON_TYPE_OBJECT, count, 0);
 		
 	} else {
 		if (self->currentNode == NULL) {
-			self->status = JSON_SERIALIZATION_ERROR_MULTIPLE_TOP_LEVEL_CONTAINERS;
-			if (self->jmpBuf != NULL) {
-				longjmp(*self->jmpBuf, self->status);
-			}
-			return;
+			failWithStatus(SERIALIZATION_ERROR_MULTIPLE_TOP_LEVEL_CONTAINERS, return)
 		}
 		if (self->nodeStackAllocatedSize <= self->nodeStackCurrentDepth) {
 			self->nodeStackAllocatedSize++;
 			self->nodeStack = realloc(self->nodeStack, sizeof(struct JSONSerializationContext_nodeStackItem) * self->nodeStackAllocatedSize);
 		}
 		self->nodeStack[self->nodeStackCurrentDepth].node = self->currentNode;
-		self->nodeStack[self->nodeStackCurrentDepth].containerType = CONTAINER_TYPE_DICTIONARY;
+		self->nodeStack[self->nodeStackCurrentDepth].containerType = JSON_SERIALIZATION_CONTAINER_TYPE_DICTIONARY;
 		self->nodeStackCurrentDepth++;
 		
-		containerType = self->currentNode->type;
 		self->currentNode->subitems = realloc(self->currentNode->subitems, sizeof(struct JSONNode) * (self->currentNode->value.count + 1));
+		self->currentNode->subitems[self->currentNode->value.count].type = JSON_TYPE_NULL;
+		self->currentNode->subitems[self->currentNode->value.count].subitems = NULL;
+		writeNode(self->currentNode->subitems[self->currentNode->value.count], self->currentNode, key, JSON_TYPE_OBJECT, count, 0);
 		self->currentNode = &self->currentNode->subitems[self->currentNode->value.count++];
+		self->currentContainerType = JSON_SERIALIZATION_CONTAINER_TYPE_DICTIONARY;
 	}
-	
-	self->currentNode->subitems = NULL;
-	writeNode(*self->currentNode, containerType, key, JSON_TYPE_OBJECT, count, 0);
 }
 
 void JSONSerializationContext_beginArray(void * selfPtr, const char * key) {
 	JSONSerializationContext * self = selfPtr;
-	enum JSONType containerType;
 	
 	if (self->rootNode == NULL) {
 		self->rootNode = malloc(sizeof(struct JSONNode));
 		self->currentNode = self->rootNode;
-		self->rootContainerType = CONTAINER_TYPE_ARRAY;
-		containerType = JSON_TYPE_ARRAY;
+		self->rootContainerType = JSON_SERIALIZATION_CONTAINER_TYPE_ARRAY;
+		self->currentContainerType = JSON_SERIALIZATION_CONTAINER_TYPE_ARRAY;
+		self->rootNode->type = JSON_TYPE_NULL;
+		self->rootNode->subitems = NULL;
+		writeNode(*self->rootNode, (struct JSONNode *) NULL, key, JSON_TYPE_ARRAY, count, 0);
 		
 	} else {
 		if (self->currentNode == NULL) {
-			self->status = JSON_SERIALIZATION_ERROR_MULTIPLE_TOP_LEVEL_CONTAINERS;
-			if (self->jmpBuf != NULL) {
-				longjmp(*self->jmpBuf, self->status);
-			}
-			return;
+			failWithStatus(SERIALIZATION_ERROR_MULTIPLE_TOP_LEVEL_CONTAINERS, return)
 		}
 		if (self->nodeStackAllocatedSize <= self->nodeStackCurrentDepth) {
 			self->nodeStackAllocatedSize++;
 			self->nodeStack = realloc(self->nodeStack, sizeof(struct JSONSerializationContext_nodeStackItem) * self->nodeStackAllocatedSize);
 		}
 		self->nodeStack[self->nodeStackCurrentDepth].node = self->currentNode;
-		self->nodeStack[self->nodeStackCurrentDepth].containerType = CONTAINER_TYPE_ARRAY;
+		self->nodeStack[self->nodeStackCurrentDepth].containerType = JSON_SERIALIZATION_CONTAINER_TYPE_ARRAY;
 		self->nodeStackCurrentDepth++;
 		
-		containerType = self->currentNode->type;
 		self->currentNode->subitems = realloc(self->currentNode->subitems, sizeof(struct JSONNode) * (self->currentNode->value.count + 1));
+		self->currentNode->subitems[self->currentNode->value.count].type = JSON_TYPE_NULL;
+		self->currentNode->subitems[self->currentNode->value.count].subitems = NULL;
+		writeNode(self->currentNode->subitems[self->currentNode->value.count], self->currentNode, key, JSON_TYPE_ARRAY, count, 0);
 		self->currentNode = &self->currentNode->subitems[self->currentNode->value.count++];
+		self->currentContainerType = JSON_SERIALIZATION_CONTAINER_TYPE_ARRAY;
 	}
-	
-	self->currentNode->subitems = NULL;
-	writeNode(*self->currentNode, containerType, key, JSON_TYPE_ARRAY, count, 0);
 }
 
 void JSONSerializationContext_endStructure(void * selfPtr) {
 	JSONSerializationContext * self = selfPtr;
 	
 	if (self->currentNode == NULL) {
-		self->status = JSON_SERIALIZATION_ERROR_CONTAINER_UNDERFLOW;
-		if (self->jmpBuf != NULL) {
-			longjmp(*self->jmpBuf, self->status);
-		}
-		return;
+		failWithStatus(SERIALIZATION_ERROR_CONTAINER_UNDERFLOW, return)
 	}
 	
 	if (self->nodeStackCurrentDepth > 0) {
-		if (self->nodeStack[self->nodeStackCurrentDepth - 1].containerType != CONTAINER_TYPE_STRUCTURE) {
-			self->status = JSON_SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH;
-			if (self->jmpBuf != NULL) {
-				longjmp(*self->jmpBuf, self->status);
-			}
-			return;
+		if (self->nodeStack[self->nodeStackCurrentDepth - 1].containerType != JSON_SERIALIZATION_CONTAINER_TYPE_STRUCTURE) {
+			failWithStatus(SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH, return)
 		}
 		self->currentNode = self->nodeStack[--self->nodeStackCurrentDepth].node;
+		self->currentContainerType = self->nodeStack[self->nodeStackCurrentDepth].containerType;
 		
 	} else {
-		if (self->rootContainerType != CONTAINER_TYPE_STRUCTURE) {
-			self->status = JSON_SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH;
-			if (self->jmpBuf != NULL) {
-				longjmp(*self->jmpBuf, self->status);
-			}
-			return;
+		if (self->rootContainerType != JSON_SERIALIZATION_CONTAINER_TYPE_STRUCTURE) {
+			failWithStatus(SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH, return)
 		}
 		self->currentNode = NULL;
 	}
@@ -278,30 +285,19 @@ void JSONSerializationContext_endDictionary(void * selfPtr) {
 	JSONSerializationContext * self = selfPtr;
 	
 	if (self->currentNode == NULL) {
-		self->status = JSON_SERIALIZATION_ERROR_CONTAINER_UNDERFLOW;
-		if (self->jmpBuf != NULL) {
-			longjmp(*self->jmpBuf, self->status);
-		}
-		return;
+		failWithStatus(SERIALIZATION_ERROR_CONTAINER_UNDERFLOW, return)
 	}
 	
 	if (self->nodeStackCurrentDepth > 0) {
-		if (self->nodeStack[self->nodeStackCurrentDepth - 1].containerType != CONTAINER_TYPE_DICTIONARY) {
-			self->status = JSON_SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH;
-			if (self->jmpBuf != NULL) {
-				longjmp(*self->jmpBuf, self->status);
-			}
-			return;
+		if (self->nodeStack[self->nodeStackCurrentDepth - 1].containerType != JSON_SERIALIZATION_CONTAINER_TYPE_DICTIONARY) {
+			failWithStatus(SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH, return)
 		}
 		self->currentNode = self->nodeStack[--self->nodeStackCurrentDepth].node;
+		self->currentContainerType = self->nodeStack[self->nodeStackCurrentDepth].containerType;
 		
 	} else {
-		if (self->rootContainerType != CONTAINER_TYPE_DICTIONARY) {
-			self->status = JSON_SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH;
-			if (self->jmpBuf != NULL) {
-				longjmp(*self->jmpBuf, self->status);
-			}
-			return;
+		if (self->rootContainerType != JSON_SERIALIZATION_CONTAINER_TYPE_DICTIONARY) {
+			failWithStatus(SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH, return)
 		}
 		self->currentNode = NULL;
 	}
@@ -311,30 +307,19 @@ void JSONSerializationContext_endArray(void * selfPtr) {
 	JSONSerializationContext * self = selfPtr;
 	
 	if (self->currentNode == NULL) {
-		self->status = JSON_SERIALIZATION_ERROR_CONTAINER_UNDERFLOW;
-		if (self->jmpBuf != NULL) {
-			longjmp(*self->jmpBuf, self->status);
-		}
-		return;
+		failWithStatus(SERIALIZATION_ERROR_CONTAINER_UNDERFLOW, return)
 	}
 	
 	if (self->nodeStackCurrentDepth > 0) {
-		if (self->nodeStack[self->nodeStackCurrentDepth - 1].containerType != CONTAINER_TYPE_ARRAY) {
-			self->status = JSON_SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH;
-			if (self->jmpBuf != NULL) {
-				longjmp(*self->jmpBuf, self->status);
-			}
-			return;
+		if (self->nodeStack[self->nodeStackCurrentDepth - 1].containerType != JSON_SERIALIZATION_CONTAINER_TYPE_ARRAY) {
+			failWithStatus(SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH, return)
 		}
 		self->currentNode = self->nodeStack[--self->nodeStackCurrentDepth].node;
+		self->currentContainerType = self->nodeStack[self->nodeStackCurrentDepth].containerType;
 		
 	} else {
-		if (self->rootContainerType != CONTAINER_TYPE_ARRAY) {
-			self->status = JSON_SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH;
-			if (self->jmpBuf != NULL) {
-				longjmp(*self->jmpBuf, self->status);
-			}
-			return;
+		if (self->rootContainerType != JSON_SERIALIZATION_CONTAINER_TYPE_ARRAY) {
+			failWithStatus(SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH, return)
 		}
 		self->currentNode = NULL;
 	}
@@ -343,13 +328,7 @@ void JSONSerializationContext_endArray(void * selfPtr) {
 void JSONSerializationContext_writeInt8(void * selfPtr, const char * key, int8_t value) {
 	JSONSerializationContext * self = selfPtr;
 	
-	if (self->currentNode == NULL) {
-		self->status = JSON_SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER;
-		if (self->jmpBuf != NULL) {
-			longjmp(*self->jmpBuf, self->status);
-		}
-		return;
-	}
+	failIfContainerNotStarted()
 	self->currentNode->subitems = realloc(self->currentNode->subitems, sizeof(struct JSONNode) * (self->currentNode->value.count + 1));
 	writeNodeCommonArgs(JSON_TYPE_NUMBER, number);
 	self->currentNode->value.count++;
@@ -358,13 +337,7 @@ void JSONSerializationContext_writeInt8(void * selfPtr, const char * key, int8_t
 void JSONSerializationContext_writeUInt8(void * selfPtr, const char * key, uint8_t value) {
 	JSONSerializationContext * self = selfPtr;
 	
-	if (self->currentNode == NULL) {
-		self->status = JSON_SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER;
-		if (self->jmpBuf != NULL) {
-			longjmp(*self->jmpBuf, self->status);
-		}
-		return;
-	}
+	failIfContainerNotStarted()
 	self->currentNode->subitems = realloc(self->currentNode->subitems, sizeof(struct JSONNode) * (self->currentNode->value.count + 1));
 	writeNodeCommonArgs(JSON_TYPE_NUMBER, number);
 	self->currentNode->value.count++;
@@ -373,13 +346,7 @@ void JSONSerializationContext_writeUInt8(void * selfPtr, const char * key, uint8
 void JSONSerializationContext_writeInt16(void * selfPtr, const char * key, int16_t value) {
 	JSONSerializationContext * self = selfPtr;
 	
-	if (self->currentNode == NULL) {
-		self->status = JSON_SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER;
-		if (self->jmpBuf != NULL) {
-			longjmp(*self->jmpBuf, self->status);
-		}
-		return;
-	}
+	failIfContainerNotStarted()
 	self->currentNode->subitems = realloc(self->currentNode->subitems, sizeof(struct JSONNode) * (self->currentNode->value.count + 1));
 	writeNodeCommonArgs(JSON_TYPE_NUMBER, number);
 	self->currentNode->value.count++;
@@ -388,13 +355,7 @@ void JSONSerializationContext_writeInt16(void * selfPtr, const char * key, int16
 void JSONSerializationContext_writeUInt16(void * selfPtr, const char * key, uint16_t value) {
 	JSONSerializationContext * self = selfPtr;
 	
-	if (self->currentNode == NULL) {
-		self->status = JSON_SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER;
-		if (self->jmpBuf != NULL) {
-			longjmp(*self->jmpBuf, self->status);
-		}
-		return;
-	}
+	failIfContainerNotStarted()
 	self->currentNode->subitems = realloc(self->currentNode->subitems, sizeof(struct JSONNode) * (self->currentNode->value.count + 1));
 	writeNodeCommonArgs(JSON_TYPE_NUMBER, number);
 	self->currentNode->value.count++;
@@ -403,13 +364,7 @@ void JSONSerializationContext_writeUInt16(void * selfPtr, const char * key, uint
 void JSONSerializationContext_writeInt32(void * selfPtr, const char * key, int32_t value) {
 	JSONSerializationContext * self = selfPtr;
 	
-	if (self->currentNode == NULL) {
-		self->status = JSON_SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER;
-		if (self->jmpBuf != NULL) {
-			longjmp(*self->jmpBuf, self->status);
-		}
-		return;
-	}
+	failIfContainerNotStarted()
 	self->currentNode->subitems = realloc(self->currentNode->subitems, sizeof(struct JSONNode) * (self->currentNode->value.count + 1));
 	writeNodeCommonArgs(JSON_TYPE_NUMBER, number);
 	self->currentNode->value.count++;
@@ -418,13 +373,7 @@ void JSONSerializationContext_writeInt32(void * selfPtr, const char * key, int32
 void JSONSerializationContext_writeUInt32(void * selfPtr, const char * key, uint32_t value) {
 	JSONSerializationContext * self = selfPtr;
 	
-	if (self->currentNode == NULL) {
-		self->status = JSON_SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER;
-		if (self->jmpBuf != NULL) {
-			longjmp(*self->jmpBuf, self->status);
-		}
-		return;
-	}
+	failIfContainerNotStarted()
 	self->currentNode->subitems = realloc(self->currentNode->subitems, sizeof(struct JSONNode) * (self->currentNode->value.count + 1));
 	writeNodeCommonArgs(JSON_TYPE_NUMBER, number);
 	self->currentNode->value.count++;
@@ -439,13 +388,7 @@ void JSONSerializationContext_writeUInt32(void * selfPtr, const char * key, uint
 void JSONSerializationContext_writeInt64(void * selfPtr, const char * key, int64_t value) {
 	JSONSerializationContext * self = selfPtr;
 	
-	if (self->currentNode == NULL) {
-		self->status = JSON_SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER;
-		if (self->jmpBuf != NULL) {
-			longjmp(*self->jmpBuf, self->status);
-		}
-		return;
-	}
+	failIfContainerNotStarted()
 	self->currentNode->subitems = realloc(self->currentNode->subitems, sizeof(struct JSONNode) * (self->currentNode->value.count + 1));
 	writeNodeCommonArgs(JSON_TYPE_NUMBER, number);
 	if ((int64_t) self->currentNode->subitems[self->currentNode->value.count].value.number != value) {
@@ -460,13 +403,7 @@ void JSONSerializationContext_writeInt64(void * selfPtr, const char * key, int64
 void JSONSerializationContext_writeUInt64(void * selfPtr, const char * key, uint64_t value) {
 	JSONSerializationContext * self = selfPtr;
 	
-	if (self->currentNode == NULL) {
-		self->status = JSON_SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER;
-		if (self->jmpBuf != NULL) {
-			longjmp(*self->jmpBuf, self->status);
-		}
-		return;
-	}
+	failIfContainerNotStarted()
 	self->currentNode->subitems = realloc(self->currentNode->subitems, sizeof(struct JSONNode) * (self->currentNode->value.count + 1));
 	writeNodeCommonArgs(JSON_TYPE_NUMBER, number);
 	if ((uint64_t) self->currentNode->subitems[self->currentNode->value.count].value.number != value) {
@@ -481,13 +418,7 @@ void JSONSerializationContext_writeUInt64(void * selfPtr, const char * key, uint
 void JSONSerializationContext_writeFloat(void * selfPtr, const char * key, float value) {
 	JSONSerializationContext * self = selfPtr;
 	
-	if (self->currentNode == NULL) {
-		self->status = JSON_SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER;
-		if (self->jmpBuf != NULL) {
-			longjmp(*self->jmpBuf, self->status);
-		}
-		return;
-	}
+	failIfContainerNotStarted()
 	self->currentNode->subitems = realloc(self->currentNode->subitems, sizeof(struct JSONNode) * (self->currentNode->value.count + 1));
 	writeNodeCommonArgs(JSON_TYPE_NUMBER, number);
 	self->currentNode->value.count++;
@@ -496,13 +427,7 @@ void JSONSerializationContext_writeFloat(void * selfPtr, const char * key, float
 void JSONSerializationContext_writeDouble(void * selfPtr, const char * key, double value) {
 	JSONSerializationContext * self = selfPtr;
 	
-	if (self->currentNode == NULL) {
-		self->status = JSON_SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER;
-		if (self->jmpBuf != NULL) {
-			longjmp(*self->jmpBuf, self->status);
-		}
-		return;
-	}
+	failIfContainerNotStarted()
 	self->currentNode->subitems = realloc(self->currentNode->subitems, sizeof(struct JSONNode) * (self->currentNode->value.count + 1));
 	writeNodeCommonArgs(JSON_TYPE_NUMBER, number);
 	self->currentNode->value.count++;
@@ -511,17 +436,11 @@ void JSONSerializationContext_writeDouble(void * selfPtr, const char * key, doub
 void JSONSerializationContext_writeString(void * selfPtr, const char * key, const char * value) {
 	JSONSerializationContext * self = selfPtr;
 	
-	if (self->currentNode == NULL) {
-		self->status = JSON_SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER;
-		if (self->jmpBuf != NULL) {
-			longjmp(*self->jmpBuf, self->status);
-		}
-		return;
-	}
+	failIfContainerNotStarted()
 	self->currentNode->subitems = realloc(self->currentNode->subitems, sizeof(struct JSONNode) * (self->currentNode->value.count + 1));
 	self->currentNode->subitems[self->currentNode->value.count].stringLength = strlen(value);
 	writeNode(self->currentNode->subitems[self->currentNode->value.count],
-	          self->currentNode->type,
+	          self->currentNode,
 	          key,
 	          JSON_TYPE_STRING,
 	          string,
@@ -533,13 +452,7 @@ void JSONSerializationContext_writeString(void * selfPtr, const char * key, cons
 void JSONSerializationContext_writeBoolean(void * selfPtr, const char * key, bool value) {
 	JSONSerializationContext * self = selfPtr;
 	
-	if (self->currentNode == NULL) {
-		self->status = JSON_SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER;
-		if (self->jmpBuf != NULL) {
-			longjmp(*self->jmpBuf, self->status);
-		}
-		return;
-	}
+	failIfContainerNotStarted()
 	self->currentNode->subitems = realloc(self->currentNode->subitems, sizeof(struct JSONNode) * (self->currentNode->value.count + 1));
 	writeNodeCommonArgs(JSON_TYPE_BOOLEAN, boolean);
 	self->currentNode->value.count++;
@@ -553,13 +466,7 @@ void JSONSerializationContext_writeEnumeration(void * selfPtr, const char * key,
 	struct enumListItem {const char * name; int value;} * enumList;
 	size_t enumListAllocatedSize, enumCount, enumIndex;
 	
-	if (self->currentNode == NULL) {
-		self->status = JSON_SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER;
-		if (self->jmpBuf != NULL) {
-			longjmp(*self->jmpBuf, self->status);
-		}
-		return;
-	}
+	failIfContainerNotStarted()
 	
 	self->currentNode->subitems = realloc(self->currentNode->subitems, sizeof(struct JSONNode) * (self->currentNode->value.count + 1));
 	
@@ -586,20 +493,14 @@ void JSONSerializationContext_writeEnumeration(void * selfPtr, const char * key,
 		enumList[enumCount].value = enumValue;
 		for (enumIndex = 0; enumIndex < enumCount; enumIndex++) {
 			if (enumList[enumIndex].value == enumValue) {
-				self->status = JSON_SERIALIZATION_ERROR_DUPLICATE_ENUM_VALUE;
-				if (self->jmpBuf != NULL) {
-					longjmp(*self->jmpBuf, self->status);
-				}
 				free(enumList);
-				return;
+				va_end(args);
+				failWithStatus(SERIALIZATION_ERROR_DUPLICATE_ENUM_VALUE, return)
 				
 			} else if (!strcmp(enumList[enumIndex].name, enumName)) {
-				self->status = JSON_SERIALIZATION_ERROR_DUPLICATE_ENUM_NAME;
-				if (self->jmpBuf != NULL) {
-					longjmp(*self->jmpBuf, self->status);
-				}
 				free(enumList);
-				return;
+				va_end(args);
+				failWithStatus(SERIALIZATION_ERROR_DUPLICATE_ENUM_NAME, return)
 			}
 		}
 		enumCount++;
@@ -609,16 +510,12 @@ void JSONSerializationContext_writeEnumeration(void * selfPtr, const char * key,
 	free(enumList);
 	
 	if (valueEnumName == NULL) {
-		self->status = JSON_SERIALIZATION_ERROR_ENUM_VALUE_NOT_NAMED;
-		if (self->jmpBuf != NULL) {
-			longjmp(*self->jmpBuf, self->status);
-		}
-		return;
+		failWithStatus(SERIALIZATION_ERROR_ENUM_NOT_NAMED, return)
 	}
 	
 	self->currentNode->subitems[self->currentNode->value.count].stringLength = strlen(valueEnumName);
 	writeNode(self->currentNode->subitems[self->currentNode->value.count],
-	          self->currentNode->type,
+	          self->currentNode,
 	          key,
 	          JSON_TYPE_STRING,
 	          string,
@@ -637,13 +534,7 @@ void JSONSerializationContext_writeEnumeration(void * selfPtr, const char * key,
 	struct JSONNode * array; \
 	const char * bitNames[NBITS]; \
 	\
-	if (self->currentNode == NULL) { \
-		self->status = JSON_SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER; \
-		if (self->jmpBuf != NULL) { \
-			longjmp(*self->jmpBuf, self->status); \
-		} \
-		return; \
-	} \
+	failIfContainerNotStarted() \
 	/* http://graphics.stanford.edu/~seander/bithacks.html#CountBitsSetKernighan */ \
 	uncountedBits = value; \
 	for (bitCount = 0; uncountedBits > 0; bitCount++) { \
@@ -652,7 +543,8 @@ void JSONSerializationContext_writeEnumeration(void * selfPtr, const char * key,
 	\
 	self->currentNode->subitems = realloc(self->currentNode->subitems, sizeof(struct JSONNode) * (self->currentNode->value.count + 1)); \
 	array = &self->currentNode->subitems[self->currentNode->value.count]; \
-	writeNode(*array, self->currentNode->type, key, JSON_TYPE_ARRAY, count, 0); \
+	writeNode(*array, self->currentNode, key, JSON_TYPE_ARRAY, count, 0); \
+	self->currentNode->value.count++; \
 	if (bitCount == 0) { \
 		array->subitems = NULL; \
 	} else { \
@@ -667,10 +559,8 @@ void JSONSerializationContext_writeEnumeration(void * selfPtr, const char * key,
 		bitNames[bitIndex] = bitName; \
 		for (bitIndex2 = 0; bitIndex2 < bitIndex; bitIndex2++) { \
 			if (!strcmp(bitNames[bitIndex2], bitName)) { \
-				self->status = JSON_SERIALIZATION_ERROR_DUPLICATE_BIT; \
-				if (self->jmpBuf != NULL) { \
-					longjmp(*self->jmpBuf, self->status); \
-				} \
+				va_end(args); \
+				failWithStatus(SERIALIZATION_ERROR_DUPLICATE_BIT, return) \
 			} \
 		} \
 		if (value & ((uint##NBITS##_t) 1 << bitIndex)) { \
@@ -683,12 +573,8 @@ void JSONSerializationContext_writeEnumeration(void * selfPtr, const char * key,
 		} \
 	} \
 	va_end(args); \
-	self->currentNode->value.count++; \
 	if (array->value.count < bitCount) { \
-		self->status = JSON_SERIALIZATION_ERROR_UNNAMED_BIT; \
-		if (self->jmpBuf != NULL) { \
-			longjmp(*self->jmpBuf, self->status); \
-		} \
+		failWithStatus(SERIALIZATION_ERROR_UNNAMED_BIT,) \
 	}
 
 void JSONSerializationContext_writeBitfield8(void * selfPtr, const char * key, uint8_t value, ...) {
