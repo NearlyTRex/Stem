@@ -26,6 +26,7 @@
 #include "serialization/SerializationShared.h"
 #include "stemobject/StemObject.h"
 #include <stdint.h>
+#include <stdlib.h>
 #include <setjmp.h>
 
 typedef struct DeserializationContext DeserializationContext;
@@ -37,9 +38,9 @@ typedef struct DeserializationContext DeserializationContext;
 	int status; \
 	\
 	/* Implementations should return the number of elements in the container */ \
-	unsigned int (* beginStructure)(void * self, const char * key); \
-	unsigned int (* beginDictionary)(void * self, const char * key); \
-	unsigned int (* beginArray)(void * self, const char * key); \
+	size_t (* beginStructure)(void * self, const char * key); \
+	size_t (* beginDictionary)(void * self, const char * key); \
+	size_t (* beginArray)(void * self, const char * key); \
 	\
 	void (* endStructure)(void * self); \
 	void (* endDictionary)(void * self); \
@@ -55,6 +56,7 @@ typedef struct DeserializationContext DeserializationContext;
 	uint64_t     (* readUInt64)(void * self, const char * key); \
 	float        (* readFloat)(void * self, const char * key); \
 	double       (* readDouble)(void * self, const char * key); \
+	/* Returned string not owned by caller; do not free */ \
 	const char * (* readString)(void * self, const char * key); \
 	bool         (* readBoolean)(void * self, const char * key); \
 	\
@@ -69,6 +71,7 @@ typedef struct DeserializationContext DeserializationContext;
 	uint32_t     (* readBitfield32)(void * self, const char * key, ...); \
 	uint64_t     (* readBitfield64)(void * self, const char * key, ...); \
 	\
+	/* Returned string not owned by caller; do not free */ \
 	/* Valid only when reading an ordered dictionary */ \
 	const char * (* readNextDictionaryKey)(void * self); \
 	\

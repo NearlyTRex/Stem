@@ -6,7 +6,7 @@ Serialization defines a generic interface for reading, writing, and validating s
 
 Structured data understood by serialization is categorized into three container types: array, structure, and dictionary. How these are represented in serialized form is up to individual serializers, but each one has a particular set of semantics:
 
-	* Arrays are linear lists of zero or more values with no associated keys. Any type of value can be stored in any array. Values are read and written in order. Keys are not semantically meaningful for reading and writing array values (and need not be unique), but they may be stored in some serialized formats.
+	* Arrays are linear lists of zero or more values with no associated keys. Any type of value can be stored in any array. Values are read and written in order. Keys are ignored entirely for reading and writing array values, and may be passed as NULL.
 
 	* Structures are strictly-ordered lists of key-value pairs. Keys must be unique, and are not necessarily stored in serialized form. When deserializing from a format that stores structure keys, keys may be out of order, but the directives to read and write values must always come in the same order.
 
@@ -198,9 +198,9 @@ In XML:
 		<uint16 value="65535"/>
 		<int32 value="-100000"/>
 		<array>
-			<array_item value="100000"/>
-			<array_item value="-5000000000"/>
-			<array_item value="5000000000"/>
+			<item value="100000"/>
+			<item value="-5000000000"/>
+			<item value="5000000000"/>
 		</array>
 		<float value="0.25"/>
 		<double value="1.5"/>

@@ -1,10 +1,30 @@
+1.1.0
+ * DeserializationContext's begin<Array|Structure|Dictionary> functions now return size_t instead of unsigned int
+ * Added object ownership notes to header
+ * Clarified the role of keys in arrays in ReadMe.txt
+ * Added error codes to SerializationShared.h:
+  * SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH
+  * SERIALIZATION_ERROR_CONTAINER_UNDERFLOW
+  * SERIALIZATION_ERROR_MULTIPLE_TOP_LEVEL_CONTAINERS
+  * SERIALIZATION_ERROR_UNNAMED_BIT
+  * SERIALIZATION_ERROR_DUPLICATE_BIT
+  * SERIALIZATION_ERROR_ENUM_NOT_NAMED
+  * SERIALIZATION_ERROR_DUPLICATE_ENUM_NAME
+  * SERIALIZATION_ERROR_DUPLICATE_ENUM_VALUE
+  * SERIALIZATION_ERROR_NULL_KEY
+  * SERIALIZATION_ERROR_INCORRECT_TYPE
+  * SERIALIZATION_ERROR_NUMBER_OUT_OF_RANGE
+  * SERIALIZATION_ERROR_END_OF_CONTAINER
+  * SERIALIAZTION_ERROR_NO_CONTAINER_STARTED
+ * Refreshed makefile from template_stemlib Stable_2010-06-10
+
 1.0.0
  * StemObject_init is now called from SerializationContext_init and DeserializationContext_init
  * Added SERIALIZATION_ERROR_INVALID_OPERATION and SERIALIZATION_ERROR_KEY_NOT_FOUND to SerializationShared.h
  * Added hasDictionaryKey() to DeserializationContext
  * Updated dependencies: stemobject 1.0.0 -> 1.1.0
  * Removed testharness target (not applicable to this project)
- * Refreshed makefile from template_stemlib 2010-06-02
+ * Refreshed makefile from template_stemlib Stable_2010-06-02
 
 0.1.0
  * Added read/writeBoolean()
