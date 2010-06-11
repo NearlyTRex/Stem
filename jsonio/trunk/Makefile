@@ -140,6 +140,7 @@ CLANG_windows = C:/llvm/bin/clang.exe
 ARCHS_windows = i686
 CCFLAGS_windows = 
 LINKFLAGS_windows = 
+EXECUTABLE_SUFFIX_windows = .exe
 
 #General compile/link settings
 DEFINE_CCFLAGS = -DVERSION_MAJOR=${VERSION_MAJOR}u -DVERSION_MINOR=${VERSION_MINOR}u -DVERSION_TWEAK=${VERSION_TWEAK}u
@@ -217,9 +218,16 @@ ANALYZER_EXCLUDE_SOURCES_splint = ${SOURCES_unittest}
 
 PREREQS_unittest = build/intermediate/TestList.h
 
-build/intermediate/TestList.h: ${SOURCES_unittest_suites}
-	mkdir -p build/intermediate
+#TestList.h is automatically generated from ${SOURCES_unittest_suites}. It is used by the unit test framework to determine which tests to run.
+build/intermediate/TestList.h: build/intermediate/TestSuites.txt | build/intermediate
 	echo '#define SUITE_FILE_LIST ${foreach file,${SOURCES_unittest_suites},"${basename ${notdir ${file}}}",} NULL' > $@
+
+#TestSuites.txt tracks the state of ${SOURCES_unittest_suites} so that TestList.h can be updated if and only if ${SOURCES_unittest_suites} has changed. .PHONY is abused slightly to cause the target to be conditionally remade.
+ifneq (${shell echo "${SOURCES_unittest_suites}" | cmp - build/intermediate/TestSuites.txt 2>&1},)
+.PHONY: build/intermediate/TestSuites.txt
+endif
+build/intermediate/TestSuites.txt: | build/intermediate
+	echo "${SOURCES_unittest_suites}" > $@
 
 
 
@@ -266,6 +274,31 @@ ${foreach target,${TARGETS}, \
 		} \
 	} \
 }
+${eval ${call create_directory_target_template,build/intermediate}}
+
+
+
+define dependency_template #(target, configuration, platform, arch, source_file)
+build/intermediate/$1-$2-$3-$4/${notdir ${basename $5}}.d: $5 ${PREREQS_$1} | build/intermediate/$1-$2-$3-$4
+	${CC_$3_$4} ${CCFLAGS} ${CCFLAGS_$1} ${CCFLAGS_$2} ${CCFLAGS_$3} -MM -o $$@.temp $5
+	sed 's,\(${notdir ${basename $5}}\)\.o[ :]*,$${basename $$@}.o $${basename $$@}.d: ,g' < $$@.temp > $$@
+endef
+
+#Produces dependency build targets for all source files in each configuration/platform/arch
+ifeq ($(filter clean full_dist commit_dist analyze analyze_clang analyze_splint,${MAKECMDGOALS}),)
+${foreach target,${TARGETS}, \
+	${foreach configuration,${CONFIGURATIONS_${target}}, \
+		${foreach platform,${PLATFORMS_${target}}, \
+			${foreach arch,${ARCHS_${platform}}, \
+				${foreach source,${SOURCES_${target}}, \
+					${eval ${call dependency_template,${target},${configuration},${platform},${arch},${source}}} \
+					${eval -include build/intermediate/${target}-${configuration}-${platform}-${arch}/${notdir ${basename ${source}}}.d} \
+				} \
+			} \
+		} \
+	} \
+}
+endif
 
 
 
@@ -276,7 +309,7 @@ endef
 
 #Produces object build targets for all source files in each configuration/platform/arch
 ${foreach target,${TARGETS}, \
-	${foreach configuration,${CONFIGURATIONS}, \
+	${foreach configuration,${CONFIGURATIONS_${target}}, \
 		${foreach platform,${PLATFORMS_${target}}, \
 			${foreach arch,${ARCHS_${platform}}, \
 				${foreach source,${SOURCES_${target}}, \
@@ -330,7 +363,7 @@ ${foreach target,${EXECUTABLE_TARGETS} ${APPLICATION_TARGETS}, \
 	${foreach configuration,${CONFIGURATIONS_${target}}, \
 		${foreach platform,${PLATFORMS_${target}}, \
 			${foreach arch,${ARCHS_${platform}}, \
-				${eval ${call executable_template,${target},${configuration},${platform},${arch},${TARGET_NAME_${target}},${call library_dependency_template,${target},${configuration},${platform}}}} \
+				${eval ${call executable_template,${target},${configuration},${platform},${arch},${TARGET_NAME_${target}}${EXECUTABLE_SUFFIX_${platform}},${call library_dependency_template,${target},${configuration},${platform}}}} \
 			} \
 		} \
 	} \
@@ -357,7 +390,7 @@ ${foreach target,${LIBRARY_TARGETS}, \
 ${foreach target,${EXECUTABLE_TARGETS}, \
 	${foreach configuration,${CONFIGURATIONS_${target}}, \
 		${foreach platform,${PLATFORMS_${target}}, \
-			${eval THIN_BINARIES_${target}_${configuration}_${platform} = ${call thin_binary_list_template,${target},${configuration},${platform},${TARGET_NAME_${target}}}} \
+			${eval THIN_BINARIES_${target}_${configuration}_${platform} = ${call thin_binary_list_template,${target},${configuration},${platform},${TARGET_NAME_${target}}${EXECUTABLE_SUFFIX_${platform}}}} \
 		} \
 	} \
 }
@@ -366,7 +399,7 @@ ${foreach target,${EXECUTABLE_TARGETS}, \
 ${foreach target,${APPLICATION_TARGETS}, \
 	${foreach configuration,${CONFIGURATIONS_${target}}, \
 		${foreach platform,${PLATFORMS_${target}}, \
-			${eval THIN_BINARIES_${target}_${configuration}_${platform} = ${call thin_binary_list_template,${target},${configuration},${platform},${TARGET_NAME_${target}}}} \
+			${eval THIN_BINARIES_${target}_${configuration}_${platform} = ${call thin_binary_list_template,${target},${configuration},${platform},${TARGET_NAME_${target}}${EXECUTABLE_SUFFIX_${platform}}}} \
 		} \
 	} \
 }
@@ -521,93 +554,49 @@ ${foreach target,${APPLICATION_TARGETS}, \
 	} \
 }
 
-define library_template_macosx #(target, configuration)
-	build/$1/$2-macosx/${TARGET_NAME_$1}.a
+define library_template #(target, configuration, platform)
+build/$1/$2-$3/${TARGET_NAME_$1}.a
 endef
 
-define library_template_iphonesimulator #(target, configuration)
-	build/$1/$2-iphonesimulator/${TARGET_NAME_$1}.a
+define executable_template #(target, configuration, platform)
+build/$1/$2-$3/${TARGET_NAME_$1}${EXECUTABLE_SUFFIX_$3}
 endef
 
-define library_template_iphoneos #(target, configuration)
-	build/$1/$2-iphoneos/${TARGET_NAME_$1}.a
+define application_template #(target, configuration, platform)
+build/$1/$2-$3/${call application_file_template_$3,$1}
 endef
 
-define library_template_iphonesimulator_ipad #(target, configuration)
-	build/$1/$2-iphonesimulator_ipad/${TARGET_NAME_$1}.a
+define application_file_template_macosx #(target)
+${TARGET_NAME_$1}.app/Contents/MacOS/${TARGET_NAME_$1}
 endef
 
-define library_template_iphoneos_ipad #(target, configuration)
-	build/$1/$2-iphoneos_ipad/${TARGET_NAME_$1}.a
+define application_file_template_iphonesimulator #(target)
+${TARGET_NAME_$1}.app/${TARGET_NAME_$1}
 endef
 
-define library_template_linux #(target, configuration)
-	build/$1/$2-linux/${TARGET_NAME_$1}.a
+define application_file_template_iphoneos #(target)
+${TARGET_NAME_$1}.app/${TARGET_NAME_$1}
 endef
 
-define library_template_windows #(target, configuration)
-	build/$1/$2-windows/${TARGET_NAME_$1}.a
+define application_file_template_iphonesimulator_ipad #(target)
+${TARGET_NAME_$1}.app/${TARGET_NAME_$1}
 endef
 
-define executable_template_macosx #(target, configuration)
-	build/$1/$2-macosx/${TARGET_NAME_$1}
+define application_file_template_iphoneos_ipad #(target)
+${TARGET_NAME_$1}.app/${TARGET_NAME_$1}
 endef
 
-define executable_template_iphonesimulator #(target, configuration)
-	build/$1/$2-iphonesimulator/${TARGET_NAME_$1}
+define application_file_template_linux #(target)
+${TARGET_NAME_$1}
 endef
 
-define executable_template_iphoneos #(target, configuration)
-	build/$1/$2-iphoneos/${TARGET_NAME_$1}
-endef
-
-define executable_template_iphonesimulator_ipad #(target, configuration)
-	build/$1/$2-iphonesimulator_ipad/${TARGET_NAME_$1}
-endef
-
-define executable_template_iphoneos_ipad #(target, configuration)
-	build/$1/$2-iphoneos_ipad/${TARGET_NAME_$1}
-endef
-
-define executable_template_linux #(target, configuration)
-	build/$1/$2-linux/${TARGET_NAME_$1}
-endef
-
-define executable_template_windows #(target, configuration)
-	build/$1/$2-windows/${TARGET_NAME_$1}.exe
-endef
-
-define application_template_macosx #(target, configuration)
-	build/$1/$2-macosx/${TARGET_NAME_$1}.app/Contents/MacOS/${TARGET_NAME_$1}
-endef
-
-define application_template_iphonesimulator #(target, configuration)
-	build/$1/$2-iphonesimulator/${TARGET_NAME_$1}.app/${TARGET_NAME_$1}
-endef
-
-define application_template_iphoneos #(target, configuration)
-	build/$1/$2-iphoneos/${TARGET_NAME_$1}.app/${TARGET_NAME_$1}
-endef
-
-define application_template_iphonesimulator_ipad #(target, configuration)
-	build/$1/$2-iphonesimulator_ipad/${TARGET_NAME_$1}.app/${TARGET_NAME_$1}
-endef
-
-define application_template_iphoneos_ipad #(target, configuration)
-	build/$1/$2-iphoneos_ipad/${TARGET_NAME_$1}.app/${TARGET_NAME_$1}
-endef
-
-define application_template_linux #(target, configuration)
-	build/$1/$2-linux/${TARGET_NAME_$1}
-endef
-
-define application_template_windows #(target, configuration)
-	build/$1/$2-windows/${TARGET_NAME_$1}.exe
+define application_file_template_windows #(target)
+${TARGET_NAME_$1}.exe
 endef
 
 define target_template #(target, target_type)
 .PHONY: $1
-$1: ${foreach configuration,${CONFIGURATIONS_$1},${foreach platform,${PLATFORMS_$1},${call $2_template_${platform},$1,${configuration}}}}
+$1: ${foreach configuration,${CONFIGURATIONS_$1},${foreach platform,${PLATFORMS_$1},${call $2_template,$1,${configuration},${platform}}}}
 endef
 
 ${foreach target,${LIBRARY_TARGETS}, \
