@@ -272,7 +272,7 @@ build/intermediate/$1-$2-$3-$4/${notdir ${basename $5}}.d: $5 ${PREREQS_$1} | bu
 endef
 
 #Produces dependency build targets for all source files in each configuration/platform/arch
-ifneq ($(MAKECMDGOALS),clean)
+ifeq ($(filter clean full_dist,${MAKECMDGOALS}),)
 ${foreach target,${TARGETS}, \
 	${foreach configuration,${CONFIGURATIONS_${target}}, \
 		${foreach platform,${PLATFORMS_${target}}, \
