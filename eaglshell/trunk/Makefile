@@ -19,17 +19,14 @@ endef
 
 iphone_sdk_version_integer = ${subst .,0,$1}${word ${words ${wordlist 2, ${words ${subst ., ,$1}}, ${subst ., ,$1}}}, 00}
 
-TARGET_PLATFORMS_macosx = iphonesimulator iphoneos iphonesimulator_ipad iphoneos_ipad
+TARGET_PLATFORMS_macosx = iphonesimulator iphoneos
 TARGET_PLATFORMS_linux = 
 TARGET_PLATFORMS_windows = 
 
 PROJECT_NAME = eaglshell
-IPHONE_SDK_VERSION = 3.1
-IPHONE_SDK_VERSION_IPAD = 3.2
-IPHONESIMULATOR_APPLICATIONS_DIR = ${HOME}/Library/Application Support/iPhone Simulator/${IPHONE_SDK_VERSION}/Applications
-IPHONESIMULATOR_APPLICATIONS_DIR_IPAD = ${HOME}/Library/Application Support/iPhone Simulator/${IPHONE_SDK_VERSION_IPAD}/Applications
-RESOURCE_RULES_PLIST = /Developer/Platforms/MacOSX.platform/ResourceRules.plist
-IPHONESIMULATOR_PATH = "/Developer/Platforms/iPhoneSimulator.platform/Developer/Applications/iPhone Simulator.app"
+IPHONE_SDK_VERSION_iphone = 3.1
+IPHONE_SDK_VERSION_ipad = 3.2
+IPHONE_DEPLOYMENT_TARGET_VERSION = 3.1
 CODESIGN_IDENTITY = "iPhone Developer"
 SVNROOT = http://sacredsoftware.net/svn/misc#master_source_only
 
@@ -38,7 +35,7 @@ EXECUTABLE_TARGETS =
 APPLICATION_TARGETS = testharness
 TARGETS = ${LIBRARY_TARGETS} ${EXECUTABLE_TARGETS} ${APPLICATION_TARGETS}
 CONFIGURATIONS = debug profile release
-PLATFORMS = ${filter ${TARGET_PLATFORMS_${HOST_PLATFORM}},iphonesimulator iphoneos iphonesimulator_ipad iphoneos_ipad}
+PLATFORMS = ${filter ${TARGET_PLATFORMS_${HOST_PLATFORM}},iphonesimulator iphoneos}
 ANALYZERS = splint clang
 
 TARGET_NAME_library = libstemshell_eagl
@@ -47,11 +44,11 @@ HUMAN_READABLE_TARGET_NAME_testharness = EAGLShell
 
 #Per-target configurations
 CONFIGURATIONS_library = debug profile release
-CONFIGURATIONS_testharness = debug profile
+CONFIGURATIONS_testharness = debug profile release
 
 #Per-target platforms
-PLATFORMS_library = ${filter ${PLATFORMS},iphonesimulator iphoneos iphonesimulator_ipad iphoneos_ipad}
-PLATFORMS_testharness = ${filter ${PLATFORMS},iphonesimulator iphoneos iphonesimulator_ipad iphoneos_ipad}
+PLATFORMS_library = ${filter ${PLATFORMS},iphonesimulator iphoneos}
+PLATFORMS_testharness = ${filter ${PLATFORMS},iphonesimulator iphoneos}
 
 #Per-target compile/link settings
 
@@ -68,9 +65,9 @@ AR_iphonesimulator = /Developer/Platforms/iPhoneSimulator.platform/Developer/usr
 RANLIB_iphonesimulator = /Developer/Platforms/iPhoneSimulator.platform/Developer/usr/bin/ranlib
 SPLINT_iphonesimulator = /usr/local/bin/splint
 CLANG_iphonesimulator = /usr/bin/clang
-SDKROOT_iphonesimulator = /Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator${IPHONE_SDK_VERSION}.sdk
+SDKROOT_iphonesimulator = /Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator${IPHONE_SDK_VERSION_iphone}.sdk
 ARCHS_iphonesimulator = i386
-CCFLAGS_iphonesimulator = -isysroot ${SDKROOT_iphonesimulator} -mmacosx-version-min=10.5 -D__IPHONE_OS_VERSION_MIN_REQUIRED=${call iphone_sdk_version_integer,${IPHONE_SDK_VERSION}} -x objective-c
+CCFLAGS_iphonesimulator = -isysroot ${SDKROOT_iphonesimulator} -mmacosx-version-min=10.5 -D__IPHONE_OS_VERSION_MIN_REQUIRED=${call iphone_sdk_version_integer,${IPHONE_DEPLOYMENT_TARGET_VERSION}} -x objective-c
 LINKFLAGS_iphonesimulator = -isysroot ${SDKROOT_iphonesimulator} -mmacosx-version-min=10.5 -framework Foundation -framework UIKit -framework QuartzCore -framework OpenGLES -framework CoreFoundation
 
 CC_iphoneos_armv6 = /Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/gcc-4.2 -arch armv6
@@ -79,31 +76,10 @@ AR_iphoneos = /Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/ar
 RANLIB_iphoneos = /Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/ranlib
 SPLINT_iphoneos = /usr/local/bin/splint
 CLANG_iphoneos = /usr/bin/clang
-SDKROOT_iphoneos = /Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS${IPHONE_SDK_VERSION}.sdk
+SDKROOT_iphoneos = /Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS${IPHONE_SDK_VERSION_iphone}.sdk
 ARCHS_iphoneos = armv6 armv7
-CCFLAGS_iphoneos = -isysroot ${SDKROOT_iphoneos} -miphoneos-version-min=${IPHONE_SDK_VERSION} -x objective-c
-LINKFLAGS_iphoneos = -isysroot ${SDKROOT_iphoneos} -miphoneos-version-min=${IPHONE_SDK_VERSION} -framework Foundation -framework UIKit -framework QuartzCore -framework OpenGLES -framework CoreFoundation
-
-CC_iphonesimulator_ipad_i386 = /Developer/Platforms/iPhoneSimulator.platform/Developer/usr/bin/gcc-4.2 -arch i386
-AR_iphonesimulator_ipad = /Developer/Platforms/iPhoneSimulator.platform/Developer/usr/bin/ar
-RANLIB_iphonesimulator_ipad = /Developer/Platforms/iPhoneSimulator.platform/Developer/usr/bin/ranlib
-SPLINT_iphonesimulator_ipad = /usr/local/bin/splint
-CLANG_iphonesimulator_ipad = /usr/bin/clang
-SDKROOT_iphonesimulator_ipad = /Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator${IPHONE_SDK_VERSION_IPAD}.sdk
-ARCHS_iphonesimulator_ipad = i386
-CCFLAGS_iphonesimulator_ipad = -isysroot ${SDKROOT_iphonesimulator_ipad} -mmacosx-version-min=10.5 -D__IPHONE_OS_VERSION_MIN_REQUIRED=${call iphone_sdk_version_integer,${IPHONE_SDK_VERSION_IPAD}} -x objective-c
-LINKFLAGS_iphonesimulator_ipad = -isysroot ${SDKROOT_iphonesimulator_ipad} -mmacosx-version-min=10.5 -framework Foundation -framework UIKit -framework QuartzCore -framework OpenGLES -framework CoreFoundation
-
-CC_iphoneos_ipad_armv6 = /Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/gcc-4.2 -arch armv6
-CC_iphoneos_ipad_armv7 = /Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/gcc-4.2 -arch armv7
-AR_iphoneos_ipad = /Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/ar
-RANLIB_iphoneos_ipad = /Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/ranlib
-SPLINT_iphoneos_ipad = /usr/local/bin/splint
-CLANG_iphoneos_ipad = /usr/bin/clang
-SDKROOT_iphoneos_ipad = /Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS${IPHONE_SDK_VERSION_IPAD}.sdk
-ARCHS_iphoneos_ipad = armv6 armv7
-CCFLAGS_iphoneos_ipad = -isysroot ${SDKROOT_iphoneos_ipad} -miphoneos-version-min=${IPHONE_SDK_VERSION_IPAD} -x objective-c
-LINKFLAGS_iphoneos_ipad = -isysroot ${SDKROOT_iphoneos_ipad} -miphoneos-version-min=${IPHONE_SDK_VERSION_IPAD} -framework Foundation -framework UIKit -framework QuartzCore -framework OpenGLES -framework CoreFoundation
+CCFLAGS_iphoneos = -isysroot ${SDKROOT_iphoneos} -miphoneos-version-min=${IPHONE_DEPLOYMENT_TARGET_VERSION} -x objective-c
+LINKFLAGS_iphoneos = -isysroot ${SDKROOT_iphoneos} -miphoneos-version-min=${IPHONE_DEPLOYMENT_TARGET_VERSION} -framework Foundation -framework UIKit -framework QuartzCore -framework OpenGLES -framework CoreFoundation
 
 #General compile/link settings
 DEFINE_CCFLAGS = -DVERSION_MAJOR=${VERSION_MAJOR}u -DVERSION_MINOR=${VERSION_MINOR}u -DVERSION_TWEAK=${VERSION_TWEAK}u
@@ -118,7 +94,7 @@ OTHER_LINKFLAGS =
 LINKFLAGS = ${FRAMEWORK_LINKFLAGS} ${LIBRARY_LINKFLAGS} ${OTHER_LINKFLAGS}
 
 #General analyzer settings
-CLANGFLAGS = -isysroot ${SDKROOT_iphonesimulator} -D__IPHONE_OS_VERSION_MIN_REQUIRED=${call iphone_sdk_version_integer,${IPHONE_SDK_VERSION}}
+CLANGFLAGS = -isysroot ${SDKROOT_iphonesimulator} -D__IPHONE_OS_VERSION_MIN_REQUIRED=${call iphone_sdk_version_integer,${IPHONE_DEPLOYMENT_TARGET_VERSION}}
 SPLINTFLAGS = -exportlocal
 
 #Per-target dependencies
@@ -155,14 +131,9 @@ INCLUDES = \
 
 RESOURCES_testharness = \
 	test_resources/Default.png \
+	test_resources/Default_ipad.png \
 	test_resources/Fragment.frag \
 	test_resources/Vertex.vert
-
-RESOURCES_testharness_iphonesimulator_ipad = \
-	test_resources/Default_ipad.png
-
-RESOURCES_testharness_iphoneos_ipad = \
-	test_resources/Default_ipad.png
 
 #Source files excluded from static analysis
 
@@ -219,6 +190,31 @@ ${foreach target,${TARGETS}, \
 		} \
 	} \
 }
+${eval ${call create_directory_target_template,build/intermediate}}
+
+
+
+define dependency_template #(target, configuration, platform, arch, source_file)
+build/intermediate/$1-$2-$3-$4/${notdir ${basename $5}}.d: $5 ${PREREQS_$1} | build/intermediate/$1-$2-$3-$4
+	${CC_$3_$4} ${CCFLAGS} ${CCFLAGS_$1} ${CCFLAGS_$2} ${CCFLAGS_$3} -MM -o $$@.temp $5
+	sed 's,\(${notdir ${basename $5}}\)\.o[ :]*,$${basename $$@}.o $${basename $$@}.d: ,g' < $$@.temp > $$@
+endef
+
+#Produces dependency build targets for all source files in each configuration/platform/arch
+ifeq ($(filter clean full_dist commit_dist analyze analyze_clang analyze_splint,${MAKECMDGOALS}),)
+${foreach target,${TARGETS}, \
+	${foreach configuration,${CONFIGURATIONS_${target}}, \
+		${foreach platform,${PLATFORMS_${target}}, \
+			${foreach arch,${ARCHS_${platform}}, \
+				${foreach source,${SOURCES_${target}}, \
+					${eval ${call dependency_template,${target},${configuration},${platform},${arch},${source}}} \
+					${eval -include build/intermediate/${target}-${configuration}-${platform}-${arch}/${notdir ${basename ${source}}}.d} \
+				} \
+			} \
+		} \
+	} \
+}
+endif
 
 
 
@@ -229,7 +225,7 @@ endef
 
 #Produces object build targets for all source files in each configuration/platform/arch
 ${foreach target,${TARGETS}, \
-	${foreach configuration,${CONFIGURATIONS}, \
+	${foreach configuration,${CONFIGURATIONS_${target}}, \
 		${foreach platform,${PLATFORMS_${target}}, \
 			${foreach arch,${ARCHS_${platform}}, \
 				${foreach source,${SOURCES_${target}}, \
@@ -283,7 +279,7 @@ ${foreach target,${EXECUTABLE_TARGETS} ${APPLICATION_TARGETS}, \
 	${foreach configuration,${CONFIGURATIONS_${target}}, \
 		${foreach platform,${PLATFORMS_${target}}, \
 			${foreach arch,${ARCHS_${platform}}, \
-				${eval ${call executable_template,${target},${configuration},${platform},${arch},${TARGET_NAME_${target}},${call library_dependency_template,${target},${configuration},${platform}}}} \
+				${eval ${call executable_template,${target},${configuration},${platform},${arch},${TARGET_NAME_${target}}${EXECUTABLE_SUFFIX_${platform}},${call library_dependency_template,${target},${configuration},${platform}}}} \
 			} \
 		} \
 	} \
@@ -310,7 +306,7 @@ ${foreach target,${LIBRARY_TARGETS}, \
 ${foreach target,${EXECUTABLE_TARGETS}, \
 	${foreach configuration,${CONFIGURATIONS_${target}}, \
 		${foreach platform,${PLATFORMS_${target}}, \
-			${eval THIN_BINARIES_${target}_${configuration}_${platform} = ${call thin_binary_list_template,${target},${configuration},${platform},${TARGET_NAME_${target}}}} \
+			${eval THIN_BINARIES_${target}_${configuration}_${platform} = ${call thin_binary_list_template,${target},${configuration},${platform},${TARGET_NAME_${target}}${EXECUTABLE_SUFFIX_${platform}}}} \
 		} \
 	} \
 }
@@ -319,7 +315,7 @@ ${foreach target,${EXECUTABLE_TARGETS}, \
 ${foreach target,${APPLICATION_TARGETS}, \
 	${foreach configuration,${CONFIGURATIONS_${target}}, \
 		${foreach platform,${PLATFORMS_${target}}, \
-			${eval THIN_BINARIES_${target}_${configuration}_${platform} = ${call thin_binary_list_template,${target},${configuration},${platform},${TARGET_NAME_${target}}}} \
+			${eval THIN_BINARIES_${target}_${configuration}_${platform} = ${call thin_binary_list_template,${target},${configuration},${platform},${TARGET_NAME_${target}}${EXECUTABLE_SUFFIX_${platform}}}} \
 		} \
 	} \
 }
@@ -365,22 +361,12 @@ ${foreach target,${EXECUTABLE_TARGETS}, \
 PLIST_FILE_testharness_iphonesimulator = test_resources/Info_testharness_iphone.plist
 PLIST_PLATFORM_CASED_iphonesimulator = iPhoneSimulator
 PLIST_PLATFORM_LOWER_iphonesimulator = iphonesimulator
-PLIST_SDK_NAME_iphonesimulator = iphonesimulator${IPHONE_SDK_VERSION}
+PLIST_SDK_NAME_iphonesimulator = iphonesimulator${IPHONE_SDK_VERSION_iphone}
 
 PLIST_FILE_testharness_iphoneos = test_resources/Info_testharness_iphone.plist
 PLIST_PLATFORM_CASED_iphoneos = iPhoneOS
 PLIST_PLATFORM_LOWER_iphoneos = iphoneos
-PLIST_SDK_NAME_iphoneos = iphoneos${IPHONE_SDK_VERSION}
-
-PLIST_FILE_testharness_iphonesimulator_ipad = test_resources/Info_testharness_ipad.plist
-PLIST_PLATFORM_CASED_iphonesimulator_ipad = iPhoneSimulator
-PLIST_PLATFORM_LOWER_iphonesimulator_ipad = iphonesimulator
-PLIST_SDK_NAME_iphonesimulator_ipad = iphonesimulator${IPHONE_SDK_VERSION_IPAD}
-
-PLIST_FILE_testharness_iphoneos_ipad = test_resources/Info_testharness_ipad.plist
-PLIST_PLATFORM_CASED_iphoneos_ipad = iPhoneOS
-PLIST_PLATFORM_LOWER_iphoneos_ipad = iphoneos
-PLIST_SDK_NAME_iphoneos_ipad = iphoneos${IPHONE_SDK_VERSION_IPAD}
+PLIST_SDK_NAME_iphoneos = iphoneos${IPHONE_SDK_VERSION_iphone}
 
 define create_app_bundle #(target, platform, executable_dir, plist_dir, resources_dir)
 	mkdir -p $3 $4 $5
@@ -409,18 +395,6 @@ build/$1/$2-iphoneos/${TARGET_NAME_$1}.app/${TARGET_NAME_$1}: ${THIN_BINARIES_$1
 	lipo -create -output $$@ ${THIN_BINARIES_$1_$2_iphoneos}
 endef
 
-define assemble_application_iphonesimulator_ipad #(target, configuration)
-build/$1/$2-iphonesimulator_ipad/${TARGET_NAME_$1}.app/${TARGET_NAME_$1}: ${THIN_BINARIES_$1_$2_iphonesimulator_ipad} ${RESOURCES_$1} ${RESOURCES_$1_iphonesimulator_ipad} | build/$1/$2-iphonesimulator_ipad
-	${call create_app_bundle,$1,iphonesimulator_ipad,$${dir $$@},$${dir $$@},$${dir $$@}}
-	lipo -create -output $$@ ${THIN_BINARIES_$1_$2_iphonesimulator_ipad}
-endef
-
-define assemble_application_iphoneos_ipad #(target, configuration)
-build/$1/$2-iphoneos_ipad/${TARGET_NAME_$1}.app/${TARGET_NAME_$1}: ${THIN_BINARIES_$1_$2_iphoneos_ipad} ${RESOURCES_$1} ${RESOURCES_$1_iphoneos_ipad} | build/$1/$2-iphoneos_ipad
-	${call create_app_bundle,$1,iphoneos_ipad,$${dir $$@},$${dir $$@},$${dir $$@}}
-	lipo -create -output $$@ ${THIN_BINARIES_$1_$2_iphoneos_ipad}
-endef
-
 #Produces final application build targets
 ${foreach target,${APPLICATION_TARGETS}, \
 	${foreach configuration,${CONFIGURATIONS_${target}}, \
@@ -430,57 +404,29 @@ ${foreach target,${APPLICATION_TARGETS}, \
 	} \
 }
 
-define library_template_iphonesimulator #(target, configuration)
-	build/$1/$2-iphonesimulator/${TARGET_NAME_$1}.a
+define library_template #(target, configuration, platform)
+build/$1/$2-$3/${TARGET_NAME_$1}.a
 endef
 
-define library_template_iphoneos #(target, configuration)
-	build/$1/$2-iphoneos/${TARGET_NAME_$1}.a
+define executable_template #(target, configuration, platform)
+build/$1/$2-$3/${TARGET_NAME_$1}${EXECUTABLE_SUFFIX_$3}
 endef
 
-define library_template_iphonesimulator_ipad #(target, configuration)
-	build/$1/$2-iphonesimulator_ipad/${TARGET_NAME_$1}.a
+define application_template #(target, configuration, platform)
+build/$1/$2-$3/${call application_file_template_$3,$1}
 endef
 
-define library_template_iphoneos_ipad #(target, configuration)
-	build/$1/$2-iphoneos_ipad/${TARGET_NAME_$1}.a
+define application_file_template_iphonesimulator #(target)
+${TARGET_NAME_$1}.app/${TARGET_NAME_$1}
 endef
 
-define executable_template_iphonesimulator #(target, configuration)
-	build/$1/$2-iphonesimulator/${TARGET_NAME_$1}
-endef
-
-define executable_template_iphoneos #(target, configuration)
-	build/$1/$2-iphoneos/${TARGET_NAME_$1}
-endef
-
-define executable_template_iphonesimulator_ipad #(target, configuration)
-	build/$1/$2-iphonesimulator_ipad/${TARGET_NAME_$1}
-endef
-
-define executable_template_iphoneos_ipad #(target, configuration)
-	build/$1/$2-iphoneos_ipad/${TARGET_NAME_$1}
-endef
-
-define application_template_iphonesimulator #(target, configuration)
-	build/$1/$2-iphonesimulator/${TARGET_NAME_$1}.app/${TARGET_NAME_$1}
-endef
-
-define application_template_iphoneos #(target, configuration)
-	build/$1/$2-iphoneos/${TARGET_NAME_$1}.app/${TARGET_NAME_$1}
-endef
-
-define application_template_iphonesimulator_ipad #(target, configuration)
-	build/$1/$2-iphonesimulator_ipad/${TARGET_NAME_$1}.app/${TARGET_NAME_$1}
-endef
-
-define application_template_iphoneos_ipad #(target, configuration)
-	build/$1/$2-iphoneos_ipad/${TARGET_NAME_$1}.app/${TARGET_NAME_$1}
+define application_file_template_iphoneos #(target)
+${TARGET_NAME_$1}.app/${TARGET_NAME_$1}
 endef
 
 define target_template #(target, target_type)
 .PHONY: $1
-$1: ${foreach configuration,${CONFIGURATIONS_$1},${foreach platform,${PLATFORMS_$1},${call $2_template_${platform},$1,${configuration}}}}
+$1: ${foreach configuration,${CONFIGURATIONS_$1},${foreach platform,${PLATFORMS_$1},${call $2_template,$1,${configuration},${platform}}}}
 endef
 
 ${foreach target,${LIBRARY_TARGETS}, \
@@ -565,37 +511,33 @@ clean:
 	rm -rf build
 	rm -rf dist #master_source_only
 
-define install_target_iphonesimulator_template #(target)
-.PHONY: install_$1_iphonesimulator
-install_$1_iphonesimulator: $1
-	killall "iPhone Simulator"; true
-	rm -rf "${IPHONESIMULATOR_APPLICATIONS_DIR}/${TARGET_NAME_$1}"
-	mkdir -p "${IPHONESIMULATOR_APPLICATIONS_DIR}/${TARGET_NAME_$1}/Documents"
-	mkdir -p "${IPHONESIMULATOR_APPLICATIONS_DIR}/${TARGET_NAME_$1}/Library/Preferences"
-	mkdir -p "${IPHONESIMULATOR_APPLICATIONS_DIR}/${TARGET_NAME_$1}/tmp"
-	cp -r "build/$1/debug-iphonesimulator/${TARGET_NAME_$1}.app" "${IPHONESIMULATOR_APPLICATIONS_DIR}/${TARGET_NAME_$1}"
-	defaults write com.apple.iphonesimulator SimulateDevice -string "iPhone"
-	defaults write com.apple.iphonesimulator SimulateSDKRoot -string "${SDKROOT_iphonesimulator}"
-	open ${IPHONESIMULATOR_PATH}
-endef
+TARGET_SUFFIX_ipad = _ipad
+IPHONESIMULATOR_APPLICATIONS_DIR_iphone = ${HOME}/Library/Application Support/iPhone Simulator/${IPHONE_SDK_VERSION_iphone}/Applications
+IPHONESIMULATOR_APPLICATIONS_DIR_ipad = ${HOME}/Library/Application Support/iPhone Simulator/${IPHONE_SDK_VERSION_ipad}/Applications
+SIMULATE_DEVICE_iphone = iPhone
+SIMULATE_DEVICE_ipad = iPad
+SIMULATE_SDKROOT_iphone = /Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator${IPHONE_SDK_VERSION_iphone}.sdk
+SIMULATE_SDKROOT_ipad = /Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator${IPHONE_SDK_VERSION_ipad}.sdk
 
-define install_target_iphonesimulator_ipad_template #(target)
-.PHONY: install_$1_iphonesimulator_ipad
-install_$1_iphonesimulator_ipad: $1
+define install_target_iphonesimulator_template #(target, simulate_device)
+.PHONY: install_$1_iphonesimulator${TARGET_SUFFIX_$2}
+install_$1_iphonesimulator${TARGET_SUFFIX_$2}: $1
 	killall "iPhone Simulator"; true
-	rm -rf "${IPHONESIMULATOR_APPLICATIONS_DIR_IPAD}/${TARGET_NAME_$1}"
-	mkdir -p "${IPHONESIMULATOR_APPLICATIONS_DIR_IPAD}/${TARGET_NAME_$1}/Documents"
-	mkdir -p "${IPHONESIMULATOR_APPLICATIONS_DIR_IPAD}/${TARGET_NAME_$1}/Library/Preferences"
-	mkdir -p "${IPHONESIMULATOR_APPLICATIONS_DIR_IPAD}/${TARGET_NAME_$1}/tmp"
-	cp -r "build/$1/debug-iphonesimulator_ipad/${TARGET_NAME_$1}.app" "${IPHONESIMULATOR_APPLICATIONS_DIR_IPAD}/${TARGET_NAME_$1}"
-	defaults write com.apple.iphonesimulator SimulateDevice -string "iPad"
-	defaults write com.apple.iphonesimulator SimulateSDKRoot -string "${SDKROOT_iphonesimulator_ipad}"
-	open ${IPHONESIMULATOR_PATH}
+	rm -rf "${IPHONESIMULATOR_APPLICATIONS_DIR_$2}/${TARGET_NAME_$1}"
+	mkdir -p "${IPHONESIMULATOR_APPLICATIONS_DIR_$2}/${TARGET_NAME_$1}/Documents"
+	mkdir -p "${IPHONESIMULATOR_APPLICATIONS_DIR_$2}/${TARGET_NAME_$1}/Library/Preferences"
+	mkdir -p "${IPHONESIMULATOR_APPLICATIONS_DIR_$2}/${TARGET_NAME_$1}/tmp"
+	cp -r "build/$1/debug-iphonesimulator/${TARGET_NAME_$1}.app" "${IPHONESIMULATOR_APPLICATIONS_DIR_$2}/${TARGET_NAME_$1}"
+	defaults write com.apple.iphonesimulator SimulateDevice -string "${SIMULATE_DEVICE_$2}"
+	defaults write com.apple.iphonesimulator SimulateSDKRoot -string "${SIMULATE_SDKROOT_$2}"
+	open "/Developer/Platforms/iPhoneSimulator.platform/Developer/Applications/iPhone Simulator.app"
 endef
 
 define add_blob_header #(source_file, target_file)
 	ruby -e "contents = \"\"; File.open(\"$1\", \"r\") {|file| contents = file.read}; File.open(\"$2\", \"w\") {|file| file.write(\"\xFA\xDE\x71\x71\"); file.write([contents.length + 8].pack(\"N\")); file.write(contents)}"
 endef
+
+RESOURCE_RULES_PLIST = /Developer/Platforms/MacOSX.platform/ResourceRules.plist
 
 define codesign_target_iphoneos_template #(target)
 .PHONY: codesign_$1_iphoneos
@@ -609,23 +551,10 @@ codesign_$1_iphoneos: $1
 	}
 endef
 
-define codesign_target_iphoneos_ipad_template #(target)
-.PHONY: codesign_$1_iphoneos_ipad
-codesign_$1_iphoneos_ipad: $1
-	sed -e "s/\$$$${PRODUCT_NAME}/${TARGET_NAME_$1}/g" test_resources/Entitlements.plist > build/intermediate/Entitlements.plist
-	${call add_blob_header,build/intermediate/Entitlements.plist,build/intermediate/Entitlements.xcent}
-	export CODESIGN_ALLOCATE=/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/codesign_allocate
-	${foreach configuration,${CONFIGURATIONS_$1},\
-		cp "${RESOURCE_RULES_PLIST}" "build/$1/${configuration}-iphoneos_ipad/${TARGET_NAME_$1}.app"${newline_and_tab} \
-		/usr/bin/codesign -f -s ${CODESIGN_IDENTITY} --resource-rules=${RESOURCE_RULES_PLIST} --entitlements=build/intermediate/Entitlements.xcent "build/$1/${configuration}-iphoneos_ipad/${TARGET_NAME_$1}.app"${newline_and_tab} \
-	}
-endef
-
 ${foreach target,${APPLICATION_TARGETS}, \
-	${eval ${call install_target_iphonesimulator_template,${target}}} \
-	${eval ${call install_target_iphonesimulator_ipad_template,${target}}} \
+	${eval ${call install_target_iphonesimulator_template,${target},iphone}} \
+	${eval ${call install_target_iphonesimulator_template,${target},ipad}} \
 	${eval ${call codesign_target_iphoneos_template,${target}}} \
-	${eval ${call codesign_target_iphoneos_ipad_template,${target}}} \
 }
 
 #master_source_only_begin
