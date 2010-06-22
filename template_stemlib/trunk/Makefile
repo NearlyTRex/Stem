@@ -121,9 +121,8 @@ EXECUTABLE_SUFFIX_windows = .exe
 #General compile/link settings
 DEFINE_CCFLAGS = -DVERSION_MAJOR=${VERSION_MAJOR}u -DVERSION_MINOR=${VERSION_MINOR}u -DVERSION_TWEAK=${VERSION_TWEAK}u
 WARNING_CCFLAGS = -Wall -Wextra -Wno-unused-parameter -Werror
-INCLUDE_CCFLAGS = -I source# -I include
 OTHER_CCFLAGS = -std=gnu99
-CCFLAGS = ${DEFINE_CCFLAGS} ${WARNING_CCFLAGS} ${INCLUDE_CCFLAGS} ${OTHER_CCFLAGS}
+CCFLAGS = ${DEFINE_CCFLAGS} ${WARNING_CCFLAGS} ${OTHER_CCFLAGS}
 
 FRAMEWORK_LINKFLAGS = 
 LIBRARY_LINKFLAGS = 
@@ -141,6 +140,8 @@ PROJECT_LIBRARY_DEPENDENCIES_unittest = library
 PROJECT_LIBRARY_DEPENDENCIES_testharness = library
 STEM_LIBRARY_DEPENDENCIES_unittest =
 STEM_LIBRARY_DEPENDENCIES_testharness =
+STEM_SOURCE_DEPENDENCIES_unittest = 
+STEM_SOURCE_DEPENDENCIES_testharness = 
 THIRDPARTY_LIBRARY_DEPENDENCIES_unittest = 
 THIRDPARTY_LIBRARY_DEPENDENCIES_testharness = 
 
@@ -148,6 +149,7 @@ THIRDPARTY_LIBRARY_DEPENDENCIES_testharness =
 
 PROJECT_LIBRARY_DEPENDENCIES_unittest_macosx = 
 STEM_LIBRARY_DEPENDENCIES_unittest_macosx = 
+STEM_SOURCE_DEPENDENCIES_unittest_macosx = 
 THIRDPARTY_LIBRARY_DEPENDENCIES_unittest_macosx = 
 #...
 
@@ -248,9 +250,15 @@ ${eval ${call create_directory_target_template,build/intermediate}}
 
 
 
+define include_ccflags_template #(target, platform)
+-I source -I include \
+${foreach thirdparty_dependency,${THIRDPARTY_LIBRARY_DEPENDENCIES_$1} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1_$2},-I include/${dir ${thirdparty_dependency}}} \
+${foreach source_dependency,${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$1_$2},-I dep/${dir ${source_dependency}}source}
+endef
+
 define dependency_template #(target, configuration, platform, arch, source_file)
 build/intermediate/$1-$2-$3-$4/${notdir ${basename $5}}.d: $5 ${PREREQS_$1} | build/intermediate/$1-$2-$3-$4
-	${CC_$3_$4} ${CCFLAGS} ${CCFLAGS_$1} ${CCFLAGS_$2} ${CCFLAGS_$3} -MM -o $$@.temp $5
+	${CC_$3_$4} ${CCFLAGS} ${CCFLAGS_$1} ${CCFLAGS_$2} ${CCFLAGS_$3} ${call include_ccflags_template,$1,$3} -MM -o $$@.temp $5
 	sed 's,\(${notdir ${basename $5}}\)\.o[ :]*,$${basename $$@}.o $${basename $$@}.d: ,g' < $$@.temp > $$@
 endef
 
@@ -274,7 +282,7 @@ endif
 
 define compile_template #(target, configuration, platform, arch, source_file)
 build/intermediate/$1-$2-$3-$4/${notdir ${basename $5}}.o: $5 ${PREREQS_$1} | build/intermediate/$1-$2-$3-$4
-	${CC_$3_$4} ${CCFLAGS} ${CCFLAGS_$1} ${CCFLAGS_$2} ${CCFLAGS_$3} -c -o $$@ $5
+	${CC_$3_$4} ${CCFLAGS} ${CCFLAGS_$1} ${CCFLAGS_$2} ${CCFLAGS_$3} ${call include_ccflags_template,$1,$3} -c -o $$@ $5
 endef
 
 #Produces object build targets for all source files in each configuration/platform/arch
@@ -323,6 +331,9 @@ define library_dependency_template #(target, configuration, platform)
 	${foreach library,${STEM_LIBRARY_DEPENDENCIES_$1} ${STEM_LIBRARY_DEPENDENCIES_$1_$3}, \
 		lib/${dir ${library}}$2-$3/${notdir ${library}} \
 	} \
+	${foreach library,${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$1_$3}, \
+		dep/${dir ${library}}build/library/$2-$3/${notdir ${library}} \
+	} \
 	${foreach library,${THIRDPARTY_LIBRARY_DEPENDENCIES_$1} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1_$3}, \
 		lib/${dir ${library}}$3/${notdir ${library}} \
 	}
@@ -337,6 +348,19 @@ ${foreach target,${EXECUTABLE_TARGETS} ${APPLICATION_TARGETS}, \
 			} \
 		} \
 	} \
+}
+
+
+
+define dependency_submake_template #(dependency)
+.PHONY: $1
+$1:
+	${MAKE} -C dep/${dir ${dependency}}
+endef
+
+#Invokes make for each source dependency
+${foreach dependency,${sort ${foreach target,${TARGETS},${foreach platform,${PLATFORMS_${target}},${STEM_SOURCE_DEPENDENCIES_${target}} ${STEM_SOURCE_DEPENDENCIES_${target}_${platform}}}}}, \
+	${eval ${call dependency_submake_template,${dependency}}} \
 }
 
 
@@ -503,15 +527,15 @@ ${foreach target,${APPLICATION_TARGETS}, \
 }
 
 define library_template #(target, configuration, platform)
-build/$1/$2-$3/${TARGET_NAME_$1}.a
+${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$1_$3} build/$1/$2-$3/${TARGET_NAME_$1}.a
 endef
 
 define executable_template #(target, configuration, platform)
-build/$1/$2-$3/${TARGET_NAME_$1}${EXECUTABLE_SUFFIX_$3}
+${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$1_$3} build/$1/$2-$3/${TARGET_NAME_$1}${EXECUTABLE_SUFFIX_$3}
 endef
 
 define application_template #(target, configuration, platform)
-build/$1/$2-$3/${call application_file_template_$3,$1}
+${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$1_$3} build/$1/$2-$3/${call application_file_template_$3,$1}
 endef
 
 define application_file_template_macosx #(target)
@@ -578,13 +602,13 @@ run_unittests_windows:
 
 define analyze_file_template_clang #(target, platform, file)
 build/analyzer-results/clang-$1-$2/${basename ${notdir $3}}.txt: $3 ${PREREQS_$1} | build/analyzer-results/clang-$1-$2
-	${CLANG_$2} --analyze ${INCLUDE_CCFLAGS} ${CLANGFLAGS} ${CLANGFLAGS_$1} ${CLANGFLAGS_$2} -o $${basename $$@}.plist $3 > $$@ 2>&1; true
+	${CLANG_$2} --analyze ${call include_ccflags_template,$1,$2} ${CLANGFLAGS} ${CLANGFLAGS_$1} ${CLANGFLAGS_$2} -o $${basename $$@}.plist $3 > $$@ 2>&1; true
 	@cat $$@
 endef
 
 define analyze_file_template_splint #(target, platform, file)
 build/analyzer-results/splint-$1-$2/${basename ${notdir $3}}.txt: $3 ${PREREQS_$1} | build/analyzer-results/splint-$1-$2
-	${SPLINT_$2} ${INCLUDE_CCFLAGS} ${SPLINTFLAGS} ${SPLINTFLAGS_$1} ${SPLINTFLAGS_$2} $3 > $$@ 2>&1; true
+	${SPLINT_$2} ${call include_ccflags_template,$1,$2} ${SPLINTFLAGS} ${SPLINTFLAGS_$1} ${SPLINTFLAGS_$2} $3 > $$@ 2>&1; true
 	@cat $$@
 endef
 
@@ -645,6 +669,9 @@ include: ${INCLUDES} | ${foreach include_file,${INCLUDES},build/include/${notdir
 clean:
 	rm -rf build
 	rm -rf dist #master_source_only
+	${foreach dependency,${sort ${foreach target,${TARGETS},${foreach platform,${PLATFORMS_${target}},${STEM_SOURCE_DEPENDENCIES_${target}} ${STEM_SOURCE_DEPENDENCIES_${target}_${platform}}}}}, \
+		${MAKE} -C dep/${dir ${dependency}} clean${newline_and_tab} \
+	}
 
 TARGET_SUFFIX_ipad = _ipad
 IPHONESIMULATOR_APPLICATIONS_DIR_iphone = ${HOME}/Library/Application Support/iPhone Simulator/${IPHONE_SDK_VERSION_iphone}/Applications
