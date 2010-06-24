@@ -26,6 +26,17 @@
 #include "shell/Target.h"
 #include "eaglshell/EAGLTarget.h"
 
+#ifndef __IPHONE_3_2
+typedef enum {
+    UIStatusBarAnimationNone,
+    UIStatusBarAnimationFade,
+    UIStatusBarAnimationSlide,
+} UIStatusBarAnimation;
+@interface UIApplication ()
+- (void)setStatusBarHidden:(BOOL)hidden withAnimation:(UIStatusBarAnimation)animation;
+@end
+#endif
+
 int g_argc = 0;
 char ** g_argv = NULL;
 
@@ -35,11 +46,11 @@ extern bool mainLoopCalled;
 
 - (BOOL) application: (UIApplication *) application didFinishLaunchingWithOptions: (NSDictionary *) dictionary {
 	[self setStatusBarOrientation: UIInterfaceOrientationPortrait animated: NO];
-#if defined(__IPHONE_OS_VERSION_MIN_REQUIRED) && defined(__IPHONE_3_2) && __IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_3_2
-	[self setStatusBarHidden: YES withAnimation: UIStatusBarAnimationNone];
-#else
-	[self setStatusBarHidden: YES animated: NO];
-#endif
+	if ([[[UIDevice currentDevice] systemVersion] compare: @"3.2" options: NSNumericSearch] != NSOrderedAscending) {
+		[self setStatusBarHidden: YES withAnimation: UIStatusBarAnimationNone];
+	} else {
+		[self setStatusBarHidden: YES animated: NO];
+	}
 	self.applicationSupportsShakeToEdit = NO;
 	
 	if ([dictionary objectForKey: UIApplicationLaunchOptionsURLKey] != nil) {

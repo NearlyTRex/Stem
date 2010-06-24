@@ -30,6 +30,17 @@
 #include "shell/Shell.h"
 #include "shell/ShellBatteryInfo.h"
 
+#ifndef __IPHONE_3_2
+typedef enum {
+    UIStatusBarAnimationNone,
+    UIStatusBarAnimationFade,
+    UIStatusBarAnimationSlide,
+} UIStatusBarAnimation;
+@interface UIApplication ()
+- (void)setStatusBarHidden:(BOOL)hidden withAnimation:(UIStatusBarAnimation)animation;
+@end
+#endif
+
 static bool isFullScreen = true;
 bool mainLoopCalled = false;
 
@@ -46,11 +57,11 @@ bool Shell_isFullScreen() {
 }
 
 bool Shell_setFullScreen(bool fullScreen) {
-#if defined(__IPHONE_OS_VERSION_MIN_REQUIRED) && defined(__IPHONE_3_2) && __IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_3_2
-	[[UIApplication sharedApplication] setStatusBarHidden: fullScreen withAnimation: UIStatusBarAnimationSlide];
-#else
-	[[UIApplication sharedApplication] setStatusBarHidden: fullScreen animated: YES];
-#endif
+	if ([[[UIDevice currentDevice] systemVersion] compare: @"3.2" options: NSNumericSearch] != NSOrderedAscending) {
+		[[UIApplication sharedApplication] setStatusBarHidden: fullScreen withAnimation: UIStatusBarAnimationSlide];
+	} else {
+		[[UIApplication sharedApplication] setStatusBarHidden: fullScreen animated: YES];
+	}
 	[(EAGLShellApplication *) [UIApplication sharedApplication] updateViewFrame];
 	isFullScreen = fullScreen;
 	return true;

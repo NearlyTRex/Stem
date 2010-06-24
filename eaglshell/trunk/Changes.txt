@@ -1,3 +1,6 @@
+2.3.0
+ * Added iPhone 4 support
+
 2.2.0
  * Removed iphonesimulator_ipad and iphoneos_ipad platforms; iphonesimulator and iphoneos now build unified binaries that work on both iPhone and iPad
  * Synced with template_stemlib 2010-06-10

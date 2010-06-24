@@ -24,7 +24,7 @@ TARGET_PLATFORMS_linux =
 TARGET_PLATFORMS_windows = 
 
 PROJECT_NAME = eaglshell
-IPHONE_SDK_VERSION_iphone = 3.1
+IPHONE_SDK_VERSION_iphone = 4.0
 IPHONE_SDK_VERSION_ipad = 3.2
 IPHONE_DEPLOYMENT_TARGET_VERSION = 3.1
 CODESIGN_IDENTITY = "iPhone Developer"
@@ -67,7 +67,7 @@ SPLINT_iphonesimulator = /usr/local/bin/splint
 CLANG_iphonesimulator = /usr/bin/clang
 SDKROOT_iphonesimulator = /Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator${IPHONE_SDK_VERSION_iphone}.sdk
 ARCHS_iphonesimulator = i386
-CCFLAGS_iphonesimulator = -isysroot ${SDKROOT_iphonesimulator} -mmacosx-version-min=10.5 -D__IPHONE_OS_VERSION_MIN_REQUIRED=${call iphone_sdk_version_integer,${IPHONE_DEPLOYMENT_TARGET_VERSION}} -x objective-c
+CCFLAGS_iphonesimulator = -isysroot ${SDKROOT_iphonesimulator} -mmacosx-version-min=10.5 -fobjc-abi-version=2 -fobjc-legacy-dispatch -D__IPHONE_OS_VERSION_MIN_REQUIRED=${call iphone_sdk_version_integer,${IPHONE_DEPLOYMENT_TARGET_VERSION}} -x objective-c
 LINKFLAGS_iphonesimulator = -isysroot ${SDKROOT_iphonesimulator} -mmacosx-version-min=10.5 -framework Foundation -framework UIKit -framework QuartzCore -framework OpenGLES -framework CoreFoundation
 
 CC_iphoneos_armv6 = /Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/gcc-4.2 -arch armv6
@@ -78,7 +78,7 @@ SPLINT_iphoneos = /usr/local/bin/splint
 CLANG_iphoneos = /usr/bin/clang
 SDKROOT_iphoneos = /Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS${IPHONE_SDK_VERSION_iphone}.sdk
 ARCHS_iphoneos = armv6 armv7
-CCFLAGS_iphoneos = -isysroot ${SDKROOT_iphoneos} -miphoneos-version-min=${IPHONE_DEPLOYMENT_TARGET_VERSION} -x objective-c
+CCFLAGS_iphoneos = -isysroot ${SDKROOT_iphoneos} -miphoneos-version-min=${IPHONE_DEPLOYMENT_TARGET_VERSION} -fobjc-abi-version=2 -fobjc-legacy-dispatch -x objective-c
 LINKFLAGS_iphoneos = -isysroot ${SDKROOT_iphoneos} -miphoneos-version-min=${IPHONE_DEPLOYMENT_TARGET_VERSION} -framework Foundation -framework UIKit -framework QuartzCore -framework OpenGLES -framework CoreFoundation
 
 #General compile/link settings
@@ -90,7 +90,7 @@ CCFLAGS = ${DEFINE_CCFLAGS} ${WARNING_CCFLAGS} ${INCLUDE_CCFLAGS} ${OTHER_CCFLAG
 
 FRAMEWORK_LINKFLAGS = 
 LIBRARY_LINKFLAGS = 
-OTHER_LINKFLAGS = 
+OTHER_LINKFLAGS = -Xlinker -objc_abi_version -Xlinker 2
 LINKFLAGS = ${FRAMEWORK_LINKFLAGS} ${LIBRARY_LINKFLAGS} ${OTHER_LINKFLAGS}
 
 #General analyzer settings
@@ -131,6 +131,7 @@ INCLUDES = \
 
 RESOURCES_testharness = \
 	test_resources/Default.png \
+	test_resources/Default@2x.png \
 	test_resources/Default_ipad.png \
 	test_resources/Fragment.frag \
 	test_resources/Vertex.vert

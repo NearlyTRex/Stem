@@ -37,9 +37,9 @@ http://sacredsoftware.net/</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>UILaunchImageFile</key>
-	<string>Default.png</string>
+	<string>Default</string>
 	<key>UILaunchImageFile~ipad</key>
-	<string>Default_ipad.png</string>
+	<string>Default_ipad</string>
 	<key>UIDeviceFamily</key>
 	<array>
 		<integer>1</integer>

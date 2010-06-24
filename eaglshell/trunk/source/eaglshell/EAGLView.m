@@ -42,6 +42,15 @@
 @end
 #endif
 
+#ifndef __IPHONE_4_0
+@interface UIScreen ()
+@property(nonatomic,readonly) CGFloat scale;
+@end
+@interface UIView ()
+@property(nonatomic) CGFloat contentScaleFactor;
+@end
+#endif
+
 @interface EAGLView ()
 - (unsigned int) firstAvailableButtonNumber;
 @end
@@ -55,6 +64,10 @@
 - (id) initWithFrame: (CGRect) frame {
 	if ((self = [super initWithFrame: frame]) != nil) {
 		CAEAGLLayer * layer;
+		
+		if ([[[UIDevice currentDevice] systemVersion] compare: @"4.0" options: NSNumericSearch] != NSOrderedAscending) {
+			self.contentScaleFactor = [UIScreen mainScreen].scale;
+		}
 		
 		self.multipleTouchEnabled = YES;
 		
@@ -280,6 +293,10 @@ static unsigned int lowestBitIndex(unsigned int value) {
 	for (touchIndex = 0; touchIndex < [allTouches count] && activeTouchCount < ACTIVE_TOUCH_MAX; touchIndex++) {
 		activeTouches[activeTouchCount].touch = [allTouches objectAtIndex: touchIndex];
 		activeTouches[activeTouchCount].lastLocation = [activeTouches[activeTouchCount].touch locationInView: self];
+		if ([[[UIDevice currentDevice] systemVersion] compare: @"4.0" options: NSNumericSearch] != NSOrderedAscending) {
+			activeTouches[activeTouchCount].lastLocation.x *= self.contentScaleFactor;
+			activeTouches[activeTouchCount].lastLocation.y *= self.contentScaleFactor;
+		}
 		activeTouches[activeTouchCount].buttonNumber = [self firstAvailableButtonNumber];
 		activeTouchCount++;
 		
@@ -297,6 +314,11 @@ static unsigned int lowestBitIndex(unsigned int value) {
 	for (touchIndex = 0; touchIndex < [allTouches count]; touchIndex++) {
 		touch = [allTouches objectAtIndex: touchIndex];
 		location = [touch locationInView: self];
+		
+		if ([[[UIDevice currentDevice] systemVersion] compare: @"4.0" options: NSNumericSearch] != NSOrderedAscending) {
+			location.x *= self.contentScaleFactor;
+			location.y *= self.contentScaleFactor;
+		}
 		
 		for (activeTouchIndex = 0; activeTouchIndex < activeTouchCount; activeTouchIndex++) {
 			if (activeTouches[activeTouchIndex].touch == touch && !CGPointEqualToPoint(location, activeTouches[activeTouchIndex].lastLocation)) {
@@ -319,6 +341,11 @@ static unsigned int lowestBitIndex(unsigned int value) {
 	for (touchIndex = 0; touchIndex < [allTouches count]; touchIndex++) {
 		touch = [allTouches objectAtIndex: touchIndex];
 		location = [touch locationInView: self];
+		
+		if ([[[UIDevice currentDevice] systemVersion] compare: @"4.0" options: NSNumericSearch] != NSOrderedAscending) {
+			location.x *= self.contentScaleFactor;
+			location.y *= self.contentScaleFactor;
+		}
 		
 		for (activeTouchIndex = 0; activeTouchIndex < activeTouchCount; activeTouchIndex++) {
 			if (activeTouches[activeTouchIndex].touch == touch) {
