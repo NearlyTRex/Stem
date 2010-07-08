@@ -23,7 +23,7 @@ TARGET_PLATFORMS_macosx = macosx iphonesimulator iphoneos
 TARGET_PLATFORMS_linux = linux
 TARGET_PLATFORMS_windows = windows
 
-PROJECT_NAME = template_stemlib
+PROJECT_NAME = glbitmapfont
 IPHONE_SDK_VERSION_iphone = 4.0
 IPHONE_SDK_VERSION_ipad = 3.2
 IPHONE_DEPLOYMENT_TARGET_VERSION = 3.1
@@ -38,9 +38,9 @@ CONFIGURATIONS = debug profile release
 PLATFORMS = ${filter ${TARGET_PLATFORMS_${HOST_PLATFORM}},macosx iphonesimulator iphoneos linux windows}
 ANALYZERS = splint clang
 
-TARGET_NAME_library = libstem_template_stemlib
-TARGET_NAME_unittest = template_stemlib_unittest
-TARGET_NAME_testharness = template_stemlib_testharness
+TARGET_NAME_library = libstem_glbitmapfont
+TARGET_NAME_unittest = glbitmapfont_unittest
+TARGET_NAME_testharness = glbitmapfont_testharness
 HUMAN_READABLE_TARGET_NAME_testharness = StemTemplate
 
 #Per-target configurations
@@ -75,7 +75,7 @@ SPLINT_macosx = /usr/local/bin/splint
 CLANG_macosx = /usr/bin/clang
 SDKROOT_macosx = /Developer/SDKs/MacOSX10.5.sdk
 ARCHS_macosx = ppc i386 x86_64
-CCFLAGS_macosx = -isysroot ${SDKROOT_macosx} -mmacosx-version-min=10.5
+CCFLAGS_macosx = -isysroot ${SDKROOT_macosx} -mmacosx-version-min=10.5 -DGLGRAPHICS_NO_GLEW
 LINKFLAGS_macosx = -isysroot ${SDKROOT_macosx} -mmacosx-version-min=10.5
 
 CC_iphonesimulator_i386 = /Developer/Platforms/iPhoneSimulator.platform/Developer/usr/bin/gcc-4.2 -arch i386
@@ -138,33 +138,44 @@ SPLINTFLAGS = -exportlocal
 
 PROJECT_LIBRARY_DEPENDENCIES_unittest = library
 PROJECT_LIBRARY_DEPENDENCIES_testharness = library
-STEM_LIBRARY_DEPENDENCIES_unittest =
-STEM_LIBRARY_DEPENDENCIES_testharness =
-STEM_SOURCE_DEPENDENCIES_unittest = 
-STEM_SOURCE_DEPENDENCIES_testharness = 
+STEM_LIBRARY_DEPENDENCIES_unittest = gltexture/libstem_gltexture.a serialization/libstem_serialization.a stemobject/libstem_stemobject.a
+STEM_LIBRARY_DEPENDENCIES_testharness = gltexture/libstem_gltexture.a serialization/libstem_serialization.a stemobject/libstem_stemobject.a
+STEM_SOURCE_DEPENDENCIES_library = glfont/libstem_glfont.a
+STEM_SOURCE_DEPENDENCIES_unittest = glfont/libstem_glfont.a
+STEM_SOURCE_DEPENDENCIES_testharness = glfont/libstem_glfont.a
 THIRDPARTY_LIBRARY_DEPENDENCIES_unittest = 
 THIRDPARTY_LIBRARY_DEPENDENCIES_testharness = 
 
 #Per-target per-platform dependencies
 
-PROJECT_LIBRARY_DEPENDENCIES_unittest_macosx = 
-STEM_LIBRARY_DEPENDENCIES_unittest_macosx = 
-STEM_SOURCE_DEPENDENCIES_unittest_macosx = 
-THIRDPARTY_LIBRARY_DEPENDENCIES_unittest_macosx = 
-#...
+STEM_LIBRARY_DEPENDENCIES_unittest_macosx = glgraphics/libstem_glgraphics_noglew.a
+STEM_LIBRARY_DEPENDENCIES_unittest_windows = glgraphics/libstem_glgraphics.a
+STEM_LIBRARY_DEPENDENCIES_unittest_linux = glgraphics/libstem_glgraphics.a
+STEM_LIBRARY_DEPENDENCIES_unittest_iphonesimulator = glgraphics/libstem_glgraphics_noglew.a
+STEM_LIBRARY_DEPENDENCIES_unittest_iphoneos = glgraphics/libstem_glgraphics_noglew.a
+STEM_LIBRARY_DEPENDENCIES_testharness_macosx = glgraphics/libstem_glgraphics_noglew.a
+STEM_LIBRARY_DEPENDENCIES_testharness_windows = glgraphics/libstem_glgraphics.a
+STEM_LIBRARY_DEPENDENCIES_testharness_linux = glgraphics/libstem_glgraphics.a
+STEM_LIBRARY_DEPENDENCIES_testharness_iphonesimulator = glgraphics/libstem_glgraphics_noglew.a
+STEM_LIBRARY_DEPENDENCIES_testharness_iphoneos = glgraphics/libstem_glgraphics_noglew.a
+THIRDPARTY_LIBRARY_DEPENDENCIES_unittest_windows = glew/libglew.a
+THIRDPARTY_LIBRARY_DEPENDENCIES_unittest_linux = glew/libglew.a
+THIRDPARTY_LIBRARY_DEPENDENCIES_testharness_windows = glew/libglew.a
+THIRDPARTY_LIBRARY_DEPENDENCIES_testharness_linux = glew/libglew.a
 
 #Per-target source file lists
 
 SOURCES_library = \
-	source/template_stemlib/HelloWorld.c
+	source/glbitmapfont/GLBitmapFont.c
 
 SOURCES_unittest = \
 	test_source/unittest/framework/unittest_main.c \
 	test_source/unittest/framework/TestList.c \
+	test_source/unittest/TestDeserializationContext.c \
 	${SOURCES_unittest_suites}
 
 SOURCES_unittest_suites = \
-	test_source/unittest/suites/HelloWorldTest.c
+	test_source/unittest/suites/GLBitmapFontTest.c
 
 SOURCES_testharness = \
 	test_source/testharness/TestHarness_main.c
@@ -172,7 +183,7 @@ SOURCES_testharness = \
 #Include files to be distributed with library
 
 INCLUDES = \
-	source/template_stemlib/HelloWorld.h
+	source/glbitmapfont/GLBitmapFont.h
 
 #Target resources
 
@@ -742,9 +753,9 @@ endef
 
 .PHONY: source_dist
 source_dist:
-	#mkdir -p build/source_dist/include
-	#mkdir -p build/source_dist/lib
-	mkdir -p build/source_dist/source/template_stemlib
+	mkdir -p build/source_dist/include
+	mkdir -p build/source_dist/lib
+	mkdir -p build/source_dist/source/glbitmapfont
 	mkdir -p build/source_dist/test_resources
 	mkdir -p build/source_dist/test_source/testharness
 	mkdir -p build/source_dist/test_source/unittest/framework
@@ -753,12 +764,12 @@ source_dist:
 	${call filter_source_dist_file,Makefile,build/source_dist/Makefile}
 	cp Changes.txt License.txt ReadMe.txt version build/source_dist
 	
-	#cp -r include/* build/source_dist/include
-	#cp -r lib/* build/source_dist/lib
-	#find build/source_dist/include -name .svn -print0 | xargs -0 rm -rf
-	#find build/source_dist/lib -name .svn -print0 | xargs -0 rm -rf
+	cp -r include/* build/source_dist/include
+	cp -r lib/* build/source_dist/lib
+	find build/source_dist/include -name .svn -print0 | xargs -0 rm -rf
+	find build/source_dist/lib -name .svn -print0 | xargs -0 rm -rf
 	
-	cp source/template_stemlib/* build/source_dist/source/template_stemlib
+	cp source/glbitmapfont/* build/source_dist/source/glbitmapfont
 	
 	cp test_resources/* build/source_dist/test_resources
 	
