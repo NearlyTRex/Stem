@@ -1,5 +1,5 @@
 .PHONY: all
-all: library unittest testharness test include
+all: library unittest test include
 
 UNAME = ${shell uname}
 ifeq (${UNAME},Linux)
@@ -23,7 +23,7 @@ TARGET_PLATFORMS_macosx = macosx iphonesimulator iphoneos
 TARGET_PLATFORMS_linux = linux
 TARGET_PLATFORMS_windows = windows
 
-PROJECT_NAME = template_stemlib
+PROJECT_NAME = glfont
 IPHONE_SDK_VERSION_iphone = 4.0
 IPHONE_SDK_VERSION_ipad = 3.2
 IPHONE_DEPLOYMENT_TARGET_VERSION = 3.1
@@ -32,26 +32,22 @@ SVNROOT = http://sacredsoftware.net/svn/misc#master_source_only
 
 LIBRARY_TARGETS = library
 EXECUTABLE_TARGETS = unittest
-APPLICATION_TARGETS = testharness
+APPLICATION_TARGETS = 
 TARGETS = ${LIBRARY_TARGETS} ${EXECUTABLE_TARGETS} ${APPLICATION_TARGETS}
 CONFIGURATIONS = debug profile release
 PLATFORMS = ${filter ${TARGET_PLATFORMS_${HOST_PLATFORM}},macosx iphonesimulator iphoneos linux windows}
 ANALYZERS = splint clang
 
-TARGET_NAME_library = libstem_template_stemlib
-TARGET_NAME_unittest = template_stemlib_unittest
-TARGET_NAME_testharness = template_stemlib_testharness
-HUMAN_READABLE_TARGET_NAME_testharness = StemTemplate
+TARGET_NAME_library = libstem_glfont
+TARGET_NAME_unittest = glfont_unittest
 
 #Per-target configurations
 CONFIGURATIONS_library = debug profile release
 CONFIGURATIONS_unittest = debug
-CONFIGURATIONS_testharness = debug profile release
 
 #Per-target platforms
 PLATFORMS_library = ${filter ${PLATFORMS},macosx iphonesimulator iphoneos linux windows}
 PLATFORMS_unittest = ${filter ${PLATFORMS},macosx iphonesimulator linux windows}
-PLATFORMS_testharness = ${filter ${PLATFORMS},macosx iphonesimulator iphoneos linux windows}
 
 #Per-target compile/link settings
 CCFLAGS_unittest = -I test_source -include build/intermediate/TestList.h
@@ -137,13 +133,9 @@ SPLINTFLAGS = -exportlocal
 #Per-target dependencies
 
 PROJECT_LIBRARY_DEPENDENCIES_unittest = library
-PROJECT_LIBRARY_DEPENDENCIES_testharness = library
-STEM_LIBRARY_DEPENDENCIES_unittest =
-STEM_LIBRARY_DEPENDENCIES_testharness =
+STEM_LIBRARY_DEPENDENCIES_unittest = serialization/libstem_serialization.a stemobject/libstem_stemobject.a
 STEM_SOURCE_DEPENDENCIES_unittest = 
-STEM_SOURCE_DEPENDENCIES_testharness = 
 THIRDPARTY_LIBRARY_DEPENDENCIES_unittest = 
-THIRDPARTY_LIBRARY_DEPENDENCIES_testharness = 
 
 #Per-target per-platform dependencies
 
@@ -156,7 +148,7 @@ THIRDPARTY_LIBRARY_DEPENDENCIES_unittest_macosx =
 #Per-target source file lists
 
 SOURCES_library = \
-	source/template_stemlib/HelloWorld.c
+	source/glfont/GLFont.c
 
 SOURCES_unittest = \
 	test_source/unittest/framework/unittest_main.c \
@@ -164,21 +156,16 @@ SOURCES_unittest = \
 	${SOURCES_unittest_suites}
 
 SOURCES_unittest_suites = \
-	test_source/unittest/suites/HelloWorldTest.c
-
-SOURCES_testharness = \
-	test_source/testharness/TestHarness_main.c
+	test_source/unittest/suites/GLFontTest.c
 
 #Include files to be distributed with library
 
 INCLUDES = \
-	source/template_stemlib/HelloWorld.h
+	source/glfont/GLFont.h
 
 #Target resources
 
-RESOURCES_testharness = 
 RESOURCES_unittest = 
-RESOURCES_testharness_macosx = 
 #...
 
 #Source files excluded from static analysis
@@ -458,14 +445,10 @@ ${foreach target,${EXECUTABLE_TARGETS}, \
 	} \
 }
 
-PLIST_FILE_testharness_macosx = test_resources/Info_testharness_macosx.plist
-
-PLIST_FILE_testharness_iphonesimulator = test_resources/Info_testharness_iphone.plist
 PLIST_PLATFORM_CASED_iphonesimulator = iPhoneSimulator
 PLIST_PLATFORM_LOWER_iphonesimulator = iphonesimulator
 PLIST_SDK_NAME_iphonesimulator = iphonesimulator${IPHONE_SDK_VERSION_iphone}
 
-PLIST_FILE_testharness_iphoneos = test_resources/Info_testharness_iphone.plist
 PLIST_PLATFORM_CASED_iphoneos = iPhoneOS
 PLIST_PLATFORM_LOWER_iphoneos = iphoneos
 PLIST_SDK_NAME_iphoneos = iphoneos${IPHONE_SDK_VERSION_iphone}
@@ -722,15 +705,13 @@ ${foreach target,${APPLICATION_TARGETS}, \
 #master_source_only_begin
 .PHONY: full_dist
 full_dist: clean all
-	mkdir dist dist/include dist/library dist/testharness
+	mkdir dist dist/include dist/library
 	cp -r build/include/* dist/include
 	cp -r build/library/* dist/library
-	cp -r build/testharness/* dist/testharness
 
 .PHONY: append_dist
 append_dist: all
 	cp -r build/library/* dist/library
-	cp -r build/testharness/* dist/testharness
 
 .PHONY: commit_dist
 commit_dist:
@@ -742,27 +723,25 @@ endef
 
 .PHONY: source_dist
 source_dist:
-	#mkdir -p build/source_dist/include
-	#mkdir -p build/source_dist/lib
-	mkdir -p build/source_dist/source/template_stemlib
+	mkdir -p build/source_dist/include
+	mkdir -p build/source_dist/lib
+	mkdir -p build/source_dist/source/glfont
 	mkdir -p build/source_dist/test_resources
-	mkdir -p build/source_dist/test_source/testharness
 	mkdir -p build/source_dist/test_source/unittest/framework
 	mkdir -p build/source_dist/test_source/unittest/suites
 	
 	${call filter_source_dist_file,Makefile,build/source_dist/Makefile}
 	cp Changes.txt License.txt ReadMe.txt version build/source_dist
 	
-	#cp -r include/* build/source_dist/include
-	#cp -r lib/* build/source_dist/lib
-	#find build/source_dist/include -name .svn -print0 | xargs -0 rm -rf
-	#find build/source_dist/lib -name .svn -print0 | xargs -0 rm -rf
+	cp -r include/* build/source_dist/include
+	cp -r lib/* build/source_dist/lib
+	find build/source_dist/include -name .svn -print0 | xargs -0 rm -rf
+	find build/source_dist/lib -name .svn -print0 | xargs -0 rm -rf
 	
-	cp source/template_stemlib/* build/source_dist/source/template_stemlib
+	cp source/glfont/* build/source_dist/source/glfont
 	
 	cp test_resources/* build/source_dist/test_resources
 	
-	cp test_source/testharness/* build/source_dist/test_source/testharness
 	cp test_source/unittest/framework/* build/source_dist/test_source/unittest/framework
 	cp test_source/unittest/suites/* build/source_dist/test_source/unittest/suites
 #master_source_only_end
