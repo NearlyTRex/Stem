@@ -38,7 +38,7 @@ typedef struct GLFont GLFont;
 	/* If emWidth is greater than the width of the string, the length of the string is returned. */ \
 	/* If outLeadingEdge is non-NULL, it will be set to true if emWidth falls on the leading half of the */ \
 	/* character whose index is returned, or false if it does not. */ \
-	unsigned int (* indexAtWidth)(void * self, char * string, size_t length, float emWidth, bool * outLeadingEdge); \
+	size_t (* indexAtWidth)(void * self, char * string, size_t length, float emWidth, bool * outLeadingEdge); \
 	\
 	/* Draws string (of length UTF-8 bytes) at offsetX, offsetY, offsetZ, using the current projection-modelview transform. */ \
 	/* Text is scaled according such that characters' heights are equal to emHeight. */ \
