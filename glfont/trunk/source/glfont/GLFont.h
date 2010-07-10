@@ -24,24 +24,25 @@
 #define __GL_FONT_H__
 
 #include "stemobject/stemobject.h"
+#include <stdlib.h>
 
 typedef struct GLFont GLFont;
 
 #define GLFont_structContents \
 	StemObject_structContents \
 	\
-	/* Returns the width of string in ems */ \
-	float (* measureString)(void * self, char * string); \
+	/* Returns the width of string (of length UTF-8 bytes) in ems */ \
+	float (* measureString)(void * self, char * string, size_t length); \
 	\
-	/* Returns the closest character index to emWidth, as measured from the beginning of the string. */ \
+	/* Returns the closest character index to emWidth, as measured from the beginning of string (of length UTF-8 bytes). */ \
 	/* If emWidth is greater than the width of the string, the length of the string is returned. */ \
 	/* If outLeadingEdge is non-NULL, it will be set to true if emWidth falls on the leading half of the */ \
 	/* character whose index is returned, or false if it does not. */ \
-	unsigned int (* indexAtWidth)(void * self, char * string, float emWidth, bool * outLeadingEdge); \
+	unsigned int (* indexAtWidth)(void * self, char * string, size_t length, float emWidth, bool * outLeadingEdge); \
 	\
-	/* Draws string at offsetX, offsetY, offsetZ, using the current projection-modelview transform. */ \
+	/* Draws string (of length UTF-8 bytes) at offsetX, offsetY, offsetZ, using the current projection-modelview transform. */ \
 	/* Text is scaled according such that characters' heights are equal to emHeight. */ \
-	void (* drawString)(void * self, char * string, float emHeight, float offsetX, float offsetY, float offsetZ);
+	void (* drawString)(void * self, char * string, size_t length, float emHeight, float offsetX, float offsetY, float offsetZ);
 
 struct GLFont {
 	GLFont_structContents
