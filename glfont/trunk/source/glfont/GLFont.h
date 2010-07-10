@@ -35,7 +35,6 @@ typedef struct GLFont GLFont;
 	float (* measureString)(void * self, char * string, size_t length); \
 	\
 	/* Returns the closest character index to emWidth, as measured from the beginning of string (of length UTF-8 bytes). */ \
-	/* If emWidth is greater than the width of the string, the length of the string is returned. */ \
 	/* If outLeadingEdge is non-NULL, it will be set to true if emWidth falls on the leading half of the */ \
 	/* character whose index is returned, or false if it does not. */ \
 	size_t (* indexAtWidth)(void * self, char * string, size_t length, float emWidth, bool * outLeadingEdge); \
