@@ -112,7 +112,7 @@ static void verifyCallIsInSequence(TestSerializationContext * self, void * funct
 		char * key;
 		
 		key = va_arg(args, char *);
-		if (strcmp(self->expectedCalls[self->nextExpectedCallIndex].key, key)) {
+		if (((self->expectedCalls[self->nextExpectedCallIndex].key == NULL || key == NULL) && self->expectedCalls[self->nextExpectedCallIndex].key != key) || (self->expectedCalls[self->nextExpectedCallIndex].key != NULL && key != NULL && strcmp(self->expectedCalls[self->nextExpectedCallIndex].key, key))) {
 			snprintf(self->error, SERIALIZATION_ERROR_MAX, "Arg 2 to call %d (%s) was expected to be \"%s\", but was \"%s\" instead", self->nextExpectedCallIndex, functionNameForPtr(self, functionPtr), self->expectedCalls[self->nextExpectedCallIndex].key, key);
 			longjmp(*self->sequenceBreakJmpEnv, 3);
 		}
@@ -558,7 +558,7 @@ void TestSerializationContext_finish(void * selfPtr) {
 	TestSerializationContext * self = selfPtr;
 	
 	if (self->nextExpectedCallIndex < self->numExpectedCalls) {
-		snprintf(self->error, SERIALIZATION_ERROR_MAX, "%d expected calls still left in queue at end (next expected call is %s)", self->numExpectedCalls - self->nextExpectedCallIndex, functionNameForPtr(self, self->expectedCalls[self->nextExpectedCallIndex].functionPtr));
+		snprintf(self->error, SERIALIZATION_ERROR_MAX, "%d expected call%s still left in queue at end (next expected call is %s)", self->numExpectedCalls - self->nextExpectedCallIndex, self->numExpectedCalls - self->nextExpectedCallIndex == 1 ? "" : "s", functionNameForPtr(self, self->expectedCalls[self->nextExpectedCallIndex].functionPtr));
 		longjmp(*self->sequenceBreakJmpEnv, 4);
 	}
 }
