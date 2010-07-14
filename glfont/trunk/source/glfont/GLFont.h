@@ -32,16 +32,16 @@ typedef struct GLFont GLFont;
 	StemObject_structContents \
 	\
 	/* Returns the width of string (of length UTF-8 bytes) in ems */ \
-	float (* measureString)(void * self, char * string, size_t length); \
+	float (* measureString)(void * self, const char * string, size_t length); \
 	\
 	/* Returns the closest character index to emWidth, as measured from the beginning of string (of length UTF-8 bytes). */ \
 	/* If outLeadingEdge is non-NULL, it will be set to true if emWidth falls on the leading half of the */ \
 	/* character whose index is returned, or false if it does not. */ \
-	size_t (* indexAtWidth)(void * self, char * string, size_t length, float emWidth, bool * outLeadingEdge); \
+	size_t (* indexAtWidth)(void * self, const char * string, size_t length, float emWidth, bool * outLeadingEdge); \
 	\
 	/* Draws string (of length UTF-8 bytes) at offsetX, offsetY, offsetZ, using the current projection-modelview transform. */ \
 	/* Text is scaled according such that characters' heights are equal to emHeight. */ \
-	void (* drawString)(void * self, char * string, size_t length, float emHeight, float offsetX, float offsetY, float offsetZ);
+	void (* drawString)(void * self, const char * string, size_t length, float emHeight, float offsetX, float offsetY, float offsetZ);
 
 struct GLFont {
 	GLFont_structContents
