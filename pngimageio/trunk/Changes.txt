@@ -1,4 +1,4 @@
-1.2.0
+1.1.1
  * Updated zlib dependencies; custom-built 1.2.5 was problematic, so now using custom-built 1.2.3 only on windows, and using -lz on macosx, iphoneos, iphonesimulator, and linux
  * Synced with template_stemlib 2010-07-14
 
