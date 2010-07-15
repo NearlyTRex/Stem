@@ -135,15 +135,19 @@ float Shell_getBatteryLevel() {
 }
 
 static void displayFunc() {
+#ifdef DEBUG
 	GLenum error;
+#endif
 	
 	Target_draw();
 	glutSwapBuffers();
 	
+#ifdef DEBUG
 	error = glGetError();
 	if (error != GL_NO_ERROR) {
 		printf("GL error: %s\n", gluErrorString(error));
 	}
+#endif
 }
 
 static void reshapeFunc(int newWidth, int newHeight) {
@@ -398,11 +402,12 @@ static void mouseFunc(int button, int state, int x, int y) {
 	int buttonNum;
 	
 	buttonNum = (button == GLUT_LEFT_BUTTON ? 0 : (button == GLUT_RIGHT_BUTTON ? 1 : 2));
-	buttonMask |= 1 << buttonNum;
 	
 	if (state == GLUT_DOWN) {
+		buttonMask |= 1 << buttonNum;
 		Target_mouseDown(buttonNum, x, y);
 	} else {
+		buttonMask &= ~(1 << buttonNum);
 		Target_mouseUp(buttonNum, x, y);
 	}
 }
