@@ -179,9 +179,13 @@ STEM_LIBRARY_DEPENDENCIES_testharness_windows = glutshell/libstemshell_glut.a gl
 STEM_LIBRARY_DEPENDENCIES_testharness_linux = glutshell/libstemshell_glut.a glgraphics/libstem_glgraphics.a
 STEM_LIBRARY_DEPENDENCIES_testharness_iphonesimulator = glgraphics/libstem_glgraphics_noglew.a eaglshell/libstemshell_eagl.a
 STEM_LIBRARY_DEPENDENCIES_testharness_iphoneos = glgraphics/libstem_glgraphics_noglew.a eaglshell/libstemshell_eagl.a
-#THIRDPARTY_LIBRARY_DEPENDENCIES_unittest_windows = glew/libglew.a
-#THIRDPARTY_LIBRARY_DEPENDENCIES_unittest_linux = glew/libglew.a
-THIRDPARTY_LIBRARY_DEPENDENCIES_testharness_macosx = zlib/libz.a
+THIRDPARTY_LIBRARY_DEPENDENCIES_library_windows = glew/libglew.a
+THIRDPARTY_LIBRARY_DEPENDENCIES_library_linux = glew/libglew.a
+THIRDPARTY_LIBRARY_DEPENDENCIES_unittest_windows = glew/libglew.a
+THIRDPARTY_LIBRARY_DEPENDENCIES_unittest_linux = glew/libglew.a
+THIRDPARTY_LIBRARY_DEPENDENCIES_convertfontunits_windows = glew/libglew.a
+THIRDPARTY_LIBRARY_DEPENDENCIES_convertfontunits_linux = glew/libglew.a
+THIRDPARTY_LIBRARY_DEPENDENCIES_testharness_macosx = 
 THIRDPARTY_LIBRARY_DEPENDENCIES_testharness_windows = glew/libglew.a zlib/libz.a
 THIRDPARTY_LIBRARY_DEPENDENCIES_testharness_linux = glew/libglew.a
 
