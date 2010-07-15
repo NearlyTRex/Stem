@@ -1,3 +1,7 @@
+1.2.0
+ * Updated zlib dependencies; custom-built 1.2.5 was problematic, so now using custom-built 1.2.3 only on windows, and using -lz on macosx, iphoneos, iphonesimulator, and linux
+ * Synced with template_stemlib 2010-07-14
+
 1.1.0
  * Updated dependencies: bitmapimage 1.1.1 -> 1.2.0, stemobject 1.0.0 -> 1.1.0, utilities 1.1.0 -> 1.3.0
  * Refreshed makefile from template_stemlib 2010-06-02
