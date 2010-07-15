@@ -23,7 +23,7 @@
 #ifndef __GL_FONT_H__
 #define __GL_FONT_H__
 
-#include "stemobject/stemobject.h"
+#include "stemobject/StemObject.h"
 #include <stdlib.h>
 
 typedef struct GLFont GLFont;
