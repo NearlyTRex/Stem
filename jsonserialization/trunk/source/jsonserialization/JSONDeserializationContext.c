@@ -505,7 +505,7 @@ float JSONDeserializationContext_readFloat(void * selfPtr, const char * key) {
 	
 	getNextNodeIndex(0)
 	_failIfNotOfType(JSON_TYPE_NUMBER, 0)
-	_failIfNumberOutOfRange(FLT_MIN, FLT_MAX)
+	_failIfNumberOutOfRange(-FLT_MAX, FLT_MAX)
 	return self->currentNode->subitems[nextNodeIndex].value.number;
 }
 
