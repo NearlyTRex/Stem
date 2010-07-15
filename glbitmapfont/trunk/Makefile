@@ -1,5 +1,5 @@
 .PHONY: all
-all: library unittest testharness test include
+all: library unittest testharness convertfontunits test include
 
 UNAME = ${shell uname}
 ifeq (${UNAME},Linux)
@@ -24,14 +24,13 @@ TARGET_PLATFORMS_linux = linux
 TARGET_PLATFORMS_windows = windows
 
 PROJECT_NAME = glbitmapfont
-IPHONE_SDK_VERSION_iphone = 4.0
-IPHONE_SDK_VERSION_ipad = 3.2
+IPHONE_BUILD_SDK_VERSION = 4.0
 IPHONE_DEPLOYMENT_TARGET_VERSION = 3.1
 CODESIGN_IDENTITY = "iPhone Developer"
 SVNROOT = http://sacredsoftware.net/svn/misc#master_source_only
 
 LIBRARY_TARGETS = library
-EXECUTABLE_TARGETS = unittest
+EXECUTABLE_TARGETS = unittest convertfontunits
 APPLICATION_TARGETS = testharness
 TARGETS = ${LIBRARY_TARGETS} ${EXECUTABLE_TARGETS} ${APPLICATION_TARGETS}
 CONFIGURATIONS = debug profile release
@@ -40,17 +39,20 @@ ANALYZERS = splint clang
 
 TARGET_NAME_library = libstem_glbitmapfont
 TARGET_NAME_unittest = glbitmapfont_unittest
+TARGET_NAME_convertfontunits = convertfontunits
 TARGET_NAME_testharness = glbitmapfont_testharness
-HUMAN_READABLE_TARGET_NAME_testharness = StemTemplate
+HUMAN_READABLE_TARGET_NAME_testharness = GLBitmapFont
 
 #Per-target configurations
 CONFIGURATIONS_library = debug profile release
 CONFIGURATIONS_unittest = debug
+CONFIGURATIONS_convertfontunits = debug profile release
 CONFIGURATIONS_testharness = debug profile release
 
 #Per-target platforms
 PLATFORMS_library = ${filter ${PLATFORMS},macosx iphonesimulator iphoneos linux windows}
 PLATFORMS_unittest = ${filter ${PLATFORMS},macosx iphonesimulator linux windows}
+PLATFORMS_convertfontunits = ${filter ${PLATFORMS},macosx linux windows}
 PLATFORMS_testharness = ${filter ${PLATFORMS},macosx iphonesimulator iphoneos linux windows}
 
 #Per-target compile/link settings
@@ -76,17 +78,17 @@ CLANG_macosx = /usr/bin/clang
 SDKROOT_macosx = /Developer/SDKs/MacOSX10.5.sdk
 ARCHS_macosx = ppc i386 x86_64
 CCFLAGS_macosx = -isysroot ${SDKROOT_macosx} -mmacosx-version-min=10.5 -DGLGRAPHICS_NO_GLEW
-LINKFLAGS_macosx = -isysroot ${SDKROOT_macosx} -mmacosx-version-min=10.5
+LINKFLAGS_macosx = -isysroot ${SDKROOT_macosx} -mmacosx-version-min=10.5 -framework OpenGL -framework GLUT -framework CoreFoundation -lz
 
 CC_iphonesimulator_i386 = /Developer/Platforms/iPhoneSimulator.platform/Developer/usr/bin/gcc-4.2 -arch i386
 AR_iphonesimulator = /Developer/Platforms/iPhoneSimulator.platform/Developer/usr/bin/ar
 RANLIB_iphonesimulator = /Developer/Platforms/iPhoneSimulator.platform/Developer/usr/bin/ranlib
 SPLINT_iphonesimulator = /usr/local/bin/splint
 CLANG_iphonesimulator = /usr/bin/clang
-SDKROOT_iphonesimulator = /Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator${IPHONE_SDK_VERSION_iphone}.sdk
+SDKROOT_iphonesimulator = /Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator${IPHONE_BUILD_SDK_VERSION}.sdk
 ARCHS_iphonesimulator = i386
-CCFLAGS_iphonesimulator = -isysroot ${SDKROOT_iphonesimulator} -mmacosx-version-min=10.5 -D__IPHONE_OS_VERSION_MIN_REQUIRED=${call iphone_sdk_version_integer,${IPHONE_DEPLOYMENT_TARGET_VERSION}}
-LINKFLAGS_iphonesimulator = -isysroot ${SDKROOT_iphonesimulator} -mmacosx-version-min=10.5
+CCFLAGS_iphonesimulator = -isysroot ${SDKROOT_iphonesimulator} -mmacosx-version-min=10.5 -D__IPHONE_OS_VERSION_MIN_REQUIRED=${call iphone_sdk_version_integer,${IPHONE_DEPLOYMENT_TARGET_VERSION}} -DBUILD_PLATFORM_IPHONE
+LINKFLAGS_iphonesimulator = -isysroot ${SDKROOT_iphonesimulator} -mmacosx-version-min=10.5 -framework Foundation -framework UIKit -framework QuartzCore -framework OpenGLES -framework CoreFoundation -lz
 
 CC_iphoneos_armv6 = /Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/gcc-4.2 -arch armv6
 CC_iphoneos_armv7 = /Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/gcc-4.2 -arch armv7
@@ -94,10 +96,10 @@ AR_iphoneos = /Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/ar
 RANLIB_iphoneos = /Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/ranlib
 SPLINT_iphoneos = /usr/local/bin/splint
 CLANG_iphoneos = /usr/bin/clang
-SDKROOT_iphoneos = /Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS${IPHONE_SDK_VERSION_iphone}.sdk
+SDKROOT_iphoneos = /Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS${IPHONE_BUILD_SDK_VERSION}.sdk
 ARCHS_iphoneos = armv6 armv7
-CCFLAGS_iphoneos = -isysroot ${SDKROOT_iphoneos} -miphoneos-version-min=${IPHONE_DEPLOYMENT_TARGET_VERSION}
-LINKFLAGS_iphoneos = -isysroot ${SDKROOT_iphoneos} -miphoneos-version-min=${IPHONE_DEPLOYMENT_TARGET_VERSION}
+CCFLAGS_iphoneos = -isysroot ${SDKROOT_iphoneos} -miphoneos-version-min=${IPHONE_DEPLOYMENT_TARGET_VERSION} -DBUILD_PLATFORM_IPHONE
+LINKFLAGS_iphoneos = -isysroot ${SDKROOT_iphoneos} -miphoneos-version-min=${IPHONE_DEPLOYMENT_TARGET_VERSION} -framework Foundation -framework UIKit -framework QuartzCore -framework OpenGLES -framework CoreFoundation -lz
 
 CC_linux_i686 = /usr/bin/gcc
 AR_linux = /usr/bin/ar
@@ -106,7 +108,7 @@ SPLINT_linux = /usr/local/bin/splint
 CLANG_linux = /usr/local/bin/clang
 ARCHS_linux = i686
 CCFLAGS_linux = 
-LINKFLAGS_linux = -lm -ldl -Wl,-E
+LINKFLAGS_linux = -lm -ldl -Wl,-E -lglut -lGL -lGLU -lz
 
 CC_windows_i686 = C:/MinGW/bin/gcc.exe
 AR_windows = C:/MinGW/bin/ar.exe
@@ -114,8 +116,8 @@ RANLIB_windows = C:/MinGW/bin/ranlib.exe
 SPLINT_windows = C:/splint-3.1.1/bin/splint.exe
 CLANG_windows = C:/llvm/bin/clang.exe
 ARCHS_windows = i686
-CCFLAGS_windows = 
-LINKFLAGS_windows = 
+CCFLAGS_windows = -DFREEGLUT_STATIC
+LINKFLAGS_windows = -lfreeglut_static -lopengl32 -lglu32 -lwinmm -lgdi32 -mwindows -mconsole
 EXECUTABLE_SUFFIX_windows = .exe
 
 #General compile/link settings
@@ -137,30 +139,49 @@ SPLINTFLAGS = -exportlocal
 #Per-target dependencies
 
 PROJECT_LIBRARY_DEPENDENCIES_unittest = library
+PROJECT_LIBRARY_DEPENDENCIES_convertfontunits = library
 PROJECT_LIBRARY_DEPENDENCIES_testharness = library
-STEM_LIBRARY_DEPENDENCIES_unittest = gltexture/libstem_gltexture.a serialization/libstem_serialization.a stemobject/libstem_stemobject.a
-STEM_LIBRARY_DEPENDENCIES_testharness = gltexture/libstem_gltexture.a serialization/libstem_serialization.a stemobject/libstem_stemobject.a
+STEM_LIBRARY_DEPENDENCIES_unittest = \
+	serialization/libstem_serialization.a \
+	stemobject/libstem_stemobject.a
+STEM_LIBRARY_DEPENDENCIES_convertfontunits = \
+	jsonserialization/libstem_jsonserialization.a \
+	jsonio/libstem_jsonio.a \
+	utilities/libstem_utilities.a \
+	serialization/libstem_serialization.a \
+	stemobject/libstem_stemobject.a \
+	stubshell/libstemshell_stub.a
+STEM_LIBRARY_DEPENDENCIES_testharness = \
+	gltexture/libstem_gltexture.a \
+	pngimageio/libstem_pngimageio.a \
+	bitmapimage/libstem_bitmapimage.a \
+	jsonserialization/libstem_jsonserialization.a \
+	jsonio/libstem_jsonio.a \
+	utilities/libstem_utilities.a \
+	serialization/libstem_serialization.a \
+	stemobject/libstem_stemobject.a
 STEM_SOURCE_DEPENDENCIES_library = glfont/libstem_glfont.a
 STEM_SOURCE_DEPENDENCIES_unittest = glfont/libstem_glfont.a
+STEM_SOURCE_DEPENDENCIES_convertfontunits = glfont/libstem_glfont.a
 STEM_SOURCE_DEPENDENCIES_testharness = glfont/libstem_glfont.a
-THIRDPARTY_LIBRARY_DEPENDENCIES_unittest = 
-THIRDPARTY_LIBRARY_DEPENDENCIES_testharness = 
+THIRDPARTY_LIBRARY_DEPENDENCIES_testharness = libpng/libpng.a
 
 #Per-target per-platform dependencies
 
-STEM_LIBRARY_DEPENDENCIES_unittest_macosx = glgraphics/libstem_glgraphics_noglew.a
-STEM_LIBRARY_DEPENDENCIES_unittest_windows = glgraphics/libstem_glgraphics.a
-STEM_LIBRARY_DEPENDENCIES_unittest_linux = glgraphics/libstem_glgraphics.a
-STEM_LIBRARY_DEPENDENCIES_unittest_iphonesimulator = glgraphics/libstem_glgraphics_noglew.a
-STEM_LIBRARY_DEPENDENCIES_unittest_iphoneos = glgraphics/libstem_glgraphics_noglew.a
-STEM_LIBRARY_DEPENDENCIES_testharness_macosx = glgraphics/libstem_glgraphics_noglew.a
-STEM_LIBRARY_DEPENDENCIES_testharness_windows = glgraphics/libstem_glgraphics.a
-STEM_LIBRARY_DEPENDENCIES_testharness_linux = glgraphics/libstem_glgraphics.a
-STEM_LIBRARY_DEPENDENCIES_testharness_iphonesimulator = glgraphics/libstem_glgraphics_noglew.a
-STEM_LIBRARY_DEPENDENCIES_testharness_iphoneos = glgraphics/libstem_glgraphics_noglew.a
-THIRDPARTY_LIBRARY_DEPENDENCIES_unittest_windows = glew/libglew.a
-THIRDPARTY_LIBRARY_DEPENDENCIES_unittest_linux = glew/libglew.a
-THIRDPARTY_LIBRARY_DEPENDENCIES_testharness_windows = glew/libglew.a
+#STEM_LIBRARY_DEPENDENCIES_unittest_macosx = glgraphics/libstem_glgraphics_noglew.a
+#STEM_LIBRARY_DEPENDENCIES_unittest_windows = glgraphics/libstem_glgraphics.a
+#STEM_LIBRARY_DEPENDENCIES_unittest_linux = glgraphics/libstem_glgraphics.a
+#STEM_LIBRARY_DEPENDENCIES_unittest_iphonesimulator = glgraphics/libstem_glgraphics_noglew.a
+#STEM_LIBRARY_DEPENDENCIES_unittest_iphoneos = glgraphics/libstem_glgraphics_noglew.a
+STEM_LIBRARY_DEPENDENCIES_testharness_macosx = glutshell/libstemshell_glut.a glgraphics/libstem_glgraphics_noglew.a
+STEM_LIBRARY_DEPENDENCIES_testharness_windows = glutshell/libstemshell_glut.a glgraphics/libstem_glgraphics.a
+STEM_LIBRARY_DEPENDENCIES_testharness_linux = glutshell/libstemshell_glut.a glgraphics/libstem_glgraphics.a
+STEM_LIBRARY_DEPENDENCIES_testharness_iphonesimulator = glgraphics/libstem_glgraphics_noglew.a eaglshell/libstemshell_eagl.a
+STEM_LIBRARY_DEPENDENCIES_testharness_iphoneos = glgraphics/libstem_glgraphics_noglew.a eaglshell/libstemshell_eagl.a
+#THIRDPARTY_LIBRARY_DEPENDENCIES_unittest_windows = glew/libglew.a
+#THIRDPARTY_LIBRARY_DEPENDENCIES_unittest_linux = glew/libglew.a
+THIRDPARTY_LIBRARY_DEPENDENCIES_testharness_macosx = zlib/libz.a
+THIRDPARTY_LIBRARY_DEPENDENCIES_testharness_windows = glew/libglew.a zlib/libz.a
 THIRDPARTY_LIBRARY_DEPENDENCIES_testharness_linux = glew/libglew.a
 
 #Per-target source file lists
@@ -178,6 +199,9 @@ SOURCES_unittest = \
 SOURCES_unittest_suites = \
 	test_source/unittest/suites/GLBitmapFontTest.c
 
+SOURCES_convertfontunits = \
+	source/convertfontunits/convertfontunits.c
+
 SOURCES_testharness = \
 	test_source/testharness/TestHarness_main.c
 
@@ -188,7 +212,10 @@ INCLUDES = \
 
 #Target resources
 
-RESOURCES_testharness = 
+RESOURCES_testharness = \
+	test_resources/test_font_texture.json \
+	test_resources/test_font_texture.png \
+	test_resources/test_font.json
 RESOURCES_unittest = 
 RESOURCES_testharness_macosx = 
 #...
@@ -475,12 +502,12 @@ PLIST_FILE_testharness_macosx = test_resources/Info_testharness_macosx.plist
 PLIST_FILE_testharness_iphonesimulator = test_resources/Info_testharness_iphone.plist
 PLIST_PLATFORM_CASED_iphonesimulator = iPhoneSimulator
 PLIST_PLATFORM_LOWER_iphonesimulator = iphonesimulator
-PLIST_SDK_NAME_iphonesimulator = iphonesimulator${IPHONE_SDK_VERSION_iphone}
+PLIST_SDK_NAME_iphonesimulator = iphonesimulator${IPHONE_BUILD_SDK_VERSION}
 
 PLIST_FILE_testharness_iphoneos = test_resources/Info_testharness_iphone.plist
 PLIST_PLATFORM_CASED_iphoneos = iPhoneOS
 PLIST_PLATFORM_LOWER_iphoneos = iphoneos
-PLIST_SDK_NAME_iphoneos = iphoneos${IPHONE_SDK_VERSION_iphone}
+PLIST_SDK_NAME_iphoneos = iphoneos${IPHONE_BUILD_SDK_VERSION}
 
 define create_app_bundle #(target, platform, executable_dir, plist_dir, resources_dir)
 	mkdir -p $3 $4 $5
@@ -686,12 +713,19 @@ clean:
 	}
 
 TARGET_SUFFIX_ipad = _ipad
+TARGET_SUFFIX_iphone4 = _iphone4
+IPHONE_SDK_VERSION_iphone = 4.0
+IPHONE_SDK_VERSION_ipad = 3.2
+IPHONE_SDK_VERSION_iphone4 = 4.0
 IPHONESIMULATOR_APPLICATIONS_DIR_iphone = ${HOME}/Library/Application Support/iPhone Simulator/${IPHONE_SDK_VERSION_iphone}/Applications
 IPHONESIMULATOR_APPLICATIONS_DIR_ipad = ${HOME}/Library/Application Support/iPhone Simulator/${IPHONE_SDK_VERSION_ipad}/Applications
+IPHONESIMULATOR_APPLICATIONS_DIR_iphone4 = ${HOME}/Library/Application Support/iPhone Simulator/${IPHONE_SDK_VERSION_iphone4}/Applications
 SIMULATE_DEVICE_iphone = iPhone
 SIMULATE_DEVICE_ipad = iPad
+SIMULATE_DEVICE_iphone4 = iPhone 4
 SIMULATE_SDKROOT_iphone = /Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator${IPHONE_SDK_VERSION_iphone}.sdk
 SIMULATE_SDKROOT_ipad = /Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator${IPHONE_SDK_VERSION_ipad}.sdk
+SIMULATE_SDKROOT_iphone4 = /Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator${IPHONE_SDK_VERSION_iphone4}.sdk
 
 define install_target_iphonesimulator_template #(target, simulate_device)
 .PHONY: install_$1_iphonesimulator${TARGET_SUFFIX_$2}
@@ -704,6 +738,7 @@ install_$1_iphonesimulator${TARGET_SUFFIX_$2}: $1
 	cp -r "build/$1/debug-iphonesimulator/${TARGET_NAME_$1}.app" "${IPHONESIMULATOR_APPLICATIONS_DIR_$2}/${TARGET_NAME_$1}"
 	defaults write com.apple.iphonesimulator SimulateDevice -string "${SIMULATE_DEVICE_$2}"
 	defaults write com.apple.iphonesimulator SimulateSDKRoot -string "${SIMULATE_SDKROOT_$2}"
+	defaults write com.apple.iphonesimulator currentSDKRoot -string "${SIMULATE_SDKROOT_$2}"
 	open "/Developer/Platforms/iPhoneSimulator.platform/Developer/Applications/iPhone Simulator.app"
 endef
 
@@ -728,6 +763,7 @@ endef
 ${foreach target,${APPLICATION_TARGETS}, \
 	${eval ${call install_target_iphonesimulator_template,${target},iphone}} \
 	${eval ${call install_target_iphonesimulator_template,${target},ipad}} \
+	${eval ${call install_target_iphonesimulator_template,${target},iphone4}} \
 	${eval ${call codesign_target_iphoneos_template,${target}}} \
 }
 
@@ -735,12 +771,14 @@ ${foreach target,${APPLICATION_TARGETS}, \
 .PHONY: full_dist
 full_dist: clean all
 	mkdir dist dist/include dist/library dist/testharness
+	cp -r build/convertfontunits/* dist/convertfontunits
 	cp -r build/include/* dist/include
 	cp -r build/library/* dist/library
 	cp -r build/testharness/* dist/testharness
 
 .PHONY: append_dist
 append_dist: all
+	cp -r build/convertfontunits/* dist/convertfontunits
 	cp -r build/library/* dist/library
 	cp -r build/testharness/* dist/testharness
 
@@ -756,6 +794,7 @@ endef
 source_dist:
 	mkdir -p build/source_dist/include
 	mkdir -p build/source_dist/lib
+	mkdir -p build/source_dist/source/convertfontunits
 	mkdir -p build/source_dist/source/glbitmapfont
 	mkdir -p build/source_dist/test_resources
 	mkdir -p build/source_dist/test_source/testharness
@@ -770,6 +809,7 @@ source_dist:
 	find build/source_dist/include -name .svn -print0 | xargs -0 rm -rf
 	find build/source_dist/lib -name .svn -print0 | xargs -0 rm -rf
 	
+	cp source/convertfontunits/* build/source_dist/source/convertfontunits
 	cp source/glbitmapfont/* build/source_dist/source/glbitmapfont
 	
 	cp test_resources/* build/source_dist/test_resources
