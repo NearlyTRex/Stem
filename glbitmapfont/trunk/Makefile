@@ -142,9 +142,11 @@ PROJECT_LIBRARY_DEPENDENCIES_unittest = library
 PROJECT_LIBRARY_DEPENDENCIES_convertfontunits = library
 PROJECT_LIBRARY_DEPENDENCIES_testharness = library
 STEM_LIBRARY_DEPENDENCIES_unittest = \
+	glfont/libstem_glfont.a \
 	serialization/libstem_serialization.a \
 	stemobject/libstem_stemobject.a
 STEM_LIBRARY_DEPENDENCIES_convertfontunits = \
+	glfont/libstem_glfont.a \
 	jsonserialization/libstem_jsonserialization.a \
 	jsonio/libstem_jsonio.a \
 	utilities/libstem_utilities.a \
@@ -152,6 +154,7 @@ STEM_LIBRARY_DEPENDENCIES_convertfontunits = \
 	stemobject/libstem_stemobject.a \
 	stubshell/libstemshell_stub.a
 STEM_LIBRARY_DEPENDENCIES_testharness = \
+	glfont/libstem_glfont.a \
 	gltexture/libstem_gltexture.a \
 	pngimageio/libstem_pngimageio.a \
 	bitmapimage/libstem_bitmapimage.a \
@@ -160,10 +163,8 @@ STEM_LIBRARY_DEPENDENCIES_testharness = \
 	utilities/libstem_utilities.a \
 	serialization/libstem_serialization.a \
 	stemobject/libstem_stemobject.a
-STEM_SOURCE_DEPENDENCIES_library = glfont/libstem_glfont.a
-STEM_SOURCE_DEPENDENCIES_unittest = glfont/libstem_glfont.a
-STEM_SOURCE_DEPENDENCIES_convertfontunits = glfont/libstem_glfont.a
-STEM_SOURCE_DEPENDENCIES_testharness = glfont/libstem_glfont.a
+STEM_SOURCE_DEPENDENCIES_unittest = 
+STEM_SOURCE_DEPENDENCIES_testharness = 
 THIRDPARTY_LIBRARY_DEPENDENCIES_testharness = libpng/libpng.a
 
 #Per-target per-platform dependencies
