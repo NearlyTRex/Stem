@@ -29,3 +29,5 @@ structure "glbitmapfont" {
 		}
 	}
 }
+
+TODO: Write about drawString side effects and constraints

@@ -162,18 +162,14 @@ STEM_LIBRARY_DEPENDENCIES_testharness = \
 	jsonio/libstem_jsonio.a \
 	utilities/libstem_utilities.a \
 	serialization/libstem_serialization.a \
-	stemobject/libstem_stemobject.a
+	stemobject/libstem_stemobject.a \
+	3dmath/libstem_3dmath.a
 STEM_SOURCE_DEPENDENCIES_unittest = 
 STEM_SOURCE_DEPENDENCIES_testharness = 
 THIRDPARTY_LIBRARY_DEPENDENCIES_testharness = libpng/libpng.a
 
 #Per-target per-platform dependencies
 
-#STEM_LIBRARY_DEPENDENCIES_unittest_macosx = glgraphics/libstem_glgraphics_noglew.a
-#STEM_LIBRARY_DEPENDENCIES_unittest_windows = glgraphics/libstem_glgraphics.a
-#STEM_LIBRARY_DEPENDENCIES_unittest_linux = glgraphics/libstem_glgraphics.a
-#STEM_LIBRARY_DEPENDENCIES_unittest_iphonesimulator = glgraphics/libstem_glgraphics_noglew.a
-#STEM_LIBRARY_DEPENDENCIES_unittest_iphoneos = glgraphics/libstem_glgraphics_noglew.a
 STEM_LIBRARY_DEPENDENCIES_testharness_macosx = glutshell/libstemshell_glut.a glgraphics/libstem_glgraphics_noglew.a
 STEM_LIBRARY_DEPENDENCIES_testharness_windows = glutshell/libstemshell_glut.a glgraphics/libstem_glgraphics.a
 STEM_LIBRARY_DEPENDENCIES_testharness_linux = glutshell/libstemshell_glut.a glgraphics/libstem_glgraphics.a
@@ -221,9 +217,12 @@ RESOURCES_testharness = \
 	test_resources/test_font_texture.json \
 	test_resources/test_font_texture.png \
 	test_resources/test_font.json
-RESOURCES_unittest = 
-RESOURCES_testharness_macosx = 
-#...
+RESOURCES_testharness_iphonesimulator = \
+	test_resources/basic.frag \
+	test_resources/basic.vert
+RESOURCES_testharness_iphoneos = \
+	test_resources/basic.frag \
+	test_resources/basic.vert
 
 #Source files excluded from static analysis
 

@@ -1,4 +1,5 @@
 #include "glbitmapfont/GLBitmapFont.h"
+#include "glgraphics/GLGraphics.h"
 #include <string.h>
 #include <stddef.h>
 
@@ -305,14 +306,30 @@ void GLBitmapFont_drawString(void * selfPtr, const char * string, size_t length,
 		}
 	}
 	
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	glVertexPointer(4, GL_FLOAT, sizeof(struct vertex_p4f_t2f), vertices[0].position);
-	glTexCoordPointer(2, GL_FLOAT, sizeof(struct vertex_p4f_t2f), vertices[0].texCoords);
+	if (GLGraphics_getOpenGLAPIVersion() == GL_API_VERSION_ES2) {
+		glEnableVertexAttribArray(0);
+		glEnableVertexAttribArray(1);
+		glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(struct vertex_p4f_t2f), vertices[0].position);
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(struct vertex_p4f_t2f), vertices[0].texCoords);
+		
+	} else {
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		glVertexPointer(4, GL_FLOAT, sizeof(struct vertex_p4f_t2f), vertices[0].position);
+		glTexCoordPointer(2, GL_FLOAT, sizeof(struct vertex_p4f_t2f), vertices[0].texCoords);
+	}
+	
 	self->texture->activate(self->texture);
 	glDrawElements(GL_TRIANGLES, indexIndex, GL_UNSIGNED_SHORT, indexes);
 	self->texture->deactivate(self->texture);
-	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	
+	if (GLGraphics_getOpenGLAPIVersion() == GL_API_VERSION_ES2) {
+		glDisableVertexAttribArray(0);
+		glDisableVertexAttribArray(1);
+	} else {
+		glDisableClientState(GL_VERTEX_ARRAY);
+		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	}
 	
 	free(vertices);
 	free(indexes);

@@ -4,7 +4,9 @@
 #include "eaglshell/EAGLShell.h"
 #include "eaglshell/EAGLTarget.h"
 #include "glutshell/GLUTTarget.h"
+#include "3dmath/Matrix.h"
 #include "glbitmapfont/GLBitmapFont.h"
+#include "glgraphics/GLGraphics.h"
 #include "glgraphics/GLIncludes.h"
 #include "gltexture/GLTexture.h"
 #include "jsonserialization/JSONDeserializationContext.h"
@@ -22,6 +24,8 @@ static bool iPhoneMode = false;
 static GLBitmapFont * font;
 static size_t lastIndexAtWidth = 0;
 static bool lastLeadingEdge = false;
+static GLint matrixUniform;
+static GLint textureUniform;
 
 void Target_init() {
 	JSONDeserializationContext * context;
@@ -61,6 +65,72 @@ void Target_init() {
 	
 	memset(freeformText, 0, FREEFORM_LENGTH_MAX + 1);
 	
+	if (GLGraphics_getOpenGLAPIVersion() == GL_API_VERSION_ES2) {
+		void * fileContents;
+		size_t fileLength;
+		GLint shaderLength;
+		GLuint vertexShader, fragmentShader;
+		GLuint shaderProgram;
+		GLint logLength;
+		
+		shaderProgram = glCreateProgram();
+		vertexShader = glCreateShader(GL_VERTEX_SHADER);
+		fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+		
+		fileContents = readFileSimple(resourcePath("basic.vert"), &fileLength);
+		shaderLength = fileLength;
+		glShaderSource(vertexShader, 1, (const GLchar **) &fileContents, &shaderLength);
+		free(fileContents);
+		
+		fileContents = readFileSimple(resourcePath("basic.frag"), &fileLength);
+		shaderLength = fileLength;
+		glShaderSource(fragmentShader, 1, (const GLchar **) &fileContents, &shaderLength);
+		free(fileContents);
+		
+		glCompileShader(vertexShader);
+		glCompileShader(fragmentShader);
+		glGetShaderiv(vertexShader, GL_INFO_LOG_LENGTH, &logLength);
+		if (logLength > 0) {
+			GLchar * log = malloc(logLength);
+			glGetShaderInfoLog(vertexShader, logLength, &logLength, log);
+			fprintf(stderr, "Vertex shader compile log:\n%s\n", log);
+			free(log);
+		}
+		glGetShaderiv(fragmentShader, GL_INFO_LOG_LENGTH, &logLength);
+		if (logLength > 0) {
+			GLchar * log = malloc(logLength);
+			glGetShaderInfoLog(fragmentShader, logLength, &logLength, log);
+			fprintf(stderr, "Fragment shader compile log:\n%s\n", log);
+			free(log);
+		}
+		glAttachShader(shaderProgram, vertexShader);
+		glAttachShader(shaderProgram, fragmentShader);
+		glBindAttribLocation(shaderProgram, 0, "vertexPositionAttrib");
+		glBindAttribLocation(shaderProgram, 1, "vertexTexCoordAttrib");
+		glBindAttribLocation(shaderProgram, 2, "vertexColorAttrib");
+		glLinkProgram(shaderProgram);
+		glGetProgramiv(shaderProgram, GL_INFO_LOG_LENGTH, &logLength);
+		if (logLength > 0) {
+			GLchar * log = malloc(logLength);
+			glGetProgramInfoLog(shaderProgram, logLength, &logLength, log);
+			fprintf(stderr, "Program link log:\n%s\n", log);
+			free(log);
+		}
+		glValidateProgram(shaderProgram);
+		glGetProgramiv(shaderProgram, GL_INFO_LOG_LENGTH, &logLength);
+		if (logLength > 0) {
+			GLchar * log = malloc(logLength);
+			glGetProgramInfoLog(shaderProgram, logLength, &logLength, log);
+			fprintf(stderr, "Program validation log:\n%s\n", log);
+			free(log);
+		}
+		matrixUniform = glGetUniformLocation(shaderProgram, "matrix");
+		textureUniform = glGetUniformLocation(shaderProgram, "texture");
+		glDeleteShader(vertexShader);
+		glDeleteShader(fragmentShader);
+		glUseProgram(shaderProgram);
+	}
+	
 	Shell_mainLoop();
 }
 
@@ -69,6 +139,8 @@ void Target_init() {
 #endif
 
 void Target_draw() {
+	Matrix projectionMatrix;
+	
 	float ratio;
 	float stringWidth;
 	char indexString[32];
@@ -76,21 +148,31 @@ void Target_draw() {
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 	
-	// TODO: ES2
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
 	ratio = (float) viewportWidth / viewportHeight;
-	glOrthof(-ratio, ratio, -1.0f, 1.0f, -1.0f, 1.0f);
-	glMatrixMode(GL_MODELVIEW);
+	projectionMatrix = Matrix_ortho(Matrix_identity(), -ratio, ratio, -1.0f, 1.0f, -1.0f, 1.0f);
 	
-	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+	if (GLGraphics_getOpenGLAPIVersion() == GL_API_VERSION_ES2) {
+		glUniformMatrix4fv(matrixUniform, 1, GL_FALSE, projectionMatrix.m);
+		glUniform1i(textureUniform, 0);
+		glVertexAttrib4f(2, 1.0f, 1.0f, 1.0f, 1.0f);
+		
+	} else {
+		glMatrixMode(GL_PROJECTION);
+		glLoadMatrixf(projectionMatrix.m);
+		glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+	}
+	
 	stringWidth = font->measureString(font, "Hello, world!", 13);
 	font->drawString(font, "Hello, world!", 13, 0.1f, stringWidth * -0.05f, 0.0f, 0.0f);
 	
 	stringWidth = font->measureString(font, freeformText, strlen(freeformText));
 	font->drawString(font, freeformText, strlen(freeformText), 0.0625f, stringWidth * -0.03125f, -0.0625f, 0.0f);
 	
-	glColor4f(0.875f, 0.875f, 0.5f, 1.0f);
+	if (GLGraphics_getOpenGLAPIVersion() == GL_API_VERSION_ES2) {
+		glVertexAttrib4f(2, 0.875f, 0.875f, 0.5f, 1.0f);
+	} else {
+		glColor4f(0.875f, 0.875f, 0.5f, 1.0f);
+	}
 	snprintf(indexString, 32, "%u, %s", (unsigned int) lastIndexAtWidth, lastLeadingEdge ? "true" : "false");
 	stringWidth = font->measureString(font, indexString, strlen(indexString));
 	font->drawString(font, indexString, strlen(indexString), 0.05f, stringWidth * -0.025f, 0.1f, 0.0f);
@@ -176,7 +258,7 @@ void GLUTTarget_configure(int argc, char ** argv, struct GLUTShellConfiguration 
 void EAGLTarget_configure(int argc, char ** argv, struct EAGLShellConfiguration * configuration) {
 	iPhoneMode = true;
 	
-	configuration->preferredOpenGLAPIVersion = EAGLShellOpenGLVersion_ES1;
+	configuration->preferredOpenGLAPIVersion = EAGLShellOpenGLVersion_ES1 | EAGLShellOpenGLVersion_ES2;
 }
 
 void EAGLTarget_openURL(const char * url) {
