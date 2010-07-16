@@ -834,6 +834,7 @@ source_dist:
 	cp test_resources/* build/source_dist/test_resources
 	
 	cp test_source/testharness/* build/source_dist/test_source/testharness
+	cp test_source/unittest/*.[ch] build/source_dist/test_source/unittest
 	cp test_source/unittest/framework/* build/source_dist/test_source/unittest/framework
 	cp test_source/unittest/suites/* build/source_dist/test_source/unittest/suites
 #master_source_only_end
