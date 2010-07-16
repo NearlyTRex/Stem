@@ -133,6 +133,9 @@ LINKFLAGS = ${FRAMEWORK_LINKFLAGS} ${LIBRARY_LINKFLAGS} ${OTHER_LINKFLAGS}
 
 #General analyzer settings
 CLANGFLAGS = 
+CLANGFLAGS_macosx = -DGLGRAPHICS_NO_GLEW
+CLANGFLAGS_iphoneos = -DGLGRAPHICS_NO_GLEW
+CLANGFLAGS_iphonesimulator = -DGLGRAPHICS_NO_GLEW
 CLANGFLAGS_windows = -I C:/MinGW/include -I C:/MinGW/lib/gcc/mingw32/4.3.2/include
 SPLINTFLAGS = -exportlocal
 
@@ -235,7 +238,11 @@ RESOURCES_testharness_iphoneos = \
 #Source files excluded from static analysis
 
 ANALYZER_EXCLUDE_SOURCES_clang = 
-ANALYZER_EXCLUDE_SOURCES_splint = ${SOURCES_unittest}
+ANALYZER_EXCLUDE_SOURCES_splint = \
+	source/convertfontunits/convertfontunits.c \
+	source/glbitmapfont/GLBitmapFont.c \
+	test_source/testharness/TestHarness_main.c \
+	${SOURCES_unittest}
 
 #Additional target build prerequisites
 
