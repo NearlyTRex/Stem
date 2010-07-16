@@ -140,7 +140,6 @@ void Target_init() {
 
 void Target_draw() {
 	Matrix projectionMatrix;
-	
 	float ratio;
 	float stringWidth;
 	char indexString[32];
