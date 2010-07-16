@@ -1,9 +1,11 @@
-2.3.0
- * Added iPhone 4 support
+2.2.1
+ * Fixed a bug that limited the numeric range of Shell_getCurrentTime() on some systems, causing it overflow and loop to 0
+ * iPhone SDK 4.0.1 fixes
 
 2.2.0
+ * Added iPhone 4 support
  * Removed iphonesimulator_ipad and iphoneos_ipad platforms; iphonesimulator and iphoneos now build unified binaries that work on both iPhone and iPad
- * Synced with template_stemlib 2010-06-10
+ * Synced with template_stemlib 2010-07-14
 
 2.1.0
  * Refreshed Makefile from template_stemlib Stable_2010-06-02
