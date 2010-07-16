@@ -789,7 +789,7 @@ ${foreach target,${APPLICATION_TARGETS}, \
 #master_source_only_begin
 .PHONY: full_dist
 full_dist: clean all
-	mkdir dist dist/include dist/library dist/testharness
+	mkdir dist dist/convertfontunits dist/include dist/library dist/testharness
 	cp -r build/convertfontunits/* dist/convertfontunits
 	cp -r build/include/* dist/include
 	cp -r build/library/* dist/library
