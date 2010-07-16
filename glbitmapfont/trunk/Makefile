@@ -116,7 +116,7 @@ RANLIB_windows = C:/MinGW/bin/ranlib.exe
 SPLINT_windows = C:/splint-3.1.1/bin/splint.exe
 CLANG_windows = C:/llvm/bin/clang.exe
 ARCHS_windows = i686
-CCFLAGS_windows = -DFREEGLUT_STATIC
+CCFLAGS_windows = -DFREEGLUT_STATIC -DGLEW_STATIC
 LINKFLAGS_windows = -lfreeglut_static -lopengl32 -lglu32 -lwinmm -lgdi32 -mwindows -mconsole
 EXECUTABLE_SUFFIX_windows = .exe
 
