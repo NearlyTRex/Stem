@@ -28,19 +28,21 @@ StemObject * StemObject_create() {
 	
 	self = malloc(sizeof(StemObject));
 	StemObject_init(self);
-	self->allocated = true;
+	self->protected_ivar(allocated) = true;
 	return self;
 }
 
-void StemObject_init(StemObject * self) {
-	self->allocated = false;
+void StemObject_init(compat_type(StemObject *) selfPtr) {
+	StemObject * self = selfPtr;
+	
+	self->protected_ivar(allocated) = false;
 	self->dispose = StemObject_dispose;
 }
 
-void StemObject_dispose(void * selfPtr) {
+void StemObject_dispose(compat_type(StemObject *) selfPtr) {
 	StemObject * self = selfPtr;
 	
-	if (self->allocated) {
+	if (self->protected_ivar(allocated)) {
 		free(self);
 	}
 }

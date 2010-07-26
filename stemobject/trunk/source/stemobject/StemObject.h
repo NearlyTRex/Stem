@@ -25,10 +25,14 @@
 
 #include <stdbool.h>
 
+#define compat_type(type) void *
+#define private_ivar(name) _private_##name
+#define protected_ivar(name) _protected_##name
+
 typedef struct StemObject StemObject;
 
 #define StemObject_structContents \
-	bool allocated; \
+	bool protected_ivar(allocated); \
 	\
 	void (* dispose)(void * self);
 
@@ -37,8 +41,8 @@ struct StemObject {
 };
 
 StemObject * StemObject_create();
-void StemObject_init(StemObject * self);
+void StemObject_init(compat_type(StemObject *) self);
 
-void StemObject_dispose(void * selfPtr);
+void StemObject_dispose(compat_type(StemObject *) selfPtr);
 
 #endif
