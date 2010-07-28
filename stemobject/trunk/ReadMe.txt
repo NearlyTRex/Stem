@@ -1,4 +1,4 @@
-StemObject serves as the base for Stem's object system. The object system is very informal and done almost entirely by convention. The conventions are enumerated here:
+StemObject serves as the base for Stem's object system. The object system is very informal and done largely by convention. The conventions are enumerated here:
 
 	* Class and instance methods follow the naming convention ClassName_methodName().
 
@@ -6,9 +6,9 @@ StemObject serves as the base for Stem's object system. The object system is ver
 
 	* All instance methods have a corresponding function pointer field in the object struct. These function pointers are set to their corresponding function implementations in <Name>_init().
 
-	* All class header should contain the following line (adjusted for class name) before any #include statements for other Stem objects: typedef struct ClassName ClassName;
+	* All class headers should contain the following line (adjusted for class name) before any #include statements for other Stem objects: typedef struct ClassName ClassName;
 
-	* Object struct contents are #defined as a ClassName_structContents macro in the class's header. Subclasses (which should #define their struct contents in the same way) include their superclass's structContents as the first thing in their own structContents.
+	* Object struct contents are #defined as ClassName_structContents in the class's header. Subclasses (which should #define their struct contents in the same way) include their superclass's structContents as the first thing in their own structContents.
 
 	* Method overriding is done by implementing a matching Subclass_method in the subclass, and setting the function pointer in the struct to point to that method in <Name>_init().
 
@@ -20,11 +20,11 @@ StemObject serves as the base for Stem's object system. The object system is ver
 
 	* All classes must contain the following methods:
 
-		* <Name>_create(): class method which allocates, initializes, and returns an object instance. This method should set the object struct's "allocated" field to true so that the pointer will be freed when StemObject_dispose() is called on it.
+		* <Name>_create(): class method which allocates, initializes, and returns an object instance. This method should set the object struct's "allocated" field to true so that the pointer will be freed when StemObject_dispose() is called on it. You can use the stemobject_create_implementation convenience macro as the body of your <Name>_create() function.
 
 		* <Name>_init(): class method which initializes the passed object's fields, including instance method function pointers
 
-		* <Name>_dispose(): instance method which frees any memory allocated by the object, and frees the object itself if and only if it was created by calling <Name>_create()
+		* <Name>_dispose(): instance method which frees any memory allocated by the object, and frees the object itself if and only if it was created by calling <Name>_create() (the latter is taken care of by StemObject_dispose(), which should be the last thing in the call chain at the end of your <Name>_dispose() function)
 
 	* Instance variable visibility is specified with the private_ivar and protected_ivar macros:
 

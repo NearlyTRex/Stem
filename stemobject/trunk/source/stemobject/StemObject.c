@@ -24,12 +24,7 @@
 #include <stdlib.h>
 
 StemObject * StemObject_create() {
-	StemObject * self;
-	
-	self = malloc(sizeof(StemObject));
-	StemObject_init(self);
-	self->protected_ivar(allocated) = true;
-	return self;
+	stemobject_create_implementation(StemObject)
 }
 
 void StemObject_init(compat_type(StemObject *) selfPtr) {

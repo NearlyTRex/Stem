@@ -171,7 +171,9 @@ RESOURCES_unittest_macosx =
 #Source files excluded from static analysis
 
 ANALYZER_EXCLUDE_SOURCES_clang = 
-ANALYZER_EXCLUDE_SOURCES_splint = ${SOURCES_unittest}
+ANALYZER_EXCLUDE_SOURCES_splint = \
+	source/stemobject/StemObject.c \
+	${SOURCES_unittest}
 
 #Additional target build prerequisites
 
