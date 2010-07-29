@@ -29,11 +29,11 @@
 #define private_ivar(name) _private_##name
 #define protected_ivar(name) _protected_##name
 
-#define stemobject_create_implementation(class_name, init_args...) \
+#define stemobject_create_implementation(class_name, init_suffix, init_args...) \
 	class_name * self; \
 	\
 	self = malloc(sizeof(class_name)); \
-	class_name##_init(self, ##init_args); \
+	class_name##_##init_suffix(self, ##init_args); \
 	self->protected_ivar(allocated) = true; \
 	return self;
 
@@ -42,14 +42,14 @@ typedef struct StemObject StemObject;
 #define StemObject_structContents \
 	bool protected_ivar(allocated); \
 	\
-	void (* dispose)(void * self);
+	void (* dispose)(compat_type(StemObject *) self);
 
 struct StemObject {
 	StemObject_structContents
 };
 
 StemObject * StemObject_create();
-void StemObject_init(compat_type(StemObject *) self);
+void StemObject_init(compat_type(StemObject *) selfPtr);
 
 void StemObject_dispose(compat_type(StemObject *) selfPtr);
 

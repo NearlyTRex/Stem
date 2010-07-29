@@ -24,7 +24,7 @@
 #include <stdlib.h>
 
 StemObject * StemObject_create() {
-	stemobject_create_implementation(StemObject)
+	stemobject_create_implementation(StemObject, init)
 }
 
 void StemObject_init(compat_type(StemObject *) selfPtr) {

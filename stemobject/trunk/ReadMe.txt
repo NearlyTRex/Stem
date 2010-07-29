@@ -20,9 +20,11 @@ StemObject serves as the base for Stem's object system. The object system is ver
 
 	* All classes must contain the following methods:
 
-		* <Name>_create(): class method which allocates, initializes, and returns an object instance. This method should set the object struct's "allocated" field to true so that the pointer will be freed when StemObject_dispose() is called on it. You can use the stemobject_create_implementation convenience macro as the body of your <Name>_create() function.
+		* <Name>_create(): class method which allocates, initializes, and returns an object instance. This method should set the object struct's "allocated" field to true so that the pointer will be freed when StemObject_dispose() is called on it. You can use the stemobject_create_implementation convenience macro as the body of your <Name>_create() function. Multiple create functions that take different parameters are valid; they should all start with <Name>_create and should all have a corresponding function starting with <Name>_init.
 
 		* <Name>_init(): class method which initializes the passed object's fields, including instance method function pointers
+
+			* If <Name>_create()/<Name>_init are variadic, there should be variants that take a va_list as their last parameter, named <Name>_vcreate() and <Name>_vinit().
 
 		* <Name>_dispose(): instance method which frees any memory allocated by the object, and frees the object itself if and only if it was created by calling <Name>_create() (the latter is taken care of by StemObject_dispose(), which should be the last thing in the call chain at the end of your <Name>_dispose() function)
 
