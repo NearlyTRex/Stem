@@ -116,7 +116,7 @@ SPLINT_linux = /usr/local/bin/splint
 CLANG_linux = /usr/local/bin/clang
 ARCHS_linux = i686
 CCFLAGS_linux = 
-LINKFLAGS_linux = -lm -ldl -Wl,-E -lGL
+LINKFLAGS_linux = -lm -ldl -Wl,-E -lrt -lglut -lGLU
 
 CC_windows_i686 = C:/MinGW/bin/gcc.exe
 AR_windows = C:/MinGW/bin/ar.exe
@@ -138,6 +138,16 @@ FRAMEWORK_LINKFLAGS =
 LIBRARY_LINKFLAGS = 
 OTHER_LINKFLAGS = 
 LINKFLAGS = ${FRAMEWORK_LINKFLAGS} ${LIBRARY_LINKFLAGS} ${OTHER_LINKFLAGS}
+
+LINK_ORDER = \
+	glutshell/libstemshell_glut.a \
+	eaglshell/libstemshell_eagl.a \
+	library \
+	library_noglew \
+	utilities/libstem_utilities.a \
+	3dmath/libstem_3dmath.a \
+	stemobject/libstem_stemobject.a \
+	glew/libglew.a
 
 #General analyzer settings
 CLANGFLAGS = 
@@ -180,7 +190,10 @@ SOURCES_library = \
 	source/glgraphics/GLSLShader.c \
 	source/glgraphics/GLUtilities.c
 
-SOURCES_library_noglew = ${SOURCES_library}
+SOURCES_library_noglew = \
+	source/glgraphics/Camera.c \
+	source/glgraphics/GLGraphics.c \
+	source/glgraphics/GLUtilities.c
 
 SOURCES_unittest = \
 	test_source/unittest/framework/unittest_main.c \
@@ -203,6 +216,7 @@ INCLUDES = \
 	source/glgraphics/Camera.h \
 	source/glgraphics/GLGraphics.h \
 	source/glgraphics/GLIncludes.h \
+	source/glgraphics/GLSLShader.h \
 	source/glgraphics/GLUtilities.h
 
 #Target resources
@@ -386,17 +400,19 @@ build/intermediate/$1-$2-$3-$4/$5: ${call arch_object_list_template,$1,$2,$3,$4}
 endef
 
 define library_dependency_template #(target, configuration, platform)
-	${foreach library,${PROJECT_LIBRARY_DEPENDENCIES_$1} ${PROJECT_LIBRARY_DEPENDENCIES_$1_$3}, \
-		build/${library}/$2-$3/${TARGET_NAME_${library}}.a \
-	} \
-	${foreach library,${STEM_LIBRARY_DEPENDENCIES_$1} ${STEM_LIBRARY_DEPENDENCIES_$1_$3}, \
-		lib/${dir ${library}}$2-$3/${notdir ${library}} \
-	} \
-	${foreach library,${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$1_$3}, \
-		dep/${dir ${library}}build/library/$2-$3/${notdir ${library}} \
-	} \
-	${foreach library,${THIRDPARTY_LIBRARY_DEPENDENCIES_$1} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1_$3}, \
-		lib/${dir ${library}}$3/${notdir ${library}} \
+	${foreach link_library,${LINK_ORDER}, \
+		${foreach library,${filter ${link_library},${PROJECT_LIBRARY_DEPENDENCIES_$1} ${PROJECT_LIBRARY_DEPENDENCIES_$1_$3}}, \
+			build/${library}/$2-$3/${TARGET_NAME_${library}}.a \
+		} \
+		${foreach library,${filter ${link_library},${STEM_LIBRARY_DEPENDENCIES_$1} ${STEM_LIBRARY_DEPENDENCIES_$1_$3}}, \
+			lib/${dir ${library}}$2-$3/${notdir ${library}} \
+		} \
+		${foreach library,${filter ${link_library},${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$1_$3}}, \
+			dep/${dir ${library}}build/library/$2-$3/${notdir ${library}} \
+		} \
+		${foreach library,${filter ${link_library},${THIRDPARTY_LIBRARY_DEPENDENCIES_$1} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1_$3}}, \
+			lib/${dir ${library}}$3/${notdir ${library}} \
+		} \
 	}
 endef
 

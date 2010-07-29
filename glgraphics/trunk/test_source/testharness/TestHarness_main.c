@@ -4,6 +4,7 @@
 #include "glgraphics/GLSLShader.h"
 #include "utilities/IOUtilities.h"
 #include <stddef.h>
+#include <stdio.h>
 
 #if TARGET_OPENGL_ES
 #include "eaglshell/EAGLShell.h"
@@ -29,6 +30,16 @@ void Target_init() {
 		{{1.0f, -1.0f}, {0.0f, 0.0f, 1.0f, 1.0f}}
 	};
 	GLshort indexes[3] = {0, 1, 2};
+	
+#ifndef GLGRAPHICS_NO_GLEW
+	if (!GLEW_ARB_shader_objects ||
+	    !GLEW_ARB_vertex_shader ||
+	    !GLEW_ARB_fragment_shader ||
+	    !GLEW_ARB_shading_language_100) {
+		fprintf(stderr, "GLSL is not supported on this system. Test harness cannot run.\n");
+		exit(EXIT_FAILURE);
+	}
+#endif
 	
 	vshaderSource = readFileSimple(resourcePath("shader1.vert"), &vshaderLength);
 	fshaderSource = readFileSimple(resourcePath("shader1.frag"), &fshaderLength);
