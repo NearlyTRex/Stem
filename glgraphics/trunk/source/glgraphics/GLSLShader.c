@@ -74,7 +74,9 @@ void GLSLShader_vinit(compat_type(GLSLShader *) selfPtr, const char * vshaderSou
 	if (logLength > 0) {
 		GLchar * log = malloc(logLength);
 		glGetShaderInfoLog(vertexShader, logLength, &logLength, log);
-		fprintf(stderr, "Vertex shader compile log:\n%s\n", log);
+		if (logLength > 0) { // Surprisingly enough, this is not always true! In the glgraphics test harness, Windows gives me 1 the first time, and 0 the second...
+			fprintf(stderr, "Vertex shader compile log:\n%s\n", log);
+		}
 		free(log);
 	}
 #endif
@@ -87,7 +89,9 @@ void GLSLShader_vinit(compat_type(GLSLShader *) selfPtr, const char * vshaderSou
 	if (logLength > 0) {
 		GLchar * log = malloc(logLength);
 		glGetShaderInfoLog(fragmentShader, logLength, &logLength, log);
-		fprintf(stderr, "Fragment shader compile log:\n%s\n", log);
+		if (logLength > 0) {
+			fprintf(stderr, "Fragment shader compile log:\n%s\n", log);
+		}
 		free(log);
 	}
 #endif
@@ -106,7 +110,9 @@ void GLSLShader_vinit(compat_type(GLSLShader *) selfPtr, const char * vshaderSou
 	if (logLength > 0) {
 		GLchar * log = malloc(logLength);
 		glGetProgramInfoLog(self->program, logLength, &logLength, log);
-		fprintf(stderr, "Program link log:\n%s\n", log);
+		if (logLength > 0) {
+			fprintf(stderr, "Program link log:\n%s\n", log);
+		}
 		free(log);
 	}
 	
@@ -115,7 +121,9 @@ void GLSLShader_vinit(compat_type(GLSLShader *) selfPtr, const char * vshaderSou
 	if (logLength > 0) {
 		GLchar * log = malloc(logLength);
 		glGetProgramInfoLog(self->program, logLength, &logLength, log);
-		fprintf(stderr, "Program validation log:\n%s\n", log);
+		if (logLength > 0) {
+			fprintf(stderr, "Program validation log:\n%s\n", log);
+		}
 		free(log);
 	}
 #endif
