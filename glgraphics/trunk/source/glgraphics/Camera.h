@@ -36,16 +36,16 @@ typedef struct Camera Camera;
 	Quaternion orientation; \
 	Vector3 position; \
 	\
-	Matrix (* getMatrix)(void * self);
+	Matrix (* getMatrix)(compat_type(Camera *) self);
 
 struct Camera {
 	Camera_structContents
 };
 
 Camera * Camera_create();
-void Camera_init(Camera * self);
+void Camera_init(compat_type(Camera *) selfPtr);
 
-void Camera_dispose(void * selfPtr);
-Matrix Camera_getMatrix(void * selfPtr);
+void Camera_dispose(compat_type(Camera *) selfPtr);
+Matrix Camera_getMatrix(compat_type(Camera *) selfPtr);
 
 #endif

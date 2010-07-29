@@ -6,4 +6,6 @@ GLGraphics provides some miscellaneous general-purpose OpenGL utility code. Incl
 
 	* GLIncludes.h is a convenience header that #includes the appropriate OpenGL headers for the target platform.
 
+	* GLSLShader provides simplified vertex and fragment shader setup.
+
 	* GLUtilities provides OpenGL utility functions for translating between string representations and GLenum representations of OpenGL constants.
