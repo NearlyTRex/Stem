@@ -33,19 +33,19 @@ typedef struct State State;
 	\
 	StateController * stateController; \
 	\
-	void (* activate)(void * self); \
-	void (* deactivate)(void * self); \
-	void (* draw)(void * self);
+	void (* activate)(compat_type(State *) self); \
+	void (* deactivate)(compat_type(State *) self); \
+	void (* draw)(compat_type(State *) self);
 
 struct State {
 	State_structContents
 };
 
-void State_init(State * self);
-void State_dispose(void * selfPtr);
+void State_init(compat_type(State *) selfPtr);
+void State_dispose(compat_type(State *) selfPtr);
 
-void State_activate(void * selfPtr);
-void State_deactivate(void * selfPtr);
-void State_draw(void * selfPtr);
+void State_activate(compat_type(State *) selfPtr);
+void State_deactivate(compat_type(State *) selfPtr);
+void State_draw(compat_type(State *) selfPtr);
 
 #endif

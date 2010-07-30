@@ -22,8 +22,10 @@
 
 #include "statecontroller/State.h"
 
-void State_init(State * self) {
-	StemObject_init((StemObject *) self);
+void State_init(compat_type(State *) selfPtr) {
+	State * self = selfPtr;
+	
+	StemObject_init(self);
 	self->dispose = State_dispose;
 	self->activate = State_activate;
 	self->deactivate = State_deactivate;
@@ -31,15 +33,15 @@ void State_init(State * self) {
 	self->stateController = NULL;
 }
 
-void State_dispose(void * selfPtr) {
+void State_dispose(compat_type(State *) selfPtr) {
 	StemObject_dispose(selfPtr);
 }
 
-void State_activate(void * selfPtr) {
+void State_activate(compat_type(State *) selfPtr) {
 }
 
-void State_deactivate(void * selfPtr) {
+void State_deactivate(compat_type(State *) selfPtr) {
 }
 
-void State_draw(void * selfPtr) {
+void State_draw(compat_type(State *) selfPtr) {
 }
