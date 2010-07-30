@@ -27,7 +27,6 @@ void State_init(State * self) {
 	self->dispose = State_dispose;
 	self->activate = State_activate;
 	self->deactivate = State_deactivate;
-	self->run = State_run;
 	self->draw = State_draw;
 	self->stateController = NULL;
 }
@@ -40,9 +39,6 @@ void State_activate(void * selfPtr) {
 }
 
 void State_deactivate(void * selfPtr) {
-}
-
-void State_run(void * selfPtr) {
 }
 
 void State_draw(void * selfPtr) {

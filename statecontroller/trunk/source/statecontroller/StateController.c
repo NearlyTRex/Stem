@@ -24,16 +24,13 @@
 #include <string.h>
 
 StateController * StateController_create() {
-	StateController * self;
-	
-	self = malloc(sizeof(StateController));
-	StateController_init(self);
-	self->allocated = true;
-	return self;
+	stemobject_create_implementation(StateController, init)
 }
 
-void StateController_init(StateController * self) {
-	StemObject_init((StemObject *) self);
+void StateController_init(compat_type(StateController *) selfPtr) {
+	StateController * self = selfPtr;
+	
+	StemObject_init(self);
 	self->dispose = StateController_dispose;
 	self->addState = StateController_addState;
 	self->setState = StateController_setState;
@@ -48,7 +45,7 @@ void StateController_init(StateController * self) {
 	self->transitions = NULL;
 }
 
-void StateController_dispose(void * selfPtr) {
+void StateController_dispose(compat_type(StateController *) selfPtr) {
 	StateController * self = selfPtr;
 	size_t transitionIndex;
 	
@@ -62,7 +59,7 @@ void StateController_dispose(void * selfPtr) {
 	StemObject_dispose(selfPtr);
 }
 
-void StateController_addState(void * selfPtr, State * state) {
+void StateController_addState(compat_type(StateController *) selfPtr, compat_type(State *) state) {
 	StateController * self = selfPtr;
 	size_t stateIndex;
 	
@@ -74,11 +71,11 @@ void StateController_addState(void * selfPtr, State * state) {
 	if (stateIndex == self->validStateCount) {
 		self->validStates = realloc(self->validStates, sizeof(State *) * (self->validStateCount + 1));
 		self->validStates[self->validStateCount++] = state;
-		state->stateController = self;
+		((State *) state)->stateController = self;
 	}
 }
 
-void StateController_setState(void * selfPtr, State * state) {
+void StateController_setState(compat_type(StateController *) selfPtr, compat_type(State *) state) {
 	StateController * self = selfPtr;
 	size_t stateIndex;
 	
@@ -88,13 +85,13 @@ void StateController_setState(void * selfPtr, State * state) {
 				self->currentState->deactivate(self->currentState);
 			}
 			self->currentState = state;
-			state->activate(state);
+			self->currentState->activate(self->currentState);
 			break;
 		}
 	}
 }
 
-void StateController_addTransition(void * selfPtr, State * fromState, State * toState, const char * transitionName) {
+void StateController_addTransition(compat_type(StateController *) selfPtr, compat_type(State *) fromState, compat_type(State *) toState, const char * transitionName) {
 	StateController * self = selfPtr;
 	size_t stateIndex;
 	bool fromStateValid = false, toStateValid = false;
@@ -124,7 +121,7 @@ void StateController_addTransition(void * selfPtr, State * fromState, State * to
 	}
 }
 
-void StateController_transition(void * selfPtr, const char * transitionName) {
+void StateController_transition(compat_type(StateController *) selfPtr, const char * transitionName) {
 	StateController * self = selfPtr;
 	size_t transitionIndex;
 	

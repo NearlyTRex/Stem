@@ -124,10 +124,7 @@ LIBRARY_LINKFLAGS =
 OTHER_LINKFLAGS = 
 LINKFLAGS = ${FRAMEWORK_LINKFLAGS} ${LIBRARY_LINKFLAGS} ${OTHER_LINKFLAGS}
 
-#General analyzer settings
-CLANGFLAGS = 
-CLANGFLAGS_windows = -I C:/MinGW/include -I C:/MinGW/lib/gcc/mingw32/4.3.2/include
-SPLINTFLAGS = -exportlocal
+LINK_ORDER = library utilities/libstem_utilities.a
 
 #Per-target dependencies
 
@@ -141,7 +138,7 @@ THIRDPARTY_LIBRARY_DEPENDENCIES_unittest =
 #Per-target per-platform dependencies
 
 PROJECT_LIBRARY_DEPENDENCIES_unittest_macosx = 
-STEM_LIBRARY_DEPENDENCIES_unittest_macosx = 
+STEM_LIBRARY_DEPENDENCIES_unittest_macosx = utilities/libstem_utilities.a
 STEM_SOURCE_DEPENDENCIES_unittest_macosx = 
 THIRDPARTY_LIBRARY_DEPENDENCIES_unittest_macosx = 
 #...

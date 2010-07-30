@@ -46,22 +46,22 @@ struct StateController_transition {
 	size_t transitionCount; \
 	struct StateController_transition * transitions; \
 	\
-	void (* addState)(void * self, State * state); \
-	void (* setState)(void * self, State * state); \
-	void (* addTransition)(void * self, State * fromState, State * toState, const char * transitionName); \
-	void (* transition)(void * self, const char * transitionName);
+	void (* addState)(compat_type(StateController *) self, compat_type(State *) state); \
+	void (* setState)(compat_type(StateController *) self, compat_type(State *) state); \
+	void (* addTransition)(compat_type(StateController *) self, compat_type(State *) fromState, compat_type(State *) toState, const char * transitionName); \
+	void (* transition)(compat_type(StateController *) self, const char * transitionName);
 
 struct StateController {
 	StateController_structContents
 };
 
 StateController * StateController_create();
-void StateController_init(StateController * self);
-void StateController_dispose(void * selfPtr);
+void StateController_init(compat_type(StateController *) selfPtr);
+void StateController_dispose(compat_type(StateController *) selfPtr);
 
-void StateController_addState(void * selfPtr, State * state);
-void StateController_setState(void * selfPtr, State * state);
-void StateController_addTransition(void * selfPtr, State * fromState, State * toState, const char * transitionName);
-void StateController_transition(void * selfPtr, const char * transitionName);
+void StateController_addState(compat_type(StateController *) selfPtr, compat_type(State *) state);
+void StateController_setState(compat_type(StateController *) selfPtr, compat_type(State *) state);
+void StateController_addTransition(compat_type(StateController *) selfPtr, compat_type(State *) fromState, compat_type(State *) toState, const char * transitionName);
+void StateController_transition(compat_type(StateController *) selfPtr, const char * transitionName);
 
 #endif

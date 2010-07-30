@@ -35,7 +35,6 @@ typedef struct State State;
 	\
 	void (* activate)(void * self); \
 	void (* deactivate)(void * self); \
-	void (* run)(void * self); \
 	void (* draw)(void * self);
 
 struct State {
@@ -47,7 +46,6 @@ void State_dispose(void * selfPtr);
 
 void State_activate(void * selfPtr);
 void State_deactivate(void * selfPtr);
-void State_run(void * selfPtr);
 void State_draw(void * selfPtr);
 
 #endif
