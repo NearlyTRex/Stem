@@ -23,13 +23,13 @@ TARGET_PLATFORMS_macosx = macosx iphonesimulator iphoneos
 TARGET_PLATFORMS_linux = linux
 TARGET_PLATFORMS_windows = windows
 
-PROJECT_NAME = template_stemlib
+PROJECT_NAME = preferences
 IPHONE_BUILD_SDK_VERSION = 4.0
 IPHONE_DEPLOYMENT_TARGET_VERSION = 3.1
 CODESIGN_IDENTITY = "iPhone Developer"
 SVNROOT = http://sacredsoftware.net/svn/misc#master_source_only
 
-LIBRARY_TARGETS = library
+LIBRARY_TARGETS = library library_stub
 EXECUTABLE_TARGETS = unittest
 APPLICATION_TARGETS = testharness
 TARGETS = ${LIBRARY_TARGETS} ${EXECUTABLE_TARGETS} ${APPLICATION_TARGETS}
@@ -37,18 +37,21 @@ CONFIGURATIONS = debug profile release
 PLATFORMS = ${filter ${TARGET_PLATFORMS_${HOST_PLATFORM}},macosx iphonesimulator iphoneos linux windows}
 ANALYZERS = splint clang
 
-TARGET_NAME_library = libstem_template_stemlib
-TARGET_NAME_unittest = template_stemlib_unittest
-TARGET_NAME_testharness = template_stemlib_testharness
+TARGET_NAME_library = libstem_preferences
+TARGET_NAME_library_stub = libstem_preferences_stub
+TARGET_NAME_unittest = preferences_unittest
+TARGET_NAME_testharness = preferences_testharness
 HUMAN_READABLE_TARGET_NAME_testharness = StemTemplate
 
 #Per-target configurations
 CONFIGURATIONS_library = debug profile release
+CONFIGURATIONS_library_stub = debug
 CONFIGURATIONS_unittest = debug
 CONFIGURATIONS_testharness = debug profile release
 
 #Per-target platforms
 PLATFORMS_library = ${filter ${PLATFORMS},macosx iphonesimulator iphoneos linux windows}
+PLATFORMS_library_stub = ${filter ${PLATFORMS},macosx iphonesimulator linux windows}
 PLATFORMS_unittest = ${filter ${PLATFORMS},macosx iphonesimulator linux windows}
 PLATFORMS_testharness = ${filter ${PLATFORMS},macosx iphonesimulator iphoneos linux windows}
 
@@ -128,13 +131,17 @@ LIBRARY_LINKFLAGS =
 OTHER_LINKFLAGS = 
 LINKFLAGS = ${FRAMEWORK_LINKFLAGS} ${LIBRARY_LINKFLAGS} ${OTHER_LINKFLAGS}
 
-LINK_ORDER = library
+LINK_ORDER = \
+	library \
+	library_stub \
+	stemobject/libstem_stemobject.a
 
 #Per-target dependencies
 
-PROJECT_LIBRARY_DEPENDENCIES_unittest = library
+PROJECT_LIBRARY_DEPENDENCIES_unittest = library_stub
 PROJECT_LIBRARY_DEPENDENCIES_testharness = library
-STEM_LIBRARY_DEPENDENCIES_unittest =
+STEM_LIBRARY_DEPENDENCIES_unittest = \
+	stemobject/libstem_stemobject.a
 STEM_LIBRARY_DEPENDENCIES_testharness =
 STEM_SOURCE_DEPENDENCIES_unittest = 
 STEM_SOURCE_DEPENDENCIES_testharness = 
@@ -152,7 +159,10 @@ THIRDPARTY_LIBRARY_DEPENDENCIES_unittest_macosx =
 #Per-target source file lists
 
 SOURCES_library = \
-	source/template_stemlib/HelloWorld.c
+	source/preferences/Preferences.c
+
+SOURCES_library_stub = \
+	source/preferences/Preferences.c
 
 SOURCES_unittest = \
 	test_source/unittest/framework/unittest_main.c \
@@ -160,7 +170,7 @@ SOURCES_unittest = \
 	${SOURCES_unittest_suites}
 
 SOURCES_unittest_suites = \
-	test_source/unittest/suites/HelloWorldTest.c
+	test_source/unittest/suites/PreferencesTest.c
 
 SOURCES_testharness = \
 	test_source/testharness/TestHarness_main.c
@@ -168,7 +178,7 @@ SOURCES_testharness = \
 #Include files to be distributed with library
 
 INCLUDES = \
-	source/template_stemlib/HelloWorld.h
+	source/preferences/Preferences.h
 
 #Target resources
 
@@ -749,9 +759,9 @@ endef
 
 .PHONY: source_dist
 source_dist:
-	#mkdir -p build/source_dist/include
-	#mkdir -p build/source_dist/lib
-	mkdir -p build/source_dist/source/template_stemlib
+	mkdir -p build/source_dist/include
+	mkdir -p build/source_dist/lib
+	mkdir -p build/source_dist/source/preferences
 	mkdir -p build/source_dist/test_resources
 	mkdir -p build/source_dist/test_source/testharness
 	mkdir -p build/source_dist/test_source/unittest/framework
@@ -760,12 +770,12 @@ source_dist:
 	${call filter_source_dist_file,Makefile,build/source_dist/Makefile}
 	cp Changes.txt License.txt ReadMe.txt version build/source_dist
 	
-	#cp -r include/* build/source_dist/include
-	#cp -r lib/* build/source_dist/lib
-	#find build/source_dist/include -name .svn -print0 | xargs -0 rm -rf
-	#find build/source_dist/lib -name .svn -print0 | xargs -0 rm -rf
+	cp -r include/* build/source_dist/include
+	cp -r lib/* build/source_dist/lib
+	find build/source_dist/include -name .svn -print0 | xargs -0 rm -rf
+	find build/source_dist/lib -name .svn -print0 | xargs -0 rm -rf
 	
-	cp source/template_stemlib/* build/source_dist/source/template_stemlib
+	cp source/preferences/* build/source_dist/source/preferences
 	
 	cp test_resources/* build/source_dist/test_resources
 	
