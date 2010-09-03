@@ -35,6 +35,7 @@ void Preferences_init(compat_type(Preferences *) selfPtr, const char * identifie
 	
 	self->valueCount = 0;
 	self->values = NULL;
+	self->eventDispatcher = EventDispatcher_create(self);
 	
 	self->dispose = Preferences_dispose;
 	self->addInteger = Preferences_addInteger;
@@ -80,6 +81,13 @@ void Preferences_dispose(compat_type(Preferences *) selfPtr) {
 
 void Preferences_addInteger(compat_type(Preferences *) selfPtr, const char * name, int defaultValue) {
 	Preferences * self = selfPtr;
+	size_t valueIndex;
+	
+	for (valueIndex = 0; valueIndex < self->valueCount; valueIndex++) {
+		if (!strcmp(self->values[valueIndex].name, name)) {
+			return;
+		}
+	}
 	
 	self->values = realloc(self->values, sizeof(struct Preferences_valueRecord) * (self->valueCount + 1));
 	self->values[self->valueCount].name = malloc(strlen(name) + 1);
@@ -92,6 +100,13 @@ void Preferences_addInteger(compat_type(Preferences *) selfPtr, const char * nam
 
 void Preferences_addFloat(compat_type(Preferences *) selfPtr, const char * name, float defaultValue) {
 	Preferences * self = selfPtr;
+	size_t valueIndex;
+	
+	for (valueIndex = 0; valueIndex < self->valueCount; valueIndex++) {
+		if (!strcmp(self->values[valueIndex].name, name)) {
+			return;
+		}
+	}
 	
 	self->values = realloc(self->values, sizeof(struct Preferences_valueRecord) * (self->valueCount + 1));
 	self->values[self->valueCount].name = malloc(strlen(name) + 1);
@@ -104,6 +119,13 @@ void Preferences_addFloat(compat_type(Preferences *) selfPtr, const char * name,
 
 void Preferences_addBoolean(compat_type(Preferences *) selfPtr, const char * name, bool defaultValue) {
 	Preferences * self = selfPtr;
+	size_t valueIndex;
+	
+	for (valueIndex = 0; valueIndex < self->valueCount; valueIndex++) {
+		if (!strcmp(self->values[valueIndex].name, name)) {
+			return;
+		}
+	}
 	
 	self->values = realloc(self->values, sizeof(struct Preferences_valueRecord) * (self->valueCount + 1));
 	self->values[self->valueCount].name = malloc(strlen(name) + 1);
@@ -116,6 +138,13 @@ void Preferences_addBoolean(compat_type(Preferences *) selfPtr, const char * nam
 
 void Preferences_addString(compat_type(Preferences *) selfPtr, const char * name, const char * defaultValue) {
 	Preferences * self = selfPtr;
+	size_t valueIndex;
+	
+	for (valueIndex = 0; valueIndex < self->valueCount; valueIndex++) {
+		if (!strcmp(self->values[valueIndex].name, name)) {
+			return;
+		}
+	}
 	
 	self->values = realloc(self->values, sizeof(struct Preferences_valueRecord) * (self->valueCount + 1));
 	self->values[self->valueCount].name = malloc(strlen(name) + 1);
@@ -128,8 +157,15 @@ void Preferences_addString(compat_type(Preferences *) selfPtr, const char * name
 	self->valueCount++;
 }
 
-void Preferences_addData(compat_type(Preferences *) selfPtr, const char * name, void * defaultValue, size_t defaultLength) {
+void Preferences_addData(compat_type(Preferences *) selfPtr, const char * name, const void * defaultValue, size_t defaultLength) {
 	Preferences * self = selfPtr;
+	size_t valueIndex;
+	
+	for (valueIndex = 0; valueIndex < self->valueCount; valueIndex++) {
+		if (!strcmp(self->values[valueIndex].name, name)) {
+			return;
+		}
+	}
 	
 	self->values = realloc(self->values, sizeof(struct Preferences_valueRecord) * (self->valueCount + 1));
 	self->values[self->valueCount].name = malloc(strlen(name) + 1);
@@ -149,7 +185,7 @@ int Preferences_getInteger(compat_type(Preferences *) selfPtr, const char * name
 	size_t valueIndex;
 	
 	for (valueIndex = 0; valueIndex < self->valueCount; valueIndex++) {
-		if (!strcmp(self->values[valueIndex].name, name)) {
+		if (self->values[valueIndex].type == PREFERENCES_TYPE_INTEGER && !strcmp(self->values[valueIndex].name, name)) {
 			return self->values[valueIndex].value.integer;
 		}
 	}
@@ -161,7 +197,7 @@ float Preferences_getFloat(compat_type(Preferences *) selfPtr, const char * name
 	size_t valueIndex;
 	
 	for (valueIndex = 0; valueIndex < self->valueCount; valueIndex++) {
-		if (!strcmp(self->values[valueIndex].name, name)) {
+		if (self->values[valueIndex].type == PREFERENCES_TYPE_FLOAT && !strcmp(self->values[valueIndex].name, name)) {
 			return self->values[valueIndex].value.number;
 		}
 	}
@@ -173,7 +209,7 @@ bool Preferences_getBoolean(compat_type(Preferences *) selfPtr, const char * nam
 	size_t valueIndex;
 	
 	for (valueIndex = 0; valueIndex < self->valueCount; valueIndex++) {
-		if (!strcmp(self->values[valueIndex].name, name)) {
+		if (self->values[valueIndex].type == PREFERENCES_TYPE_BOOLEAN && !strcmp(self->values[valueIndex].name, name)) {
 			return self->values[valueIndex].value.boolean;
 		}
 	}
@@ -185,7 +221,7 @@ const char * Preferences_getString(compat_type(Preferences *) selfPtr, const cha
 	size_t valueIndex;
 	
 	for (valueIndex = 0; valueIndex < self->valueCount; valueIndex++) {
-		if (!strcmp(self->values[valueIndex].name, name)) {
+		if (self->values[valueIndex].type == PREFERENCES_TYPE_STRING && !strcmp(self->values[valueIndex].name, name)) {
 			return self->values[valueIndex].value.string;
 		}
 	}
@@ -197,7 +233,7 @@ void * Preferences_getData(compat_type(Preferences *) selfPtr, const char * name
 	size_t valueIndex;
 	
 	for (valueIndex = 0; valueIndex < self->valueCount; valueIndex++) {
-		if (!strcmp(self->values[valueIndex].name, name)) {
+		if (self->values[valueIndex].type == PREFERENCES_TYPE_DATA && !strcmp(self->values[valueIndex].name, name)) {
 			if (outLength != NULL) {
 				*outLength = self->values[valueIndex].value.data.length;
 			}
@@ -208,18 +244,69 @@ void * Preferences_getData(compat_type(Preferences *) selfPtr, const char * name
 }
 
 void Preferences_setInteger(compat_type(Preferences *) selfPtr, const char * name, int value) {
+	Preferences * self = selfPtr;
+	struct PreferencesEvent event;
+	
+	event.name = name;
+	event.type = PREFERENCES_TYPE_INTEGER;
+	event.value.integer = value;
+	event.previousValue.integer = self->getInteger(self, name);
+	self->eventDispatcher->dispatchEvent(self->eventDispatcher, PREFERENCES_EVENT_VALUE_CHANGED, &event);
+	
+	Preferences_setIntegerPrivate(self, name, event.value.integer);
 }
 
 void Preferences_setFloat(compat_type(Preferences *) selfPtr, const char * name, float value) {
+	Preferences * self = selfPtr;
+	struct PreferencesEvent event;
+	
+	event.name = name;
+	event.type = PREFERENCES_TYPE_FLOAT;
+	event.value.number = value;
+	event.previousValue.number = self->getFloat(self, name);
+	self->eventDispatcher->dispatchEvent(self->eventDispatcher, PREFERENCES_EVENT_VALUE_CHANGED, &event);
+	
+	Preferences_setFloatPrivate(selfPtr, name, event.value.number);
 }
 
 void Preferences_setBoolean(compat_type(Preferences *) selfPtr, const char * name, bool value) {
+	Preferences * self = selfPtr;
+	struct PreferencesEvent event;
+	
+	event.name = name;
+	event.type = PREFERENCES_TYPE_BOOLEAN;
+	event.value.boolean = value;
+	event.previousValue.boolean = self->getBoolean(self, name);
+	self->eventDispatcher->dispatchEvent(self->eventDispatcher, PREFERENCES_EVENT_VALUE_CHANGED, &event);
+	
+	Preferences_setBooleanPrivate(selfPtr, name, event.value.boolean);
 }
 
 void Preferences_setString(compat_type(Preferences *) selfPtr, const char * name, const char * value) {
+	Preferences * self = selfPtr;
+	struct PreferencesEvent event;
+	
+	event.name = name;
+	event.type = PREFERENCES_TYPE_STRING;
+	event.value.string = value;
+	event.previousValue.string = self->getString(self, name);
+	self->eventDispatcher->dispatchEvent(self->eventDispatcher, PREFERENCES_EVENT_VALUE_CHANGED, &event);
+	
+	Preferences_setStringPrivate(selfPtr, name, event.value.string);
 }
 
-void Preferences_setData(compat_type(Preferences *) selfPtr, const char * name, void * value, size_t length) {
+void Preferences_setData(compat_type(Preferences *) selfPtr, const char * name, const void * value, size_t length) {
+	Preferences * self = selfPtr;
+	struct PreferencesEvent event;
+	
+	event.name = name;
+	event.type = PREFERENCES_TYPE_DATA;
+	event.value.data.bytes = value;
+	event.value.data.length = length;
+	event.previousValue.data.bytes = self->getData(self, name, &event.previousValue.data.length);
+	self->eventDispatcher->dispatchEvent(self->eventDispatcher, PREFERENCES_EVENT_VALUE_CHANGED, &event);
+	
+	Preferences_setDataPrivate(selfPtr, name, event.value.data.bytes, event.value.data.length);
 }
 
 void Preferences_load(compat_type(Preferences *) selfPtr) {
@@ -227,6 +314,7 @@ void Preferences_load(compat_type(Preferences *) selfPtr) {
 }
 
 void Preferences_save(compat_type(Preferences *) selfPtr) {
+	Preferences_savePrivate(selfPtr);
 }
 
 void Preferences_loadDefaultValues(compat_type(Preferences *) selfPtr) {
@@ -280,7 +368,7 @@ void Preferences_setIntegerPrivate(compat_type(Preferences *) selfPtr, const cha
 	size_t valueIndex;
 	
 	for (valueIndex = 0; valueIndex < self->valueCount; valueIndex++) {
-		if (!strcmp(self->values[valueIndex].name, name)) {
+		if (self->values[valueIndex].type == PREFERENCES_TYPE_INTEGER && !strcmp(self->values[valueIndex].name, name)) {
 			self->values[valueIndex].value.integer = value;
 			break;
 		}
@@ -292,7 +380,7 @@ void Preferences_setFloatPrivate(compat_type(Preferences *) selfPtr, const char 
 	size_t valueIndex;
 	
 	for (valueIndex = 0; valueIndex < self->valueCount; valueIndex++) {
-		if (!strcmp(self->values[valueIndex].name, name)) {
+		if (self->values[valueIndex].type == PREFERENCES_TYPE_FLOAT && !strcmp(self->values[valueIndex].name, name)) {
 			self->values[valueIndex].value.number = value;
 			break;
 		}
@@ -304,7 +392,7 @@ void Preferences_setBooleanPrivate(compat_type(Preferences *) selfPtr, const cha
 	size_t valueIndex;
 	
 	for (valueIndex = 0; valueIndex < self->valueCount; valueIndex++) {
-		if (!strcmp(self->values[valueIndex].name, name)) {
+		if (self->values[valueIndex].type == PREFERENCES_TYPE_BOOLEAN && !strcmp(self->values[valueIndex].name, name)) {
 			self->values[valueIndex].value.boolean = value;
 			break;
 		}
@@ -316,7 +404,7 @@ void Preferences_setStringPrivate(compat_type(Preferences *) selfPtr, const char
 	size_t valueIndex;
 	
 	for (valueIndex = 0; valueIndex < self->valueCount; valueIndex++) {
-		if (!strcmp(self->values[valueIndex].name, name)) {
+		if (self->values[valueIndex].type == PREFERENCES_TYPE_STRING && !strcmp(self->values[valueIndex].name, name)) {
 			free(self->values[valueIndex].value.string);
 			self->values[valueIndex].value.string = malloc(strlen(value) + 1);
 			strcpy(self->values[valueIndex].value.string, value);
@@ -325,12 +413,12 @@ void Preferences_setStringPrivate(compat_type(Preferences *) selfPtr, const char
 	}
 }
 
-void Preferences_setDataPrivate(compat_type(Preferences *) selfPtr, const char * name, void * value, size_t length) {
+void Preferences_setDataPrivate(compat_type(Preferences *) selfPtr, const char * name, const void * value, size_t length) {
 	Preferences * self = selfPtr;
 	size_t valueIndex;
 	
 	for (valueIndex = 0; valueIndex < self->valueCount; valueIndex++) {
-		if (!strcmp(self->values[valueIndex].name, name)) {
+		if (self->values[valueIndex].type == PREFERENCES_TYPE_DATA && !strcmp(self->values[valueIndex].name, name)) {
 			self->values[valueIndex].value.data.length = length;
 			free(self->values[valueIndex].value.data.bytes);
 			self->values[valueIndex].value.data.bytes = malloc(length);

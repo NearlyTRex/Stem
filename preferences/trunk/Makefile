@@ -134,6 +134,7 @@ LINKFLAGS = ${FRAMEWORK_LINKFLAGS} ${LIBRARY_LINKFLAGS} ${OTHER_LINKFLAGS}
 LINK_ORDER = \
 	library \
 	library_stub \
+	utilities/libstem_utilities.a \
 	stemobject/libstem_stemobject.a
 
 #Per-target dependencies
@@ -141,7 +142,8 @@ LINK_ORDER = \
 PROJECT_LIBRARY_DEPENDENCIES_unittest = library_stub
 PROJECT_LIBRARY_DEPENDENCIES_testharness = library
 STEM_LIBRARY_DEPENDENCIES_unittest = \
-	stemobject/libstem_stemobject.a
+	stemobject/libstem_stemobject.a \
+	utilities/libstem_utilities.a
 STEM_LIBRARY_DEPENDENCIES_testharness =
 STEM_SOURCE_DEPENDENCIES_unittest = 
 STEM_SOURCE_DEPENDENCIES_testharness = 

@@ -58,10 +58,22 @@ union PreferencesValue {
 	} data;
 };
 
+union PreferencesValueConst {
+	int integer;
+	float number;
+	bool boolean;
+	const char * string;
+	struct {
+		const void * bytes;
+		size_t length;
+	} data;
+};
+
 struct PreferencesEvent {
 	const char * name;
 	enum PreferencesType type;
-	union PreferencesValue value;
+	union PreferencesValueConst value;
+	union PreferencesValueConst previousValue;
 };
 
 #include "stemobject/StemObject.h"
@@ -85,7 +97,7 @@ struct Preferences_valueRecord {
 	void (* addFloat)(compat_type(Preferences *) self, const char * name, float defaultValue); \
 	void (* addBoolean)(compat_type(Preferences *) self, const char * name, bool defaultValue); \
 	void (* addString)(compat_type(Preferences *) self, const char * name, const char * defaultValue); \
-	void (* addData)(compat_type(Preferences *) self, const char * name, void * defaultValue, size_t defaultLength); \
+	void (* addData)(compat_type(Preferences *) self, const char * name, const void * defaultValue, size_t defaultLength); \
 	\
 	int (* getInteger)(compat_type(Preferences *) self, const char * name); \
 	float (* getFloat)(compat_type(Preferences *) self, const char * name); \
@@ -97,7 +109,7 @@ struct Preferences_valueRecord {
 	void (* setFloat)(compat_type(Preferences *) self, const char * name, float value); \
 	void (* setBoolean)(compat_type(Preferences *) self, const char * name, bool value); \
 	void (* setString)(compat_type(Preferences *) self, const char * name, const char * value); \
-	void (* setData)(compat_type(Preferences *) self, const char * name, void * value, size_t length); \
+	void (* setData)(compat_type(Preferences *) self, const char * name, const void * value, size_t length); \
 	\
 	void (* load)(compat_type(Preferences *) self); \
 	void (* save)(compat_type(Preferences *) self); \
@@ -116,7 +128,7 @@ void Preferences_addInteger(compat_type(Preferences *) selfPtr, const char * nam
 void Preferences_addFloat(compat_type(Preferences *) selfPtr, const char * name, float defaultValue);
 void Preferences_addBoolean(compat_type(Preferences *) selfPtr, const char * name, bool defaultValue);
 void Preferences_addString(compat_type(Preferences *) selfPtr, const char * name, const char * defaultValue);
-void Preferences_addData(compat_type(Preferences *) selfPtr, const char * name, void * defaultValue, size_t defaultLength);
+void Preferences_addData(compat_type(Preferences *) selfPtr, const char * name, const void * defaultValue, size_t defaultLength);
 
 int Preferences_getInteger(compat_type(Preferences *) selfPtr, const char * name);
 float Preferences_getFloat(compat_type(Preferences *) selfPtr, const char * name);
@@ -128,7 +140,7 @@ void Preferences_setInteger(compat_type(Preferences *) selfPtr, const char * nam
 void Preferences_setFloat(compat_type(Preferences *) selfPtr, const char * name, float value);
 void Preferences_setBoolean(compat_type(Preferences *) selfPtr, const char * name, bool value);
 void Preferences_setString(compat_type(Preferences *) selfPtr, const char * name, const char * value);
-void Preferences_setData(compat_type(Preferences *) selfPtr, const char * name, void * value, size_t length);
+void Preferences_setData(compat_type(Preferences *) selfPtr, const char * name, const void * value, size_t length);
 
 void Preferences_load(compat_type(Preferences *) selfPtr);
 void Preferences_save(compat_type(Preferences *) selfPtr);

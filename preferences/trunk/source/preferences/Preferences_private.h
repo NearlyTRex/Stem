@@ -29,7 +29,7 @@ void Preferences_setIntegerPrivate(compat_type(Preferences *) selfPtr, const cha
 void Preferences_setFloatPrivate(compat_type(Preferences *) selfPtr, const char * name, float value);
 void Preferences_setBooleanPrivate(compat_type(Preferences *) selfPtr, const char * name, bool value);
 void Preferences_setStringPrivate(compat_type(Preferences *) selfPtr, const char * name, const char * value);
-void Preferences_setDataPrivate(compat_type(Preferences *) selfPtr, const char * name, void * value, size_t length);
+void Preferences_setDataPrivate(compat_type(Preferences *) selfPtr, const char * name, const void * value, size_t length);
 
 void Preferences_loadPrivate(compat_type(Preferences *) selfPtr);
 void Preferences_savePrivate(compat_type(Preferences *) selfPtr);
