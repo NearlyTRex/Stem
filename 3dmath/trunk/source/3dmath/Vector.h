@@ -90,6 +90,10 @@ Vector2 Vector2_interpolate(Vector2 left, Vector2 right, float value);
 Vector3 Vector3_interpolate(Vector3 left, Vector3 right, float value);
 Vector4 Vector4_interpolate(Vector4 left, Vector4 right, float value);
 
+Vector2 Vector2_reflect(Vector2 vector, Vector2 normal);
+Vector3 Vector3_reflect(Vector3 vector, Vector3 normal);
+Vector4 Vector4_reflect(Vector4 vector, Vector4 normal);
+
 float Vector2_dot(Vector2 vector1, Vector2 vector2);
 float Vector3_dot(Vector3 vector1, Vector3 vector2);
 float Vector4_dot(Vector4 vector1, Vector4 vector2);

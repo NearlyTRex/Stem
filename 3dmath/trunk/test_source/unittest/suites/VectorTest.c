@@ -253,6 +253,27 @@ static void testInterpolate() {
 	assertVector4Approximate(vector4, 1.0f, -1.5f, 1.375f, -1.25f, EPSILON);
 }
 
+static void testReflect() {
+	Vector2 vector2;
+	Vector3 vector3;
+	Vector4 vector4;
+	
+	vector2 = Vector2_reflect(Vector2_init(0.0f, 1.0f), Vector2_init(sqrt(0.5f), sqrt(0.5f)));
+	assertVector2Approximate(vector2, 1.0f, 0.0f, EPSILON);
+	vector2 = Vector2_reflect(Vector2_init(-5.0f, 1.0f), Vector2_init(-1.0f, 0.0f));
+	assertVector2Approximate(vector2, -5.0f, -1.0f, EPSILON);
+	
+	vector3 = Vector3_reflect(Vector3_init(0.0f, 1.0f, 0.0f), Vector3_init(0.0f, sqrt(0.5f), sqrt(0.5f)));
+	assertVector3Approximate(vector3, 0.0f, 0.0f, 1.0f, EPSILON);
+	vector3 = Vector3_reflect(Vector3_init(-5.0f, 1.0f, 0.0f), Vector3_init(-1.0f, 0.0f, 0.0f));
+	assertVector3Approximate(vector3, -5.0f, -1.0f, 0.0f, EPSILON);
+	
+	vector4 = Vector4_reflect(Vector4_init(0.0f, 1.0f, 0.0f, 0.0f), Vector4_init(0.0f, 0.0f, sqrt(0.5f), sqrt(0.5f)));
+	assertVector4Approximate(vector4, 0.0f, -1.0f, 0.0f, 0.0f, EPSILON);
+	vector4 = Vector4_reflect(Vector4_init(-5.0f, 1.0f, 0.0f, 0.0f), Vector4_init(-1.0f, 0.0f, 0.0f, 0.0f));
+	assertVector4Approximate(vector4, -5.0f, -1.0f, 0.0f, 0.0f, EPSILON);
+}
+
 static void testDot() {
 	float dot;
 	
@@ -294,5 +315,6 @@ TEST_SUITE(VectorTest,
            testMagnitude,
            testArithmetic,
            testInterpolate,
+           testReflect,
            testDot,
            testCross)

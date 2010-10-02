@@ -51,62 +51,6 @@ static void testInit() {
 	                quaternion.x, quaternion.y, quaternion.z, quaternion.w);
 }
 
-static void testFromVector() {
-	Quaternion quaternion;
-	Vector3 normalizedVector = {0.267261241912425f, 0.534522483824849f, 0.801783725737273f};
-	Vector3 longVector = {1.0f, 2.0f, 3.0f};
-	Vector3 shortVector = {-0.3f, -0.2f, -0.1f};
-	
-	quaternion = Quaternion_fromVector(normalizedVector);
-	TestCase_assert(fabs(quaternion.x - normalizedVector.x) < TEST_EPSILON &&
-	                fabs(quaternion.y - normalizedVector.y) < TEST_EPSILON &&
-	                fabs(quaternion.z - normalizedVector.z) < TEST_EPSILON &&
-	                fabs(quaternion.w - 0.0f) < TEST_EPSILON,
-	                "Incorrect quaternion values (expected {%f, %f, %f, %f}; got {%f, %f, %f, %f})",
-	                normalizedVector.x, normalizedVector.y, normalizedVector.z, 0.0f,
-	                quaternion.x, quaternion.y, quaternion.z, quaternion.w);
-	
-	quaternion = Quaternion_fromVector(longVector);
-	TestCase_assert(fabs(quaternion.x - longVector.x) < TEST_EPSILON &&
-	                fabs(quaternion.y - longVector.y) < TEST_EPSILON &&
-	                fabs(quaternion.z - longVector.z) < TEST_EPSILON &&
-	                fabs(quaternion.w - 0.0f) < TEST_EPSILON,
-	                "Incorrect quaternion values (expected {%f, %f, %f, %f}; got {%f, %f, %f, %f})",
-	                longVector.x, longVector.y, longVector.z, 0.0f,
-	                quaternion.x, quaternion.y, quaternion.z, quaternion.w);
-	
-	quaternion = Quaternion_fromVector(shortVector);
-	TestCase_assert(fabs(quaternion.x - shortVector.x) < TEST_EPSILON &&
-	                fabs(quaternion.y - shortVector.y) < TEST_EPSILON &&
-	                fabs(quaternion.z - shortVector.z) < TEST_EPSILON &&
-	                fabs(quaternion.w - 0.0f) < TEST_EPSILON,
-	                "Incorrect quaternion values (expected {%f, %f, %f, %f}; got {%f, %f, %f, %f})",
-	                shortVector.x, shortVector.y, shortVector.z, 0.0f,
-	                quaternion.x, quaternion.y, quaternion.z, quaternion.w);
-}
-
-static void testToVector() {
-	Quaternion quaternion1 = {0.267261241912425f, 0.534522483824849f, 0.801783725737273f, 0.0f};
-	Quaternion quaternion2 = {1.0f, 2.0f, 3.0f, 4.0f};
-	Vector3 vector;
-	
-	vector = Quaternion_toVector(quaternion1);
-	TestCase_assert(fabs(vector.x - quaternion1.x) < TEST_EPSILON &&
-	                fabs(vector.y - quaternion1.y) < TEST_EPSILON &&
-	                fabs(vector.z - quaternion1.z) < TEST_EPSILON,
-	                "Incorrect vector values (expected {%f, %f, %f}; got {%f, %f, %f})",
-	                quaternion1.x, quaternion1.y, quaternion1.z,
-	                vector.x, vector.y, vector.z);
-	
-	vector = Quaternion_toVector(quaternion2);
-	TestCase_assert(fabs(vector.x - quaternion2.x) < TEST_EPSILON &&
-	                fabs(vector.y - quaternion2.y) < TEST_EPSILON &&
-	                fabs(vector.z - quaternion2.z) < TEST_EPSILON,
-	                "Incorrect vector values (expected {%f, %f, %f}; got {%f, %f, %f})",
-	                quaternion2.x, quaternion2.y, quaternion2.z,
-	                vector.x, vector.y, vector.z);
-}
-
 static void testFromAxisAngle() {
 	Quaternion quaternion;
 	
@@ -623,8 +567,6 @@ TEST_SUITE(QuaternionTest,
            testLoadIdentity,
            testIdentity,
            testInit,
-           testFromVector,
-           testToVector,
            testFromAxisAngle,
            testToAxisAngle,
            testToMatrix,

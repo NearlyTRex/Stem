@@ -39,8 +39,6 @@ void Quaternion_loadIdentity(Quaternion * quaternion);
 Quaternion Quaternion_identity();
 Quaternion Quaternion_init(float x, float y, float z, float w);
 
-Quaternion Quaternion_fromVector(Vector3 vector);
-struct Vector3 Quaternion_toVector(Quaternion quaternion);
 Quaternion Quaternion_fromAxisAngle(Vector3 axis, float angle);
 void Quaternion_toAxisAngle(Quaternion quaternion, Vector3 * axis, float * angle);
 struct Matrix Quaternion_toMatrix(Quaternion quaternion);

@@ -219,6 +219,39 @@ Vector4 Vector4_interpolate(Vector4 left, Vector4 right, float phase) {
 	                    left.w * (1.0f - phase) + right.w * phase);
 }
 
+Vector2 Vector2_reflect(Vector2 vector, Vector2 normal) {
+	Vector2 result;
+	float dot;
+	
+	dot = Vector2_dot(vector, normal);
+	result.x = 2 * dot * normal.x - vector.x;
+	result.y = 2 * dot * normal.y - vector.y;
+	return result;
+}
+
+Vector3 Vector3_reflect(Vector3 vector, Vector3 normal) {
+	Vector3 result;
+	float dot;
+	
+	dot = Vector3_dot(vector, normal);
+	result.x = 2 * dot * normal.x - vector.x;
+	result.y = 2 * dot * normal.y - vector.y;
+	result.z = 2 * dot * normal.z - vector.z;
+	return result;
+}
+
+Vector4 Vector4_reflect(Vector4 vector, Vector4 normal) {
+	Vector4 result;
+	float dot;
+	
+	dot = Vector4_dot(vector, normal);
+	result.x = 2 * dot * normal.x - vector.x;
+	result.y = 2 * dot * normal.y - vector.y;
+	result.z = 2 * dot * normal.z - vector.z;
+	result.w = 2 * dot * normal.w - vector.w;
+	return result;
+}
+
 float Vector2_dot(Vector2 vector1, Vector2 vector2) {
 	return vector1.x * vector2.x + vector1.y * vector2.y;
 }

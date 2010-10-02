@@ -52,26 +52,6 @@ Quaternion Quaternion_init(float x, float y, float z, float w) {
 	return quaternion;
 }
 
-Quaternion Quaternion_fromVector(Vector3 vector) {
-	Quaternion quaternion;
-	
-	quaternion.x = vector.x;
-	quaternion.y = vector.y;
-	quaternion.z = vector.z;
-	quaternion.w = 0.0f;
-	return quaternion;
-}
-
-Vector3 Quaternion_toVector(Quaternion quaternion) {
-	Vector3 vector;
-	
-	vector.x = quaternion.x;
-	vector.y = quaternion.y;
-	vector.z = quaternion.z;
-	
-	return vector;
-}
-
 Quaternion Quaternion_fromAxisAngle(Vector3 axis, float angle) {
 	Quaternion quaternion;
 	float sinAngle;
@@ -149,25 +129,13 @@ Quaternion Quaternion_normalized(Quaternion quaternion) {
 }
 
 void Quaternion_multiply(Quaternion * quaternion1, Quaternion quaternion2) {
-	Vector3 vector1, vector2, cross;
-	float angle;
+	Quaternion result;
 	
-	vector1 = Quaternion_toVector(*quaternion1);
-	vector2 = Quaternion_toVector(quaternion2);
-	angle = quaternion1->w * quaternion2.w - Vector3_dot(vector1, vector2);
-	
-	cross = Vector3_cross(vector1, vector2);
-	vector1.x *= quaternion2.w;
-	vector1.y *= quaternion2.w;
-	vector1.z *= quaternion2.w;
-	vector2.x *= quaternion1->w;
-	vector2.y *= quaternion1->w;
-	vector2.z *= quaternion1->w;
-	
-	quaternion1->x = vector1.x + vector2.x + cross.x;
-	quaternion1->y = vector1.y + vector2.y + cross.y;
-	quaternion1->z = vector1.z + vector2.z + cross.z;
-	quaternion1->w = angle;
+	result.x = quaternion1->w * quaternion2.x + quaternion1->x * quaternion2.w + quaternion1->y * quaternion2.z - quaternion1->z * quaternion2.y;
+	result.y = quaternion1->w * quaternion2.y - quaternion1->x * quaternion2.z + quaternion1->y * quaternion2.w + quaternion1->z * quaternion2.x;
+	result.z = quaternion1->w * quaternion2.z + quaternion1->x * quaternion2.y - quaternion1->y * quaternion2.x + quaternion1->z * quaternion2.w;
+	result.w = quaternion1->w * quaternion2.w - quaternion1->x * quaternion2.x - quaternion1->y * quaternion2.y - quaternion1->z * quaternion2.z;
+	*quaternion1 = result;
 }
 
 Quaternion Quaternion_multiplied(Quaternion quaternion1, Quaternion quaternion2) {
@@ -238,10 +206,10 @@ Quaternion Quaternion_inverted(Quaternion quaternion) {
 Vector3 Quaternion_multiplyVector3(Quaternion quaternion, Vector3 vector) {
 	Quaternion vectorQuaternion, inverseQuaternion, result;
 	
-	vectorQuaternion = Quaternion_fromVector(vector);
+	vectorQuaternion = Quaternion_init(vector.x, vector.y, vector.z, 0.0f);
 	inverseQuaternion = Quaternion_inverted(quaternion);
 	result = Quaternion_multiplied(quaternion, Quaternion_multiplied(vectorQuaternion, inverseQuaternion));
-	return Quaternion_toVector(result);
+	return Vector3_init(result.x, result.y, result.z);
 }
 
 Vector4 Quaternion_multiplyVector4(Quaternion quaternion, Vector4 vector) {
