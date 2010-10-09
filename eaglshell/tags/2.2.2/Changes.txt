@@ -1,0 +1,34 @@
+2.2.2
+ * Updated for iPhone SDK 4.1
+
+2.2.1
+ * Fixed a bug that limited the numeric range of Shell_getCurrentTime() on some systems, causing it overflow and loop to 0
+ * iPhone SDK 4.0.1 fixes
+
+2.2.0
+ * Added iPhone 4 support
+ * Removed iphonesimulator_ipad and iphoneos_ipad platforms; iphonesimulator and iphoneos now build unified binaries that work on both iPhone and iPad
+ * Synced with template_stemlib 2010-07-14
+
+2.1.0
+ * Refreshed Makefile from template_stemlib Stable_2010-06-02
+ * Added iPad support
+ * Fixed a bug that could cause framebuffer garbage or a crash when the application status bar was toggled
+ * Retained backing now defaults to false
+
+2.0.0
+ * Updated for shell Stable_2010-05-18. Important changes to note:
+  * Target_getName() is no longer defined and will not be called.
+  * argc and argv are no longer passed to Target_init(). They are now passed via shell-specific *Target_configure() functions defined by each shell.
+ * Updated for glgraphics 0.3.0. GLGraphics_init() is now called at startup.
+ * Added EAGLTarget_openURL()
+ * exit(EXIT_FAILURE) will now be called immediately if OpenGL context initialization fails
+ * It is now possible to configure the OpenGL context and pixel format at startup, via EAGLTarget_configure()
+ * EAGLTarget_getPreferredOpenGLAPIVersion() has been removed; it is superseded by EAGLTarget_configure()
+ * Fixed a blank frame that was drawn at startup between displaying Default.png and the contents of the OpenGL framebuffer
+ * Refreshed Makefile from template_stemlib Stable_2010-05-16
+
+1.1.0
+ * EAGLShell now sets g_openGLAPIVersion appropriately
+ * Refreshed Makefile and other project files from template_stemlib Stable_2010-05-06
+ * Fixed a bug that could cause framebuffer garbage to be displayed when switching between fullscreen and non-fullscreen mode
