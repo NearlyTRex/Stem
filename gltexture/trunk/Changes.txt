@@ -1,3 +1,7 @@
+1.0.1
+ * Synced with latest template_stemlib
+ * Updated for stemobject 2.0.0
+
 1.0.0
  * Updated dependencies:
   * 3dmath 0.2.0 -> 1.0.0

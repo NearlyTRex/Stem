@@ -33,16 +33,10 @@ GLTexture * GLTexture_create(GLenum bitmapDataFormat,
                              enum GLTextureAutoBlendMode autoBlendMode,
                              bool autoMipmap,
                              bool anisotropicFilter) {
-	GLTexture * self;
-	
-	self = malloc(sizeof(GLTexture));
-	GLTexture_init(self, bitmapDataFormat, bitmapDataType, minFilter, magFilter, wrapS, wrapT, autoBlendMode, autoMipmap, anisotropicFilter);
-	self->allocated = true;
-	
-	return self;
+	stemobject_create_implementation(GLTexture, init, bitmapDataFormat, bitmapDataType, minFilter, magFilter, wrapS, wrapT, autoBlendMode, autoMipmap, anisotropicFilter)
 }
 
-void GLTexture_init(GLTexture * self,
+void GLTexture_init(compat_type(GLTexture *) selfPtr,
                     GLenum bitmapDataFormat,
                     GLenum bitmapDataType,
                     GLenum minFilter,
@@ -52,7 +46,9 @@ void GLTexture_init(GLTexture * self,
                     enum GLTextureAutoBlendMode autoBlendMode,
                     bool autoMipmap,
                     bool anisotropicFilter) {
-	StemObject_init((StemObject *) self);
+	GLTexture * self = selfPtr;
+	
+	StemObject_init(self);
 	
 	self->imageName = NULL;
 	self->imageNameAllocated = false;
@@ -74,7 +70,7 @@ void GLTexture_init(GLTexture * self,
 	self->deactivate = GLTexture_deactivate;
 }
 
-void GLTexture_dispose(void * selfPtr) {
+void GLTexture_dispose(compat_type(GLTexture *) selfPtr) {
 	GLTexture * self = selfPtr;
 	
 	if (self->imageNameAllocated) {
@@ -86,7 +82,8 @@ void GLTexture_dispose(void * selfPtr) {
 	StemObject_dispose((StemObject *) self);
 }
 
-GLTexture * GLTexture_deserialize(DeserializationContext * context) {
+GLTexture * GLTexture_deserialize(compat_type(DeserializationContext *) deserializationContext) {
+	DeserializationContext * context = deserializationContext;
 	GLTexture * self;
 	
 	self = malloc(sizeof(GLTexture));
@@ -94,12 +91,14 @@ GLTexture * GLTexture_deserialize(DeserializationContext * context) {
 		free(self);
 		return NULL;
 	}
-	self->allocated = true;
+	self->protected_ivar(allocated) = true;
 	
 	return self;
 }
 
-bool GLTexture_loadSerializedData(GLTexture * self, DeserializationContext * context) {
+bool GLTexture_loadSerializedData(compat_type(GLTexture *) selfPtr, compat_type(DeserializationContext *) deserializationContext) {
+	GLTexture * self = selfPtr;
+	DeserializationContext * context = deserializationContext;
 	const char * imageName;
 	GLenum bitmapDataFormat;
 	GLenum bitmapDataType;
@@ -135,7 +134,10 @@ bool GLTexture_loadSerializedData(GLTexture * self, DeserializationContext * con
 	return true;
 }
 
-void GLTexture_serialize(GLTexture * self, SerializationContext * context) {
+void GLTexture_serialize(compat_type(GLTexture *) selfPtr, compat_type(SerializationContext *) serializationContext) {
+	GLTexture * self = selfPtr;
+	SerializationContext * context = serializationContext;
+	
 	context->beginStructure(context, "gltexture");
 	context->writeString(context, "image_name", self->imageName);
 	context->writeEnumeration(context, "bitmap_data_format", self->bitmapDataFormat, enumKV(GL_ALPHA), enumKV(GL_LUMINANCE), enumKV(GL_LUMINANCE_ALPHA), enumKV(GL_RGB), enumKV(GL_RGBA), NULL);
@@ -150,7 +152,7 @@ void GLTexture_serialize(GLTexture * self, SerializationContext * context) {
 	context->endStructure(context);
 }
 
-void GLTexture_setImage(void * selfPtr, GLint mipmapLevel, GLsizei width, GLsizei height, unsigned int bytesPerRow, void * bitmapData) {
+void GLTexture_setImage(compat_type(GLTexture *) selfPtr, GLint mipmapLevel, GLsizei width, GLsizei height, unsigned int bytesPerRow, void * bitmapData) {
 	GLTexture * self = selfPtr;
 	
 	if (self->textureName == 0) {
@@ -213,9 +215,11 @@ void GLTexture_setImage(void * selfPtr, GLint mipmapLevel, GLsizei width, GLsize
 		}
 	}
 #endif
+
+	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void GLTexture_updateImage(void * selfPtr, GLint mipmapLevel, GLint x, GLint y, GLsizei width, GLsizei height, unsigned int bytesPerRow, void * bitmapData) {
+void GLTexture_updateImage(compat_type(GLTexture *) selfPtr, GLint mipmapLevel, GLint x, GLint y, GLsizei width, GLsizei height, unsigned int bytesPerRow, void * bitmapData) {
 	GLTexture * self = selfPtr;
 	
 	if (self->textureName != 0) {
@@ -228,10 +232,11 @@ void GLTexture_updateImage(void * selfPtr, GLint mipmapLevel, GLint x, GLint y, 
 			glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 		}
 		glTexSubImage2D(GL_TEXTURE_2D, mipmapLevel, x, y, width, height, self->bitmapDataFormat, self->bitmapDataType, bitmapData);
+		glBindTexture(GL_TEXTURE_2D, 0);
 	}
 }
 
-void GLTexture_updateTexParams(void * selfPtr) {
+void GLTexture_updateTexParams(compat_type(GLTexture *) selfPtr) {
 	GLTexture * self = selfPtr;
 	
 	if (self->textureName != 0) {
@@ -254,7 +259,7 @@ void GLTexture_updateTexParams(void * selfPtr) {
 	}
 }
 
-void GLTexture_activate(void * selfPtr) {
+void GLTexture_activate(compat_type(GLTexture *) selfPtr) {
 	GLTexture * self = selfPtr;
 	
 	switch (self->autoBlendMode) {
@@ -276,7 +281,7 @@ void GLTexture_activate(void * selfPtr) {
 	glBindTexture(GL_TEXTURE_2D, self->textureName);
 }
 
-void GLTexture_deactivate(void * selfPtr) {
+void GLTexture_deactivate(compat_type(GLTexture *) selfPtr) {
 	GLTexture * self = selfPtr;
 	
 	glBindTexture(GL_TEXTURE_2D, 0);

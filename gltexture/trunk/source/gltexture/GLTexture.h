@@ -56,11 +56,11 @@ enum GLTextureAutoBlendMode {
 	bool autoMipmap; \
 	bool anisotropicFilter; \
 	\
-	void (* setImage)(void * self, GLint mipmapLevel, GLsizei width, GLsizei height, unsigned int bytesPerRow, void * bitmapData); \
-	void (* updateImage)(void * self, GLint mipmapLevel, GLint x, GLint y, GLsizei width, GLsizei height, unsigned int bytesPerRow, void * bitmapData); \
-	void (* updateTexParams)(void * self); \
-	void (* activate)(void * self); \
-	void (* deactivate)(void * self);
+	void (* setImage)(compat_type(GLTexture *) self, GLint mipmapLevel, GLsizei width, GLsizei height, unsigned int bytesPerRow, void * bitmapData); \
+	void (* updateImage)(compat_type(GLTexture *) self, GLint mipmapLevel, GLint x, GLint y, GLsizei width, GLsizei height, unsigned int bytesPerRow, void * bitmapData); \
+	void (* updateTexParams)(compat_type(GLTexture *) self); \
+	void (* activate)(compat_type(GLTexture *) self); \
+	void (* deactivate)(compat_type(GLTexture *) self);
 
 struct GLTexture {
 	GLTexture_structContents
@@ -75,7 +75,7 @@ GLTexture * GLTexture_create(GLenum bitmapDataFormat,
                              enum GLTextureAutoBlendMode autoBlendMode,
                              bool autoMipmap,
                              bool anisotropicFilter);
-void GLTexture_init(GLTexture * self,
+void GLTexture_init(compat_type(GLTexture *) self,
                     GLenum bitmapDataFormat,
                     GLenum bitmapDataType,
                     GLenum minFilter,
@@ -85,18 +85,18 @@ void GLTexture_init(GLTexture * self,
                     enum GLTextureAutoBlendMode autoBlendMode,
                     bool autoMipmap,
                     bool anisotropicFilter);
-void GLTexture_dispose(void * selfPtr);
+void GLTexture_dispose(compat_type(GLTexture *) selfPtr);
 
-GLTexture * GLTexture_deserialize(DeserializationContext * context);
-bool GLTexture_loadSerializedData(GLTexture * self, DeserializationContext * context);
-void GLTexture_serialize(GLTexture * self, SerializationContext * context);
+GLTexture * GLTexture_deserialize(compat_type(DeserializationContext *) deserializationContext);
+bool GLTexture_loadSerializedData(compat_type(GLTexture *) selfPtr, compat_type(DeserializationContext *) deserializationContext);
+void GLTexture_serialize(compat_type(GLTexture *) selfPtr, compat_type(SerializationContext *) serializationContext);
 
-void GLTexture_setImage(void * selfPtr, GLint mipmapLevel, GLsizei width, GLsizei height, unsigned int bytesPerRow, void * bitmapData);
-void GLTexture_updateImage(void * selfPtr, GLint mipmapLevel, GLint x, GLint y, GLsizei width, GLsizei height, unsigned int bytesPerRow, void * bitmapData);
+void GLTexture_setImage(compat_type(GLTexture *) selfPtr, GLint mipmapLevel, GLsizei width, GLsizei height, unsigned int bytesPerRow, void * bitmapData);
+void GLTexture_updateImage(compat_type(GLTexture *) selfPtr, GLint mipmapLevel, GLint x, GLint y, GLsizei width, GLsizei height, unsigned int bytesPerRow, void * bitmapData);
 /* Applicable to minFilter, magFilter, wrapS, wrapT, and anisotropicFilter */
-void GLTexture_updateTexParams(void * selfPtr);
+void GLTexture_updateTexParams(compat_type(GLTexture *) selfPtr);
 
-void GLTexture_activate(void * selfPtr);
-void GLTexture_deactivate(void * selfPtr);
+void GLTexture_activate(compat_type(GLTexture *) selfPtr);
+void GLTexture_deactivate(compat_type(GLTexture *) selfPtr);
 
 #endif
