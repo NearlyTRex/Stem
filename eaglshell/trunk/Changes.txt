@@ -1,3 +1,6 @@
+2.2.2
+ * Updated for iPhone SDK 4.1
+
 2.2.1
  * Fixed a bug that limited the numeric range of Shell_getCurrentTime() on some systems, causing it overflow and loop to 0
  * iPhone SDK 4.0.1 fixes
