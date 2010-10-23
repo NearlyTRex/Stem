@@ -24,7 +24,7 @@ TARGET_PLATFORMS_linux = linux
 TARGET_PLATFORMS_windows = windows
 
 PROJECT_NAME = preferences
-IPHONE_BUILD_SDK_VERSION = 4.0
+IPHONE_BUILD_SDK_VERSION = 4.1
 IPHONE_DEPLOYMENT_TARGET_VERSION = 3.1
 CODESIGN_IDENTITY = "iPhone Developer"
 SVNROOT = http://sacredsoftware.net/svn/misc#master_source_only
@@ -693,12 +693,12 @@ clean:
 
 TARGET_SUFFIX_ipad = _ipad
 TARGET_SUFFIX_iphone4 = _iphone4
-IPHONE_SDK_VERSION_iphone = 4.0
+IPHONE_SDK_VERSION_iphone = 4.1
 IPHONE_SDK_VERSION_ipad = 3.2
-IPHONE_SDK_VERSION_iphone4 = 4.0
-IPHONESIMULATOR_APPLICATIONS_DIR_iphone = ${HOME}/Library/Application Support/iPhone Simulator/4.0.1/Applications
+IPHONE_SDK_VERSION_iphone4 = 4.1
+IPHONESIMULATOR_APPLICATIONS_DIR_iphone = ${HOME}/Library/Application Support/iPhone Simulator/4.1/Applications
 IPHONESIMULATOR_APPLICATIONS_DIR_ipad = ${HOME}/Library/Application Support/iPhone Simulator/${IPHONE_SDK_VERSION_ipad}/Applications
-IPHONESIMULATOR_APPLICATIONS_DIR_iphone4 = ${HOME}/Library/Application Support/iPhone Simulator/4.0.1/Applications
+IPHONESIMULATOR_APPLICATIONS_DIR_iphone4 = ${HOME}/Library/Application Support/iPhone Simulator/4.1/Applications
 SIMULATE_DEVICE_iphone = iPhone
 SIMULATE_DEVICE_ipad = iPad
 SIMULATE_DEVICE_iphone4 = iPhone 4
