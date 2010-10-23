@@ -24,7 +24,7 @@ TARGET_PLATFORMS_linux = linux
 TARGET_PLATFORMS_windows = windows
 
 PROJECT_NAME = statecontroller
-IPHONE_BUILD_SDK_VERSION = 4.0
+IPHONE_BUILD_SDK_VERSION = 4.1
 IPHONE_DEPLOYMENT_TARGET_VERSION = 3.1
 CODESIGN_IDENTITY = "iPhone Developer"
 SVNROOT = http://sacredsoftware.net/svn/misc#master_source_only
@@ -124,7 +124,10 @@ LIBRARY_LINKFLAGS =
 OTHER_LINKFLAGS = 
 LINKFLAGS = ${FRAMEWORK_LINKFLAGS} ${LIBRARY_LINKFLAGS} ${OTHER_LINKFLAGS}
 
-LINK_ORDER = library utilities/libstem_utilities.a
+LINK_ORDER = \
+	library \
+	utilities/libstem_utilities.a \
+	stemobject/libstem_stemobject.a
 
 #Per-target dependencies
 
@@ -170,6 +173,11 @@ RESOURCES_unittest =
 RESOURCES_unittest_macosx = 
 #...
 
+#General analyzer settings
+CLANGFLAGS = 
+CLANGFLAGS_windows = -I C:/MinGW/include -I C:/MinGW/lib/gcc/mingw32/4.3.2/include
+SPLINTFLAGS = -exportlocal
+
 #Source files excluded from static analysis
 
 ANALYZER_EXCLUDE_SOURCES_clang = 
@@ -205,7 +213,7 @@ define platform_object_list_template #(target, configuration, platform)
 endef
 
 define arch_object_list_template #(target, configuration, platform, arch)
-	${foreach source,${SOURCES_$1}, \
+	${foreach source,${SOURCES_$1} ${SOURCES_$1_$3}, \
 		build/intermediate/$1-$2-$3-$4/${notdir ${basename ${source}}}.o \
 	}
 endef
@@ -257,7 +265,7 @@ ${foreach target,${TARGETS}, \
 	${foreach configuration,${CONFIGURATIONS_${target}}, \
 		${foreach platform,${PLATFORMS_${target}}, \
 			${foreach arch,${ARCHS_${platform}}, \
-				${foreach source,${SOURCES_${target}}, \
+				${foreach source,${SOURCES_${target}} ${SOURCES_${target}_${platform}}, \
 					${eval ${call dependency_template,${target},${configuration},${platform},${arch},${source}}} \
 					${eval -include build/intermediate/${target}-${configuration}-${platform}-${arch}/${notdir ${basename ${source}}}.d} \
 				} \
@@ -279,7 +287,7 @@ ${foreach target,${TARGETS}, \
 	${foreach configuration,${CONFIGURATIONS_${target}}, \
 		${foreach platform,${PLATFORMS_${target}}, \
 			${foreach arch,${ARCHS_${platform}}, \
-				${foreach source,${SOURCES_${target}}, \
+				${foreach source,${SOURCES_${target}} ${SOURCES_${target}_${platform}}, \
 					${eval ${call compile_template,${target},${configuration},${platform},${arch},${source}}} \
 				} \
 			} \
@@ -314,17 +322,19 @@ build/intermediate/$1-$2-$3-$4/$5: ${call arch_object_list_template,$1,$2,$3,$4}
 endef
 
 define library_dependency_template #(target, configuration, platform)
-	${foreach library,${PROJECT_LIBRARY_DEPENDENCIES_$1} ${PROJECT_LIBRARY_DEPENDENCIES_$1_$3}, \
-		build/${library}/$2-$3/${TARGET_NAME_${library}}.a \
-	} \
-	${foreach library,${STEM_LIBRARY_DEPENDENCIES_$1} ${STEM_LIBRARY_DEPENDENCIES_$1_$3}, \
-		lib/${dir ${library}}$2-$3/${notdir ${library}} \
-	} \
-	${foreach library,${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$1_$3}, \
-		dep/${dir ${library}}build/library/$2-$3/${notdir ${library}} \
-	} \
-	${foreach library,${THIRDPARTY_LIBRARY_DEPENDENCIES_$1} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1_$3}, \
-		lib/${dir ${library}}$3/${notdir ${library}} \
+	${foreach link_library,${LINK_ORDER}, \
+		${foreach library,${filter ${link_library},${PROJECT_LIBRARY_DEPENDENCIES_$1} ${PROJECT_LIBRARY_DEPENDENCIES_$1_$3}}, \
+			build/${library}/$2-$3/${TARGET_NAME_${library}}.a \
+		} \
+		${foreach library,${filter ${link_library},${STEM_LIBRARY_DEPENDENCIES_$1} ${STEM_LIBRARY_DEPENDENCIES_$1_$3}}, \
+			lib/${dir ${library}}$2-$3/${notdir ${library}} \
+		} \
+		${foreach library,${filter ${link_library},${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$1_$3}}, \
+			dep/${dir ${library}}build/library/$2-$3/${notdir ${library}} \
+		} \
+		${foreach library,${filter ${link_library},${THIRDPARTY_LIBRARY_DEPENDENCIES_$1} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1_$3}}, \
+			lib/${dir ${library}}$3/${notdir ${library}} \
+		} \
 	}
 endef
 
@@ -572,11 +582,6 @@ run_unittests_iphonesimulator:
 	DYLD_ROOT_PATH=${SDKROOT_iphonesimulator} \
 	./build/unittest/debug-iphonesimulator/${TARGET_NAME_unittest} "${CURDIR}/build/unittest/debug-iphonesimulator"
 
-.PHONY: run_unittests_iphonesimulator_ipad
-run_unittests_iphonesimulator_ipad:
-	DYLD_ROOT_PATH=${SDKROOT_iphonesimulator_ipad} \
-	./build/unittest/debug-iphonesimulator_ipad/${TARGET_NAME_unittest} "${CURDIR}/build/unittest/debug-iphonesimulator_ipad"
-
 .PHONY: run_unittests_linux
 run_unittests_linux:
 	./build/unittest/debug-linux/${TARGET_NAME_unittest} "${CURDIR}/build/unittest/debug-linux"
@@ -597,12 +602,12 @@ build/analyzer-results/splint-$1-$2/${basename ${notdir $3}}.txt: $3 ${PREREQS_$
 	@cat $$@
 endef
 
-define analyzed_sources_template #(analyzer, target)
-	${sort ${filter-out ${ANALYZER_EXCLUDE_SOURCES_$1},${SOURCES_$2}}}
+define analyzed_sources_template #(analyzer, target, platform)
+	${sort ${filter-out ${ANALYZER_EXCLUDE_SOURCES_$1},${SOURCES_$2} ${SOURCES_$2_$3}}}
 endef
 
 define analyzer_output_template #(analyzer, target, platform)
-	${foreach file,${call analyzed_sources_template,$1,$2}, \
+	${foreach file,${call analyzed_sources_template,$1,$2,$3}, \
 		build/analyzer-results/$1-$2-$3/${basename ${notdir ${file}}}.txt \
 	}
 endef
@@ -622,7 +627,7 @@ ${foreach analyzer,${ANALYZERS}, \
 	${foreach target,${TARGETS}, \
 		${foreach platform,${PLATFORMS_${target}}, \
 			${eval ${call analyze_target_template,${analyzer},${target},${platform}}} \
-			${foreach file,${call analyzed_sources_template,${analyzer},${target}}, \
+			${foreach file,${call analyzed_sources_template,${analyzer},${target},${platform}}, \
 				${eval ${call analyze_file_template_${analyzer},${target},${platform},${file}}} \
 			} \
 		} \
@@ -660,12 +665,12 @@ clean:
 
 TARGET_SUFFIX_ipad = _ipad
 TARGET_SUFFIX_iphone4 = _iphone4
-IPHONE_SDK_VERSION_iphone = 4.0
+IPHONE_SDK_VERSION_iphone = 4.1
 IPHONE_SDK_VERSION_ipad = 3.2
-IPHONE_SDK_VERSION_iphone4 = 4.0
-IPHONESIMULATOR_APPLICATIONS_DIR_iphone = ${HOME}/Library/Application Support/iPhone Simulator/4.0.1/Applications
+IPHONE_SDK_VERSION_iphone4 = 4.1
+IPHONESIMULATOR_APPLICATIONS_DIR_iphone = ${HOME}/Library/Application Support/iPhone Simulator/4.1/Applications
 IPHONESIMULATOR_APPLICATIONS_DIR_ipad = ${HOME}/Library/Application Support/iPhone Simulator/${IPHONE_SDK_VERSION_ipad}/Applications
-IPHONESIMULATOR_APPLICATIONS_DIR_iphone4 = ${HOME}/Library/Application Support/iPhone Simulator/4.0.1/Applications
+IPHONESIMULATOR_APPLICATIONS_DIR_iphone4 = ${HOME}/Library/Application Support/iPhone Simulator/4.1/Applications
 SIMULATE_DEVICE_iphone = iPhone
 SIMULATE_DEVICE_ipad = iPad
 SIMULATE_DEVICE_iphone4 = iPhone 4
