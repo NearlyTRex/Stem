@@ -1,0 +1,23 @@
+1.1.0
+ * Added GLSLShader
+ * Updated Camera for stemobject 2.0.0
+ * Synced with template_stemlib Stable_2010-11-14
+
+1.0.0
+ * Refreshed makefile from template_stemlib 2010-06-02
+
+0.3.0
+ * Removed GLInfo.c/h; superseded by GLGraphics.c/h
+ * Added glew dependency
+ * Added no-glew library and unit test builds
+
+0.2.0
+ * Added GLInfo
+ * Refreshed Makefile from template_stemlib Stable_2010-05-06
+
+0.1.0
+ * Added OpenGL ES2 includes to GLIncludes.h
+ * Updated Camera to use newly-created stemobject 1.0.0
+ * Camera_apply() no longer exists; superseded by Camera_getMatrix()
+ * Refreshed Makefile and other project files from template_stemlib Stable_2010-04-06
+ * Updated 3dmath external to 0.1.0
