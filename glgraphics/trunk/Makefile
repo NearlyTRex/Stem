@@ -336,9 +336,13 @@ ${foreach thirdparty_dependency,${THIRDPARTY_LIBRARY_DEPENDENCIES_$1} ${THIRDPAR
 ${foreach source_dependency,${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$1_$2},-I dep/${dir ${source_dependency}}source}
 endef
 
+define define_ccflags_template #(target, configuration, platform, arch)
+-DSTEM_TARGET_$1 -DSTEM_CONFIGURATION_$2 -DSTEM_PLATFORM_$3 -DSTEM_ARCH_$4
+endef
+
 define dependency_template #(target, configuration, platform, arch, source_file)
 build/intermediate/$1-$2-$3-$4/${notdir ${basename $5}}.d: $5 ${PREREQS_$1} | build/intermediate/$1-$2-$3-$4
-	${CC_$3_$4} ${CCFLAGS} ${CCFLAGS_$1} ${CCFLAGS_$2} ${CCFLAGS_$3} ${call include_ccflags_template,$1,$3} -MM -o $$@.temp $5
+	${CC_$3_$4} ${CCFLAGS} ${CCFLAGS_$1} ${CCFLAGS_$2} ${CCFLAGS_$3} ${call include_ccflags_template,$1,$3} ${call define_ccflags_template,$1,$2,$3,$4} -MM -o $$@.temp $5
 	sed 's,\(${notdir ${basename $5}}\)\.o[ :]*,$${basename $$@}.o $${basename $$@}.d: ,g' < $$@.temp > $$@
 endef
 
@@ -362,7 +366,7 @@ endif
 
 define compile_template #(target, configuration, platform, arch, source_file)
 build/intermediate/$1-$2-$3-$4/${notdir ${basename $5}}.o: $5 ${PREREQS_$1} | build/intermediate/$1-$2-$3-$4
-	${CC_$3_$4} ${CCFLAGS} ${CCFLAGS_$1} ${CCFLAGS_$2} ${CCFLAGS_$3} ${call include_ccflags_template,$1,$3} -c -o $$@ $5
+	${CC_$3_$4} ${CCFLAGS} ${CCFLAGS_$1} ${CCFLAGS_$2} ${CCFLAGS_$3} ${call include_ccflags_template,$1,$3} ${call define_ccflags_template,$1,$2,$3,$4} -c -o $$@ $5
 endef
 
 #Produces object build targets for all source files in each configuration/platform/arch
@@ -658,25 +662,25 @@ ${foreach target,${APPLICATION_TARGETS}, \
 }
 
 .PHONY: test
-test: unittest unittest_noglew ${foreach platform,${sort ${PLATFORMS_unittest} ${PLATFORMS_unittest_noglew}},run_unittests_${platform}}
+test: ${foreach platform,${sort ${PLATFORMS_unittest} ${PLATFORMS_unittest_noglew}},run_unittests_${platform}}
 
 .PHONY: run_unittests_macosx
-run_unittests_macosx:
+run_unittests_macosx: unittest unittest_noglew
 	./build/unittest/debug-macosx/${TARGET_NAME_unittest} "${CURDIR}/build/unittest/debug-macosx"
 	./build/unittest_noglew/debug-macosx/${TARGET_NAME_unittest_noglew} "${CURDIR}/build/unittest_noglew/debug-macosx"
 
 .PHONY: run_unittests_iphonesimulator
-run_unittests_iphonesimulator:
+run_unittests_iphonesimulator: unittest_noglew
 	DYLD_ROOT_PATH=${SDKROOT_iphonesimulator} \
 	./build/unittest_noglew/debug-iphonesimulator/${TARGET_NAME_unittest_noglew} "${CURDIR}/build/unittest_noglew/debug-iphonesimulator"
 
 .PHONY: run_unittests_linux
-run_unittests_linux:
+run_unittests_linux: unittest unittest_noglew
 	./build/unittest/debug-linux/${TARGET_NAME_unittest} "${CURDIR}/build/unittest/debug-linux"
 	./build/unittest_noglew/debug-linux/${TARGET_NAME_unittest_noglew} "${CURDIR}/build/unittest_noglew/debug-linux"
 
 .PHONY: run_unittests_windows
-run_unittests_windows:
+run_unittests_windows: unittest unittest_noglew
 	./build/unittest/debug-windows/${TARGET_NAME_unittest}.exe "${CURDIR}/build/unittest/debug-windows"
 	./build/unittest_noglew/debug-windows/${TARGET_NAME_unittest_noglew}.exe "${CURDIR}/build/unittest_noglew/debug-windows"
 
