@@ -88,7 +88,7 @@ double Shell_getCurrentTime() {
 	if (timebaseInfo.denom == 0) {
 		mach_timebase_info(&timebaseInfo);
 	}
-	return mach_absolute_time() * timebaseInfo.numer / timebaseInfo.denom * 0.000000001;
+	return mach_absolute_time() * (double) timebaseInfo.numer / timebaseInfo.denom * 0.000000001;
 	
 #elif defined(WIN32)
 	static LARGE_INTEGER frequency;

@@ -94,4 +94,5 @@ void Target_mouseDragged(unsigned int buttonMask, float x, float y) {
 
 void Target_resized(unsigned int newWidth, unsigned int newHeight) {
 	printf("Target_resized(%d, %d)\n", newWidth, newHeight);
+	glViewport(0, 0, newWidth, newHeight);
 }

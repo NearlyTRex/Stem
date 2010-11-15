@@ -1,3 +1,7 @@
+1.2.2
+ * Fixed a bug that caused time measurements to be done with less than ideal precision
+ * Synchronized with template_stemlib Stable_2010-11-17
+
 1.2.1
  * Fixed a bug that caused Target_mouseDragged to be called instead of Target_mouseMoved for mouse movement after having released the mouse button
  * GL errors are now only printed in the debug configuration

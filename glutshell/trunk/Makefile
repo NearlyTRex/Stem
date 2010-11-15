@@ -85,6 +85,7 @@ CLANG_windows = C:/llvm/bin/clang.exe
 ARCHS_windows = i686
 CCFLAGS_windows = -DFREEGLUT_STATIC
 LINKFLAGS_windows = -lfreeglut_static -lopengl32 -lglu32 -lwinmm -lgdi32 -mwindows -mconsole
+EXECUTABLE_SUFFIX_windows = .exe
 
 #General compile/link settings
 DEFINE_CCFLAGS = -DVERSION_MAJOR=${VERSION_MAJOR}u -DVERSION_MINOR=${VERSION_MINOR}u -DVERSION_TWEAK=${VERSION_TWEAK}u
@@ -97,10 +98,10 @@ LIBRARY_LINKFLAGS =
 OTHER_LINKFLAGS = 
 LINKFLAGS = ${FRAMEWORK_LINKFLAGS} ${LIBRARY_LINKFLAGS} ${OTHER_LINKFLAGS}
 
-#General analyzer settings
-CLANGFLAGS = 
-CLANGFLAGS_windows = -I C:/MinGW/include -I C:/MinGW/lib/gcc/mingw32/4.3.2/include
-SPLINTFLAGS = -exportlocal
+LINK_ORDER = \
+	library \
+	glgraphics/libstem_glgraphics.a \
+	glew/libglew.a
 
 #Per-target dependencies
 
@@ -136,6 +137,11 @@ RESOURCES_testharness =
 RESOURCES_testharness_macosx = 
 #...
 
+#General analyzer settings
+CLANGFLAGS = 
+CLANGFLAGS_windows = -I C:/MinGW/include -I C:/MinGW/lib/gcc/mingw32/4.3.2/include
+SPLINTFLAGS = -exportlocal
+
 #Source files excluded from static analysis
 
 ANALYZER_EXCLUDE_SOURCES_clang = 
@@ -158,7 +164,7 @@ define platform_object_list_template #(target, configuration, platform)
 endef
 
 define arch_object_list_template #(target, configuration, platform, arch)
-	${foreach source,${SOURCES_$1}, \
+	${foreach source,${SOURCES_$1} ${SOURCES_$1_$3}, \
 		build/intermediate/$1-$2-$3-$4/${notdir ${basename ${source}}}.o \
 	}
 endef
@@ -198,9 +204,13 @@ ${foreach thirdparty_dependency,${THIRDPARTY_LIBRARY_DEPENDENCIES_$1} ${THIRDPAR
 ${foreach source_dependency,${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$1_$2},-I dep/${dir ${source_dependency}}source}
 endef
 
+define define_ccflags_template #(target, configuration, platform, arch)
+-DSTEM_TARGET_$1 -DSTEM_CONFIGURATION_$2 -DSTEM_PLATFORM_$3 -DSTEM_ARCH_$4
+endef
+
 define dependency_template #(target, configuration, platform, arch, source_file)
 build/intermediate/$1-$2-$3-$4/${notdir ${basename $5}}.d: $5 ${PREREQS_$1} | build/intermediate/$1-$2-$3-$4
-	${CC_$3_$4} ${CCFLAGS} ${CCFLAGS_$1} ${CCFLAGS_$2} ${CCFLAGS_$3} ${call include_ccflags_template,$1,$3} -MM -o $$@.temp $5
+	${CC_$3_$4} ${CCFLAGS} ${CCFLAGS_$1} ${CCFLAGS_$2} ${CCFLAGS_$3} ${call include_ccflags_template,$1,$3} ${call define_ccflags_template,$1,$2,$3,$4} -MM -o $$@.temp $5
 	sed 's,\(${notdir ${basename $5}}\)\.o[ :]*,$${basename $$@}.o $${basename $$@}.d: ,g' < $$@.temp > $$@
 endef
 
@@ -210,7 +220,7 @@ ${foreach target,${TARGETS}, \
 	${foreach configuration,${CONFIGURATIONS_${target}}, \
 		${foreach platform,${PLATFORMS_${target}}, \
 			${foreach arch,${ARCHS_${platform}}, \
-				${foreach source,${SOURCES_${target}}, \
+				${foreach source,${SOURCES_${target}} ${SOURCES_${target}_${platform}}, \
 					${eval ${call dependency_template,${target},${configuration},${platform},${arch},${source}}} \
 					${eval -include build/intermediate/${target}-${configuration}-${platform}-${arch}/${notdir ${basename ${source}}}.d} \
 				} \
@@ -224,7 +234,7 @@ endif
 
 define compile_template #(target, configuration, platform, arch, source_file)
 build/intermediate/$1-$2-$3-$4/${notdir ${basename $5}}.o: $5 ${PREREQS_$1} | build/intermediate/$1-$2-$3-$4
-	${CC_$3_$4} ${CCFLAGS} ${CCFLAGS_$1} ${CCFLAGS_$2} ${CCFLAGS_$3} ${call include_ccflags_template,$1,$3} -c -o $$@ $5
+	${CC_$3_$4} ${CCFLAGS} ${CCFLAGS_$1} ${CCFLAGS_$2} ${CCFLAGS_$3} ${call include_ccflags_template,$1,$3} ${call define_ccflags_template,$1,$2,$3,$4} -c -o $$@ $5
 endef
 
 #Produces object build targets for all source files in each configuration/platform/arch
@@ -232,7 +242,7 @@ ${foreach target,${TARGETS}, \
 	${foreach configuration,${CONFIGURATIONS_${target}}, \
 		${foreach platform,${PLATFORMS_${target}}, \
 			${foreach arch,${ARCHS_${platform}}, \
-				${foreach source,${SOURCES_${target}}, \
+				${foreach source,${SOURCES_${target}} ${SOURCES_${target}_${platform}}, \
 					${eval ${call compile_template,${target},${configuration},${platform},${arch},${source}}} \
 				} \
 			} \
@@ -267,17 +277,19 @@ build/intermediate/$1-$2-$3-$4/$5: ${call arch_object_list_template,$1,$2,$3,$4}
 endef
 
 define library_dependency_template #(target, configuration, platform)
-	${foreach library,${PROJECT_LIBRARY_DEPENDENCIES_$1} ${PROJECT_LIBRARY_DEPENDENCIES_$1_$3}, \
-		build/${library}/$2-$3/${TARGET_NAME_${library}}.a \
-	} \
-	${foreach library,${STEM_LIBRARY_DEPENDENCIES_$1} ${STEM_LIBRARY_DEPENDENCIES_$1_$3}, \
-		lib/${dir ${library}}$2-$3/${notdir ${library}} \
-	} \
-	${foreach library,${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$1_$3}, \
-		dep/${dir ${library}}build/library/$2-$3/${notdir ${library}} \
-	} \
-	${foreach library,${THIRDPARTY_LIBRARY_DEPENDENCIES_$1} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1_$3}, \
-		lib/${dir ${library}}$3/${notdir ${library}} \
+	${foreach link_library,${LINK_ORDER}, \
+		${foreach library,${filter ${link_library},${PROJECT_LIBRARY_DEPENDENCIES_$1} ${PROJECT_LIBRARY_DEPENDENCIES_$1_$3}}, \
+			build/${library}/$2-$3/${TARGET_NAME_${library}}.a \
+		} \
+		${foreach library,${filter ${link_library},${STEM_LIBRARY_DEPENDENCIES_$1} ${STEM_LIBRARY_DEPENDENCIES_$1_$3}}, \
+			lib/${dir ${library}}$2-$3/${notdir ${library}} \
+		} \
+		${foreach library,${filter ${link_library},${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$1_$3}}, \
+			dep/${dir ${library}}build/library/$2-$3/${notdir ${library}} \
+		} \
+		${foreach library,${filter ${link_library},${THIRDPARTY_LIBRARY_DEPENDENCIES_$1} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1_$3}}, \
+			lib/${dir ${library}}$3/${notdir ${library}} \
+		} \
 	}
 endef
 
@@ -507,12 +519,12 @@ build/analyzer-results/splint-$1-$2/${basename ${notdir $3}}.txt: $3 ${PREREQS_$
 	@cat $$@
 endef
 
-define analyzed_sources_template #(analyzer, target)
-	${sort ${filter-out ${ANALYZER_EXCLUDE_SOURCES_$1},${SOURCES_$2}}}
+define analyzed_sources_template #(analyzer, target, platform)
+	${sort ${filter-out ${ANALYZER_EXCLUDE_SOURCES_$1},${SOURCES_$2} ${SOURCES_$2_$3}}}
 endef
 
 define analyzer_output_template #(analyzer, target, platform)
-	${foreach file,${call analyzed_sources_template,$1,$2}, \
+	${foreach file,${call analyzed_sources_template,$1,$2,$3}, \
 		build/analyzer-results/$1-$2-$3/${basename ${notdir ${file}}}.txt \
 	}
 endef
@@ -532,7 +544,7 @@ ${foreach analyzer,${ANALYZERS}, \
 	${foreach target,${TARGETS}, \
 		${foreach platform,${PLATFORMS_${target}}, \
 			${eval ${call analyze_target_template,${analyzer},${target},${platform}}} \
-			${foreach file,${call analyzed_sources_template,${analyzer},${target}}, \
+			${foreach file,${call analyzed_sources_template,${analyzer},${target},${platform}}, \
 				${eval ${call analyze_file_template_${analyzer},${target},${platform},${file}}} \
 			} \
 		} \
