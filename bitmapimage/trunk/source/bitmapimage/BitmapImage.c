@@ -29,21 +29,16 @@ BitmapImage * BitmapImage_create(enum BitmapPixelFormat pixelFormat,
                                  unsigned int height,
                                  unsigned int bytesPerRow,
                                  unsigned char * pixels) {
-	BitmapImage * self;
-	
-	self = malloc(sizeof(BitmapImage));
-	BitmapImage_init(self, pixelFormat, width, height, bytesPerRow, pixels);
-	self->allocated = true;
-	
-	return self;
+	stemobject_create_implementation(BitmapImage, init, pixelFormat, width, height, bytesPerRow, pixels)
 }
 
-void BitmapImage_init(BitmapImage * self,
+void BitmapImage_init(compat_type(BitmapImage *) selfPtr,
                       enum BitmapPixelFormat pixelFormat,
                       unsigned int width,
                       unsigned int height,
                       unsigned int bytesPerRow,
                       unsigned char * pixels) {
+	BitmapImage * self = selfPtr;
 	unsigned int bytesPerPixel;
 	
 	StemObject_init((StemObject *) self);
@@ -60,7 +55,7 @@ void BitmapImage_init(BitmapImage * self,
 	self->dispose = BitmapImage_dispose;
 }
 
-void BitmapImage_dispose(void * selfPtr) {
+void BitmapImage_dispose(compat_type(BitmapImage *) selfPtr) {
 	BitmapImage * self = selfPtr;
 	
 	free(self->pixels);

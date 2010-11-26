@@ -54,12 +54,12 @@ BitmapImage * BitmapImage_create(enum BitmapPixelFormat pixelFormat,
                                  unsigned int height,
                                  unsigned int bytesPerRow,
                                  unsigned char * pixels);
-void BitmapImage_init(BitmapImage * self,
+void BitmapImage_init(compat_type(BitmapImage *) selfPtr,
                       enum BitmapPixelFormat pixelFormat,
                       unsigned int width,
                       unsigned int height,
                       unsigned int bytesPerRow,
                       unsigned char * pixels);
-void BitmapImage_dispose(void * selfPtr);
+void BitmapImage_dispose(compat_type(BitmapImage *) selfPtr);
 
 #endif
