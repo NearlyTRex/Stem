@@ -32,15 +32,13 @@ struct EventTarget {
 };
 
 EventDispatcher * EventDispatcher_create(void * owner) {
-	EventDispatcher * self;
-	
-	self = malloc(sizeof(EventDispatcher));
-	EventDispatcher_init(self, owner);
-	return self;
+	stemobject_create_implementation(EventDispatcher, init, owner)
 }
 
-void EventDispatcher_init(EventDispatcher * self, void * owner) {
-	StemObject_init((StemObject *) self);
+void EventDispatcher_init(compat_type(EventDispatcher *) selfPtr, void * owner) {
+	EventDispatcher * self = selfPtr;
+	
+	StemObject_init(self);
 	
 	self->dispose = EventDispatcher_dispose;
 	self->registerForEvent = EventDispatcher_registerForEvent;
@@ -53,7 +51,7 @@ void EventDispatcher_init(EventDispatcher * self, void * owner) {
 	self->targets = (struct EventTarget *) malloc(sizeof(struct EventTarget) * self->targetListSize);
 }
 
-void EventDispatcher_dispose(void * selfPtr) {
+void EventDispatcher_dispose(compat_type(EventDispatcher *) selfPtr) {
 	EventDispatcher * self = selfPtr;
 	int targetIndex;
 	
@@ -65,7 +63,7 @@ void EventDispatcher_dispose(void * selfPtr) {
 	StemObject_dispose(selfPtr);
 }
 
-void EventDispatcher_registerForEvent(void * selfPtr, const char * eventID, EventDispatcherCallback callback, void * context) {
+void EventDispatcher_registerForEvent(compat_type(EventDispatcher *) selfPtr, const char * eventID, EventDispatcherCallback callback, void * context) {
 	EventDispatcher * self = selfPtr;
 	size_t length;
 	
@@ -82,7 +80,7 @@ void EventDispatcher_registerForEvent(void * selfPtr, const char * eventID, Even
 	self->numberOfTargets++;
 }
 
-void EventDispatcher_unregisterForEvent(void * selfPtr, const char * eventID, EventDispatcherCallback callback) {
+void EventDispatcher_unregisterForEvent(compat_type(EventDispatcher *) selfPtr, const char * eventID, EventDispatcherCallback callback) {
 	EventDispatcher * self = selfPtr;
 	int targetIndex;
 	
@@ -98,7 +96,7 @@ void EventDispatcher_unregisterForEvent(void * selfPtr, const char * eventID, Ev
 	}
 }
 
-bool EventDispatcher_dispatchEvent(void * selfPtr, const char * eventID, void * eventData) {
+bool EventDispatcher_dispatchEvent(compat_type(EventDispatcher *) selfPtr, const char * eventID, void * eventData) {
 	EventDispatcher * self = selfPtr;
 	int targetIndex;
 	int numberOfTargetsCopy;

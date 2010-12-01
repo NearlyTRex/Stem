@@ -8,7 +8,7 @@ int main(int argc, char ** argv) {
 	// Functionality other than random number generation and temporary file creation fully tested by unittest target
 	
 	if (argc < 2) {
-		fprintf(stderr, "Must specify either -random or -tempfile as argv[1]\n");
+		fprintf(stderr, "Must specify -random, -tempfile, or -readstdin as argv[1]\n");
 		return EXIT_FAILURE;
 	}
 	
@@ -92,8 +92,16 @@ int main(int argc, char ** argv) {
 		path = temporaryFilePath(template, &fd);
 		printf("%s (fd = %d)\n", path, fd);
 		
+	} else if (!strcmp(argv[1], "-readstdin")) {
+		char * data;
+		size_t length;
+		
+		data = readStdinSimple(&length);
+		printf("Read %u bytes from stdin:\n%s\n", (unsigned int) length, data);
+		free(data);
+		
 	} else {
-		fprintf(stderr, "Unexpected value \"%s\" in argv[1] (expected either -random or -tempfile)\n", argv[1]);
+		fprintf(stderr, "Unexpected value \"%s\" in argv[1] (expected -random, -tempfile, or -readstdin)\n", argv[1]);
 		return EXIT_FAILURE;
 	}
 	

@@ -132,6 +132,31 @@ bool writeFileSimple(const char * filePath, const void * contents, size_t length
 	return true;
 }
 
+void * readStdinSimple(size_t * outLength) {
+	int byte;
+	size_t allocatedSize = 1;
+	char * data;
+	size_t length = 0;
+	
+	data = malloc(allocatedSize);
+	for (;;) {
+		byte = getchar();
+		if (feof(stdin)) {
+			break;
+		}
+		if (length >= allocatedSize) {
+			allocatedSize *= 2;
+			data = realloc(data, allocatedSize);
+		}
+		data[length++] = byte;
+	}
+	
+	if (outLength != NULL) {
+		*outLength = length;
+	}
+	return data;
+}
+
 const char * resourcePath(const char * filePath) {
 	static char * path;
 	

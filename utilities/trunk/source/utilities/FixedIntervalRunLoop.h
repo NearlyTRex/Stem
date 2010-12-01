@@ -40,9 +40,9 @@ typedef void (* FixedIntervalRunLoopCallback)(void * context);
 	bool paused; \
 	double pauseTime; \
 	\
-	void (* run)(void * self); \
-	void (* pause)(void * self); \
-	void (* resume)(void * self);
+	void (* run)(compat_type(FixedIntervalRunLoop *) self); \
+	void (* pause)(compat_type(FixedIntervalRunLoop *) self); \
+	void (* resume)(compat_type(FixedIntervalRunLoop *) self);
 
 struct FixedIntervalRunLoop {
 	FixedIntervalRunLoop_structContents
@@ -50,11 +50,11 @@ struct FixedIntervalRunLoop {
 
 // timeFunction is a pointer to a function that will return the current time in seconds when called
 FixedIntervalRunLoop * FixedIntervalRunLoop_create(double (* timeFunction)(), double stepInterval, FixedIntervalRunLoopCallback stepCallback, void * stepContext);
-void FixedIntervalRunLoop_init(FixedIntervalRunLoop * self, double (* timeFunction)(), double stepInterval, FixedIntervalRunLoopCallback stepCallback, void * stepContext);
+void FixedIntervalRunLoop_init(compat_type(FixedIntervalRunLoop *) selfPtr, double (* timeFunction)(), double stepInterval, FixedIntervalRunLoopCallback stepCallback, void * stepContext);
 
-void FixedIntervalRunLoop_dispose(void * selfPtr);
-void FixedIntervalRunLoop_run(void * selfPtr);
-void FixedIntervalRunLoop_pause(void * selfPtr);
-void FixedIntervalRunLoop_resume(void * selfPtr);
+void FixedIntervalRunLoop_dispose(compat_type(FixedIntervalRunLoop *) selfPtr);
+void FixedIntervalRunLoop_run(compat_type(FixedIntervalRunLoop *) selfPtr);
+void FixedIntervalRunLoop_pause(compat_type(FixedIntervalRunLoop *) selfPtr);
+void FixedIntervalRunLoop_resume(compat_type(FixedIntervalRunLoop *) selfPtr);
 
 #endif

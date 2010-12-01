@@ -52,6 +52,7 @@ bool memwrite(struct memwriteContext * context, size_t nbytes, const void * inDa
 
 void * readFileSimple(const char * filePath, size_t * outFileLength);
 bool writeFileSimple(const char * filePath, const void * contents, size_t length);
+void * readStdinSimple(size_t * outLength);
 
 const char * resourcePath(const char * fileName);
 // fileNameTemplate is a mkstemp template. Return value is added to AutoFreePool, so it needn't be freed directly by the caller.
