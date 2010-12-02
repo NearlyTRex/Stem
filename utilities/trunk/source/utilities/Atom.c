@@ -22,12 +22,14 @@
 
 #include "utilities/Atom.h"
 
+#include <pthread.h>
 #include <stdlib.h>
 #include <string.h>
 
 static size_t numberOfAtoms = 0;
 static size_t atomListSize = 1;
 static Atom * atoms;
+static pthread_mutex_t mutex;
 
 Atom Atom_fromString(const char * string) {
 	unsigned int atomIndex;
@@ -36,10 +38,13 @@ Atom Atom_fromString(const char * string) {
 	
 	if (atoms == NULL) {
 		atoms = malloc(sizeof(Atom) * atomListSize);
+		pthread_mutex_init(&mutex, NULL);
 	}
 	
+	pthread_mutex_lock(&mutex);
 	for (atomIndex = 0; atomIndex < numberOfAtoms; atomIndex++) {
 		if (!strcmp(atoms[atomIndex], string)) {
+			pthread_mutex_unlock(&mutex);
 			return atoms[atomIndex];
 		}
 	}
@@ -54,5 +59,6 @@ Atom Atom_fromString(const char * string) {
 	newAtom[length] = '\x00';
 	atoms[numberOfAtoms++] = newAtom;
 	
+	pthread_mutex_unlock(&mutex);
 	return newAtom;
 }

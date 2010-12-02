@@ -25,7 +25,6 @@
 
 typedef const char * Atom;
 
-// TODO: Thread safety
 Atom Atom_fromString(const char * string);
 
 #endif

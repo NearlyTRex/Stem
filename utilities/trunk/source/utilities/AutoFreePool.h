@@ -23,7 +23,9 @@
 #ifndef __AUTO_FREE_POOL_H__
 #define __AUTO_FREE_POOL_H__
 
-// NOT THREAD SAFE
+// If you want to safely use AutoFreePool in a multithreaded environment, ensure that
+// AutoFreePool_initMutex() is called before any other AutoFreePool function
+void AutoFreePool_initMutex();
 
 void AutoFreePool_push();
 void AutoFreePool_pop();

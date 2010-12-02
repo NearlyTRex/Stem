@@ -22,6 +22,8 @@
 
 #include "utilities/AutoFreePool.h"
 
+#include <pthread.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -44,21 +46,46 @@ struct AutoFreePool {
 
 static struct AutoFreePool poolStack[MAX_POOL_STACK_DEPTH];
 static int poolStackDepth = -1;
+static bool mutexInited = false;
+static pthread_mutex_t mutex;
+
+void AutoFreePool_initMutex() {
+	pthread_mutex_init(&mutex, NULL);
+	mutexInited = true;
+}
 
 void AutoFreePool_push() {
+	if (mutexInited) {
+		pthread_mutex_lock(&mutex);
+	}
+	
 	if (poolStackDepth >= MAX_POOL_STACK_DEPTH - 1) {
 		fprintf(stderr, "Warning: AutoFreePool maximum stack depth (%d) exceeded; couldn't push another pool as requested\n", MAX_POOL_STACK_DEPTH);
+		if (mutexInited) {
+			pthread_mutex_unlock(&mutex);
+		}
 		return;
 	}
 	
 	poolStackDepth++;
 	poolStack[poolStackDepth].addresses = NULL;
 	poolStack[poolStackDepth].callbacks = NULL;
+	
+	if (mutexInited) {
+		pthread_mutex_unlock(&mutex);
+	}
 }
 
 void AutoFreePool_pop() {
+	if (mutexInited) {
+		pthread_mutex_lock(&mutex);
+	}
+	
 	if (poolStackDepth < 0) {
 		fprintf(stderr, "Warning: AutoFreePool stack underflow; you've popped more times than you've pushed\n");
+		if (mutexInited) {
+			pthread_mutex_unlock(&mutex);
+		}
 		return;
 	}
 	
@@ -69,6 +96,10 @@ void AutoFreePool_pop() {
 }
 
 void * AutoFreePool_add(void * address) {
+	if (mutexInited) {
+		pthread_mutex_lock(&mutex);
+	}
+	
 	if (poolStackDepth == -1) {
 		AutoFreePool_push();
 	}
@@ -89,6 +120,10 @@ void * AutoFreePool_add(void * address) {
 }
 
 void AutoFreePool_addCallback(void (* callback)(void * context), void * context) {
+	if (mutexInited) {
+		pthread_mutex_lock(&mutex);
+	}
+	
 	if (poolStackDepth == -1) {
 		AutoFreePool_push();
 	}
@@ -109,7 +144,14 @@ void AutoFreePool_addCallback(void (* callback)(void * context), void * context)
 }
 
 void AutoFreePool_empty() {
+	if (mutexInited) {
+		pthread_mutex_lock(&mutex);
+	}
+	
 	if (poolStackDepth == -1) {
+		if (mutexInited) {
+			pthread_mutex_unlock(&mutex);
+		}
 		return;
 	}
 	
