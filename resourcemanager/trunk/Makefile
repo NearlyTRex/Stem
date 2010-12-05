@@ -248,9 +248,13 @@ ${foreach thirdparty_dependency,${THIRDPARTY_LIBRARY_DEPENDENCIES_$1} ${THIRDPAR
 ${foreach source_dependency,${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$1_$2},-I dep/${dir ${source_dependency}}source}
 endef
 
+define define_ccflags_template #(target, configuration, platform, arch)
+-DSTEM_TARGET_$1 -DSTEM_CONFIGURATION_$2 -DSTEM_PLATFORM_$3 -DSTEM_ARCH_$4
+endef
+
 define dependency_template #(target, configuration, platform, arch, source_file)
 build/intermediate/$1-$2-$3-$4/${notdir ${basename $5}}.d: $5 ${PREREQS_$1} | build/intermediate/$1-$2-$3-$4
-	${CC_$3_$4} ${CCFLAGS} ${CCFLAGS_$1} ${CCFLAGS_$2} ${CCFLAGS_$3} ${call include_ccflags_template,$1,$3} -MM -o $$@.temp $5
+	${CC_$3_$4} ${CCFLAGS} ${CCFLAGS_$1} ${CCFLAGS_$2} ${CCFLAGS_$3} ${call include_ccflags_template,$1,$3} ${call define_ccflags_template,$1,$2,$3,$4} -MM -o $$@.temp $5
 	sed 's,\(${notdir ${basename $5}}\)\.o[ :]*,$${basename $$@}.o $${basename $$@}.d: ,g' < $$@.temp > $$@
 endef
 
@@ -274,7 +278,7 @@ endif
 
 define compile_template #(target, configuration, platform, arch, source_file)
 build/intermediate/$1-$2-$3-$4/${notdir ${basename $5}}.o: $5 ${PREREQS_$1} | build/intermediate/$1-$2-$3-$4
-	${CC_$3_$4} ${CCFLAGS} ${CCFLAGS_$1} ${CCFLAGS_$2} ${CCFLAGS_$3} ${call include_ccflags_template,$1,$3} -c -o $$@ $5
+	${CC_$3_$4} ${CCFLAGS} ${CCFLAGS_$1} ${CCFLAGS_$2} ${CCFLAGS_$3} ${call include_ccflags_template,$1,$3} ${call define_ccflags_template,$1,$2,$3,$4} -c -o $$@ $5
 endef
 
 #Produces object build targets for all source files in each configuration/platform/arch
@@ -566,34 +570,34 @@ ${foreach target,${APPLICATION_TARGETS}, \
 }
 
 .PHONY: test
-test: unittest ${foreach platform,${PLATFORMS_unittest},run_unittests_${platform}}
+test: ${foreach platform,${PLATFORMS_unittest},run_unittests_${platform}}
 
 .PHONY: run_unittests_macosx
-run_unittests_macosx:
+run_unittests_macosx: unittest
 	./build/unittest/debug-macosx/${TARGET_NAME_unittest} "${CURDIR}/build/unittest/debug-macosx"
 
 .PHONY: run_unittests_iphonesimulator
-run_unittests_iphonesimulator:
+run_unittests_iphonesimulator: unittest
 	DYLD_ROOT_PATH=${SDKROOT_iphonesimulator} \
 	./build/unittest/debug-iphonesimulator/${TARGET_NAME_unittest} "${CURDIR}/build/unittest/debug-iphonesimulator"
 
 .PHONY: run_unittests_linux
-run_unittests_linux:
+run_unittests_linux: unittest
 	./build/unittest/debug-linux/${TARGET_NAME_unittest} "${CURDIR}/build/unittest/debug-linux"
 
 .PHONY: run_unittests_windows
-run_unittests_windows:
+run_unittests_windows: unittest
 	./build/unittest/debug-windows/${TARGET_NAME_unittest}.exe "${CURDIR}/build/unittest/debug-windows"
 
 define analyze_file_template_clang #(target, platform, file)
 build/analyzer-results/clang-$1-$2/${basename ${notdir $3}}.txt: $3 ${PREREQS_$1} | build/analyzer-results/clang-$1-$2
-	${CLANG_$2} --analyze ${call include_ccflags_template,$1,$2} ${CLANGFLAGS} ${CLANGFLAGS_$1} ${CLANGFLAGS_$2} -o $${basename $$@}.plist $3 > $$@ 2>&1; true
+	${CLANG_$2} --analyze ${call include_ccflags_template,$1,$2} ${call define_ccflags_template,$1,analyze,$2,none} ${CLANGFLAGS} ${CLANGFLAGS_$1} ${CLANGFLAGS_$2} -o $${basename $$@}.plist $3 > $$@ 2>&1; true
 	@cat $$@
 endef
 
 define analyze_file_template_splint #(target, platform, file)
 build/analyzer-results/splint-$1-$2/${basename ${notdir $3}}.txt: $3 ${PREREQS_$1} | build/analyzer-results/splint-$1-$2
-	${SPLINT_$2} ${call include_ccflags_template,$1,$2} ${SPLINTFLAGS} ${SPLINTFLAGS_$1} ${SPLINTFLAGS_$2} $3 > $$@ 2>&1; true
+	${SPLINT_$2} ${call include_ccflags_template,$1,$2} ${call define_ccflags_template,$1,analyze,$2,none} ${SPLINTFLAGS} ${SPLINTFLAGS_$1} ${SPLINTFLAGS_$2} $3 > $$@ 2>&1; true
 	@cat $$@
 endef
 
