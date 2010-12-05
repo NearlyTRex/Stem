@@ -127,9 +127,9 @@ void StateController_transition(compat_type(StateController *) selfPtr, const ch
 	
 	for (transitionIndex = 0; transitionIndex < self->transitionCount; transitionIndex++) {
 		if (self->currentState == self->transitions[transitionIndex].fromState && !strcmp(transitionName, self->transitions[transitionIndex].name)) {
-			self->transitions[transitionIndex].fromState->deactivate(self->transitions[transitionIndex].fromState);
+			self->currentState->deactivate(self->currentState);
 			self->currentState = self->transitions[transitionIndex].toState;
-			self->transitions[transitionIndex].toState->activate(self->transitions[transitionIndex].toState);
+			self->currentState->activate(self->currentState);
 			break;
 		}
 	}
