@@ -1,0 +1,3 @@
+StateController contains logic for defining and transitioning between modal states in an application. A "State" as defined by StateController is an encapsulation of a unit of application logic, mutually exclusive with other States.
+
+All States are aware of their owning StateController, which serves two specific purposes: It allows them to register for events broadcast by its EventDispatcher, and to resign control to another state by calling the transition() function. State transitions are set up by wiring logic at initialization time. A transition maps a from-state and a to-state to a string, so States needn't know anything about each other; wiring logic is free to associate any State's transition with any other State.
