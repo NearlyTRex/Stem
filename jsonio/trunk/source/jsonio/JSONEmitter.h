@@ -26,8 +26,13 @@
 #include "jsonio/JSONIO.h"
 
 enum JSONEmitterFormat {
+	// Omits all optional whitespace to output the fewest possible bytes
 	JSONEmitterFormat_compact,
+	
+	// Includes spaces for readability, but outputs the entire document on one line
 	JSONEmitterFormat_singleLine,
+	
+	// Includes spaces, line breaks, and indentation for readability
 	JSONEmitterFormat_multiLine
 };
 
