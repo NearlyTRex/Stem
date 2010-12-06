@@ -114,7 +114,7 @@ SPLINT_windows = C:/splint-3.1.1/bin/splint.exe
 CLANG_windows = C:/llvm/bin/clang.exe
 ARCHS_windows = i686
 CCFLAGS_windows = 
-LINKFLAGS_windows = 
+LINKFLAGS_windows = -lpthread
 EXECUTABLE_SUFFIX_windows = .exe
 
 #General compile/link settings
@@ -130,8 +130,8 @@ LINKFLAGS = ${FRAMEWORK_LINKFLAGS} ${LIBRARY_LINKFLAGS} ${OTHER_LINKFLAGS}
 
 LINK_ORDER = \
 	library \
-	stubshell/libstemshell_stub.a \
 	utilities/libstem_utilities.a \
+	stubshell/libstemshell_stub.a \
 	stemobject/libstem_stemobject.a
 
 #Per-target dependencies
