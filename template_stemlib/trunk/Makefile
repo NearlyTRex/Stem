@@ -735,6 +735,7 @@ ${foreach target,${APPLICATION_TARGETS}, \
 .PHONY: full_dist
 full_dist: clean all
 	mkdir dist dist/include dist/library dist/testharness
+	cp Changes.txt License.txt ReadMe.txt dist
 	cp -r build/include/* dist/include
 	cp -r build/library/* dist/library
 	cp -r build/testharness/* dist/testharness
