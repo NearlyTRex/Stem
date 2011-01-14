@@ -27,5 +27,5 @@
 void Preferences_getFilePathPrivate(compat_type(Preferences *) selfPtr, char * outFilePath) {
 	Preferences * self = selfPtr;
 	
-	snprintf(outFilePath, PATH_MAX, "~/.%s.json", self->identifier);
+	snprintf(outFilePath, PATH_MAX, "%s/.%s.json", getenv("HOME"), self->identifier);
 }
