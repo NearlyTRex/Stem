@@ -5,6 +5,7 @@ UNAME = ${shell uname}
 ifeq (${UNAME},Linux)
 HOST_PLATFORM = linux
 else ifeq (${UNAME},Darwin)
+-include ~/.stem.defines
 HOST_PLATFORM = macosx
 else
 HOST_PLATFORM = windows
@@ -24,7 +25,7 @@ TARGET_PLATFORMS_linux = linux
 TARGET_PLATFORMS_windows = windows
 
 PROJECT_NAME = template_stemlib
-IPHONE_BUILD_SDK_VERSION = 4.1
+IPHONE_BUILD_SDK_VERSION ?= 4.2
 IPHONE_DEPLOYMENT_TARGET_VERSION = 3.1
 CODESIGN_IDENTITY = "iPhone Developer"
 SVNROOT = http://sacredsoftware.net/svn/misc#master_source_only
@@ -254,7 +255,7 @@ ${eval ${call create_directory_target_template,build/intermediate}}
 define include_ccflags_template #(target, platform)
 -I source -I include \
 ${foreach thirdparty_dependency,${THIRDPARTY_LIBRARY_DEPENDENCIES_$1} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1_$2},-I include/${dir ${thirdparty_dependency}}} \
-${foreach source_dependency,${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$1_$2},-I dep/${dir ${source_dependency}}source}
+${foreach source_dependency,${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$1_$2},-I dep/${word 1,${subst /, ,${source_dependency}}}/source}
 endef
 
 define define_ccflags_template #(target, configuration, platform, arch)
@@ -338,7 +339,7 @@ define library_dependency_template #(target, configuration, platform)
 			lib/${dir ${library}}$2-$3/${notdir ${library}} \
 		} \
 		${foreach library,${filter ${link_library},${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$1_$3}}, \
-			dep/${dir ${library}}build/library/$2-$3/${notdir ${library}} \
+			dep/${word 1,${subst /, ,${library}}}/build/${word 2,${subst /, ,${library}}}/$2-$3/${word 3,${subst /, ,${library}}} \
 		} \
 		${foreach library,${filter ${link_library},${THIRDPARTY_LIBRARY_DEPENDENCIES_$1} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1_$3}}, \
 			lib/${dir ${library}}$3/${notdir ${library}} \
@@ -362,7 +363,7 @@ ${foreach target,${EXECUTABLE_TARGETS} ${APPLICATION_TARGETS}, \
 define dependency_submake_template #(dependency)
 .PHONY: $1
 $1:
-	${MAKE} -C dep/${dir ${dependency}}
+	${MAKE} -C dep/${word 1,${subst /, ,$1}}
 endef
 
 #Invokes make for each source dependency
@@ -604,13 +605,13 @@ run_unittests_windows: unittest
 
 define analyze_file_template_clang #(target, platform, file)
 build/analyzer-results/clang-$1-$2/${basename ${notdir $3}}.txt: $3 ${PREREQS_$1} | build/analyzer-results/clang-$1-$2
-	${CLANG_$2} --analyze ${call include_ccflags_template,$1,$2} ${CLANGFLAGS} ${CLANGFLAGS_$1} ${CLANGFLAGS_$2} -o $${basename $$@}.plist $3 > $$@ 2>&1; true
+	${CLANG_$2} --analyze ${call include_ccflags_template,$1,$2} ${call define_ccflags_template,$1,analyze,$2,none} ${CLANGFLAGS} ${CLANGFLAGS_$1} ${CLANGFLAGS_$2} -o $${basename $$@}.plist $3 > $$@ 2>&1; true
 	@cat $$@
 endef
 
 define analyze_file_template_splint #(target, platform, file)
 build/analyzer-results/splint-$1-$2/${basename ${notdir $3}}.txt: $3 ${PREREQS_$1} | build/analyzer-results/splint-$1-$2
-	${SPLINT_$2} ${call include_ccflags_template,$1,$2} ${SPLINTFLAGS} ${SPLINTFLAGS_$1} ${SPLINTFLAGS_$2} $3 > $$@ 2>&1; true
+	${SPLINT_$2} ${call include_ccflags_template,$1,$2} ${call define_ccflags_template,$1,analyze,$2,none} ${SPLINTFLAGS} ${SPLINTFLAGS_$1} ${SPLINTFLAGS_$2} $3 > $$@ 2>&1; true
 	@cat $$@
 endef
 
@@ -672,17 +673,17 @@ clean:
 	rm -rf build
 	rm -rf dist #master_source_only
 	${foreach dependency,${sort ${foreach target,${TARGETS},${foreach platform,${PLATFORMS_${target}},${STEM_SOURCE_DEPENDENCIES_${target}} ${STEM_SOURCE_DEPENDENCIES_${target}_${platform}}}}}, \
-		${MAKE} -C dep/${dir ${dependency}} clean${newline_and_tab} \
+		${MAKE} -C dep/${word 1,${subst /, ,${dependency}}} clean${newline_and_tab} \
 	}
 
 TARGET_SUFFIX_ipad = _ipad
 TARGET_SUFFIX_iphone4 = _iphone4
-IPHONE_SDK_VERSION_iphone = 4.1
-IPHONE_SDK_VERSION_ipad = 3.2
-IPHONE_SDK_VERSION_iphone4 = 4.1
-IPHONESIMULATOR_APPLICATIONS_DIR_iphone = ${HOME}/Library/Application Support/iPhone Simulator/4.1/Applications
-IPHONESIMULATOR_APPLICATIONS_DIR_ipad = ${HOME}/Library/Application Support/iPhone Simulator/${IPHONE_SDK_VERSION_ipad}/Applications
-IPHONESIMULATOR_APPLICATIONS_DIR_iphone4 = ${HOME}/Library/Application Support/iPhone Simulator/4.1/Applications
+IPHONE_SDK_VERSION_iphone ?= 4.2
+IPHONE_SDK_VERSION_ipad ?= 3.2
+IPHONE_SDK_VERSION_iphone4 ?= 4.2
+IPHONESIMULATOR_APPLICATIONS_DIR_iphone ?= ${HOME}/Library/Application Support/iPhone Simulator/4.2/Applications
+IPHONESIMULATOR_APPLICATIONS_DIR_ipad ?= ${HOME}/Library/Application Support/iPhone Simulator/${IPHONE_SDK_VERSION_ipad}/Applications
+IPHONESIMULATOR_APPLICATIONS_DIR_iphone4 ?= ${HOME}/Library/Application Support/iPhone Simulator/4.2/Applications
 SIMULATE_DEVICE_iphone = iPhone
 SIMULATE_DEVICE_ipad = iPad
 SIMULATE_DEVICE_iphone4 = iPhone 4
