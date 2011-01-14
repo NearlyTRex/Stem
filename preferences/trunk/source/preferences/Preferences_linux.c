@@ -21,6 +21,8 @@
 */
 
 #include "preferences/Preferences_private.h"
+#include <limits.h>
+#include <stdio.h>
 
 void Preferences_getFilePathPrivate(compat_type(Preferences *) selfPtr, char * outFilePath) {
 	Preferences * self = selfPtr;
