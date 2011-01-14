@@ -4,7 +4,7 @@
 #include "preferences/Preferences.h"
 
 static void printUsage() {
-	fprintf(stderr, "Usage: preferences_testharness [-i identifier] [-d {user | machine}] [-a {set | defaults}]\n");
+	fprintf(stderr, "Usage: preferences_testharness [-i identifier] [-a {set | defaults}]\n");
 }
 
 #define ACTION_NONE 0
@@ -14,7 +14,6 @@ static void printUsage() {
 int main(int argc, char ** argv) {
 	int argIndex;
 	char * identifier = "preferences_testharness";
-	PreferencesDomain domain = PREFERENCES_DOMAIN_USER;
 	Preferences * preferences;
 	char defaultData1[] = {0x00, 0x01, 0x02, 0x03, 0x04};
 	char defaultData2[] = {0xFE, 0xED, 0xFA, 0xCE};
@@ -34,24 +33,6 @@ int main(int argc, char ** argv) {
 				return EXIT_FAILURE;
 			}
 			identifier = argv[++argIndex];
-			
-		} else if (!strcmp(argv[argIndex], "-d")) {
-			if (argc < argIndex + 2) {
-				printUsage();
-				return EXIT_FAILURE;
-			}
-			
-			if (!strcmp(argv[argIndex + 1], "user")) {
-				domain = PREFERENCES_DOMAIN_USER;
-				
-			} else if (!strcmp(argv[argIndex + 1], "machine")) {
-				domain = PREFERENCES_DOMAIN_MACHINE;
-				
-			} else {
-				printUsage();
-				return EXIT_FAILURE;
-			}
-			argIndex++;
 			
 		} else if (!strcmp(argv[argIndex], "-a")) {
 			if (argc < argIndex + 2) {
@@ -73,7 +54,7 @@ int main(int argc, char ** argv) {
 		}
 	}
 	
-	preferences = Preferences_create(identifier, domain);
+	preferences = Preferences_create(identifier);
 	preferences->addInteger(preferences, "integer1", 1);
 	preferences->addInteger(preferences, "integer2", -2);
 	preferences->addFloat(preferences, "float1", 4.0f);

@@ -22,8 +22,5 @@
 
 #include "preferences/Preferences_private.h"
 
-void Preferences_loadPrivate(compat_type(Preferences *) selfPtr) {
-}
-
-void Preferences_savePrivate(compat_type(Preferences *) selfPtr) {
+void Preferences_getFilePathPrivate(compat_type(Preferences *) selfPtr, char * outFilePath) {
 }

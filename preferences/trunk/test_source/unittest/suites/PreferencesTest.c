@@ -4,10 +4,14 @@
 
 static void testInit() {
 	Preferences preferences, * preferencesPtr;
+	const char * identifier1 = "identifier1", * identifier2 = "identifier2";
 	
 	memset(&preferences, 0, sizeof(Preferences));
-	Preferences_init(&preferences, "", PREFERENCES_DOMAIN_USER);
+	Preferences_init(&preferences, identifier1);
 	TestCase_assert(preferences.eventDispatcher != NULL, "Expected non-NULL but got NULL");
+	TestCase_assert(preferences.identifier != NULL, "Expected non-NULL but got NULL");
+	TestCase_assert(preferences.identifier != identifier1, "Pointers expected to differ but didn't");
+	TestCase_assert(!strcmp(preferences.identifier, identifier1), "Expected \"identifier1\" but got \"%s\"", preferences.identifier);
 	TestCase_assert(preferences.dispose == Preferences_dispose, "Expected %p but got %p", Preferences_dispose, preferences.dispose);
 	TestCase_assert(preferences.addInteger == Preferences_addInteger, "Expected %p but got %p", Preferences_addInteger, preferences.addInteger);
 	TestCase_assert(preferences.addFloat == Preferences_addFloat, "Expected %p but got %p", Preferences_addFloat, preferences.addFloat);
@@ -30,9 +34,12 @@ static void testInit() {
 	TestCase_assert(preferences.loadDefaultValue == Preferences_loadDefaultValue, "Expected %p but got %p", Preferences_loadDefaultValue, preferences.loadDefaultValue);
 	preferences.dispose(&preferences);
 	
-	preferencesPtr = Preferences_create("", PREFERENCES_DOMAIN_USER);
+	preferencesPtr = Preferences_create(identifier2);
 	TestCase_assert(preferencesPtr != NULL, "Expected non-NULL but got NULL");
 	if (preferencesPtr == NULL) {return;} // Suppress clang warning
+	TestCase_assert(preferencesPtr->identifier != NULL, "Expected non-NULL but got NULL");
+	TestCase_assert(preferencesPtr->identifier != identifier2, "Pointers expected to differ but didn't");
+	TestCase_assert(!strcmp(preferencesPtr->identifier, identifier2), "Expected \"identifier2\" but got \"%s\"", preferencesPtr->identifier);
 	TestCase_assert(preferencesPtr->eventDispatcher != NULL, "Expected non-NULL but got NULL");
 	TestCase_assert(preferencesPtr->dispose == Preferences_dispose, "Expected %p but got %p", Preferences_dispose, preferencesPtr->dispose);
 	TestCase_assert(preferencesPtr->addInteger == Preferences_addInteger, "Expected %p but got %p", Preferences_addInteger, preferencesPtr->addInteger);
@@ -83,7 +90,7 @@ static void testLoad() {
 	void * data;
 	size_t dataSize;
 	
-	preferences = Preferences_create("unit_test", PREFERENCES_DOMAIN_USER);
+	preferences = Preferences_create("preferences_unittest");
 	
 	TestCase_assert(preferences->getInteger(preferences, "integer1") == 0, "Expected 0 but got %d", preferences->getInteger(preferences, "integer1"));
 	TestCase_assert(preferences->getInteger(preferences, "integer2") == 0, "Expected 0 but got %d", preferences->getInteger(preferences, "integer2"));
@@ -159,7 +166,7 @@ static void testLoadDefaults() {
 	void * data;
 	size_t dataSize;
 	
-	preferences = Preferences_create("unit_test", PREFERENCES_DOMAIN_USER);
+	preferences = Preferences_create("preferences_unittest");
 	preferences->addInteger(preferences, "integer1", 1);
 	preferences->addInteger(preferences, "integer2", -2);
 	preferences->addFloat(preferences, "float1", 4.0f);
@@ -228,7 +235,7 @@ static void testSet() {
 	void * data;
 	size_t dataSize;
 	
-	preferences = Preferences_create("unit_test", PREFERENCES_DOMAIN_USER);
+	preferences = Preferences_create("preferences_unittest");
 	preferences->addInteger(preferences, "integer1", 1);
 	preferences->addInteger(preferences, "integer2", -2);
 	preferences->addFloat(preferences, "float1", 4.0f);
@@ -286,7 +293,7 @@ static void testSave() {
 	char data1[] = {0xFF, 0x7F, 0x00};
 	char data2[] = {0xCC, 0xB7};
 	
-	preferences = Preferences_create("unit_test", PREFERENCES_DOMAIN_USER);
+	preferences = Preferences_create("preferences_unittest");
 	preferences->addInteger(preferences, "integer1", 1);
 	preferences->addInteger(preferences, "integer2", -2);
 	preferences->addFloat(preferences, "float1", 4.0f);
@@ -378,7 +385,7 @@ static void testEvents() {
 	size_t dataLength;
 	
 	valueChangedCalls = 0;
-	preferences = Preferences_create("unit_test", PREFERENCES_DOMAIN_USER);
+	preferences = Preferences_create("preferences_unittest");
 	preferences->eventDispatcher->registerForEvent(preferences->eventDispatcher, PREFERENCES_EVENT_VALUE_CHANGED, valueChanged, NULL);
 	preferences->addInteger(preferences, "integer1", 1);
 	preferences->addFloat(preferences, "float1", 1.0f);
@@ -462,7 +469,7 @@ static void testEvents() {
 static void testDuplicateNamesChecked() {
 	Preferences * preferences;
 	
-	preferences = Preferences_create("unit_test", PREFERENCES_DOMAIN_USER);
+	preferences = Preferences_create("preferences_unittest");
 	
 	TestCase_assert(preferences->valueCount == 0, "Expected 0 but got %zu", preferences->valueCount);
 	preferences->addInteger(preferences, "integer", 0);
@@ -550,7 +557,7 @@ static void testValueTypesChecked() {
 	const char * stringPtr;
 	const void * dataPtr;
 	
-	preferences = Preferences_create("unit_test", PREFERENCES_DOMAIN_USER);
+	preferences = Preferences_create("preferences_unittest");
 	preferences->addInteger(preferences, "integer", 1);
 	preferences->addFloat(preferences, "float", 1.0f);
 	preferences->addBoolean(preferences, "boolean", true);

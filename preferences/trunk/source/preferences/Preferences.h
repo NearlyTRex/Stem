@@ -24,10 +24,6 @@
 #define __PREFERENCES_H__
 
 typedef struct Preferences Preferences;
-typedef const char * PreferencesDomain;
-
-#define PREFERENCES_DOMAIN_USER "user"
-#define PREFERENCES_DOMAIN_MACHINE "machine"
 
 // EventData is a struct PreferencesEvent *. If the event handler modifies the event's value,
 // the modified value will be saved instead of the original value. If the value is of a string
@@ -89,6 +85,7 @@ struct Preferences_valueRecord {
 #define Preferences_structContents \
 	StemObject_structContents \
 	\
+	const char * identifier; \
 	size_t valueCount; \
 	struct Preferences_valueRecord * values; \
 	EventDispatcher * eventDispatcher; \
@@ -120,8 +117,8 @@ struct Preferences {
 	Preferences_structContents
 };
 
-Preferences * Preferences_create(const char * identifier, PreferencesDomain domain);
-void Preferences_init(compat_type(Preferences *) selfPtr, const char * identifier, PreferencesDomain domain);
+Preferences * Preferences_create(const char * identifier);
+void Preferences_init(compat_type(Preferences *) selfPtr, const char * identifier);
 void Preferences_dispose(compat_type(Preferences *) selfPtr);
 
 void Preferences_addInteger(compat_type(Preferences *) selfPtr, const char * name, int defaultValue);

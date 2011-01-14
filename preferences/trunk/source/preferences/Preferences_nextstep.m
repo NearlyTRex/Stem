@@ -23,87 +23,15 @@
 #include "preferences/Preferences_private.h"
 #import <Foundation/Foundation.h>
 
-void Preferences_loadPrivate(compat_type(Preferences *) selfPtr) {
+void Preferences_getFilePathPrivate(compat_type(Preferences *) selfPtr, char * outFilePath) {
 	Preferences * self = selfPtr;
-	NSUserDefaults * defaults;
-	size_t valueIndex;
-	NSObject * object;
 	NSAutoreleasePool * pool;
+	NSArray * paths;
+	const char * libraryDir;
 	
 	pool = [[NSAutoreleasePool alloc] init];
-	// TODO: How to handle domain/identifier?
-	defaults = [NSUserDefaults standardUserDefaults];
-	for (valueIndex = 0; valueIndex < self->valueCount; valueIndex++) {
-		object = [defaults objectForKey: [NSString stringWithUTF8String: self->values[valueIndex].name]];
-		
-		if (object != nil) {
-			switch (self->values[valueIndex].type) {
-				case PREFERENCES_TYPE_INTEGER:
-					if ([object isKindOfClass: [NSNumber class]]) {
-						Preferences_setIntegerPrivate(self, self->values[valueIndex].name, [(NSNumber *) object intValue]);
-					}
-					break;
-					
-				case PREFERENCES_TYPE_FLOAT:
-					if ([object isKindOfClass: [NSNumber class]]) {
-						Preferences_setFloatPrivate(self, self->values[valueIndex].name, [(NSNumber *) object floatValue]);
-					}
-					break;
-					
-				case PREFERENCES_TYPE_BOOLEAN:
-					if ([object isKindOfClass: [NSNumber class]]) {
-						Preferences_setBooleanPrivate(self, self->values[valueIndex].name, [(NSNumber *) object boolValue]);
-					}
-					break;
-					
-				case PREFERENCES_TYPE_STRING:
-					if ([object isKindOfClass: [NSString class]]) {
-						Preferences_setStringPrivate(self, self->values[valueIndex].name, [(NSString *) object UTF8String]);
-					}
-					break;
-					
-				case PREFERENCES_TYPE_DATA:
-					if ([object isKindOfClass: [NSData class]]) {
-						Preferences_setDataPrivate(self, self->values[valueIndex].name, [(NSData *) object bytes], [(NSData *) object length]);
-					}
-					break;
-			}
-		}
-	}
-	[pool release];
-}
-
-void Preferences_savePrivate(compat_type(Preferences *) selfPtr) {
-	Preferences * self = selfPtr;
-	NSUserDefaults * defaults;
-	size_t valueIndex;
-	NSAutoreleasePool * pool;
-	
-	pool = [[NSAutoreleasePool alloc] init];
-	defaults = [NSUserDefaults standardUserDefaults];
-	for (valueIndex = 0; valueIndex < self->valueCount; valueIndex++) {
-		switch (self->values[valueIndex].type) {
-			case PREFERENCES_TYPE_INTEGER:
-				[defaults setInteger: self->values[valueIndex].value.integer forKey: [NSString stringWithUTF8String: self->values[valueIndex].name]];
-				break;
-				
-			case PREFERENCES_TYPE_FLOAT:
-				[defaults setFloat: self->values[valueIndex].value.number forKey: [NSString stringWithUTF8String: self->values[valueIndex].name]];
-				break;
-				
-			case PREFERENCES_TYPE_BOOLEAN:
-				[defaults setBool: self->values[valueIndex].value.boolean forKey: [NSString stringWithUTF8String: self->values[valueIndex].name]];
-				break;
-				
-			case PREFERENCES_TYPE_STRING:
-				[defaults setObject: [NSString stringWithUTF8String: self->values[valueIndex].value.string] forKey: [NSString stringWithUTF8String: self->values[valueIndex].name]];
-				break;
-				
-			case PREFERENCES_TYPE_DATA:
-				[defaults setObject: [NSData dataWithBytes: self->values[valueIndex].value.data.bytes length: self->values[valueIndex].value.data.length] forKey: [NSString stringWithUTF8String: self->values[valueIndex].name]];
-				break;
-		}
-	}
-	[defaults synchronize];
+	paths = NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES);
+	libraryDir = [[paths objectAtIndex: 0] UTF8String];
+	snprintf(outFilePath, PATH_MAX, "%s/Preferences/%s.json", libraryDir, self->identifier);
 	[pool release];
 }

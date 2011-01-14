@@ -24,17 +24,21 @@
 #include "preferences/Preferences_private.h"
 #include <string.h>
 
-Preferences * Preferences_create(const char * identifier, PreferencesDomain domain) {
-	stemobject_create_implementation(Preferences, init, identifier, domain)
+Preferences * Preferences_create(const char * identifier) {
+	stemobject_create_implementation(Preferences, init, identifier)
 }
 
-void Preferences_init(compat_type(Preferences *) selfPtr, const char * identifier, PreferencesDomain domain) {
+void Preferences_init(compat_type(Preferences *) selfPtr, const char * identifier) {
 	Preferences * self = selfPtr;
+	char * newIdentifier;
 	
 	StemObject_init(self);
 	
 	self->valueCount = 0;
 	self->values = NULL;
+	newIdentifier = malloc(strlen(identifier) + 1);
+	strcpy(newIdentifier, identifier);
+	self->identifier = newIdentifier;
 	self->eventDispatcher = EventDispatcher_create(self);
 	
 	self->dispose = Preferences_dispose;
@@ -75,6 +79,7 @@ void Preferences_dispose(compat_type(Preferences *) selfPtr) {
 		}
 	}
 	free(self->values);
+	free((char *) self->identifier);
 	
 	StemObject_dispose(selfPtr);
 }
@@ -358,71 +363,6 @@ void Preferences_loadDefaultValue(compat_type(Preferences *) selfPtr, const char
 					memcpy(self->values[valueIndex].value.data.bytes, self->values[valueIndex].defaultValue.data.bytes, self->values[valueIndex].defaultValue.data.length);
 					break;
 			}
-			break;
-		}
-	}
-}
-
-void Preferences_setIntegerPrivate(compat_type(Preferences *) selfPtr, const char * name, int value) {
-	Preferences * self = selfPtr;
-	size_t valueIndex;
-	
-	for (valueIndex = 0; valueIndex < self->valueCount; valueIndex++) {
-		if (self->values[valueIndex].type == PREFERENCES_TYPE_INTEGER && !strcmp(self->values[valueIndex].name, name)) {
-			self->values[valueIndex].value.integer = value;
-			break;
-		}
-	}
-}
-
-void Preferences_setFloatPrivate(compat_type(Preferences *) selfPtr, const char * name, float value) {
-	Preferences * self = selfPtr;
-	size_t valueIndex;
-	
-	for (valueIndex = 0; valueIndex < self->valueCount; valueIndex++) {
-		if (self->values[valueIndex].type == PREFERENCES_TYPE_FLOAT && !strcmp(self->values[valueIndex].name, name)) {
-			self->values[valueIndex].value.number = value;
-			break;
-		}
-	}
-}
-
-void Preferences_setBooleanPrivate(compat_type(Preferences *) selfPtr, const char * name, bool value) {
-	Preferences * self = selfPtr;
-	size_t valueIndex;
-	
-	for (valueIndex = 0; valueIndex < self->valueCount; valueIndex++) {
-		if (self->values[valueIndex].type == PREFERENCES_TYPE_BOOLEAN && !strcmp(self->values[valueIndex].name, name)) {
-			self->values[valueIndex].value.boolean = value;
-			break;
-		}
-	}
-}
-
-void Preferences_setStringPrivate(compat_type(Preferences *) selfPtr, const char * name, const char * value) {
-	Preferences * self = selfPtr;
-	size_t valueIndex;
-	
-	for (valueIndex = 0; valueIndex < self->valueCount; valueIndex++) {
-		if (self->values[valueIndex].type == PREFERENCES_TYPE_STRING && !strcmp(self->values[valueIndex].name, name)) {
-			free(self->values[valueIndex].value.string);
-			self->values[valueIndex].value.string = malloc(strlen(value) + 1);
-			strcpy(self->values[valueIndex].value.string, value);
-			break;
-		}
-	}
-}
-
-void Preferences_setDataPrivate(compat_type(Preferences *) selfPtr, const char * name, const void * value, size_t length) {
-	Preferences * self = selfPtr;
-	size_t valueIndex;
-	
-	for (valueIndex = 0; valueIndex < self->valueCount; valueIndex++) {
-		if (self->values[valueIndex].type == PREFERENCES_TYPE_DATA && !strcmp(self->values[valueIndex].name, name)) {
-			self->values[valueIndex].value.data.length = length;
-			free(self->values[valueIndex].value.data.bytes);
-			self->values[valueIndex].value.data.bytes = malloc(length);
-			memcpy(self->values[valueIndex].value.data.bytes, value, length);
 			break;
 		}
 	}
