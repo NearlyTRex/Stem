@@ -109,7 +109,7 @@ SPLINT_linux = /usr/local/bin/splint
 CLANG_linux = /usr/local/bin/clang
 ARCHS_linux = i686
 CCFLAGS_linux = 
-LINKFLAGS_linux = -lm -ldl -Wl,-E
+LINKFLAGS_linux = -lm -ldl -lrt -Wl,-E
 
 CC_windows_i686 = C:/MinGW/bin/gcc.exe
 AR_windows = C:/MinGW/bin/ar.exe
@@ -118,7 +118,7 @@ SPLINT_windows = C:/splint-3.1.1/bin/splint.exe
 CLANG_windows = C:/llvm/bin/clang.exe
 ARCHS_windows = i686
 CCFLAGS_windows = 
-LINKFLAGS_windows = 
+LINKFLAGS_windows = -lpthread
 EXECUTABLE_SUFFIX_windows = .exe
 
 #General compile/link settings
