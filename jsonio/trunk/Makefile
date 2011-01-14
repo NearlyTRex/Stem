@@ -775,9 +775,9 @@ source_dist:
 	${call filter_source_dist_file,Makefile,build/source_dist/Makefile}
 	cp Changes.txt License.txt ReadMe.txt version build/source_dist
 	
-	cp -r include/* build/source_dist/include
+	#cp -r include/* build/source_dist/include
 	cp -r lib/* build/source_dist/lib
-	find build/source_dist/include -name .svn -print0 | xargs -0 rm -rf
+	#find build/source_dist/include -name .svn -print0 | xargs -0 rm -rf
 	find build/source_dist/lib -name .svn -print0 | xargs -0 rm -rf
 	
 	cp source/jsonio/* build/source_dist/source/jsonio
