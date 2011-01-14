@@ -135,10 +135,13 @@ LINK_ORDER = library
 
 PROJECT_LIBRARY_DEPENDENCIES_unittest = library
 PROJECT_LIBRARY_DEPENDENCIES_testharness = library
+STEM_LIBRARY_DEPENDENCIES_library =
 STEM_LIBRARY_DEPENDENCIES_unittest =
 STEM_LIBRARY_DEPENDENCIES_testharness =
+STEM_SOURCE_DEPENDENCIES_library = 
 STEM_SOURCE_DEPENDENCIES_unittest = 
 STEM_SOURCE_DEPENDENCIES_testharness = 
+THIRDPARTY_LIBRARY_DEPENDENCIES_library = 
 THIRDPARTY_LIBRARY_DEPENDENCIES_unittest = 
 THIRDPARTY_LIBRARY_DEPENDENCIES_testharness = 
 
@@ -254,7 +257,8 @@ ${eval ${call create_directory_target_template,build/intermediate}}
 
 define include_ccflags_template #(target, platform)
 -I source -I include \
-${foreach thirdparty_dependency,${THIRDPARTY_LIBRARY_DEPENDENCIES_$1} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1_$2},-I include/${dir ${thirdparty_dependency}}} \
+${foreach stem_dependency,${STEM_LIBRARY_DEPENDENCIES_$1} ${STEM_LIBRARY_DEPENDENCIES_$1_$2},-I lib/${dir ${stem_dependency}}/include} \
+${foreach thirdparty_dependency,${THIRDPARTY_LIBRARY_DEPENDENCIES_$1} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1_$2},-I lib/${dir ${thirdparty_dependency}}/include} \
 ${foreach source_dependency,${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$1_$2},-I dep/${word 1,${subst /, ,${source_dependency}}}/source}
 endef
 
@@ -336,13 +340,13 @@ define library_dependency_template #(target, configuration, platform)
 			build/${library}/$2-$3/${TARGET_NAME_${library}}.a \
 		} \
 		${foreach library,${filter ${link_library},${STEM_LIBRARY_DEPENDENCIES_$1} ${STEM_LIBRARY_DEPENDENCIES_$1_$3}}, \
-			lib/${dir ${library}}$2-$3/${notdir ${library}} \
+			lib/${dir ${library}}library/$2-$3/${notdir ${library}} \
 		} \
 		${foreach library,${filter ${link_library},${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$1_$3}}, \
 			dep/${word 1,${subst /, ,${library}}}/build/${word 2,${subst /, ,${library}}}/$2-$3/${word 3,${subst /, ,${library}}} \
 		} \
 		${foreach library,${filter ${link_library},${THIRDPARTY_LIBRARY_DEPENDENCIES_$1} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1_$3}}, \
-			lib/${dir ${library}}$3/${notdir ${library}} \
+			lib/${dir ${library}}library/$3/${notdir ${library}} \
 		} \
 	}
 endef
