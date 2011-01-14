@@ -195,7 +195,7 @@ static enum JSONToken nextJSONToken(const char * string, size_t length, size_t *
 		size_t charIndex2;
 		
 		for (charIndex2 = charIndex + 1; charIndex2 < length; charIndex2++) {
-			if (string[charIndex2] < ' ' && string[charIndex2] != '\t') {
+			if (string[charIndex2] >= '\0' && string[charIndex2] < ' ' && string[charIndex2] != '\t') {
 				break;
 			}
 			

@@ -40,7 +40,8 @@ enum JSONEmissionErrorCode {
 	JSONEmissionError_invalidNodeType,
 	JSONEmissionError_nullKeyString,
 	JSONEmissionError_nullValueString,
-	JSONEmissionError_nullSubitems
+	JSONEmissionError_nullSubitems,
+	JSONEmissionError_writeFileFailed
 };
 
 struct JSONEmissionError {

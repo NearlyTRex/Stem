@@ -21,7 +21,9 @@
 */
 
 #include "jsonio/JSONEmitter.h"
+#include "utilities/AutoFreePool.h"
 #include "utilities/IOUtilities.h"
+#include <errno.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -34,7 +36,20 @@ bool JSONEmitter_writeFile(struct JSONNode * rootNode, enum JSONEmitterFormat fo
 	if (string == NULL) {
 		return false;
 	}
+	
 	success = writeFileSimple(filePath, string, length);
+	if (!success && outError != NULL) {
+		char description[64];
+		char * allocatedDescription;
+		
+		outError->node = rootNode;
+		outError->code = JSONEmissionError_writeFileFailed;
+		sprintf(description, "writeFileSimple failed with errno %d", errno);
+		allocatedDescription = malloc(strlen(description) + 1);
+		strcpy(allocatedDescription, description);
+		AutoFreePool_add(allocatedDescription);
+		outError->description = allocatedDescription;
+	}
 	free(string);
 	return success;
 }
