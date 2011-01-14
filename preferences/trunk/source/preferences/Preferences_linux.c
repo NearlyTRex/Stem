@@ -23,4 +23,7 @@
 #include "preferences/Preferences_private.h"
 
 void Preferences_getFilePathPrivate(compat_type(Preferences *) selfPtr, char * outFilePath) {
+	Preferences * self = selfPtr;
+	
+	snprintf(outFilePath, PATH_MAX, "~/.%s.json", self->identifier);
 }
