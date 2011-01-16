@@ -47,7 +47,7 @@ struct GLFont {
 	GLFont_structContents
 };
 
-void GLFont_init(GLFont * self);
-void GLFont_dispose(void * selfPtr);
+void GLFont_init(compat_type(GLFont *) selfPtr);
+void GLFont_dispose(compat_type(GLFont *) selfPtr);
 
 #endif

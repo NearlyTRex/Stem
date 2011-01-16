@@ -23,14 +23,16 @@
 #include "glfont/GLFont.h"
 #include <stdlib.h>
 
-void GLFont_init(GLFont * self) {
-	StemObject_init((StemObject *) self);
+void GLFont_init(compat_type(GLFont *) selfPtr) {
+	GLFont * self = selfPtr;
+	
+	StemObject_init(self);
 	self->dispose = GLFont_dispose;
 	self->measureString = NULL;
 	self->indexAtWidth = NULL;
 	self->drawString = NULL;
 }
 
-void GLFont_dispose(void * selfPtr) {
+void GLFont_dispose(compat_type(GLFont *) selfPtr) {
 	StemObject_dispose(selfPtr);
 }
