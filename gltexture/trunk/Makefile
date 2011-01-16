@@ -115,7 +115,7 @@ SPLINT_windows = C:/splint-3.1.1/bin/splint.exe
 CLANG_windows = C:/llvm/bin/clang.exe
 ARCHS_windows = i686
 CCFLAGS_windows = -DFREEGLUT_STATIC
-LINKFLAGS_windows = -lfreeglut_static -lopengl32 -lglu32 -lwinmm -lgdi32 -mwindows -mconsole
+LINKFLAGS_windows = -lfreeglut_static -lopengl32 -lglu32 -lpthread -lwinmm -lgdi32 -mwindows -mconsole
 EXECUTABLE_SUFFIX_windows = .exe
 
 #General compile/link settings
@@ -134,8 +134,8 @@ LINK_ORDER = \
 	3dmath/libstem_3dmath.a \
 	pngimageio/libstem_pngimageio.a \
 	bitmapimage/libstem_bitmapimage.a \
-	jsonio/libstem_jsonio.a \
 	jsonserialization/libstem_jsonserialization.a \
+	jsonio/libstem_jsonio.a \
 	serialization/libstem_serialization.a \
 	utilities/libstem_utilities.a \
 	stemobject/libstem_stemobject.a \
