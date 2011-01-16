@@ -31,6 +31,8 @@
 
 typedef struct GLTexture GLTexture;
 
+#define GLTEXTURE_SERIALIZATION_FORMAT_VERSION 1
+
 enum GLTextureAutoBlendMode {
 	AUTO_BLEND_MODE_NONE,
 	AUTO_BLEND_MODE_OPAQUE,

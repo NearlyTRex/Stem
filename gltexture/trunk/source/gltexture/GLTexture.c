@@ -99,6 +99,7 @@ GLTexture * GLTexture_deserialize(compat_type(DeserializationContext *) deserial
 bool GLTexture_loadSerializedData(compat_type(GLTexture *) selfPtr, compat_type(DeserializationContext *) deserializationContext) {
 	GLTexture * self = selfPtr;
 	DeserializationContext * context = deserializationContext;
+	uint16_t formatVersion;
 	const char * imageName;
 	GLenum bitmapDataFormat;
 	GLenum bitmapDataType;
@@ -111,6 +112,7 @@ bool GLTexture_loadSerializedData(compat_type(GLTexture *) selfPtr, compat_type(
 	bool anisotropicFilter;
 	
 	context->beginStructure(context, "gltexture");
+	formatVersion     = context->readUInt16(context, "format_version");
 	imageName         = context->readString(context, "image_name");
 	bitmapDataFormat  = context->readEnumeration(context, "bitmap_data_format", enumKV(GL_ALPHA), enumKV(GL_LUMINANCE), enumKV(GL_LUMINANCE_ALPHA), enumKV(GL_RGB), enumKV(GL_RGBA), NULL);
 	bitmapDataType    = context->readEnumeration(context, "bitmap_data_type", enumKV(GL_UNSIGNED_BYTE), enumKV(GL_UNSIGNED_SHORT_5_6_5), enumKV(GL_UNSIGNED_SHORT_4_4_4_4), enumKV(GL_UNSIGNED_SHORT_5_5_5_1), NULL);
@@ -123,7 +125,7 @@ bool GLTexture_loadSerializedData(compat_type(GLTexture *) selfPtr, compat_type(
 	anisotropicFilter = context->readBoolean(context, "anisotropic_filter");
 	context->endStructure(context);
 	
-	if (context->status != SERIALIZATION_ERROR_OK) {
+	if (context->status != SERIALIZATION_ERROR_OK || formatVersion > GLTEXTURE_SERIALIZATION_FORMAT_VERSION) {
 		return false;
 	}
 	
@@ -139,6 +141,7 @@ void GLTexture_serialize(compat_type(GLTexture *) selfPtr, compat_type(Serializa
 	SerializationContext * context = serializationContext;
 	
 	context->beginStructure(context, "gltexture");
+	context->writeUInt16(context, "format_version", GLTEXTURE_SERIALIZATION_FORMAT_VERSION);
 	context->writeString(context, "image_name", self->imageName);
 	context->writeEnumeration(context, "bitmap_data_format", self->bitmapDataFormat, enumKV(GL_ALPHA), enumKV(GL_LUMINANCE), enumKV(GL_LUMINANCE_ALPHA), enumKV(GL_RGB), enumKV(GL_RGBA), NULL);
 	context->writeEnumeration(context, "bitmap_data_type", self->bitmapDataType, enumKV(GL_UNSIGNED_BYTE), enumKV(GL_UNSIGNED_SHORT_5_6_5), enumKV(GL_UNSIGNED_SHORT_4_4_4_4), enumKV(GL_UNSIGNED_SHORT_5_5_5_1), NULL);

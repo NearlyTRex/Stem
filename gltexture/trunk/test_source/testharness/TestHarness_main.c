@@ -1,18 +1,24 @@
 #include "shell/Shell.h"
 #include "shell/ShellKeyCodes.h"
 #include "shell/Target.h"
-#include "eaglshell/EAGLShell.h"
-#include "eaglshell/EAGLTarget.h"
 #include "3dmath/Matrix.h"
-#include "glutshell/GLUTTarget.h"
 #include "glgraphics/GLIncludes.h"
 #include "gltexture/GLTexture.h"
+#include "jsonserialization/JSONDeserializationContext.h"
 #include "pngimageio/PNGImageIO.h"
 #include "utilities/IOUtilities.h"
+
+#if defined(STEM_PLATFORM_iphonesimulator) || defined(STEM_PLATFORM_iphoneos)
+#include "eaglshell/EAGLShell.h"
+#include "eaglshell/EAGLTarget.h"
+#else
+#include "glutshell/GLUTTarget.h"
+#endif
 
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #define NUM_TEXTURES 5
 #define NUM_MIN_FILTERS 6
@@ -79,6 +85,8 @@ enum GLTextureAutoBlendMode autoBlendModes[NUM_AUTO_BLEND_MODES] = {
 
 static unsigned int viewportWidth = 800, viewportHeight = 600;
 static GLTexture * texture = NULL;
+static char * jsonPath = NULL;
+static char * jsonImagePath = NULL;
 static int textureIndex = 0;
 static int minFilterIndex = 0;
 static int magFilterIndex = 0;
@@ -102,21 +110,61 @@ struct vertex_p2f {
 };
 
 static void loadTextureImage() {
-	BitmapImage * image;
+	BitmapImage * image = NULL;
 	
 	if (texture != NULL) {
 		texture->dispose(texture);
+		texture = NULL;
 	}
-	image = PNGImageIO_loadPNGFile(resourcePath(textureImages[textureIndex].fileName), PNG_PIXEL_FORMAT_AUTOMATIC, true);
-	texture = GLTexture_create(textureImages[textureIndex].dataFormat,
-	                           GL_UNSIGNED_BYTE, // TODO: Test data formats other than GL_UNSIGNED_BYTE somehow
-	                           minFilters[minFilterIndex],
-	                           magFilters[magFilterIndex],
-	                           wrapModes[wrapSModeIndex],
-	                           wrapModes[wrapTModeIndex],
-	                           autoBlendModes[autoBlendModeIndex],
-	                           autoMipmap,
-	                           anisotropicFilter);
+	
+	if (jsonPath != NULL) {
+		JSONDeserializationContext * context;
+		
+		context = JSONDeserializationContext_createWithFile(jsonPath);
+		texture = GLTexture_deserialize(context);
+		if (texture == NULL) {
+			fprintf(stderr, "Error: Couldn't load %s as gltexture.json file: %d\n", jsonPath, context->status);
+			
+		} else {
+			char imagePath[PATH_MAX];
+			
+			if (jsonImagePath == NULL) {
+				size_t charIndex;
+				
+				strncpy(imagePath, jsonPath, PATH_MAX);
+				for (charIndex = strlen(imagePath) - 1; charIndex > 0; charIndex--) {
+					if (imagePath[charIndex] == '/') {
+						charIndex++;
+						break;
+					}
+				}
+				strncpy(imagePath + charIndex, texture->imageName, PATH_MAX - charIndex);
+				
+			} else {
+				snprintf(imagePath, PATH_MAX, "%s/%s", jsonImagePath, texture->imageName);
+			}
+			image = PNGImageIO_loadPNGFile(imagePath, PNG_PIXEL_FORMAT_AUTOMATIC, true);
+			if (image == NULL) {
+				fprintf(stderr, "Error: Couldn't load %s as gltexture.json file\n", imagePath);
+				texture->dispose(texture);
+				texture = NULL;
+			}
+		}
+	}
+	
+	if (texture == NULL) {
+		image = PNGImageIO_loadPNGFile(resourcePath(textureImages[textureIndex].fileName), PNG_PIXEL_FORMAT_AUTOMATIC, true);
+		texture = GLTexture_create(textureImages[textureIndex].dataFormat,
+		                           GL_UNSIGNED_BYTE,
+		                           minFilters[minFilterIndex],
+		                           magFilters[magFilterIndex],
+		                           wrapModes[wrapSModeIndex],
+		                           wrapModes[wrapTModeIndex],
+		                           autoBlendModes[autoBlendModeIndex],
+		                           autoMipmap,
+		                           anisotropicFilter);
+	}
+	
 	texture->setImage(texture, 0, image->width, image->height, image->bytesPerRow, image->pixels);
 	image->dispose(image);
 }
@@ -465,10 +513,7 @@ void Target_mouseMoved(float x, float y) {
 void Target_mouseDragged(unsigned int buttonMask, float x, float y) {
 }
 
-void GLUTTarget_configure(int argc, char ** argv, struct GLUTShellConfiguration * configuration) {
-	configuration->windowTitle = "GLTexture Test Harness";
-}
-
+#if defined(STEM_PLATFORM_iphonesimulator) || defined(STEM_PLATFORM_iphoneos)
 void EAGLTarget_configure(int argc, char ** argv, struct EAGLShellConfiguration * configuration) {
 	iPhoneMode = true;
 	
@@ -483,3 +528,35 @@ void EAGLTarget_touchesCancelled(unsigned int buttonMask) {
 
 void EAGLTarget_accelerometer(double x, double y, double z) {
 }
+#else
+static void printUsage() {
+	fprintf(stderr, "Usage: gltexture_testharness [-json /path/to/texture.json] [-imagepath /path/to/dir/containing/image/]\n");
+}
+
+void GLUTTarget_configure(int argc, char ** argv, struct GLUTShellConfiguration * configuration) {
+	int argIndex;
+	
+	for (argIndex = 1; argIndex < argc; argIndex++) {
+		if (!strcmp(argv[argIndex], "-json")) {
+			argIndex++;
+			if (argIndex >= argc) {
+				printUsage();
+				break;
+			}
+			jsonPath = argv[argIndex];
+			
+		} else if (!strcmp(argv[argIndex], "-imagepath")) {
+			argIndex++;
+			if (argIndex >= argc) {
+				printUsage();
+				break;
+			}
+			jsonImagePath = argv[argIndex];
+			
+		} else {
+			printUsage();
+		}
+	}
+	configuration->windowTitle = "GLTexture Test Harness";
+}
+#endif

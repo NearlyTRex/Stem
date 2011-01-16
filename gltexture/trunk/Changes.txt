@@ -1,5 +1,10 @@
+1.0.2
+ * Added format_version field
+ * Test harness can now load arbitrary texture.json file from command line
+ * Synchronized with template_stemlib Stable_2011-01-13
+
 1.0.1
- * Synced with latest template_stemlib
+ * Synchronized with latest template_stemlib
  * Updated for stemobject 2.0.0
 
 1.0.0
