@@ -23,8 +23,10 @@
 #include "serialization/DeserializationContext.h"
 #include <stdlib.h>
 
-void DeserializationContext_init(DeserializationContext * self) {
-	StemObject_init((StemObject *) self);
+void DeserializationContext_init(compat_type(DeserializationContext *) selfPtr) {
+	DeserializationContext * self = selfPtr;
+	
+	StemObject_init(self);
 	
 	self->jmpBuf = NULL;
 	self->status = SERIALIZATION_ERROR_OK;
@@ -56,6 +58,6 @@ void DeserializationContext_init(DeserializationContext * self) {
 	self->hasDictionaryKey = NULL;
 }
 
-void DeserializationContext_dispose(void * selfPtr) {
+void DeserializationContext_dispose(compat_type(DeserializationContext *) selfPtr) {
 	StemObject_dispose(selfPtr);
 }

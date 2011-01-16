@@ -23,8 +23,10 @@
 #include "serialization/SerializationContext.h"
 #include <stdlib.h>
 
-void SerializationContext_init(SerializationContext * self) {
-	StemObject_init((StemObject *) self);
+void SerializationContext_init(void * selfPtr) {
+	SerializationContext * self = selfPtr;
+	
+	StemObject_init(self);
 	
 	self->jmpBuf = NULL;
 	self->status = SERIALIZATION_ERROR_OK;
@@ -54,6 +56,6 @@ void SerializationContext_init(SerializationContext * self) {
 	self->writeBitfield64 = NULL;
 }
 
-void SerializationContext_dispose(void * selfPtr) {
+void SerializationContext_dispose(compat_type(DeserializationContext *) selfPtr) {
 	StemObject_dispose(selfPtr);
 }

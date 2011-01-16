@@ -1,3 +1,7 @@
+1.1.1
+ * Updated for stemobject 2.0.0
+ * Synchronized with template_stemlib Stable_2011-01-13
+
 1.1.0
  * DeserializationContext's begin<Array|Structure|Dictionary> functions now return size_t instead of unsigned int
  * Added object ownership notes to header
