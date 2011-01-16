@@ -1,0 +1,7 @@
+1.0.2
+ * Updated for stemobject 2.0.0
+ * Synchronized with template_stemlib Stable_2011-01-13
+
+1.0.1
+ * Fixed a bug that caused float reads for numbers that were zero or negative to fail (FLT_MIN is not -FLT_MAX!)
+ * Synchronized with template_stemlib Stable_2010-07-14
