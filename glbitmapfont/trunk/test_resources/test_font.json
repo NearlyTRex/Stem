@@ -1,4 +1,5 @@
 {
+	"format_version": 1,
 	"texture_name": "test_font_texture.json",
 	"characters": {
 		" ": {

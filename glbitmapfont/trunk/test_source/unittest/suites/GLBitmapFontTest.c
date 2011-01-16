@@ -163,6 +163,7 @@ static void testDeserialization() {
 	}
 	
 	context->expectCall(context, context->beginStructure, "glbitmapfont", (size_t) 3);
+	context->expectCall(context, context->readUInt16, "format_version", GLBITMAPFONT_SERIALIZATION_FORMAT_VERSION);
 	context->expectCall(context, context->readString, "texture_name", "foo");
 	context->expectCall(context, context->beginDictionary, "characters", (size_t) GLBITMAPFONT_NUM_CHARS);
 	charStrings[0][0] = ' ';
@@ -247,6 +248,7 @@ static void testDeserialization() {
 	}
 	
 	context->expectCall(context, context->beginStructure, "glbitmapfont", (size_t) 3);
+	context->expectCall(context, context->readUInt16, "format_version", GLBITMAPFONT_SERIALIZATION_FORMAT_VERSION);
 	context->expectCall(context, context->readString, "texture_name", "bar");
 	context->expectCall(context, context->beginDictionary, "characters", (size_t) GLBITMAPFONT_NUM_CHARS);
 	charStrings[0][0] = '~';
@@ -327,6 +329,7 @@ static void testDeserialization() {
 	}
 	
 	context->expectCall(context, context->beginStructure, "glbitmapfont", (size_t) 3);
+	context->expectCall(context, context->readUInt16, "format_version", GLBITMAPFONT_SERIALIZATION_FORMAT_VERSION);
 	context->expectCall(context, context->readString, "texture_name", "foo");
 	context->expectCall(context, context->beginDictionary, "characters", (size_t) GLBITMAPFONT_NUM_CHARS);
 	charStrings[0][0] = ' ';
@@ -410,6 +413,7 @@ static void testDeserialization() {
 	}
 	
 	context->expectCall(context, context->beginStructure, "glbitmapfont", (size_t) 3);
+	context->expectCall(context, context->readUInt16, "format_version", GLBITMAPFONT_SERIALIZATION_FORMAT_VERSION);
 	context->expectCall(context, context->readString, "texture_name", "bar");
 	context->expectCall(context, context->beginDictionary, "characters", (size_t) GLBITMAPFONT_NUM_CHARS);
 	charStrings[0][0] = '~';
@@ -490,6 +494,7 @@ static void testDeserialization() {
 		}
 		
 		context->expectCall(context, context->beginStructure, "glbitmapfont", (size_t) 3);
+	context->expectCall(context, context->readUInt16, "format_version", GLBITMAPFONT_SERIALIZATION_FORMAT_VERSION);
 		context->expectCall(context, context->readString, "texture_name", "foo");
 		context->expectCall(context, context->beginDictionary, "characters", (size_t) GLBITMAPFONT_NUM_CHARS);
 		charStrings[0][0] = ' ';
@@ -548,6 +553,7 @@ static void testDeserialization() {
 		}
 		
 		context->expectCall(context, context->beginStructure, "glbitmapfont", (size_t) 3);
+	context->expectCall(context, context->readUInt16, "format_version", GLBITMAPFONT_SERIALIZATION_FORMAT_VERSION);
 		context->expectCall(context, context->readString, "texture_name", "foo");
 		context->expectCall(context, context->beginDictionary, "characters", (size_t) GLBITMAPFONT_NUM_CHARS);
 		charStrings[0][0] = ' ';
@@ -623,6 +629,7 @@ static void testSerialization() {
 	}
 	
 	context->expectCall(context, context->beginStructure, "glbitmapfont");
+	context->expectCall(context, context->writeUInt16, "format_version", GLBITMAPFONT_SERIALIZATION_FORMAT_VERSION);
 	context->expectCall(context, context->writeString, "texture_name", "bar");
 	context->expectCall(context, context->beginDictionary, "characters");
 	for (charIndex = 0; charIndex < GLBITMAPFONT_NUM_CHARS - 1; charIndex++) {
@@ -678,6 +685,7 @@ static void testSerialization() {
 	}
 	
 	context->expectCall(context, context->beginStructure, "glbitmapfont");
+	context->expectCall(context, context->writeUInt16, "format_version", GLBITMAPFONT_SERIALIZATION_FORMAT_VERSION);
 	context->expectCall(context, context->writeString, "texture_name", "foo");
 	context->expectCall(context, context->beginDictionary, "characters");
 	context->expectCall(context, context->beginStructure, " ");
@@ -735,6 +743,7 @@ static void testDeserializationErrors() {
 		TestCase_assert(false, "%s", context->error);
 	}
 	context->expectCall(context, context->beginStructure, "glbitmapfont", (size_t) 3);
+	context->expectCall(context, context->readUInt16, "format_version", GLBITMAPFONT_SERIALIZATION_FORMAT_VERSION);
 	context->expectCall(context, context->readString, "texture_name", "foo");
 	context->expectCall(context, context->beginDictionary, "characters", (size_t) GLBITMAPFONT_NUM_CHARS);
 	charString[0] = '\x1F';
@@ -750,6 +759,7 @@ static void testDeserializationErrors() {
 		TestCase_assert(false, "%s", context->error);
 	}
 	context->expectCall(context, context->beginStructure, "glbitmapfont", (size_t) 3);
+	context->expectCall(context, context->readUInt16, "format_version", GLBITMAPFONT_SERIALIZATION_FORMAT_VERSION);
 	context->expectCall(context, context->readString, "texture_name", "foo");
 	context->expectCall(context, context->beginDictionary, "characters", (size_t) GLBITMAPFONT_NUM_CHARS);
 	charString[0] = '\x1F';
@@ -765,6 +775,7 @@ static void testDeserializationErrors() {
 		TestCase_assert(false, "%s", context->error);
 	}
 	context->expectCall(context, context->beginStructure, "glbitmapfont", (size_t) 3);
+	context->expectCall(context, context->readUInt16, "format_version", GLBITMAPFONT_SERIALIZATION_FORMAT_VERSION);
 	context->expectCall(context, context->readString, "texture_name", "foo");
 	context->expectCall(context, context->beginDictionary, "characters", (size_t) GLBITMAPFONT_NUM_CHARS);
 	charString[0] = '\x7F';
@@ -780,6 +791,7 @@ static void testDeserializationErrors() {
 		TestCase_assert(false, "%s", context->error);
 	}
 	context->expectCall(context, context->beginStructure, "glbitmapfont", (size_t) 3);
+	context->expectCall(context, context->readUInt16, "format_version", GLBITMAPFONT_SERIALIZATION_FORMAT_VERSION);
 	context->expectCall(context, context->readString, "texture_name", "foo");
 	context->expectCall(context, context->beginDictionary, "characters", (size_t) GLBITMAPFONT_NUM_CHARS);
 	charString[0] = '\x7F';
@@ -795,6 +807,7 @@ static void testDeserializationErrors() {
 		TestCase_assert(false, "%s", context->error);
 	}
 	context->expectCall(context, context->beginStructure, "glbitmapfont", (size_t) 3);
+	context->expectCall(context, context->readUInt16, "format_version", GLBITMAPFONT_SERIALIZATION_FORMAT_VERSION);
 	context->expectCall(context, context->readString, "texture_name", "foo");
 	context->expectCall(context, context->beginDictionary, "characters", (size_t) GLBITMAPFONT_NUM_CHARS);
 	charString[0] = ' ';
@@ -811,6 +824,7 @@ static void testDeserializationErrors() {
 		TestCase_assert(false, "%s", context->error);
 	}
 	context->expectCall(context, context->beginStructure, "glbitmapfont", (size_t) 3);
+	context->expectCall(context, context->readUInt16, "format_version", GLBITMAPFONT_SERIALIZATION_FORMAT_VERSION);
 	context->expectCall(context, context->readString, "texture_name", "foo");
 	context->expectCall(context, context->beginDictionary, "characters", (size_t) GLBITMAPFONT_NUM_CHARS);
 	charString[0] = ' ';
@@ -827,6 +841,7 @@ static void testDeserializationErrors() {
 		TestCase_assert(false, "%s", context->error);
 	}
 	context->expectCall(context, context->beginStructure, "glbitmapfont", (size_t) 3);
+	context->expectCall(context, context->readUInt16, "format_version", GLBITMAPFONT_SERIALIZATION_FORMAT_VERSION);
 	context->expectCall(context, context->readString, "texture_name", "foo");
 	context->expectCall(context, context->beginDictionary, "characters", (size_t) GLBITMAPFONT_NUM_CHARS);
 	charString[0] = 0;
@@ -841,6 +856,7 @@ static void testDeserializationErrors() {
 		TestCase_assert(false, "%s", context->error);
 	}
 	context->expectCall(context, context->beginStructure, "glbitmapfont", (size_t) 3);
+	context->expectCall(context, context->readUInt16, "format_version", GLBITMAPFONT_SERIALIZATION_FORMAT_VERSION);
 	context->expectCall(context, context->readString, "texture_name", "foo");
 	context->expectCall(context, context->beginDictionary, "characters", (size_t) GLBITMAPFONT_NUM_CHARS);
 	charString[0] = 0;
@@ -855,6 +871,7 @@ static void testDeserializationErrors() {
 		TestCase_assert(false, "%s", context->error);
 	}
 	context->expectCall(context, context->beginStructure, "glbitmapfont", (size_t) 3);
+	context->expectCall(context, context->readUInt16, "format_version", GLBITMAPFONT_SERIALIZATION_FORMAT_VERSION);
 	context->expectCall(context, context->readString, "texture_name", "foo");
 	context->expectCall(context, context->beginDictionary, "characters", (size_t) GLBITMAPFONT_NUM_CHARS - 1);
 	success = GLBitmapFont_loadSerializedData(&font, (DeserializationContext *) context);
@@ -867,6 +884,7 @@ static void testDeserializationErrors() {
 		TestCase_assert(false, "%s", context->error);
 	}
 	context->expectCall(context, context->beginStructure, "glbitmapfont", (size_t) 3);
+	context->expectCall(context, context->readUInt16, "format_version", GLBITMAPFONT_SERIALIZATION_FORMAT_VERSION);
 	context->expectCall(context, context->readString, "texture_name", "foo");
 	context->expectCall(context, context->beginDictionary, "characters", (size_t) GLBITMAPFONT_NUM_CHARS - 1);
 	fontPtr = GLBitmapFont_deserialize((DeserializationContext *) context);
@@ -879,6 +897,7 @@ static void testDeserializationErrors() {
 		TestCase_assert(false, "%s", context->error);
 	}
 	context->expectCall(context, context->beginStructure, "glbitmapfont", (size_t) 3);
+	context->expectCall(context, context->readUInt16, "format_version", GLBITMAPFONT_SERIALIZATION_FORMAT_VERSION);
 	context->expectCall(context, context->readString, "texture_name", "foo");
 	context->expectCall(context, context->beginDictionary, "characters", (size_t) GLBITMAPFONT_NUM_CHARS + 1);
 	success = GLBitmapFont_loadSerializedData(&font, (DeserializationContext *) context);
@@ -891,6 +910,7 @@ static void testDeserializationErrors() {
 		TestCase_assert(false, "%s", context->error);
 	}
 	context->expectCall(context, context->beginStructure, "glbitmapfont", (size_t) 3);
+	context->expectCall(context, context->readUInt16, "format_version", GLBITMAPFONT_SERIALIZATION_FORMAT_VERSION);
 	context->expectCall(context, context->readString, "texture_name", "foo");
 	context->expectCall(context, context->beginDictionary, "characters", (size_t) GLBITMAPFONT_NUM_CHARS + 1);
 	fontPtr = GLBitmapFont_deserialize((DeserializationContext *) context);
@@ -903,6 +923,7 @@ static void testDeserializationErrors() {
 		TestCase_assert(false, "%s", context->error);
 	}
 	context->expectCall(context, context->beginStructure, "glbitmapfont", (size_t) 3);
+	context->expectCall(context, context->readUInt16, "format_version", GLBITMAPFONT_SERIALIZATION_FORMAT_VERSION);
 	context->expectCall(context, context->readString, "texture_name", "foo");
 	context->expectCall(context, context->beginDictionary, "characters", (size_t) GLBITMAPFONT_NUM_CHARS);
 	context->expectCall(context, context->readNextDictionaryKey, " ");
@@ -930,6 +951,7 @@ static void testDeserializationErrors() {
 		TestCase_assert(false, "%s", context->error);
 	}
 	context->expectCall(context, context->beginStructure, "glbitmapfont", (size_t) 3);
+	context->expectCall(context, context->readUInt16, "format_version", GLBITMAPFONT_SERIALIZATION_FORMAT_VERSION);
 	context->expectCall(context, context->readString, "texture_name", "foo");
 	context->expectCall(context, context->beginDictionary, "characters", (size_t) GLBITMAPFONT_NUM_CHARS);
 	context->expectCall(context, context->readNextDictionaryKey, " ");
@@ -1202,10 +1224,32 @@ static void testIndexAtWidth() {
 	font->dispose(font);
 }
 
+static void testFormatVersionVerification() {
+	GLBitmapFont * fontPtr;
+	TestDeserializationContext * context;
+	jmp_buf jmpEnv;
+	
+	context = TestDeserializationContext_create(&jmpEnv);
+	if (setjmp(jmpEnv) != 0) {
+		TestCase_assert(false, "%s", context->error);
+	}
+	
+	context->expectCall(context, context->beginStructure, "glbitmapfont", (size_t) 3);
+	context->expectCall(context, context->readUInt16, "format_version", GLBITMAPFONT_SERIALIZATION_FORMAT_VERSION + 1);
+	
+	fontPtr = GLBitmapFont_deserialize(context);
+	
+	context->finish(context);
+	context->dispose(context);
+	
+	TestCase_assert(fontPtr == NULL, "GLBitmapFont_deserialize didn't return NULL when format_version was too high");
+}
+
 TEST_SUITE(GLBitmapFontTest,
            testInit,
            testDeserialization,
            testSerialization,
            testDeserializationErrors,
            testMeasureString,
-           testIndexAtWidth)
+           testIndexAtWidth,
+           testFormatVersionVerification)

@@ -1,9 +1,6 @@
 #include "shell/Shell.h"
 #include "shell/ShellKeyCodes.h"
 #include "shell/Target.h"
-#include "eaglshell/EAGLShell.h"
-#include "eaglshell/EAGLTarget.h"
-#include "glutshell/GLUTTarget.h"
 #include "3dmath/Matrix.h"
 #include "glbitmapfont/GLBitmapFont.h"
 #include "glgraphics/GLGraphics.h"
@@ -13,6 +10,13 @@
 #include "pngimageio/PNGImageIO.h"
 #include "utilities/IOUtilities.h"
 
+#if defined(STEM_PLATFORM_iphonesimulator) || defined(STEM_PLATFORM_iphoneos)
+#include "eaglshell/EAGLShell.h"
+#include "eaglshell/EAGLTarget.h"
+#else
+#include "glutshell/GLUTTarget.h"
+#endif
+
 #include <stdio.h>
 #include <string.h>
 
@@ -20,43 +24,85 @@
 
 static char freeformText[FREEFORM_LENGTH_MAX + 1];
 static unsigned int viewportWidth = 800, viewportHeight = 600;
-static bool iPhoneMode = false;
 static GLBitmapFont * font;
+static char * jsonPath = NULL;
 static size_t lastIndexAtWidth = 0;
 static bool lastLeadingEdge = false;
 static GLint matrixUniform;
 static GLint textureUniform;
 
 void Target_init() {
+	const char * fontJSONFilePath;
+	char textureJSONFilePath[PATH_MAX], textureImageFilePath[PATH_MAX];
 	JSONDeserializationContext * context;
 	GLTexture * texture;
 	BitmapImage * image;
 	
-	context = JSONDeserializationContext_createWithFile(resourcePath("test_font.json"));
+	if (jsonPath == NULL) {
+		fontJSONFilePath = resourcePath("test_font.json");
+	} else {
+		fontJSONFilePath = jsonPath;
+	}
+	
+	context = JSONDeserializationContext_createWithFile(fontJSONFilePath);
 	if (context->status != SERIALIZATION_ERROR_OK) {
-		fprintf(stderr, "Fatal error: Couldn't load test_font.json (status %d)\n", context->status);
+		fprintf(stderr, "Fatal error: Couldn't load %s (status %d)\n", fontJSONFilePath, context->status);
 		exit(EXIT_FAILURE);
 	}
-	font = GLBitmapFont_deserialize((DeserializationContext *) context);
+	font = GLBitmapFont_deserialize(context);
 	context->dispose(context);
 	if (font == NULL) {
-		fprintf(stderr, "Fatal error: Couldn't deserialize test_font.json (status %d)\n", context->status);
+		fprintf(stderr, "Fatal error: Couldn't deserialize %s (status %d)\n", fontJSONFilePath, context->status);
 		exit(EXIT_FAILURE);
 	}
-	context = JSONDeserializationContext_createWithFile(resourcePath(font->textureName));
+	
+	if (jsonPath == NULL) {
+		strncpy(textureJSONFilePath, resourcePath(font->textureName), PATH_MAX);
+		
+	} else {
+		size_t charIndex;
+		
+		strncpy(textureJSONFilePath, jsonPath, PATH_MAX);
+		for (charIndex = strlen(textureJSONFilePath) - 1; charIndex > 0; charIndex--) {
+			if (textureJSONFilePath[charIndex] == '/') {
+				charIndex++;
+				break;
+			}
+		}
+		strncpy(textureJSONFilePath + charIndex, font->textureName, PATH_MAX - charIndex);
+	}
+	
+	context = JSONDeserializationContext_createWithFile(textureJSONFilePath);
 	if (context->status != SERIALIZATION_ERROR_OK) {
-		fprintf(stderr, "Fatal error: Couldn't load %s (status %d)\n", font->textureName, context->status);
+		fprintf(stderr, "Fatal error: Couldn't load %s (status %d)\n", textureJSONFilePath, context->status);
 		exit(EXIT_FAILURE);
 	}
-	texture = GLTexture_deserialize((DeserializationContext *) context);
+	texture = GLTexture_deserialize(context);
 	context->dispose(context);
 	if (texture == NULL) {
-		fprintf(stderr, "Fatal error: Couldn't deserialize %s (status %d)\n", font->textureName, context->status);
+		fprintf(stderr, "Fatal error: Couldn't deserialize %s (status %d)\n", textureJSONFilePath, context->status);
 		exit(EXIT_FAILURE);
 	}
-	image = PNGImageIO_loadPNGFile(resourcePath(texture->imageName), PNG_PIXEL_FORMAT_AUTOMATIC, true);
+	
+	if (jsonPath == NULL) {
+		strncpy(textureImageFilePath, resourcePath(texture->imageName), PATH_MAX);
+		
+	} else {
+		size_t charIndex;
+		
+		strncpy(textureImageFilePath, jsonPath, PATH_MAX);
+		for (charIndex = strlen(textureImageFilePath) - 1; charIndex > 0; charIndex--) {
+			if (textureImageFilePath[charIndex] == '/') {
+				charIndex++;
+				break;
+			}
+		}
+		strncpy(textureImageFilePath + charIndex, texture->imageName, PATH_MAX - charIndex);
+	}
+	
+	image = PNGImageIO_loadPNGFile(textureImageFilePath, PNG_PIXEL_FORMAT_AUTOMATIC, true);
 	if (image == NULL) {
-		fprintf(stderr, "Fatal error: Couldn't load %s\n", texture->imageName);
+		fprintf(stderr, "Fatal error: Couldn't load %s\n", textureImageFilePath);
 		exit(EXIT_FAILURE);
 	}
 	texture->setImage(texture, 0, image->width, image->height, image->bytesPerRow, image->pixels);
@@ -250,13 +296,8 @@ void Target_mouseDragged(unsigned int buttonMask, float x, float y) {
 	queryIndexAtPosition(x, y);
 }
 
-void GLUTTarget_configure(int argc, char ** argv, struct GLUTShellConfiguration * configuration) {
-	configuration->windowTitle = "GLBitmapFont Test Harness";
-}
-
+#if defined(STEM_PLATFORM_iphonesimulator) || defined(STEM_PLATFORM_iphoneos)
 void EAGLTarget_configure(int argc, char ** argv, struct EAGLShellConfiguration * configuration) {
-	iPhoneMode = true;
-	
 	configuration->preferredOpenGLAPIVersion = EAGLShellOpenGLVersion_ES1 | EAGLShellOpenGLVersion_ES2;
 }
 
@@ -268,3 +309,27 @@ void EAGLTarget_touchesCancelled(unsigned int buttonMask) {
 
 void EAGLTarget_accelerometer(double x, double y, double z) {
 }
+#else
+static void printUsage() {
+	fprintf(stderr, "Usage: glbitmapfont_testharness [-json /path/to/font.json]\n");
+}
+
+void GLUTTarget_configure(int argc, char ** argv, struct GLUTShellConfiguration * configuration) {
+	int argIndex;
+	
+	for (argIndex = 1; argIndex < argc; argIndex++) {
+		if (!strcmp(argv[argIndex], "-json")) {
+			argIndex++;
+			if (argIndex >= argc) {
+				printUsage();
+				break;
+			}
+			jsonPath = argv[argIndex];
+			
+		} else {
+			printUsage();
+		}
+	}
+	configuration->windowTitle = "GLBitmapFont Test Harness";
+}
+#endif

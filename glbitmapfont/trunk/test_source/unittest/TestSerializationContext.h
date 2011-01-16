@@ -44,45 +44,45 @@ struct TestSerializationContext_expectedCall {
 	unsigned int numExpectedCalls; \
 	unsigned int nextExpectedCallIndex; \
 	\
-	void (* expectCall)(void * self, void * functionPtr, ...); \
-	void (* failNthCall)(void * self, unsigned int callIndex, int status); \
-	void (* finish)(void * self);
+	void (* expectCall)(compat_type(TestSerializationContext *) self, void * functionPtr, ...); \
+	void (* failNthCall)(compat_type(TestSerializationContext *) self, unsigned int callIndex, int status); \
+	void (* finish)(compat_type(TestSerializationContext *) self);
 
 struct TestSerializationContext {
 	TestSerializationContext_structContents
 };
 
 TestSerializationContext * TestSerializationContext_create(jmp_buf * sequenceBreakJmpEnv);
-void TestSerializationContext_init(TestSerializationContext * self, jmp_buf * sequenceBreakJmpEnv);
-void TestSerializationContext_dispose(void * selfPtr);
+void TestSerializationContext_init(compat_type(TestSerializationContext *) selfPtr, jmp_buf * sequenceBreakJmpEnv);
+void TestSerializationContext_dispose(compat_type(TestSerializationContext *) selfPtr);
 
-void TestSerializationContext_beginStructure(void * selfPtr, const char * key);
-void TestSerializationContext_beginDictionary(void * selfPtr, const char * key);
-void TestSerializationContext_beginArray(void * selfPtr, const char * key);
-void TestSerializationContext_endStructure(void * selfPtr);
-void TestSerializationContext_endDictionary(void * selfPtr);
-void TestSerializationContext_endArray(void * selfPtr);
-void TestSerializationContext_writeInt8(void * selfPtr, const char * key, int8_t value);
-void TestSerializationContext_writeUInt8(void * selfPtr, const char * key, uint8_t value);
-void TestSerializationContext_writeInt16(void * selfPtr, const char * key, int16_t value);
-void TestSerializationContext_writeUInt16(void * selfPtr, const char * key, uint16_t value);
-void TestSerializationContext_writeInt32(void * selfPtr, const char * key, int32_t value);
-void TestSerializationContext_writeUInt32(void * selfPtr, const char * key, uint32_t value);
-void TestSerializationContext_writeInt64(void * selfPtr, const char * key, int64_t value);
-void TestSerializationContext_writeUInt64(void * selfPtr, const char * key, uint64_t value);
-void TestSerializationContext_writeFloat(void * selfPtr, const char * key, float value);
-void TestSerializationContext_writeDouble(void * selfPtr, const char * key, double value);
-void TestSerializationContext_writeString(void * selfPtr, const char * key, const char * value);
-void TestSerializationContext_writeBoolean(void * selfPtr, const char * key, bool value);
-void TestSerializationContext_writeEnumeration(void * selfPtr, const char * key, int value, ...);
-void TestSerializationContext_writeBitfield8(void * selfPtr, const char * key, uint8_t value, ...);
-void TestSerializationContext_writeBitfield16(void * selfPtr, const char * key, uint16_t value, ...);
-void TestSerializationContext_writeBitfield32(void * selfPtr, const char * key, uint32_t value, ...);
-void TestSerializationContext_writeBitfield64(void * selfPtr, const char * key, uint64_t value, ...);
+void TestSerializationContext_beginStructure(compat_type(TestSerializationContext *) selfPtr, const char * key);
+void TestSerializationContext_beginDictionary(compat_type(TestSerializationContext *) selfPtr, const char * key);
+void TestSerializationContext_beginArray(compat_type(TestSerializationContext *) selfPtr, const char * key);
+void TestSerializationContext_endStructure(compat_type(TestSerializationContext *) selfPtr);
+void TestSerializationContext_endDictionary(compat_type(TestSerializationContext *) selfPtr);
+void TestSerializationContext_endArray(compat_type(TestSerializationContext *) selfPtr);
+void TestSerializationContext_writeInt8(compat_type(TestSerializationContext *) selfPtr, const char * key, int8_t value);
+void TestSerializationContext_writeUInt8(compat_type(TestSerializationContext *) selfPtr, const char * key, uint8_t value);
+void TestSerializationContext_writeInt16(compat_type(TestSerializationContext *) selfPtr, const char * key, int16_t value);
+void TestSerializationContext_writeUInt16(compat_type(TestSerializationContext *) selfPtr, const char * key, uint16_t value);
+void TestSerializationContext_writeInt32(compat_type(TestSerializationContext *) selfPtr, const char * key, int32_t value);
+void TestSerializationContext_writeUInt32(compat_type(TestSerializationContext *) selfPtr, const char * key, uint32_t value);
+void TestSerializationContext_writeInt64(compat_type(TestSerializationContext *) selfPtr, const char * key, int64_t value);
+void TestSerializationContext_writeUInt64(compat_type(TestSerializationContext *) selfPtr, const char * key, uint64_t value);
+void TestSerializationContext_writeFloat(compat_type(TestSerializationContext *) selfPtr, const char * key, float value);
+void TestSerializationContext_writeDouble(compat_type(TestSerializationContext *) selfPtr, const char * key, double value);
+void TestSerializationContext_writeString(compat_type(TestSerializationContext *) selfPtr, const char * key, const char * value);
+void TestSerializationContext_writeBoolean(compat_type(TestSerializationContext *) selfPtr, const char * key, bool value);
+void TestSerializationContext_writeEnumeration(compat_type(TestSerializationContext *) selfPtr, const char * key, int value, ...);
+void TestSerializationContext_writeBitfield8(compat_type(TestSerializationContext *) selfPtr, const char * key, uint8_t value, ...);
+void TestSerializationContext_writeBitfield16(compat_type(TestSerializationContext *) selfPtr, const char * key, uint16_t value, ...);
+void TestSerializationContext_writeBitfield32(compat_type(TestSerializationContext *) selfPtr, const char * key, uint32_t value, ...);
+void TestSerializationContext_writeBitfield64(compat_type(TestSerializationContext *) selfPtr, const char * key, uint64_t value, ...);
 
 // selfPtr, functionPtr, key (if applicable), value (if applicable), additional args (if applicable)
-void TestSerializationContext_expectCall(void * selfPtr, void * functionPtr, ...);
-void TestSerializationContext_failNthCall(void * selfPtr, unsigned int callIndex, int status);
-void TestSerializationContext_finish(void * selfPtr);
+void TestSerializationContext_expectCall(compat_type(TestSerializationContext *) selfPtr, void * functionPtr, ...);
+void TestSerializationContext_failNthCall(compat_type(TestSerializationContext *) selfPtr, unsigned int callIndex, int status);
+void TestSerializationContext_finish(compat_type(TestSerializationContext *) selfPtr);
 
 #endif

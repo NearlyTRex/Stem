@@ -1,19 +1,36 @@
+/*
+  Copyright (c) 2010 Alex Diener
+  
+  This software is provided 'as-is', without any express or implied
+  warranty. In no event will the authors be held liable for any damages
+  arising from the use of this software.
+  
+  Permission is granted to anyone to use this software for any purpose,
+  including commercial applications, and to alter it and redistribute it
+  freely, subject to the following restrictions:
+  
+  1. The origin of this software must not be misrepresented; you must not
+     claim that you wrote the original software. If you use this software
+     in a product, an acknowledgment in the product documentation would be
+     appreciated but is not required.
+  2. Altered source versions must be plainly marked as such, and must not be
+     misrepresented as being the original software.
+  3. This notice may not be removed or altered from any source distribution.
+  
+  Alex Diener adiener@sacredsoftware.net
+*/
+
 #include "glbitmapfont/GLBitmapFont.h"
 #include "glgraphics/GLGraphics.h"
 #include <string.h>
 #include <stddef.h>
 
 GLBitmapFont * GLBitmapFont_create(struct GLBitmapFont_charEntry characters[GLBITMAPFONT_NUM_CHARS]) {
-	GLBitmapFont * self;
-	
-	self = malloc(sizeof(GLBitmapFont));
-	GLBitmapFont_init(self, characters);
-	self->allocated = true;
-	return self;
+	stemobject_create_implementation(GLBitmapFont, init, characters)
 }
 
 static void sharedInit(GLBitmapFont * self) {
-	StemObject_init((StemObject *) self);
+	StemObject_init(self);
 	
 	self->textureName = NULL;
 	self->textureNameOwned = false;
@@ -26,7 +43,8 @@ static void sharedInit(GLBitmapFont * self) {
 	self->setTexture = GLBitmapFont_setTexture;
 }
 
-void GLBitmapFont_init(GLBitmapFont * self, struct GLBitmapFont_charEntry characters[GLBITMAPFONT_NUM_CHARS]) {
+void GLBitmapFont_init(compat_type(GLBitmapFont *) selfPtr, struct GLBitmapFont_charEntry characters[GLBITMAPFONT_NUM_CHARS]) {
+	GLBitmapFont * self = selfPtr;
 	unsigned int charIndex;
 	
 	sharedInit(self);
@@ -39,7 +57,7 @@ void GLBitmapFont_init(GLBitmapFont * self, struct GLBitmapFont_charEntry charac
 	}
 }
 
-void GLBitmapFont_dispose(void * selfPtr) {
+void GLBitmapFont_dispose(compat_type(GLBitmapFont *) selfPtr) {
 	GLBitmapFont * self = selfPtr;
 	unsigned int charIndex;
 	
@@ -55,20 +73,24 @@ void GLBitmapFont_dispose(void * selfPtr) {
 	GLFont_dispose(selfPtr);
 }
 
-GLBitmapFont * GLBitmapFont_deserialize(DeserializationContext * context) {
+GLBitmapFont * GLBitmapFont_deserialize(compat_type(DeserializationContext *) deserializationContext) {
+	DeserializationContext * context = deserializationContext;
 	GLBitmapFont * self;
-	bool success;
 	
 	self = malloc(sizeof(GLBitmapFont));
-	success = GLBitmapFont_loadSerializedData(self, context);
-	self->allocated = true;
-	if (!success) {
+	if (!GLBitmapFont_loadSerializedData(self, context)) {
+		free(self);
 		return NULL;
 	}
+	self->protected_ivar(allocated) = true;
+	
 	return self;
 }
 
-bool GLBitmapFont_loadSerializedData(GLBitmapFont * self, DeserializationContext * context) {
+bool GLBitmapFont_loadSerializedData(compat_type(GLBitmapFont *) selfPtr, compat_type(DeserializationContext *) deserializationContext) {
+	GLBitmapFont * self = selfPtr;
+	DeserializationContext * context = deserializationContext;
+	uint16_t formatVersion;
 	size_t kernCharIndex, kernCharIndex2, nchars;
 	unsigned int charIndex;
 	const char * key, * key2;
@@ -78,6 +100,11 @@ bool GLBitmapFont_loadSerializedData(GLBitmapFont * self, DeserializationContext
 	memset(self->characters, 0x00, sizeof(self->characters));
 	
 	context->beginStructure(context, "glbitmapfont");
+	formatVersion = context->readUInt16(context, "format_version");
+	if (formatVersion > GLBITMAPFONT_SERIALIZATION_FORMAT_VERSION) {
+		self->dispose(self);
+		return false;
+	}
 	textureName = context->readString(context, "texture_name");
 	nchars = context->beginDictionary(context, "characters");
 	if (nchars != GLBITMAPFONT_NUM_CHARS) {
@@ -137,11 +164,14 @@ bool GLBitmapFont_loadSerializedData(GLBitmapFont * self, DeserializationContext
 	return true;
 }
 
-void GLBitmapFont_serialize(GLBitmapFont * self, SerializationContext * context) {
+void GLBitmapFont_serialize(compat_type(GLBitmapFont *) selfPtr, compat_type(SerializationContext *) serializationContext) {
+	GLBitmapFont * self = selfPtr;
+	SerializationContext * context = serializationContext;
 	unsigned int charIndex, kernCharIndex;
 	char charString[2] = {0, 0};
 	
 	context->beginStructure(context, "glbitmapfont");
+	context->writeUInt16(context, "format_version", GLBITMAPFONT_SERIALIZATION_FORMAT_VERSION);
 	context->writeString(context, "texture_name", self->textureName);
 	context->beginDictionary(context, "characters");
 	for (charIndex = 0; charIndex < GLBITMAPFONT_NUM_CHARS; charIndex++) {
@@ -168,17 +198,17 @@ void GLBitmapFont_serialize(GLBitmapFont * self, SerializationContext * context)
 	context->endStructure(context);
 }
 
-void GLBitmapFont_setTexture(void * selfPtr, GLTexture * texture, bool takeOwnership) {
+void GLBitmapFont_setTexture(compat_type(GLBitmapFont *) selfPtr, compat_type(GLTexture *) texturePtr, bool takeOwnership) {
 	GLBitmapFont * self = selfPtr;
 	
 	if (self->textureOwned) {
 		self->texture->dispose(self->texture);
 	}
-	self->texture = texture;
+	self->texture = texturePtr;
 	self->textureOwned = takeOwnership;
 }
 
-float GLBitmapFont_measureString(void * selfPtr, const char * string, size_t length) {
+float GLBitmapFont_measureString(compat_type(GLBitmapFont *) selfPtr, const char * string, size_t length) {
 	GLBitmapFont * self = selfPtr;
 	float width = 0.0f;
 	unsigned int charIndex, kernCharIndex;
@@ -199,7 +229,7 @@ float GLBitmapFont_measureString(void * selfPtr, const char * string, size_t len
 	return width;
 }
 
-size_t GLBitmapFont_indexAtWidth(void * selfPtr, const char * string, size_t length, float emWidth, bool * outLeadingEdge) {
+size_t GLBitmapFont_indexAtWidth(compat_type(GLBitmapFont *) selfPtr, const char * string, size_t length, float emWidth, bool * outLeadingEdge) {
 	GLBitmapFont * self = selfPtr;
 	float totalWidth = 0.0f, charWidth, halfKernOffset = 0.0f;
 	size_t charIndex, kernCharIndex;
@@ -240,7 +270,7 @@ struct vertex_p4f_t2f {
 	GLfloat texCoords[2];
 };
 
-void GLBitmapFont_drawString(void * selfPtr, const char * string, size_t length, float emHeight, float offsetX, float offsetY, float offsetZ) {
+void GLBitmapFont_drawString(compat_type(GLBitmapFont *) selfPtr, const char * string, size_t length, float emHeight, float offsetX, float offsetY, float offsetZ) {
 	GLBitmapFont * self = selfPtr;
 	struct vertex_p4f_t2f * vertices;
 	GLushort * indexes;
