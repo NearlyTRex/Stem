@@ -5,6 +5,7 @@ UNAME = ${shell uname}
 ifeq (${UNAME},Linux)
 HOST_PLATFORM = linux
 else ifeq (${UNAME},Darwin)
+-include ~/.stem.defines
 HOST_PLATFORM = macosx
 else
 HOST_PLATFORM = windows
@@ -24,7 +25,7 @@ TARGET_PLATFORMS_linux =
 TARGET_PLATFORMS_windows = 
 
 PROJECT_NAME = eaglshell
-IPHONE_BUILD_SDK_VERSION = 4.1
+IPHONE_BUILD_SDK_VERSION ?= 4.2
 IPHONE_DEPLOYMENT_TARGET_VERSION = 3.1
 CODESIGN_IDENTITY = "iPhone Developer"
 SVNROOT = http://sacredsoftware.net/svn/misc#master_source_only
@@ -91,15 +92,18 @@ LIBRARY_LINKFLAGS =
 OTHER_LINKFLAGS = 
 LINKFLAGS = ${FRAMEWORK_LINKFLAGS} ${LIBRARY_LINKFLAGS} ${OTHER_LINKFLAGS}
 
-#General analyzer settings
-CLANGFLAGS = -isysroot ${SDKROOT_iphonesimulator} -D__IPHONE_OS_VERSION_MIN_REQUIRED=${call iphone_sdk_version_integer,${IPHONE_DEPLOYMENT_TARGET_VERSION}}
-SPLINTFLAGS = -exportlocal
+LINK_ORDER = \
+	library \
+	glgraphics/libstem_glgraphics_noglew.a
 
 #Per-target dependencies
 
 PROJECT_LIBRARY_DEPENDENCIES_testharness = library
+STEM_LIBRARY_DEPENDENCIES_library = glgraphics/libstem_glgraphics_noglew.a
 STEM_LIBRARY_DEPENDENCIES_testharness = glgraphics/libstem_glgraphics_noglew.a
+STEM_SOURCE_DEPENDENCIES_library = 
 STEM_SOURCE_DEPENDENCIES_testharness = 
+THIRDPARTY_LIBRARY_DEPENDENCIES_library = 
 THIRDPARTY_LIBRARY_DEPENDENCIES_testharness = 
 
 #Per-target per-platform dependencies
@@ -136,6 +140,10 @@ RESOURCES_testharness = \
 	test_resources/Fragment.frag \
 	test_resources/Vertex.vert
 
+#General analyzer settings
+CLANGFLAGS = -isysroot ${SDKROOT_iphonesimulator} -D__IPHONE_OS_VERSION_MIN_REQUIRED=${call iphone_sdk_version_integer,${IPHONE_DEPLOYMENT_TARGET_VERSION}}
+SPLINTFLAGS = -exportlocal
+
 #Source files excluded from static analysis
 
 ANALYZER_EXCLUDE_SOURCES_clang = 
@@ -161,7 +169,7 @@ define platform_object_list_template #(target, configuration, platform)
 endef
 
 define arch_object_list_template #(target, configuration, platform, arch)
-	${foreach source,${SOURCES_$1}, \
+	${foreach source,${SOURCES_$1} ${SOURCES_$1_$3}, \
 		build/intermediate/$1-$2-$3-$4/${notdir ${basename ${source}}}.o \
 	}
 endef
@@ -197,13 +205,18 @@ ${eval ${call create_directory_target_template,build/intermediate}}
 
 define include_ccflags_template #(target, platform)
 -I source -I include \
-${foreach thirdparty_dependency,${THIRDPARTY_LIBRARY_DEPENDENCIES_$1} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1_$2},-I include/${dir ${thirdparty_dependency}}} \
-${foreach source_dependency,${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$1_$2},-I dep/${dir ${source_dependency}}source}
+${foreach stem_dependency,${STEM_LIBRARY_DEPENDENCIES_$1} ${STEM_LIBRARY_DEPENDENCIES_$1_$2},-I lib/${dir ${stem_dependency}}/include} \
+${foreach thirdparty_dependency,${THIRDPARTY_LIBRARY_DEPENDENCIES_$1} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1_$2},-I lib/${dir ${thirdparty_dependency}}/include} \
+${foreach source_dependency,${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$1_$2},-I dep/${word 1,${subst /, ,${source_dependency}}}/source}
+endef
+
+define define_ccflags_template #(target, configuration, platform, arch)
+-DSTEM_TARGET_$1 -DSTEM_CONFIGURATION_$2 -DSTEM_PLATFORM_$3 -DSTEM_ARCH_$4
 endef
 
 define dependency_template #(target, configuration, platform, arch, source_file)
 build/intermediate/$1-$2-$3-$4/${notdir ${basename $5}}.d: $5 ${PREREQS_$1} | build/intermediate/$1-$2-$3-$4
-	${CC_$3_$4} ${CCFLAGS} ${CCFLAGS_$1} ${CCFLAGS_$2} ${CCFLAGS_$3} ${call include_ccflags_template,$1,$3} -MM -o $$@.temp $5
+	${CC_$3_$4} ${CCFLAGS} ${CCFLAGS_$1} ${CCFLAGS_$2} ${CCFLAGS_$3} ${call include_ccflags_template,$1,$3} ${call define_ccflags_template,$1,$2,$3,$4} -MM -o $$@.temp $5
 	sed 's,\(${notdir ${basename $5}}\)\.o[ :]*,$${basename $$@}.o $${basename $$@}.d: ,g' < $$@.temp > $$@
 endef
 
@@ -213,7 +226,7 @@ ${foreach target,${TARGETS}, \
 	${foreach configuration,${CONFIGURATIONS_${target}}, \
 		${foreach platform,${PLATFORMS_${target}}, \
 			${foreach arch,${ARCHS_${platform}}, \
-				${foreach source,${SOURCES_${target}}, \
+				${foreach source,${SOURCES_${target}} ${SOURCES_${target}_${platform}}, \
 					${eval ${call dependency_template,${target},${configuration},${platform},${arch},${source}}} \
 					${eval -include build/intermediate/${target}-${configuration}-${platform}-${arch}/${notdir ${basename ${source}}}.d} \
 				} \
@@ -227,7 +240,7 @@ endif
 
 define compile_template #(target, configuration, platform, arch, source_file)
 build/intermediate/$1-$2-$3-$4/${notdir ${basename $5}}.o: $5 ${PREREQS_$1} | build/intermediate/$1-$2-$3-$4
-	${CC_$3_$4} ${CCFLAGS} ${CCFLAGS_$1} ${CCFLAGS_$2} ${CCFLAGS_$3} ${call include_ccflags_template,$1,$3} -c -o $$@ $5
+	${CC_$3_$4} ${CCFLAGS} ${CCFLAGS_$1} ${CCFLAGS_$2} ${CCFLAGS_$3} ${call include_ccflags_template,$1,$3} ${call define_ccflags_template,$1,$2,$3,$4} -c -o $$@ $5
 endef
 
 #Produces object build targets for all source files in each configuration/platform/arch
@@ -235,7 +248,7 @@ ${foreach target,${TARGETS}, \
 	${foreach configuration,${CONFIGURATIONS_${target}}, \
 		${foreach platform,${PLATFORMS_${target}}, \
 			${foreach arch,${ARCHS_${platform}}, \
-				${foreach source,${SOURCES_${target}}, \
+				${foreach source,${SOURCES_${target}} ${SOURCES_${target}_${platform}}, \
 					${eval ${call compile_template,${target},${configuration},${platform},${arch},${source}}} \
 				} \
 			} \
@@ -270,17 +283,19 @@ build/intermediate/$1-$2-$3-$4/$5: ${call arch_object_list_template,$1,$2,$3,$4}
 endef
 
 define library_dependency_template #(target, configuration, platform)
-	${foreach library,${PROJECT_LIBRARY_DEPENDENCIES_$1} ${PROJECT_LIBRARY_DEPENDENCIES_$1_$3}, \
-		build/${library}/$2-$3/${TARGET_NAME_${library}}.a \
-	} \
-	${foreach library,${STEM_LIBRARY_DEPENDENCIES_$1} ${STEM_LIBRARY_DEPENDENCIES_$1_$3}, \
-		lib/${dir ${library}}$2-$3/${notdir ${library}} \
-	} \
-	${foreach library,${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$1_$3}, \
-		dep/${dir ${library}}build/library/$2-$3/${notdir ${library}} \
-	} \
-	${foreach library,${THIRDPARTY_LIBRARY_DEPENDENCIES_$1} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1_$3}, \
-		lib/${dir ${library}}$3/${notdir ${library}} \
+	${foreach link_library,${LINK_ORDER}, \
+		${foreach library,${filter ${link_library},${PROJECT_LIBRARY_DEPENDENCIES_$1} ${PROJECT_LIBRARY_DEPENDENCIES_$1_$3}}, \
+			build/${library}/$2-$3/${TARGET_NAME_${library}}.a \
+		} \
+		${foreach library,${filter ${link_library},${STEM_LIBRARY_DEPENDENCIES_$1} ${STEM_LIBRARY_DEPENDENCIES_$1_$3}}, \
+			lib/${dir ${library}}library/$2-$3/${notdir ${library}} \
+		} \
+		${foreach library,${filter ${link_library},${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$1_$3}}, \
+			dep/${word 1,${subst /, ,${library}}}/build/${word 2,${subst /, ,${library}}}/$2-$3/${word 3,${subst /, ,${library}}} \
+		} \
+		${foreach library,${filter ${link_library},${THIRDPARTY_LIBRARY_DEPENDENCIES_$1} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1_$3}}, \
+			lib/${dir ${library}}library/$3/${notdir ${library}} \
+		} \
 	}
 endef
 
@@ -300,7 +315,7 @@ ${foreach target,${EXECUTABLE_TARGETS} ${APPLICATION_TARGETS}, \
 define dependency_submake_template #(dependency)
 .PHONY: $1
 $1:
-	${MAKE} -C dep/${dir ${dependency}}
+	${MAKE} -C dep/${word 1,${subst /, ,$1}}
 endef
 
 #Invokes make for each source dependency
@@ -466,22 +481,22 @@ ${foreach target,${APPLICATION_TARGETS}, \
 
 define analyze_file_template_clang #(target, platform, file)
 build/analyzer-results/clang-$1-$2/${basename ${notdir $3}}.txt: $3 ${PREREQS_$1} | build/analyzer-results/clang-$1-$2
-	${CLANG_$2} --analyze ${call include_ccflags_template,$1,$2} ${CLANGFLAGS} ${CLANGFLAGS_$1} ${CLANGFLAGS_$2} -o $${basename $$@}.plist $3 > $$@ 2>&1; true
+	${CLANG_$2} --analyze ${call include_ccflags_template,$1,$2} ${call define_ccflags_template,$1,analyze,$2,none} ${CLANGFLAGS} ${CLANGFLAGS_$1} ${CLANGFLAGS_$2} -o $${basename $$@}.plist $3 > $$@ 2>&1; true
 	@cat $$@
 endef
 
 define analyze_file_template_splint #(target, platform, file)
 build/analyzer-results/splint-$1-$2/${basename ${notdir $3}}.txt: $3 ${PREREQS_$1} | build/analyzer-results/splint-$1-$2
-	${SPLINT_$2} ${call include_ccflags_template,$1,$2} ${SPLINTFLAGS} ${SPLINTFLAGS_$1} ${SPLINTFLAGS_$2} $3 > $$@ 2>&1; true
+	${SPLINT_$2} ${call include_ccflags_template,$1,$2} ${call define_ccflags_template,$1,analyze,$2,none} ${SPLINTFLAGS} ${SPLINTFLAGS_$1} ${SPLINTFLAGS_$2} $3 > $$@ 2>&1; true
 	@cat $$@
 endef
 
-define analyzed_sources_template #(analyzer, target)
-	${sort ${filter-out ${ANALYZER_EXCLUDE_SOURCES_$1},${SOURCES_$2}}}
+define analyzed_sources_template #(analyzer, target, platform)
+	${sort ${filter-out ${ANALYZER_EXCLUDE_SOURCES_$1},${SOURCES_$2} ${SOURCES_$2_$3}}}
 endef
 
 define analyzer_output_template #(analyzer, target, platform)
-	${foreach file,${call analyzed_sources_template,$1,$2}, \
+	${foreach file,${call analyzed_sources_template,$1,$2,$3}, \
 		build/analyzer-results/$1-$2-$3/${basename ${notdir ${file}}}.txt \
 	}
 endef
@@ -501,7 +516,7 @@ ${foreach analyzer,${ANALYZERS}, \
 	${foreach target,${TARGETS}, \
 		${foreach platform,${PLATFORMS_${target}}, \
 			${eval ${call analyze_target_template,${analyzer},${target},${platform}}} \
-			${foreach file,${call analyzed_sources_template,${analyzer},${target}}, \
+			${foreach file,${call analyzed_sources_template,${analyzer},${target},${platform}}, \
 				${eval ${call analyze_file_template_${analyzer},${target},${platform},${file}}} \
 			} \
 		} \
@@ -534,17 +549,17 @@ clean:
 	rm -rf build
 	rm -rf dist #master_source_only
 	${foreach dependency,${sort ${foreach target,${TARGETS},${foreach platform,${PLATFORMS_${target}},${STEM_SOURCE_DEPENDENCIES_${target}} ${STEM_SOURCE_DEPENDENCIES_${target}_${platform}}}}}, \
-		${MAKE} -C dep/${dir ${dependency}} clean${newline_and_tab} \
+		${MAKE} -C dep/${word 1,${subst /, ,${dependency}}} clean${newline_and_tab} \
 	}
 
 TARGET_SUFFIX_ipad = _ipad
 TARGET_SUFFIX_iphone4 = _iphone4
-IPHONE_SDK_VERSION_iphone = 4.1
-IPHONE_SDK_VERSION_ipad = 3.2
-IPHONE_SDK_VERSION_iphone4 = 4.1
-IPHONESIMULATOR_APPLICATIONS_DIR_iphone = ${HOME}/Library/Application Support/iPhone Simulator/4.1/Applications
-IPHONESIMULATOR_APPLICATIONS_DIR_ipad = ${HOME}/Library/Application Support/iPhone Simulator/${IPHONE_SDK_VERSION_ipad}/Applications
-IPHONESIMULATOR_APPLICATIONS_DIR_iphone4 = ${HOME}/Library/Application Support/iPhone Simulator/4.1/Applications
+IPHONE_SDK_VERSION_iphone ?= 4.2
+IPHONE_SDK_VERSION_ipad ?= 3.2
+IPHONE_SDK_VERSION_iphone4 ?= 4.2
+IPHONESIMULATOR_APPLICATIONS_DIR_iphone ?= ${HOME}/Library/Application Support/iPhone Simulator/4.2/Applications
+IPHONESIMULATOR_APPLICATIONS_DIR_ipad ?= ${HOME}/Library/Application Support/iPhone Simulator/${IPHONE_SDK_VERSION_ipad}/Applications
+IPHONESIMULATOR_APPLICATIONS_DIR_iphone4 ?= ${HOME}/Library/Application Support/iPhone Simulator/4.2/Applications
 SIMULATE_DEVICE_iphone = iPhone
 SIMULATE_DEVICE_ipad = iPad
 SIMULATE_DEVICE_iphone4 = iPhone 4
@@ -596,6 +611,7 @@ ${foreach target,${APPLICATION_TARGETS}, \
 .PHONY: full_dist
 full_dist: clean all
 	mkdir dist dist/include dist/library dist/testharness
+	cp Changes.txt License.txt ReadMe.txt dist
 	cp -r build/include/* dist/include
 	cp -r build/library/* dist/library
 	cp -r build/testharness/* dist/testharness

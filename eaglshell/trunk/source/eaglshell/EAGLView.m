@@ -138,7 +138,6 @@
 		
 		animating = NO;
 		displayLinkSupported = [[[UIDevice currentDevice] systemVersion] compare: @"3.1" options: NSNumericSearch] != NSOrderedAscending;
-		displayLinkSupported = NO;
 		displayLink = nil;
 		animationTimer = nil;
 		
@@ -168,6 +167,9 @@
 }
 
 - (void) layoutSubviews {
+#ifdef DEBUG
+	GLenum error;
+#endif
 	GLint backingWidth;
 	GLint backingHeight;
 	
@@ -209,6 +211,14 @@
 	
 	glBindRenderbufferOES(GL_RENDERBUFFER, renderbuffer);
 	[context presentRenderbuffer: GL_RENDERBUFFER];
+	
+#ifdef DEBUG
+	error = glGetError();
+	while (error != GL_NO_ERROR) {
+		fprintf(stderr, "GL error: 0x%X\n", error);
+		error = glGetError();
+	}
+#endif
 }
 
 - (enum EAGLShellOpenGLVersion) chosenOpenGLVersion {

@@ -1,3 +1,9 @@
+2.2.3
+ * Updated for iPhone SDK 4.2
+ * GL errors are now printed to stderr for debug builds
+ * Removed a line of test code that unconditionally disabled CADisplayLink
+ * Synchronized with template_stemlib Stable_2011-01-13
+
 2.2.2
  * Updated for iPhone SDK 4.1
 
