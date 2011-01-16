@@ -1,0 +1,5 @@
+1.0.1
+ * Added format_version field
+ * Test harness can now load arbitrary font.json file from command line
+ * Updated for stemobject 2.0.0
+ * Synchronized with template_stemlib Stable_2011-01-13
