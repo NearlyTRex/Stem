@@ -134,7 +134,6 @@ LINKFLAGS = ${FRAMEWORK_LINKFLAGS} ${LIBRARY_LINKFLAGS} ${OTHER_LINKFLAGS}
 
 LINK_ORDER = \
 	library \
-	stubshell/libstemshell_stub.a \
 	eaglshell/libstemshell_eagl.a \
 	glutshell/libstemshell_glut.a \
 	glgraphics/libstem_glgraphics_noglew.a \
@@ -146,6 +145,7 @@ LINK_ORDER = \
 	jsonserialization/libstem_jsonserialization.a \
 	jsonio/libstem_jsonio.a \
 	utilities/libstem_utilities.a \
+	stubshell/libstemshell_stub.a \
 	serialization/libstem_serialization.a \
 	stemobject/libstem_stemobject.a \
 	3dmath/libstem_3dmath.a \
