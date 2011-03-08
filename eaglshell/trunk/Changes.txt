@@ -1,3 +1,7 @@
+2.2.4
+ * Improved performance of touch event handling
+ * Added EAGLShell_getUIType()
+
 2.2.3
  * Updated for iPhone SDK 4.2
  * GL errors are now printed to stderr for debug builds

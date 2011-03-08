@@ -115,6 +115,10 @@ enum EAGLShellOpenGLVersion EAGLShell_getOpenGLAPIVersion() {
 	return [(EAGLShellApplication *) [UIApplication sharedApplication] chosenOpenGLVersion];
 }
 
+enum EAGLShellUIType EAGLShell_getUIType() {
+	return [UIDevice currentDevice].userInterfaceIdiom == UIUserInterfaceIdiomPad ? EAGLShellUIType_iPad : EAGLShellUIType_iPhone;
+}
+
 void EAGLShell_showKeyboard() {
 	[(EAGLShellApplication *) [UIApplication sharedApplication] showKeyboard];
 }

@@ -24,6 +24,7 @@
 #import "eaglshell/EAGLShellApplication.h"
 #import <QuartzCore/QuartzCore.h>
 #include "shell/Target.h"
+#include "shell/Shell.h"
 #include "eaglshell/EAGLTarget.h"
 #include "glgraphics/GLGraphics.h"
 
@@ -66,7 +67,10 @@
 		CAEAGLLayer * layer;
 		
 		if ([[[UIDevice currentDevice] systemVersion] compare: @"4.0" options: NSNumericSearch] != NSOrderedAscending) {
+			isVersion4OrGreater = true;
 			self.contentScaleFactor = [UIScreen mainScreen].scale;
+		} else {
+			isVersion4OrGreater = false;
 		}
 		
 		self.multipleTouchEnabled = YES;
@@ -303,7 +307,7 @@ static unsigned int lowestBitIndex(unsigned int value) {
 	for (touchIndex = 0; touchIndex < [allTouches count] && activeTouchCount < ACTIVE_TOUCH_MAX; touchIndex++) {
 		activeTouches[activeTouchCount].touch = [allTouches objectAtIndex: touchIndex];
 		activeTouches[activeTouchCount].lastLocation = [activeTouches[activeTouchCount].touch locationInView: self];
-		if ([[[UIDevice currentDevice] systemVersion] compare: @"4.0" options: NSNumericSearch] != NSOrderedAscending) {
+		if (isVersion4OrGreater) {
 			activeTouches[activeTouchCount].lastLocation.x *= self.contentScaleFactor;
 			activeTouches[activeTouchCount].lastLocation.y *= self.contentScaleFactor;
 		}
@@ -325,7 +329,7 @@ static unsigned int lowestBitIndex(unsigned int value) {
 		touch = [allTouches objectAtIndex: touchIndex];
 		location = [touch locationInView: self];
 		
-		if ([[[UIDevice currentDevice] systemVersion] compare: @"4.0" options: NSNumericSearch] != NSOrderedAscending) {
+		if (isVersion4OrGreater) {
 			location.x *= self.contentScaleFactor;
 			location.y *= self.contentScaleFactor;
 		}
@@ -352,7 +356,7 @@ static unsigned int lowestBitIndex(unsigned int value) {
 		touch = [allTouches objectAtIndex: touchIndex];
 		location = [touch locationInView: self];
 		
-		if ([[[UIDevice currentDevice] systemVersion] compare: @"4.0" options: NSNumericSearch] != NSOrderedAscending) {
+		if (isVersion4OrGreater) {
 			location.x *= self.contentScaleFactor;
 			location.y *= self.contentScaleFactor;
 		}

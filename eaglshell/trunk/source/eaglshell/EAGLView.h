@@ -39,6 +39,7 @@
 	GLuint packedDepthStencilBuffer;
 	GLuint renderbuffer;
 	
+	BOOL isVersion4OrGreater;
 	BOOL animating;
 	BOOL redisplayWasPosted;
 	BOOL displayLinkSupported;

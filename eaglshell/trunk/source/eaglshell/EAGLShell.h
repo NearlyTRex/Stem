@@ -38,6 +38,11 @@ enum EAGLShellOpenGLVersion {
 	EAGLShellOpenGLVersion_ES2 = 0x2
 };
 
+enum EAGLShellUIType {
+	EAGLShellUIType_iPhone,
+	EAGLShellUIType_iPad
+};
+
 struct EAGLShellConfiguration {
 	/* Your EAGLTarget_configure() function can change this value to express a preference for the
 	   OpenGL API version to be used. If your code is compatible with multiple OpenGL API versions,
@@ -78,6 +83,10 @@ struct EAGLShellConfiguration {
     than one version in your EAGLShellConfiguration struct, you should call this function after
     Target_init() has been called to determine which version was actually chosen. */
 enum EAGLShellOpenGLVersion EAGLShell_getOpenGLAPIVersion();
+
+/** Returns a constant indicating the user interface type of the current device. This is analogous
+    to (and implemented with) -[UIDevice userInterfaceIdiom]. */
+enum EAGLShellUIType EAGLShell_getUIType();
 
 /** Shows the onscreen keyboard on the appropriate side of the screen based on the application's
     orientation. */
