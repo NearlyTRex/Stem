@@ -116,7 +116,10 @@ enum EAGLShellOpenGLVersion EAGLShell_getOpenGLAPIVersion() {
 }
 
 enum EAGLShellUIType EAGLShell_getUIType() {
-	return [UIDevice currentDevice].userInterfaceIdiom == UIUserInterfaceIdiomPad ? EAGLShellUIType_iPad : EAGLShellUIType_iPhone;
+	if ([[[UIDevice currentDevice] systemVersion] compare: @"3.2" options: NSNumericSearch] != NSOrderedAscending) {
+		return [UIDevice currentDevice].userInterfaceIdiom == UIUserInterfaceIdiomPad ? EAGLShellUIType_iPad : EAGLShellUIType_iPhone;
+	}
+	return EAGLShellUIType_iPhone;
 }
 
 void EAGLShell_showKeyboard() {
