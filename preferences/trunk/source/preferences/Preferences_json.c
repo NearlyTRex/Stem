@@ -111,7 +111,7 @@ void Preferences_savePrivate(compat_type(Preferences *) selfPtr) {
 				
 			case PREFERENCES_TYPE_BOOLEAN:
 				rootNode.subitems[valueIndex].type = JSON_TYPE_BOOLEAN;
-				rootNode.subitems[valueIndex].value.number = self->values[valueIndex].value.boolean;
+				rootNode.subitems[valueIndex].value.boolean = self->values[valueIndex].value.boolean;
 				break;
 				
 			case PREFERENCES_TYPE_STRING:
