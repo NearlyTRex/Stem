@@ -257,8 +257,8 @@ ${eval ${call create_directory_target_template,build/intermediate}}
 
 define include_ccflags_template #(target, platform)
 -I source -I include \
-${foreach stem_dependency,${STEM_LIBRARY_DEPENDENCIES_$1} ${STEM_LIBRARY_DEPENDENCIES_$1_$2},-I lib/${dir ${stem_dependency}}/include} \
-${foreach thirdparty_dependency,${THIRDPARTY_LIBRARY_DEPENDENCIES_$1} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1_$2},-I lib/${dir ${thirdparty_dependency}}/include} \
+${foreach stem_dependency,${STEM_LIBRARY_DEPENDENCIES_$1} ${STEM_LIBRARY_DEPENDENCIES_$1_$2},-I lib/${dir ${stem_dependency}}include} \
+${foreach thirdparty_dependency,${THIRDPARTY_LIBRARY_DEPENDENCIES_$1} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1_$2},-I lib/${dir ${thirdparty_dependency}}include} \
 ${foreach source_dependency,${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$1_$2},-I dep/${word 1,${subst /, ,${source_dependency}}}/source}
 endef
 
