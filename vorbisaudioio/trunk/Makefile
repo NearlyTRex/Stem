@@ -24,7 +24,7 @@ TARGET_PLATFORMS_macosx = macosx iphonesimulator iphoneos
 TARGET_PLATFORMS_linux = linux
 TARGET_PLATFORMS_windows = windows
 
-PROJECT_NAME = template_stemlib
+PROJECT_NAME = vorbisaudioio
 IPHONE_BUILD_SDK_VERSION ?= 4.2
 IPHONE_DEPLOYMENT_TARGET_VERSION = 3.1
 CODESIGN_IDENTITY = "iPhone Developer"
@@ -38,10 +38,10 @@ CONFIGURATIONS = debug profile release
 PLATFORMS = ${filter ${TARGET_PLATFORMS_${HOST_PLATFORM}},macosx iphonesimulator iphoneos linux windows}
 ANALYZERS = splint clang
 
-TARGET_NAME_library = libstem_template_stemlib
-TARGET_NAME_unittest = template_stemlib_unittest
-TARGET_NAME_testharness = template_stemlib_testharness
-HUMAN_READABLE_TARGET_NAME_testharness = StemTemplate
+TARGET_NAME_library = libstem_vorbisaudioio
+TARGET_NAME_unittest = vorbisaudioio_unittest
+TARGET_NAME_testharness = vorbisaudioio_testharness
+HUMAN_READABLE_TARGET_NAME_testharness = VorbisAudioIO
 
 #Per-target configurations
 CONFIGURATIONS_library = debug profile release
@@ -120,7 +120,7 @@ EXECUTABLE_SUFFIX_windows = .exe
 
 #General compile/link settings
 DEFINE_CCFLAGS = -DVERSION_MAJOR=${VERSION_MAJOR}u -DVERSION_MINOR=${VERSION_MINOR}u -DVERSION_TWEAK=${VERSION_TWEAK}u
-WARNING_CCFLAGS = -Wall -Wextra -Wno-unused-parameter -Werror
+WARNING_CCFLAGS = -Wall -Wextra -Wno-unused-parameter -Wno-unused-variable -Werror
 OTHER_CCFLAGS = -std=gnu99
 CCFLAGS = ${DEFINE_CCFLAGS} ${WARNING_CCFLAGS} ${OTHER_CCFLAGS}
 
@@ -129,21 +129,40 @@ LIBRARY_LINKFLAGS =
 OTHER_LINKFLAGS = 
 LINKFLAGS = ${FRAMEWORK_LINKFLAGS} ${LIBRARY_LINKFLAGS} ${OTHER_LINKFLAGS}
 
-LINK_ORDER = library
+LINK_ORDER = \
+	library \
+	pcmaudio/library/libstem_pcmaudio.a \
+	utilities/libstem_utilities.a \
+	stubshell/libstemshell_stub.a \
+	stemobject/libstem_stemobject.a \
+	libvorbis/libvorbisfile.a \
+	libvorbis/libvorbis.a \
+	libogg/libogg.a
 
 #Per-target dependencies
 
 PROJECT_LIBRARY_DEPENDENCIES_unittest = library
 PROJECT_LIBRARY_DEPENDENCIES_testharness = library
-STEM_LIBRARY_DEPENDENCIES_library =
+STEM_LIBRARY_DEPENDENCIES_library = \
+	stemobject/libstem_stemobject.a \
+	utilities/libstem_utilities.a
 STEM_LIBRARY_DEPENDENCIES_unittest =
-STEM_LIBRARY_DEPENDENCIES_testharness =
-STEM_SOURCE_DEPENDENCIES_library = 
+STEM_LIBRARY_DEPENDENCIES_testharness = \
+	stemobject/libstem_stemobject.a \
+	utilities/libstem_utilities.a \
+	stubshell/libstemshell_stub.a
+STEM_SOURCE_DEPENDENCIES_library = pcmaudio/library/libstem_pcmaudio.a
 STEM_SOURCE_DEPENDENCIES_unittest = 
-STEM_SOURCE_DEPENDENCIES_testharness = 
-THIRDPARTY_LIBRARY_DEPENDENCIES_library = 
+STEM_SOURCE_DEPENDENCIES_testharness = pcmaudio/library/libstem_pcmaudio.a
+THIRDPARTY_LIBRARY_DEPENDENCIES_library = \
+	libogg/libogg.a \
+	libvorbis/libvorbis.a \
+	libvorbis/libvorbisfile.a
 THIRDPARTY_LIBRARY_DEPENDENCIES_unittest = 
-THIRDPARTY_LIBRARY_DEPENDENCIES_testharness = 
+THIRDPARTY_LIBRARY_DEPENDENCIES_testharness = \
+	libogg/libogg.a \
+	libvorbis/libvorbis.a \
+	libvorbis/libvorbisfile.a
 
 #Per-target per-platform dependencies
 
@@ -156,15 +175,14 @@ THIRDPARTY_LIBRARY_DEPENDENCIES_unittest_macosx =
 #Per-target source file lists
 
 SOURCES_library = \
-	source/template_stemlib/HelloWorld.c
+	source/vorbisaudioio/VorbisAudioIO.c
 
 SOURCES_unittest = \
 	test_source/unittest/framework/unittest_main.c \
 	test_source/unittest/framework/TestList.c \
 	${SOURCES_unittest_suites}
 
-SOURCES_unittest_suites = \
-	test_source/unittest/suites/HelloWorldTest.c
+SOURCES_unittest_suites = 
 
 SOURCES_testharness = \
 	test_source/testharness/TestHarness_main.c
@@ -172,7 +190,7 @@ SOURCES_testharness = \
 #Include files to be distributed with library
 
 INCLUDES = \
-	source/template_stemlib/HelloWorld.h
+	source/vorbisaudioio/VorbisAudioIO.h
 
 #Target resources
 
@@ -257,8 +275,8 @@ ${eval ${call create_directory_target_template,build/intermediate}}
 
 define include_ccflags_template #(target, platform)
 -I source -I include \
-${foreach stem_dependency,${STEM_LIBRARY_DEPENDENCIES_$1} ${STEM_LIBRARY_DEPENDENCIES_$1_$2},-I lib/${dir ${stem_dependency}}/include} \
-${foreach thirdparty_dependency,${THIRDPARTY_LIBRARY_DEPENDENCIES_$1} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1_$2},-I lib/${dir ${thirdparty_dependency}}/include} \
+${foreach stem_dependency,${STEM_LIBRARY_DEPENDENCIES_$1} ${STEM_LIBRARY_DEPENDENCIES_$1_$2},-I lib/${dir ${stem_dependency}}include} \
+${foreach thirdparty_dependency,${THIRDPARTY_LIBRARY_DEPENDENCIES_$1} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1_$2},-I lib/${dir ${thirdparty_dependency}}include} \
 ${foreach source_dependency,${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$1_$2},-I dep/${word 1,${subst /, ,${source_dependency}}}/source}
 endef
 
@@ -761,7 +779,7 @@ endef
 source_dist:
 	#mkdir -p build/source_dist/include
 	#mkdir -p build/source_dist/lib
-	mkdir -p build/source_dist/source/template_stemlib
+	mkdir -p build/source_dist/source/vorbisaudioio
 	mkdir -p build/source_dist/test_resources
 	mkdir -p build/source_dist/test_source/testharness
 	mkdir -p build/source_dist/test_source/unittest/framework
@@ -771,11 +789,11 @@ source_dist:
 	cp Changes.txt License.txt ReadMe.txt version build/source_dist
 	
 	#cp -r include/* build/source_dist/include
-	#cp -r lib/* build/source_dist/lib
+	cp -r lib/* build/source_dist/lib
 	#find build/source_dist/include -name .svn -print0 | xargs -0 rm -rf
-	#find build/source_dist/lib -name .svn -print0 | xargs -0 rm -rf
+	find build/source_dist/lib -name .svn -print0 | xargs -0 rm -rf
 	
-	cp source/template_stemlib/* build/source_dist/source/template_stemlib
+	cp source/vorbisaudioio/* build/source_dist/source/vorbisaudioio
 	
 	cp test_resources/* build/source_dist/test_resources
 	
