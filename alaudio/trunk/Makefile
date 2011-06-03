@@ -24,24 +24,23 @@ TARGET_PLATFORMS_macosx = macosx iphonesimulator iphoneos
 TARGET_PLATFORMS_linux = linux
 TARGET_PLATFORMS_windows = windows
 
-PROJECT_NAME = template_stemlib
+PROJECT_NAME = alaudio
 IPHONE_BUILD_SDK_VERSION ?= 4.2
 IPHONE_DEPLOYMENT_TARGET_VERSION = 3.1
 CODESIGN_IDENTITY = "iPhone Developer"
 SVNROOT = http://sacredsoftware.net/svn/misc#master_source_only
 
 LIBRARY_TARGETS = library
-EXECUTABLE_TARGETS = unittest
-APPLICATION_TARGETS = testharness
+EXECUTABLE_TARGETS = unittest testharness
+APPLICATION_TARGETS = 
 TARGETS = ${LIBRARY_TARGETS} ${EXECUTABLE_TARGETS} ${APPLICATION_TARGETS}
 CONFIGURATIONS = debug profile release
 PLATFORMS = ${filter ${TARGET_PLATFORMS_${HOST_PLATFORM}},macosx iphonesimulator iphoneos linux windows}
 ANALYZERS = splint clang
 
-TARGET_NAME_library = libstem_template_stemlib
-TARGET_NAME_unittest = template_stemlib_unittest
-TARGET_NAME_testharness = template_stemlib_testharness
-HUMAN_READABLE_TARGET_NAME_testharness = StemTemplate
+TARGET_NAME_library = libstem_alaudio
+TARGET_NAME_unittest = alaudio_unittest
+TARGET_NAME_testharness = alaudio_testharness
 
 #Per-target configurations
 CONFIGURATIONS_library = debug profile release
@@ -76,7 +75,7 @@ CLANG_macosx = /usr/bin/clang
 SDKROOT_macosx = /Developer/SDKs/MacOSX10.5.sdk
 ARCHS_macosx = ppc i386 x86_64
 CCFLAGS_macosx = -isysroot ${SDKROOT_macosx} -mmacosx-version-min=10.5
-LINKFLAGS_macosx = -isysroot ${SDKROOT_macosx} -mmacosx-version-min=10.5
+LINKFLAGS_macosx = -isysroot ${SDKROOT_macosx} -mmacosx-version-min=10.5 -framework OpenAL
 
 CC_iphonesimulator_i386 = /Developer/Platforms/iPhoneSimulator.platform/Developer/usr/bin/gcc-4.2 -arch i386
 AR_iphonesimulator = /Developer/Platforms/iPhoneSimulator.platform/Developer/usr/bin/ar
@@ -86,7 +85,7 @@ CLANG_iphonesimulator = /usr/bin/clang
 SDKROOT_iphonesimulator = /Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator${IPHONE_BUILD_SDK_VERSION}.sdk
 ARCHS_iphonesimulator = i386
 CCFLAGS_iphonesimulator = -isysroot ${SDKROOT_iphonesimulator} -mmacosx-version-min=10.5 -D__IPHONE_OS_VERSION_MIN_REQUIRED=${call iphone_sdk_version_integer,${IPHONE_DEPLOYMENT_TARGET_VERSION}}
-LINKFLAGS_iphonesimulator = -isysroot ${SDKROOT_iphonesimulator} -mmacosx-version-min=10.5
+LINKFLAGS_iphonesimulator = -isysroot ${SDKROOT_iphonesimulator} -mmacosx-version-min=10.5 -framework OpenAL
 
 CC_iphoneos_armv6 = /Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/gcc-4.2 -arch armv6
 CC_iphoneos_armv7 = /Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/gcc-4.2 -arch armv7
@@ -97,7 +96,7 @@ CLANG_iphoneos = /usr/bin/clang
 SDKROOT_iphoneos = /Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS${IPHONE_BUILD_SDK_VERSION}.sdk
 ARCHS_iphoneos = armv6 armv7
 CCFLAGS_iphoneos = -isysroot ${SDKROOT_iphoneos} -miphoneos-version-min=${IPHONE_DEPLOYMENT_TARGET_VERSION}
-LINKFLAGS_iphoneos = -isysroot ${SDKROOT_iphoneos} -miphoneos-version-min=${IPHONE_DEPLOYMENT_TARGET_VERSION}
+LINKFLAGS_iphoneos = -isysroot ${SDKROOT_iphoneos} -miphoneos-version-min=${IPHONE_DEPLOYMENT_TARGET_VERSION} -framework OpenAL
 
 CC_linux_i686 = /usr/bin/gcc
 AR_linux = /usr/bin/ar
@@ -129,15 +128,17 @@ LIBRARY_LINKFLAGS =
 OTHER_LINKFLAGS = 
 LINKFLAGS = ${FRAMEWORK_LINKFLAGS} ${LIBRARY_LINKFLAGS} ${OTHER_LINKFLAGS}
 
-LINK_ORDER = library
+LINK_ORDER = \
+	library \
+	stemobject/libstem_stemobject.a
 
 #Per-target dependencies
 
 PROJECT_LIBRARY_DEPENDENCIES_unittest = library
 PROJECT_LIBRARY_DEPENDENCIES_testharness = library
-STEM_LIBRARY_DEPENDENCIES_library =
+STEM_LIBRARY_DEPENDENCIES_library = stemobject/libstem_stemobject.a
 STEM_LIBRARY_DEPENDENCIES_unittest =
-STEM_LIBRARY_DEPENDENCIES_testharness =
+STEM_LIBRARY_DEPENDENCIES_testharness = stemobject/libstem_stemobject.a
 STEM_SOURCE_DEPENDENCIES_library = 
 STEM_SOURCE_DEPENDENCIES_unittest = 
 STEM_SOURCE_DEPENDENCIES_testharness = 
@@ -156,15 +157,16 @@ THIRDPARTY_LIBRARY_DEPENDENCIES_unittest_macosx =
 #Per-target source file lists
 
 SOURCES_library = \
-	source/template_stemlib/HelloWorld.c
+	source/alaudio/ALAudioBuffer.c \
+	source/alaudio/ALAudioSource.c \
+	source/alaudio/ALAudioSystem.c
 
 SOURCES_unittest = \
 	test_source/unittest/framework/unittest_main.c \
 	test_source/unittest/framework/TestList.c \
 	${SOURCES_unittest_suites}
 
-SOURCES_unittest_suites = \
-	test_source/unittest/suites/HelloWorldTest.c
+SOURCES_unittest_suites = 
 
 SOURCES_testharness = \
 	test_source/testharness/TestHarness_main.c
@@ -172,7 +174,10 @@ SOURCES_testharness = \
 #Include files to be distributed with library
 
 INCLUDES = \
-	source/template_stemlib/HelloWorld.h
+	source/alaudio/ALAudioBuffer.h \
+	source/alaudio/ALAudioSource.h \
+	source/alaudio/ALAudioSystem.h \
+	source/alaudio/ALIncludes.h
 
 #Target resources
 
@@ -257,8 +262,8 @@ ${eval ${call create_directory_target_template,build/intermediate}}
 
 define include_ccflags_template #(target, platform)
 -I source -I include \
-${foreach stem_dependency,${STEM_LIBRARY_DEPENDENCIES_$1} ${STEM_LIBRARY_DEPENDENCIES_$1_$2},-I lib/${dir ${stem_dependency}}/include} \
-${foreach thirdparty_dependency,${THIRDPARTY_LIBRARY_DEPENDENCIES_$1} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1_$2},-I lib/${dir ${thirdparty_dependency}}/include} \
+${foreach stem_dependency,${STEM_LIBRARY_DEPENDENCIES_$1} ${STEM_LIBRARY_DEPENDENCIES_$1_$2},-I lib/${dir ${stem_dependency}}include} \
+${foreach thirdparty_dependency,${THIRDPARTY_LIBRARY_DEPENDENCIES_$1} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1_$2},-I lib/${dir ${thirdparty_dependency}}include} \
 ${foreach source_dependency,${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$1_$2},-I dep/${word 1,${subst /, ,${source_dependency}}}/source}
 endef
 
@@ -761,7 +766,7 @@ endef
 source_dist:
 	#mkdir -p build/source_dist/include
 	#mkdir -p build/source_dist/lib
-	mkdir -p build/source_dist/source/template_stemlib
+	mkdir -p build/source_dist/source/alaudio
 	mkdir -p build/source_dist/test_resources
 	mkdir -p build/source_dist/test_source/testharness
 	mkdir -p build/source_dist/test_source/unittest/framework
@@ -771,11 +776,11 @@ source_dist:
 	cp Changes.txt License.txt ReadMe.txt version build/source_dist
 	
 	#cp -r include/* build/source_dist/include
-	#cp -r lib/* build/source_dist/lib
+	cp -r lib/* build/source_dist/lib
 	#find build/source_dist/include -name .svn -print0 | xargs -0 rm -rf
-	#find build/source_dist/lib -name .svn -print0 | xargs -0 rm -rf
+	find build/source_dist/lib -name .svn -print0 | xargs -0 rm -rf
 	
-	cp source/template_stemlib/* build/source_dist/source/template_stemlib
+	cp source/alaudio/* build/source_dist/source/alaudio
 	
 	cp test_resources/* build/source_dist/test_resources
 	
