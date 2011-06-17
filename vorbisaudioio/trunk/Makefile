@@ -31,8 +31,8 @@ CODESIGN_IDENTITY = "iPhone Developer"
 SVNROOT = http://sacredsoftware.net/svn/misc#master_source_only
 
 LIBRARY_TARGETS = library
-EXECUTABLE_TARGETS = unittest
-APPLICATION_TARGETS = testharness
+EXECUTABLE_TARGETS = unittest testharness
+APPLICATION_TARGETS = 
 TARGETS = ${LIBRARY_TARGETS} ${EXECUTABLE_TARGETS} ${APPLICATION_TARGETS}
 CONFIGURATIONS = debug profile release
 PLATFORMS = ${filter ${TARGET_PLATFORMS_${HOST_PLATFORM}},macosx iphonesimulator iphoneos linux windows}
@@ -131,7 +131,7 @@ LINKFLAGS = ${FRAMEWORK_LINKFLAGS} ${LIBRARY_LINKFLAGS} ${OTHER_LINKFLAGS}
 
 LINK_ORDER = \
 	library \
-	pcmaudio/library/libstem_pcmaudio.a \
+	pcmaudio/libstem_pcmaudio.a \
 	utilities/libstem_utilities.a \
 	stubshell/libstemshell_stub.a \
 	stemobject/libstem_stemobject.a \
@@ -144,16 +144,18 @@ LINK_ORDER = \
 PROJECT_LIBRARY_DEPENDENCIES_unittest = library
 PROJECT_LIBRARY_DEPENDENCIES_testharness = library
 STEM_LIBRARY_DEPENDENCIES_library = \
+	pcmaudio/libstem_pcmaudio.a \
 	stemobject/libstem_stemobject.a \
 	utilities/libstem_utilities.a
 STEM_LIBRARY_DEPENDENCIES_unittest =
 STEM_LIBRARY_DEPENDENCIES_testharness = \
+	pcmaudio/libstem_pcmaudio.a \
 	stemobject/libstem_stemobject.a \
 	utilities/libstem_utilities.a \
 	stubshell/libstemshell_stub.a
-STEM_SOURCE_DEPENDENCIES_library = pcmaudio/library/libstem_pcmaudio.a
+STEM_SOURCE_DEPENDENCIES_library = 
 STEM_SOURCE_DEPENDENCIES_unittest = 
-STEM_SOURCE_DEPENDENCIES_testharness = pcmaudio/library/libstem_pcmaudio.a
+STEM_SOURCE_DEPENDENCIES_testharness = 
 THIRDPARTY_LIBRARY_DEPENDENCIES_library = \
 	libogg/libogg.a \
 	libvorbis/libvorbis.a \
@@ -175,7 +177,9 @@ THIRDPARTY_LIBRARY_DEPENDENCIES_unittest_macosx =
 #Per-target source file lists
 
 SOURCES_library = \
-	source/vorbisaudioio/VorbisAudioIO.c
+	source/vorbisaudioio/VorbisAudioIO.c \
+	source/vorbisaudioio/VorbisAudioIOPrivate.c \
+	source/vorbisaudioio/VorbisAudioStream.c
 
 SOURCES_unittest = \
 	test_source/unittest/framework/unittest_main.c \
@@ -190,7 +194,8 @@ SOURCES_testharness = \
 #Include files to be distributed with library
 
 INCLUDES = \
-	source/vorbisaudioio/VorbisAudioIO.h
+	source/vorbisaudioio/VorbisAudioIO.h \
+	source/vorbisaudioio/VorbisAudioStream.h
 
 #Target resources
 

@@ -21,6 +21,7 @@
 */
 
 #include "vorbisaudioio/VorbisAudioIO.h"
+#include "vorbisaudioio/VorbisAudioIOPrivate.h"
 #include "vorbis/codec.h"
 #include "vorbis/vorbisfile.h"
 #include "utilities/IOUtilities.h"
@@ -38,62 +39,7 @@ PCMAudio * VorbisAudioIO_loadOggVorbisFile(const char * filePath) {
 	return audio;
 }
 
-static size_t memreadFunc(void * outData, size_t size, size_t nmemb, void * inData) {
-	struct memreadContext * context = inData;
-	
-	if (memread(context, size * nmemb, outData)) {
-		return size * nmemb;
-	}
-	if (context->position < context->length) {
-		size_t bytesRead;
-		
-		bytesRead = context->length - context->position;
-		memcpy(outData, context->data + context->position, bytesRead);
-		context->position = context->length;
-		return bytesRead;
-	}
-	return 0;
-}
-
-static int memseekFunc(void * inData, ogg_int64_t offset, int whence) {
-	struct memreadContext * context = inData;
-	
-	switch (whence) {
-		case SEEK_SET:
-			break;
-			
-		case SEEK_CUR:
-			offset += context->position;
-			break;
-			
-		case SEEK_END:
-			offset = context->length;
-			break;
-			
-		default:
-			return -1;
-	}
-	
-	if (offset >= 0 && offset <= (ogg_int64_t) context->length) {
-		context->position = offset;
-		return 0;
-	}
-	return -1;
-}
-
-static long memtellFunc(void * inData) {
-	struct memreadContext * context = inData;
-	
-	return context->position;
-}
-
 #define BUFFER_SIZE 16384
-
-#ifdef __BIG_ENDIAN__
-#define OV_READ_ENDIANNESS 1
-#else
-#define OV_READ_ENDIANNESS 0
-#endif
 
 PCMAudio * VorbisAudioIO_loadOggVorbisData(const void * data, size_t length) {
 	struct memreadContext readContext;
@@ -111,10 +57,10 @@ PCMAudio * VorbisAudioIO_loadOggVorbisData(const void * data, size_t length) {
 	PCMAudio * audio;
 	
 	readContext = memreadContextInit(data, length);
-	callbacks.read_func = memreadFunc;
-	callbacks.seek_func = memseekFunc;
+	callbacks.read_func = VorbisAudioIO_memreadFunc;
+	callbacks.seek_func = VorbisAudioIO_memseekFunc;
 	callbacks.close_func = NULL;
-	callbacks.tell_func = memtellFunc;
+	callbacks.tell_func = VorbisAudioIO_memtellFunc;
 	status = ov_open_callbacks(&readContext, &file, NULL, 0, callbacks);
 	if (status != 0) {
 		fprintf(stderr, "Error: ov_open_callbacks returned %d\n", status);
