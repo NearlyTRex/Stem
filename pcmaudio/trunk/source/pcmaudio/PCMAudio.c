@@ -5,7 +5,7 @@
 PCMAudio * PCMAudio_create(unsigned int bytesPerSample,
                            unsigned int channelCount,
                            unsigned int sampleRate,
-                           unsigned int sampleCount,
+                           size_t sampleCount,
                            void * samples,
                            bool copySamples) {
 	stemobject_create_implementation(PCMAudio, init, bytesPerSample, channelCount, sampleRate, sampleCount, samples, copySamples)
@@ -15,7 +15,7 @@ void PCMAudio_init(compat_type(PCMAudio *) selfPtr,
                    unsigned int bytesPerSample,
                    unsigned int channelCount,
                    unsigned int sampleRate,
-                   unsigned int sampleCount,
+                   size_t sampleCount,
                    void * samples,
                    bool copySamples) {
 	PCMAudio * self = selfPtr;

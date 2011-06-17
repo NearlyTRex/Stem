@@ -150,7 +150,8 @@ THIRDPARTY_LIBRARY_DEPENDENCIES_unittest_macosx =
 #Per-target source file lists
 
 SOURCES_library = \
-	source/pcmaudio/PCMAudio.c
+	source/pcmaudio/PCMAudio.c \
+	source/pcmaudio/PCMAudioStream.c
 
 SOURCES_unittest = \
 	test_source/unittest/framework/unittest_main.c \
@@ -162,7 +163,8 @@ SOURCES_unittest_suites =
 #Include files to be distributed with library
 
 INCLUDES = \
-	source/pcmaudio/PCMAudio.h
+	source/pcmaudio/PCMAudio.h \
+	source/pcmaudio/PCMAudioStream.h
 
 #Target resources
 

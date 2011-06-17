@@ -3,6 +3,7 @@
 
 #include "stemobject/StemObject.h"
 #include <stdbool.h>
+#include <stdlib.h>
 
 typedef struct PCMAudio PCMAudio;
 
@@ -12,7 +13,7 @@ typedef struct PCMAudio PCMAudio;
 	unsigned int bytesPerSample; \
 	unsigned int channelCount; \
 	unsigned int sampleRate; \
-	unsigned int sampleCount; \
+	size_t sampleCount; \
 	void * samples;
 
 struct PCMAudio {
@@ -24,14 +25,14 @@ struct PCMAudio {
 PCMAudio * PCMAudio_create(unsigned int bytesPerSample,
                            unsigned int channelCount,
                            unsigned int sampleRate,
-                           unsigned int sampleCount,
+                           size_t sampleCount,
                            void * samples,
                            bool copySamples);
 void PCMAudio_init(compat_type(PCMAudio *) selfPtr,
                    unsigned int bytesPerSample,
                    unsigned int channelCount,
                    unsigned int sampleRate,
-                   unsigned int sampleCount,
+                   size_t sampleCount,
                    void * samples,
                    bool copySamples);
 void PCMAudio_dispose(compat_type(PCMAudio *) selfPtr);
