@@ -1,0 +1,1 @@
+PCMAudio defines an object that represents static uncompressed linear PCM audio data, and an abstract interface for streaming audio data. No I/O operations, transformations, or other functionality is provided; these are implemented by other stem libraries that depend on pcmaudio.
