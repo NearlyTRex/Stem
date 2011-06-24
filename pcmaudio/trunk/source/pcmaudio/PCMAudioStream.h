@@ -37,8 +37,9 @@ typedef struct PCMAudioStream PCMAudioStream;
 	unsigned int sampleRate; \
 	size_t sampleCount; \
 	\
+	/* length is in bytes; if loop is true, audio will seamlessly wrap to the beginning if the end is reached during that read call */ \
 	size_t (* read)(compat_type(PCMAudioStream *) self, size_t length, void * buffer, bool loop); \
-	/* offset is in samples; whence is SEEK_SET, SEEK_CUR, or SEEK_END */ \
+	/* offset is in sample frames (bytesPerSample * channelCount bytes); whence is SEEK_SET, SEEK_CUR, or SEEK_END */ \
 	void (* seek)(compat_type(PCMAudioStream *) self, long offset, int whence);
 
 struct PCMAudioStream {

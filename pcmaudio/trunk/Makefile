@@ -133,7 +133,7 @@ LINK_ORDER = \
 
 PROJECT_LIBRARY_DEPENDENCIES_unittest = library
 STEM_LIBRARY_DEPENDENCIES_library = stemobject/libstem_stemobject.a
-STEM_LIBRARY_DEPENDENCIES_unittest =
+STEM_LIBRARY_DEPENDENCIES_unittest = stemobject/libstem_stemobject.a
 STEM_SOURCE_DEPENDENCIES_library = 
 STEM_SOURCE_DEPENDENCIES_unittest = 
 THIRDPARTY_LIBRARY_DEPENDENCIES_library = 
@@ -158,7 +158,8 @@ SOURCES_unittest = \
 	test_source/unittest/framework/TestList.c \
 	${SOURCES_unittest_suites}
 
-SOURCES_unittest_suites = 
+SOURCES_unittest_suites = \
+	test_source/unittest/suites/PCMAudioTest.c
 
 #Include files to be distributed with library
 
