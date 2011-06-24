@@ -3,11 +3,12 @@
 #include <stdbool.h>
 #include <string.h>
 
+#include "utilities/IOUtilities.h"
 #include "vorbisaudioio/VorbisAudioIO.h"
 #include "vorbisaudioio/VorbisAudioStream.h"
 
 static void printUsage() {
-	fprintf(stderr, "Usage: alaudio_testharness [-o outFile] [--stream] [--loop] inFile\n");
+	fprintf(stderr, "Usage: vorbisaudioio_testharness [-o outFile] [--stream] [--loop] inFile\n");
 }
 
 #define STREAM_READ_SIZE 16384
@@ -18,6 +19,7 @@ int main(int argc, char ** argv) {
 	char * outFileName = NULL;
 	bool stream = false;
 	bool loop = false;
+	bool data = false;
 	
 	for (argIndex = 1; argIndex < argc; argIndex++) {
 		if (!strcmp(argv[argIndex], "-o")) {
@@ -32,6 +34,9 @@ int main(int argc, char ** argv) {
 			
 		} else if (!strcmp(argv[argIndex], "--loop")) {
 			loop = true;
+			
+		} else if (!strcmp(argv[argIndex], "--data")) {
+			data = true;
 			
 		} else if (!strcmp(argv[argIndex], "--help")) {
 			printUsage();
@@ -54,7 +59,16 @@ int main(int argc, char ** argv) {
 	if (stream) {
 		VorbisAudioStream * stream;
 		
-		stream = VorbisAudioStream_createWithFile(inFileName);
+		if (data) {
+			void * fileContents;
+			size_t fileLength;
+			
+			printf("Reading stream from memory\n");
+			fileContents = readFileSimple(inFileName, &fileLength);
+			stream = VorbisAudioStream_createWithData(fileContents, fileLength, true);
+		} else {
+			stream = VorbisAudioStream_createWithFile(inFileName);
+		}
 		printf("Stream has %zu samples\n%u bytes per sample\n%u channels\n%u samples per second\n", stream->sampleCount, stream->bytesPerSample, stream->channelCount, stream->sampleRate);
 		
 		if (outFileName != NULL) {

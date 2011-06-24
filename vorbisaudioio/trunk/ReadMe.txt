@@ -1,0 +1,1 @@
+VorbisAudioIO provides basic support for reading Ogg Vorbis audio data into PCMAudio and PCMAudioStream objects via libvorbis.
