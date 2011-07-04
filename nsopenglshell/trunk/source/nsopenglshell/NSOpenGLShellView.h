@@ -26,6 +26,7 @@
 
 @interface NSOpenGLShellView : NSOpenGLView {
 	BOOL animating;
+	BOOL initCalled;
 	BOOL redisplayWasPosted;
 	NSTimer * animationTimer;
 	int buttonMask;
@@ -35,6 +36,7 @@
 }
 
 - (id) initWithFrame: (NSRect) frame configuration: (struct NSOpenGLShellConfiguration) configuration;
+- (void) initCalled;
 - (void) redisplayPosted;
 - (void) toggleFullScreen;
 - (void) startAnimation;

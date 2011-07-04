@@ -48,10 +48,13 @@ extern bool mainLoopCalled;
 	
 	[window setContentView: view];
 	[window setInitialFirstResponder: view];
-	[window makeKeyAndOrderFront: nil];
 	
 	Target_resized([view bounds].size.width, [view bounds].size.height);
 	Target_init();
+	[view initCalled];
+	[view displayIfNeeded];
+	
+	[window makeKeyAndOrderFront: nil];
 	
 	if (!mainLoopCalled) {
 		exit(EXIT_SUCCESS);

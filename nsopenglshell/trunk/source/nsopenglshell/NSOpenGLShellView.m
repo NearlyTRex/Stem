@@ -379,6 +379,10 @@ static unsigned int NSEventKeyModifiersToShellKeyModifiers(NSUInteger modifiers)
 	return YES;
 }
 
+- (void) initCalled {
+	initCalled = YES;
+}
+
 - (void) redisplayPosted {
 	if (animating) {
 		redisplayWasPosted = YES;
@@ -406,6 +410,11 @@ static unsigned int NSEventKeyModifiersToShellKeyModifiers(NSUInteger modifiers)
 #ifdef DEBUG
 	GLenum error;
 #endif
+	
+	if (!initCalled) {
+		[self setNeedsDisplay: YES];
+		return;
+	}
 	
 	[[self openGLContext] makeCurrentContext];
 	
