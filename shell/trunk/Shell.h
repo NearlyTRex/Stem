@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2010 Alex Diener
+  Copyright (c) 2011 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -40,11 +40,14 @@ bool Shell_isFullScreen();
     screen mode, in which case Shell_setFullScreen returns false. */
 bool Shell_setFullScreen(bool fullScreen);
 
-/** Returns the current time in seconds as a high-resolution monotonically increasing value
-    from an unspecified starting time. */
+/** Returns the current time in seconds as a high-resolution monotonically increasing value.
+    The starting time is unspecified and not meaningful; this function is intended only for
+    measuring intervals. */
 double Shell_getCurrentTime();
 
-/** Returns the path to the application's built-in resources directory. */
+/** Returns the path to the application's built-in resources directory. This directory should also
+    be set as the current working directory at startup by shell implementations, so you can safely
+    use relative paths to open files without having to call this function. */
 const char * Shell_getResourcePath();
 
 #endif

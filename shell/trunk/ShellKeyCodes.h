@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2010 Alex Diener
+  Copyright (c) 2011 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -194,5 +194,11 @@
 #define KEYBOARD_RIGHT_SHIFT            0xE5
 #define KEYBOARD_RIGHT_ALT              0xE6
 #define KEYBOARD_RIGHT_GUI              0xE7
+
+#define MODIFIER_SHIFT_BIT 0x01
+#define MODIFIER_CONTROL_BIT 0x02
+#define MODIFIER_ALT_BIT 0x04
+#define MODIFIER_COMMAND_BIT 0x08
+#define MODIFIER_CAPS_LOCK_BIT 0x10
 
 #endif

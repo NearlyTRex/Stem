@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2010 Alex Diener
+  Copyright (c) 2011 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -24,26 +24,36 @@
 #define __TARGET_H__
 
 /** Main entry point. Called when the shell's bootstrapping has finished. You should call
-    Shell_mainLoop from this function if you want to continue execution. */
+    Shell_mainLoop from this function if you want to continue execution. If you do not, the program
+    will exit after Target_init() returns. */
 void Target_init();
 
 /** Called by the shell when a frame is ready to be drawn. In OpenGL-based shells, the drawing context
     will have been made current, and you should issue OpenGL calls to draw your scene as appropriate.
-    This function also serves as the main heartbeat of the target application. Call Shell_redisplay()
-    at the end of this function if you want it to be called again on the next vertical blank. */
+    This function also serves as the main heartbeat of the target application. Any periodic logic
+    updates your application does should be done from within this function. Call Shell_redisplay()
+    at the end of this function if you want it to be called again on the next vertical blank. If you
+    are using a double buffered OpenGL context, buffers will automatically be swapped after
+    Target_draw() completes. */
 void Target_draw();
 
-/** Called when the dimensions of the available drawing/input  surface have changed, such as by a
+/** Called when the dimensions of the available drawing/input surface have changed, such as by a
     window resize or full-screen toggle. */
 void Target_resized(unsigned int newWidth, unsigned int newHeight);
 
-/** Called when the user presses a key. charCode is a UTF-32 character value. keyCode is a value
-    defined by ShellKeyCodes.h. */
+/** Called when the user presses a key. charCode is a UTF-32 character value. keyCode is one of the
+    KEYBOARD_* or KEYPAD_* values defined by ShellKeyCodes.h. modifierFlags is a bitfield containing
+    zero or more of the MODIFIER_* bits defined by ShellKeyCodes.h. */
 void Target_keyDown(unsigned int charCode, unsigned int keyCode);
 
-/** Called when the user releases a key. charCode is a UTF-32 character value. keyCode is a value
-    defined by ShellKeyCodes.h. */
-void Target_keyUp(unsigned int charCode, unsigned int keyCode);
+/** Called when the user releases a key. charCode is a UTF-32 character value. keyCode is one of the
+    KEYBOARD_* or KEYPAD_* values defined by ShellKeyCodes.h. modifierFlags is a bitfield containing
+    zero or more of the MODIFIER_* bits defined by ShellKeyCodes.h. */
+void Target_keyUp(unsigned int charCode, unsigned int keyCode, unsigned int modifierFlags);
+
+/** Called when the user presses or releases a modifier key. modifierFlags is a bitfield containing
+    zero or more of the MODIFIER_* bits defined by ShellKeyCodes.h. */
+void Target_keyModifiersChanged(unsigned int modifierFlags);
 
 /** Called when the user has clicked their mouse or other pointing device. For multi-touch events,
     buttonNumber identifies the finger that has touched the screen, starting at 0 and incrementing by
@@ -66,5 +76,15 @@ void Target_mouseMoved(float x, float y);
     the screen, you'll get one call per finger moved with a single bit in buttonMask set each time.
     See Target_mouseDown for other parameter descriptions. */
 void Target_mouseDragged(unsigned int buttonMask, float x, float y);
+
+/** Called when your application has been placed in the background by the user switching away from it
+    to another application, or by other means. The meaning of this may vary by operating system/shell,
+    and some shells may not be able to report it at all. */
+void Target_backgrounded();
+
+/** Called when your application has been placed in the foreground by the user switching to it from
+    another application, or by other means. The meaning of this may vary by operating system/shell,
+    and some shells may not be able to report it at all. */
+void Target_foregrounded();
 
 #endif

@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2010 Alex Diener
+  Copyright (c) 2011 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -38,7 +38,8 @@ enum ShellBatteryState Shell_getBatteryState();
 
 /** Returns the device's battery level, if known, in the range [0..1]. If Shell_getBatteryState()
     returns something other than ShellBatteryState_full, ShellBatteryState_charging, or
-    ShellBatteryState_unplugged, a negative value is returned. */
+    ShellBatteryState_unplugged, the return value of this function is meaningless. In these cases,
+    -1 will generally be returned. */
 float Shell_getBatteryLevel();
 
 #endif
