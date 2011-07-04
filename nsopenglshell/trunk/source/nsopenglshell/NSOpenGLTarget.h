@@ -25,8 +25,9 @@
 
 #include "nsopenglshell/NSOpenGLShell.h"
 
+/** Called prior to Target_init() to allow the target to express preferences for various settings related
+    to OpenGL context setup and other things. See the NSOpenGLShellConfiguration struct in NSOpenGLShell.h
+    for details. */
 void NSOpenGLTarget_configure(int argc, const char ** argv, struct NSOpenGLShellConfiguration * configuration);
-
-// App backgrounded/foregrounded...should probably go into shell
 
 #endif

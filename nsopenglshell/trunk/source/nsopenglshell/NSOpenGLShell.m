@@ -25,12 +25,15 @@
 #import <Cocoa/Cocoa.h>
 #include <mach/mach.h>
 #include <mach/mach_time.h>
+#import <IOKit/ps/IOPowerSources.h>
+#import <IOKit/ps/IOPSKeys.h>
 
 #import "nsopenglshell/NSOpenGLShellApplication.h"
 #include "shell/Shell.h"
 #include "shell/ShellBatteryInfo.h"
 
 bool mainLoopCalled = false;
+static bool cursorHiddenByHide = false;
 
 void Shell_mainLoop() {
 	mainLoopCalled = true;
@@ -74,11 +77,164 @@ const char * Shell_getResourcePath() {
 }
 
 enum ShellBatteryState Shell_getBatteryState() {
-	// TODO (see http://developer.apple.com/library/mac/#samplecode/BatteryInfo/Listings/BatteryInfoPlugIn_m.html)
-	return ShellBatteryState_unknown;
+	CFTypeRef info;
+	CFArrayRef list;
+	CFDictionaryRef battery;
+	enum ShellBatteryState batteryState = ShellBatteryState_notBatteryPowered;
+	
+	info = IOPSCopyPowerSourcesInfo();
+	if (info == NULL) {
+		return batteryState;
+	}
+	list = IOPSCopyPowerSourcesList(info);
+	if (list == NULL) {
+		CFRelease(info);
+		return batteryState;
+	}
+	
+	if (CFArrayGetCount(list) > 0 && (battery = IOPSGetPowerSourceDescription(info, CFArrayGetValueAtIndex(list, 0))) != NULL) {
+		if (![[(NSDictionary *) battery objectForKey: @kIOPSIsPresentKey] boolValue]) {
+			batteryState = ShellBatteryState_batteryMissing; // How to tell it shouldn't be ShellBatteryState_notBatteryPowered?
+		} else if ([[(NSDictionary *) battery objectForKey: @kIOPSIsChargingKey] boolValue]) {
+			batteryState = ShellBatteryState_charging;
+		} else if ([(NSString *) [(NSDictionary *) battery objectForKey: @kIOPSPowerSourceStateKey] isEqualToString: @kIOPSACPowerValue]) {
+			batteryState = ShellBatteryState_full;
+		} else {
+			batteryState = ShellBatteryState_unplugged;
+		}
+	}
+	
+	CFRelease(list);
+	CFRelease(info);
+	
+	return batteryState;
 }
 
 float Shell_getBatteryLevel() {
-	// TODO (see http://developer.apple.com/library/mac/#samplecode/BatteryInfo/Listings/BatteryInfoPlugIn_m.html)
-	return 1.0f;
+	CFTypeRef info;
+	CFArrayRef list;
+	CFDictionaryRef battery;
+	float batteryLevel = -1.0f;
+	
+	info = IOPSCopyPowerSourcesInfo();
+	if (info == NULL) {
+		return -1.0f;
+	}
+	list = IOPSCopyPowerSourcesList(info);
+	if (list == NULL) {
+		CFRelease(info);
+		return -1.0f;
+	}
+	
+	if (CFArrayGetCount(list) > 0 && (battery = IOPSGetPowerSourceDescription(info, CFArrayGetValueAtIndex(list, 0))) != NULL) {
+		if ([[(NSDictionary *) battery objectForKey: @kIOPSIsPresentKey] boolValue]) {
+			batteryLevel = [[(NSDictionary *) battery objectForKey: @kIOPSCurrentCapacityKey] floatValue] / [[(NSDictionary *) battery objectForKey: @kIOPSMaxCapacityKey] floatValue];
+		}
+	}
+	
+	CFRelease(list);
+	CFRelease(info);
+	
+	return batteryLevel;
+}
+
+void NSOpenGLShell_setCursorVisible(bool visible) {
+	if (visible) {
+		if (cursorHiddenByHide) {
+			cursorHiddenByHide = false;
+			[NSCursor unhide];
+		}
+	} else {
+		if (!cursorHiddenByHide) {
+			cursorHiddenByHide = true;
+			[NSCursor hide];
+		}
+	}
+}
+
+void NSOpenGLShell_hideCursorUntilMouseMoves() {
+	[NSCursor setHiddenUntilMouseMoves: YES];
+}
+
+@interface NSCursor (MacOSX10_6Cursors)
++ (NSCursor *)contextualMenuCursor;
++ (NSCursor *)dragCopyCursor;
++ (NSCursor *)dragLinkCursor;
++ (NSCursor *)operationNotAllowedCursor;
+@end
+
+void NSOpenGLShell_setCursor(enum NSOpenGLShellCursor cursor) {
+	switch (cursor) {
+		case NSOpenGLShellCursor_arrow:
+			[[NSCursor arrowCursor] set];
+			break;
+		case NSOpenGLShellCursor_IBeam:
+			[[NSCursor IBeamCursor] set];
+			break;
+		case NSOpenGLShellCursor_crosshair:
+			[[NSCursor crosshairCursor] set];
+			break;
+		case NSOpenGLShellCursor_closedHand:
+			[[NSCursor closedHandCursor] set];
+			break;
+		case NSOpenGLShellCursor_openHand:
+			[[NSCursor openHandCursor] set];
+			break;
+		case NSOpenGLShellCursor_pointingHand:
+			[[NSCursor pointingHandCursor] set];
+			break;
+		case NSOpenGLShellCursor_resizeLeft:
+			[[NSCursor resizeLeftCursor] set];
+			break;
+		case NSOpenGLShellCursor_resizeRight:
+			[[NSCursor resizeRightCursor] set];
+			break;
+		case NSOpenGLShellCursor_resizeLeftRight:
+			[[NSCursor resizeLeftRightCursor] set];
+			break;
+		case NSOpenGLShellCursor_resizeUp:
+			[[NSCursor resizeUpCursor] set];
+			break;
+		case NSOpenGLShellCursor_resizeDown:
+			[[NSCursor resizeDownCursor] set];
+			break;
+		case NSOpenGLShellCursor_resizeUpDown:
+			[[NSCursor resizeUpDownCursor] set];
+			break;
+		case NSOpenGLShellCursor_disappearingItem:
+			[[NSCursor disappearingItemCursor] set];
+			break;
+		case NSOpenGLShellCursor_contextualMenu:
+			if ([NSCursor respondsToSelector: @selector(contextualMenuCursor)]) {
+				[[NSCursor contextualMenuCursor] set];
+			}
+			break;
+		case NSOpenGLShellCursor_dragCopy:
+			if ([NSCursor respondsToSelector: @selector(dragCopyCursor)]) {
+				[[NSCursor dragCopyCursor] set];
+			}
+			break;
+		case NSOpenGLShellCursor_dragLink:
+			if ([NSCursor respondsToSelector: @selector(dragLinkCursor)]) {
+				[[NSCursor dragLinkCursor] set];
+			}
+			break;
+		case NSOpenGLShellCursor_operationNotAllowed:
+			if ([NSCursor respondsToSelector: @selector(operationNotAllowedCursor)]) {
+				[[NSCursor operationNotAllowedCursor] set];
+			}
+			break;
+	}
+}
+
+void NSOpenGLShell_getMainScreenDimensions(unsigned int * outWidth, unsigned int * outHeight) {
+	NSRect bounds;
+	
+	bounds = [[NSScreen mainScreen] frame];
+	if (outWidth != NULL) {
+		*outWidth = bounds.size.width;
+	}
+	if (outHeight != NULL) {
+		*outHeight = bounds.size.height;
+	}
 }

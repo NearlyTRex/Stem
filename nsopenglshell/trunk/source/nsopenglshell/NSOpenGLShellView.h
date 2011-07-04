@@ -25,19 +25,18 @@
 #include "nsopenglshell/NSOpenGLShell.h"
 
 @interface NSOpenGLShellView : NSOpenGLView {
-  NSOpenGLContext * windowContext;
-  NSOpenGLContext * fullScreenContext;
-  bool fullScreen;
-	
 	BOOL animating;
 	BOOL redisplayWasPosted;
 	NSTimer * animationTimer;
+	int buttonMask;
+	
+	int lastWidth;
+	int lastHeight;
 }
 
 - (id) initWithFrame: (NSRect) frame configuration: (struct NSOpenGLShellConfiguration) configuration;
 - (void) redisplayPosted;
 - (void) toggleFullScreen;
-- (bool) isFullScreen;
 - (void) startAnimation;
 
 @end

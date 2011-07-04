@@ -68,7 +68,7 @@ CLANG_macosx = /usr/bin/clang
 SDKROOT_macosx = /Developer/SDKs/MacOSX10.5.sdk
 ARCHS_macosx = ppc i386 x86_64
 CCFLAGS_macosx = -isysroot ${SDKROOT_macosx} -mmacosx-version-min=10.5
-LINKFLAGS_macosx = -isysroot ${SDKROOT_macosx} -mmacosx-version-min=10.5 -framework Cocoa -framework OpenGL
+LINKFLAGS_macosx = -isysroot ${SDKROOT_macosx} -mmacosx-version-min=10.5 -framework Cocoa -framework OpenGL -framework IOKit
 
 #General compile/link settings
 DEFINE_CCFLAGS = -DVERSION_MAJOR=${VERSION_MAJOR}u -DVERSION_MINOR=${VERSION_MINOR}u -DVERSION_TWEAK=${VERSION_TWEAK}u

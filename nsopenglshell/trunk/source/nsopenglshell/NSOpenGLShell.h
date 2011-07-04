@@ -32,14 +32,53 @@ struct NSOpenGLShellConfiguration {
 	int windowHeight;
 	char * windowTitle;
 	struct {
-		bool doubleBuffer;
-		bool depthBuffer;
-		bool stencilBuffer;
-		bool accumBuffer;
-		bool multisample;
+		bool doubleBuffer;          // NSOpenGLPFADoubleBuffer
+		bool depthBuffer;           // NSOpenGLPFADepthSize > 0
+		unsigned int depthBits;     // NSOpenGLPFADepthSize value
+		bool stencilBuffer;         // NSOpenGLPFAStencilSize > 0
+		unsigned int stencilBits;   // NSOpenGLPFAStencilSize value
+		bool accumBuffer;           // NSOpenGLPFAAccumSize > 0
+		unsigned int accumBits;     // NSOpenGLPFAAccumSize value
+		bool multisample;           // NSOpenGLPFAMultisample
+		unsigned int sampleBuffers; // NSOpenGLPFASampleBuffers
+		unsigned int samples;       // NSOpenGLPFASamples
 	} displayMode;
 };
 
-// Get screen dimensions?
+// NSOpenGLShellCursor_<name> == [NSCursor <name>Cursor]
+enum NSOpenGLShellCursor {
+	NSOpenGLShellCursor_arrow,
+	NSOpenGLShellCursor_IBeam,
+	NSOpenGLShellCursor_crosshair,
+	NSOpenGLShellCursor_closedHand,
+	NSOpenGLShellCursor_openHand,
+	NSOpenGLShellCursor_pointingHand,
+	NSOpenGLShellCursor_resizeLeft,
+	NSOpenGLShellCursor_resizeRight,
+	NSOpenGLShellCursor_resizeLeftRight,
+	NSOpenGLShellCursor_resizeUp,
+	NSOpenGLShellCursor_resizeDown,
+	NSOpenGLShellCursor_resizeUpDown,
+	NSOpenGLShellCursor_disappearingItem,
+	// Available on Mac OS X 10.6 or later only
+	NSOpenGLShellCursor_contextualMenu,
+	NSOpenGLShellCursor_dragCopy,
+	NSOpenGLShellCursor_dragLink,
+	NSOpenGLShellCursor_operationNotAllowed
+};
+
+/** Shows the cursor if visible is set to true. Hides the cursor if visible is set to false. Has no effect if
+    the cursor already has the specified visibility. */
+void NSOpenGLShell_setCursorVisible(bool visible);
+
+/** Hides the cursor until the mouse moves, at which point it will be shown again. */
+void NSOpenGLShell_hideCursorUntilMouseMoves();
+
+/** Sets the cursor image to the specified value. */
+void NSOpenGLShell_setCursor(enum NSOpenGLShellCursor cursor);
+
+/** Returns the width and height of the main screen in outWidth and outHeight. If you're only interested in one
+    of the two dimensions, you can safely pass NULL for the other one. */
+void NSOpenGLShell_getMainScreenDimensions(unsigned int * outWidth, unsigned int * outHeight);
 
 #endif
