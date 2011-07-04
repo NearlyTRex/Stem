@@ -44,7 +44,7 @@ void Target_resized(unsigned int newWidth, unsigned int newHeight);
 /** Called when the user presses a key. charCode is a UTF-32 character value. keyCode is one of the
     KEYBOARD_* or KEYPAD_* values defined by ShellKeyCodes.h. modifierFlags is a bitfield containing
     zero or more of the MODIFIER_* bits defined by ShellKeyCodes.h. */
-void Target_keyDown(unsigned int charCode, unsigned int keyCode);
+void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned int modifierFlags);
 
 /** Called when the user releases a key. charCode is a UTF-32 character value. keyCode is one of the
     KEYBOARD_* or KEYPAD_* values defined by ShellKeyCodes.h. modifierFlags is a bitfield containing
