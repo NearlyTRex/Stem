@@ -40,6 +40,6 @@ struct GLUTShellConfiguration {
 	} displayMode;
 };
 
-void GLUTTarget_configure(int argc, char ** argv, struct GLUTShellConfiguration * configuration);
+void GLUTTarget_configure(int argc, const char ** argv, struct GLUTShellConfiguration * configuration);
 
 #endif

@@ -25,6 +25,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #if defined(__APPLE__)
 #include <limits.h>
@@ -49,7 +50,8 @@
 #include "shell/ShellKeyCodes.h"
 #include "shell/Target.h"
 
-static int buttonMask = 0;
+static unsigned int buttonMask = 0;
+static unsigned int modifierMask = 0;
 static bool inFullScreenMode = false;
 static struct GLUTShellConfiguration configuration;
 
@@ -144,8 +146,9 @@ static void displayFunc() {
 	
 #ifdef DEBUG
 	error = glGetError();
-	if (error != GL_NO_ERROR) {
-		printf("GL error: %s\n", gluErrorString(error));
+	while (error != GL_NO_ERROR) {
+		fprintf(stderr, "GL error: %s\n", gluErrorString(error));
+		error = glGetError();
 	}
 #endif
 }
@@ -323,12 +326,41 @@ static int glutCharCodeToShellKeyCode(int key) {
 	}
 }
 
+static unsigned int glutModifiersToShellModifiers(unsigned int glutModifiers) {
+	unsigned int result = 0;
+	
+	if ((glutModifiers & GLUT_ACTIVE_SHIFT)) {
+		result |= MODIFIER_SHIFT_BIT;
+	}
+	if ((glutModifiers & GLUT_ACTIVE_CTRL)) {
+		result |= MODIFIER_CONTROL_BIT;
+	}
+	if ((glutModifiers & GLUT_ACTIVE_ALT)) {
+		result |= MODIFIER_ALT_BIT;
+	}
+	return result;
+}
+
 static void keyDownFunc(unsigned char charCode, int x, int y) {
-	Target_keyDown(charCode, glutCharCodeToShellKeyCode(charCode));
+	unsigned int newModifierMask;
+	
+	newModifierMask = glutModifiersToShellModifiers(glutGetModifiers());
+	if (newModifierMask != modifierMask) {
+		modifierMask = newModifierMask;
+		Target_keyModifiersChanged(modifierMask);
+	}
+	Target_keyDown(charCode, glutCharCodeToShellKeyCode(charCode), modifierMask);
 }
 
 static void keyUpFunc(unsigned char charCode, int x, int y) {
-	Target_keyUp(charCode, glutCharCodeToShellKeyCode(charCode));
+	unsigned int newModifierMask;
+	
+	newModifierMask = glutModifiersToShellModifiers(glutGetModifiers());
+	if (newModifierMask != modifierMask) {
+		modifierMask = newModifierMask;
+		Target_keyModifiersChanged(modifierMask);
+	}
+	Target_keyUp(charCode, glutCharCodeToShellKeyCode(charCode), modifierMask);
 }
 
 static int glutSpecialToShellKeyCode(int key) {
@@ -382,24 +414,45 @@ static int glutSpecialToShellKeyCode(int key) {
 
 static void specialDownFunc(int key, int x, int y) {
 	int keyCode;
+	unsigned int newModifierMask;
+	
+	newModifierMask = glutModifiersToShellModifiers(glutGetModifiers());
+	if (newModifierMask != modifierMask) {
+		modifierMask = newModifierMask;
+		Target_keyModifiersChanged(modifierMask);
+	}
 	
 	keyCode = glutSpecialToShellKeyCode(key);
 	if (keyCode != -1) {
-		Target_keyDown(-1, keyCode);
+		Target_keyDown(0, keyCode, modifierMask);
 	}
 }
 
 static void specialUpFunc(int key, int x, int y) {
 	int keyCode;
+	unsigned int newModifierMask;
+	
+	newModifierMask = glutModifiersToShellModifiers(glutGetModifiers());
+	if (newModifierMask != modifierMask) {
+		modifierMask = newModifierMask;
+		Target_keyModifiersChanged(modifierMask);
+	}
 	
 	keyCode = glutSpecialToShellKeyCode(key);
 	if (keyCode != -1) {
-		Target_keyUp(-1, keyCode);
+		Target_keyUp(0, keyCode, modifierMask);
 	}
 }
 
 static void mouseFunc(int button, int state, int x, int y) {
 	int buttonNum;
+	unsigned int newModifierMask;
+	
+	newModifierMask = glutModifiersToShellModifiers(glutGetModifiers());
+	if (newModifierMask != modifierMask) {
+		modifierMask = newModifierMask;
+		Target_keyModifiersChanged(modifierMask);
+	}
 	
 	buttonNum = (button == GLUT_LEFT_BUTTON ? 0 : (button == GLUT_RIGHT_BUTTON ? 1 : 2));
 	
@@ -437,7 +490,8 @@ int main(int argc, char ** argv) {
 	configuration.displayMode.accumBuffer = false;
 	configuration.displayMode.multisample = false;
 	
-	GLUTTarget_configure(argc, argv, &configuration);
+	chdir(Shell_getResourcePath());
+	GLUTTarget_configure(argc, (const char **) argv, &configuration);
 	
 	displayMode = GLUT_RGBA;
 	if (configuration.displayMode.doubleBuffer) {

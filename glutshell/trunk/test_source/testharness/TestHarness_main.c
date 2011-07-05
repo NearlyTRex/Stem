@@ -1,7 +1,9 @@
 #include "shell/Shell.h"
 #include "glutshell/GLUTTarget.h"
 
+#include <limits.h>
 #include <stdio.h>
+#include <unistd.h>
 #include "shell/ShellBatteryInfo.h"
 #include "shell/ShellKeyCodes.h"
 
@@ -11,8 +13,9 @@
 #include <GL/gl.h>
 #endif
 
-void GLUTTarget_configure(int argc, char ** argv, struct GLUTShellConfiguration * configuration) {
+void GLUTTarget_configure(int argc, const char ** argv, struct GLUTShellConfiguration * configuration) {
 	int argIndex;
+	char workingDir[PATH_MAX];
 	
 	printf("GLUTTarget_configure(%d", argc);
 	for (argIndex = 0; argIndex < argc; argIndex++) {
@@ -25,14 +28,17 @@ void GLUTTarget_configure(int argc, char ** argv, struct GLUTShellConfiguration 
 	printf("configuration->windowWidth: %d\n", configuration->windowWidth);
 	printf("configuration->windowHeight: %d\n", configuration->windowHeight);
 	printf("configuration->windowTitle: %s\n", configuration->windowTitle);
-	printf("configuration->displayMode.doubleBuffer: %d\n", configuration->displayMode.doubleBuffer);
-	printf("configuration->displayMode.depthBuffer: %d\n", configuration->displayMode.depthBuffer);
-	printf("configuration->displayMode.stencilBuffer: %d\n", configuration->displayMode.stencilBuffer);
-	printf("configuration->displayMode.accumBuffer: %d\n", configuration->displayMode.accumBuffer);
-	printf("configuration->displayMode.multisample: %d\n", configuration->displayMode.multisample);
+	printf("configuration->displayMode.doubleBuffer: %s\n", configuration->displayMode.doubleBuffer ? "true" : "false");
+	printf("configuration->displayMode.depthBuffer: %s\n", configuration->displayMode.depthBuffer ? "true" : "false");
+	printf("configuration->displayMode.stencilBuffer: %s\n", configuration->displayMode.stencilBuffer ? "true" : "false");
+	printf("configuration->displayMode.accumBuffer: %s\n", configuration->displayMode.accumBuffer ? "true" : "false");
+	printf("configuration->displayMode.multisample: %s\n", configuration->displayMode.multisample ? "true" : "false");
 	
 	configuration->windowTitle = "GLUTShell Test Harness";
 	printf("configuration->windowTitle = \"%s\"\n", configuration->windowTitle);
+	
+	getcwd(workingDir, PATH_MAX);
+	printf("getcwd(): %s\n", workingDir);
 }
 
 void Target_init() {
@@ -46,8 +52,8 @@ void Target_draw() {
 	glClear(GL_COLOR_BUFFER_BIT);
 }
 
-void Target_keyDown(unsigned int charCode, unsigned int keyCode) {
-	printf("Target_keyDown(%d, %d)\n", charCode, keyCode);
+void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned int modifierFlags) {
+	printf("Target_keyDown(%u, %u, 0x%X)\n", charCode, keyCode, modifierFlags);
 	if (keyCode == KEYBOARD_T) {
 		printf("Shell_getCurrentTime(): %f\n", Shell_getCurrentTime());
 		
@@ -58,13 +64,13 @@ void Target_keyDown(unsigned int charCode, unsigned int keyCode) {
 		Shell_redisplay();
 		
 	} else if (keyCode == KEYBOARD_F) {
-		printf("Shell_setFullScreen(true): %d\n", Shell_setFullScreen(true));
+		printf("Shell_setFullScreen(true): %s\n", Shell_setFullScreen(true) ? "true" : "false");
 		
 	} else if (keyCode == KEYBOARD_W) {
-		printf("Shell_setFullScreen(false): %d\n", Shell_setFullScreen(false));
+		printf("Shell_setFullScreen(false): %s\n", Shell_setFullScreen(false) ? "true" : "false");
 		
 	} else if (keyCode == KEYBOARD_G) {
-		printf("Shell_isFullScreen(): %d\n", Shell_isFullScreen());
+		printf("Shell_isFullScreen(): %s\n", Shell_isFullScreen() ? "true" : "false");
 		
 	} else if (keyCode == KEYBOARD_B) {
 		printf("Shell_getBatteryState(): %d\n", Shell_getBatteryState());
@@ -72,8 +78,12 @@ void Target_keyDown(unsigned int charCode, unsigned int keyCode) {
 	}
 }
 
-void Target_keyUp(unsigned int charCode, unsigned int keyCode) {
-	printf("Target_keyUp(%d, %d)\n", charCode, keyCode);
+void Target_keyUp(unsigned int charCode, unsigned int keyCode, unsigned int modifierFlags) {
+	printf("Target_keyUp(%u, %u, 0x%X)\n", charCode, keyCode, modifierFlags);
+}
+
+void Target_keyModifiersChanged(unsigned int modifierFlags) {
+	printf("Target_keyModifiersChanged(0x%X)\n", modifierFlags);
 }
 
 void Target_mouseDown(unsigned int buttonNumber, float x, float y) {
@@ -95,4 +105,12 @@ void Target_mouseDragged(unsigned int buttonMask, float x, float y) {
 void Target_resized(unsigned int newWidth, unsigned int newHeight) {
 	printf("Target_resized(%d, %d)\n", newWidth, newHeight);
 	glViewport(0, 0, newWidth, newHeight);
+}
+
+void Target_backgrounded() {
+	printf("Target_backgrounded()\n");
+}
+
+void Target_foregrounded() {
+	printf("Target_foregrounded()\n");
 }

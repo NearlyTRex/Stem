@@ -5,6 +5,7 @@ UNAME = ${shell uname}
 ifeq (${UNAME},Linux)
 HOST_PLATFORM = linux
 else ifeq (${UNAME},Darwin)
+-include ~/.stem.defines
 HOST_PLATFORM = macosx
 else
 HOST_PLATFORM = windows
@@ -17,9 +18,7 @@ define newline_and_tab
 	
 endef
 
-iphone_sdk_version_integer = ${subst .,0,$1}${word ${words ${wordlist 2, ${words ${subst ., ,$1}}, ${subst ., ,$1}}}, 00}
-
-TARGET_PLATFORMS_macosx = macosx iphonesimulator iphoneos
+TARGET_PLATFORMS_macosx = macosx
 TARGET_PLATFORMS_linux = linux
 TARGET_PLATFORMS_windows = windows
 
@@ -106,8 +105,11 @@ LINK_ORDER = \
 #Per-target dependencies
 
 PROJECT_LIBRARY_DEPENDENCIES_testharness = library
+STEM_LIBRARY_DEPENDENCIES_library = glgraphics/libstem_glgraphics.a
 STEM_LIBRARY_DEPENDENCIES_testharness = glgraphics/libstem_glgraphics.a
+STEM_SOURCE_DEPENDENCIES_library = 
 STEM_SOURCE_DEPENDENCIES_testharness = 
+THIRDPARTY_LIBRARY_DEPENDENCIES_library = glew/libglew.a
 THIRDPARTY_LIBRARY_DEPENDENCIES_testharness = glew/libglew.a
 
 #Per-target per-platform dependencies
@@ -200,8 +202,9 @@ ${eval ${call create_directory_target_template,build/intermediate}}
 
 define include_ccflags_template #(target, platform)
 -I source -I include \
-${foreach thirdparty_dependency,${THIRDPARTY_LIBRARY_DEPENDENCIES_$1} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1_$2},-I include/${dir ${thirdparty_dependency}}} \
-${foreach source_dependency,${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$1_$2},-I dep/${dir ${source_dependency}}source}
+${foreach stem_dependency,${STEM_LIBRARY_DEPENDENCIES_$1} ${STEM_LIBRARY_DEPENDENCIES_$1_$2},-I lib/${dir ${stem_dependency}}include} \
+${foreach thirdparty_dependency,${THIRDPARTY_LIBRARY_DEPENDENCIES_$1} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1_$2},-I lib/${dir ${thirdparty_dependency}}include} \
+${foreach source_dependency,${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$1_$2},-I dep/${word 1,${subst /, ,${source_dependency}}}/source}
 endef
 
 define define_ccflags_template #(target, configuration, platform, arch)
@@ -282,13 +285,13 @@ define library_dependency_template #(target, configuration, platform)
 			build/${library}/$2-$3/${TARGET_NAME_${library}}.a \
 		} \
 		${foreach library,${filter ${link_library},${STEM_LIBRARY_DEPENDENCIES_$1} ${STEM_LIBRARY_DEPENDENCIES_$1_$3}}, \
-			lib/${dir ${library}}$2-$3/${notdir ${library}} \
+			lib/${dir ${library}}library/$2-$3/${notdir ${library}} \
 		} \
 		${foreach library,${filter ${link_library},${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$1_$3}}, \
-			dep/${dir ${library}}build/library/$2-$3/${notdir ${library}} \
+			dep/${word 1,${subst /, ,${library}}}/build/${word 2,${subst /, ,${library}}}/$2-$3/${word 3,${subst /, ,${library}}} \
 		} \
 		${foreach library,${filter ${link_library},${THIRDPARTY_LIBRARY_DEPENDENCIES_$1} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1_$3}}, \
-			lib/${dir ${library}}$3/${notdir ${library}} \
+			lib/${dir ${library}}library/$3/${notdir ${library}} \
 		} \
 	}
 endef
@@ -309,7 +312,7 @@ ${foreach target,${EXECUTABLE_TARGETS} ${APPLICATION_TARGETS}, \
 define dependency_submake_template #(dependency)
 .PHONY: $1
 $1:
-	${MAKE} -C dep/${dir ${dependency}}
+	${MAKE} -C dep/${word 1,${subst /, ,$1}}
 endef
 
 #Invokes make for each source dependency
@@ -509,13 +512,13 @@ ${foreach target,${APPLICATION_TARGETS}, \
 
 define analyze_file_template_clang #(target, platform, file)
 build/analyzer-results/clang-$1-$2/${basename ${notdir $3}}.txt: $3 ${PREREQS_$1} | build/analyzer-results/clang-$1-$2
-	${CLANG_$2} --analyze ${call include_ccflags_template,$1,$2} ${CLANGFLAGS} ${CLANGFLAGS_$1} ${CLANGFLAGS_$2} -o $${basename $$@}.plist $3 > $$@ 2>&1; true
+	${CLANG_$2} --analyze ${call include_ccflags_template,$1,$2} ${call define_ccflags_template,$1,analyze,$2,none} ${CLANGFLAGS} ${CLANGFLAGS_$1} ${CLANGFLAGS_$2} -o $${basename $$@}.plist $3 > $$@ 2>&1; true
 	@cat $$@
 endef
 
 define analyze_file_template_splint #(target, platform, file)
 build/analyzer-results/splint-$1-$2/${basename ${notdir $3}}.txt: $3 ${PREREQS_$1} | build/analyzer-results/splint-$1-$2
-	${SPLINT_$2} ${call include_ccflags_template,$1,$2} ${SPLINTFLAGS} ${SPLINTFLAGS_$1} ${SPLINTFLAGS_$2} $3 > $$@ 2>&1; true
+	${SPLINT_$2} ${call include_ccflags_template,$1,$2} ${call define_ccflags_template,$1,analyze,$2,none} ${SPLINTFLAGS} ${SPLINTFLAGS_$1} ${SPLINTFLAGS_$2} $3 > $$@ 2>&1; true
 	@cat $$@
 endef
 
@@ -577,13 +580,14 @@ clean:
 	rm -rf build
 	rm -rf dist #master_source_only
 	${foreach dependency,${sort ${foreach target,${TARGETS},${foreach platform,${PLATFORMS_${target}},${STEM_SOURCE_DEPENDENCIES_${target}} ${STEM_SOURCE_DEPENDENCIES_${target}_${platform}}}}}, \
-		${MAKE} -C dep/${dir ${dependency}} clean${newline_and_tab} \
+		${MAKE} -C dep/${word 1,${subst /, ,${dependency}}} clean${newline_and_tab} \
 	}
 
 #master_source_only_begin
 .PHONY: full_dist
 full_dist: clean all
 	mkdir dist dist/include dist/library dist/testharness
+	cp Changes.txt License.txt ReadMe.txt dist
 	cp -r build/include/* dist/include
 	cp -r build/library/* dist/library
 	cp -r build/testharness/* dist/testharness
