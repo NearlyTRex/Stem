@@ -37,8 +37,7 @@ void GLUTTarget_configure(int argc, const char ** argv, struct GLUTShellConfigur
 	configuration->windowTitle = "GLUTShell Test Harness";
 	printf("configuration->windowTitle = \"%s\"\n", configuration->windowTitle);
 	
-	getcwd(workingDir, PATH_MAX);
-	printf("getcwd(): %s\n", workingDir);
+	printf("getcwd(): %s\n", getcwd(workingDir, PATH_MAX));
 }
 
 void Target_init() {

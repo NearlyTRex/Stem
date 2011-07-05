@@ -475,6 +475,7 @@ static void motionFunc(int x, int y) {
 
 int main(int argc, char ** argv) {
 	unsigned int displayMode;
+	int chdirReturn;
 #ifdef __APPLE__
 	GLint VBL = 1;
 #endif
@@ -490,7 +491,8 @@ int main(int argc, char ** argv) {
 	configuration.displayMode.accumBuffer = false;
 	configuration.displayMode.multisample = false;
 	
-	chdir(Shell_getResourcePath());
+	// Linux warns for some reason if chdir's return value is unused
+	chdirReturn = chdir(Shell_getResourcePath());
 	GLUTTarget_configure(argc, (const char **) argv, &configuration);
 	
 	displayMode = GLUT_RGBA;
