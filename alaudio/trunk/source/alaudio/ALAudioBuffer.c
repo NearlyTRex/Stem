@@ -33,6 +33,7 @@ void ALAudioBuffer_init(compat_type(ALAudioBuffer *) selfPtr) {
 	alGenBuffers(1, &self->buffer);
 	self->dispose = ALAudioBuffer_dispose;
 	self->bufferAudioData = ALAudioBuffer_bufferAudioData;
+	self->bufferPCMAudio = ALAudioBuffer_bufferPCMAudio;
 }
 
 void ALAudioBuffer_dispose(compat_type(ALAudioBuffer *) selfPtr) {
@@ -46,4 +47,14 @@ void ALAudioBuffer_bufferAudioData(compat_type(ALAudioBuffer *) selfPtr, ALenum 
 	ALAudioBuffer * self = selfPtr;
 	
 	alBufferData(self->buffer, format, data, length, frequency);
+}
+
+void ALAudioBuffer_bufferPCMAudio(compat_type(ALAudioBuffer *) selfPtr, PCMAudio * pcmAudio) {
+	ALAudioBuffer * self = selfPtr;
+	
+	self->bufferAudioData(self,
+	                      pcmAudio->channelCount == 1 ? pcmAudio->bytesPerSample == 1 ? AL_FORMAT_MONO8 : AL_FORMAT_MONO16 : pcmAudio->bytesPerSample == 1 ? AL_FORMAT_STEREO8 : AL_FORMAT_STEREO16,
+	                      pcmAudio->samples,
+	                      pcmAudio->sampleCount * pcmAudio->bytesPerSample * pcmAudio->channelCount,
+	                      pcmAudio->sampleRate);
 }

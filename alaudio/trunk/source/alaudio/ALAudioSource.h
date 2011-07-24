@@ -34,7 +34,8 @@ typedef struct ALAudioSource ALAudioSource;
 	ALuint source; \
 	void (* load)(compat_type(ALAudioSource *) self, ALAudioBuffer * buffer); \
 	void (* play)(compat_type(ALAudioSource *) self); \
-	void (* stop)(compat_type(ALAudioSource *) self);
+	void (* stop)(compat_type(ALAudioSource *) self); \
+	void (* pause)(compat_type(ALAudioSource *) self);
 
 struct ALAudioSource {
 	ALAudioSource_structContents
@@ -47,6 +48,7 @@ void ALAudioSource_dispose(compat_type(ALAudioSource *) selfPtr);
 void ALAudioSource_load(compat_type(ALAudioSource *) selfPtr, ALAudioBuffer * buffer);
 void ALAudioSource_play(compat_type(ALAudioSource *) selfPtr);
 void ALAudioSource_stop(compat_type(ALAudioSource *) selfPtr);
+void ALAudioSource_pause(compat_type(ALAudioSource *) selfPtr);
 // TODO: Loop
 // TODO: Streaming
 

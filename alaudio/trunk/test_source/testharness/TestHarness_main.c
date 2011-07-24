@@ -6,6 +6,10 @@
 #include "alaudio/ALAudioBuffer.h"
 #include "alaudio/ALAudioSource.h"
 #include "alaudio/ALAudioSystem.h"
+//#include "vorbisaudioio/VorbisAudioIO.h"
+//#include "vorbisaudioio/VorbisAudioStream.h"
+
+// Need loop, stream, arbitrary vorbis file, multiple formats, 3d audio?
 
 int main() {
 	ALAudioSystem * audioSystem;

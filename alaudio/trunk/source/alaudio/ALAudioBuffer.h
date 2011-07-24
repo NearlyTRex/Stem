@@ -25,15 +25,17 @@
 
 typedef struct ALAudioBuffer ALAudioBuffer;
 
-#include "stemobject/StemObject.h"
 #include "alaudio/ALIncludes.h"
+#include "pcmaudio/PCMAudio.h"
+#include "stemobject/StemObject.h"
 #include <stdlib.h>
 
 #define ALAudioBuffer_structContents \
 	StemObject_structContents \
 	\
 	ALuint buffer; \
-	void (* bufferAudioData)(compat_type(ALAudioBuffer *) self, ALenum format, void * data, size_t length, unsigned int frequency);
+	void (* bufferAudioData)(compat_type(ALAudioBuffer *) self, ALenum format, void * data, size_t length, unsigned int frequency); \
+	void (* bufferPCMAudio)(compat_type(ALAudioBuffer *) self, PCMAudio * audio);
 
 struct ALAudioBuffer {
 	ALAudioBuffer_structContents
@@ -44,5 +46,6 @@ void ALAudioBuffer_init(compat_type(ALAudioBuffer *) selfPtr);
 void ALAudioBuffer_dispose(compat_type(ALAudioBuffer *) selfPtr);
 
 void ALAudioBuffer_bufferAudioData(compat_type(ALAudioBuffer *) selfPtr, ALenum format, void * data, size_t length, unsigned int frequency);
+void ALAudioBuffer_bufferPCMAudio(compat_type(ALAudioBuffer *) selfPtr, PCMAudio * pcmAudio);
 
 #endif

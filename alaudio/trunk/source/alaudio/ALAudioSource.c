@@ -60,4 +60,11 @@ void ALAudioSource_stop(compat_type(ALAudioSource *) selfPtr) {
 	ALAudioSource * self = selfPtr;
 	
 	alSourceStop(self->source);
+	alSourceRewind(self->source);
+}
+
+void ALAudioSource_pause(compat_type(ALAudioSource *) selfPtr) {
+	ALAudioSource * self = selfPtr;
+	
+	alSourcePause(self->source);
 }

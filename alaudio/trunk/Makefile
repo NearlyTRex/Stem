@@ -130,15 +130,20 @@ LINKFLAGS = ${FRAMEWORK_LINKFLAGS} ${LIBRARY_LINKFLAGS} ${OTHER_LINKFLAGS}
 
 LINK_ORDER = \
 	library \
+	pcmaudio/libstem_pcmaudio.a \
 	stemobject/libstem_stemobject.a
 
 #Per-target dependencies
 
 PROJECT_LIBRARY_DEPENDENCIES_unittest = library
 PROJECT_LIBRARY_DEPENDENCIES_testharness = library
-STEM_LIBRARY_DEPENDENCIES_library = stemobject/libstem_stemobject.a
+STEM_LIBRARY_DEPENDENCIES_library = \
+	pcmaudio/libstem_pcmaudio.a \
+	stemobject/libstem_stemobject.a
 STEM_LIBRARY_DEPENDENCIES_unittest =
-STEM_LIBRARY_DEPENDENCIES_testharness = stemobject/libstem_stemobject.a
+STEM_LIBRARY_DEPENDENCIES_testharness = \
+	pcmaudio/libstem_pcmaudio.a \
+	stemobject/libstem_stemobject.a
 STEM_SOURCE_DEPENDENCIES_library = 
 STEM_SOURCE_DEPENDENCIES_unittest = 
 STEM_SOURCE_DEPENDENCIES_testharness = 
