@@ -9,6 +9,11 @@
 //#include "vorbisaudioio/VorbisAudioIO.h"
 //#include "vorbisaudioio/VorbisAudioStream.h"
 
+#ifdef WIN32
+#include <windows.h>
+#define sleep(n) Sleep((n) * 1000)
+#endif
+
 // Need loop, stream, arbitrary vorbis file, multiple formats, 3d audio?
 
 int main() {
@@ -30,6 +35,10 @@ int main() {
 	source->load(source, buffer);
 	source->play(source);
 	sleep(1);
+	
+	source->dispose(source);
+	buffer->dispose(buffer);
+	audioSystem->dispose(audioSystem);
 	
 	return EXIT_SUCCESS;
 }

@@ -41,8 +41,8 @@ void ALAudioSystem_init(compat_type(ALAudioSystem *) selfPtr) {
 void ALAudioSystem_dispose(compat_type(ALAudioSystem *) selfPtr) {
 	ALAudioSystem * self = selfPtr;
 	
-	alcCloseDevice(self->device);
 	alcDestroyContext(self->context);
+	alcCloseDevice(self->device);
 	StemObject_dispose(self);
 }
 

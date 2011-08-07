@@ -114,7 +114,7 @@ SPLINT_windows = C:/splint-3.1.1/bin/splint.exe
 CLANG_windows = C:/llvm/bin/clang.exe
 ARCHS_windows = i686
 CCFLAGS_windows = 
-LINKFLAGS_windows = 
+LINKFLAGS_windows = -lOpenAL32.dll
 EXECUTABLE_SUFFIX_windows = .exe
 
 #General compile/link settings
@@ -188,8 +188,7 @@ INCLUDES = \
 
 RESOURCES_testharness = 
 RESOURCES_unittest = 
-RESOURCES_testharness_macosx = 
-#...
+RESOURCES_testharness_windows = test_resources/OpenAL32.dll
 
 #General analyzer settings
 CLANGFLAGS = 
