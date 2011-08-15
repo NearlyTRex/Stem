@@ -45,7 +45,5 @@ void ALAudioSystem_init(compat_type(ALAudioSystem *) selfPtr);
 void ALAudioSystem_dispose(compat_type(ALAudioSystem *) selfPtr);
 
 void ALAudioSystem_makeCurrentContext(compat_type(ALAudioSystem *) selfPtr);
-// TODO: Maybe high-level audio API? Pause/resume individual, pasue all, cycle sources, etc.
-// TODO: Listener?
 
 #endif

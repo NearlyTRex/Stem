@@ -84,8 +84,8 @@ SPLINT_iphonesimulator = /usr/local/bin/splint
 CLANG_iphonesimulator = /usr/bin/clang
 SDKROOT_iphonesimulator = /Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator${IPHONE_BUILD_SDK_VERSION}.sdk
 ARCHS_iphonesimulator = i386
-CCFLAGS_iphonesimulator = -isysroot ${SDKROOT_iphonesimulator} -mmacosx-version-min=10.5 -D__IPHONE_OS_VERSION_MIN_REQUIRED=${call iphone_sdk_version_integer,${IPHONE_DEPLOYMENT_TARGET_VERSION}}
-LINKFLAGS_iphonesimulator = -isysroot ${SDKROOT_iphonesimulator} -mmacosx-version-min=10.5 -framework OpenAL
+CCFLAGS_iphonesimulator = -isysroot ${SDKROOT_iphonesimulator} -D__IPHONE_OS_VERSION_MIN_REQUIRED=${call iphone_sdk_version_integer,${IPHONE_DEPLOYMENT_TARGET_VERSION}}
+LINKFLAGS_iphonesimulator = -isysroot ${SDKROOT_iphonesimulator} -framework OpenAL
 
 CC_iphoneos_armv6 = /Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/gcc-4.2 -arch armv6
 CC_iphoneos_armv7 = /Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/gcc-4.2 -arch armv7
