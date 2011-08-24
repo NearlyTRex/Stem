@@ -117,6 +117,8 @@ struct Preferences {
 	Preferences_structContents
 };
 
+void Preferences_getFilePath(const char * fileName, char * outPath);
+
 Preferences * Preferences_create(const char * identifier);
 void Preferences_init(compat_type(Preferences *) selfPtr, const char * identifier);
 void Preferences_dispose(compat_type(Preferences *) selfPtr);

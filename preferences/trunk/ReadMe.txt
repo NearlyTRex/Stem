@@ -4,6 +4,8 @@ After creating a Preferences object, the schema of your preferences keys and val
 
 Once keys have been registered, you can call load() to read all of the specified values from disk; getInteger, getFloat, getBoolean, getString, and getData to access them; setInteger, setFloat, setBoolean, setString, and setData to modify them; and save() to write them back to disk. You can also use loadDefaultValue() to reset a single value to its default, or loadDefaultValues() to set all values to their defaults.
 
+If you want to save a file separate from the one maintained by Preferences itself, you can use the Preferences_getFilePath() function to retrieve an appropriate file path for it.
+
 Example:
 
 	Preferences * preferences;

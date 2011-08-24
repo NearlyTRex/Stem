@@ -23,16 +23,19 @@
 #include "preferences/Preferences_private.h"
 #include "jsonio/JSONEmitter.h"
 #include "jsonio/JSONParser.h"
+#include <limits.h>
 #include <stdio.h>
 #include <string.h>
 
 void Preferences_loadPrivate(compat_type(Preferences *) selfPtr) {
 	Preferences * self = selfPtr;
+	char fileName[NAME_MAX];
 	char filePath[PATH_MAX];
 	struct JSONNode * jsonData;
 	struct JSONParseError error;
 	
-	Preferences_getFilePathPrivate(self, filePath);
+	snprintf(fileName, NAME_MAX, "%s.json", self->identifier);
+	Preferences_getFilePathPrivate(fileName, filePath);
 	jsonData = JSONParser_loadFile(filePath, &error);
 	if (jsonData == NULL && error.code != JSONParseError_fileNotFound) {
 		fprintf(stderr, "Error: JSONParser_loadFile: %s (%d, %u)\n", error.description, error.code, (unsigned int) error.charIndex);
@@ -85,6 +88,7 @@ void Preferences_savePrivate(compat_type(Preferences *) selfPtr) {
 	Preferences * self = selfPtr;
 	size_t valueIndex;
 	struct JSONNode rootNode;
+	char fileName[NAME_MAX];
 	char filePath[PATH_MAX];
 	bool success;
 	struct JSONEmissionError error;
@@ -130,7 +134,8 @@ void Preferences_savePrivate(compat_type(Preferences *) selfPtr) {
 		}
 	}
 	
-	Preferences_getFilePathPrivate(self, filePath);
+	snprintf(fileName, NAME_MAX, "%s.json", self->identifier);
+	Preferences_getFilePathPrivate(fileName, filePath);
 	success = JSONEmitter_writeFile(&rootNode, JSONEmitterFormat_multiLine, filePath, &error);
 	JSONNode_disposeContents(&rootNode);
 	

@@ -2,6 +2,33 @@
 #include "preferences/Preferences.h"
 #include "preferences/Preferences_private.h"
 
+static unsigned int loadCalls;
+static unsigned int saveCalls;
+
+void Preferences_loadPrivate(compat_type(Preferences *) selfPtr) {
+	char data1[] = {0xFF, 0x00, 0x7F};
+	char data2[] = {0xAA};
+	
+	loadCalls++;
+	Preferences_setIntegerPrivate(selfPtr, "integer1", -3);
+	Preferences_setIntegerPrivate(selfPtr, "integer2", 0);
+	Preferences_setFloatPrivate(selfPtr, "float1", -4.5f);
+	Preferences_setFloatPrivate(selfPtr, "float2", 1.0f);
+	Preferences_setBooleanPrivate(selfPtr, "boolean1", false);
+	Preferences_setBooleanPrivate(selfPtr, "boolean2", true);
+	Preferences_setStringPrivate(selfPtr, "string1", "bar");
+	Preferences_setStringPrivate(selfPtr, "string2", "baz");
+	Preferences_setDataPrivate(selfPtr, "data1", data1, sizeof(data1));
+	Preferences_setDataPrivate(selfPtr, "data2", data2, sizeof(data2));
+}
+
+void Preferences_savePrivate(compat_type(Preferences *) selfPtr) {
+	saveCalls++;
+}
+
+void Preferences_getFilePathPrivate(const char * fileName, char * outFilePath) {
+}
+
 static void testInit() {
 	Preferences preferences, * preferencesPtr;
 	const char * identifier1 = "identifier1", * identifier2 = "identifier2";
@@ -62,25 +89,6 @@ static void testInit() {
 	TestCase_assert(preferencesPtr->loadDefaultValues == Preferences_loadDefaultValues, "Expected %p but got %p", Preferences_loadDefaultValues, preferencesPtr->loadDefaultValues);
 	TestCase_assert(preferencesPtr->loadDefaultValue == Preferences_loadDefaultValue, "Expected %p but got %p", Preferences_loadDefaultValue, preferencesPtr->loadDefaultValue);
 	preferencesPtr->dispose(preferencesPtr);
-}
-
-static unsigned int loadCalls;
-
-void Preferences_loadPrivate(compat_type(Preferences *) selfPtr) {
-	char data1[] = {0xFF, 0x00, 0x7F};
-	char data2[] = {0xAA};
-	
-	loadCalls++;
-	Preferences_setIntegerPrivate(selfPtr, "integer1", -3);
-	Preferences_setIntegerPrivate(selfPtr, "integer2", 0);
-	Preferences_setFloatPrivate(selfPtr, "float1", -4.5f);
-	Preferences_setFloatPrivate(selfPtr, "float2", 1.0f);
-	Preferences_setBooleanPrivate(selfPtr, "boolean1", false);
-	Preferences_setBooleanPrivate(selfPtr, "boolean2", true);
-	Preferences_setStringPrivate(selfPtr, "string1", "bar");
-	Preferences_setStringPrivate(selfPtr, "string2", "baz");
-	Preferences_setDataPrivate(selfPtr, "data1", data1, sizeof(data1));
-	Preferences_setDataPrivate(selfPtr, "data2", data2, sizeof(data2));
 }
 
 static void testLoad() {
@@ -278,12 +286,6 @@ static void testSet() {
 	TestCase_assert(!memcmp(data, "\xCC\xB7", 2), "Data didn't match expected value");
 	
 	preferences->dispose(preferences);
-}
-
-static unsigned int saveCalls;
-
-void Preferences_savePrivate(compat_type(Preferences *) selfPtr) {
-	saveCalls++;
 }
 
 static void testSave() {

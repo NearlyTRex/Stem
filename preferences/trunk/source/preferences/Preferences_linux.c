@@ -24,8 +24,6 @@
 #include <limits.h>
 #include <stdio.h>
 
-void Preferences_getFilePathPrivate(compat_type(Preferences *) selfPtr, char * outFilePath) {
-	Preferences * self = selfPtr;
-	
-	snprintf(outFilePath, PATH_MAX, "%s/.%s.json", getenv("HOME"), self->identifier);
+void Preferences_getFilePathPrivate(const char * fileName, char * outFilePath) {
+	snprintf(outFilePath, PATH_MAX, "%s/.%s", getenv("HOME"), fileName);
 }

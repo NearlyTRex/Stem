@@ -24,6 +24,10 @@
 #include "preferences/Preferences_private.h"
 #include <string.h>
 
+void Preferences_getFilePath(const char * fileName, char * outPath) {
+	Preferences_getFilePathPrivate(fileName, outPath);
+}
+
 Preferences * Preferences_create(const char * identifier) {
 	stemobject_create_implementation(Preferences, init, identifier)
 }

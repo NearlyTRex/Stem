@@ -31,7 +31,7 @@ void Preferences_setBooleanPrivate(compat_type(Preferences *) selfPtr, const cha
 void Preferences_setStringPrivate(compat_type(Preferences *) selfPtr, const char * name, const char * value);
 void Preferences_setDataPrivate(compat_type(Preferences *) selfPtr, const char * name, const void * value, size_t length);
 
-void Preferences_getFilePathPrivate(compat_type(Preferences *) selfPtr, char * outFilePath);
+void Preferences_getFilePathPrivate(const char * fileName, char * outFilePath);
 void Preferences_loadPrivate(compat_type(Preferences *) selfPtr);
 void Preferences_savePrivate(compat_type(Preferences *) selfPtr);
 
