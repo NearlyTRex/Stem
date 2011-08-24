@@ -1,0 +1,5 @@
+1.1.0
+ * Added Preferences_getFilePath() to public API
+
+1.0.1
+ * Fixed a bug that caused booleans to always save as false
