@@ -1,6 +1,5 @@
 #include "unittest/framework/TestSuite.h"
 #include "utilities/IOUtilities.h"
-#include "stubshell/StubShell.h"
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -155,6 +154,16 @@ static void testMemwrite() {
 	assertBytesMatch("aa\x00\x00\x00\x00""baz", context.data, 9);
 	
 	free(context.data);
+	
+	context = memwriteContextInit(NULL, 0, 0, true);
+	result = memwrite(&context, 2, "bb");
+	TestCase_assert(result, "Expected true but got false");
+	TestCase_assert(context.length == 2, "Expected 2 but got %d", (int) context.length);
+	TestCase_assert(context.allocatedSize == 2, "Expected 2 but got %d", (int) context.allocatedSize);
+	TestCase_assert(context.position == 2, "Expected 2 but got %d", (int) context.position);
+	assertBytesMatch("bb", context.data, 2);
+	
+	free(context.data);
 }
 
 static void testReadFileSimple() {
@@ -237,27 +246,6 @@ static void testWriteFileSimple() {
 	free(fileContents);
 }
 
-static const char * customResourcePath = "";
-
-static const char * customGetResourcePath() {
-	return customResourcePath;
-}
-
-static void testResourcePath() {
-	const char * path;
-	
-	StubShellCallback_getResourcePath = customGetResourcePath;
-	customResourcePath = "foo";
-	path = resourcePath("myfile");
-	TestCase_assert(!strcmp(path, "foo/myfile"), "Expected \"foo/myfile\" but got \"%s\"", path);
-	
-	customResourcePath = "bar";
-	path = resourcePath("myfile2");
-	TestCase_assert(!strcmp(path, "bar/myfile2"), "Expected \"bar/myfile2\" but got \"%s\"", path);
-	
-	StubShellCallback_getResourcePath = NULL;
-}
-
 static void testTemporaryFilePath() {
 	int fd;
 	const char * template, * path;
@@ -319,5 +307,4 @@ TEST_SUITE(IOUtilitiesTest,
            testMemwrite,
            testReadFileSimple,
            testWriteFileSimple,
-           testResourcePath,
            testTemporaryFilePath)

@@ -3,7 +3,7 @@
 
 static void testAtomFromString() {
 	char * atom1String1 = "I am an atom", atom1String2[] = "I am an atom", * atom2String = "I am also an atom";
-	Atom atom1_1, atom1_2, atom2;
+	Atom atom1_1, atom1_2, atom2, atom3;
 	
 	atom1_1 = Atom_fromString(atom1String1);
 	TestCase_assert(!strcmp(atom1_1, atom1String1), "Atom \"%s\" didn't match expected string \"%s\"", atom1_1, atom1String1);
@@ -14,6 +14,9 @@ static void testAtomFromString() {
 	
 	atom2 = Atom_fromString(atom2String);
 	TestCase_assert(!strcmp(atom2, atom2String), "Atom \"%s\" didn't match expected string \"%s\"", atom2, atom2String);
+	
+	atom3 = Atom_fromString(NULL);
+	TestCase_assert(atom3 == NULL, "Expected NULL but got %p", atom3);
 }
 
 TEST_SUITE(AtomTest, testAtomFromString)

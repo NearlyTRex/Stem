@@ -28,7 +28,6 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "shell/Shell.h"
 #include "utilities/AutoFreePool.h"
 
 struct memreadContext memreadContextInit(const void * data, size_t length) {
@@ -73,8 +72,12 @@ bool memwrite(struct memwriteContext * context, size_t nbytes, const void * inDa
 			return false;
 		}
 		
-		while (context->position + nbytes > context->allocatedSize) {
-			context->allocatedSize *= 2;
+		if (context->allocatedSize == 0) {
+			context->allocatedSize = context->position + nbytes;
+		} else {
+			while (context->position + nbytes > context->allocatedSize) {
+				context->allocatedSize *= 2;
+			}
 		}
 		context->data = realloc(context->data, context->allocatedSize);
 	}
@@ -101,6 +104,9 @@ void * readFileSimple(const char * filePath, size_t * outFileLength) {
 	
 	file = fopen(filePath, "rb");
 	if (file == NULL) {
+		if (outFileLength != NULL) {
+			*outFileLength = 0;
+		}
 		return NULL;
 	}
 	fseek(file, 0, SEEK_END);
@@ -112,10 +118,15 @@ void * readFileSimple(const char * filePath, size_t * outFileLength) {
 	
 	if (bytesRead < fileLength) {
 		free(fileContents);
+		if (outFileLength != NULL) {
+			*outFileLength = 0;
+		}
 		return NULL;
 	}
 	
-	if (outFileLength != NULL) *outFileLength = fileLength;
+	if (outFileLength != NULL) {
+		*outFileLength = fileLength;
+	}
 	return fileContents;
 }
 
@@ -155,16 +166,6 @@ void * readStdinSimple(size_t * outLength) {
 		*outLength = length;
 	}
 	return data;
-}
-
-const char * resourcePath(const char * filePath) {
-	static char * path;
-	
-	path = malloc(PATH_MAX);
-	snprintf(path, PATH_MAX, "%s/%s", Shell_getResourcePath(), filePath);
-	AutoFreePool_add(path);
-	
-	return path;
 }
 
 #ifdef WIN32

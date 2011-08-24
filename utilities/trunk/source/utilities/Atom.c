@@ -36,6 +36,10 @@ Atom Atom_fromString(const char * string) {
 	char * newAtom;
 	size_t length;
 	
+	if (string == NULL) {
+		return NULL;
+	}
+	
 	if (atoms == NULL) {
 		atoms = malloc(sizeof(Atom) * atomListSize);
 		pthread_mutex_init(&mutex, NULL);
