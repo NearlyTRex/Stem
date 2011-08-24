@@ -1,0 +1,30 @@
+1.4.1
+ * Atom_fromString will no longer crash when passed NULL, instead returning NULL
+ * resourcePath() is no longer necessary and has been removed. Shells now chdir to Shell_resourcePath at startup.
+ * memwrite now allows an initial allocatedSize of 0, for callers who wish to use memwriteInit(NULL, 0, 0, true)
+ * readFileSimple now writes 0 to outFileLength on read failure
+ * utilities no longer depends on shell or stubshell
+
+1.4.0
+ * Updated stemobject dependency from 1.1.0 to 2.0.0
+ * Synchronized with template_stemlib Stable_2010-11-14
+ * Added readStdinSimple
+ * Atom and AutoFreePool are now (theoretically) thread safe
+
+1.3.0
+ * Updated stemobject dependency from 1.0.0 to 1.1.0
+ * Updated stubshell dependency from 1.0.0 to 1.1.0
+ * Refreshed Makefile from template_stemlib Stable_2010-06-02
+
+1.2.0
+ * Added temporaryFilePath to IOUtilities
+ * Arg 2 of writeFileSimple is now const
+ * Refreshed Makefile from template_stemlib Stable_2010-05-22
+
+1.1.0
+ * Updated EventDispatcher and FixedIntervalRunLoop to inherit from StemObject
+ * Refreshed Makefile from template_stemlib Stable_2010-05-06
+
+1.0.0
+ * Added Random
+ * Refreshed Makefile and other project files from template_stemlib Stable_2010-03-29
