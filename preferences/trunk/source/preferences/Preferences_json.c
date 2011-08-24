@@ -27,6 +27,10 @@
 #include <stdio.h>
 #include <string.h>
 
+#ifdef WIN32
+#define NAME_MAX FILENAME_MAX
+#endif
+
 void Preferences_loadPrivate(compat_type(Preferences *) selfPtr) {
 	Preferences * self = selfPtr;
 	char fileName[NAME_MAX];
