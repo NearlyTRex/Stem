@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2010 Alex Diener
+  Copyright (c) 2011 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -24,6 +24,8 @@
 #define __EVENT_DISPATCHER_H__
 
 #include "stemobject/StemObject.h"
+#include "utilities/Atom.h"
+#include <stdlib.h>
 
 typedef struct EventDispatcher EventDispatcher;
 
@@ -35,7 +37,7 @@ typedef struct EventDispatcher EventDispatcher;
    context: Value passed as context to registerForEvent
    
    This function should return true if the event was handled, or false if it was ignored. */
-typedef bool (* EventDispatcherCallback)(void * sender, const char * eventID, void * eventData, void * context);
+typedef bool (* EventDispatcherCallback)(void * sender, Atom eventID, void * eventData, void * context);
 
 struct EventTarget;
 
@@ -44,13 +46,13 @@ struct EventTarget;
 	\
 	void * owner; \
 	\
-	int numberOfTargets; \
-	int targetListSize; \
+	size_t numberOfTargets; \
+	size_t targetListSize; \
 	struct EventTarget * targets; \
 	\
-	void (* registerForEvent)(compat_type(EventDispatcher *) self, const char * eventID, EventDispatcherCallback callback, void * context); \
-	void (* unregisterForEvent)(compat_type(EventDispatcher *) self, const char * eventID, EventDispatcherCallback callback); \
-	bool (* dispatchEvent)(compat_type(EventDispatcher *) self, const char * eventID, void * eventData);
+	void (* registerForEvent)(compat_type(EventDispatcher *) self, Atom eventID, EventDispatcherCallback callback, void * context); \
+	void (* unregisterForEvent)(compat_type(EventDispatcher *) self, Atom eventID, EventDispatcherCallback callback); \
+	bool (* dispatchEvent)(compat_type(EventDispatcher *) self, Atom eventID, void * eventData);
 
 struct EventDispatcher {
 	EventDispatcher_structContents
@@ -69,13 +71,13 @@ void EventDispatcher_init(compat_type(EventDispatcher *) selfPtr, void * owner);
 void EventDispatcher_dispose(compat_type(EventDispatcher *) selfPtr);
 
 /* Register for notification of events of type eventID */
-void EventDispatcher_registerForEvent(compat_type(EventDispatcher *) selfPtr, const char * eventID, EventDispatcherCallback callback, void * context);
+void EventDispatcher_registerForEvent(compat_type(EventDispatcher *) selfPtr, Atom eventID, EventDispatcherCallback callback, void * context);
 
 /* Remove a previous registration for events of type eventID */
-void EventDispatcher_unregisterForEvent(compat_type(EventDispatcher *) selfPtr, const char * eventID, EventDispatcherCallback callback);
+void EventDispatcher_unregisterForEvent(compat_type(EventDispatcher *) selfPtr, Atom eventID, EventDispatcherCallback callback);
 
 /* Dispatch an event to all registered listeners for that event ID. Returns true if any listener is
    registered and returns true from its handler callback. */
-bool EventDispatcher_dispatchEvent(compat_type(EventDispatcher *) selfPtr, const char * eventID, void * eventData);
+bool EventDispatcher_dispatchEvent(compat_type(EventDispatcher *) selfPtr, Atom eventID, void * eventData);
 
 #endif

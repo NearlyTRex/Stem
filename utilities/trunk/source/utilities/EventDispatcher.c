@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2010 Alex Diener
+  Copyright (c) 2011 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -21,12 +21,10 @@
 */
 
 #include "utilities/EventDispatcher.h"
-
-#include <stdlib.h>
 #include <string.h>
 
 struct EventTarget {
-	char * eventID;
+	Atom eventID;
 	EventDispatcherCallback callback;
 	void * context;
 };
@@ -53,40 +51,32 @@ void EventDispatcher_init(compat_type(EventDispatcher *) selfPtr, void * owner) 
 
 void EventDispatcher_dispose(compat_type(EventDispatcher *) selfPtr) {
 	EventDispatcher * self = selfPtr;
-	int targetIndex;
 	
-	for (targetIndex = 0; targetIndex < self->numberOfTargets; targetIndex++) {
-		free(self->targets[targetIndex].eventID);
-	}
 	free(self->targets);
-	
 	StemObject_dispose(selfPtr);
 }
 
-void EventDispatcher_registerForEvent(compat_type(EventDispatcher *) selfPtr, const char * eventID, EventDispatcherCallback callback, void * context) {
+void EventDispatcher_registerForEvent(compat_type(EventDispatcher *) selfPtr, Atom eventID, EventDispatcherCallback callback, void * context) {
 	EventDispatcher * self = selfPtr;
-	size_t length;
 	
 	if (self->numberOfTargets >= self->targetListSize) {
 		self->targetListSize *= 2;
 		self->targets = (struct EventTarget *) realloc(self->targets, sizeof(struct EventTarget) * self->targetListSize);
 	}
 	
-	length = strlen(eventID);
-	self->targets[self->numberOfTargets].eventID = malloc(length + 1);
-	strncpy(self->targets[self->numberOfTargets].eventID, eventID, length + 1);
+	self->targets[self->numberOfTargets].eventID = eventID;
 	self->targets[self->numberOfTargets].callback = callback;
 	self->targets[self->numberOfTargets].context = context;
 	self->numberOfTargets++;
 }
 
-void EventDispatcher_unregisterForEvent(compat_type(EventDispatcher *) selfPtr, const char * eventID, EventDispatcherCallback callback) {
+void EventDispatcher_unregisterForEvent(compat_type(EventDispatcher *) selfPtr, Atom eventID, EventDispatcherCallback callback) {
 	EventDispatcher * self = selfPtr;
-	int targetIndex;
+	size_t targetIndex;
 	
 	for (targetIndex = 0; targetIndex < self->numberOfTargets; targetIndex++) {
+		// LEGACY: Should be able to pointer-compare Atoms; strcmp used for backward compatibility with utilities 1.4.1 and earlier
 		if (!strcmp(eventID, self->targets[targetIndex].eventID) && self->targets[targetIndex].callback == callback) {
-			free(self->targets[targetIndex].eventID);
 			self->numberOfTargets--;
 			for (; targetIndex < self->numberOfTargets; targetIndex++) {
 				self->targets[targetIndex] = self->targets[targetIndex + 1];
@@ -96,10 +86,10 @@ void EventDispatcher_unregisterForEvent(compat_type(EventDispatcher *) selfPtr, 
 	}
 }
 
-bool EventDispatcher_dispatchEvent(compat_type(EventDispatcher *) selfPtr, const char * eventID, void * eventData) {
+bool EventDispatcher_dispatchEvent(compat_type(EventDispatcher *) selfPtr, Atom eventID, void * eventData) {
 	EventDispatcher * self = selfPtr;
-	int targetIndex;
-	int numberOfTargetsCopy;
+	size_t targetIndex;
+	size_t numberOfTargetsCopy;
 	struct EventTarget * targetsCopy;
 	bool eventHandled, anyEventsHandled;
 	
@@ -109,6 +99,7 @@ bool EventDispatcher_dispatchEvent(compat_type(EventDispatcher *) selfPtr, const
 	
 	anyEventsHandled = false;
 	for (targetIndex = 0; targetIndex < numberOfTargetsCopy; targetIndex++) {
+		// LEGACY: Should be able to pointer-compare Atoms; strcmp used for backward compatibility with utilities 1.4.1 and earlier
 		if (!strcmp(eventID, self->targets[targetIndex].eventID)) {
 			eventHandled = targetsCopy[targetIndex].callback(self->owner, eventID, eventData, targetsCopy[targetIndex].context);
 			

@@ -1,3 +1,6 @@
+1.4.2
+ * EventDispatcher's eventID strings are now Atoms, and are no longer copied internally. This fixes a potential strcmp of a freed string if an event handler is removed from an event callback, but may cause events to no longer fire if callers are using something other than Atoms or string constants for eventID. Backward compatibility is maintained for non-Atom string constants, but this usage is deprecated and will be removed in the next major revision.
+
 1.4.1
  * Atom_fromString will no longer crash when passed NULL, instead returning NULL
  * resourcePath() is no longer necessary and has been removed. Shells now chdir to Shell_resourcePath at startup.
