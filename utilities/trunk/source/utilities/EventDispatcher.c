@@ -75,8 +75,7 @@ void EventDispatcher_unregisterForEvent(compat_type(EventDispatcher *) selfPtr, 
 	size_t targetIndex;
 	
 	for (targetIndex = 0; targetIndex < self->numberOfTargets; targetIndex++) {
-		// LEGACY: Should be able to pointer-compare Atoms; strcmp used for backward compatibility with utilities 1.4.1 and earlier
-		if (!strcmp(eventID, self->targets[targetIndex].eventID) && self->targets[targetIndex].callback == callback) {
+		if (eventID == self->targets[targetIndex].eventID && self->targets[targetIndex].callback == callback) {
 			self->numberOfTargets--;
 			for (; targetIndex < self->numberOfTargets; targetIndex++) {
 				self->targets[targetIndex] = self->targets[targetIndex + 1];
@@ -99,8 +98,7 @@ bool EventDispatcher_dispatchEvent(compat_type(EventDispatcher *) selfPtr, Atom 
 	
 	anyEventsHandled = false;
 	for (targetIndex = 0; targetIndex < numberOfTargetsCopy; targetIndex++) {
-		// LEGACY: Should be able to pointer-compare Atoms; strcmp used for backward compatibility with utilities 1.4.1 and earlier
-		if (!strcmp(eventID, self->targets[targetIndex].eventID)) {
+		if (eventID == targetsCopy[targetIndex].eventID) {
 			eventHandled = targetsCopy[targetIndex].callback(self->owner, eventID, eventData, targetsCopy[targetIndex].context);
 			
 			if (eventHandled) {
