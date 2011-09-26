@@ -1,5 +1,9 @@
+1.4.3
+ * Fixed a critical bug introduced in 1.4.2 that could cause the wrong event handler to fire after having unregistered for an event from within a callback
+ * Backward compatibility for non-Atom event IDs removed.
+
 1.4.2
- * EventDispatcher's eventID strings are now Atoms, and are no longer copied internally. This fixes a potential strcmp of a freed string if an event handler is removed from an event callback, but may cause events to no longer fire if callers are using something other than Atoms or string constants for eventID. Backward compatibility is maintained for non-Atom string constants, but this usage is deprecated and will be removed in the next major revision.
+ * EventDispatcher's eventID strings are now Atoms, and are no longer copied internally. This fixes a potential strcmp of a freed string if an event handler is removed from an event callback, but may cause events to no longer fire if callers are using something other than Atoms or string constants for eventID. Backward compatibility is maintained for non-Atom string constants, but this usage is deprecated and will be removed in the next revision.
 
 1.4.1
  * Atom_fromString will no longer crash when passed NULL, instead returning NULL
