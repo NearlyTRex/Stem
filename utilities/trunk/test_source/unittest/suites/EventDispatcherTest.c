@@ -48,7 +48,11 @@ static void testCallbacks() {
 	TestCase_assert(callback2Context == 3, "Expected 3 but got %d", callback2Context);
 	TestCase_assert(!handled, "Expected false but got true");
 	
-	dispatcher->unregisterForEvent(dispatcher, event1Atom, callback1);
+	dispatcher->unregisterForEvent(dispatcher, event1Atom, callback1, NULL);
+	handled = dispatcher->dispatchEvent(dispatcher, event1Atom, &incrementation);
+	TestCase_assert(handled, "Event not still handled after unregistering callbacks with the wrong context");
+	
+	dispatcher->unregisterForEvent(dispatcher, event1Atom, callback1, &callback1Context);
 	handled = dispatcher->dispatchEvent(dispatcher, event1Atom, &incrementation);
 	TestCase_assert(!handled, "Event still handled after unregistering callbacks");
 	

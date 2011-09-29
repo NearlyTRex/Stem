@@ -51,7 +51,7 @@ struct EventTarget;
 	struct EventTarget * targets; \
 	\
 	void (* registerForEvent)(compat_type(EventDispatcher *) self, Atom eventID, EventDispatcherCallback callback, void * context); \
-	void (* unregisterForEvent)(compat_type(EventDispatcher *) self, Atom eventID, EventDispatcherCallback callback); \
+	void (* unregisterForEvent)(compat_type(EventDispatcher *) self, Atom eventID, EventDispatcherCallback callback, void * context); \
 	bool (* dispatchEvent)(compat_type(EventDispatcher *) self, Atom eventID, void * eventData);
 
 struct EventDispatcher {
@@ -73,8 +73,8 @@ void EventDispatcher_dispose(compat_type(EventDispatcher *) selfPtr);
 /* Register for notification of events of type eventID */
 void EventDispatcher_registerForEvent(compat_type(EventDispatcher *) selfPtr, Atom eventID, EventDispatcherCallback callback, void * context);
 
-/* Remove a previous registration for events of type eventID */
-void EventDispatcher_unregisterForEvent(compat_type(EventDispatcher *) selfPtr, Atom eventID, EventDispatcherCallback callback);
+/* Remove a previous registration for events of type eventID. Callback and context must match the pointers passed to registerForEvent. */
+void EventDispatcher_unregisterForEvent(compat_type(EventDispatcher *) selfPtr, Atom eventID, EventDispatcherCallback callback, void * context);
 
 /* Dispatch an event to all registered listeners for that event ID. Returns true if any listener is
    registered and returns true from its handler callback. */

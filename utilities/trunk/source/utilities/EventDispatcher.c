@@ -70,12 +70,12 @@ void EventDispatcher_registerForEvent(compat_type(EventDispatcher *) selfPtr, At
 	self->numberOfTargets++;
 }
 
-void EventDispatcher_unregisterForEvent(compat_type(EventDispatcher *) selfPtr, Atom eventID, EventDispatcherCallback callback) {
+void EventDispatcher_unregisterForEvent(compat_type(EventDispatcher *) selfPtr, Atom eventID, EventDispatcherCallback callback, void * context) {
 	EventDispatcher * self = selfPtr;
 	size_t targetIndex;
 	
 	for (targetIndex = 0; targetIndex < self->numberOfTargets; targetIndex++) {
-		if (eventID == self->targets[targetIndex].eventID && self->targets[targetIndex].callback == callback) {
+		if (eventID == self->targets[targetIndex].eventID && callback == self->targets[targetIndex].callback && context == self->targets[targetIndex].context) {
 			self->numberOfTargets--;
 			for (; targetIndex < self->numberOfTargets; targetIndex++) {
 				self->targets[targetIndex] = self->targets[targetIndex + 1];
