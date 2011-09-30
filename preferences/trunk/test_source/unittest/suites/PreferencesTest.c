@@ -388,7 +388,7 @@ static void testEvents() {
 	
 	valueChangedCalls = 0;
 	preferences = Preferences_create("preferences_unittest");
-	preferences->eventDispatcher->registerForEvent(preferences->eventDispatcher, PREFERENCES_EVENT_VALUE_CHANGED, valueChanged, NULL);
+	preferences->eventDispatcher->registerForEvent(preferences->eventDispatcher, Atom_fromString(PREFERENCES_EVENT_VALUE_CHANGED), valueChanged, NULL);
 	preferences->addInteger(preferences, "integer1", 1);
 	preferences->addFloat(preferences, "float1", 1.0f);
 	preferences->addBoolean(preferences, "boolean1", true);
