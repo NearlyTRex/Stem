@@ -1,0 +1,12 @@
+1.0.3
+ * Updated for serialization 1.1.2
+ * JSONSerializationContext's writeToString and writeToFile functions no longer fail to write to the outError struct on early failures
+ * Fixed a bug that could cause JSONSerializationContext to incorrectly reject duplicate dictionary keys in certain cases
+
+1.0.2
+ * Updated for stemobject 2.0.0
+ * Synchronized with template_stemlib Stable_2011-01-13
+
+1.0.1
+ * Fixed a bug that caused float reads for numbers that were zero or negative to fail (FLT_MIN is not -FLT_MAX!)
+ * Synchronized with template_stemlib Stable_2010-07-14
