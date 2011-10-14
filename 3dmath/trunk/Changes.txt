@@ -1,3 +1,7 @@
+1.2.0
+ * Added Vector2_rotate() function
+ * Changed some parameter names for greater clarity (particularly to distinguish between degrees and radians)
+
 1.1.0
  * Added Vector*_reflect() functions
  * Removed Quaternion_fromVector() and Quaternion_toVector()

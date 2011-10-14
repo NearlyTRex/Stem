@@ -61,8 +61,8 @@ Matrix Matrix_shearedY(Matrix matrix, float x, float z);
 void Matrix_shearZ(Matrix * matrix, float x, float y);
 Matrix Matrix_shearedZ(Matrix matrix, float x, float y);
 
-void Matrix_applyPerspective(Matrix * matrix, float fovY, float aspect, float zNear, float zFar);
-Matrix Matrix_perspective(Matrix matrix, float fovY, float aspect, float zNear, float zFar);
+void Matrix_applyPerspective(Matrix * matrix, float fovYDegrees, float aspect, float zNear, float zFar);
+Matrix Matrix_perspective(Matrix matrix, float fovYDegrees, float aspect, float zNear, float zFar);
 
 void Matrix_applyOrtho(Matrix * matrix, float left, float right, float bottom, float top, float zNear, float zFar);
 Matrix Matrix_ortho(Matrix matrix, float left, float right, float bottom, float top, float zNear, float zFar);

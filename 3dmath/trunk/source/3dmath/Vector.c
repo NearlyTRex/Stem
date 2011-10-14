@@ -252,6 +252,14 @@ Vector4 Vector4_reflect(Vector4 vector, Vector4 normal) {
 	return result;
 }
 
+Vector2 Vector2_rotate(Vector2 vector, float radians) {
+	Vector2 result;
+	
+	result.x = vector.x * cos(radians) + vector.y * -sin(radians);
+	result.y = vector.x * sin(radians) + vector.y * cos(radians);
+	return result;
+}
+
 float Vector2_dot(Vector2 vector1, Vector2 vector2) {
 	return vector1.x * vector2.x + vector1.y * vector2.y;
 }

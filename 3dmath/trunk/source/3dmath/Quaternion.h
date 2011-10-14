@@ -39,8 +39,8 @@ void Quaternion_loadIdentity(Quaternion * quaternion);
 Quaternion Quaternion_identity();
 Quaternion Quaternion_init(float x, float y, float z, float w);
 
-Quaternion Quaternion_fromAxisAngle(Vector3 axis, float angle);
-void Quaternion_toAxisAngle(Quaternion quaternion, Vector3 * axis, float * angle);
+Quaternion Quaternion_fromAxisAngle(Vector3 axis, float radians);
+void Quaternion_toAxisAngle(Quaternion quaternion, Vector3 * outAxis, float * outRadians);
 struct Matrix Quaternion_toMatrix(Quaternion quaternion);
 
 void Quaternion_normalize(Quaternion * quaternion);
@@ -48,10 +48,10 @@ Quaternion Quaternion_normalized(Quaternion quaternion);
 
 void Quaternion_multiply(Quaternion * quaternion1, Quaternion quaternion2);
 Quaternion Quaternion_multiplied(Quaternion quaternion1, Quaternion quaternion2);
-Quaternion Quaternion_slerp(Quaternion left, Quaternion right, float phase);
+Quaternion Quaternion_slerp(Quaternion left, Quaternion right, float value);
 
-void Quaternion_rotate(Quaternion * quaternion, Vector3 axis, float angle);
-Quaternion Quaternion_rotated(Quaternion quaternion, Vector3 axis, float angle);
+void Quaternion_rotate(Quaternion * quaternion, Vector3 axis, float radians);
+Quaternion Quaternion_rotated(Quaternion quaternion, Vector3 axis, float radians);
 
 void Quaternion_invert(Quaternion * quaternion);
 Quaternion Quaternion_inverted(Quaternion quaternion);

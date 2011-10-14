@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2010 Alex Diener
+  Copyright (c) 2011 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -26,9 +26,6 @@
 
 #include "3dmath/Quaternion.h"
 #include "3dmath/Vector.h"
-
-#define degreesToRadians(degrees) (((degrees) * M_PI) / 180.0f)
-#define radiansToDegrees(radians) (((radians) * 180.0f) / M_PI)
 
 void Matrix_loadIdentity(Matrix * matrix) {
 	matrix->m[0] = 1.0f;
@@ -213,17 +210,17 @@ Matrix Matrix_shearedZ(Matrix matrix, float x, float y) {
 	return matrix;
 }
 
-void Matrix_applyPerspective(Matrix * matrix, float fovY, float aspect, float zNear, float zFar) {
+void Matrix_applyPerspective(Matrix * matrix, float fovYDegrees, float aspect, float zNear, float zFar) {
 	Matrix perspectiveMatrix;
 	float sine, cotangent, deltaZ;
 	
-	fovY = degreesToRadians(fovY) / 2.0f;
+	fovYDegrees = fovYDegrees * M_PI / 360.0f;
 	deltaZ = zFar - zNear;
-	sine = sin(fovY);
+	sine = sin(fovYDegrees);
 	if (deltaZ == 0.0f || sine == 0.0f || aspect == 0.0f) {
 		return;
 	}
-	cotangent = cos(fovY) / sine;
+	cotangent = cos(fovYDegrees) / sine;
 	
 	Matrix_loadIdentity(&perspectiveMatrix);
 	perspectiveMatrix.m[0] = cotangent / aspect;
@@ -235,8 +232,8 @@ void Matrix_applyPerspective(Matrix * matrix, float fovY, float aspect, float zN
 	Matrix_multiply(matrix, perspectiveMatrix);
 }
 
-Matrix Matrix_perspective(Matrix matrix, float fovY, float aspect, float zNear, float zFar) {
-	Matrix_applyPerspective(&matrix, fovY, aspect, zNear, zFar);
+Matrix Matrix_perspective(Matrix matrix, float fovYDegrees, float aspect, float zNear, float zFar) {
+	Matrix_applyPerspective(&matrix, fovYDegrees, aspect, zNear, zFar);
 	return matrix;
 }
 

@@ -52,22 +52,22 @@ Quaternion Quaternion_init(float x, float y, float z, float w) {
 	return quaternion;
 }
 
-Quaternion Quaternion_fromAxisAngle(Vector3 axis, float angle) {
+Quaternion Quaternion_fromAxisAngle(Vector3 axis, float radians) {
 	Quaternion quaternion;
 	float sinAngle;
 	
-	angle *= 0.5f;
+	radians *= 0.5f;
 	Vector3_normalize(&axis);
-	sinAngle = sin(angle);
+	sinAngle = sin(radians);
 	quaternion.x = axis.x * sinAngle;
 	quaternion.y = axis.y * sinAngle;
 	quaternion.z = axis.z * sinAngle;
-	quaternion.w = cos(angle);
+	quaternion.w = cos(radians);
 	
 	return quaternion;
 }
 
-void Quaternion_toAxisAngle(Quaternion quaternion, Vector3 * axis, float * angle) {
+void Quaternion_toAxisAngle(Quaternion quaternion, Vector3 * outAxis, float * outRadians) {
 	float sinAngle;
 	
 	Quaternion_normalize(&quaternion);
@@ -76,14 +76,14 @@ void Quaternion_toAxisAngle(Quaternion quaternion, Vector3 * axis, float * angle
 		sinAngle = 1.0f;
 	}
 	
-	if (axis != NULL) {
-		axis->x = quaternion.x / sinAngle;
-		axis->y = quaternion.y / sinAngle;
-		axis->z = quaternion.z / sinAngle;
+	if (outAxis != NULL) {
+		outAxis->x = quaternion.x / sinAngle;
+		outAxis->y = quaternion.y / sinAngle;
+		outAxis->z = quaternion.z / sinAngle;
 	}
 	
-	if (angle != NULL) {
-		*angle = acos(quaternion.w) * 2.0f;
+	if (outRadians != NULL) {
+		*outRadians = acos(quaternion.w) * 2.0f;
 	}
 }
 
@@ -145,7 +145,7 @@ Quaternion Quaternion_multiplied(Quaternion quaternion1, Quaternion quaternion2)
 
 #define SLERP_TO_LERP_SWITCH_THRESHOLD 0.01f
 
-Quaternion Quaternion_slerp(Quaternion left, Quaternion right, float phase) {
+Quaternion Quaternion_slerp(Quaternion left, Quaternion right, float value) {
 	float leftWeight, rightWeight, difference;
 	Quaternion result;
 	
@@ -155,14 +155,14 @@ Quaternion Quaternion_slerp(Quaternion left, Quaternion right, float phase) {
 		
 		theta = acos(fabs(difference));
 		oneOverSinTheta = 1.0f / sin(theta);
-		leftWeight = sin(theta * (1.0f - phase)) * oneOverSinTheta;
-		rightWeight = sin(theta * phase) * oneOverSinTheta;
+		leftWeight = sin(theta * (1.0f - value)) * oneOverSinTheta;
+		rightWeight = sin(theta * value) * oneOverSinTheta;
 		if (difference < 0.0f) {
 			leftWeight = -leftWeight;
 		}
 	} else {
-		leftWeight = 1.0f - phase;
-		rightWeight = phase;
+		leftWeight = 1.0f - value;
+		rightWeight = value;
 	}
 	result.x = left.x * leftWeight + right.x * rightWeight;
 	result.y = left.y * leftWeight + right.y * rightWeight;
@@ -173,15 +173,15 @@ Quaternion Quaternion_slerp(Quaternion left, Quaternion right, float phase) {
 	return result;
 }
 
-void Quaternion_rotate(Quaternion * quaternion, Vector3 axis, float angle) {
+void Quaternion_rotate(Quaternion * quaternion, Vector3 axis, float radians) {
 	Quaternion rotationQuaternion;
 	
-	rotationQuaternion = Quaternion_fromAxisAngle(axis, angle);
+	rotationQuaternion = Quaternion_fromAxisAngle(axis, radians);
 	Quaternion_multiply(quaternion, rotationQuaternion);
 }
 
-Quaternion Quaternion_rotated(Quaternion quaternion, Vector3 axis, float angle) {
-	Quaternion_rotate(&quaternion, axis, angle);
+Quaternion Quaternion_rotated(Quaternion quaternion, Vector3 axis, float radians) {
+	Quaternion_rotate(&quaternion, axis, radians);
 	return quaternion;
 }
 
