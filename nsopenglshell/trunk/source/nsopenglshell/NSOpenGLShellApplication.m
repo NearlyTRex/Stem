@@ -54,7 +54,8 @@ extern bool mainLoopCalled;
 	[view initCalled];
 	[view displayIfNeeded];
 	
-	[window makeKeyAndOrderFront: nil];
+	[window orderFront: nil];
+	[[view window] makeKeyAndOrderFront: nil];
 	
 	if (!mainLoopCalled) {
 		exit(EXIT_SUCCESS);

@@ -1,0 +1,3 @@
+1.0.1
+ * nsopenglshell will no longer chdir to Shell_getResourcePath() at startup; this is now the target's responsibility
+ * Fixed a bug that caused the first mouse event not to fire after entering full screen mode from Target_init()

@@ -57,7 +57,6 @@ int main(int argc, const char ** argv) {
 	
 	[[NSOpenGLShellApplication sharedApplication] setDelegate: [NSOpenGLShellApplication sharedApplication]];
 	
-	chdir(Shell_getResourcePath());
 	NSOpenGLTarget_configure(g_argc, g_argv, &g_configuration);
 	
 	applicationName = [[[NSBundle mainBundle] infoDictionary] objectForKey: @"CFBundleName"];
