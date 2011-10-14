@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2010 Alex Diener
+  Copyright (c) 2011 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -23,13 +23,26 @@
 #ifndef __DESERIALIZATION_CONTEXT_H__
 #define __DESERIALIZATION_CONTEXT_H__
 
+typedef struct DeserializationContext DeserializationContext;
+
 #include "serialization/SerializationShared.h"
 #include "stemobject/StemObject.h"
 #include <stdint.h>
 #include <stdlib.h>
 #include <setjmp.h>
 
-typedef struct DeserializationContext DeserializationContext;
+#define stemobject_deserialize_implementation(class_name, deserialization_context, load_suffix) \
+	DeserializationContext * context = deserialization_context; \
+	class_name * self; \
+	\
+	self = malloc(sizeof(class_name)); \
+	if (!class_name##_##load_suffix(self, context)) { \
+		free(self); \
+		return NULL; \
+	} \
+	self->protected_ivar(allocated) = true; \
+	\
+	return self;
 
 #define DeserializationContext_structContents \
 	StemObject_structContents \
@@ -37,8 +50,8 @@ typedef struct DeserializationContext DeserializationContext;
 	jmp_buf * jmpBuf; \
 	int status; \
 	\
-	/* Implementations should return the number of elements in the container */ \
-	size_t (* beginStructure)(compat_type(DeserializationContext *) self, const char * key); \
+	/* Implementations should return the number of elements in the container (except beginStructure) */ \
+	void (* beginStructure)(compat_type(DeserializationContext *) self, const char * key); \
 	size_t (* beginDictionary)(compat_type(DeserializationContext *) self, const char * key); \
 	size_t (* beginArray)(compat_type(DeserializationContext *) self, const char * key); \
 	\
