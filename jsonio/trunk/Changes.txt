@@ -1,3 +1,6 @@
+1.2.3
+ * Fixed a potential crash in JSONParser
+
 1.2.2
  * JSONEmitter_writeFile now returns an error code and message if writeFileSimple fails
  * JSONParser will no longer fail parsing when a string contains characters above 0x7F

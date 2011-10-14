@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2010 Alex Diener
+  Copyright (c) 2011 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -110,7 +110,8 @@ enum JSONToken {
 	JSON_TOKEN_TRUE,
 	JSON_TOKEN_FALSE,
 	JSON_TOKEN_NUMBER,
-	JSON_TOKEN_STRING
+	JSON_TOKEN_STRING,
+	JSON_TOKEN_EOF
 };
 
 static enum JSONToken nextJSONToken(const char * string, size_t length, size_t * ioCharIndex, size_t * outTokenLength) {
@@ -124,7 +125,7 @@ static enum JSONToken nextJSONToken(const char * string, size_t length, size_t *
 	
 	if (charIndex >= length) {
 		*outTokenLength = 0;
-		return JSON_TOKEN_INVALID;
+		return JSON_TOKEN_EOF;
 	}
 	
 	if (string[charIndex] == '[') {
@@ -337,8 +338,13 @@ struct JSONNode * JSONParser_loadString(const char * string, size_t length, stru
 				free(nodeStack);
 				if (outError != NULL) {
 					outError->charIndex = charIndex - tokenLength;
-					outError->code = JSONParseError_unexpectedToken;
-					outError->description = "Unexpected token when seeking comma";
+					if (token == JSON_TOKEN_EOF) {
+						outError->code = JSONParseError_unexpectedEOF;
+						outError->description = "Unexpected end of file when seeking comma";
+					} else {
+						outError->code = JSONParseError_unexpectedToken;
+						outError->description = "Unexpected token when seeking comma";
+					}
 				}
 				return NULL;
 			}
@@ -426,20 +432,18 @@ struct JSONNode * JSONParser_loadString(const char * string, size_t length, stru
 			containerNode->subitems[containerNode->value.count - 1] = node;
 			
 		} else if (token == JSON_TOKEN_NUMBER) {
-			if (charIndex >= length) {
-				// strtod is potentially dangerous, so make sure it isn't called if we're at the end of a potentially-not-null-terminated string (which would be invalid json anyway)
-				JSONNode_disposeContents(&node);
-				JSONNode_dispose(rootNode);
-				free(nodeStack);
-				if (outError != NULL) {
-					outError->charIndex = length;
-					outError->code = JSONParseError_unexpectedEOF;
-					outError->description = "Unexpected end of file when seeking number value";
-				}
-				return NULL;
+			static char * strtodBuffer;
+			static size_t strtodBufferSize;
+			
+			// Windows XP's implementation of strtod can crash on non-null-terminated strings, even ones that contain non-numeric characters after the number
+			if (tokenLength >= strtodBufferSize) {
+				strtodBufferSize = tokenLength + 1;
+				strtodBuffer = realloc(strtodBuffer, strtodBufferSize);
 			}
+			memcpy(strtodBuffer, string + charIndex - tokenLength, tokenLength);
+			strtodBuffer[tokenLength] = 0;
 			node.type = JSON_TYPE_NUMBER;
-			node.value.number = strtod(string + charIndex - tokenLength, NULL);
+			node.value.number = strtod(strtodBuffer, NULL);
 			containerNode->value.count++;
 			containerNode->subitems = realloc(containerNode->subitems, sizeof(struct JSONNode) * containerNode->value.count);
 			containerNode->subitems[containerNode->value.count - 1] = node;
