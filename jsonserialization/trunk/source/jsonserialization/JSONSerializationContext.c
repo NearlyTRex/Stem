@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2010 Alex Diener
+  Copyright (c) 2011 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -119,10 +119,20 @@ char * JSONSerializationContext_writeToString(compat_type(JSONSerializationConte
 	JSONSerializationContext * self = selfPtr;
 	
 	if (self->currentNode != NULL || self->status != SERIALIZATION_ERROR_OK) {
+		if (outError != NULL) {
+			outError->node = NULL;
+			outError->code = JSON_SERIALIZATION_ERROR_INCOMPLETE;
+			outError->description = "writeToString called in an incomplete or error state (check SerializationContext's status field)";
+		}
 		return NULL;
 	}
 	if (self->rootNode == NULL) {
 		self->status = JSON_SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER;
+		if (outError != NULL) {
+			outError->node = NULL;
+			outError->code = JSON_SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER;
+			outError->description = "writeToString called without any data having been serialized";
+		}
 		return NULL;
 	}
 	return JSONEmitter_writeString(self->rootNode, format, outLength, outError);
@@ -132,10 +142,20 @@ bool JSONSerializationContext_writeToFile(compat_type(JSONSerializationContext *
 	JSONSerializationContext * self = selfPtr;
 	
 	if (self->currentNode != NULL || self->status != SERIALIZATION_ERROR_OK) {
+		if (outError != NULL) {
+			outError->node = NULL;
+			outError->code = JSON_SERIALIZATION_ERROR_INCOMPLETE;
+			outError->description = "writeToFile called in an incomplete or error state (check SerializationContext's status field)";
+		}
 		return NULL;
 	}
 	if (self->rootNode == NULL) {
 		self->status = JSON_SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER;
+		if (outError != NULL) {
+			outError->node = NULL;
+			outError->code = JSON_SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER;
+			outError->description = "writeToFile called without any data having been serialized";
+		}
 		return NULL;
 	}
 	return JSONEmitter_writeFile(self->rootNode, format, filePath, outError);
@@ -164,7 +184,6 @@ void JSONSerializationContext_beginStructure(compat_type(JSONSerializationContex
 	if (self->rootNode == NULL) {
 		self->rootNode = malloc(sizeof(struct JSONNode));
 		self->currentNode = self->rootNode;
-		self->rootContainerType = JSON_SERIALIZATION_CONTAINER_TYPE_STRUCTURE;
 		self->currentContainerType = JSON_SERIALIZATION_CONTAINER_TYPE_STRUCTURE;
 		self->rootNode->type = JSON_TYPE_NULL;
 		self->rootNode->subitems = NULL;
@@ -179,7 +198,7 @@ void JSONSerializationContext_beginStructure(compat_type(JSONSerializationContex
 			self->nodeStack = realloc(self->nodeStack, sizeof(struct JSONSerializationContext_nodeStackItem) * self->nodeStackAllocatedSize);
 		}
 		self->nodeStack[self->nodeStackCurrentDepth].node = self->currentNode;
-		self->nodeStack[self->nodeStackCurrentDepth].containerType = JSON_SERIALIZATION_CONTAINER_TYPE_STRUCTURE;
+		self->nodeStack[self->nodeStackCurrentDepth].containerType = self->currentContainerType;
 		self->nodeStackCurrentDepth++;
 		
 		self->currentNode->subitems = realloc(self->currentNode->subitems, sizeof(struct JSONNode) * (self->currentNode->value.count + 1));
@@ -197,7 +216,6 @@ void JSONSerializationContext_beginDictionary(compat_type(JSONSerializationConte
 	if (self->rootNode == NULL) {
 		self->rootNode = malloc(sizeof(struct JSONNode));
 		self->currentNode = self->rootNode;
-		self->rootContainerType = JSON_SERIALIZATION_CONTAINER_TYPE_DICTIONARY;
 		self->currentContainerType = JSON_SERIALIZATION_CONTAINER_TYPE_DICTIONARY;
 		self->rootNode->type = JSON_TYPE_NULL;
 		self->rootNode->subitems = NULL;
@@ -212,7 +230,7 @@ void JSONSerializationContext_beginDictionary(compat_type(JSONSerializationConte
 			self->nodeStack = realloc(self->nodeStack, sizeof(struct JSONSerializationContext_nodeStackItem) * self->nodeStackAllocatedSize);
 		}
 		self->nodeStack[self->nodeStackCurrentDepth].node = self->currentNode;
-		self->nodeStack[self->nodeStackCurrentDepth].containerType = JSON_SERIALIZATION_CONTAINER_TYPE_DICTIONARY;
+		self->nodeStack[self->nodeStackCurrentDepth].containerType = self->currentContainerType;
 		self->nodeStackCurrentDepth++;
 		
 		self->currentNode->subitems = realloc(self->currentNode->subitems, sizeof(struct JSONNode) * (self->currentNode->value.count + 1));
@@ -230,7 +248,6 @@ void JSONSerializationContext_beginArray(compat_type(JSONSerializationContext *)
 	if (self->rootNode == NULL) {
 		self->rootNode = malloc(sizeof(struct JSONNode));
 		self->currentNode = self->rootNode;
-		self->rootContainerType = JSON_SERIALIZATION_CONTAINER_TYPE_ARRAY;
 		self->currentContainerType = JSON_SERIALIZATION_CONTAINER_TYPE_ARRAY;
 		self->rootNode->type = JSON_TYPE_NULL;
 		self->rootNode->subitems = NULL;
@@ -245,7 +262,7 @@ void JSONSerializationContext_beginArray(compat_type(JSONSerializationContext *)
 			self->nodeStack = realloc(self->nodeStack, sizeof(struct JSONSerializationContext_nodeStackItem) * self->nodeStackAllocatedSize);
 		}
 		self->nodeStack[self->nodeStackCurrentDepth].node = self->currentNode;
-		self->nodeStack[self->nodeStackCurrentDepth].containerType = JSON_SERIALIZATION_CONTAINER_TYPE_ARRAY;
+		self->nodeStack[self->nodeStackCurrentDepth].containerType = self->currentContainerType;
 		self->nodeStackCurrentDepth++;
 		
 		self->currentNode->subitems = realloc(self->currentNode->subitems, sizeof(struct JSONNode) * (self->currentNode->value.count + 1));
@@ -264,17 +281,15 @@ void JSONSerializationContext_endStructure(compat_type(JSONSerializationContext 
 		failWithStatus(SERIALIZATION_ERROR_CONTAINER_UNDERFLOW, return)
 	}
 	
+	if (self->currentContainerType != JSON_SERIALIZATION_CONTAINER_TYPE_STRUCTURE) {
+		failWithStatus(SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH, return)
+	}
+	
 	if (self->nodeStackCurrentDepth > 0) {
-		if (self->nodeStack[self->nodeStackCurrentDepth - 1].containerType != JSON_SERIALIZATION_CONTAINER_TYPE_STRUCTURE) {
-			failWithStatus(SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH, return)
-		}
 		self->currentNode = self->nodeStack[--self->nodeStackCurrentDepth].node;
 		self->currentContainerType = self->nodeStack[self->nodeStackCurrentDepth].containerType;
 		
 	} else {
-		if (self->rootContainerType != JSON_SERIALIZATION_CONTAINER_TYPE_STRUCTURE) {
-			failWithStatus(SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH, return)
-		}
 		self->currentNode = NULL;
 	}
 }
@@ -286,17 +301,15 @@ void JSONSerializationContext_endDictionary(compat_type(JSONSerializationContext
 		failWithStatus(SERIALIZATION_ERROR_CONTAINER_UNDERFLOW, return)
 	}
 	
+	if (self->currentContainerType != JSON_SERIALIZATION_CONTAINER_TYPE_DICTIONARY) {
+		failWithStatus(SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH, return)
+	}
+	
 	if (self->nodeStackCurrentDepth > 0) {
-		if (self->nodeStack[self->nodeStackCurrentDepth - 1].containerType != JSON_SERIALIZATION_CONTAINER_TYPE_DICTIONARY) {
-			failWithStatus(SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH, return)
-		}
 		self->currentNode = self->nodeStack[--self->nodeStackCurrentDepth].node;
 		self->currentContainerType = self->nodeStack[self->nodeStackCurrentDepth].containerType;
 		
 	} else {
-		if (self->rootContainerType != JSON_SERIALIZATION_CONTAINER_TYPE_DICTIONARY) {
-			failWithStatus(SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH, return)
-		}
 		self->currentNode = NULL;
 	}
 }
@@ -308,17 +321,15 @@ void JSONSerializationContext_endArray(compat_type(JSONSerializationContext *) s
 		failWithStatus(SERIALIZATION_ERROR_CONTAINER_UNDERFLOW, return)
 	}
 	
+	if (self->currentContainerType != JSON_SERIALIZATION_CONTAINER_TYPE_ARRAY) {
+		failWithStatus(SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH, return)
+	}
+	
 	if (self->nodeStackCurrentDepth > 0) {
-		if (self->nodeStack[self->nodeStackCurrentDepth - 1].containerType != JSON_SERIALIZATION_CONTAINER_TYPE_ARRAY) {
-			failWithStatus(SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH, return)
-		}
 		self->currentNode = self->nodeStack[--self->nodeStackCurrentDepth].node;
 		self->currentContainerType = self->nodeStack[self->nodeStackCurrentDepth].containerType;
 		
 	} else {
-		if (self->rootContainerType != JSON_SERIALIZATION_CONTAINER_TYPE_ARRAY) {
-			failWithStatus(SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH, return)
-		}
 		self->currentNode = NULL;
 	}
 }

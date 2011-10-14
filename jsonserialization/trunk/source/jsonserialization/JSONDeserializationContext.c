@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2010 Alex Diener
+  Copyright (c) 2011 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -163,29 +163,28 @@ void JSONDeserializationContext_dispose(compat_type(JSONDeserializationContext *
 		} \
 	}
 
-size_t JSONDeserializationContext_beginStructure(compat_type(JSONDeserializationContext *) selfPtr, const char * key) {
+void JSONDeserializationContext_beginStructure(compat_type(JSONDeserializationContext *) selfPtr, const char * key) {
 	JSONDeserializationContext * self = selfPtr;
 	size_t subitemIndex, subitemIndex2;
 	
 	if (self->finished) {
-		failWithStatus(SERIALIZATION_ERROR_MULTIPLE_TOP_LEVEL_CONTAINERS, return 0)
+		failWithStatus(SERIALIZATION_ERROR_MULTIPLE_TOP_LEVEL_CONTAINERS, return)
 	}
 	
 	if (self->currentNode == NULL) {
 		if (self->rootNode->type != JSON_TYPE_OBJECT) {
-			failWithStatus(SERIALIZATION_ERROR_INCORRECT_TYPE, return 0)
+			failWithStatus(SERIALIZATION_ERROR_INCORRECT_TYPE, return)
 		}
 		self->currentNode = self->rootNode;
-		self->rootContainerType = JSON_SERIALIZATION_CONTAINER_TYPE_STRUCTURE;
 		self->currentContainerType = JSON_SERIALIZATION_CONTAINER_TYPE_STRUCTURE;
 		
 	} else {
 		size_t nextNodeIndex = 0;
 		
-		getNextNodeIndex(0)
+		getNextNodeIndex()
 		
 		if (self->currentNode->subitems[nextNodeIndex].type != JSON_TYPE_OBJECT) {
-			failWithStatus(SERIALIZATION_ERROR_INCORRECT_TYPE, return 0)
+			failWithStatus(SERIALIZATION_ERROR_INCORRECT_TYPE, return)
 		}
 		
 		if (self->nodeStackAllocatedSize <= self->nodeStackCurrentDepth) {
@@ -205,12 +204,10 @@ size_t JSONDeserializationContext_beginStructure(compat_type(JSONDeserialization
 	for (subitemIndex = 0; subitemIndex < self->currentNode->value.count; subitemIndex++) {
 		for (subitemIndex2 = 0; subitemIndex2 < subitemIndex; subitemIndex2++) {
 			if (!strcmp(self->currentNode->subitems[subitemIndex].key, self->currentNode->subitems[subitemIndex2].key)) {
-				failWithStatus(JSON_SERIALIZATION_ERROR_DUPLICATE_STRUCTURE_KEY, return 0)
+				failWithStatus(JSON_SERIALIZATION_ERROR_DUPLICATE_STRUCTURE_KEY, return)
 			}
 		}
 	}
-	
-	return self->currentNode->value.count;
 }
 
 size_t JSONDeserializationContext_beginDictionary(compat_type(JSONDeserializationContext *) selfPtr, const char * key) {
@@ -225,7 +222,6 @@ size_t JSONDeserializationContext_beginDictionary(compat_type(JSONDeserializatio
 			failWithStatus(SERIALIZATION_ERROR_INCORRECT_TYPE, return 0)
 		}
 		self->currentNode = self->rootNode;
-		self->rootContainerType = JSON_SERIALIZATION_CONTAINER_TYPE_DICTIONARY;
 		self->currentContainerType = JSON_SERIALIZATION_CONTAINER_TYPE_DICTIONARY;
 		
 	} else {
@@ -266,7 +262,6 @@ size_t JSONDeserializationContext_beginArray(compat_type(JSONDeserializationCont
 			failWithStatus(SERIALIZATION_ERROR_INCORRECT_TYPE, return 0)
 		}
 		self->currentNode = self->rootNode;
-		self->rootContainerType = JSON_SERIALIZATION_CONTAINER_TYPE_ARRAY;
 		self->currentContainerType = JSON_SERIALIZATION_CONTAINER_TYPE_ARRAY;
 		
 	} else {

@@ -229,7 +229,6 @@ static void testInit() {
 	TestCase_assert(size == (EXPECTED_SIZE), "Expected %zu but got %zu", (size_t) (EXPECTED_SIZE), size); \
 }
 #define beginAndVerifyArray(KEY, EXPECTED_SIZE) beginAndVerifyContainer(Array, KEY, EXPECTED_SIZE)
-#define beginAndVerifyStructure(KEY, EXPECTED_SIZE) beginAndVerifyContainer(Structure, KEY, EXPECTED_SIZE)
 #define beginAndVerifyDictionary(KEY, EXPECTED_SIZE) beginAndVerifyContainer(Dictionary, KEY, EXPECTED_SIZE)
 
 #define readFunction_int8_t readInt8
@@ -502,14 +501,14 @@ static void testStructures() {
 	context = JSONDeserializationContext_createWithString(stringAndLength("{\"a\": {\"b\": -1}, \"c\": {\"d\": 0, \"e\": 1, \"f\": {\"g\": 2, \"h\": 3, \"i\": 4, \"j\": 5, \"k\": 6, \"l\": 7}, \"m\": 8, \"n\": 9, \"o\": \"10\", \"p\": true, \"q\": \"enum\", \"r\": [\"13\"], \"s\": [\"14\"], \"t\": [\"15\"], \"u\": [\"16\"]}}"));
 	TestCase_assert(context != NULL, "Expected non-NULL but got NULL");
 	if (context == NULL) {return;} // Suppress clang warning
-	beginAndVerifyStructure("", 2)
-		beginAndVerifyStructure("a", 1)
+	context->beginStructure(context, "");
+		context->beginStructure(context, "a");
 			readAndVerifyNumber(int8_t, "b", -1)
 		context->endStructure(context);
-		beginAndVerifyStructure("c", 12)
+		context->beginStructure(context, "c");
 			readAndVerifyNumber(int8_t, "d", 0)
 			readAndVerifyNumber(uint8_t, "e", 1)
-			beginAndVerifyStructure("f", 6)
+			context->beginStructure(context, "f");
 				readAndVerifyNumber(int16_t, "g", 2)
 				readAndVerifyNumber(uint16_t, "h", 3)
 				readAndVerifyNumber(int32_t, "i", 4)
@@ -533,15 +532,15 @@ static void testStructures() {
 	context = JSONDeserializationContext_createWithString(stringAndLength("{\"c\": {\"u\": [\"16\"], \"t\": [\"15\"], \"s\": [\"14\"], \"r\": [\"13\"], \"q\": \"enum\", \"p\": true, \"o\": \"10\", \"n\": 9, \"m\": 8, \"f\": {\"l\": 7, \"k\": 6, \"j\": 5, \"i\": 4, \"h\": 3, \"g\": 2}, \"e\": 1, \"d\": 0}, \"a\": {\"b2\": -10, \"b\": -1}}"));
 	TestCase_assert(context != NULL, "Expected non-NULL but got NULL");
 	if (context == NULL) {return;} // Suppress clang warning
-	beginAndVerifyStructure("", 2)
-		beginAndVerifyStructure("a", 2)
+	context->beginStructure(context, "");
+		context->beginStructure(context, "a");
 			readAndVerifyNumber(int8_t, "b", -1)
 			readAndVerifyNumber(int8_t, "b2", -10)
 		context->endStructure(context);
-		beginAndVerifyStructure("c", 12)
+		context->beginStructure(context, "c");
 			readAndVerifyNumber(int8_t, "d", 0)
 			readAndVerifyNumber(uint8_t, "e", 1)
-			beginAndVerifyStructure("f", 6)
+			context->beginStructure(context, "f");
 				readAndVerifyNumber(int16_t, "g", 2)
 				readAndVerifyNumber(uint16_t, "h", 3)
 				readAndVerifyNumber(int32_t, "i", 4)
@@ -712,7 +711,7 @@ static void testDictionaries() {
 		beginAndVerifyArray(key, 0)
 		context->endArray(context);
 		verifyReadNextDictionaryKey("")
-		beginAndVerifyStructure(key, 1)
+		context->beginStructure(context, key);
 		context->endStructure(context);
 		verifyReadNextDictionaryKey("")
 		beginAndVerifyDictionary(key, 2)
@@ -728,7 +727,7 @@ static void testMixedContainers() {
 	TestCase_assert(context != NULL, "Expected non-NULL but got NULL");
 	if (context == NULL) {return;} // Suppress clang warning
 	beginAndVerifyArray("outerArray", 2)
-		beginAndVerifyStructure("outerStruct", 2)
+		context->beginStructure(context, "outerStruct");
 			beginAndVerifyArray("innerArray", 0)
 			context->endArray(context);
 			beginAndVerifyDictionary("innerDict", 0)
@@ -737,7 +736,7 @@ static void testMixedContainers() {
 		beginAndVerifyDictionary("outerDict", 2)
 			beginAndVerifyArray("innerArray2", 0)
 			context->endArray(context);
-			beginAndVerifyStructure("innerStruct", 0)
+			context->beginStructure(context, "innerStruct");
 			context->endStructure(context);
 		context->endDictionary(context);
 	context->endArray(context);

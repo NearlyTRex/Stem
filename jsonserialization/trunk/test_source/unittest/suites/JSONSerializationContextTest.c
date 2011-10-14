@@ -2029,6 +2029,36 @@ static void testThatNodeIsCopiedWhenRequestedMultipleTimes() {
 	JSONNode_dispose(node2);
 }
 
+static void testDuplicateKeysAllowedInDictionariesAfterWritingStructures() {
+	JSONSerializationContext * context;
+	
+	context = JSONSerializationContext_create();
+	TestCase_assert(context != NULL, "Expected non-NULL but got NULL");
+	if (context == NULL) {return;} // Suppress clang warning
+	context->beginDictionary(context, "");
+		context->beginStructure(context, "a");
+		context->endStructure(context);
+		context->beginStructure(context, "a");
+		context->endStructure(context);
+	context->endDictionary(context);
+	TestCase_assert(context->status == SERIALIZATION_ERROR_OK, "Expected %d but got %d", SERIALIZATION_ERROR_OK, context->status);
+	context->dispose(context);
+	
+	context = JSONSerializationContext_create();
+	TestCase_assert(context != NULL, "Expected non-NULL but got NULL");
+	if (context == NULL) {return;} // Suppress clang warning
+	context->beginDictionary(context, "");
+		context->beginDictionary(context, "");
+			context->beginStructure(context, "a");
+			context->endStructure(context);
+			context->beginStructure(context, "a");
+			context->endStructure(context);
+		context->endDictionary(context);
+	context->endDictionary(context);
+	TestCase_assert(context->status == SERIALIZATION_ERROR_OK, "Expected %d but got %d", SERIALIZATION_ERROR_OK, context->status);
+	context->dispose(context);
+}
+
 TEST_SUITE(JSONSerializationContextTest,
            testInit,
            testTopLevelContainers,
@@ -2046,4 +2076,5 @@ TEST_SUITE(JSONSerializationContextTest,
            testWriteToFile,
            testInvalidOperations,
            testErrorReporting,
-           testThatNodeIsCopiedWhenRequestedMultipleTimes)
+           testThatNodeIsCopiedWhenRequestedMultipleTimes,
+           testDuplicateKeysAllowedInDictionariesAfterWritingStructures)

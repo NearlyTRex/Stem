@@ -1,5 +1,5 @@
 .PHONY: all
-all: library unittest testharness test include
+all: library unittest test include
 
 UNAME = ${shell uname}
 ifeq (${UNAME},Linux)
@@ -32,7 +32,7 @@ SVNROOT = http://sacredsoftware.net/svn/misc#master_source_only
 
 LIBRARY_TARGETS = library
 EXECUTABLE_TARGETS = unittest
-APPLICATION_TARGETS = testharness
+APPLICATION_TARGETS = 
 TARGETS = ${LIBRARY_TARGETS} ${EXECUTABLE_TARGETS} ${APPLICATION_TARGETS}
 CONFIGURATIONS = debug profile release
 PLATFORMS = ${filter ${TARGET_PLATFORMS_${HOST_PLATFORM}},macosx iphonesimulator iphoneos linux windows}
@@ -40,18 +40,14 @@ ANALYZERS = splint clang
 
 TARGET_NAME_library = libstem_jsonserialization
 TARGET_NAME_unittest = jsonserialization_unittest
-TARGET_NAME_testharness = jsonserialization_testharness
-HUMAN_READABLE_TARGET_NAME_testharness = JSONSerialization
 
 #Per-target configurations
 CONFIGURATIONS_library = debug profile release
 CONFIGURATIONS_unittest = debug
-CONFIGURATIONS_testharness = debug profile release
 
 #Per-target platforms
 PLATFORMS_library = ${filter ${PLATFORMS},macosx iphonesimulator iphoneos linux windows}
 PLATFORMS_unittest = ${filter ${PLATFORMS},macosx iphonesimulator linux windows}
-PLATFORMS_testharness = ${filter ${PLATFORMS},macosx iphonesimulator iphoneos linux windows}
 
 #Per-target compile/link settings
 CCFLAGS_unittest = -I test_source -include build/intermediate/TestList.h
@@ -85,8 +81,8 @@ SPLINT_iphonesimulator = /usr/local/bin/splint
 CLANG_iphonesimulator = /usr/bin/clang
 SDKROOT_iphonesimulator = /Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator${IPHONE_BUILD_SDK_VERSION}.sdk
 ARCHS_iphonesimulator = i386
-CCFLAGS_iphonesimulator = -isysroot ${SDKROOT_iphonesimulator} -mmacosx-version-min=10.5 -D__IPHONE_OS_VERSION_MIN_REQUIRED=${call iphone_sdk_version_integer,${IPHONE_DEPLOYMENT_TARGET_VERSION}}
-LINKFLAGS_iphonesimulator = -isysroot ${SDKROOT_iphonesimulator} -mmacosx-version-min=10.5
+CCFLAGS_iphonesimulator = -isysroot ${SDKROOT_iphonesimulator} -D__IPHONE_OS_VERSION_MIN_REQUIRED=${call iphone_sdk_version_integer,${IPHONE_DEPLOYMENT_TARGET_VERSION}}
+LINKFLAGS_iphonesimulator = -isysroot ${SDKROOT_iphonesimulator}
 
 CC_iphoneos_armv6 = /Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/gcc-4.2 -arch armv6
 CC_iphoneos_armv7 = /Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/gcc-4.2 -arch armv7
@@ -140,7 +136,6 @@ LINK_ORDER = \
 #Per-target dependencies
 
 PROJECT_LIBRARY_DEPENDENCIES_unittest = library
-PROJECT_LIBRARY_DEPENDENCIES_testharness = library
 STEM_LIBRARY_DEPENDENCIES_library = \
 	serialization/libstem_serialization.a \
 	jsonio/libstem_jsonio.a \
@@ -153,13 +148,10 @@ STEM_LIBRARY_DEPENDENCIES_unittest = \
 	utilities/libstem_utilities.a \
 	stubshell/libstemshell_stub.a \
 	stemobject/libstem_stemobject.a
-STEM_LIBRARY_DEPENDENCIES_testharness =
 STEM_SOURCE_DEPENDENCIES_library = 
 STEM_SOURCE_DEPENDENCIES_unittest = 
-STEM_SOURCE_DEPENDENCIES_testharness = 
 THIRDPARTY_LIBRARY_DEPENDENCIES_library = 
 THIRDPARTY_LIBRARY_DEPENDENCIES_unittest = 
-THIRDPARTY_LIBRARY_DEPENDENCIES_testharness = 
 
 #Per-target per-platform dependencies
 
@@ -184,9 +176,6 @@ SOURCES_unittest_suites = \
 	test_source/unittest/suites/JSONDeserializationContextTest.c \
 	test_source/unittest/suites/JSONSerializationContextTest.c
 
-SOURCES_testharness = \
-	test_source/testharness/TestHarness_main.c
-
 #Include files to be distributed with library
 
 INCLUDES = \
@@ -196,9 +185,7 @@ INCLUDES = \
 
 #Target resources
 
-RESOURCES_testharness = 
 RESOURCES_unittest = 
-RESOURCES_testharness_macosx = 
 #...
 
 #General analyzer settings
@@ -277,8 +264,8 @@ ${eval ${call create_directory_target_template,build/intermediate}}
 
 define include_ccflags_template #(target, platform)
 -I source -I include \
-${foreach stem_dependency,${STEM_LIBRARY_DEPENDENCIES_$1} ${STEM_LIBRARY_DEPENDENCIES_$1_$2},-I lib/${dir ${stem_dependency}}/include} \
-${foreach thirdparty_dependency,${THIRDPARTY_LIBRARY_DEPENDENCIES_$1} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1_$2},-I lib/${dir ${thirdparty_dependency}}/include} \
+${foreach stem_dependency,${STEM_LIBRARY_DEPENDENCIES_$1} ${STEM_LIBRARY_DEPENDENCIES_$1_$2},-I lib/${dir ${stem_dependency}}include} \
+${foreach thirdparty_dependency,${THIRDPARTY_LIBRARY_DEPENDENCIES_$1} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1_$2},-I lib/${dir ${thirdparty_dependency}}include} \
 ${foreach source_dependency,${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$1_$2},-I dep/${word 1,${subst /, ,${source_dependency}}}/source}
 endef
 
@@ -290,6 +277,7 @@ define dependency_template #(target, configuration, platform, arch, source_file)
 build/intermediate/$1-$2-$3-$4/${notdir ${basename $5}}.d: $5 ${PREREQS_$1} | build/intermediate/$1-$2-$3-$4
 	${CC_$3_$4} ${CCFLAGS} ${CCFLAGS_$1} ${CCFLAGS_$2} ${CCFLAGS_$3} ${call include_ccflags_template,$1,$3} ${call define_ccflags_template,$1,$2,$3,$4} -MM -o $$@.temp $5
 	sed 's,\(${notdir ${basename $5}}\)\.o[ :]*,$${basename $$@}.o $${basename $$@}.d: ,g' < $$@.temp > $$@
+	rm $$@.temp
 endef
 
 #Produces dependency build targets for all source files in each configuration/platform/arch
@@ -490,14 +478,10 @@ ${foreach target,${EXECUTABLE_TARGETS}, \
 	} \
 }
 
-PLIST_FILE_testharness_macosx = test_resources/Info_testharness_macosx.plist
-
-PLIST_FILE_testharness_iphonesimulator = test_resources/Info_testharness_iphone.plist
 PLIST_PLATFORM_CASED_iphonesimulator = iPhoneSimulator
 PLIST_PLATFORM_LOWER_iphonesimulator = iphonesimulator
 PLIST_SDK_NAME_iphonesimulator = iphonesimulator${IPHONE_BUILD_SDK_VERSION}
 
-PLIST_FILE_testharness_iphoneos = test_resources/Info_testharness_iphone.plist
 PLIST_PLATFORM_CASED_iphoneos = iPhoneOS
 PLIST_PLATFORM_LOWER_iphoneos = iphoneos
 PLIST_SDK_NAME_iphoneos = iphoneos${IPHONE_BUILD_SDK_VERSION}
@@ -758,16 +742,14 @@ ${foreach target,${APPLICATION_TARGETS}, \
 #master_source_only_begin
 .PHONY: full_dist
 full_dist: clean all
-	mkdir dist dist/include dist/library dist/testharness
+	mkdir dist dist/include dist/library
 	cp Changes.txt License.txt ReadMe.txt dist
 	cp -r build/include/* dist/include
 	cp -r build/library/* dist/library
-	cp -r build/testharness/* dist/testharness
 
 .PHONY: append_dist
 append_dist: all
 	cp -r build/library/* dist/library
-	cp -r build/testharness/* dist/testharness
 
 .PHONY: commit_dist
 commit_dist:
@@ -783,7 +765,6 @@ source_dist:
 	mkdir -p build/source_dist/lib
 	mkdir -p build/source_dist/source/jsonserialization
 	mkdir -p build/source_dist/test_resources
-	mkdir -p build/source_dist/test_source/testharness
 	mkdir -p build/source_dist/test_source/unittest/framework
 	mkdir -p build/source_dist/test_source/unittest/suites
 	
@@ -799,7 +780,6 @@ source_dist:
 	
 	cp test_resources/* build/source_dist/test_resources
 	
-	cp test_source/testharness/* build/source_dist/test_source/testharness
 	cp test_source/unittest/framework/* build/source_dist/test_source/unittest/framework
 	cp test_source/unittest/suites/* build/source_dist/test_source/unittest/suites
 #master_source_only_end

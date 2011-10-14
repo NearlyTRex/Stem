@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2010 Alex Diener
+  Copyright (c) 2011 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -40,7 +40,6 @@ struct JSONDeserializationContext_nodeStackItem {
 	\
 	struct JSONNode * rootNode; \
 	struct JSONNode * currentNode; \
-	enum JSONSerializationContainerType rootContainerType; \
 	enum JSONSerializationContainerType currentContainerType; \
 	struct JSONDeserializationContext_nodeStackItem * nodeStack; \
 	size_t nodeStackAllocatedSize; \
@@ -60,7 +59,7 @@ void JSONDeserializationContext_initWithString(compat_type(JSONDeserializationCo
 void JSONDeserializationContext_initWithJSONNode(compat_type(JSONDeserializationContext *) selfPtr, struct JSONNode * node);
 void JSONDeserializationContext_dispose(compat_type(JSONDeserializationContext *) selfPtr);
 
-size_t JSONDeserializationContext_beginStructure(compat_type(JSONDeserializationContext *) selfPtr, const char * key);
+void JSONDeserializationContext_beginStructure(compat_type(JSONDeserializationContext *) selfPtr, const char * key);
 size_t JSONDeserializationContext_beginDictionary(compat_type(JSONDeserializationContext *) selfPtr, const char * key);
 size_t JSONDeserializationContext_beginArray(compat_type(JSONDeserializationContext *) selfPtr, const char * key);
 void JSONDeserializationContext_endStructure(compat_type(JSONDeserializationContext *) selfPtr);

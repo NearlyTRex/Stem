@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2010 Alex Diener
+  Copyright (c) 2011 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -34,6 +34,9 @@
 
 // JSON array contains more subitems than number of bits in requested data type
 #define JSON_SERIALIZATION_ERROR_TOO_MANY_BITS 103
+
+// writeTo<String|File|JSONNode> called without having properly terminated data serialization
+#define JSON_SERIALIZATION_ERROR_INCOMPLETE 104
 
 enum JSONSerializationContainerType {
 	JSON_SERIALIZATION_CONTAINER_TYPE_ARRAY,

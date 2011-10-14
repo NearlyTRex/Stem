@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2010 Alex Diener
+  Copyright (c) 2011 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -40,7 +40,6 @@ struct JSONSerializationContext_nodeStackItem {
 	\
 	struct JSONNode * rootNode; \
 	struct JSONNode * currentNode; \
-	enum JSONSerializationContainerType rootContainerType; \
 	enum JSONSerializationContainerType currentContainerType; \
 	struct JSONSerializationContext_nodeStackItem * nodeStack; \
 	size_t nodeStackAllocatedSize; \
