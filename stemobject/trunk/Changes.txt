@@ -1,3 +1,7 @@
+2.1.0
+ * Removed StemObject_create
+ * Added stemobject_copy_implementation
+
 2.0.0
  * Added compat_type macro for specifying intended function parameter class/superclass
  * Added private_ivar and protected_ivar macros for specifying intended instance variable visibility

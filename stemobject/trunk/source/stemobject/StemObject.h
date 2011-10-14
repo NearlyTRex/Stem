@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2010 Alex Diener
+  Copyright (c) 2011 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -36,6 +36,15 @@
 	class_name##_##init_suffix(self, ##init_args); \
 	self->protected_ivar(allocated) = true; \
 	return self;
+
+#define stemobject_copy_implementation(class_name, initcopy_suffix, init_args...) \
+	class_name * self = selfPtr; \
+	class_name * copy; \
+	\
+	copy = malloc(sizeof(class_name)); \
+	class_name##_##initcopy_suffix(copy, self, ##init_args); \
+	copy->protected_ivar(allocated) = true; \
+	return copy;
 
 typedef struct StemObject StemObject;
 
