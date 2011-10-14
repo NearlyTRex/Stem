@@ -147,4 +147,30 @@ static void testOptionalityOfCallbacks() {
 	resourceManager->dispose(resourceManager);
 }
 
-TEST_SUITE(ResourceManagerTest, testInit, testAddResource, testReferenceResource, testOptionalityOfCallbacks)
+static void testNULLResources() {
+	ResourceManager * resourceManager;
+	
+	resourceManager = ResourceManager_create();
+	TestCase_assert(resourceManager != NULL, "Expected non-NULL but got NULL");
+	if (resourceManager == NULL) { return; } // Suppress clang warning
+	
+	resourceManager->addTypeHandler(resourceManager, "type", loadResource, unloadResource, loadContext);
+	resourceNameToLoad = "resource";
+	resourceToLoad = NULL;
+	
+	resourceManager->referenceResource(resourceManager, "type", resourceNameToLoad);
+	TestCase_assert(resourceManager->resourceCount == 0, "Expected 0 but got %zu\n", resourceManager->resourceCount);
+	
+	resourceToLoad = "!NULL";
+	resourceManager->referenceResource(resourceManager, "type", resourceNameToLoad);
+	TestCase_assert(resourceManager->resourceCount == 1, "Expected 1 but got %zu\n", resourceManager->resourceCount);
+	
+	resourceManager->dispose(resourceManager);
+}
+
+TEST_SUITE(ResourceManagerTest,
+           testInit,
+           testAddResource,
+           testReferenceResource,
+           testOptionalityOfCallbacks,
+           testNULLResources)

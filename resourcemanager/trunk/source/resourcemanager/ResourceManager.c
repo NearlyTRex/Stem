@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2010 Alex Diener
+  Copyright (c) 2011 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -140,7 +140,9 @@ void * ResourceManager_referenceResource(compat_type(ResourceManager *) selfPtr,
 				return NULL;
 			}
 			resource = self->typeHandlers[typeHandlerIndex].loadFunction(resourceName, self->typeHandlers[typeHandlerIndex].context);
-			addResourceInternal(self, self->typeHandlers[typeHandlerIndex].typeName, resourceName, resource);
+			if (resource != NULL) {
+				addResourceInternal(self, self->typeHandlers[typeHandlerIndex].typeName, resourceName, resource);
+			}
 			return resource;
 		}
 	}
@@ -165,6 +167,7 @@ void ResourceManager_releaseResource(compat_type(ResourceManager *) selfPtr,
 						if (self->typeHandlers[typeHandlerIndex].unloadFunction != NULL) {
 							self->typeHandlers[typeHandlerIndex].unloadFunction(self->resources[resourceIndex].resource, self->typeHandlers[typeHandlerIndex].context);
 						}
+						free(self->resources[resourceIndex].resourceName);
 						self->resourceCount--;
 						for (; resourceIndex < self->resourceCount; resourceIndex++) {
 							self->resources[resourceIndex] = self->resources[resourceIndex + 1];

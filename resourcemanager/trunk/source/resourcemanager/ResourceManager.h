@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2010 Alex Diener
+  Copyright (c) 2011 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -26,6 +26,7 @@
 typedef struct ResourceManager ResourceManager;
 
 #include "stemobject/StemObject.h"
+#include <stdlib.h>
 
 struct ResourceManager_typeHandler {
 	char * typeName;
@@ -44,9 +45,9 @@ struct ResourceManager_resource {
 #define ResourceManager_structContents \
 	StemObject_structContents \
 	\
-	unsigned int typeHandlerCount; \
+	size_t typeHandlerCount; \
 	struct ResourceManager_typeHandler * typeHandlers; \
-	unsigned int resourceCount; \
+	size_t resourceCount; \
 	struct ResourceManager_resource * resources; \
 	\
 	void (* addTypeHandler)(compat_type(ResourceManager *) self, \
