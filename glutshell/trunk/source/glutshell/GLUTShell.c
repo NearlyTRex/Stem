@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2010 Alex Diener
+  Copyright (c) 2011 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -25,7 +25,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 
 #if defined(__APPLE__)
 #include <limits.h>
@@ -475,10 +474,11 @@ static void motionFunc(int x, int y) {
 
 int main(int argc, char ** argv) {
 	unsigned int displayMode;
-	int chdirReturn;
 #ifdef __APPLE__
 	GLint VBL = 1;
 #endif
+	
+	glutInit(&argc, argv);
 	
 	configuration.windowX = 2;
 	configuration.windowY = 28;
@@ -491,8 +491,6 @@ int main(int argc, char ** argv) {
 	configuration.displayMode.accumBuffer = false;
 	configuration.displayMode.multisample = false;
 	
-	// Linux warns for some reason if chdir's return value is unused
-	chdirReturn = chdir(Shell_getResourcePath());
 	GLUTTarget_configure(argc, (const char **) argv, &configuration);
 	
 	displayMode = GLUT_RGBA;
@@ -512,7 +510,6 @@ int main(int argc, char ** argv) {
 		displayMode |= GLUT_MULTISAMPLE;
 	}
 	
-	glutInit(&argc, argv);
 	glutInitDisplayMode(displayMode);
 	glutInitWindowPosition(configuration.windowX, configuration.windowY);
 	glutInitWindowSize(configuration.windowWidth, configuration.windowHeight);
