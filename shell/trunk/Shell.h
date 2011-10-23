@@ -50,4 +50,8 @@ double Shell_getCurrentTime();
     use relative paths to open files without having to call this function. */
 const char * Shell_getResourcePath();
 
+/** Returns the width and height of the main screen in outWidth and outHeight. If you're only
+    interested in size on one axis, you can safely pass NULL for the other one. */
+void Shell_getMainScreenSize(unsigned int * outWidth, unsigned int * outHeight);
+
 #endif
