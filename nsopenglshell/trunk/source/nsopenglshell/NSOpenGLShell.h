@@ -77,8 +77,4 @@ void NSOpenGLShell_hideCursorUntilMouseMoves();
 /** Sets the cursor image to the specified value. */
 void NSOpenGLShell_setCursor(enum NSOpenGLShellCursor cursor);
 
-/** Returns the width and height of the main screen in outWidth and outHeight. If you're only interested in one
-    of the two dimensions, you can safely pass NULL for the other one. */
-void NSOpenGLShell_getMainScreenDimensions(unsigned int * outWidth, unsigned int * outHeight);
-
 #endif

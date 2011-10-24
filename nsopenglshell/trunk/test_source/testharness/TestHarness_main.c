@@ -82,8 +82,8 @@ void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned int mo
 	} else if (keyCode == KEYBOARD_X) {
 		unsigned int width = 0, height = 0;
 		
-		NSOpenGLShell_getMainScreenDimensions(&width, &height);
-		printf("NSOpenGLShell_getMainScreenDimensions(%u, %u)\n", width, height);
+		Shell_getMainScreenSize(&width, &height);
+		printf("Shell_getMainScreenSize(%u, %u)\n", width, height);
 		
 	} else if (keyCode == KEYBOARD_H) {
 		NSOpenGLShell_setCursorVisible(false);
@@ -147,8 +147,8 @@ void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned int mo
 	}
 }
 
-void Target_keyUp(unsigned int charCode, unsigned int keyCode, unsigned int modifierFlags) {
-	printf("Target_keyUp(%u, %u, 0x%X)\n", charCode, keyCode, modifierFlags);
+void Target_keyUp(unsigned int keyCode, unsigned int modifierFlags) {
+	printf("Target_keyUp(%u, 0x%X)\n", keyCode, modifierFlags);
 }
 
 void Target_keyModifiersChanged(unsigned int modifierFlags) {

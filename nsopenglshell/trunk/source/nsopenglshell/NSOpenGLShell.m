@@ -138,6 +138,18 @@ float Shell_getBatteryLevel() {
 	return batteryLevel;
 }
 
+void Shell_getMainScreenSize(unsigned int * outWidth, unsigned int * outHeight) {
+	NSRect bounds;
+	
+	bounds = [[NSScreen mainScreen] frame];
+	if (outWidth != NULL) {
+		*outWidth = bounds.size.width;
+	}
+	if (outHeight != NULL) {
+		*outHeight = bounds.size.height;
+	}
+}
+
 void NSOpenGLShell_setCursorVisible(bool visible) {
 	if (visible) {
 		if (cursorHiddenByHide) {
@@ -224,17 +236,5 @@ void NSOpenGLShell_setCursor(enum NSOpenGLShellCursor cursor) {
 				[[NSCursor operationNotAllowedCursor] set];
 			}
 			break;
-	}
-}
-
-void NSOpenGLShell_getMainScreenDimensions(unsigned int * outWidth, unsigned int * outHeight) {
-	NSRect bounds;
-	
-	bounds = [[NSScreen mainScreen] frame];
-	if (outWidth != NULL) {
-		*outWidth = bounds.size.width;
-	}
-	if (outHeight != NULL) {
-		*outHeight = bounds.size.height;
 	}
 }

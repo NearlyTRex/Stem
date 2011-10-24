@@ -368,7 +368,7 @@ static unsigned int NSEventKeyModifiersToShellKeyModifiers(NSUInteger modifiers)
 }
 
 - (void) keyUp: (NSEvent *) event {
-	Target_keyUp([[event characters] characterAtIndex: 0], NSEventKeyCodeToShellKeyCode([event keyCode]), NSEventKeyModifiersToShellKeyModifiers([event modifierFlags]));
+	Target_keyUp(NSEventKeyCodeToShellKeyCode([event keyCode]), NSEventKeyModifiersToShellKeyModifiers([event modifierFlags]));
 }
 
 - (void) flagsChanged: (NSEvent *) event {
