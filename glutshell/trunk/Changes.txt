@@ -1,3 +1,7 @@
+1.3.2
+ * Added Shell_getMainScreenSize implementation
+ * Target_keyUp no longer receives a charCode parameter
+
 1.3.1
  * glutInit is now called before GLUTTarget_configure() to allow glutGet calls to work
  * glutshell will no longer chdir to Shell_getResourcePath() at startup; this is now the target's responsibility

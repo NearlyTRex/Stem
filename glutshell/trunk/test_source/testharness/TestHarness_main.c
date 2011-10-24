@@ -74,11 +74,17 @@ void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned int mo
 	} else if (keyCode == KEYBOARD_B) {
 		printf("Shell_getBatteryState(): %d\n", Shell_getBatteryState());
 		printf("Shell_getBatteryLevel(): %f\n", Shell_getBatteryLevel());
+		
+	} else if (keyCode == KEYBOARD_X) {
+		unsigned int width, height;
+		
+		Shell_getMainScreenSize(&width, &height);
+		printf("Shell_getMainScreenSize(%u, %u)\n", width, height);
 	}
 }
 
-void Target_keyUp(unsigned int charCode, unsigned int keyCode, unsigned int modifierFlags) {
-	printf("Target_keyUp(%u, %u, 0x%X)\n", charCode, keyCode, modifierFlags);
+void Target_keyUp(unsigned int keyCode, unsigned int modifierFlags) {
+	printf("Target_keyUp(%u, 0x%X)\n", keyCode, modifierFlags);
 }
 
 void Target_keyModifiersChanged(unsigned int modifierFlags) {

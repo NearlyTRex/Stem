@@ -135,6 +135,15 @@ float Shell_getBatteryLevel() {
 	return -1.0f;
 }
 
+void Shell_getMainScreenSize(unsigned int * outWidth, unsigned int * outHeight) {
+	if (outWidth != NULL) {
+		*outWidth = glutGet(GLUT_SCREEN_WIDTH);
+	}
+	if (outHeight != NULL) {
+		*outHeight = glutGet(GLUT_SCREEN_HEIGHT);
+	}
+}
+
 static void displayFunc() {
 #ifdef DEBUG
 	GLenum error;
@@ -359,7 +368,7 @@ static void keyUpFunc(unsigned char charCode, int x, int y) {
 		modifierMask = newModifierMask;
 		Target_keyModifiersChanged(modifierMask);
 	}
-	Target_keyUp(charCode, glutCharCodeToShellKeyCode(charCode), modifierMask);
+	Target_keyUp(glutCharCodeToShellKeyCode(charCode), modifierMask);
 }
 
 static int glutSpecialToShellKeyCode(int key) {
@@ -439,7 +448,7 @@ static void specialUpFunc(int key, int x, int y) {
 	
 	keyCode = glutSpecialToShellKeyCode(key);
 	if (keyCode != -1) {
-		Target_keyUp(0, keyCode, modifierMask);
+		Target_keyUp(keyCode, modifierMask);
 	}
 }
 
