@@ -171,9 +171,6 @@
 }
 
 - (void) layoutSubviews {
-#ifdef DEBUG
-	GLenum error;
-#endif
 	GLint backingWidth;
 	GLint backingHeight;
 	
@@ -215,14 +212,6 @@
 	
 	glBindRenderbufferOES(GL_RENDERBUFFER, renderbuffer);
 	[context presentRenderbuffer: GL_RENDERBUFFER];
-	
-#ifdef DEBUG
-	error = glGetError();
-	while (error != GL_NO_ERROR) {
-		fprintf(stderr, "GL error: 0x%X\n", error);
-		error = glGetError();
-	}
-#endif
 }
 
 - (enum EAGLShellOpenGLVersion) chosenOpenGLVersion {
@@ -264,6 +253,10 @@
 }
 
 - (void) drawView: (id) sender {
+#ifdef DEBUG
+	GLenum error;
+#endif
+	
 	[EAGLContext setCurrentContext: context];
 	glBindFramebufferOES(GL_FRAMEBUFFER, framebuffer);
 	
@@ -276,6 +269,14 @@
 		[self stopAnimation];
 	}
 	redisplayWasPosted = NO;
+	
+#ifdef DEBUG
+	error = glGetError();
+	while (error != GL_NO_ERROR) {
+		fprintf(stderr, "GL error: 0x%X\n", error);
+		error = glGetError();
+	}
+#endif
 }
 
 static unsigned int lowestBitIndex(unsigned int value) {

@@ -2,7 +2,7 @@ EAGLShell is an implementation of a stem shell using EAGL, that builds for iPhon
 
 EAGLShell includes some extensions to the standard shell interface. You should #include "eaglshell/EAGLShell.h" to get the extended interface. It provides facilities for working with the iPhone's status bar, keyboard, and accelerometer. See the documentation in EAGLShell.h for details. Some things to note:
 
- - In order to receive keyboard events, you must call EAGLShell_showKeyboard() to bring up the onscreen keyboard. Due to API limitations imposed by Apple, key codes passed to Target_keyUp() are not generally trustworthy for any keyboard other than US English, though character codes are reliable. Target_keyDown() is never called.
+ - In order to receive keyboard events, you must call EAGLShell_showKeyboard() to bring up the onscreen keyboard. Target_keyUp() is always called immediately after Target_keyDown(), and modifier flags passed to both functions are always 0. Target_keyModifiersChanged is never called. Due to API limitations imposed by Apple, key codes passed to Target_keyDown() are not generally trustworthy for any keyboard other than US English, though character codes are reliable.
 
  - EAGLShell_setOrientation() does not transform your OpenGL coordinate space. It is your responsibility to do so if necessary.
 

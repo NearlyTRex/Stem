@@ -1,3 +1,7 @@
+2.3.0
+ * Updated for shell Stable_2011-10-26, which adds Shell_getMainScreenSize()
+ * Fixed a bug that checked for GL errors in the wrong place. They should now be reported in debug mode every time Target_draw() is called.
+
 2.2.4
  * Improved performance of touch event handling
  * Added EAGLShell_getUIType()

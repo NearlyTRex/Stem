@@ -307,10 +307,12 @@ static unsigned int unicharToShellKeyCode(unichar charCode) {
 	unsigned int charIndex;
 	
 	if (range.length > 0 && [string length] == 0) {
-		Target_keyUp('\b', KEYBOARD_DELETE_OR_BACKSPACE);
+		Target_keyDown('\b', KEYBOARD_DELETE_OR_BACKSPACE, 0);
+		Target_keyUp(KEYBOARD_DELETE_OR_BACKSPACE, 0);
 	} else {
 		for (charIndex = 0; charIndex < [string length]; charIndex++) {
-			Target_keyUp([string characterAtIndex: charIndex], unicharToShellKeyCode([string characterAtIndex: charIndex]));
+			Target_keyDown([string characterAtIndex: charIndex], unicharToShellKeyCode([string characterAtIndex: charIndex]), 0);
+			Target_keyUp(unicharToShellKeyCode([string characterAtIndex: charIndex]), 0);
 		}
 	}
 	
@@ -318,7 +320,8 @@ static unsigned int unicharToShellKeyCode(unichar charCode) {
 }
 
 - (BOOL) textFieldShouldReturn: (UITextField *) textField {
-	Target_keyUp('\n', KEYBOARD_RETURN_OR_ENTER);
+	Target_keyDown('\n', KEYBOARD_RETURN_OR_ENTER, 0);
+	Target_keyUp(KEYBOARD_RETURN_OR_ENTER, 0);
 	return NO;
 }
 

@@ -240,12 +240,8 @@ void Target_draw() {
 	}
 }
 
-void Target_keyDown(unsigned int charCode, unsigned int keyCode) {
-	printf("Target_keyDown(%d, %d) (What? This should not have been called!)\n", charCode, keyCode);
-}
-
-void Target_keyUp(unsigned int charCode, unsigned int keyCode) {
-	printf("Target_keyUp(%d, %d)\n", charCode, keyCode);
+void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned int modifierFlags) {
+	printf("Target_keyDown(%d, %d, 0x%X)\n", charCode, keyCode, modifierFlags);
 	if (keyCode == KEYBOARD_W) {
 		printf("Shell_setFullScreen(false): %d\n", Shell_setFullScreen(false));
 		
@@ -277,7 +273,7 @@ void Target_keyUp(unsigned int charCode, unsigned int keyCode) {
 		lastAccelerometerReading.x = lastAccelerometerReading.y = lastAccelerometerReading.z = 0.0;
 		Shell_redisplay();
 		
-	} else if (keyCode == KEYBOARD_X) {
+	} else if (keyCode == KEYBOARD_V) {
 		EAGLShell_setAccelerometerInterval(1.0 / 60.0);
 		
 	} else if (keyCode == KEYBOARD_C) {
@@ -286,6 +282,12 @@ void Target_keyUp(unsigned int charCode, unsigned int keyCode) {
 	} else if (keyCode == KEYBOARD_B) {
 		printf("Shell_getBatteryState(): %d\n", Shell_getBatteryState());
 		printf("Shell_getBatteryLevel(): %f\n", Shell_getBatteryLevel());
+		
+	} else if (keyCode == KEYBOARD_X) {
+		unsigned int width = 0, height = 0;
+		
+		Shell_getMainScreenSize(&width, &height);
+		printf("Shell_getMainScreenSize(%u, %u)\n", width, height);
 		
 	} else if (keyCode == KEYBOARD_N) {
 		EAGLShell_setBatteryMonitoringEnabled(false);
@@ -308,6 +310,14 @@ void Target_keyUp(unsigned int charCode, unsigned int keyCode) {
 	} else if (keyCode == KEYBOARD_RETURN_OR_ENTER) {
 		EAGLShell_hideKeyboard();
 	}
+}
+
+void Target_keyUp(unsigned int keyCode, unsigned int modifierFlags) {
+	printf("Target_keyUp(%u, 0x%X)\n", keyCode, modifierFlags);
+}
+
+void Target_keyModifiersChanged(unsigned int modifierFlags) {
+	printf("Target_keyModifiersChanged(0x%X) (What? This should not have been called!)\n", modifierFlags);
 }
 
 void Target_mouseDown(unsigned int buttonNumber, float x, float y) {

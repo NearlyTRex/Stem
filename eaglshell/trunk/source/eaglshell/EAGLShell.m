@@ -111,6 +111,18 @@ float Shell_getBatteryLevel() {
 	return [UIDevice currentDevice].batteryLevel;
 }
 
+void Shell_getMainScreenSize(unsigned int * outWidth, unsigned int * outHeight) {
+	CGRect bounds;
+	
+	bounds = [UIScreen mainScreen].bounds;
+	if (outWidth != NULL) {
+		*outWidth = bounds.size.width;
+	}
+	if (outHeight != NULL) {
+		*outHeight = bounds.size.height;
+	}
+}
+
 enum EAGLShellOpenGLVersion EAGLShell_getOpenGLAPIVersion() {
 	return [(EAGLShellApplication *) [UIApplication sharedApplication] chosenOpenGLVersion];
 }
