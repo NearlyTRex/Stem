@@ -1,3 +1,7 @@
+1.2.0
+ * Added readBytes and writeBytes functions
+ * Updated for stemobject 3.0.0
+
 1.1.2
  * Added stemobject_deserialize_implementation
  * DeserializationContext#beginStructure now returns void instead of size_t (structures don't explicitly store their own length)

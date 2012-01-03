@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2011 Alex Diener
+  Copyright (c) 2012 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -22,6 +22,8 @@
 
 #include "serialization/DeserializationContext.h"
 #include <stdlib.h>
+
+#define SUPERCLASS StemObject
 
 void DeserializationContext_init(compat_type(DeserializationContext *) selfPtr) {
 	DeserializationContext * self = selfPtr;
@@ -58,6 +60,6 @@ void DeserializationContext_init(compat_type(DeserializationContext *) selfPtr) 
 	self->hasDictionaryKey = NULL;
 }
 
-void DeserializationContext_dispose(compat_type(DeserializationContext *) selfPtr) {
-	StemObject_dispose(selfPtr);
+void DeserializationContext_dispose(DeserializationContext * self) {
+	call_super(dispose, self);
 }

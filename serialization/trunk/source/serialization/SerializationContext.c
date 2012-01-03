@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2011 Alex Diener
+  Copyright (c) 2012 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -23,7 +23,9 @@
 #include "serialization/SerializationContext.h"
 #include <stdlib.h>
 
-void SerializationContext_init(void * selfPtr) {
+#define SUPERCLASS StemObject
+
+void SerializationContext_init(compat_type(SerializationContext *) selfPtr) {
 	SerializationContext * self = selfPtr;
 	
 	StemObject_init(self);
@@ -56,6 +58,6 @@ void SerializationContext_init(void * selfPtr) {
 	self->writeBitfield64 = NULL;
 }
 
-void SerializationContext_dispose(compat_type(DeserializationContext *) selfPtr) {
-	StemObject_dispose(selfPtr);
+void SerializationContext_dispose(SerializationContext * self) {
+	call_super(dispose, self);
 }

@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2011 Alex Diener
+  Copyright (c) 2012 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -25,54 +25,54 @@
 
 #include "serialization/SerializationShared.h"
 #include "stemobject/StemObject.h"
+#include <stdlib.h>
 #include <stdint.h>
 #include <setjmp.h>
 
 typedef struct SerializationContext SerializationContext;
 
-#define SerializationContext_structContents \
-	StemObject_structContents \
+#define SerializationContext_structContents(self_type) \
+	StemObject_structContents(self_type) \
 	\
 	jmp_buf * jmpBuf; \
 	int status; \
 	\
-	void (* beginStructure)(compat_type(DeserializationContext *) self, const char * key); \
-	void (* beginDictionary)(compat_type(DeserializationContext *) self, const char * key); \
-	void (* beginArray)(compat_type(DeserializationContext *) self, const char * key); \
+	void (* beginStructure)(self_type * self, const char * key); \
+	void (* beginDictionary)(self_type * self, const char * key); \
+	void (* beginArray)(self_type * self, const char * key); \
 	\
-	void (* endStructure)(compat_type(DeserializationContext *) self); \
-	void (* endDictionary)(compat_type(DeserializationContext *) self); \
-	void (* endArray)(compat_type(DeserializationContext *) self); \
+	void (* endStructure)(self_type * self); \
+	void (* endDictionary)(self_type * self); \
+	void (* endArray)(self_type * self); \
 	\
-	void (* writeInt8)(compat_type(DeserializationContext *) self, const char * key, int8_t value); \
-	void (* writeUInt8)(compat_type(DeserializationContext *) self, const char * key, uint8_t value); \
-	void (* writeInt16)(compat_type(DeserializationContext *) self, const char * key, int16_t value); \
-	void (* writeUInt16)(compat_type(DeserializationContext *) self, const char * key, uint16_t value); \
-	void (* writeInt32)(compat_type(DeserializationContext *) self, const char * key, int32_t value); \
-	void (* writeUInt32)(compat_type(DeserializationContext *) self, const char * key, uint32_t value); \
-	void (* writeInt64)(compat_type(DeserializationContext *) self, const char * key, int64_t value); \
-	void (* writeUInt64)(compat_type(DeserializationContext *) self, const char * key, uint64_t value); \
-	void (* writeFloat)(compat_type(DeserializationContext *) self, const char * key, float value); \
-	void (* writeDouble)(compat_type(DeserializationContext *) self, const char * key, double value); \
-	void (* writeString)(compat_type(DeserializationContext *) self, const char * key, const char * value); \
-	void (* writeBoolean)(compat_type(DeserializationContext *) self, const char * key, bool value); \
+	void (* writeInt8)(self_type * self, const char * key, int8_t value); \
+	void (* writeUInt8)(self_type * self, const char * key, uint8_t value); \
+	void (* writeInt16)(self_type * self, const char * key, int16_t value); \
+	void (* writeUInt16)(self_type * self, const char * key, uint16_t value); \
+	void (* writeInt32)(self_type * self, const char * key, int32_t value); \
+	void (* writeUInt32)(self_type * self, const char * key, uint32_t value); \
+	void (* writeInt64)(self_type * self, const char * key, int64_t value); \
+	void (* writeUInt64)(self_type * self, const char * key, uint64_t value); \
+	void (* writeFloat)(self_type * self, const char * key, float value); \
+	void (* writeDouble)(self_type * self, const char * key, double value); \
+	void (* writeString)(self_type * self, const char * key, const char * value); \
+	void (* writeBoolean)(self_type * self, const char * key, bool value); \
+	void (* writeBytes)(self_type * self, const char * key, const void * bytes, size_t length); \
 	\
 	/* Additional args: Pairs of strings naming constants, and the values described by them, terminated by */ \
 	/* NULL. You can use the enumKV macro from serialization/SerializationShared.h for convenience. */ \
-	void (* writeEnumeration)(compat_type(DeserializationContext *) self, const char * key, int value, ...); \
+	void (* writeEnumeration)(self_type * self, const char * key, int value, ...); \
 	\
 	/* Additional args: Strings naming each bit from least significant to most significant, up to the maximum */ \
 	/* number of bits in the field, or terminated by NULL if there are unused bits at the top. */ \
-	void (* writeBitfield8)(compat_type(DeserializationContext *) self, const char * key, uint8_t value, ...); \
-	void (* writeBitfield16)(compat_type(DeserializationContext *) self, const char * key, uint16_t value, ...); \
-	void (* writeBitfield32)(compat_type(DeserializationContext *) self, const char * key, uint32_t value, ...); \
-	void (* writeBitfield64)(compat_type(DeserializationContext *) self, const char * key, uint64_t value, ...);
+	void (* writeBitfield8)(self_type * self, const char * key, uint8_t value, ...); \
+	void (* writeBitfield16)(self_type * self, const char * key, uint16_t value, ...); \
+	void (* writeBitfield32)(self_type * self, const char * key, uint32_t value, ...); \
+	void (* writeBitfield64)(self_type * self, const char * key, uint64_t value, ...);
 
-struct SerializationContext {
-	SerializationContext_structContents
-};
+stemobject_struct_definition(SerializationContext)
 
-void SerializationContext_init(compat_type(DeserializationContext *) selfPtr);
-void SerializationContext_dispose(compat_type(DeserializationContext *) selfPtr);
+void SerializationContext_init(compat_type(SerializationContext *) selfPtr);
+void SerializationContext_dispose(SerializationContext * self);
 
 #endif
