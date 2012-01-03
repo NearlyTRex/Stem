@@ -59,7 +59,7 @@ struct StemObject {
 };
 
 StemObject * StemObject_create();
-void StemObject_init(StemObject * selfPtr);
+void StemObject_init(compat_type(StemObject *) selfPtr);
 
 void StemObject_dispose(StemObject * self);
 
