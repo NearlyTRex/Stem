@@ -28,6 +28,7 @@ static void testInit() {
 	TestCase_assert(context.readDouble == NULL, "Expected NULL but got %p", context.readDouble);
 	TestCase_assert(context.readString == NULL, "Expected NULL but got %p", context.readString);
 	TestCase_assert(context.readBoolean == NULL, "Expected NULL but got %p", context.readBoolean);
+	TestCase_assert(context.readBytes == NULL, "Expected NULL but got %p", context.readBytes);
 	TestCase_assert(context.readEnumeration == NULL, "Expected NULL but got %p", context.readEnumeration);
 	TestCase_assert(context.readBitfield8 == NULL, "Expected NULL but got %p", context.readBitfield8);
 	TestCase_assert(context.readBitfield16 == NULL, "Expected NULL but got %p", context.readBitfield16);

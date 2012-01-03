@@ -51,6 +51,7 @@ void SerializationContext_init(compat_type(SerializationContext *) selfPtr) {
 	self->writeDouble = NULL;
 	self->writeString = NULL;
 	self->writeBoolean = NULL;
+	self->writeBytes = NULL;
 	self->writeEnumeration = NULL;
 	self->writeBitfield8 = NULL;
 	self->writeBitfield16 = NULL;

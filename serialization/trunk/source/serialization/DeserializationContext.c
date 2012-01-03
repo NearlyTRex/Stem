@@ -51,6 +51,7 @@ void DeserializationContext_init(compat_type(DeserializationContext *) selfPtr) 
 	self->readDouble = NULL;
 	self->readString = NULL;
 	self->readBoolean = NULL;
+	self->readBytes = NULL;
 	self->readEnumeration = NULL;
 	self->readBitfield8 = NULL;
 	self->readBitfield16 = NULL;

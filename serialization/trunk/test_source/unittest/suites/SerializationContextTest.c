@@ -5,7 +5,7 @@
 static void testInit() {
 	SerializationContext context;
 	
-	memset(&context, 0, sizeof(context));
+	memset(&context, 0xFF, sizeof(context));
 	SerializationContext_init(&context);
 	TestCase_assert(context.jmpBuf == NULL, "Expected NULL but got %p", context.jmpBuf);
 	TestCase_assert(context.status == SERIALIZATION_ERROR_OK, "Expected %d but got %d", SERIALIZATION_ERROR_OK, context.status);
@@ -28,6 +28,7 @@ static void testInit() {
 	TestCase_assert(context.writeDouble == NULL, "Expected NULL but got %p", context.writeDouble);
 	TestCase_assert(context.writeString == NULL, "Expected NULL but got %p", context.writeString);
 	TestCase_assert(context.writeBoolean == NULL, "Expected NULL but got %p", context.writeBoolean);
+	TestCase_assert(context.writeBytes == NULL, "Expected NULL but got %p", context.writeBytes);
 	TestCase_assert(context.writeEnumeration == NULL, "Expected NULL but got %p", context.writeEnumeration);
 	TestCase_assert(context.writeBitfield8 == NULL, "Expected NULL but got %p", context.writeBitfield8);
 	TestCase_assert(context.writeBitfield16 == NULL, "Expected NULL but got %p", context.writeBitfield16);
