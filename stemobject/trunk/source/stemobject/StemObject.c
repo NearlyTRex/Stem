@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2011 Alex Diener
+  Copyright (c) 2012 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -34,9 +34,7 @@ void StemObject_init(compat_type(StemObject *) selfPtr) {
 	self->dispose = StemObject_dispose;
 }
 
-void StemObject_dispose(compat_type(StemObject *) selfPtr) {
-	StemObject * self = selfPtr;
-	
+void StemObject_dispose(StemObject * self) {
 	if (self->protected_ivar(allocated)) {
 		free(self);
 	}

@@ -2,7 +2,7 @@ StemObject serves as the base for Stem's object system. The object system is ver
 
 	* Class and instance methods follow the naming convention ClassName_methodName().
 
-	* All instance methods receive, as their first parameter, compat_type(ClassName *) selfPtr. This is the instance on which the method is being called. (See note on compat_type below)
+	* All instance methods receive, as their first parameter, self_type * self. This is the instance on which the method is being called. This does not include <Name>_init(), which uses compat_type(ClassName *) selfPtr instead. See notes on self_type and compat_type below.
 
 	* All instance methods have a corresponding function pointer field in the object struct. These function pointers are set to their corresponding function implementations in <Name>_init().
 
@@ -12,7 +12,7 @@ StemObject serves as the base for Stem's object system. The object system is ver
 
 	* Method overriding is done by implementing a matching Subclass_method in the subclass, and setting the function pointer in the struct to point to that method in <Name>_init().
 
-	* Calls to superclass instance methods take the form: SuperclassName_method(self);
+	* Calls to superclass instance methods take the form: call_super(methodName, self, ...); (see notes about call_super below)
 
 	* All subclass objects must call their superclass's <Name>_init() method as the first thing in the subclass's <Name>_init().
 
@@ -36,4 +36,19 @@ StemObject serves as the base for Stem's object system. The object system is ver
 
 		* All other instance variables are considered public and may be accessed by any code anywhere.
 
-Due to the fact that subclassing is done by creating a new struct and appending fields to it, and that a superclass's function may operate on a subclass object, it is not possible to ensure that the correct type of object is passed as a function parameter at compile time. The compat_type macro exists as a convention for declaring the type of object expected, while allowing any pointer (which must be that type or a subclass thereof at runtime) to be passed. compat_type's argument is ignored, and it always expands to void *; the argument functions only as documentation in the header file containing it.
+
+Since subclass structs are a semantically different type than their superclasses, calling a superclass method requires a typecast. There are three macros that handle this:
+
+	* Each class's vtable contains function pointers that expect self parameters to be of that class's type. This is done by parameterizing the class name in the MyClass_structContents macro. Your code should look like this:
+
+		#define MyClass_structContents(self_type) \
+			MySuperclass_structContents(self_type) \
+			void (* method)(self_type * self);
+		
+		struct MyClass {
+			MyClass_structContents(MyClass)
+		};
+
+	* The compat_type macro can be used to weakly specify the expected type, while evaluating to void *. This of course eliminates compile-type type checks, so it should be used sparingly when possible.
+
+	* The call_super macro provides syntactic sugar and a small degree of extra type safety by convention when calling a superclass method. You must #define SUPERCLASS MySuperclass in your implementation file before using call_super.

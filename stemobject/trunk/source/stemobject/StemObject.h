@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2011 Alex Diener
+  Copyright (c) 2012 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -28,6 +28,7 @@
 #define compat_type(type) void *
 #define private_ivar(name) _private_##name
 #define protected_ivar(name) _protected_##name
+#define call_super(function, self, args...) SUPERCLASS##_##function((SUPERCLASS *) self, ##args)
 
 #define stemobject_create_implementation(class_name, init_suffix, init_args...) \
 	class_name * self; \
@@ -48,18 +49,18 @@
 
 typedef struct StemObject StemObject;
 
-#define StemObject_structContents \
+#define StemObject_structContents(self_type) \
 	bool protected_ivar(allocated); \
 	\
-	void (* dispose)(compat_type(StemObject *) self);
+	void (* dispose)(self_type * self);
 
 struct StemObject {
-	StemObject_structContents
+	StemObject_structContents(StemObject)
 };
 
 StemObject * StemObject_create();
-void StemObject_init(compat_type(StemObject *) selfPtr);
+void StemObject_init(StemObject * selfPtr);
 
-void StemObject_dispose(compat_type(StemObject *) selfPtr);
+void StemObject_dispose(StemObject * self);
 
 #endif

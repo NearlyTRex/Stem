@@ -1,3 +1,8 @@
+3.0.0
+ * Instance methods no longer use compat_type for the self parameter
+ * <Name>_structContents definitions are now macros which take self_type as a parameter
+ * Added call_super macro
+
 2.1.0
  * Removed StemObject_create
  * Added stemobject_copy_implementation
