@@ -28,7 +28,11 @@
 #define compat_type(type) void *
 #define private_ivar(name) _private_##name
 #define protected_ivar(name) _protected_##name
-#define call_super(function, self, args...) SUPERCLASS##_##function((SUPERCLASS *) self, ##args)
+
+// Three levels of macro nesting are necessary for SUPERCLASS to expand before ##
+#define call_super(function, self, args...) call_super_2(SUPERCLASS, function, self, ##args)
+#define call_super_2(superclass, function, self, args...) call_super_3(superclass, function, self, ##args)
+#define call_super_3(superclass, function, self, args...) superclass##_##function((superclass *) self, ##args)
 
 #define stemobject_create_implementation(class_name, init_suffix, init_args...) \
 	class_name * self; \
