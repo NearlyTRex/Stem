@@ -47,6 +47,11 @@
 	copy->protected_ivar(allocated) = true; \
 	return copy;
 
+#define stemobject_struct_definition(NAME) \
+struct NAME { \
+	NAME##_structContents(NAME) \
+};
+
 typedef struct StemObject StemObject;
 
 #define StemObject_structContents(self_type) \
@@ -54,9 +59,7 @@ typedef struct StemObject StemObject;
 	\
 	void (* dispose)(self_type * self);
 
-struct StemObject {
-	StemObject_structContents(StemObject)
-};
+stemobject_struct_definition(StemObject)
 
 StemObject * StemObject_create();
 void StemObject_init(compat_type(StemObject *) selfPtr);

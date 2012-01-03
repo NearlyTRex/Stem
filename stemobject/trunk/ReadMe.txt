@@ -45,9 +45,7 @@ Since subclass structs are a semantically different type than their superclasses
 			MySuperclass_structContents(self_type) \
 			void (* method)(self_type * self);
 		
-		struct MyClass {
-			MyClass_structContents(MyClass)
-		};
+		stemobject_struct_definition(MyClass)
 
 	* The compat_type macro can be used to weakly specify the expected type, while evaluating to void *. This of course eliminates compile-type type checks, so it should be used sparingly when possible.
 
