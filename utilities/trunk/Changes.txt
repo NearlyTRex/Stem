@@ -1,3 +1,9 @@
+1.6.0
+ * Random.h renamed to Ranrot.h
+ * Ranrot can now be instantiated
+ * Added stirrand()
+ * Updated for stemobject 3.0.0
+
 1.5.0
  * EventDispatcher_unregisterForEvent() now takes a context pointer, which must match the one passed to registerForEvent() to remove the callback. This enables multiple handlers to be registered with the same function pointer and event ID but different context pointers.
 

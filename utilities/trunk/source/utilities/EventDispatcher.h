@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2011 Alex Diener
+  Copyright (c) 2012 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -41,8 +41,8 @@ typedef bool (* EventDispatcherCallback)(void * sender, Atom eventID, void * eve
 
 struct EventTarget;
 
-#define EventDispatcher_structContents \
-	StemObject_structContents \
+#define EventDispatcher_structContents(self_type) \
+	StemObject_structContents(self_type) \
 	\
 	void * owner; \
 	\
@@ -50,13 +50,11 @@ struct EventTarget;
 	size_t targetListSize; \
 	struct EventTarget * targets; \
 	\
-	void (* registerForEvent)(compat_type(EventDispatcher *) self, Atom eventID, EventDispatcherCallback callback, void * context); \
-	void (* unregisterForEvent)(compat_type(EventDispatcher *) self, Atom eventID, EventDispatcherCallback callback, void * context); \
-	bool (* dispatchEvent)(compat_type(EventDispatcher *) self, Atom eventID, void * eventData);
+	void (* registerForEvent)(self_type * self, Atom eventID, EventDispatcherCallback callback, void * context); \
+	void (* unregisterForEvent)(self_type * self, Atom eventID, EventDispatcherCallback callback, void * context); \
+	bool (* dispatchEvent)(self_type * self, Atom eventID, void * eventData);
 
-struct EventDispatcher {
-	EventDispatcher_structContents
-};
+stemobject_struct_definition(EventDispatcher)
 
 /* Allocate and initialize a new EventDispatcher object. owner will be passed to event callbacks as
    the sender parameter. */
@@ -64,20 +62,20 @@ EventDispatcher * EventDispatcher_create(void * owner);
 
 /* Initialize an already allocated EventDispatcher. owner will be passed to event callbacks as the
    sender parameter. */
-void EventDispatcher_init(compat_type(EventDispatcher *) selfPtr, void * owner);
+void EventDispatcher_init(EventDispatcher * self, void * owner);
 
 /* Free all memory allocated by EventDispatcher (including self if allocated with
    EventDispatcher_create()), and remove all registered listeners. */
-void EventDispatcher_dispose(compat_type(EventDispatcher *) selfPtr);
+void EventDispatcher_dispose(EventDispatcher * self);
 
 /* Register for notification of events of type eventID */
-void EventDispatcher_registerForEvent(compat_type(EventDispatcher *) selfPtr, Atom eventID, EventDispatcherCallback callback, void * context);
+void EventDispatcher_registerForEvent(EventDispatcher * self, Atom eventID, EventDispatcherCallback callback, void * context);
 
 /* Remove a previous registration for events of type eventID. Callback and context must match the pointers passed to registerForEvent. */
-void EventDispatcher_unregisterForEvent(compat_type(EventDispatcher *) selfPtr, Atom eventID, EventDispatcherCallback callback, void * context);
+void EventDispatcher_unregisterForEvent(EventDispatcher * self, Atom eventID, EventDispatcherCallback callback, void * context);
 
 /* Dispatch an event to all registered listeners for that event ID. Returns true if any listener is
    registered and returns true from its handler callback. */
-bool EventDispatcher_dispatchEvent(compat_type(EventDispatcher *) selfPtr, Atom eventID, void * eventData);
+bool EventDispatcher_dispatchEvent(EventDispatcher * self, Atom eventID, void * eventData);
 
 #endif

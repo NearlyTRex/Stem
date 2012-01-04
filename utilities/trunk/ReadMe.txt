@@ -5,5 +5,5 @@ Utilities contains miscellaneous convenience functions for working with files, s
  - EventDispatcher: Notification dispatch table
  - FixedIntervalRunLoop: Mechanism for decoupling state updates from screen updates
  - IOUtilities: Miscellaneous functions relating to memory/file I/O
- - Random: RANROT implementation
+ - Ranrot: Pseudo-random number generator
  - UTFUtilities: Functions for working with Unicode text representations

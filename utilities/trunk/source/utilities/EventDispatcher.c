@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2011 Alex Diener
+  Copyright (c) 2012 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -23,6 +23,8 @@
 #include "utilities/EventDispatcher.h"
 #include <string.h>
 
+#define SUPERCLASS StemObject
+
 struct EventTarget {
 	Atom eventID;
 	EventDispatcherCallback callback;
@@ -33,10 +35,8 @@ EventDispatcher * EventDispatcher_create(void * owner) {
 	stemobject_create_implementation(EventDispatcher, init, owner)
 }
 
-void EventDispatcher_init(compat_type(EventDispatcher *) selfPtr, void * owner) {
-	EventDispatcher * self = selfPtr;
-	
-	StemObject_init(self);
+void EventDispatcher_init(EventDispatcher * self, void * owner) {
+	call_super(init, self);
 	
 	self->dispose = EventDispatcher_dispose;
 	self->registerForEvent = EventDispatcher_registerForEvent;
@@ -49,16 +49,12 @@ void EventDispatcher_init(compat_type(EventDispatcher *) selfPtr, void * owner) 
 	self->targets = (struct EventTarget *) malloc(sizeof(struct EventTarget) * self->targetListSize);
 }
 
-void EventDispatcher_dispose(compat_type(EventDispatcher *) selfPtr) {
-	EventDispatcher * self = selfPtr;
-	
+void EventDispatcher_dispose(EventDispatcher * self) {
 	free(self->targets);
-	StemObject_dispose(selfPtr);
+	call_super(dispose, self);
 }
 
-void EventDispatcher_registerForEvent(compat_type(EventDispatcher *) selfPtr, Atom eventID, EventDispatcherCallback callback, void * context) {
-	EventDispatcher * self = selfPtr;
-	
+void EventDispatcher_registerForEvent(EventDispatcher * self, Atom eventID, EventDispatcherCallback callback, void * context) {
 	if (self->numberOfTargets >= self->targetListSize) {
 		self->targetListSize *= 2;
 		self->targets = (struct EventTarget *) realloc(self->targets, sizeof(struct EventTarget) * self->targetListSize);
@@ -70,8 +66,7 @@ void EventDispatcher_registerForEvent(compat_type(EventDispatcher *) selfPtr, At
 	self->numberOfTargets++;
 }
 
-void EventDispatcher_unregisterForEvent(compat_type(EventDispatcher *) selfPtr, Atom eventID, EventDispatcherCallback callback, void * context) {
-	EventDispatcher * self = selfPtr;
+void EventDispatcher_unregisterForEvent(EventDispatcher * self, Atom eventID, EventDispatcherCallback callback, void * context) {
 	size_t targetIndex;
 	
 	for (targetIndex = 0; targetIndex < self->numberOfTargets; targetIndex++) {
@@ -85,8 +80,7 @@ void EventDispatcher_unregisterForEvent(compat_type(EventDispatcher *) selfPtr, 
 	}
 }
 
-bool EventDispatcher_dispatchEvent(compat_type(EventDispatcher *) selfPtr, Atom eventID, void * eventData) {
-	EventDispatcher * self = selfPtr;
+bool EventDispatcher_dispatchEvent(EventDispatcher * self, Atom eventID, void * eventData) {
 	size_t targetIndex;
 	size_t numberOfTargetsCopy;
 	struct EventTarget * targetsCopy;

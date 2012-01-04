@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2011 Alex Diener
+  Copyright (c) 2012 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -24,14 +24,14 @@
 #include "utilities/AutoFreePool.h"
 #include <stdlib.h>
 
+#define SUPERCLASS StemObject
+
 FixedIntervalRunLoop * FixedIntervalRunLoop_create(double (* timeFunction)(), double stepInterval, FixedIntervalRunLoopCallback stepCallback, void * stepContext) {
 	stemobject_create_implementation(FixedIntervalRunLoop, init, timeFunction, stepInterval, stepCallback, stepContext)
 }
 
-void FixedIntervalRunLoop_init(compat_type(FixedIntervalRunLoop *) selfPtr, double (* timeFunction)(), double stepInterval, FixedIntervalRunLoopCallback stepCallback, void * stepContext) {
-	FixedIntervalRunLoop * self = selfPtr;
-	
-	StemObject_init(self);
+void FixedIntervalRunLoop_init(FixedIntervalRunLoop * self, double (* timeFunction)(), double stepInterval, FixedIntervalRunLoopCallback stepCallback, void * stepContext) {
+	call_super(init, self);
 	
 	self->timeFunction = timeFunction;
 	self->stepInterval = stepInterval;
@@ -47,12 +47,11 @@ void FixedIntervalRunLoop_init(compat_type(FixedIntervalRunLoop *) selfPtr, doub
 	self->resume = FixedIntervalRunLoop_resume;
 }
 
-void FixedIntervalRunLoop_dispose(compat_type(FixedIntervalRunLoop *) selfPtr) {
-	StemObject_dispose(selfPtr);
+void FixedIntervalRunLoop_dispose(FixedIntervalRunLoop * self) {
+	call_super(dispose, self);
 }
 
-void FixedIntervalRunLoop_run(compat_type(FixedIntervalRunLoop *) selfPtr) {
-	FixedIntervalRunLoop * self = selfPtr;
+void FixedIntervalRunLoop_run(FixedIntervalRunLoop * self) {
 	double currentTime, interval;
 	
 	if (self->paused) {
@@ -71,18 +70,14 @@ void FixedIntervalRunLoop_run(compat_type(FixedIntervalRunLoop *) selfPtr) {
 	AutoFreePool_empty();
 }
 
-void FixedIntervalRunLoop_pause(compat_type(FixedIntervalRunLoop *) selfPtr) {
-	FixedIntervalRunLoop * self = selfPtr;
-	
+void FixedIntervalRunLoop_pause(FixedIntervalRunLoop * self) {
 	if (!self->paused) {
 		self->paused = true;
 		self->pauseTime = self->timeFunction();
 	}
 }
 
-void FixedIntervalRunLoop_resume(compat_type(FixedIntervalRunLoop *) selfPtr) {
-	FixedIntervalRunLoop * self = selfPtr;
-	
+void FixedIntervalRunLoop_resume(FixedIntervalRunLoop * self) {
 	if (self->paused) {
 		self->paused = false;
 		self->lastTime += self->timeFunction() - self->pauseTime;

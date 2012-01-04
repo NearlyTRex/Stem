@@ -20,13 +20,46 @@
   Alex Diener adiener@sacredsoftware.net
 */
 
-#ifndef __RANDOM__
-#define __RANDOM__
+#ifndef __RANROT_H__
+#define __RANROT_H__
+
+typedef struct Ranrot Ranrot;
+
+#include "stemobject/StemObject.h"
+
+#define Ranrot_structContents(self_type) \
+	StemObject_structContents(self_type) \
+	\
+	int protected_ivar(low); \
+	int protected_ivar(high); \
+	\
+	void (* sdrand)(self_type * self, int seed); \
+	void (* stirrand)(self_type * self, int iterations); \
+	unsigned int (* uirand)(self_type * self); \
+	int (* irand)(self_type * self); \
+	float (* ufrand)(self_type * self, float range); \
+	float (* frand)(self_type * self, float range);
+
+stemobject_struct_definition(Ranrot)
+
+Ranrot * Ranrot_create();
+void Ranrot_init(Ranrot * self);
+void Ranrot_dispose(Ranrot * self);
+void Ranrot_sdrand(Ranrot * self, int seed);
+void Ranrot_stirrand(Ranrot * self, int iterations);
+unsigned int Ranrot_uirand(Ranrot * self);
+int Ranrot_irand(Ranrot * self);
+float Ranrot_ufrand(Ranrot * self, float range);
+float Ranrot_frand(Ranrot * self, float range);
 
 /** Sets random seed. Note that the RANROT implementation used is somewhat nonrandom for several
-    iterations after seeding; for better randomness, you may want to "stir" the PRNG by calling
-    irand() some number of times after seeding and discarding the generated values. */
+    iterations after seeding; for better randomness, you may want to stir the PRNG by calling
+    stirrand() after sdrand(). */
 void sdrand(int seed);
+
+/** Advances random number generation the specified number of times. Use after sdrand() to increase
+    early randomness. */
+void stirrand(int iterations);
 
 /** Returns a random integer uniformly distributed between 0 and INT_MAX. For a number between 0 and
     UINT_MAX, call irand() and cast the result to unsigned int. */

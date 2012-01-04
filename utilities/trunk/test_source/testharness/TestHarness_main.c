@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "utilities/IOUtilities.h"
-#include "utilities/Random.h"
+#include "utilities/Ranrot.h"
 
 int main(int argc, char ** argv) {
 	// Functionality other than random number generation and temporary file creation fully tested by unittest target
@@ -14,7 +14,7 @@ int main(int argc, char ** argv) {
 	
 	if (!strcmp(argv[1], "-random")) {
 		int randSeed = 0;
-		unsigned int iterations = 3, discardedIterations = 0, iteration;
+		unsigned int iterations = 3, stirIterations = 0, iteration;
 		float frandRange = 1.0f;
 		
 		if (argc < 3) {
@@ -42,38 +42,46 @@ int main(int argc, char ** argv) {
 		}
 		
 		if (argc < 6) {
-			printf("Specify discarded iterations as argv[5] if desired; proceeding with %u\n", discardedIterations);
+			printf("Specify stir iterations as argv[5] if desired; proceeding with %u\n", stirIterations);
 		} else {
-			if (!sscanf(argv[5], "%u", &discardedIterations)) {
-				printf("Couldn't parse \"%s\" as %%u; proceeding with %u discarded iterations\n", argv[5], discardedIterations);
+			if (!sscanf(argv[5], "%u", &stirIterations)) {
+				printf("Couldn't parse \"%s\" as %%u; proceeding with %u stir iterations\n", argv[5], stirIterations);
 			}
 		}
 		
 		printf("sdrand(%d);\n", randSeed);
 		sdrand(randSeed);
-		if (discardedIterations > 0) { printf("uirand() %u time%s\n", discardedIterations, discardedIterations == 1 ? "" : "s"); }
-		for (iteration = 0; iteration < discardedIterations; iteration++) { uirand(); }
+		if (stirIterations > 0) {
+			printf("stirrand(%u)\n", stirIterations);
+			stirrand(stirIterations);
+		}
 		for (iteration = 0; iteration < iterations; iteration++) {
 			printf("uirand(): %u\n", uirand());
 		}
 		printf("\nsdrand(%d);\n", randSeed);
 		sdrand(randSeed);
-		if (discardedIterations > 0) { printf("uirand() %u time%s\n", discardedIterations, discardedIterations == 1 ? "" : "s"); }
-		for (iteration = 0; iteration < discardedIterations; iteration++) { uirand(); }
+		if (stirIterations > 0) {
+			printf("stirrand(%u)\n", stirIterations);
+			stirrand(stirIterations);
+		}
 		for (iteration = 0; iteration < iterations; iteration++) {
 			printf("irand(): %d\n", irand());
 		}
 		printf("\nsdrand(%d);\n", randSeed);
 		sdrand(randSeed);
-		if (discardedIterations > 0) { printf("uirand() %u time%s\n", discardedIterations, discardedIterations == 1 ? "" : "s"); }
-		for (iteration = 0; iteration < discardedIterations; iteration++) { uirand(); }
+		if (stirIterations > 0) {
+			printf("stirrand(%u)\n", stirIterations);
+			stirrand(stirIterations);
+		}
 		for (iteration = 0; iteration < iterations; iteration++) {
 			printf("ufrand(%f): %f\n", frandRange, ufrand(frandRange));
 		}
 		printf("\nsdrand(%d);\n", randSeed);
 		sdrand(randSeed);
-		if (discardedIterations > 0) { printf("uirand() %u time%s\n", discardedIterations, discardedIterations == 1 ? "" : "s"); }
-		for (iteration = 0; iteration < discardedIterations; iteration++) { uirand(); }
+		if (stirIterations > 0) {
+			printf("stirrand(%u)\n", stirIterations);
+			stirrand(stirIterations);
+		}
 		for (iteration = 0; iteration < iterations; iteration++) {
 			printf("frand(%f): %f\n", frandRange, frand(frandRange));
 		}

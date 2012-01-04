@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2011 Alex Diener
+  Copyright (c) 2012 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -28,8 +28,8 @@
 typedef struct FixedIntervalRunLoop FixedIntervalRunLoop;
 typedef void (* FixedIntervalRunLoopCallback)(void * context);
 
-#define FixedIntervalRunLoop_structContents \
-	StemObject_structContents \
+#define FixedIntervalRunLoop_structContents(self_type) \
+	StemObject_structContents(self_type) \
 	\
 	double (* timeFunction)(); \
 	double stepInterval; \
@@ -40,21 +40,19 @@ typedef void (* FixedIntervalRunLoopCallback)(void * context);
 	bool paused; \
 	double pauseTime; \
 	\
-	void (* run)(compat_type(FixedIntervalRunLoop *) self); \
-	void (* pause)(compat_type(FixedIntervalRunLoop *) self); \
-	void (* resume)(compat_type(FixedIntervalRunLoop *) self);
+	void (* run)(self_type * self); \
+	void (* pause)(self_type * self); \
+	void (* resume)(self_type * self);
 
-struct FixedIntervalRunLoop {
-	FixedIntervalRunLoop_structContents
-};
+stemobject_struct_definition(FixedIntervalRunLoop)
 
 // timeFunction is a pointer to a function that will return the current time in seconds when called
 FixedIntervalRunLoop * FixedIntervalRunLoop_create(double (* timeFunction)(), double stepInterval, FixedIntervalRunLoopCallback stepCallback, void * stepContext);
-void FixedIntervalRunLoop_init(compat_type(FixedIntervalRunLoop *) selfPtr, double (* timeFunction)(), double stepInterval, FixedIntervalRunLoopCallback stepCallback, void * stepContext);
+void FixedIntervalRunLoop_init(FixedIntervalRunLoop * self, double (* timeFunction)(), double stepInterval, FixedIntervalRunLoopCallback stepCallback, void * stepContext);
 
-void FixedIntervalRunLoop_dispose(compat_type(FixedIntervalRunLoop *) selfPtr);
-void FixedIntervalRunLoop_run(compat_type(FixedIntervalRunLoop *) selfPtr);
-void FixedIntervalRunLoop_pause(compat_type(FixedIntervalRunLoop *) selfPtr);
-void FixedIntervalRunLoop_resume(compat_type(FixedIntervalRunLoop *) selfPtr);
+void FixedIntervalRunLoop_dispose(FixedIntervalRunLoop * self);
+void FixedIntervalRunLoop_run(FixedIntervalRunLoop * self);
+void FixedIntervalRunLoop_pause(FixedIntervalRunLoop * self);
+void FixedIntervalRunLoop_resume(FixedIntervalRunLoop * self);
 
 #endif

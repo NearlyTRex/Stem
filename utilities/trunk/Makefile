@@ -164,7 +164,7 @@ SOURCES_library = \
 	source/utilities/EventDispatcher.c \
 	source/utilities/FixedIntervalRunLoop.c \
 	source/utilities/IOUtilities.c \
-	source/utilities/Random.c \
+	source/utilities/Ranrot.c \
 	source/utilities/UTFUtilities.c
 
 SOURCES_unittest = \
@@ -178,7 +178,7 @@ SOURCES_unittest_suites = \
 	test_source/unittest/suites/EventDispatcherTest.c \
 	test_source/unittest/suites/FixedIntervalRunLoopTest.c \
 	test_source/unittest/suites/IOUtilitiesTest.c \
-	test_source/unittest/suites/RandomTest.c \
+	test_source/unittest/suites/RanrotTest.c \
 	test_source/unittest/suites/UTFUtilitiesTest.c
 
 SOURCES_testharness = \
@@ -192,7 +192,7 @@ INCLUDES = \
 	source/utilities/EventDispatcher.h \
 	source/utilities/FixedIntervalRunLoop.h \
 	source/utilities/IOUtilities.h \
-	source/utilities/Random.h \
+	source/utilities/Ranrot.h \
 	source/utilities/UTFUtilities.h
 
 #Target resources
@@ -462,7 +462,7 @@ define copy_target_resources #(target, platform, resources_dir)
 	${foreach resource,${RESOURCES_$1} ${RESOURCES_$1_$2}, \
 		cp -r ${resource} $3${newline_and_tab} \
 	}
-	find $3 -name .svn -print0 | xargs -0 rm -rf
+	find $3 -name .svn -print0 -or -name .DS_Store -print0 | xargs -0 rm -rf
 endef
 
 define assemble_executable_macosx #(target, configuration, platform)
