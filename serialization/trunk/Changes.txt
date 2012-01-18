@@ -1,3 +1,6 @@
+1.2.1
+ * Fixed constant name typo (SERIALIAZTION_ERROR_NO_CONTAINER_STARTED -> SERIALIZATION_ERROR_NO_CONTAINER_STARTED)
+
 1.2.0
  * Added readBytes and writeBytes functions
  * Updated for stemobject 3.0.0

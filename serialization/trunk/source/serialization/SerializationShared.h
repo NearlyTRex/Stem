@@ -71,7 +71,7 @@
 #define SERIALIZATION_ERROR_END_OF_CONTAINER 14
 
 // A read or write call was issued before the first begin<Array|Structure|Dictionary> call, or after the last end<Array|Structure|Dictionary> call
-#define SERIALIAZTION_ERROR_NO_CONTAINER_STARTED 15
+#define SERIALIZATION_ERROR_NO_CONTAINER_STARTED 15
 
 // Other errors defined by concrete serialization modules
 
