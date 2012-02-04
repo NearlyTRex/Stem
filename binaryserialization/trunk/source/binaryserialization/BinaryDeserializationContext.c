@@ -116,7 +116,7 @@ static void sharedInit(BinaryDeserializationContext * self) {
 	self->jmpBuf = NULL;
 	self->containerCount = 0;
 	self->containerListSize = 1;
-	self->containerStack = malloc(sizeof(struct containerNode) * self->containerListSize);
+	self->containerStack = malloc(sizeof(struct BinaryDeserializationContext_containerNode) * self->containerListSize);
 	self->finished = false;
 	
 	self->dispose = BinaryDeserializationContext_dispose;
@@ -210,14 +210,14 @@ void BinaryDeserializationContext_beginStructure(BinaryDeserializationContext * 
 	}
 	if (self->containerListSize <= self->containerCount) {
 		self->containerListSize *= 2;
-		self->containerStack = realloc(self->containerStack, sizeof(struct containerNode) * self->containerListSize);
+		self->containerStack = realloc(self->containerStack, sizeof(struct BinaryDeserializationContext_containerNode) * self->containerListSize);
 	}
 	self->containerStack[self->containerCount++].type = BINARY_SERIALIZATION_CONTAINER_TYPE_STRUCT;
 }
 
 size_t BinaryDeserializationContext_beginDictionary(BinaryDeserializationContext * self, const char * key) {
 	uint32_t keyIndex, offset;
-	struct containerNode containerNode;
+	struct BinaryDeserializationContext_containerNode containerNode;
 	
 	if (self->finished) {
 		failWithStatus(SERIALIZATION_ERROR_MULTIPLE_TOP_LEVEL_CONTAINERS, return 0)
@@ -240,7 +240,7 @@ size_t BinaryDeserializationContext_beginDictionary(BinaryDeserializationContext
 	}
 	if (self->containerListSize <= self->containerCount) {
 		self->containerListSize *= 2;
-		self->containerStack = realloc(self->containerStack, sizeof(struct containerNode) * self->containerListSize);
+		self->containerStack = realloc(self->containerStack, sizeof(struct BinaryDeserializationContext_containerNode) * self->containerListSize);
 	}
 	if (containerNode.endOffset > self->length) {
 		failWithStatus(BINARY_SERIALIZATION_ERROR_INVALID_OFFSET, return 0)
@@ -250,7 +250,7 @@ size_t BinaryDeserializationContext_beginDictionary(BinaryDeserializationContext
 }
 
 size_t BinaryDeserializationContext_beginArray(BinaryDeserializationContext * self, const char * key) {
-	struct containerNode containerNode;
+	struct BinaryDeserializationContext_containerNode containerNode;
 	
 	if (self->finished) {
 		failWithStatus(SERIALIZATION_ERROR_MULTIPLE_TOP_LEVEL_CONTAINERS, return 0)
@@ -266,7 +266,7 @@ size_t BinaryDeserializationContext_beginArray(BinaryDeserializationContext * se
 	containerNode.startOffset = containerNode.endOffset = 0; // hush clang
 	if (self->containerListSize <= self->containerCount) {
 		self->containerListSize *= 2;
-		self->containerStack = realloc(self->containerStack, sizeof(struct containerNode) * self->containerListSize);
+		self->containerStack = realloc(self->containerStack, sizeof(struct BinaryDeserializationContext_containerNode) * self->containerListSize);
 	}
 	self->containerStack[self->containerCount++] = containerNode;
 	return containerNode.count;

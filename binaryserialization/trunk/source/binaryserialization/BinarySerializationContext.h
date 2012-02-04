@@ -25,22 +25,39 @@
 
 #include "serialization/SerializationContext.h"
 #include "binaryserialization/BinarySerializationShared.h"
+#include "utilities/IOUtilities.h"
 
 typedef struct BinarySerializationContext BinarySerializationContext;
 
+struct BinarySerializationContext_containerNode {
+	enum BinarySerializationContainerType type;
+	uint32_t count;
+	size_t startOffset;
+	size_t keyListSize;
+	char ** keys;
+	uint32_t * offsets;
+};
+
 #define BinarySerializationContext_structContents(self_type) \
 	SerializationContext_structContents(self_type) \
+	\
+	bool bigEndian; \
+	struct memwriteContext memwriteContext; \
+	size_t containerCount; \
+	size_t containerListSize; \
+	struct BinarySerializationContext_containerNode * containerStack; \
 	\
 	void * (* writeToBytes)(self_type * self, size_t * outLength); \
 	bool (* writeToFile)(self_type * self, const char * filePath);
 
 stemobject_struct_definition(BinarySerializationContext)
 
-BinarySerializationContext * BinarySerializationContext_create();
-void BinarySerializationContext_init(BinarySerializationContext * self);
+BinarySerializationContext * BinarySerializationContext_create(bool bigEndian);
+void BinarySerializationContext_init(BinarySerializationContext * self, bool bigEndian);
 void BinarySerializationContext_dispose(BinarySerializationContext * self);
 
 // Returned object owned by caller; free when done
+// outLength is mandatory; not checked for NULL before written
 void * BinarySerializationContext_writeToBytes(BinarySerializationContext * self, size_t * outLength);
 bool BinarySerializationContext_writeToFile(BinarySerializationContext * self, const char * filePath);
 

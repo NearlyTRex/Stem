@@ -28,7 +28,7 @@ typedef struct BinaryDeserializationContext BinaryDeserializationContext;
 #include "binaryserialization/BinarySerializationShared.h"
 #include "serialization/DeserializationContext.h"
 
-struct containerNode {
+struct BinaryDeserializationContext_containerNode {
 	enum BinarySerializationContainerType type;
 	uint32_t count;
 	uint32_t nextItemIndex;
@@ -45,7 +45,7 @@ struct containerNode {
 	size_t position; \
 	size_t containerCount; \
 	size_t containerListSize; \
-	struct containerNode * containerStack; \
+	struct BinaryDeserializationContext_containerNode * containerStack; \
 	bool finished;
 
 stemobject_struct_definition(BinaryDeserializationContext)
