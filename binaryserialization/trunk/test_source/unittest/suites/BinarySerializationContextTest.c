@@ -1216,21 +1216,20 @@ static void testWriteToFile() {
 	free(bytes);
 }
 
-/*
 static void testInvalidOperations() {
 	BinarySerializationContext * context;
 	void * bytes;
 	size_t length;
 	
 	// No data
-	context = BinarySerializationContext_create();
+	context = BinarySerializationContext_create(true);
 	bytes = context->writeToBytes(context, &length);
 	TestCase_assert(bytes == NULL, "Expected NULL but got %p", bytes);
 	context->dispose(context);
 	
 	// No top-level container
 #define _testNoTopLevelContainer(FUNCTION, ...) \
-	context = BinarySerializationContext_create(); \
+	context = BinarySerializationContext_create(true); \
 	context->FUNCTION(context, "key", __VA_ARGS__); \
 	bytes = context->writeToBytes(context, &length); \
 	TestCase_assert(bytes == NULL, "Expected NULL but got %p", bytes); \
@@ -1256,13 +1255,13 @@ static void testInvalidOperations() {
 #undef _testNoTopLevelContainer
 	
 	// Unterminated array
-	context = BinarySerializationContext_create();
+	context = BinarySerializationContext_create(true);
 	context->beginArray(context, "key");
 	bytes = context->writeToBytes(context, &length);
 	TestCase_assert(bytes == NULL, "Expected NULL but got %p", bytes);
 	context->dispose(context);
 	
-	context = BinarySerializationContext_create();
+	context = BinarySerializationContext_create(true);
 	context->beginArray(context, "key");
 	context->beginArray(context, "key");
 	context->endArray(context);
@@ -1271,13 +1270,13 @@ static void testInvalidOperations() {
 	context->dispose(context);
 	
 	// Unterminated structure
-	context = BinarySerializationContext_create();
+	context = BinarySerializationContext_create(true);
 	context->beginStructure(context, "key");
 	bytes = context->writeToBytes(context, &length);
 	TestCase_assert(bytes == NULL, "Expected NULL but got %p", bytes);
 	context->dispose(context);
 	
-	context = BinarySerializationContext_create();
+	context = BinarySerializationContext_create(true);
 	context->beginStructure(context, "key");
 	context->beginStructure(context, "key");
 	context->endStructure(context);
@@ -1286,13 +1285,13 @@ static void testInvalidOperations() {
 	context->dispose(context);
 	
 	// Unterminated dictionary
-	context = BinarySerializationContext_create();
+	context = BinarySerializationContext_create(true);
 	context->beginDictionary(context, "key");
 	bytes = context->writeToBytes(context, &length);
 	TestCase_assert(bytes == NULL, "Expected NULL but got %p", bytes);
 	context->dispose(context);
 	
-	context = BinarySerializationContext_create();
+	context = BinarySerializationContext_create(true);
 	context->beginDictionary(context, "key");
 	context->beginDictionary(context, "key");
 	context->endDictionary(context);
@@ -1302,14 +1301,14 @@ static void testInvalidOperations() {
 	
 	// Wrong container type terminated
 #define _testWrongContainerTypeTerminatedOuter(CONTAINER_1, CONTAINER_2) \
-	context = BinarySerializationContext_create(); \
+	context = BinarySerializationContext_create(true); \
 	context->begin##CONTAINER_1(context, "key"); \
 	context->end##CONTAINER_2(context); \
 	bytes = context->writeToBytes(context, &length); \
 	TestCase_assert(bytes == NULL, "Expected NULL but got %p", bytes); \
 	context->dispose(context);
 #define _testWrongContainerTypeTerminatedInner(CONTAINER_1, CONTAINER_2) \
-	context = BinarySerializationContext_create(); \
+	context = BinarySerializationContext_create(true); \
 	context->begin##CONTAINER_1(context, "key"); \
 	context->begin##CONTAINER_1(context, "key"); \
 	context->end##CONTAINER_2(context); \
@@ -1334,7 +1333,7 @@ static void testInvalidOperations() {
 #undef _testWrongContainerTypeTerminatedInner
 	
 	// Container underflow
-	context = BinarySerializationContext_create();
+	context = BinarySerializationContext_create(true);
 	context->beginArray(context, "key");
 	context->endArray(context);
 	context->endArray(context);
@@ -1342,7 +1341,7 @@ static void testInvalidOperations() {
 	TestCase_assert(bytes == NULL, "Expected NULL but got %p", bytes);
 	context->dispose(context);
 	
-	context = BinarySerializationContext_create();
+	context = BinarySerializationContext_create(true);
 	context->beginStructure(context, "key");
 	context->endStructure(context);
 	context->endStructure(context);
@@ -1350,7 +1349,7 @@ static void testInvalidOperations() {
 	TestCase_assert(bytes == NULL, "Expected NULL but got %p", bytes);
 	context->dispose(context);
 	
-	context = BinarySerializationContext_create();
+	context = BinarySerializationContext_create(true);
 	context->beginDictionary(context, "key");
 	context->endDictionary(context);
 	context->endDictionary(context);
@@ -1359,7 +1358,7 @@ static void testInvalidOperations() {
 	context->dispose(context);
 	
 	// Second top-level container started
-	context = BinarySerializationContext_create();
+	context = BinarySerializationContext_create(true);
 	context->beginArray(context, "key");
 	context->endArray(context);
 	context->beginArray(context, "key");
@@ -1368,7 +1367,7 @@ static void testInvalidOperations() {
 	TestCase_assert(bytes == NULL, "Expected NULL but got %p", bytes);
 	context->dispose(context);
 	
-	context = BinarySerializationContext_create();
+	context = BinarySerializationContext_create(true);
 	context->beginStructure(context, "key");
 	context->endStructure(context);
 	context->beginStructure(context, "key");
@@ -1377,7 +1376,7 @@ static void testInvalidOperations() {
 	TestCase_assert(bytes == NULL, "Expected NULL but got %p", bytes);
 	context->dispose(context);
 	
-	context = BinarySerializationContext_create();
+	context = BinarySerializationContext_create(true);
 	context->beginDictionary(context, "key");
 	context->endDictionary(context);
 	context->beginDictionary(context, "key");
@@ -1387,7 +1386,7 @@ static void testInvalidOperations() {
 	context->dispose(context);
 	
 	// Bit set in bitfield but list terminated before naming bit
-	context = BinarySerializationContext_create();
+	context = BinarySerializationContext_create(true);
 	context->beginArray(context, "key");
 	context->writeBitfield8(context, "item", 0x01, NULL);
 	context->endArray(context);
@@ -1395,7 +1394,7 @@ static void testInvalidOperations() {
 	TestCase_assert(bytes == NULL, "Expected NULL but got %p", bytes);
 	context->dispose(context);
 	
-	context = BinarySerializationContext_create();
+	context = BinarySerializationContext_create(true);
 	context->beginArray(context, "key");
 	context->writeBitfield16(context, "item", 0x0002, "bit0", NULL);
 	context->endArray(context);
@@ -1403,7 +1402,7 @@ static void testInvalidOperations() {
 	TestCase_assert(bytes == NULL, "Expected NULL but got %p", bytes);
 	context->dispose(context);
 	
-	context = BinarySerializationContext_create();
+	context = BinarySerializationContext_create(true);
 	context->beginArray(context, "key");
 	context->writeBitfield32(context, "item", 0x00000004, "bit0", "bit1", NULL);
 	context->endArray(context);
@@ -1411,7 +1410,7 @@ static void testInvalidOperations() {
 	TestCase_assert(bytes == NULL, "Expected NULL but got %p", bytes);
 	context->dispose(context);
 	
-	context = BinarySerializationContext_create();
+	context = BinarySerializationContext_create(true);
 	context->beginArray(context, "key");
 	context->writeBitfield64(context, "item", 0x0000000000000008ull, "bit0", "bit1", "bit2", NULL);
 	context->endArray(context);
@@ -1420,7 +1419,7 @@ static void testInvalidOperations() {
 	context->dispose(context);
 	
 	// Bit names duplicated
-	context = BinarySerializationContext_create();
+	context = BinarySerializationContext_create(true);
 	context->beginArray(context, "key");
 	context->writeBitfield8(context, "item", 0x00, "bit0", "bit0", NULL);
 	context->endArray(context);
@@ -1428,7 +1427,7 @@ static void testInvalidOperations() {
 	TestCase_assert(bytes == NULL, "Expected NULL but got %p", bytes);
 	context->dispose(context);
 	
-	context = BinarySerializationContext_create();
+	context = BinarySerializationContext_create(true);
 	context->beginArray(context, "key");
 	context->writeBitfield16(context, "item", 0x0000, "bit0", "bit0", NULL);
 	context->endArray(context);
@@ -1436,7 +1435,7 @@ static void testInvalidOperations() {
 	TestCase_assert(bytes == NULL, "Expected NULL but got %p", bytes);
 	context->dispose(context);
 	
-	context = BinarySerializationContext_create();
+	context = BinarySerializationContext_create(true);
 	context->beginArray(context, "key");
 	context->writeBitfield32(context, "item", 0x00000000, "bit0", "bit0", NULL);
 	context->endArray(context);
@@ -1444,7 +1443,7 @@ static void testInvalidOperations() {
 	TestCase_assert(bytes == NULL, "Expected NULL but got %p", bytes);
 	context->dispose(context);
 	
-	context = BinarySerializationContext_create();
+	context = BinarySerializationContext_create(true);
 	context->beginArray(context, "key");
 	context->writeBitfield64(context, "item", 0x0000000000000000ull, "bit0", "bit0", NULL);
 	context->endArray(context);
@@ -1453,7 +1452,7 @@ static void testInvalidOperations() {
 	context->dispose(context);
 	
 	// Enum value not listed in args
-	context = BinarySerializationContext_create();
+	context = BinarySerializationContext_create(true);
 	context->beginArray(context, "key");
 	context->writeEnumeration(context, "item", 0, "enum", 1, NULL);
 	context->endArray(context);
@@ -1462,7 +1461,7 @@ static void testInvalidOperations() {
 	context->dispose(context);
 	
 	// Duplicate enum values
-	context = BinarySerializationContext_create();
+	context = BinarySerializationContext_create(true);
 	context->beginArray(context, "key");
 	context->writeEnumeration(context, "item", 0, "enum0", 0, "enum1", 0, NULL);
 	context->endArray(context);
@@ -1470,7 +1469,7 @@ static void testInvalidOperations() {
 	TestCase_assert(bytes == NULL, "Expected NULL but got %p", bytes);
 	context->dispose(context);
 	
-	context = BinarySerializationContext_create();
+	context = BinarySerializationContext_create(true);
 	context->beginArray(context, "key");
 	context->writeEnumeration(context, "item", 0, "enum0", 0, "enum1", 1, "enum2", 1, NULL);
 	context->endArray(context);
@@ -1479,7 +1478,7 @@ static void testInvalidOperations() {
 	context->dispose(context);
 	
 	// Duplicate enum names
-	context = BinarySerializationContext_create();
+	context = BinarySerializationContext_create(true);
 	context->beginArray(context, "key");
 	context->writeEnumeration(context, "item", 0, "enum", 0, "enum", 1, NULL);
 	context->endArray(context);
@@ -1487,7 +1486,7 @@ static void testInvalidOperations() {
 	TestCase_assert(bytes == NULL, "Expected NULL but got %p", bytes);
 	context->dispose(context);
 	
-	context = BinarySerializationContext_create();
+	context = BinarySerializationContext_create(true);
 	context->beginArray(context, "key");
 	context->writeEnumeration(context, "item", 0, "enum0", 0, "enum1", 1, "enum1", 2, NULL);
 	context->endArray(context);
@@ -1496,7 +1495,7 @@ static void testInvalidOperations() {
 	context->dispose(context);
 	
 #define _testNullObjectKey(CONTAINER, FUNCTION, ...) \
-	context = BinarySerializationContext_create(); \
+	context = BinarySerializationContext_create(true); \
 	context->begin##CONTAINER(context, "key"); \
 	context->FUNCTION(context, NULL, __VA_ARGS__); \
 	context->end##CONTAINER(context); \
@@ -1505,7 +1504,7 @@ static void testInvalidOperations() {
 	context->dispose(context);
 	
 #define _testNullObjectKeyNoArgs(CONTAINER, FUNCTION, ...) \
-	context = BinarySerializationContext_create(); \
+	context = BinarySerializationContext_create(true); \
 	context->begin##CONTAINER(context, "key"); \
 	context->FUNCTION(context, NULL); \
 	context->end##CONTAINER(context); \
@@ -1560,6 +1559,7 @@ static void testInvalidOperations() {
 #undef _testNullObjectKeyNoArgs
 }
 
+/*
 static void testErrorReporting() {
 	BinarySerializationContext * context;
 	struct JSONNode * node;
@@ -1570,21 +1570,21 @@ static void testErrorReporting() {
 	jmp_buf jmpBuf;
 	int status;
 	
-	context = BinarySerializationContext_create();
+	context = BinarySerializationContext_create(true);
 	TestCase_assert(context->status == SERIALIZATION_ERROR_OK, "Expected %d but got %d", SERIALIZATION_ERROR_OK, context->status);
 	bytes = context->writeToBytes(context, &length);
 	TestCase_assert(node == NULL, "Expected NULL but got %p", node);
 	TestCase_assert(context->status == JSON_SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER, "Expected %d but got %d", JSON_SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER, context->status);
 	context->dispose(context);
 	
-	context = BinarySerializationContext_create();
+	context = BinarySerializationContext_create(true);
 	TestCase_assert(context->status == SERIALIZATION_ERROR_OK, "Expected %d but got %d", SERIALIZATION_ERROR_OK, context->status);
 	string = context->writeToString(context, JSONEmitterFormat_compact, NULL, NULL);
 	TestCase_assert(string == NULL, "Expected NULL but got %p", string);
 	TestCase_assert(context->status == JSON_SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER, "Expected %d but got %d", JSON_SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER, context->status);
 	context->dispose(context);
 	
-	context = BinarySerializationContext_create();
+	context = BinarySerializationContext_create(true);
 	TestCase_assert(context->status == SERIALIZATION_ERROR_OK, "Expected %d but got %d", SERIALIZATION_ERROR_OK, context->status);
 	tempFilePath = temporaryFilePath("tmpXXXXXX", &fd);
 	success = context->writeToFile(context, JSONEmitterFormat_compact, tempFilePath, NULL);
@@ -1595,14 +1595,14 @@ static void testErrorReporting() {
 	context->dispose(context);
 	
 #define _testFailure(ERROR_STATUS, PREAMBLE_CODE, FAIL_CODE) \
-	context = BinarySerializationContext_create(); \
+	context = BinarySerializationContext_create(true); \
 	PREAMBLE_CODE \
 	TestCase_assert(context->status == SERIALIZATION_ERROR_OK, "Expected %d but got %d (OK)", SERIALIZATION_ERROR_OK, context->status); \
 	FAIL_CODE \
 	TestCase_assert(context->status == ERROR_STATUS, "Expected %d but got %d (context->status)", ERROR_STATUS, context->status); \
 	context->dispose(context); \
 	\
-	context = BinarySerializationContext_create(); \
+	context = BinarySerializationContext_create(true); \
 	context->jmpBuf = &jmpBuf; \
 	status = setjmp(jmpBuf); \
 	if (!status) { \
@@ -1903,6 +1903,6 @@ TEST_SUITE(BinarySerializationContextTest,
            testStructures,
            testDictionaries,
            testMixedContainers,
-           testWriteToFile/*,
-           testInvalidOperations,
+           testWriteToFile,
+           testInvalidOperations/*,
            testErrorReporting*/)

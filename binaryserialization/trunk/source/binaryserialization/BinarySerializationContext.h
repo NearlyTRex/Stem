@@ -46,6 +46,7 @@ struct BinarySerializationContext_containerNode {
 	size_t containerCount; \
 	size_t containerListSize; \
 	struct BinarySerializationContext_containerNode * containerStack; \
+	bool finished; \
 	\
 	void * (* writeToBytes)(self_type * self, size_t * outLength); \
 	bool (* writeToFile)(self_type * self, const char * filePath);

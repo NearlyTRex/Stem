@@ -22,6 +22,7 @@
 
 #include "binaryserialization/BinarySerializationContext.h"
 #include <string.h>
+#include <stdarg.h>
 
 #define SUPERCLASS SerializationContext
 
@@ -41,6 +42,7 @@ void BinarySerializationContext_init(BinarySerializationContext * self, bool big
 	self->containerCount = 0;
 	self->containerListSize = 1;
 	self->containerStack = malloc(sizeof(struct BinarySerializationContext_containerNode) * self->containerListSize);
+	self->finished = false;
 	
 	self->dispose = BinarySerializationContext_dispose;
 	self->beginStructure = BinarySerializationContext_beginStructure;
@@ -88,8 +90,15 @@ void BinarySerializationContext_dispose(BinarySerializationContext * self) {
 	call_super(dispose, self);
 }
 
+#define failIfInvalid(RETURN_CODE) \
+	if (!self->finished || self->status != SERIALIZATION_ERROR_OK) { \
+		RETURN_CODE; \
+	}
+
 void * BinarySerializationContext_writeToBytes(BinarySerializationContext * self, size_t * outLength) {
 	void * bytes;
+	
+	failIfInvalid(return NULL)
 	
 	bytes = malloc(self->memwriteContext.length);
 	memcpy(bytes, self->memwriteContext.data, self->memwriteContext.length);
@@ -98,13 +107,25 @@ void * BinarySerializationContext_writeToBytes(BinarySerializationContext * self
 }
 
 bool BinarySerializationContext_writeToFile(BinarySerializationContext * self, const char * filePath) {
+	failIfInvalid(return false)
+	
 	return writeFileSimple(filePath, self->memwriteContext.data, self->memwriteContext.length);
 }
+
+#define failWithStatus(STATUS, RETURN_CODE) \
+	self->status = (STATUS); \
+	if (self->jmpBuf != NULL) { \
+		longjmp(*self->jmpBuf, self->status); \
+	} \
+	RETURN_CODE;
 
 #define writePreamble(self, key) { \
 	struct BinarySerializationContext_containerNode * container; \
 	\
 	container = &self->containerStack[self->containerCount - 1]; \
+	if (key == NULL && (container->type == BINARY_SERIALIZATION_CONTAINER_TYPE_STRUCT || BINARY_SERIALIZATION_CONTAINER_TYPE_DICTIONARY)) { \
+		failWithStatus(SERIALIZATION_ERROR_NULL_KEY, return) \
+	} \
 	if (container->type == BINARY_SERIALIZATION_CONTAINER_TYPE_DICTIONARY) { \
 		if (container->count >= container->keyListSize) { \
 			container->keyListSize *= 2; \
@@ -176,6 +197,9 @@ static void writeUInt64Internal(BinarySerializationContext * self, uint64_t valu
 void BinarySerializationContext_beginStructure(BinarySerializationContext * self, const char * key) {
 	struct BinarySerializationContext_containerNode containerNode;
 	
+	if (self->finished) {
+		failWithStatus(SERIALIZATION_ERROR_MULTIPLE_TOP_LEVEL_CONTAINERS, return)
+	}
 	if (self->containerCount > 0) {
 		writePreamble(self, key);
 	}
@@ -197,6 +221,9 @@ void BinarySerializationContext_beginStructure(BinarySerializationContext * self
 void BinarySerializationContext_beginDictionary(BinarySerializationContext * self, const char * key) {
 	struct BinarySerializationContext_containerNode containerNode;
 	
+	if (self->finished) {
+		failWithStatus(SERIALIZATION_ERROR_MULTIPLE_TOP_LEVEL_CONTAINERS, return)
+	}
 	if (self->containerCount > 0) {
 		writePreamble(self, key);
 	}
@@ -217,6 +244,9 @@ void BinarySerializationContext_beginDictionary(BinarySerializationContext * sel
 void BinarySerializationContext_beginArray(BinarySerializationContext * self, const char * key) {
 	struct BinarySerializationContext_containerNode containerNode;
 	
+	if (self->finished) {
+		failWithStatus(SERIALIZATION_ERROR_MULTIPLE_TOP_LEVEL_CONTAINERS, return)
+	}
 	if (self->containerCount > 0) {
 		writePreamble(self, key);
 	}
@@ -237,13 +267,32 @@ void BinarySerializationContext_beginArray(BinarySerializationContext * self, co
 }
 
 void BinarySerializationContext_endStructure(BinarySerializationContext * self) {
+	if (self->containerCount == 0) {
+		failWithStatus(SERIALIZATION_ERROR_CONTAINER_UNDERFLOW, return)
+	}
+	if (self->containerStack[self->containerCount - 1].type != BINARY_SERIALIZATION_CONTAINER_TYPE_STRUCT) {
+		//failWithStatus(SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH, return)
+		return;
+	}
+	
 	self->containerCount--;
+	if (self->containerCount == 0) {
+		self->finished = true;
+	}
 }
 
 void BinarySerializationContext_endDictionary(BinarySerializationContext * self) {
 	size_t keysSize, valuesSize;
 	uint32_t keyIndex;
 	void * values;
+	
+	if (self->containerCount == 0) {
+		failWithStatus(SERIALIZATION_ERROR_CONTAINER_UNDERFLOW, return)
+	}
+	if (self->containerStack[self->containerCount - 1].type != BINARY_SERIALIZATION_CONTAINER_TYPE_DICTIONARY) {
+		//failWithStatus(SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH, return)
+		return;
+	}
 	
 	valuesSize = self->memwriteContext.position - self->containerStack[self->containerCount - 1].startOffset;
 	values = malloc(valuesSize);
@@ -267,16 +316,30 @@ void BinarySerializationContext_endDictionary(BinarySerializationContext * self)
 	free(values);
 	
 	self->containerCount--;
+	if (self->containerCount == 0) {
+		self->finished = true;
+	}
 }
 
 void BinarySerializationContext_endArray(BinarySerializationContext * self) {
 	size_t position;
+	
+	if (self->containerCount == 0) {
+		failWithStatus(SERIALIZATION_ERROR_CONTAINER_UNDERFLOW, return)
+	}
+	if (self->containerStack[self->containerCount - 1].type != BINARY_SERIALIZATION_CONTAINER_TYPE_ARRAY) {
+		//failWithStatus(SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH, return)
+		return;
+	}
 	
 	position = self->memwriteContext.position;
 	self->memwriteContext.position = self->containerStack[self->containerCount - 1].startOffset;
 	writeUInt32Internal(self, self->containerStack[self->containerCount - 1].count);
 	self->memwriteContext.position = position;
 	self->containerCount--;
+	if (self->containerCount == 0) {
+		self->finished = true;
+	}
 }
 
 void BinarySerializationContext_writeInt8(BinarySerializationContext * self, const char * key, int8_t value) {
@@ -343,26 +406,100 @@ void BinarySerializationContext_writeBoolean(BinarySerializationContext * self, 
 }
 
 void BinarySerializationContext_writeEnumeration(BinarySerializationContext * self, const char * key, int value, ...) {
+	va_list args;
+	char * string;
+	int namedValue, returnValue = 0;
+	bool found = false;
+	struct enumListItem {const char * name; int value;} * enumList;
+	size_t enumListAllocatedSize, enumCount, enumIndex;
+	
+	va_start(args, value);
+	enumCount = 0;
+	enumListAllocatedSize = 1;
+	enumList = malloc(sizeof(struct enumListItem) * enumListAllocatedSize);
+	
+	while ((string = va_arg(args, char *)) != NULL) {
+		namedValue = va_arg(args, int);
+		if (namedValue == value) {
+			found = true;
+			returnValue = value;
+		}
+		
+		if (enumCount >= enumListAllocatedSize) {
+			enumListAllocatedSize *= 2;
+			enumList = realloc(enumList, sizeof(struct enumListItem) * enumListAllocatedSize);
+		}
+		enumList[enumCount].name = string;
+		enumList[enumCount].value = namedValue;
+		for (enumIndex = 0; enumIndex < enumCount; enumIndex++) {
+			if (enumList[enumIndex].value == namedValue) {
+				free(enumList);
+				va_end(args);
+				failWithStatus(SERIALIZATION_ERROR_DUPLICATE_ENUM_VALUE, return)
+				
+			} else if (!strcmp(enumList[enumIndex].name, string)) {
+				free(enumList);
+				va_end(args);
+				failWithStatus(SERIALIZATION_ERROR_DUPLICATE_ENUM_NAME, return)
+			}
+		}
+		enumCount++;
+	}
+	va_end(args);
+	free(enumList);
+	
+	if (!found) {
+		failWithStatus(SERIALIZATION_ERROR_ENUM_NOT_NAMED, return);
+	}
+	
 	writePreamble(self, key);
 	writeUInt32Internal(self, value);
 }
 
+#define checkBitfieldErrors(bit_count) { \
+	va_list args; \
+	unsigned int bitIndex, bitIndex2; \
+	char * strings[bit_count]; \
+	\
+	va_start(args, value); \
+	for (bitIndex = 0; bitIndex < bit_count; bitIndex++) { \
+		strings[bitIndex] = va_arg(args, char *); \
+		if (strings[bitIndex] == NULL) { \
+			break; \
+		} \
+		for (bitIndex2 = 0; bitIndex2 < bitIndex; bitIndex2++) { \
+			if (!strcmp(strings[bitIndex2], strings[bitIndex])) { \
+				failWithStatus(SERIALIZATION_ERROR_DUPLICATE_BIT, return) \
+			} \
+		} \
+	} \
+	va_end(args); \
+	\
+	if (bitIndex < bit_count && value & ~(((uint##bit_count##_t) 1 << bitIndex) - 1)) { \
+		failWithStatus(SERIALIZATION_ERROR_UNNAMED_BIT, return) \
+	} \
+}
+
 void BinarySerializationContext_writeBitfield8(BinarySerializationContext * self, const char * key, uint8_t value, ...) {
+	checkBitfieldErrors(8)
 	writePreamble(self, key);
 	memwrite(&self->memwriteContext, 1, &value);
 }
 
 void BinarySerializationContext_writeBitfield16(BinarySerializationContext * self, const char * key, uint16_t value, ...) {
+	checkBitfieldErrors(16)
 	writePreamble(self, key);
 	writeUInt16Internal(self, value);
 }
 
 void BinarySerializationContext_writeBitfield32(BinarySerializationContext * self, const char * key, uint32_t value, ...) {
+	checkBitfieldErrors(32)
 	writePreamble(self, key);
 	writeUInt32Internal(self, value);
 }
 
 void BinarySerializationContext_writeBitfield64(BinarySerializationContext * self, const char * key, uint64_t value, ...) {
+	checkBitfieldErrors(64)
 	writePreamble(self, key);
 	writeUInt64Internal(self, value);
 }

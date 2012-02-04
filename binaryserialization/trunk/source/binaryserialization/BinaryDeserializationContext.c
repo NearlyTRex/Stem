@@ -258,8 +258,8 @@ size_t BinaryDeserializationContext_beginArray(BinaryDeserializationContext * se
 	
 	if (self->containerCount > 0) {
 		lookUpKey(key, return 0)
+		checkCanReadValue(4, return 0)
 	}
-	checkCanReadValue(4, return 0)
 	containerNode.type = BINARY_SERIALIZATION_CONTAINER_TYPE_ARRAY;
 	containerNode.count = readUInt32Internal(self);
 	containerNode.nextItemIndex = 0;
