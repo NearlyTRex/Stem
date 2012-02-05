@@ -90,8 +90,18 @@ void BinarySerializationContext_dispose(BinarySerializationContext * self) {
 	call_super(dispose, self);
 }
 
+#define failWithStatus(STATUS, RETURN_CODE) \
+	self->status = (STATUS); \
+	if (self->jmpBuf != NULL) { \
+		longjmp(*self->jmpBuf, self->status); \
+	} \
+	RETURN_CODE;
+
 #define failIfInvalid(RETURN_CODE) \
-	if (!self->finished || self->status != SERIALIZATION_ERROR_OK) { \
+	if (!self->finished) { \
+		failWithStatus(BINARY_SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER, RETURN_CODE) \
+	} \
+	if (self->status != SERIALIZATION_ERROR_OK) { \
 		RETURN_CODE; \
 	}
 
@@ -112,16 +122,12 @@ bool BinarySerializationContext_writeToFile(BinarySerializationContext * self, c
 	return writeFileSimple(filePath, self->memwriteContext.data, self->memwriteContext.length);
 }
 
-#define failWithStatus(STATUS, RETURN_CODE) \
-	self->status = (STATUS); \
-	if (self->jmpBuf != NULL) { \
-		longjmp(*self->jmpBuf, self->status); \
-	} \
-	RETURN_CODE;
-
 #define writePreamble(self, key) { \
 	struct BinarySerializationContext_containerNode * container; \
 	\
+	if (self->containerCount == 0) { \
+		failWithStatus(SERIALIZATION_ERROR_NO_CONTAINER_STARTED, return) \
+	} \
 	container = &self->containerStack[self->containerCount - 1]; \
 	if (key == NULL && (container->type == BINARY_SERIALIZATION_CONTAINER_TYPE_STRUCT || BINARY_SERIALIZATION_CONTAINER_TYPE_DICTIONARY)) { \
 		failWithStatus(SERIALIZATION_ERROR_NULL_KEY, return) \
@@ -271,8 +277,7 @@ void BinarySerializationContext_endStructure(BinarySerializationContext * self) 
 		failWithStatus(SERIALIZATION_ERROR_CONTAINER_UNDERFLOW, return)
 	}
 	if (self->containerStack[self->containerCount - 1].type != BINARY_SERIALIZATION_CONTAINER_TYPE_STRUCT) {
-		//failWithStatus(SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH, return)
-		return;
+		failWithStatus(SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH, return)
 	}
 	
 	self->containerCount--;
@@ -290,8 +295,7 @@ void BinarySerializationContext_endDictionary(BinarySerializationContext * self)
 		failWithStatus(SERIALIZATION_ERROR_CONTAINER_UNDERFLOW, return)
 	}
 	if (self->containerStack[self->containerCount - 1].type != BINARY_SERIALIZATION_CONTAINER_TYPE_DICTIONARY) {
-		//failWithStatus(SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH, return)
-		return;
+		failWithStatus(SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH, return)
 	}
 	
 	valuesSize = self->memwriteContext.position - self->containerStack[self->containerCount - 1].startOffset;
@@ -328,8 +332,7 @@ void BinarySerializationContext_endArray(BinarySerializationContext * self) {
 		failWithStatus(SERIALIZATION_ERROR_CONTAINER_UNDERFLOW, return)
 	}
 	if (self->containerStack[self->containerCount - 1].type != BINARY_SERIALIZATION_CONTAINER_TYPE_ARRAY) {
-		//failWithStatus(SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH, return)
-		return;
+		failWithStatus(SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH, return)
 	}
 	
 	position = self->memwriteContext.position;

@@ -38,6 +38,9 @@
 // A dictionary offset was specified beyond EOF
 #define BINARY_SERIALIZATION_ERROR_INVALID_OFFSET 204
 
+// writeTo<Bytes|File> called without any data having been serialized
+#define BINARY_SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER 205
+
 enum BinarySerializationContainerType {
 	BINARY_SERIALIZATION_CONTAINER_TYPE_STRUCT,
 	BINARY_SERIALIZATION_CONTAINER_TYPE_ARRAY,
