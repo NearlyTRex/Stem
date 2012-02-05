@@ -54,4 +54,14 @@ const char * Shell_getResourcePath();
     interested in size on one axis, you can safely pass NULL for the other one. */
 void Shell_getMainScreenSize(unsigned int * outWidth, unsigned int * outHeight);
 
+/** Sets up a periodic callback. Timer resolution is not in any way guaranteed and may vary
+    by operating system and runtime conditions. The return value of this function can be
+    passed to Shell_cancelTimer to halt a timer before the next fire time. If repeat is false,
+    the timer will automatically be canceled after the first time it fires. */
+unsigned int Shell_setTimer(double interval, bool repeat, void (* callback)(unsigned int timerID, void * context), void * context);
+
+/** Stops a timer previously set with Shell_setTimer. The timer is guaranteed never to fire
+    after this function is called. */
+void Shell_cancelTimer(unsigned int timerID);
+
 #endif

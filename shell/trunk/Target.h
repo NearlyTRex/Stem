@@ -30,12 +30,10 @@ void Target_init();
 
 /** Called by the shell when a frame is ready to be drawn. In OpenGL-based shells, the drawing context
     will have been made current, and you should issue OpenGL calls to draw your scene as appropriate.
-    This function also serves as the main heartbeat of the target application. Any periodic logic
-    updates your application does should be done from within this function. Call Shell_redisplay()
-    at the end of this function if you want it to be called again on the next vertical blank. If you
-    are using a double buffered OpenGL context, buffers will automatically be swapped after
-    Target_draw() completes. */
-void Target_draw();
+    If for some reason you want to cancel drawing and not swap buffers after this function completes,
+    return false; otherwise, return true. Call Shell_redisplay() at the end of this function if you
+    want it to be called again on the next vertical blank. */
+bool Target_draw();
 
 /** Called when the dimensions of the available drawing/input surface have changed, such as by a
     window resize or full-screen toggle. */
