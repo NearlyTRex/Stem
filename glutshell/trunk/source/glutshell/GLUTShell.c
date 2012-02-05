@@ -49,10 +49,22 @@
 #include "shell/ShellKeyCodes.h"
 #include "shell/Target.h"
 
+struct GLUTShellTimer {
+	double interval;
+	double nextFireTime;
+	bool repeat;
+	unsigned int id;
+	void (* callback)(unsigned int timerID, void * context);
+	void * context;
+};
+
 static unsigned int buttonMask = 0;
 static unsigned int modifierMask = 0;
 static bool inFullScreenMode = false;
 static struct GLUTShellConfiguration configuration;
+static unsigned int nextTimerID;
+static size_t timerCount;
+static struct GLUTShellTimer * timers;
 
 void Shell_mainLoop() {
 	glutMainLoop();
@@ -144,13 +156,67 @@ void Shell_getMainScreenSize(unsigned int * outWidth, unsigned int * outHeight) 
 	}
 }
 
+static void idleFunc() {
+	unsigned int timerIndex, timerIndex2;
+	double currentTime;
+	
+	currentTime = Shell_getCurrentTime();
+	for (timerIndex = 0; timerIndex < timerCount; timerIndex++) {
+		if (currentTime >= timers[timerIndex].nextFireTime) {
+			timers[timerIndex].callback(timers[timerIndex].id, timers[timerIndex].context);
+			if (timers[timerIndex].repeat) {
+				timers[timerIndex].nextFireTime += timers[timerIndex].interval;
+			} else {
+				timerCount--;
+				for (timerIndex2 = timerIndex; timerIndex2 < timerCount; timerIndex2++) {
+					timers[timerIndex2] = timers[timerIndex2 + 1];
+				}
+				timerIndex--;
+				if (timerCount == 0) {
+					glutIdleFunc(NULL);
+				}
+			}
+		}
+	}
+}
+
+unsigned int Shell_setTimer(double interval, bool repeat, void (* callback)(unsigned int timerID, void * context), void * context) {
+	timers = realloc(timers, sizeof(struct GLUTShellTimer) * (timerCount + 1));
+	timers[timerCount].interval = interval;
+	timers[timerCount].nextFireTime = Shell_getCurrentTime() + interval;
+	timers[timerCount].repeat = repeat;
+	timers[timerCount].id = nextTimerID++;
+	timers[timerCount].callback = callback;
+	timers[timerCount].context = context;
+	glutIdleFunc(idleFunc);
+	return timers[timerCount++].id;
+}
+
+void Shell_cancelTimer(unsigned int timerID) {
+	unsigned int timerIndex;
+	
+	for (timerIndex = 0; timerIndex < timerCount; timerIndex++) {
+		if (timers[timerIndex].id == timerID) {
+			timerCount--;
+			for (; timerIndex < timerCount; timerIndex++) {
+				timers[timerIndex] = timers[timerIndex + 1];
+			}
+			if (timerCount == 0) {
+				glutIdleFunc(NULL);
+			}
+			break;
+		}
+	}
+}
+
 static void displayFunc() {
 #ifdef DEBUG
 	GLenum error;
 #endif
 	
-	Target_draw();
-	glutSwapBuffers();
+	if (Target_draw()) {
+		glutSwapBuffers();
+	}
 	
 #ifdef DEBUG
 	error = glGetError();
