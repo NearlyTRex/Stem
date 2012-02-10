@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2010 Alex Diener
+  Copyright (c) 2012 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -49,6 +49,11 @@
 	#define TARGET_OPENGL_ES 0
 	#ifndef GLGRAPHICS_NO_GLEW
 		#include "GL/glew.h"
+		#if defined(WIN32)
+			#include "GL/wglew.h"
+		#elif defined(__linux)
+			#include "GL/glxew.h"
+		#endif
 	#endif
 	#include <GL/gl.h>
 	#include <GL/glu.h>

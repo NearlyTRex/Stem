@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2010 Alex Diener
+  Copyright (c) 2012 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -30,22 +30,20 @@ typedef struct Camera Camera;
 #include "3dmath/Vector.h"
 #include "stemobject/StemObject.h"
 
-#define Camera_structContents \
-	StemObject_structContents \
+#define Camera_structContents(self_type) \
+	StemObject_structContents(self_type) \
 	\
 	Quaternion orientation; \
 	Vector3 position; \
 	\
-	Matrix (* getMatrix)(compat_type(Camera *) self);
+	Matrix (* getMatrix)(self_type * self);
 
-struct Camera {
-	Camera_structContents
-};
+stemobject_struct_definition(Camera)
 
 Camera * Camera_create();
-void Camera_init(compat_type(Camera *) selfPtr);
+void Camera_init(Camera * self);
 
-void Camera_dispose(compat_type(Camera *) selfPtr);
-Matrix Camera_getMatrix(compat_type(Camera *) selfPtr);
+void Camera_dispose(Camera * self);
+Matrix Camera_getMatrix(Camera * self);
 
 #endif

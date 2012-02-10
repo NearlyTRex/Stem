@@ -5,6 +5,7 @@
 #include "utilities/IOUtilities.h"
 #include <stddef.h>
 #include <stdio.h>
+#include <unistd.h>
 
 #if TARGET_OPENGL_ES
 #include "eaglshell/EAGLShell.h"
@@ -30,6 +31,7 @@ void Target_init() {
 		{{1.0f, -1.0f}, {0.0f, 0.0f, 1.0f, 1.0f}}
 	};
 	GLshort indexes[3] = {0, 1, 2};
+	int result;
 	
 #ifndef GLGRAPHICS_NO_GLEW
 	if (!GLEW_ARB_shader_objects ||
@@ -41,14 +43,16 @@ void Target_init() {
 	}
 #endif
 	
-	vshaderSource = readFileSimple(resourcePath("shader1.vert"), &vshaderLength);
-	fshaderSource = readFileSimple(resourcePath("shader1.frag"), &fshaderLength);
+	result = chdir(Shell_getResourcePath());
+	
+	vshaderSource = readFileSimple("shader1.vert", &vshaderLength);
+	fshaderSource = readFileSimple("shader1.frag", &fshaderLength);
 	shader1 = GLSLShader_create(vshaderSource, vshaderLength, fshaderSource, fshaderLength, "vertexPosition", 0, NULL);
 	free(vshaderSource);
 	free(fshaderSource);
 	
-	vshaderSource = readFileSimple(resourcePath("shader2.vert"), &vshaderLength);
-	fshaderSource = readFileSimple(resourcePath("shader2.frag"), &fshaderLength);
+	vshaderSource = readFileSimple("shader2.vert", &vshaderLength);
+	fshaderSource = readFileSimple("shader2.frag", &fshaderLength);
 	shader2 = GLSLShader_create(vshaderSource, vshaderLength, fshaderSource, fshaderLength, "vertexPosition", 0, "colorAttribute", 1, NULL);
 	free(vshaderSource);
 	free(fshaderSource);
@@ -69,7 +73,7 @@ void Target_init() {
 	Shell_mainLoop();
 }
 
-void Target_draw() {
+bool Target_draw() {
 	glClear(GL_COLOR_BUFFER_BIT);
 	
 	shader1->activate(shader1);
@@ -82,15 +86,20 @@ void Target_draw() {
 	glEnableVertexAttribArray(1);
 	glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_SHORT, NULL);
 	shader2->deactivate(shader2);
+	
+	return true;
 }
 
 void Target_resized(unsigned int newWidth, unsigned int newHeight) {
 }
 
-void Target_keyDown(unsigned int charCode, unsigned int keyCode) {
+void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned int modifierFlags) {
 }
 
-void Target_keyUp(unsigned int charCode, unsigned int keyCode) {
+void Target_keyUp(unsigned int charCode, unsigned int modifierFlags) {
+}
+
+void Target_keyModifiersChanged(unsigned int modifierFlags) {
 }
 
 void Target_mouseDown(unsigned int buttonNumber, float x, float y) {
@@ -119,7 +128,7 @@ void EAGLTarget_touchesCancelled(unsigned int buttonMask) {
 void EAGLTarget_accelerometer(double x, double y, double z) {
 }
 #else
-void GLUTTarget_configure(int argc, char ** argv, struct GLUTShellConfiguration * configuration) {
+void GLUTTarget_configure(int argc, const char ** argv, struct GLUTShellConfiguration * configuration) {
 	configuration->windowTitle = "GLGraphics Test Harness";
 }
 #endif

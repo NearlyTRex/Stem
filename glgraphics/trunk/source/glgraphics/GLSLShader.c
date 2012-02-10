@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2010 Alex Diener
+  Copyright (c) 2012 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -23,6 +23,8 @@
 #include "glgraphics/GLSLShader.h"
 #include <stdio.h>
 
+#define SUPERCLASS StemObject
+
 GLSLShader * GLSLShader_create(const char * vshaderSource, size_t vshaderLength, const char * fshaderSource, size_t fshaderLength, ...) {
 	GLSLShader * self;
 	va_list args;
@@ -37,8 +39,7 @@ GLSLShader * GLSLShader_vcreate(const char * vshaderSource, size_t vshaderLength
 	stemobject_create_implementation(GLSLShader, vinit, vshaderSource, vshaderLength, fshaderSource, fshaderLength, args)
 }
 
-void GLSLShader_init(compat_type(GLSLShader *) selfPtr, const char * vshaderSource, size_t vshaderLength, const char * fshaderSource, size_t fshaderLength, ...) {
-	GLSLShader * self = selfPtr;
+void GLSLShader_init(GLSLShader * self, const char * vshaderSource, size_t vshaderLength, const char * fshaderSource, size_t fshaderLength, ...) {
 	va_list args;
 	
 	va_start(args, fshaderLength);
@@ -46,8 +47,7 @@ void GLSLShader_init(compat_type(GLSLShader *) selfPtr, const char * vshaderSour
 	va_end(args);
 }
 
-void GLSLShader_vinit(compat_type(GLSLShader *) selfPtr, const char * vshaderSource, size_t vshaderLength, const char * fshaderSource, size_t fshaderLength, va_list args) {
-	GLSLShader * self = selfPtr;
+void GLSLShader_vinit(GLSLShader * self, const char * vshaderSource, size_t vshaderLength, const char * fshaderSource, size_t fshaderLength, va_list args) {
 	GLint shaderLength;
 	GLuint vertexShader, fragmentShader;
 	const char * attribName;
@@ -56,7 +56,7 @@ void GLSLShader_vinit(compat_type(GLSLShader *) selfPtr, const char * vshaderSou
 	GLint logLength;
 #endif
 	
-	StemObject_init(self);
+	call_super(init, self);
 	self->dispose = GLSLShader_dispose;
 	self->getUniformLocation = GLSLShader_getUniformLocation;
 	self->activate = GLSLShader_activate;
@@ -132,25 +132,19 @@ void GLSLShader_vinit(compat_type(GLSLShader *) selfPtr, const char * vshaderSou
 	glDeleteShader(fragmentShader);
 }
 
-void GLSLShader_dispose(compat_type(GLSLShader *) selfPtr) {
-	GLSLShader * self = selfPtr;
-	
+void GLSLShader_dispose(GLSLShader * self) {
 	glDeleteProgram(self->program);
-	StemObject_dispose(selfPtr);
+	call_super(dispose, self);
 }
 
-GLint GLSLShader_getUniformLocation(compat_type(GLSLShader *) selfPtr, const char * uniformName) {
-	GLSLShader * self = selfPtr;
-	
+GLint GLSLShader_getUniformLocation(GLSLShader * self, const char * uniformName) {
 	return glGetUniformLocation(self->program, uniformName);
 }
 
-void GLSLShader_activate(compat_type(GLSLShader *) selfPtr) {
-	GLSLShader * self = selfPtr;
-	
+void GLSLShader_activate(GLSLShader * self) {
 	glUseProgram(self->program);
 }
 
-void GLSLShader_deactivate(compat_type(GLSLShader *) selfPtr) {
+void GLSLShader_deactivate(GLSLShader * self) {
 	glUseProgram(0);
 }

@@ -1,3 +1,7 @@
+1.1.1
+ * GLIncludes.h now includes wglew.h and glxew.h as appropriate
+ * Updated for stemobject 3.0.0 and shell Stable_2012-02-04
+
 1.1.0
  * Added GLSLShader
  * Updated Camera for stemobject 2.0.0

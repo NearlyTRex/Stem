@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2010 Alex Diener
+  Copyright (c) 2012 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -25,14 +25,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define SUPERCLASS StemObject
+
 Camera * Camera_create() {
 	stemobject_create_implementation(Camera, init)
 }
 
-void Camera_init(compat_type(Camera *) selfPtr) {
-	Camera * self = selfPtr;
-	
-	StemObject_init(self);
+void Camera_init(Camera * self) {
+	call_super(init, self);
 	
 	self->orientation = Quaternion_identity();
 	self->position = Vector3_zero();
@@ -41,12 +41,11 @@ void Camera_init(compat_type(Camera *) selfPtr) {
 	self->getMatrix = Camera_getMatrix;
 }
 
-void Camera_dispose(compat_type(Camera *) selfPtr) {
-	StemObject_dispose(selfPtr);
+void Camera_dispose(Camera * self) {
+	call_super(dispose, self);
 }
 
-Matrix Camera_getMatrix(compat_type(Camera *) selfPtr) {
-	Camera * self = selfPtr;
+Matrix Camera_getMatrix(Camera * self) {
 	Matrix matrix;
 	
 	matrix = Quaternion_toMatrix(Quaternion_inverted(self->orientation));

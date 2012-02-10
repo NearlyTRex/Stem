@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2010 Alex Diener
+  Copyright (c) 2012 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -30,28 +30,26 @@ typedef struct GLSLShader GLSLShader;
 #include <stdarg.h>
 #include <stdlib.h>
 
-#define GLSLShader_structContents \
-	StemObject_structContents \
+#define GLSLShader_structContents(self_type) \
+	StemObject_structContents(self_type) \
 	\
 	GLuint program; \
 	\
-	GLint (* getUniformLocation)(compat_type(GLSLShader *) self, const char * uniformName); \
-	void (* activate)(compat_type(GLSLShader *) self); \
-	void (* deactivate)(compat_type(GLSLShader *) self);
+	GLint (* getUniformLocation)(self_type * self, const char * uniformName); \
+	void (* activate)(self_type * self); \
+	void (* deactivate)(self_type * self);
 
-struct GLSLShader {
-	GLSLShader_structContents
-};
+stemobject_struct_definition(GLSLShader)
 
 // Additional args are pairs of attribute names (const char *) and locations (GLuint) to bind to, terminated by NULL
 GLSLShader * GLSLShader_create(const char * vshaderSource, size_t vshaderLength, const char * fshaderSource, size_t fshaderLength, ...) __attribute__((sentinel));
 GLSLShader * GLSLShader_vcreate(const char * vshaderSource, size_t vshaderLength, const char * fshaderSource, size_t fshaderLength, va_list args);
-void GLSLShader_init(compat_type(GLSLShader *) selfPtr, const char * vshaderSource, size_t vshaderLength, const char * fshaderSource, size_t fshaderLength, ...) __attribute__((sentinel));
-void GLSLShader_vinit(compat_type(GLSLShader *) selfPtr, const char * vshaderSource, size_t vshaderLength, const char * fshaderSource, size_t fshaderLength, va_list args);
+void GLSLShader_init(GLSLShader * self, const char * vshaderSource, size_t vshaderLength, const char * fshaderSource, size_t fshaderLength, ...) __attribute__((sentinel));
+void GLSLShader_vinit(GLSLShader * self, const char * vshaderSource, size_t vshaderLength, const char * fshaderSource, size_t fshaderLength, va_list args);
 
-void GLSLShader_dispose(compat_type(GLSLShader *) selfPtr);
-GLint GLSLShader_getUniformLocation(compat_type(GLSLShader *) selfPtr, const char * uniformName);
-void GLSLShader_activate(compat_type(GLSLShader *) selfPtr);
-void GLSLShader_deactivate(compat_type(GLSLShader *) selfPtr);
+void GLSLShader_dispose(GLSLShader * self);
+GLint GLSLShader_getUniformLocation(GLSLShader * self, const char * uniformName);
+void GLSLShader_activate(GLSLShader * self);
+void GLSLShader_deactivate(GLSLShader * self);
 
 #endif
