@@ -1,3 +1,25 @@
+/*
+  Copyright (c) 2012 Alex Diener
+  
+  This software is provided 'as-is', without any express or implied
+  warranty. In no event will the authors be held liable for any damages
+  arising from the use of this software.
+  
+  Permission is granted to anyone to use this software for any purpose,
+  including commercial applications, and to alter it and redistribute it
+  freely, subject to the following restrictions:
+  
+  1. The origin of this software must not be misrepresented; you must not
+     claim that you wrote the original software. If you use this software
+     in a product, an acknowledgment in the product documentation would be
+     appreciated but is not required.
+  2. Altered source versions must be plainly marked as such, and must not be
+     misrepresented as being the original software.
+  3. This notice may not be removed or altered from any source distribution.
+  
+  Alex Diener adiener@sacredsoftware.net
+*/
+
 #include "shell/Shell.h"
 #include "stubshell/StubShell.h"
 
@@ -22,6 +44,8 @@ double (* StubShellCallback_getCurrentTime)(void * context) = NULL;
 const char * (* StubShellCallback_getResourcePath)(void * context) = NULL;
 enum ShellBatteryState (* StubShellCallback_getBatteryState)(void * context) = NULL;
 float (* StubShellCallback_getBatteryLevel)(void * context) = NULL;
+unsigned int (* StubShellCallback_setTimer)(double interval, bool repeat, void (* callback)(unsigned int timerID, void * timerContext), void * timerContext, void * context) = NULL;
+void (* StubShellCallback_cancelTimer)(unsigned int timerID, void * context) = NULL;
 
 void Shell_mainLoop() {
 	if (StubShellCallback_mainLoop != NULL) {
@@ -103,4 +127,17 @@ float Shell_getBatteryLevel() {
 		return StubShellCallback_getBatteryLevel(StubShell_callbackContext);
 	}
 	return -1.0f;
+}
+
+unsigned int Shell_setTimer(double interval, bool repeat, void (* callback)(unsigned int timerID, void * timerContext), void * timerContext) {
+	if (StubShellCallback_setTimer != NULL) {
+		return StubShellCallback_setTimer(interval, repeat, callback, timerContext, StubShell_callbackContext);
+	}
+	return 0;
+}
+
+void Shell_cancelTimer(unsigned int timerID) {
+	if (StubShellCallback_cancelTimer != NULL) {
+		StubShellCallback_cancelTimer(timerID, StubShell_callbackContext);
+	}
 }

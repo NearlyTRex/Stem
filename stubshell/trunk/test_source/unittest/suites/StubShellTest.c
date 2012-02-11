@@ -16,12 +16,18 @@
 static unsigned int callbackCalls = 0;
 static void * lastContext = NULL;
 static bool lastFullScreen = false;
+static double lastInterval = 0.0;
+static bool lastRepeat = false;
+static void (* lastCallback)(unsigned int timerID, void * timerContext) = NULL;
+static void * lastTimerContext = NULL;
+static unsigned int lastTimerID = 0;
 
 static bool boolReturnValue = false;
 static double doubleReturnValue = 0.0;
 static const char * constCharPtrReturnValue = false;
 static enum ShellBatteryState shellBatteryStateReturnValue = ShellBatteryState_unknown;
 static float floatReturnValue = 0.0f;
+static unsigned int setTimerReturnValue = 0;
 
 static void voidTestCallback(void * context) {
 	callbackCalls++;
@@ -63,6 +69,22 @@ static float floatTestCallback(void * context) {
 	callbackCalls++;
 	lastContext = context;
 	return floatReturnValue;
+}
+
+static unsigned int setTimerTestCallback(double interval, bool repeat, void (* callback)(unsigned int timerID, void * timerContext), void * timerContext, void * context) {
+	callbackCalls++;
+	lastInterval = interval;
+	lastRepeat = repeat;
+	lastCallback = callback;
+	lastTimerContext = timerContext;
+	lastContext = context;
+	return setTimerReturnValue;
+}
+
+static void cancelTimerTestCallback(unsigned int timerID, void * context) {
+	callbackCalls++;
+	lastContext = context;
+	lastTimerID = timerID;
 }
 
 static void testMainLoop() {
@@ -248,4 +270,64 @@ static void testGetBatteryLevel() {
 	TestCase_assert(lastContext == (void *) 0xE, "Expected 0xE but got %p", lastContext);
 }
 
-TEST_SUITE(StubShellTest, testMainLoop, testRedisplay, testIsFullScreen, testSetFullScreen, testGetCurrentTime, testGetResourcePath, testGetBatteryState, testGetBatteryLevel)
+static void testSetTimer() {
+	unsigned int result;
+	
+	callbackCalls = 0;
+	lastContext = NULL;
+	result = Shell_setTimer(0.0, false, NULL, NULL);
+	TestCase_assert(result == 0, "Expected 0 but got %u", result);
+	
+	StubShellCallback_setTimer = setTimerTestCallback;
+	StubShell_callbackContext = (void *) 0xF;
+	setTimerReturnValue = 1;
+	result = Shell_setTimer(1.0, true, (void (*)(unsigned int, void *)) 0x1, (void *) 0x2);
+	TestCase_assert(result == 1, "Expected 1 but got %u", result);
+	TestCase_assert(callbackCalls == 1, "Expected 1 but got %d", callbackCalls);
+	TestCase_assert(lastContext == (void *) 0xF, "Expected 0xF but got %p", lastContext);
+	TestCase_assert(lastInterval == 1.0, "Expected 1.0 but got %f", lastInterval);
+	TestCase_assert(lastRepeat, "Expected true but got false");
+	TestCase_assert(lastCallback == (void (*)(unsigned int, void *)) 0x1, "Expected 0x1 but got %p", lastCallback);
+	TestCase_assert(lastTimerContext == (void *) 0x2, "Expected 0x2 but got %p", lastTimerContext);
+	
+	StubShell_callbackContext = (void *) 0x10;
+	setTimerReturnValue = 2;
+	result = Shell_setTimer(0.0, false, (void (*)(unsigned int, void *)) 0x4, (void *) 0x3);
+	TestCase_assert(result == 2, "Expected 2 but got %u", result);
+	TestCase_assert(callbackCalls == 2, "Expected 2 but got %d", callbackCalls);
+	TestCase_assert(lastContext == (void *) 0x10, "Expected 0x10 but got %p", lastContext);
+	TestCase_assert(lastInterval == 0.0, "Expected 0.0 but got %f", lastInterval);
+	TestCase_assert(!lastRepeat, "Expected false but got true");
+	TestCase_assert(lastCallback == (void (*)(unsigned int, void *)) 0x4, "Expected 0x4 but got %p", lastCallback);
+	TestCase_assert(lastTimerContext == (void *) 0x3, "Expected 0x3 but got %p", lastTimerContext);
+}
+
+static void testCancelTimer() {
+	callbackCalls = 0;
+	lastContext = NULL;
+	
+	StubShellCallback_cancelTimer = cancelTimerTestCallback;
+	StubShell_callbackContext = (void *) 0x11;
+	Shell_cancelTimer(2);
+	TestCase_assert(callbackCalls == 1, "Expected 1 but got %d", callbackCalls);
+	TestCase_assert(lastContext == (void *) 0x11, "Expected 0x11 but got %p", lastContext);
+	TestCase_assert(lastTimerID == 2, "Expected 2 but got %u", lastTimerID);
+	
+	StubShell_callbackContext = (void *) 0x12;
+	Shell_cancelTimer(1);
+	TestCase_assert(callbackCalls == 2, "Expected 2 but got %d", callbackCalls);
+	TestCase_assert(lastContext == (void *) 0x12, "Expected 0x12 but got %p", lastContext);
+	TestCase_assert(lastTimerID == 1, "Expected 1 but got %u", lastTimerID);
+}
+
+TEST_SUITE(StubShellTest,
+           testMainLoop,
+           testRedisplay,
+           testIsFullScreen,
+           testSetFullScreen,
+           testGetCurrentTime,
+           testGetResourcePath,
+           testGetBatteryState,
+           testGetBatteryLevel,
+           testSetTimer,
+           testCancelTimer)

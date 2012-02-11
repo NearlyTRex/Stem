@@ -1,3 +1,6 @@
+1.2.0
+ * Updated API for shell Stable_2012-02-04 (adds Shell_setTimer and Shell_cancelTimer)
+
 1.1.1
  * Updated dependencies
  * Sycnhronized with template_stemlib Stable_2010-11-14
