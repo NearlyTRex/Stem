@@ -41,7 +41,43 @@ typedef enum {
 @end
 #endif
 
+@interface EAGLShellTimerTarget : NSObject {
+	unsigned int timerID;
+	bool repeat;
+	void (* callback)(unsigned int timerID, void * context);
+	void * context;
+}
+@end
+@implementation EAGLShellTimerTarget
+- (id) initWithID: (unsigned int) inTimerID repeat: (bool) inRepeat callback: (void (*)(unsigned int timerID, void * context)) inCallback context: (void *) inContext {
+	if ((self = [super init]) != nil) {
+		timerID = inTimerID;
+		repeat = inRepeat;
+		callback = inCallback;
+		context = inContext;
+	}
+	return self;
+}
+
+- (void) timer: (NSTimer *) timer {
+	callback(timerID, context);
+	if (!repeat) {
+		Shell_cancelTimer(timerID);
+	}
+}
+@end
+
+struct EAGLShellTimer {
+	unsigned int id;
+	NSTimer * timer;
+	EAGLShellTimerTarget * timerTarget;
+};
+
 static bool isFullScreen = true;
+static unsigned int nextTimerID;
+static size_t timerCount;
+static struct EAGLShellTimer * timers;
+
 bool mainLoopCalled = false;
 
 void Shell_mainLoop() {
@@ -120,6 +156,30 @@ void Shell_getMainScreenSize(unsigned int * outWidth, unsigned int * outHeight) 
 	}
 	if (outHeight != NULL) {
 		*outHeight = bounds.size.height;
+	}
+}
+
+unsigned int Shell_setTimer(double interval, bool repeat, void (* callback)(unsigned int timerID, void * context), void * context) {
+	timers = realloc(timers, sizeof(struct EAGLShellTimer) * (timerCount + 1));
+	timers[timerCount].id = nextTimerID++;
+	timers[timerCount].timerTarget = [[EAGLShellTimerTarget alloc] initWithID: timers[timerCount].id repeat: repeat callback: callback context: context];
+	timers[timerCount].timer = [NSTimer scheduledTimerWithTimeInterval: interval target: timers[timerCount].timerTarget selector: @selector(timer:) userInfo: nil repeats: repeat];
+	return timers[timerCount++].id;
+}
+
+void Shell_cancelTimer(unsigned int timerID) {
+	unsigned int timerIndex;
+	
+	for (timerIndex = 0; timerIndex < timerCount; timerIndex++) {
+		if (timers[timerIndex].id == timerID) {
+			[timers[timerIndex].timer invalidate];
+			[timers[timerIndex].timerTarget release];
+			timerCount--;
+			for (; timerIndex < timerCount; timerIndex++) {
+				timers[timerIndex] = timers[timerIndex + 1];
+			}
+			break;
+		}
 	}
 }
 

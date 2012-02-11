@@ -208,10 +208,10 @@
 	
 	glBindFramebufferOES(GL_FRAMEBUFFER, framebuffer);
 	
-	Target_draw();
-	
-	glBindRenderbufferOES(GL_RENDERBUFFER, renderbuffer);
-	[context presentRenderbuffer: GL_RENDERBUFFER];
+	if (Target_draw()) {
+		glBindRenderbufferOES(GL_RENDERBUFFER, renderbuffer);
+		[context presentRenderbuffer: GL_RENDERBUFFER];
+	}
 }
 
 - (enum EAGLShellOpenGLVersion) chosenOpenGLVersion {
@@ -260,10 +260,10 @@
 	[EAGLContext setCurrentContext: context];
 	glBindFramebufferOES(GL_FRAMEBUFFER, framebuffer);
 	
-	Target_draw();
-	
-	glBindRenderbufferOES(GL_RENDERBUFFER, renderbuffer);
-	[context presentRenderbuffer: GL_RENDERBUFFER];
+	if (Target_draw()) {
+		glBindRenderbufferOES(GL_RENDERBUFFER, renderbuffer);
+		[context presentRenderbuffer: GL_RENDERBUFFER];
+	}
 	
 	if (!redisplayWasPosted) {
 		[self stopAnimation];
