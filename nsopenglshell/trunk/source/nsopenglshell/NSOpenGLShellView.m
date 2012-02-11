@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2011 Alex Diener
+  Copyright (c) 2012 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -364,7 +364,10 @@ static unsigned int NSEventKeyModifiersToShellKeyModifiers(NSUInteger modifiers)
 }
 
 - (void) keyDown: (NSEvent *) event {
-	Target_keyDown([[event characters] characterAtIndex: 0], NSEventKeyCodeToShellKeyCode([event keyCode]), NSEventKeyModifiersToShellKeyModifiers([event modifierFlags]));
+	NSString * characters;
+	
+	characters = [event characters];
+	Target_keyDown([characters length] > 0 ? [characters characterAtIndex: 0] : 0, NSEventKeyCodeToShellKeyCode([event keyCode]), NSEventKeyModifiersToShellKeyModifiers([event modifierFlags]));
 }
 
 - (void) keyUp: (NSEvent *) event {
@@ -418,7 +421,9 @@ static unsigned int NSEventKeyModifiersToShellKeyModifiers(NSUInteger modifiers)
 	
 	[[self openGLContext] makeCurrentContext];
 	
-	Target_draw();
+	if (Target_draw()) {
+		[[self openGLContext] flushBuffer];
+	}
 	
 	if (!redisplayWasPosted) {
 		[self stopAnimation];
@@ -432,8 +437,6 @@ static unsigned int NSEventKeyModifiersToShellKeyModifiers(NSUInteger modifiers)
 		error = glGetError();
 	}
 #endif
-	
-	[[self openGLContext] flushBuffer];
 }
 
 - (void) drawTimer: (NSTimer *) timer {

@@ -7,8 +7,11 @@
 #include "glgraphics/GLGraphics.h"
 #include "shell/ShellBatteryInfo.h"
 #include "shell/ShellKeyCodes.h"
+#include "shell/Target.h"
 
 #include <OpenGL/gl.h>
+
+static unsigned int timer1ID = UINT_MAX, timer2ID = UINT_MAX;
 
 void NSOpenGLTarget_configure(int argc, const char ** argv, struct NSOpenGLShellConfiguration * configuration) {
 	int argIndex;
@@ -49,10 +52,18 @@ void Target_init() {
 	Shell_mainLoop();
 }
 
-void Target_draw() {
+bool Target_draw() {
 	printf("Target_draw()\n");
 	glClearColor(0.0f, 0.25f, 0.5f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
+	return true;
+}
+
+void timerCallback(unsigned int timerID, void * context) {
+	printf("timerCallback(timerID, \"%s\")\n", (char *) context);
+	if (timerID == timer2ID) {
+		timer2ID = UINT_MAX;
+	}
 }
 
 void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned int modifierFlags) {
@@ -84,6 +95,26 @@ void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned int mo
 		
 		Shell_getMainScreenSize(&width, &height);
 		printf("Shell_getMainScreenSize(%u, %u)\n", width, height);
+		
+	} else if (keyCode == KEYBOARD_COMMA) {
+		if (timer1ID == UINT_MAX) {
+			timer1ID = Shell_setTimer(1.0, true, timerCallback, "Timer 1 context");
+			printf("Shell_setTimer(1.0, true, %p, \"Timer 1 context\"): %u\n", timerCallback, timer1ID);
+		} else {
+			printf("Shell_cancelTimer(%u)\n", timer1ID);
+			Shell_cancelTimer(timer1ID);
+			timer1ID = UINT_MAX;
+		}
+		
+	} else if (keyCode == KEYBOARD_PERIOD) {
+		if (timer2ID == UINT_MAX) {
+			timer2ID = Shell_setTimer(2.0, false, timerCallback, "Timer 2 context");
+			printf("Shell_setTimer(2.0, false, %p, \"Timer 2 context\"): %u\n", timerCallback, timer2ID);
+		} else {
+			printf("Shell_cancelTimer(%u)\n", timer2ID);
+			Shell_cancelTimer(timer2ID);
+			timer2ID = UINT_MAX;
+		}
 		
 	} else if (keyCode == KEYBOARD_H) {
 		NSOpenGLShell_setCursorVisible(false);

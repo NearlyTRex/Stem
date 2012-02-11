@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2011 Alex Diener
+  Copyright (c) 2012 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -32,8 +32,43 @@
 #include "shell/Shell.h"
 #include "shell/ShellBatteryInfo.h"
 
+@interface NSOpenGLShellTimerTarget : NSObject {
+	unsigned int timerID;
+	bool repeat;
+	void (* callback)(unsigned int timerID, void * context);
+	void * context;
+}
+@end
+@implementation NSOpenGLShellTimerTarget
+- (id) initWithID: (unsigned int) inTimerID repeat: (bool) inRepeat callback: (void (*)(unsigned int timerID, void * context)) inCallback context: (void *) inContext {
+	if ((self = [super init]) != nil) {
+		timerID = inTimerID;
+		repeat = inRepeat;
+		callback = inCallback;
+		context = inContext;
+	}
+	return self;
+}
+
+- (void) timer: (NSTimer *) timer {
+	callback(timerID, context);
+	if (!repeat) {
+		Shell_cancelTimer(timerID);
+	}
+}
+@end
+
+struct NSOpenGLShellTimer {
+	unsigned int id;
+	NSTimer * timer;
+	NSOpenGLShellTimerTarget * timerTarget;
+};
+
 bool mainLoopCalled = false;
 static bool cursorHiddenByHide = false;
+static unsigned int nextTimerID;
+static size_t timerCount;
+static struct NSOpenGLShellTimer * timers;
 
 void Shell_mainLoop() {
 	mainLoopCalled = true;
@@ -147,6 +182,30 @@ void Shell_getMainScreenSize(unsigned int * outWidth, unsigned int * outHeight) 
 	}
 	if (outHeight != NULL) {
 		*outHeight = bounds.size.height;
+	}
+}
+
+unsigned int Shell_setTimer(double interval, bool repeat, void (* callback)(unsigned int timerID, void * context), void * context) {
+	timers = realloc(timers, sizeof(struct NSOpenGLShellTimer) * (timerCount + 1));
+	timers[timerCount].id = nextTimerID++;
+	timers[timerCount].timerTarget = [[NSOpenGLShellTimerTarget alloc] initWithID: timers[timerCount].id repeat: repeat callback: callback context: context];
+	timers[timerCount].timer = [NSTimer scheduledTimerWithTimeInterval: interval target: timers[timerCount].timerTarget selector: @selector(timer:) userInfo: nil repeats: repeat];
+	return timers[timerCount++].id;
+}
+
+void Shell_cancelTimer(unsigned int timerID) {
+	unsigned int timerIndex;
+	
+	for (timerIndex = 0; timerIndex < timerCount; timerIndex++) {
+		if (timers[timerIndex].id == timerID) {
+			[timers[timerIndex].timer invalidate];
+			[timers[timerIndex].timerTarget release];
+			timerCount--;
+			for (; timerIndex < timerCount; timerIndex++) {
+				timers[timerIndex] = timers[timerIndex + 1];
+			}
+			break;
+		}
 	}
 }
 
