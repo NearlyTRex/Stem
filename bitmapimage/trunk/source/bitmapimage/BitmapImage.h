@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2010 Alex Diener
+  Copyright (c) 2012 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -34,8 +34,8 @@ enum BitmapPixelFormat {
 	BITMAP_PIXEL_FORMAT_GRAY_8 = 3
 };
 
-#define BitmapImage_structContents \
-	StemObject_structContents \
+#define BitmapImage_structContents(self_type) \
+	StemObject_structContents(self_type) \
 	\
 	enum BitmapPixelFormat pixelFormat; \
 	unsigned int width; \
@@ -43,9 +43,7 @@ enum BitmapPixelFormat {
 	unsigned int bytesPerRow; \
 	unsigned char * pixels;
 
-struct BitmapImage {
-	BitmapImage_structContents
-};
+stemobject_struct_definition(BitmapImage)
 
 #define BitmapImage_pixelFormatBytes(pixelFormat) (4 - pixelFormat)
 
@@ -54,12 +52,12 @@ BitmapImage * BitmapImage_create(enum BitmapPixelFormat pixelFormat,
                                  unsigned int height,
                                  unsigned int bytesPerRow,
                                  unsigned char * pixels);
-void BitmapImage_init(compat_type(BitmapImage *) selfPtr,
+void BitmapImage_init(BitmapImage * self,
                       enum BitmapPixelFormat pixelFormat,
                       unsigned int width,
                       unsigned int height,
                       unsigned int bytesPerRow,
                       unsigned char * pixels);
-void BitmapImage_dispose(compat_type(BitmapImage *) selfPtr);
+void BitmapImage_dispose(BitmapImage * self);
 
 #endif

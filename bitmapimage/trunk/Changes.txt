@@ -1,3 +1,6 @@
+1.2.2
+ * Updated for stemobject 3.0.0
+
 1.2.1
  * Synchronized project with template_stemlib Stable_2010-11-14
  * Updated for stemobject 2.0.0

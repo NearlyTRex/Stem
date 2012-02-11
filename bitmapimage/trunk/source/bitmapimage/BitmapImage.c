@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2010 Alex Diener
+  Copyright (c) 2012 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -24,6 +24,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define SUPERCLASS StemObject
+
 BitmapImage * BitmapImage_create(enum BitmapPixelFormat pixelFormat,
                                  unsigned int width,
                                  unsigned int height,
@@ -32,16 +34,15 @@ BitmapImage * BitmapImage_create(enum BitmapPixelFormat pixelFormat,
 	stemobject_create_implementation(BitmapImage, init, pixelFormat, width, height, bytesPerRow, pixels)
 }
 
-void BitmapImage_init(compat_type(BitmapImage *) selfPtr,
+void BitmapImage_init(BitmapImage * self,
                       enum BitmapPixelFormat pixelFormat,
                       unsigned int width,
                       unsigned int height,
                       unsigned int bytesPerRow,
                       unsigned char * pixels) {
-	BitmapImage * self = selfPtr;
 	unsigned int bytesPerPixel;
 	
-	StemObject_init((StemObject *) self);
+	call_super(init, self);
 	
 	self->pixelFormat = pixelFormat;
 	self->width = width;
@@ -55,9 +56,7 @@ void BitmapImage_init(compat_type(BitmapImage *) selfPtr,
 	self->dispose = BitmapImage_dispose;
 }
 
-void BitmapImage_dispose(compat_type(BitmapImage *) selfPtr) {
-	BitmapImage * self = selfPtr;
-	
+void BitmapImage_dispose(BitmapImage * self) {
 	free(self->pixels);
-	StemObject_dispose(selfPtr);
+	call_super(dispose, self);
 }
