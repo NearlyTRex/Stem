@@ -1,3 +1,7 @@
+1.2.2
+ * Added SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER
+ * Added __attribute__((sentinel)) to enumeration and bitfield I/O functions (if not building with clang)
+
 1.2.1
  * Fixed constant name typo (SERIALIAZTION_ERROR_NO_CONTAINER_STARTED -> SERIALIZATION_ERROR_NO_CONTAINER_STARTED)
 

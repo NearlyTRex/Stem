@@ -61,14 +61,14 @@ typedef struct SerializationContext SerializationContext;
 	\
 	/* Additional args: Pairs of strings naming constants, and the values described by them, terminated by */ \
 	/* NULL. You can use the enumKV macro from serialization/SerializationShared.h for convenience. */ \
-	void (* writeEnumeration)(self_type * self, const char * key, int value, ...); \
+	void (* struct_fptr_sentinel writeEnumeration)(self_type * self, const char * key, int value, ...); \
 	\
 	/* Additional args: Strings naming each bit from least significant to most significant, up to the maximum */ \
 	/* number of bits in the field, or terminated by NULL if there are unused bits at the top. */ \
-	void (* writeBitfield8)(self_type * self, const char * key, uint8_t value, ...); \
-	void (* writeBitfield16)(self_type * self, const char * key, uint16_t value, ...); \
-	void (* writeBitfield32)(self_type * self, const char * key, uint32_t value, ...); \
-	void (* writeBitfield64)(self_type * self, const char * key, uint64_t value, ...);
+	void (* struct_fptr_sentinel writeBitfield8)(self_type * self, const char * key, uint8_t value, ...); \
+	void (* struct_fptr_sentinel writeBitfield16)(self_type * self, const char * key, uint16_t value, ...); \
+	void (* struct_fptr_sentinel writeBitfield32)(self_type * self, const char * key, uint32_t value, ...); \
+	void (* struct_fptr_sentinel writeBitfield64)(self_type * self, const char * key, uint64_t value, ...);
 
 stemobject_struct_definition(SerializationContext)
 

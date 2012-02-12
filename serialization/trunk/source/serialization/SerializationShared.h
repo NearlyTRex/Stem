@@ -25,6 +25,14 @@
 
 #define enumKV(value) #value, value
 
+// clang has a bug that doesn't allow sentinel to be applied to function pointers in structs
+// http://llvm.org/bugs/show_bug.cgi?id=11988
+#ifdef __clang__
+#define struct_fptr_sentinel
+#else
+#define struct_fptr_sentinel __attribute((sentinel))
+#endif
+
 // No error
 #define SERIALIZATION_ERROR_OK 0
 
@@ -72,6 +80,9 @@
 
 // A read or write call was issued before the first begin<Array|Structure|Dictionary> call, or after the last end<Array|Structure|Dictionary> call
 #define SERIALIZATION_ERROR_NO_CONTAINER_STARTED 15
+
+// An attempt was made to save data without having serialized anything
+#define SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER 16
 
 // Other errors defined by concrete serialization modules
 

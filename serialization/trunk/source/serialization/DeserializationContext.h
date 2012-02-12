@@ -76,14 +76,14 @@ typedef struct DeserializationContext DeserializationContext;
 	\
 	/* Additional args: Pairs of strings naming constants, and the values described by them, terminated by */ \
 	/* NULL. You can use the enumKV macro from serialization/SerializationShared.h for convenience. */ \
-	int          (* readEnumeration)(self_type * self, const char * key, ...); \
+	int          (* struct_fptr_sentinel readEnumeration)(self_type * self, const char * key, ...); \
 	\
 	/* Additional args: Strings naming each bit from least significant to most significant, up to the maximum */ \
 	/* number of bits in the field, or terminated by NULL if there are unused high bits. */ \
-	uint8_t      (* readBitfield8)(self_type * self, const char * key, ...); \
-	uint16_t     (* readBitfield16)(self_type * self, const char * key, ...); \
-	uint32_t     (* readBitfield32)(self_type * self, const char * key, ...); \
-	uint64_t     (* readBitfield64)(self_type * self, const char * key, ...); \
+	uint8_t      (* struct_fptr_sentinel readBitfield8)(self_type * self, const char * key, ...); \
+	uint16_t     (* struct_fptr_sentinel readBitfield16)(self_type * self, const char * key, ...); \
+	uint32_t     (* struct_fptr_sentinel readBitfield32)(self_type * self, const char * key, ...); \
+	uint64_t     (* struct_fptr_sentinel readBitfield64)(self_type * self, const char * key, ...); \
 	\
 	/* Returned string not owned by caller; do not free */ \
 	/* Valid only when reading an ordered dictionary */ \
