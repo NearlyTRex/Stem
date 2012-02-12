@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2010 Alex Diener
+  Copyright (c) 2012 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -36,8 +36,8 @@ struct StateController_transition {
 	char * name;
 };
 
-#define StateController_structContents \
-	StemObject_structContents \
+#define StateController_structContents(self_type) \
+	StemObject_structContents(self_type) \
 	\
 	EventDispatcher * eventDispatcher; \
 	State * currentState; \
@@ -46,22 +46,20 @@ struct StateController_transition {
 	size_t transitionCount; \
 	struct StateController_transition * transitions; \
 	\
-	void (* addState)(compat_type(StateController *) self, compat_type(State *) state); \
-	void (* setState)(compat_type(StateController *) self, compat_type(State *) state); \
-	void (* addTransition)(compat_type(StateController *) self, compat_type(State *) fromState, compat_type(State *) toState, const char * transitionName); \
-	void (* transition)(compat_type(StateController *) self, const char * transitionName);
+	void (* addState)(self_type * self, compat_type(State *) state); \
+	void (* setState)(self_type * self, compat_type(State *) state); \
+	void (* addTransition)(self_type * self, compat_type(State *) fromState, compat_type(State *) toState, const char * transitionName); \
+	void (* transition)(self_type * self, const char * transitionName);
 
-struct StateController {
-	StateController_structContents
-};
+stemobject_struct_definition(StateController)
 
 StateController * StateController_create();
-void StateController_init(compat_type(StateController *) selfPtr);
-void StateController_dispose(compat_type(StateController *) selfPtr);
+void StateController_init(StateController * self);
+void StateController_dispose(StateController * self);
 
-void StateController_addState(compat_type(StateController *) selfPtr, compat_type(State *) state);
-void StateController_setState(compat_type(StateController *) selfPtr, compat_type(State *) state);
-void StateController_addTransition(compat_type(StateController *) selfPtr, compat_type(State *) fromState, compat_type(State *) toState, const char * transitionName);
-void StateController_transition(compat_type(StateController *) selfPtr, const char * transitionName);
+void StateController_addState(StateController * self, compat_type(State *) state);
+void StateController_setState(StateController * self, compat_type(State *) state);
+void StateController_addTransition(StateController * self, compat_type(State *) fromState, compat_type(State *) toState, const char * transitionName);
+void StateController_transition(StateController * self, const char * transitionName);
 
 #endif

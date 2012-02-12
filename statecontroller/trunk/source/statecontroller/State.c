@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2010 Alex Diener
+  Copyright (c) 2012 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -22,10 +22,10 @@
 
 #include "statecontroller/State.h"
 
-void State_init(compat_type(State *) selfPtr) {
-	State * self = selfPtr;
-	
-	StemObject_init(self);
+#define SUPERCLASS StemObject
+
+void State_init(State * self) {
+	call_super(init, self);
 	self->dispose = State_dispose;
 	self->activate = State_activate;
 	self->deactivate = State_deactivate;
@@ -33,15 +33,15 @@ void State_init(compat_type(State *) selfPtr) {
 	self->stateController = NULL;
 }
 
-void State_dispose(compat_type(State *) selfPtr) {
-	StemObject_dispose(selfPtr);
+void State_dispose(State * self) {
+	call_super(dispose, self);
 }
 
-void State_activate(compat_type(State *) selfPtr) {
+void State_activate(State * self) {
 }
 
-void State_deactivate(compat_type(State *) selfPtr) {
+void State_deactivate(State * self) {
 }
 
-void State_draw(compat_type(State *) selfPtr) {
+void State_draw(State * self) {
 }

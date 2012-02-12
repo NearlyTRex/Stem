@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2010 Alex Diener
+  Copyright (c) 2012 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -28,24 +28,22 @@ typedef struct State State;
 #include "stemobject/StemObject.h"
 #include "statecontroller/StateController.h"
 
-#define State_structContents \
-	StemObject_structContents \
+#define State_structContents(self_type) \
+	StemObject_structContents(self_type) \
 	\
 	StateController * stateController; \
 	\
-	void (* activate)(compat_type(State *) self); \
-	void (* deactivate)(compat_type(State *) self); \
-	void (* draw)(compat_type(State *) self);
+	void (* activate)(self_type * self); \
+	void (* deactivate)(self_type * self); \
+	void (* draw)(self_type * self);
 
-struct State {
-	State_structContents
-};
+stemobject_struct_definition(State)
 
-void State_init(compat_type(State *) selfPtr);
-void State_dispose(compat_type(State *) selfPtr);
+void State_init(State * self);
+void State_dispose(State * self);
 
-void State_activate(compat_type(State *) selfPtr);
-void State_deactivate(compat_type(State *) selfPtr);
-void State_draw(compat_type(State *) selfPtr);
+void State_activate(State * self);
+void State_deactivate(State * self);
+void State_draw(State * self);
 
 #endif

@@ -96,21 +96,19 @@ static void testInvalidTransitions() {
 }
 
 struct TestState {
-	State_structContents
+	State_structContents(struct TestState)
 	unsigned int activateCalls;
 	unsigned int deactivateCalls;
 	unsigned int * callOrder;
 };
 
-static void testActivate(void * selfPtr) {
-	struct TestState * self = selfPtr;
+static void testActivate(struct TestState * self) {
 	self->activateCalls++;
 	*self->callOrder <<= 2;
 	*self->callOrder |= 1;
 }
 
-static void testDeactivate(void * selfPtr) {
-	struct TestState * self = selfPtr;
+static void testDeactivate(struct TestState * self) {
 	self->deactivateCalls++;
 	*self->callOrder <<= 2;
 	*self->callOrder |= 2;

@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2010 Alex Diener
+  Copyright (c) 2012 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -23,14 +23,14 @@
 #include "statecontroller/StateController.h"
 #include <string.h>
 
+#define SUPERCLASS StemObject
+
 StateController * StateController_create() {
 	stemobject_create_implementation(StateController, init)
 }
 
-void StateController_init(compat_type(StateController *) selfPtr) {
-	StateController * self = selfPtr;
-	
-	StemObject_init(self);
+void StateController_init(StateController * self) {
+	call_super(init, self);
 	self->dispose = StateController_dispose;
 	self->addState = StateController_addState;
 	self->setState = StateController_setState;
@@ -45,8 +45,7 @@ void StateController_init(compat_type(StateController *) selfPtr) {
 	self->transitions = NULL;
 }
 
-void StateController_dispose(compat_type(StateController *) selfPtr) {
-	StateController * self = selfPtr;
+void StateController_dispose(StateController * self) {
 	size_t transitionIndex;
 	
 	self->eventDispatcher->dispose(self->eventDispatcher);
@@ -56,11 +55,10 @@ void StateController_dispose(compat_type(StateController *) selfPtr) {
 	}
 	free(self->transitions);
 	
-	StemObject_dispose(selfPtr);
+	call_super(dispose, self);
 }
 
-void StateController_addState(compat_type(StateController *) selfPtr, compat_type(State *) state) {
-	StateController * self = selfPtr;
+void StateController_addState(StateController * self, compat_type(State *) state) {
 	size_t stateIndex;
 	
 	for (stateIndex = 0; stateIndex < self->validStateCount; stateIndex++) {
@@ -75,8 +73,7 @@ void StateController_addState(compat_type(StateController *) selfPtr, compat_typ
 	}
 }
 
-void StateController_setState(compat_type(StateController *) selfPtr, compat_type(State *) state) {
-	StateController * self = selfPtr;
+void StateController_setState(StateController * self, compat_type(State *) state) {
 	size_t stateIndex;
 	
 	for (stateIndex = 0; stateIndex < self->validStateCount; stateIndex++) {
@@ -91,8 +88,7 @@ void StateController_setState(compat_type(StateController *) selfPtr, compat_typ
 	}
 }
 
-void StateController_addTransition(compat_type(StateController *) selfPtr, compat_type(State *) fromState, compat_type(State *) toState, const char * transitionName) {
-	StateController * self = selfPtr;
+void StateController_addTransition(StateController * self, compat_type(State *) fromState, compat_type(State *) toState, const char * transitionName) {
 	size_t stateIndex;
 	bool fromStateValid = false, toStateValid = false;
 	
@@ -121,8 +117,7 @@ void StateController_addTransition(compat_type(StateController *) selfPtr, compa
 	}
 }
 
-void StateController_transition(compat_type(StateController *) selfPtr, const char * transitionName) {
-	StateController * self = selfPtr;
+void StateController_transition(StateController * self, const char * transitionName) {
 	size_t transitionIndex;
 	
 	for (transitionIndex = 0; transitionIndex < self->transitionCount; transitionIndex++) {
