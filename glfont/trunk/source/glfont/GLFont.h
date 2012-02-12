@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2010 Alex Diener
+  Copyright (c) 2012 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -28,26 +28,24 @@
 
 typedef struct GLFont GLFont;
 
-#define GLFont_structContents \
-	StemObject_structContents \
+#define GLFont_structContents(self_type) \
+	StemObject_structContents(self_type) \
 	\
 	/* Returns the width of string (of length UTF-8 bytes) in ems */ \
-	float (* measureString)(void * self, const char * string, size_t length); \
+	float (* measureString)(self_type * self, const char * string, size_t length); \
 	\
 	/* Returns the closest character index to emWidth, as measured from the beginning of string (of length UTF-8 bytes). */ \
 	/* If outLeadingEdge is non-NULL, it will be set to true if emWidth falls on the leading half of the */ \
 	/* character whose index is returned, or false if it does not. */ \
-	size_t (* indexAtWidth)(void * self, const char * string, size_t length, float emWidth, bool * outLeadingEdge); \
+	size_t (* indexAtWidth)(self_type * self, const char * string, size_t length, float emWidth, bool * outLeadingEdge); \
 	\
 	/* Draws string (of length UTF-8 bytes) at offsetX, offsetY, offsetZ, using the current projection-modelview transform. */ \
 	/* Text is scaled according such that characters' heights are equal to emHeight. */ \
-	void (* drawString)(void * self, const char * string, size_t length, float emHeight, float offsetX, float offsetY, float offsetZ);
+	void (* drawString)(self_type * self, const char * string, size_t length, float emHeight, float offsetX, float offsetY, float offsetZ);
 
-struct GLFont {
-	GLFont_structContents
-};
+stemobject_struct_definition(GLFont)
 
-void GLFont_init(compat_type(GLFont *) selfPtr);
-void GLFont_dispose(compat_type(GLFont *) selfPtr);
+void GLFont_init(GLFont * self);
+void GLFont_dispose(GLFont * self);
 
 #endif
