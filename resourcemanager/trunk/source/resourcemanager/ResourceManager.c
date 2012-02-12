@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2011 Alex Diener
+  Copyright (c) 2012 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -24,14 +24,14 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define SUPERCLASS StemObject
+
 ResourceManager * ResourceManager_create() {
 	stemobject_create_implementation(ResourceManager, init)
 }
 
-void ResourceManager_init(compat_type(ResourceManager *) selfPtr) {
-	ResourceManager * self = selfPtr;
-	
-	StemObject_init(self);
+void ResourceManager_init(ResourceManager * self) {
+	call_super(init, self);
 	
 	self->typeHandlerCount = 0;
 	self->typeHandlers = NULL;
@@ -45,8 +45,7 @@ void ResourceManager_init(compat_type(ResourceManager *) selfPtr) {
 	self->releaseResource = ResourceManager_releaseResource;
 }
 
-void ResourceManager_dispose(compat_type(ResourceManager *) selfPtr) {
-	ResourceManager * self = selfPtr;
+void ResourceManager_dispose(ResourceManager * self) {
 	unsigned int typeHandlerIndex;
 	unsigned int resourceIndex;
 	
@@ -60,15 +59,14 @@ void ResourceManager_dispose(compat_type(ResourceManager *) selfPtr) {
 	}
 	free(self->resources);
 	
-	StemObject_dispose(self);
+	call_super(dispose, self);
 }
 
-void ResourceManager_addTypeHandler(compat_type(ResourceManager *) selfPtr,
+void ResourceManager_addTypeHandler(ResourceManager * self,
                                     const char * typeName,
                                     void * (* loadFunction)(const char * resourceName, void * context),
                                     void (* unloadFunction)(void * resource, void * context),
                                     void * context) {
-	ResourceManager * self = selfPtr;
 	unsigned int typeHandlerIndex;
 	
 	for (typeHandlerIndex = 0; typeHandlerIndex < self->typeHandlerCount; typeHandlerIndex++) {
@@ -103,11 +101,10 @@ static void addResourceInternal(ResourceManager * self, const char * typeName, c
 	self->resourceCount++;
 }
 
-void ResourceManager_addResource(compat_type(ResourceManager *) selfPtr,
+void ResourceManager_addResource(ResourceManager * self,
                                  const char * typeName,
                                  const char * resourceName,
                                  void * resource) {
-	ResourceManager * self = selfPtr;
 	unsigned int typeHandlerIndex;
 	
 	for (typeHandlerIndex = 0; typeHandlerIndex < self->typeHandlerCount; typeHandlerIndex++) {
@@ -118,10 +115,9 @@ void ResourceManager_addResource(compat_type(ResourceManager *) selfPtr,
 	}
 }
 
-void * ResourceManager_referenceResource(compat_type(ResourceManager *) selfPtr,
+void * ResourceManager_referenceResource(ResourceManager * self,
                                          const char * typeName,
                                          const char * resourceName) {
-	ResourceManager * self = selfPtr;
 	unsigned int resourceIndex;
 	unsigned int typeHandlerIndex;
 	
@@ -150,10 +146,9 @@ void * ResourceManager_referenceResource(compat_type(ResourceManager *) selfPtr,
 	return NULL;
 }
 
-void ResourceManager_releaseResource(compat_type(ResourceManager *) selfPtr,
+void ResourceManager_releaseResource(ResourceManager * self,
                                      const char * typeName,
                                      const char * resourceName) {
-	ResourceManager * self = selfPtr;
 	unsigned int resourceIndex;
 	
 	for (resourceIndex = 0; resourceIndex < self->resourceCount; resourceIndex++) {

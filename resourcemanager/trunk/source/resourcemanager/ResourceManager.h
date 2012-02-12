@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2011 Alex Diener
+  Copyright (c) 2012 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -42,51 +42,49 @@ struct ResourceManager_resource {
 	unsigned int referenceCount;
 };
 
-#define ResourceManager_structContents \
-	StemObject_structContents \
+#define ResourceManager_structContents(self_type) \
+	StemObject_structContents(self_type) \
 	\
 	size_t typeHandlerCount; \
 	struct ResourceManager_typeHandler * typeHandlers; \
 	size_t resourceCount; \
 	struct ResourceManager_resource * resources; \
 	\
-	void (* addTypeHandler)(compat_type(ResourceManager *) self, \
+	void (* addTypeHandler)(self_type * self, \
 	                        const char * typeName, \
 	                        void * (* loadFunction)(const char * resourceName, void * context), \
 	                        void (* unloadFunction)(void * resource, void * context), \
 	                        void * context); \
-	void (* addResource)(compat_type(ResourceManager *) self, \
+	void (* addResource)(self_type * self, \
 	                     const char * typeName, \
 	                     const char * resourceName, \
 	                     void * resource); \
-	void * (* referenceResource)(compat_type(ResourceManager *) self, \
+	void * (* referenceResource)(self_type * self, \
 	                             const char * typeName, \
 	                             const char * resourceName); \
-	void (* releaseResource)(compat_type(ResourceManager *) self, \
+	void (* releaseResource)(self_type * self, \
 	                         const char * typeName, \
 	                         const char * resourceName);
 
-struct ResourceManager {
-	ResourceManager_structContents
-};
+stemobject_struct_definition(ResourceManager)
 
 ResourceManager * ResourceManager_create();
-void ResourceManager_init(compat_type(ResourceManager *) selfPtr);
-void ResourceManager_dispose(compat_type(ResourceManager *) selfPtr);
+void ResourceManager_init(ResourceManager * self);
+void ResourceManager_dispose(ResourceManager * self);
 
-void ResourceManager_addTypeHandler(compat_type(ResourceManager *) selfPtr,
+void ResourceManager_addTypeHandler(ResourceManager * self,
                                     const char * typeName,
                                     void * (* loadFunction)(const char * resourceName, void * context),
                                     void (* unloadFunction)(void * resource, void * context),
                                     void * context);
-void ResourceManager_addResource(compat_type(ResourceManager *) selfPtr,
+void ResourceManager_addResource(ResourceManager * self,
                                  const char * typeName,
                                  const char * resourceName,
                                  void * resource);
-void * ResourceManager_referenceResource(compat_type(ResourceManager *) selfPtr,
+void * ResourceManager_referenceResource(ResourceManager * self,
                                          const char * typeName,
                                          const char * resourceName);
-void ResourceManager_releaseResource(compat_type(ResourceManager *) selfPtr,
+void ResourceManager_releaseResource(ResourceManager * self,
                                      const char * typeName,
                                      const char * resourceName);
 

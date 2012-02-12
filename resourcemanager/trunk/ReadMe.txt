@@ -36,12 +36,13 @@ void Target_init() {
 	Shell_mainLoop();
 }
 
-void Target_draw() {
+bool Target_draw() {
 	BitmapImage * image;
 	
 	image = resourceManager->referenceResource(resourceManager, "png", "myimage.png");
 	// Draw image
 	resourceManager->releaseResource(resourceManager, "png", "myimage.png");
+	return true;
 }
 
 static void * loadPNG(const char * resourceName, void * context) {

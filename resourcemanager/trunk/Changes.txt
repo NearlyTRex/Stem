@@ -1,3 +1,6 @@
+1.0.2
+ * Updated for stemobject 3.0.0
+
 1.0.1
  * Fixed a small memory leak
  * Fixed a crash that would happen when a type handler returned NULL
