@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2011 Alex Diener
+  Copyright (c) 2012 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -24,6 +24,8 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
+
+#define SUPERCLASS SerializationContext
 
 #define failWithStatus(STATUS, RETURN_CODE) \
 	self->status = (STATUS); \
@@ -58,17 +60,15 @@
 
 #define failIfContainerNotStarted() \
 	if (self->currentNode == NULL) { \
-		failWithStatus(SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, return) \
+		failWithStatus(SERIALIZATION_ERROR_NO_CONTAINER_STARTED, return) \
 	}
 
 JSONSerializationContext * JSONSerializationContext_create() {
 	stemobject_create_implementation(JSONSerializationContext, init)
 }
 
-void JSONSerializationContext_init(compat_type(JSONSerializationContext *) selfPtr) {
-	JSONSerializationContext * self = selfPtr;
-	
-	SerializationContext_init((SerializationContext *) self);
+void JSONSerializationContext_init(JSONSerializationContext * self) {
+	call_super(init, self);
 	self->dispose = JSONSerializationContext_dispose;
 	self->beginStructure = JSONSerializationContext_beginStructure;
 	self->beginDictionary = JSONSerializationContext_beginDictionary;
@@ -105,19 +105,15 @@ void JSONSerializationContext_init(compat_type(JSONSerializationContext *) selfP
 	self->rootNodeOwnedBySelf = true;
 }
 
-void JSONSerializationContext_dispose(compat_type(JSONSerializationContext *) selfPtr) {
-	JSONSerializationContext * self = selfPtr;
-	
+void JSONSerializationContext_dispose(JSONSerializationContext * self) {
 	if (self->rootNodeOwnedBySelf && self->rootNode != NULL) {
 		JSONNode_dispose(self->rootNode);
 	}
 	free(self->nodeStack);
-	SerializationContext_dispose((SerializationContext *) self);
+	call_super(dispose, self);
 }
 
-char * JSONSerializationContext_writeToString(compat_type(JSONSerializationContext *) selfPtr, enum JSONEmitterFormat format, size_t * outLength, struct JSONEmissionError * outError) {
-	JSONSerializationContext * self = selfPtr;
-	
+char * JSONSerializationContext_writeToString(JSONSerializationContext * self, enum JSONEmitterFormat format, size_t * outLength, struct JSONEmissionError * outError) {
 	if (self->currentNode != NULL || self->status != SERIALIZATION_ERROR_OK) {
 		if (outError != NULL) {
 			outError->node = NULL;
@@ -127,10 +123,10 @@ char * JSONSerializationContext_writeToString(compat_type(JSONSerializationConte
 		return NULL;
 	}
 	if (self->rootNode == NULL) {
-		self->status = JSON_SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER;
+		self->status = SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER;
 		if (outError != NULL) {
 			outError->node = NULL;
-			outError->code = JSON_SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER;
+			outError->code = SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER;
 			outError->description = "writeToString called without any data having been serialized";
 		}
 		return NULL;
@@ -138,9 +134,7 @@ char * JSONSerializationContext_writeToString(compat_type(JSONSerializationConte
 	return JSONEmitter_writeString(self->rootNode, format, outLength, outError);
 }
 
-bool JSONSerializationContext_writeToFile(compat_type(JSONSerializationContext *) selfPtr, enum JSONEmitterFormat format, const char * filePath, struct JSONEmissionError * outError) {
-	JSONSerializationContext * self = selfPtr;
-	
+bool JSONSerializationContext_writeToFile(JSONSerializationContext * self, enum JSONEmitterFormat format, const char * filePath, struct JSONEmissionError * outError) {
 	if (self->currentNode != NULL || self->status != SERIALIZATION_ERROR_OK) {
 		if (outError != NULL) {
 			outError->node = NULL;
@@ -150,10 +144,10 @@ bool JSONSerializationContext_writeToFile(compat_type(JSONSerializationContext *
 		return NULL;
 	}
 	if (self->rootNode == NULL) {
-		self->status = JSON_SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER;
+		self->status = SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER;
 		if (outError != NULL) {
 			outError->node = NULL;
-			outError->code = JSON_SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER;
+			outError->code = SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER;
 			outError->description = "writeToFile called without any data having been serialized";
 		}
 		return NULL;
@@ -161,14 +155,12 @@ bool JSONSerializationContext_writeToFile(compat_type(JSONSerializationContext *
 	return JSONEmitter_writeFile(self->rootNode, format, filePath, outError);
 }
 
-struct JSONNode * JSONSerializationContext_writeToJSONNode(compat_type(JSONSerializationContext *) selfPtr) {
-	JSONSerializationContext * self = selfPtr;
-	
+struct JSONNode * JSONSerializationContext_writeToJSONNode(JSONSerializationContext * self) {
 	if (self->currentNode != NULL || self->status != SERIALIZATION_ERROR_OK) {
 		return NULL;
 	}
 	if (self->rootNode == NULL) {
-		self->status = JSON_SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER;
+		self->status = SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER;
 	}
 	if (self->rootNodeOwnedBySelf) {
 		self->rootNodeOwnedBySelf = false;
@@ -178,9 +170,7 @@ struct JSONNode * JSONSerializationContext_writeToJSONNode(compat_type(JSONSeria
 	return JSONNode_copy(self->rootNode);
 }
 
-void JSONSerializationContext_beginStructure(compat_type(JSONSerializationContext *) selfPtr, const char * key) {
-	JSONSerializationContext * self = selfPtr;
-	
+void JSONSerializationContext_beginStructure(JSONSerializationContext * self, const char * key) {
 	if (self->rootNode == NULL) {
 		self->rootNode = malloc(sizeof(struct JSONNode));
 		self->currentNode = self->rootNode;
@@ -210,9 +200,7 @@ void JSONSerializationContext_beginStructure(compat_type(JSONSerializationContex
 	}
 }
 
-void JSONSerializationContext_beginDictionary(compat_type(JSONSerializationContext *) selfPtr, const char * key) {
-	JSONSerializationContext * self = selfPtr;
-	
+void JSONSerializationContext_beginDictionary(JSONSerializationContext * self, const char * key) {
 	if (self->rootNode == NULL) {
 		self->rootNode = malloc(sizeof(struct JSONNode));
 		self->currentNode = self->rootNode;
@@ -242,9 +230,7 @@ void JSONSerializationContext_beginDictionary(compat_type(JSONSerializationConte
 	}
 }
 
-void JSONSerializationContext_beginArray(compat_type(JSONSerializationContext *) selfPtr, const char * key) {
-	JSONSerializationContext * self = selfPtr;
-	
+void JSONSerializationContext_beginArray(JSONSerializationContext * self, const char * key) {
 	if (self->rootNode == NULL) {
 		self->rootNode = malloc(sizeof(struct JSONNode));
 		self->currentNode = self->rootNode;
@@ -274,9 +260,7 @@ void JSONSerializationContext_beginArray(compat_type(JSONSerializationContext *)
 	}
 }
 
-void JSONSerializationContext_endStructure(compat_type(JSONSerializationContext *) selfPtr) {
-	JSONSerializationContext * self = selfPtr;
-	
+void JSONSerializationContext_endStructure(JSONSerializationContext * self) {
 	if (self->currentNode == NULL) {
 		failWithStatus(SERIALIZATION_ERROR_CONTAINER_UNDERFLOW, return)
 	}
@@ -294,9 +278,7 @@ void JSONSerializationContext_endStructure(compat_type(JSONSerializationContext 
 	}
 }
 
-void JSONSerializationContext_endDictionary(compat_type(JSONSerializationContext *) selfPtr) {
-	JSONSerializationContext * self = selfPtr;
-	
+void JSONSerializationContext_endDictionary(JSONSerializationContext * self) {
 	if (self->currentNode == NULL) {
 		failWithStatus(SERIALIZATION_ERROR_CONTAINER_UNDERFLOW, return)
 	}
@@ -314,9 +296,7 @@ void JSONSerializationContext_endDictionary(compat_type(JSONSerializationContext
 	}
 }
 
-void JSONSerializationContext_endArray(compat_type(JSONSerializationContext *) selfPtr) {
-	JSONSerializationContext * self = selfPtr;
-	
+void JSONSerializationContext_endArray(JSONSerializationContext * self) {
 	if (self->currentNode == NULL) {
 		failWithStatus(SERIALIZATION_ERROR_CONTAINER_UNDERFLOW, return)
 	}
@@ -334,54 +314,42 @@ void JSONSerializationContext_endArray(compat_type(JSONSerializationContext *) s
 	}
 }
 
-void JSONSerializationContext_writeInt8(compat_type(JSONSerializationContext *) selfPtr, const char * key, int8_t value) {
-	JSONSerializationContext * self = selfPtr;
-	
+void JSONSerializationContext_writeInt8(JSONSerializationContext * self, const char * key, int8_t value) {
 	failIfContainerNotStarted()
 	self->currentNode->subitems = realloc(self->currentNode->subitems, sizeof(struct JSONNode) * (self->currentNode->value.count + 1));
 	writeNodeCommonArgs(JSON_TYPE_NUMBER, number);
 	self->currentNode->value.count++;
 }
 
-void JSONSerializationContext_writeUInt8(compat_type(JSONSerializationContext *) selfPtr, const char * key, uint8_t value) {
-	JSONSerializationContext * self = selfPtr;
-	
+void JSONSerializationContext_writeUInt8(JSONSerializationContext * self, const char * key, uint8_t value) {
 	failIfContainerNotStarted()
 	self->currentNode->subitems = realloc(self->currentNode->subitems, sizeof(struct JSONNode) * (self->currentNode->value.count + 1));
 	writeNodeCommonArgs(JSON_TYPE_NUMBER, number);
 	self->currentNode->value.count++;
 }
 
-void JSONSerializationContext_writeInt16(compat_type(JSONSerializationContext *) selfPtr, const char * key, int16_t value) {
-	JSONSerializationContext * self = selfPtr;
-	
+void JSONSerializationContext_writeInt16(JSONSerializationContext * self, const char * key, int16_t value) {
 	failIfContainerNotStarted()
 	self->currentNode->subitems = realloc(self->currentNode->subitems, sizeof(struct JSONNode) * (self->currentNode->value.count + 1));
 	writeNodeCommonArgs(JSON_TYPE_NUMBER, number);
 	self->currentNode->value.count++;
 }
 
-void JSONSerializationContext_writeUInt16(compat_type(JSONSerializationContext *) selfPtr, const char * key, uint16_t value) {
-	JSONSerializationContext * self = selfPtr;
-	
+void JSONSerializationContext_writeUInt16(JSONSerializationContext * self, const char * key, uint16_t value) {
 	failIfContainerNotStarted()
 	self->currentNode->subitems = realloc(self->currentNode->subitems, sizeof(struct JSONNode) * (self->currentNode->value.count + 1));
 	writeNodeCommonArgs(JSON_TYPE_NUMBER, number);
 	self->currentNode->value.count++;
 }
 
-void JSONSerializationContext_writeInt32(compat_type(JSONSerializationContext *) selfPtr, const char * key, int32_t value) {
-	JSONSerializationContext * self = selfPtr;
-	
+void JSONSerializationContext_writeInt32(JSONSerializationContext * self, const char * key, int32_t value) {
 	failIfContainerNotStarted()
 	self->currentNode->subitems = realloc(self->currentNode->subitems, sizeof(struct JSONNode) * (self->currentNode->value.count + 1));
 	writeNodeCommonArgs(JSON_TYPE_NUMBER, number);
 	self->currentNode->value.count++;
 }
 
-void JSONSerializationContext_writeUInt32(compat_type(JSONSerializationContext *) selfPtr, const char * key, uint32_t value) {
-	JSONSerializationContext * self = selfPtr;
-	
+void JSONSerializationContext_writeUInt32(JSONSerializationContext * self, const char * key, uint32_t value) {
 	failIfContainerNotStarted()
 	self->currentNode->subitems = realloc(self->currentNode->subitems, sizeof(struct JSONNode) * (self->currentNode->value.count + 1));
 	writeNodeCommonArgs(JSON_TYPE_NUMBER, number);
@@ -394,9 +362,7 @@ void JSONSerializationContext_writeUInt32(compat_type(JSONSerializationContext *
 #endif
 #endif
 
-void JSONSerializationContext_writeInt64(compat_type(JSONSerializationContext *) selfPtr, const char * key, int64_t value) {
-	JSONSerializationContext * self = selfPtr;
-	
+void JSONSerializationContext_writeInt64(JSONSerializationContext * self, const char * key, int64_t value) {
 	failIfContainerNotStarted()
 	self->currentNode->subitems = realloc(self->currentNode->subitems, sizeof(struct JSONNode) * (self->currentNode->value.count + 1));
 	writeNodeCommonArgs(JSON_TYPE_NUMBER, number);
@@ -409,9 +375,7 @@ void JSONSerializationContext_writeInt64(compat_type(JSONSerializationContext *)
 	self->currentNode->value.count++;
 }
 
-void JSONSerializationContext_writeUInt64(compat_type(JSONSerializationContext *) selfPtr, const char * key, uint64_t value) {
-	JSONSerializationContext * self = selfPtr;
-	
+void JSONSerializationContext_writeUInt64(JSONSerializationContext * self, const char * key, uint64_t value) {
 	failIfContainerNotStarted()
 	self->currentNode->subitems = realloc(self->currentNode->subitems, sizeof(struct JSONNode) * (self->currentNode->value.count + 1));
 	writeNodeCommonArgs(JSON_TYPE_NUMBER, number);
@@ -424,27 +388,21 @@ void JSONSerializationContext_writeUInt64(compat_type(JSONSerializationContext *
 	self->currentNode->value.count++;
 }
 
-void JSONSerializationContext_writeFloat(compat_type(JSONSerializationContext *) selfPtr, const char * key, float value) {
-	JSONSerializationContext * self = selfPtr;
-	
+void JSONSerializationContext_writeFloat(JSONSerializationContext * self, const char * key, float value) {
 	failIfContainerNotStarted()
 	self->currentNode->subitems = realloc(self->currentNode->subitems, sizeof(struct JSONNode) * (self->currentNode->value.count + 1));
 	writeNodeCommonArgs(JSON_TYPE_NUMBER, number);
 	self->currentNode->value.count++;
 }
 
-void JSONSerializationContext_writeDouble(compat_type(JSONSerializationContext *) selfPtr, const char * key, double value) {
-	JSONSerializationContext * self = selfPtr;
-	
+void JSONSerializationContext_writeDouble(JSONSerializationContext * self, const char * key, double value) {
 	failIfContainerNotStarted()
 	self->currentNode->subitems = realloc(self->currentNode->subitems, sizeof(struct JSONNode) * (self->currentNode->value.count + 1));
 	writeNodeCommonArgs(JSON_TYPE_NUMBER, number);
 	self->currentNode->value.count++;
 }
 
-void JSONSerializationContext_writeString(compat_type(JSONSerializationContext *) selfPtr, const char * key, const char * value) {
-	JSONSerializationContext * self = selfPtr;
-	
+void JSONSerializationContext_writeString(JSONSerializationContext * self, const char * key, const char * value) {
 	failIfContainerNotStarted()
 	self->currentNode->subitems = realloc(self->currentNode->subitems, sizeof(struct JSONNode) * (self->currentNode->value.count + 1));
 	self->currentNode->subitems[self->currentNode->value.count].stringLength = strlen(value);
@@ -458,17 +416,14 @@ void JSONSerializationContext_writeString(compat_type(JSONSerializationContext *
 	self->currentNode->value.count++;
 }
 
-void JSONSerializationContext_writeBoolean(compat_type(JSONSerializationContext *) selfPtr, const char * key, bool value) {
-	JSONSerializationContext * self = selfPtr;
-	
+void JSONSerializationContext_writeBoolean(JSONSerializationContext * self, const char * key, bool value) {
 	failIfContainerNotStarted()
 	self->currentNode->subitems = realloc(self->currentNode->subitems, sizeof(struct JSONNode) * (self->currentNode->value.count + 1));
 	writeNodeCommonArgs(JSON_TYPE_BOOLEAN, boolean);
 	self->currentNode->value.count++;
 }
 
-void JSONSerializationContext_writeEnumeration(compat_type(JSONSerializationContext *) selfPtr, const char * key, int value, ...) {
-	JSONSerializationContext * self = selfPtr;
+void JSONSerializationContext_writeEnumeration(JSONSerializationContext * self, const char * key, int value, ...) {
 	va_list args;
 	const char * enumName, * valueEnumName = NULL;
 	int enumValue;
@@ -534,7 +489,6 @@ void JSONSerializationContext_writeEnumeration(compat_type(JSONSerializationCont
 }
 
 #define writeBitfieldImplementation(NBITS) \
-	JSONSerializationContext * self = selfPtr; \
 	unsigned int bitCount; \
 	uint##NBITS##_t uncountedBits; \
 	va_list args; \
@@ -586,18 +540,18 @@ void JSONSerializationContext_writeEnumeration(compat_type(JSONSerializationCont
 		failWithStatus(SERIALIZATION_ERROR_UNNAMED_BIT,) \
 	}
 
-void JSONSerializationContext_writeBitfield8(compat_type(JSONSerializationContext *) selfPtr, const char * key, uint8_t value, ...) {
+void JSONSerializationContext_writeBitfield8(JSONSerializationContext * self, const char * key, uint8_t value, ...) {
 	writeBitfieldImplementation(8)
 }
 
-void JSONSerializationContext_writeBitfield16(compat_type(JSONSerializationContext *) selfPtr, const char * key, uint16_t value, ...) {
+void JSONSerializationContext_writeBitfield16(JSONSerializationContext * self, const char * key, uint16_t value, ...) {
 	writeBitfieldImplementation(16)
 }
 
-void JSONSerializationContext_writeBitfield32(compat_type(JSONSerializationContext *) selfPtr, const char * key, uint32_t value, ...) {
+void JSONSerializationContext_writeBitfield32(JSONSerializationContext * self, const char * key, uint32_t value, ...) {
 	writeBitfieldImplementation(32)
 }
 
-void JSONSerializationContext_writeBitfield64(compat_type(JSONSerializationContext *) selfPtr, const char * key, uint64_t value, ...) {
+void JSONSerializationContext_writeBitfield64(JSONSerializationContext * self, const char * key, uint64_t value, ...) {
 	writeBitfieldImplementation(64)
 }

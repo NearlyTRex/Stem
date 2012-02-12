@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2011 Alex Diener
+  Copyright (c) 2012 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -27,6 +27,8 @@
 #include <string.h>
 #include <float.h>
 
+#define SUPERCLASS DeserializationContext
+
 JSONDeserializationContext * JSONDeserializationContext_createWithFile(const char * filePath) {
 	stemobject_create_implementation(JSONDeserializationContext, initWithFile, filePath)
 }
@@ -39,10 +41,8 @@ JSONDeserializationContext * JSONDeserializationContext_createWithJSONNode(struc
 	stemobject_create_implementation(JSONDeserializationContext, initWithJSONNode, node)
 }
 
-static void JSONDeserializationContext_init(compat_type(JSONDeserializationContext *) selfPtr) {
-	JSONDeserializationContext * self = selfPtr;
-	
-	DeserializationContext_init((DeserializationContext *) self);
+static void JSONDeserializationContext_init(JSONDeserializationContext * self) {
+	call_super(init, self);
 	self->dispose = JSONDeserializationContext_dispose;
 	self->beginStructure = JSONDeserializationContext_beginStructure;
 	self->beginDictionary = JSONDeserializationContext_beginDictionary;
@@ -76,9 +76,7 @@ static void JSONDeserializationContext_init(compat_type(JSONDeserializationConte
 	self->finished = false;
 }
 
-void JSONDeserializationContext_initWithFile(compat_type(JSONDeserializationContext *) selfPtr, const char * filePath) {
-	JSONDeserializationContext * self = selfPtr;
-	
+void JSONDeserializationContext_initWithFile(JSONDeserializationContext * self, const char * filePath) {
 	JSONDeserializationContext_init(self);
 	self->rootNode = JSONParser_loadFile(filePath, NULL);
 	if (self->rootNode == NULL) {
@@ -86,9 +84,7 @@ void JSONDeserializationContext_initWithFile(compat_type(JSONDeserializationCont
 	}
 }
 
-void JSONDeserializationContext_initWithString(compat_type(JSONDeserializationContext *) selfPtr, const char * string, size_t length) {
-	JSONDeserializationContext * self = selfPtr;
-	
+void JSONDeserializationContext_initWithString(JSONDeserializationContext * self, const char * string, size_t length) {
 	JSONDeserializationContext_init(self);
 	self->rootNode = JSONParser_loadString(string, length, NULL);
 	if (self->rootNode == NULL) {
@@ -96,9 +92,7 @@ void JSONDeserializationContext_initWithString(compat_type(JSONDeserializationCo
 	}
 }
 
-void JSONDeserializationContext_initWithJSONNode(compat_type(JSONDeserializationContext *) selfPtr, struct JSONNode * node) {
-	JSONDeserializationContext * self = selfPtr;
-	
+void JSONDeserializationContext_initWithJSONNode(JSONDeserializationContext * self, struct JSONNode * node) {
 	JSONDeserializationContext_init(self);
 	if (node == NULL) {
 		self->rootNode = NULL;
@@ -108,14 +102,12 @@ void JSONDeserializationContext_initWithJSONNode(compat_type(JSONDeserialization
 	}
 }
 
-void JSONDeserializationContext_dispose(compat_type(JSONDeserializationContext *) selfPtr) {
-	JSONDeserializationContext * self = selfPtr;
-	
+void JSONDeserializationContext_dispose(JSONDeserializationContext * self) {
 	if (self->rootNode != NULL) {
 		JSONNode_dispose(self->rootNode);
 	}
 	free(self->nodeStack);
-	DeserializationContext_dispose(selfPtr);
+	call_super(dispose, self);
 }
 
 #define failWithStatus(STATUS, RETURN_CODE) \
@@ -127,7 +119,7 @@ void JSONDeserializationContext_dispose(compat_type(JSONDeserializationContext *
 
 #define getNextNodeIndex(FAIL_RETURN_VALUE) \
 	if (self->currentNode == NULL || self->finished) { \
-		failWithStatus(SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, return FAIL_RETURN_VALUE) \
+		failWithStatus(SERIALIZATION_ERROR_NO_CONTAINER_STARTED, return FAIL_RETURN_VALUE) \
 	} \
 	if (self->currentNode->type == JSON_TYPE_OBJECT) { \
 		size_t subitemIndex; \
@@ -163,8 +155,7 @@ void JSONDeserializationContext_dispose(compat_type(JSONDeserializationContext *
 		} \
 	}
 
-void JSONDeserializationContext_beginStructure(compat_type(JSONDeserializationContext *) selfPtr, const char * key) {
-	JSONDeserializationContext * self = selfPtr;
+void JSONDeserializationContext_beginStructure(JSONDeserializationContext * self, const char * key) {
 	size_t subitemIndex, subitemIndex2;
 	
 	if (self->finished) {
@@ -210,9 +201,7 @@ void JSONDeserializationContext_beginStructure(compat_type(JSONDeserializationCo
 	}
 }
 
-size_t JSONDeserializationContext_beginDictionary(compat_type(JSONDeserializationContext *) selfPtr, const char * key) {
-	JSONDeserializationContext * self = selfPtr;
-	
+size_t JSONDeserializationContext_beginDictionary(JSONDeserializationContext * self, const char * key) {
 	if (self->finished) {
 		failWithStatus(SERIALIZATION_ERROR_MULTIPLE_TOP_LEVEL_CONTAINERS, return 0)
 	}
@@ -250,9 +239,7 @@ size_t JSONDeserializationContext_beginDictionary(compat_type(JSONDeserializatio
 	return self->currentNode->value.count;
 }
 
-size_t JSONDeserializationContext_beginArray(compat_type(JSONDeserializationContext *) selfPtr, const char * key) {
-	JSONDeserializationContext * self = selfPtr;
-	
+size_t JSONDeserializationContext_beginArray(JSONDeserializationContext * self, const char * key) {
 	if (self->finished) {
 		failWithStatus(SERIALIZATION_ERROR_MULTIPLE_TOP_LEVEL_CONTAINERS, return 0)
 	}
@@ -295,9 +282,12 @@ size_t JSONDeserializationContext_beginArray(compat_type(JSONDeserializationCont
 		failWithStatus(SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH, return) \
 	}
 
-void JSONDeserializationContext_endStructure(compat_type(JSONDeserializationContext *) selfPtr) {
-	JSONDeserializationContext * self = selfPtr;
-	
+#define _failIfContainerNotFullyRead() \
+	if (self->nextNodeIndex < self->currentNode->value.count) { \
+		failWithStatus(JSON_SERIALIZATION_ERROR_CONTAINER_NOT_FULLY_READ, return) \
+	}
+
+void JSONDeserializationContext_endStructure(JSONDeserializationContext * self) {
 	if (self->nodeStackCurrentDepth > 0) {
 		_failIfNotCurrentContainerType(JSON_SERIALIZATION_CONTAINER_TYPE_STRUCTURE)
 		self->currentNode = self->nodeStack[--self->nodeStackCurrentDepth].node;
@@ -313,9 +303,7 @@ void JSONDeserializationContext_endStructure(compat_type(JSONDeserializationCont
 	}
 }
 
-void JSONDeserializationContext_endDictionary(compat_type(JSONDeserializationContext *) selfPtr) {
-	JSONDeserializationContext * self = selfPtr;
-	
+void JSONDeserializationContext_endDictionary(JSONDeserializationContext * self) {
 	if (self->nodeStackCurrentDepth > 0) {
 		_failIfNotCurrentContainerType(JSON_SERIALIZATION_CONTAINER_TYPE_DICTIONARY)
 		self->currentNode = self->nodeStack[--self->nodeStackCurrentDepth].node;
@@ -331,11 +319,10 @@ void JSONDeserializationContext_endDictionary(compat_type(JSONDeserializationCon
 	}
 }
 
-void JSONDeserializationContext_endArray(compat_type(JSONDeserializationContext *) selfPtr) {
-	JSONDeserializationContext * self = selfPtr;
-	
+void JSONDeserializationContext_endArray(JSONDeserializationContext * self) {
 	if (self->nodeStackCurrentDepth > 0) {
 		_failIfNotCurrentContainerType(JSON_SERIALIZATION_CONTAINER_TYPE_ARRAY)
+		_failIfContainerNotFullyRead()
 		self->currentNode = self->nodeStack[--self->nodeStackCurrentDepth].node;
 		self->nextNodeIndex = self->nodeStack[self->nodeStackCurrentDepth].index;
 		self->currentContainerType = self->nodeStack[self->nodeStackCurrentDepth].containerType;
@@ -345,6 +332,7 @@ void JSONDeserializationContext_endArray(compat_type(JSONDeserializationContext 
 		
 	} else {
 		_failIfNotCurrentContainerType(JSON_SERIALIZATION_CONTAINER_TYPE_ARRAY)
+		_failIfContainerNotFullyRead()
 		self->finished = true;
 	}
 }
@@ -361,8 +349,7 @@ void JSONDeserializationContext_endArray(compat_type(JSONDeserializationContext 
 		failWithStatus(SERIALIZATION_ERROR_NUMBER_OUT_OF_RANGE,) \
 	}
 
-int8_t JSONDeserializationContext_readInt8(compat_type(JSONDeserializationContext *) selfPtr, const char * key) {
-	JSONDeserializationContext * self = selfPtr;
+int8_t JSONDeserializationContext_readInt8(JSONDeserializationContext * self, const char * key) {
 	size_t nextNodeIndex = 0;
 	
 	getNextNodeIndex(0)
@@ -371,8 +358,7 @@ int8_t JSONDeserializationContext_readInt8(compat_type(JSONDeserializationContex
 	return self->currentNode->subitems[nextNodeIndex].value.number;
 }
 
-uint8_t JSONDeserializationContext_readUInt8(compat_type(JSONDeserializationContext *) selfPtr, const char * key) {
-	JSONDeserializationContext * self = selfPtr;
+uint8_t JSONDeserializationContext_readUInt8(JSONDeserializationContext * self, const char * key) {
 	size_t nextNodeIndex = 0;
 	
 	getNextNodeIndex(0)
@@ -381,8 +367,7 @@ uint8_t JSONDeserializationContext_readUInt8(compat_type(JSONDeserializationCont
 	return self->currentNode->subitems[nextNodeIndex].value.number;
 }
 
-int16_t JSONDeserializationContext_readInt16(compat_type(JSONDeserializationContext *) selfPtr, const char * key) {
-	JSONDeserializationContext * self = selfPtr;
+int16_t JSONDeserializationContext_readInt16(JSONDeserializationContext * self, const char * key) {
 	size_t nextNodeIndex = 0;
 	
 	getNextNodeIndex(0)
@@ -391,8 +376,7 @@ int16_t JSONDeserializationContext_readInt16(compat_type(JSONDeserializationCont
 	return self->currentNode->subitems[nextNodeIndex].value.number;
 }
 
-uint16_t JSONDeserializationContext_readUInt16(compat_type(JSONDeserializationContext *) selfPtr, const char * key) {
-	JSONDeserializationContext * self = selfPtr;
+uint16_t JSONDeserializationContext_readUInt16(JSONDeserializationContext * self, const char * key) {
 	size_t nextNodeIndex = 0;
 	
 	getNextNodeIndex(0)
@@ -401,8 +385,7 @@ uint16_t JSONDeserializationContext_readUInt16(compat_type(JSONDeserializationCo
 	return self->currentNode->subitems[nextNodeIndex].value.number;
 }
 
-int32_t JSONDeserializationContext_readInt32(compat_type(JSONDeserializationContext *) selfPtr, const char * key) {
-	JSONDeserializationContext * self = selfPtr;
+int32_t JSONDeserializationContext_readInt32(JSONDeserializationContext * self, const char * key) {
 	size_t nextNodeIndex = 0;
 	
 	getNextNodeIndex(0)
@@ -411,8 +394,7 @@ int32_t JSONDeserializationContext_readInt32(compat_type(JSONDeserializationCont
 	return self->currentNode->subitems[nextNodeIndex].value.number;
 }
 
-uint32_t JSONDeserializationContext_readUInt32(compat_type(JSONDeserializationContext *) selfPtr, const char * key) {
-	JSONDeserializationContext * self = selfPtr;
+uint32_t JSONDeserializationContext_readUInt32(JSONDeserializationContext * self, const char * key) {
 	size_t nextNodeIndex = 0;
 	
 	getNextNodeIndex(0)
@@ -421,8 +403,7 @@ uint32_t JSONDeserializationContext_readUInt32(compat_type(JSONDeserializationCo
 	return self->currentNode->subitems[nextNodeIndex].value.number;
 }
 
-int64_t JSONDeserializationContext_readInt64(compat_type(JSONDeserializationContext *) selfPtr, const char * key) {
-	JSONDeserializationContext * self = selfPtr;
+int64_t JSONDeserializationContext_readInt64(JSONDeserializationContext * self, const char * key) {
 	size_t nextNodeIndex = 0;
 	
 	getNextNodeIndex(0)
@@ -454,8 +435,7 @@ int64_t JSONDeserializationContext_readInt64(compat_type(JSONDeserializationCont
 	return self->currentNode->subitems[nextNodeIndex].value.number;
 }
 
-uint64_t JSONDeserializationContext_readUInt64(compat_type(JSONDeserializationContext *) selfPtr, const char * key) {
-	JSONDeserializationContext * self = selfPtr;
+uint64_t JSONDeserializationContext_readUInt64(JSONDeserializationContext * self, const char * key) {
 	size_t nextNodeIndex = 0;
 	
 	getNextNodeIndex(0)
@@ -487,8 +467,7 @@ uint64_t JSONDeserializationContext_readUInt64(compat_type(JSONDeserializationCo
 	return self->currentNode->subitems[nextNodeIndex].value.number;
 }
 
-float JSONDeserializationContext_readFloat(compat_type(JSONDeserializationContext *) selfPtr, const char * key) {
-	JSONDeserializationContext * self = selfPtr;
+float JSONDeserializationContext_readFloat(JSONDeserializationContext * self, const char * key) {
 	size_t nextNodeIndex = 0;
 	
 	getNextNodeIndex(0)
@@ -497,8 +476,7 @@ float JSONDeserializationContext_readFloat(compat_type(JSONDeserializationContex
 	return self->currentNode->subitems[nextNodeIndex].value.number;
 }
 
-double JSONDeserializationContext_readDouble(compat_type(JSONDeserializationContext *) selfPtr, const char * key) {
-	JSONDeserializationContext * self = selfPtr;
+double JSONDeserializationContext_readDouble(JSONDeserializationContext * self, const char * key) {
 	size_t nextNodeIndex = 0;
 	
 	getNextNodeIndex(0)
@@ -506,8 +484,7 @@ double JSONDeserializationContext_readDouble(compat_type(JSONDeserializationCont
 	return self->currentNode->subitems[nextNodeIndex].value.number;
 }
 
-const char * JSONDeserializationContext_readString(compat_type(JSONDeserializationContext *) selfPtr, const char * key) {
-	JSONDeserializationContext * self = selfPtr;
+const char * JSONDeserializationContext_readString(JSONDeserializationContext * self, const char * key) {
 	size_t nextNodeIndex = 0;
 	
 	getNextNodeIndex(0)
@@ -515,8 +492,7 @@ const char * JSONDeserializationContext_readString(compat_type(JSONDeserializati
 	return self->currentNode->subitems[nextNodeIndex].value.string;
 }
 
-bool JSONDeserializationContext_readBoolean(compat_type(JSONDeserializationContext *) selfPtr, const char * key) {
-	JSONDeserializationContext * self = selfPtr;
+bool JSONDeserializationContext_readBoolean(JSONDeserializationContext * self, const char * key) {
 	size_t nextNodeIndex = 0;
 	
 	getNextNodeIndex(0)
@@ -524,8 +500,7 @@ bool JSONDeserializationContext_readBoolean(compat_type(JSONDeserializationConte
 	return self->currentNode->subitems[nextNodeIndex].value.boolean;
 }
 
-int JSONDeserializationContext_readEnumeration(compat_type(JSONDeserializationContext *) selfPtr, const char * key, ...) {
-	JSONDeserializationContext * self = selfPtr;
+int JSONDeserializationContext_readEnumeration(JSONDeserializationContext * self, const char * key, ...) {
 	va_list args;
 	const char * enumName;
 	bool found = false;
@@ -590,7 +565,6 @@ int JSONDeserializationContext_readEnumeration(compat_type(JSONDeserializationCo
 #define initialBits32 0x00000000
 #define initialBits64 0x0000000000000000ull
 #define readBitfieldImplementation(NBITS) \
-	JSONDeserializationContext * self = selfPtr; \
 	va_list args; \
 	unsigned int bitIndex, numBitsMatched = 0; \
 	const char * bitName; \
@@ -635,28 +609,26 @@ int JSONDeserializationContext_readEnumeration(compat_type(JSONDeserializationCo
 	\
 	return bits;
 
-uint8_t JSONDeserializationContext_readBitfield8(compat_type(JSONDeserializationContext *) selfPtr, const char * key, ...) {
+uint8_t JSONDeserializationContext_readBitfield8(JSONDeserializationContext * self, const char * key, ...) {
 	readBitfieldImplementation(8)
 }
 
-uint16_t JSONDeserializationContext_readBitfield16(compat_type(JSONDeserializationContext *) selfPtr, const char * key, ...) {
+uint16_t JSONDeserializationContext_readBitfield16(JSONDeserializationContext * self, const char * key, ...) {
 	readBitfieldImplementation(16)
 }
 
-uint32_t JSONDeserializationContext_readBitfield32(compat_type(JSONDeserializationContext *) selfPtr, const char * key, ...) {
+uint32_t JSONDeserializationContext_readBitfield32(JSONDeserializationContext * self, const char * key, ...) {
 	readBitfieldImplementation(32)
 }
 
-uint64_t JSONDeserializationContext_readBitfield64(compat_type(JSONDeserializationContext *) selfPtr, const char * key, ...) {
+uint64_t JSONDeserializationContext_readBitfield64(JSONDeserializationContext * self, const char * key, ...) {
 	readBitfieldImplementation(64)
 }
 
 #undef _failIfNotOfType
 #undef _failIfNumberOutOfRange
 
-const char * JSONDeserializationContext_readNextDictionaryKey(compat_type(JSONDeserializationContext *) selfPtr) {
-	JSONDeserializationContext * self = selfPtr;
-	
+const char * JSONDeserializationContext_readNextDictionaryKey(JSONDeserializationContext * self) {
 	if (self->currentContainerType != JSON_SERIALIZATION_CONTAINER_TYPE_DICTIONARY) {
 		failWithStatus(SERIALIZATION_ERROR_INVALID_OPERATION, return NULL)
 	}
@@ -667,8 +639,7 @@ const char * JSONDeserializationContext_readNextDictionaryKey(compat_type(JSONDe
 	return self->currentNode->subitems[self->nextNodeIndex++].key;
 }
 
-bool JSONDeserializationContext_hasDictionaryKey(compat_type(JSONDeserializationContext *) selfPtr, const char * key) {
-	JSONDeserializationContext * self = selfPtr;
+bool JSONDeserializationContext_hasDictionaryKey(JSONDeserializationContext * self, const char * key) {
 	size_t subitemIndex;
 	
 	if (self->currentContainerType != JSON_SERIALIZATION_CONTAINER_TYPE_DICTIONARY) {

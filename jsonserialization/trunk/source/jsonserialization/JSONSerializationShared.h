@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2011 Alex Diener
+  Copyright (c) 2012 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -23,9 +23,6 @@
 #ifndef __JSON_SERIALIZATION_SHARED_H__
 #define __JSON_SERIALIZATION_SHARED_H__
 
-// writeTo<String|File|JSONNode> called without any data having been serialized
-#define JSON_SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER 100
-
 // The structure key being written was already used in the same structure
 #define JSON_SERIALIZATION_ERROR_DUPLICATE_STRUCTURE_KEY 101
 
@@ -37,6 +34,9 @@
 
 // writeTo<String|File|JSONNode> called without having properly terminated data serialization
 #define JSON_SERIALIZATION_ERROR_INCOMPLETE 104
+
+// endArray called while there's still data to read
+#define JSON_SERIALIZATION_ERROR_CONTAINER_NOT_FULLY_READ 105
 
 enum JSONSerializationContainerType {
 	JSON_SERIALIZATION_CONTAINER_TYPE_ARRAY,

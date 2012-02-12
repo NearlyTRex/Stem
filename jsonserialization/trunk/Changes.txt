@@ -1,3 +1,7 @@
+1.0.4
+ * Updated for stemobject 3.0.0 and serialization 1.2.2
+ * Added JSON_SERIALIZATION_ERROR_CONTAINER_NOT_FULLY_READ
+
 1.0.3
  * Updated for serialization 1.1.2
  * JSONSerializationContext's writeToString and writeToFile functions no longer fail to write to the outError struct on early failures

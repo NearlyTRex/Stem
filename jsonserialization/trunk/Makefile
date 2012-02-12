@@ -130,7 +130,6 @@ LINK_ORDER = \
 	serialization/libstem_serialization.a \
 	jsonio/libstem_jsonio.a \
 	utilities/libstem_utilities.a \
-	stubshell/libstemshell_stub.a \
 	stemobject/libstem_stemobject.a
 
 #Per-target dependencies
@@ -140,13 +139,11 @@ STEM_LIBRARY_DEPENDENCIES_library = \
 	serialization/libstem_serialization.a \
 	jsonio/libstem_jsonio.a \
 	utilities/libstem_utilities.a \
-	stubshell/libstemshell_stub.a \
 	stemobject/libstem_stemobject.a
 STEM_LIBRARY_DEPENDENCIES_unittest = \
 	serialization/libstem_serialization.a \
 	jsonio/libstem_jsonio.a \
 	utilities/libstem_utilities.a \
-	stubshell/libstemshell_stub.a \
 	stemobject/libstem_stemobject.a
 STEM_SOURCE_DEPENDENCIES_library = 
 STEM_SOURCE_DEPENDENCIES_unittest = 
@@ -448,7 +445,7 @@ define copy_target_resources #(target, platform, resources_dir)
 	${foreach resource,${RESOURCES_$1} ${RESOURCES_$1_$2}, \
 		cp -r ${resource} $3${newline_and_tab} \
 	}
-	find $3 -name .svn -print0 | xargs -0 rm -rf
+	find $3 -name .svn -print0 -or -name .DS_Store -print0 | xargs -0 rm -rf
 endef
 
 define assemble_executable_macosx #(target, configuration, platform)

@@ -336,15 +336,20 @@ static void testNumberValues() {
 static void testLargeIntegerRepresentations() {
 	JSONDeserializationContext * context;
 	
-	context = JSONDeserializationContext_createWithString(stringAndLength("[\"-9007199254740993\", \"9007199254740993\", -9007199254740992, 9007199254740992, \"-9223372036854775807\", \"18446744073709551615\"]"));
+	context = JSONDeserializationContext_createWithString(stringAndLength("[\"-9007199254740993\", \"9007199254740993\", -9007199254740992, 9007199254740992, -9223372036854775808, \"-9223372036854775807\", \"18446744073709551615\"]"));
 	TestCase_assert(context != NULL, "Expected non-NULL but got NULL");
 	if (context == NULL) {return;} // Suppress clang warning
-	beginAndVerifyArray("", 6)
+	beginAndVerifyArray("", 7)
 	readAndVerifyNumber(int64_t, "", -((1ll << DBL_MANT_DIG) + 1))
 	readAndVerifyNumber(uint64_t, "", (1ull << DBL_MANT_DIG) + 1)
 	readAndVerifyNumber(int64_t, "", -(1ll << DBL_MANT_DIG))
 	readAndVerifyNumber(uint64_t, "", 1ull << DBL_MANT_DIG)
+	
+	// INT64_MIN is exactly representable as a double, so it must be serialized as a number
+	readAndVerifyNumber(int64_t, "", INT64_MIN)
+	// INT64_MIN + 1 is not representable as a double, so it must be serialized as a string
 	readAndVerifyNumber(int64_t, "", INT64_MIN + 1)
+	
 	readAndVerifyNumber(uint64_t, "", UINT64_MAX)
 	context->endArray(context);
 	context->dispose(context);
@@ -419,13 +424,13 @@ static void testBitfields() {
 	TestCase_assert(context != NULL, "Expected non-NULL but got NULL");
 	if (context == NULL) {return;} // Suppress clang warning
 	beginAndVerifyArray("", 12)
-	readAndVerifyBitfield(8, "", 0xAA, "bit_0", "bit_1", "bit_2", "bit_3", "bit_4", "bit_5", "bit_6", "bit_7");
+	readAndVerifyBitfield(8, "", 0xAA, "bit_0", "bit_1", "bit_2", "bit_3", "bit_4", "bit_5", "bit_6", "bit_7", NULL);
 	readAndVerifyBitfield(8, "", 0x57, "bit0", "bit1", "bit2", "bit3", "bit4", "bit5", "bit6", NULL);
-	readAndVerifyBitfield(16, "", 0xF001, "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F");
+	readAndVerifyBitfield(16, "", 0xF001, "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F", NULL);
 	readAndVerifyBitfield(16, "", 0x000F, "b0", "b1", "b2", "b3", "b4", "b5", NULL);
-	readAndVerifyBitfield(32, "", 0xF0000001, "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "1A", "1B", "1C", "1D", "1E", "1F");
+	readAndVerifyBitfield(32, "", 0xF0000001, "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "1A", "1B", "1C", "1D", "1E", "1F", NULL);
 	readAndVerifyBitfield(32, "", 0x0000001E, "b0", "b1", "b2", "b3", "b4", "b5", NULL);
-	readAndVerifyBitfield(64, "", 0xF000000000000001ull, "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "1A", "1B", "1C", "1D", "1E", "1F", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "2A", "2B", "2C", "2D", "2E", "2F", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "3A", "3B", "3C", "3D", "3E", "3F");
+	readAndVerifyBitfield(64, "", 0xF000000000000001ull, "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "1A", "1B", "1C", "1D", "1E", "1F", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "2A", "2B", "2C", "2D", "2E", "2F", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "3A", "3B", "3C", "3D", "3E", "3F", NULL);
 	readAndVerifyBitfield(64, "", 0x000000000000003Cull, "b0", "b1", "b2", "b3", "b4", "b5", NULL);
 	readAndVerifyBitfield(8, "", 0x00, NULL);
 	readAndVerifyBitfield(16, "", 0x0000, NULL);
@@ -448,13 +453,13 @@ static void testBitfields() {
 	TestCase_assert(context != NULL, "Expected non-NULL but got NULL");
 	if (context == NULL) {return;} // Suppress clang warning
 	beginAndVerifyArray("", 8)
-	readAndVerifyBitfield(8, "", 0xAA, "bit_0", "bit_1", "bit_2", "bit_3", "bit_4", "bit_5", "bit_6", "bit_7");
+	readAndVerifyBitfield(8, "", 0xAA, "bit_0", "bit_1", "bit_2", "bit_3", "bit_4", "bit_5", "bit_6", "bit_7", NULL);
 	readAndVerifyBitfield(8, "", 0x57, "bit0", "bit1", "bit2", "bit3", "bit4", "bit5", "bit6", NULL);
-	readAndVerifyBitfield(16, "", 0xF001, "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F");
+	readAndVerifyBitfield(16, "", 0xF001, "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F", NULL);
 	readAndVerifyBitfield(16, "", 0x000F, "b0", "b1", "b2", "b3", "b4", "b5", NULL);
-	readAndVerifyBitfield(32, "", 0xF0000001, "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "1A", "1B", "1C", "1D", "1E", "1F");
+	readAndVerifyBitfield(32, "", 0xF0000001, "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "1A", "1B", "1C", "1D", "1E", "1F", NULL);
 	readAndVerifyBitfield(32, "", 0x0000001E, "b0", "b1", "b2", "b3", "b4", "b5", NULL);
-	readAndVerifyBitfield(64, "", 0xF000000000000001ull, "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "1A", "1B", "1C", "1D", "1E", "1F", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "2A", "2B", "2C", "2D", "2E", "2F", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "3A", "3B", "3C", "3D", "3E", "3F");
+	readAndVerifyBitfield(64, "", 0xF000000000000001ull, "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "1A", "1B", "1C", "1D", "1E", "1F", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "2A", "2B", "2C", "2D", "2E", "2F", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "3A", "3B", "3C", "3D", "3E", "3F", NULL);
 	readAndVerifyBitfield(64, "", 0x000000000000003Cull, "b0", "b1", "b2", "b3", "b4", "b5", NULL);
 	context->endArray(context);
 	context->dispose(context);
@@ -665,7 +670,7 @@ static void testDictionaries() {
 	context->endDictionary(context);
 	context->dispose(context);
 	
-	context = JSONDeserializationContext_createWithString(stringAndLength("{\"\": -1, \"\": 0, \"\": 1, \"\": 2, \"\": 3, \"\": 4, \"\": 5, \"\": 6, \"\": 7, \"\": 8, \"\": 9, \"\": \"10\", \"\": true, \"\": \"enum\", \"\": [\"13\"], \"\": [\"14\"], \"\": [\"15\"], \"\": [\"16\"], \"\": [], \"\": {\"\": 0}, \"\": {\"\": 0, \"\": 0}}"));
+	context = JSONDeserializationContext_createWithString(stringAndLength("{\"\": -1, \"\": 0, \"\": 1, \"\": 2, \"\": 3, \"\": 4, \"\": 5, \"\": 6, \"\": 7, \"\": 8, \"\": 9, \"\": \"10\", \"\": true, \"\": \"enum\", \"\": [\"13\"], \"\": [\"14\"], \"\": [\"15\"], \"\": [\"16\"], \"\": [], \"\": {}, \"\": {\"\": 0, \"\": 0}}"));
 	TestCase_assert(context != NULL, "Expected non-NULL but got NULL");
 	if (context == NULL) {return;} // Suppress clang warning
 	beginAndVerifyDictionary("", 21)
@@ -1116,24 +1121,24 @@ static void testErrorReporting() {
 	_testFiveFailures("[{}]", "[[]]", "[0]", "[false]", "[null]",
 	             SERIALIZATION_ERROR_INCORRECT_TYPE,
 	             context->beginArray(context, "");,
-	             context->readEnumeration(context, "");)
+	             context->readEnumeration(context, "", NULL);)
 	
 	_testFiveFailures("[{}]", "[0]", "[\"\"]", "[false]", "[null]",
 	             SERIALIZATION_ERROR_INCORRECT_TYPE,
 	             context->beginArray(context, "");,
-	             context->readBitfield8(context, "");)
+	             context->readBitfield8(context, "", NULL);)
 	_testFiveFailures("[{}]", "[0]", "[\"\"]", "[false]", "[null]",
 	             SERIALIZATION_ERROR_INCORRECT_TYPE,
 	             context->beginArray(context, "");,
-	             context->readBitfield16(context, "");)
+	             context->readBitfield16(context, "", NULL);)
 	_testFiveFailures("[{}]", "[0]", "[\"\"]", "[false]", "[null]",
 	             SERIALIZATION_ERROR_INCORRECT_TYPE,
 	             context->beginArray(context, "");,
-	             context->readBitfield32(context, "");)
+	             context->readBitfield32(context, "", NULL);)
 	_testFiveFailures("[{}]", "[0]", "[\"\"]", "[false]", "[null]",
 	             SERIALIZATION_ERROR_INCORRECT_TYPE,
 	             context->beginArray(context, "");,
-	             context->readBitfield64(context, "");)
+	             context->readBitfield64(context, "", NULL);)
 	
 #undef _testFiveFailures
 	
@@ -1422,6 +1427,8 @@ static void testErrorReporting() {
 	_testFailure("[[]]",
 	             SERIALIZATION_ERROR_CONTAINER_UNDERFLOW,
 	             context->beginArray(context, "");
+	             context->beginArray(context, "");
+	             context->endArray(context);
 	             context->endArray(context);,
 	             context->endArray(context);)
 	_testFailure("{}",
@@ -1431,6 +1438,8 @@ static void testErrorReporting() {
 	_testFailure("{\"\": {}}",
 	             SERIALIZATION_ERROR_CONTAINER_UNDERFLOW,
 	             context->beginStructure(context, "");
+	             context->beginStructure(context, "");
+	             context->endStructure(context);
 	             context->endStructure(context);,
 	             context->endStructure(context);)
 	_testFailure("{}",
@@ -1498,41 +1507,43 @@ static void testErrorReporting() {
 	             context->beginDictionary(context, "");,
 	             context->endStructure(context);)
 	
-	_testFailure("[]", SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, , context->readInt8(context, "key");)
-	_testFailure("[]", SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, , context->readUInt8(context, "key");)
-	_testFailure("[]", SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, , context->readInt16(context, "key");)
-	_testFailure("[]", SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, , context->readUInt16(context, "key");)
-	_testFailure("[]", SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, , context->readInt32(context, "key");)
-	_testFailure("[]", SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, , context->readUInt32(context, "key");)
-	_testFailure("[]", SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, , context->readInt64(context, "key");)
-	_testFailure("[]", SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, , context->readUInt64(context, "key");)
-	_testFailure("[]", SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, , context->readFloat(context, "key");)
-	_testFailure("[]", SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, , context->readDouble(context, "key");)
-	_testFailure("[]", SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, , context->readString(context, "key");)
-	_testFailure("[]", SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, , context->readBoolean(context, "key");)
-	_testFailure("[]", SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, , context->readEnumeration(context, "key", "", 0, NULL);)
-	_testFailure("[]", SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, , context->readBitfield8(context, "key", NULL);)
-	_testFailure("[]", SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, , context->readBitfield16(context, "key", NULL);)
-	_testFailure("[]", SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, , context->readBitfield32(context, "key", NULL);)
-	_testFailure("[]", SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, , context->readBitfield64(context, "key", NULL);)
+	_testFailure("[]", SERIALIZATION_ERROR_NO_CONTAINER_STARTED, , context->readInt8(context, "key");)
+	_testFailure("[]", SERIALIZATION_ERROR_NO_CONTAINER_STARTED, , context->readUInt8(context, "key");)
+	_testFailure("[]", SERIALIZATION_ERROR_NO_CONTAINER_STARTED, , context->readInt16(context, "key");)
+	_testFailure("[]", SERIALIZATION_ERROR_NO_CONTAINER_STARTED, , context->readUInt16(context, "key");)
+	_testFailure("[]", SERIALIZATION_ERROR_NO_CONTAINER_STARTED, , context->readInt32(context, "key");)
+	_testFailure("[]", SERIALIZATION_ERROR_NO_CONTAINER_STARTED, , context->readUInt32(context, "key");)
+	_testFailure("[]", SERIALIZATION_ERROR_NO_CONTAINER_STARTED, , context->readInt64(context, "key");)
+	_testFailure("[]", SERIALIZATION_ERROR_NO_CONTAINER_STARTED, , context->readUInt64(context, "key");)
+	_testFailure("[]", SERIALIZATION_ERROR_NO_CONTAINER_STARTED, , context->readFloat(context, "key");)
+	_testFailure("[]", SERIALIZATION_ERROR_NO_CONTAINER_STARTED, , context->readDouble(context, "key");)
+	_testFailure("[]", SERIALIZATION_ERROR_NO_CONTAINER_STARTED, , context->readString(context, "key");)
+	_testFailure("[]", SERIALIZATION_ERROR_NO_CONTAINER_STARTED, , context->readBoolean(context, "key");)
+	_testFailure("[]", SERIALIZATION_ERROR_NO_CONTAINER_STARTED, , context->readEnumeration(context, "key", "", 0, NULL);)
+	_testFailure("[]", SERIALIZATION_ERROR_NO_CONTAINER_STARTED, , context->readBitfield8(context, "key", NULL);)
+	_testFailure("[]", SERIALIZATION_ERROR_NO_CONTAINER_STARTED, , context->readBitfield16(context, "key", NULL);)
+	_testFailure("[]", SERIALIZATION_ERROR_NO_CONTAINER_STARTED, , context->readBitfield32(context, "key", NULL);)
+	_testFailure("[]", SERIALIZATION_ERROR_NO_CONTAINER_STARTED, , context->readBitfield64(context, "key", NULL);)
 	
-	_testFailure("[]", SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->readInt8(context, "key");)
-	_testFailure("[]", SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->readUInt8(context, "key");)
-	_testFailure("[]", SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->readInt16(context, "key");)
-	_testFailure("[]", SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->readUInt16(context, "key");)
-	_testFailure("[]", SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->readInt32(context, "key");)
-	_testFailure("[]", SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->readUInt32(context, "key");)
-	_testFailure("[]", SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->readInt64(context, "key");)
-	_testFailure("[]", SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->readUInt64(context, "key");)
-	_testFailure("[]", SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->readFloat(context, "key");)
-	_testFailure("[]", SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->readDouble(context, "key");)
-	_testFailure("[]", SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->readString(context, "key");)
-	_testFailure("[]", SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->readBoolean(context, "key");)
-	_testFailure("[]", SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->readEnumeration(context, "key", "", 0, NULL);)
-	_testFailure("[]", SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->readBitfield8(context, "key", NULL);)
-	_testFailure("[]", SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->readBitfield16(context, "key", NULL);)
-	_testFailure("[]", SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->readBitfield32(context, "key", NULL);)
-	_testFailure("[]", SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->readBitfield64(context, "key", NULL);)
+	_testFailure("[]", SERIALIZATION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->readInt8(context, "key");)
+	_testFailure("[]", SERIALIZATION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->readUInt8(context, "key");)
+	_testFailure("[]", SERIALIZATION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->readInt16(context, "key");)
+	_testFailure("[]", SERIALIZATION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->readUInt16(context, "key");)
+	_testFailure("[]", SERIALIZATION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->readInt32(context, "key");)
+	_testFailure("[]", SERIALIZATION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->readUInt32(context, "key");)
+	_testFailure("[]", SERIALIZATION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->readInt64(context, "key");)
+	_testFailure("[]", SERIALIZATION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->readUInt64(context, "key");)
+	_testFailure("[]", SERIALIZATION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->readFloat(context, "key");)
+	_testFailure("[]", SERIALIZATION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->readDouble(context, "key");)
+	_testFailure("[]", SERIALIZATION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->readString(context, "key");)
+	_testFailure("[]", SERIALIZATION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->readBoolean(context, "key");)
+	_testFailure("[]", SERIALIZATION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->readEnumeration(context, "key", "", 0, NULL);)
+	_testFailure("[]", SERIALIZATION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->readBitfield8(context, "key", NULL);)
+	_testFailure("[]", SERIALIZATION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->readBitfield16(context, "key", NULL);)
+	_testFailure("[]", SERIALIZATION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->readBitfield32(context, "key", NULL);)
+	_testFailure("[]", SERIALIZATION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->readBitfield64(context, "key", NULL);)
+	
+	_testFailure("[0]", JSON_SERIALIZATION_ERROR_CONTAINER_NOT_FULLY_READ, context->beginArray(context, "");, context->endArray(context);)
 	
 #undef _testFailure
 }

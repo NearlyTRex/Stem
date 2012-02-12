@@ -415,13 +415,13 @@ static void testBitfields() {
 	TestCase_assert(context != NULL, "Expected non-NULL but got NULL");
 	if (context == NULL) {return;} // Suppress clang warning
 	context->beginArray(context, "key");
-	context->writeBitfield8(context, "item", 0xAA, "bit_0", "bit_1", "bit_2", "bit_3", "bit_4", "bit_5", "bit_6", "bit_7");
+	context->writeBitfield8(context, "item", 0xAA, "bit_0", "bit_1", "bit_2", "bit_3", "bit_4", "bit_5", "bit_6", "bit_7", NULL);
 	context->writeBitfield8(context, "item", 0x57, "bit0", "bit1", "bit2", "bit3", "bit4", "bit5", "bit6", NULL);
-	context->writeBitfield16(context, "item", 0xF001, "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F");
+	context->writeBitfield16(context, "item", 0xF001, "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F", NULL);
 	context->writeBitfield16(context, "item", 0x000F, "b0", "b1", "b2", "b3", "b4", "b5", NULL);
-	context->writeBitfield32(context, "item", 0xF0000001, "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "1A", "1B", "1C", "1D", "1E", "1F");
+	context->writeBitfield32(context, "item", 0xF0000001, "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "1A", "1B", "1C", "1D", "1E", "1F", NULL);
 	context->writeBitfield32(context, "item", 0x0000001E, "b0", "b1", "b2", "b3", "b4", "b5", NULL);
-	context->writeBitfield64(context, "item", 0xF000000000000001ull, "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "1A", "1B", "1C", "1D", "1E", "1F", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "2A", "2B", "2C", "2D", "2E", "2F", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "3A", "3B", "3C", "3D", "3E", "3F");
+	context->writeBitfield64(context, "item", 0xF000000000000001ull, "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "1A", "1B", "1C", "1D", "1E", "1F", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "2A", "2B", "2C", "2D", "2E", "2F", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "3A", "3B", "3C", "3D", "3E", "3F", NULL);
 	context->writeBitfield64(context, "item", 0x000000000000003Cull, "b0", "b1", "b2", "b3", "b4", "b5", NULL);
 	context->writeBitfield8(context, "item", 0x00, NULL);
 	context->writeBitfield16(context, "item", 0x0000, NULL);
@@ -1644,14 +1644,14 @@ static void testErrorReporting() {
 	TestCase_assert(context->status == SERIALIZATION_ERROR_OK, "Expected %d but got %d", SERIALIZATION_ERROR_OK, context->status);
 	node = context->writeToJSONNode(context);
 	TestCase_assert(node == NULL, "Expected NULL but got %p", node);
-	TestCase_assert(context->status == JSON_SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER, "Expected %d but got %d", JSON_SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER, context->status);
+	TestCase_assert(context->status == SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER, "Expected %d but got %d", SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER, context->status);
 	context->dispose(context);
 	
 	context = JSONSerializationContext_create();
 	TestCase_assert(context->status == SERIALIZATION_ERROR_OK, "Expected %d but got %d", SERIALIZATION_ERROR_OK, context->status);
 	string = context->writeToString(context, JSONEmitterFormat_compact, NULL, NULL);
 	TestCase_assert(string == NULL, "Expected NULL but got %p", string);
-	TestCase_assert(context->status == JSON_SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER, "Expected %d but got %d", JSON_SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER, context->status);
+	TestCase_assert(context->status == SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER, "Expected %d but got %d", SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER, context->status);
 	context->dispose(context);
 	
 	context = JSONSerializationContext_create();
@@ -1661,7 +1661,7 @@ static void testErrorReporting() {
 	close(fd);
 	unlink(tempFilePath);
 	TestCase_assert(!success, "Expected false but got true");
-	TestCase_assert(context->status == JSON_SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER, "Expected %d but got %d", JSON_SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER, context->status);
+	TestCase_assert(context->status == SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER, "Expected %d but got %d", SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER, context->status);
 	context->dispose(context);
 	
 #define _testFailure(ERROR_STATUS, PREAMBLE_CODE, FAIL_CODE) \
@@ -1684,41 +1684,41 @@ static void testErrorReporting() {
 	TestCase_assert(context->status == ERROR_STATUS, "Expected %d but got %d (context->status setjmp)", ERROR_STATUS, context->status); \
 	context->dispose(context);
 	
-	_testFailure(SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, , context->writeInt8(context, "key", 0);)
-	_testFailure(SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, , context->writeUInt8(context, "key", 0);)
-	_testFailure(SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, , context->writeInt16(context, "key", 0);)
-	_testFailure(SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, , context->writeUInt16(context, "key", 0);)
-	_testFailure(SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, , context->writeInt32(context, "key", 0);)
-	_testFailure(SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, , context->writeUInt32(context, "key", 0);)
-	_testFailure(SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, , context->writeInt64(context, "key", 0);)
-	_testFailure(SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, , context->writeUInt64(context, "key", 0);)
-	_testFailure(SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, , context->writeFloat(context, "key", 0);)
-	_testFailure(SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, , context->writeDouble(context, "key", 0);)
-	_testFailure(SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, , context->writeString(context, "key", "");)
-	_testFailure(SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, , context->writeBoolean(context, "key", false);)
-	_testFailure(SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, , context->writeEnumeration(context, "key", 0, "", 0, NULL);)
-	_testFailure(SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, , context->writeBitfield8(context, "key", 0, NULL);)
-	_testFailure(SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, , context->writeBitfield16(context, "key", 0, NULL);)
-	_testFailure(SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, , context->writeBitfield32(context, "key", 0, NULL);)
-	_testFailure(SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, , context->writeBitfield64(context, "key", 0, NULL);)
+	_testFailure(SERIALIZATION_ERROR_NO_CONTAINER_STARTED, , context->writeInt8(context, "key", 0);)
+	_testFailure(SERIALIZATION_ERROR_NO_CONTAINER_STARTED, , context->writeUInt8(context, "key", 0);)
+	_testFailure(SERIALIZATION_ERROR_NO_CONTAINER_STARTED, , context->writeInt16(context, "key", 0);)
+	_testFailure(SERIALIZATION_ERROR_NO_CONTAINER_STARTED, , context->writeUInt16(context, "key", 0);)
+	_testFailure(SERIALIZATION_ERROR_NO_CONTAINER_STARTED, , context->writeInt32(context, "key", 0);)
+	_testFailure(SERIALIZATION_ERROR_NO_CONTAINER_STARTED, , context->writeUInt32(context, "key", 0);)
+	_testFailure(SERIALIZATION_ERROR_NO_CONTAINER_STARTED, , context->writeInt64(context, "key", 0);)
+	_testFailure(SERIALIZATION_ERROR_NO_CONTAINER_STARTED, , context->writeUInt64(context, "key", 0);)
+	_testFailure(SERIALIZATION_ERROR_NO_CONTAINER_STARTED, , context->writeFloat(context, "key", 0);)
+	_testFailure(SERIALIZATION_ERROR_NO_CONTAINER_STARTED, , context->writeDouble(context, "key", 0);)
+	_testFailure(SERIALIZATION_ERROR_NO_CONTAINER_STARTED, , context->writeString(context, "key", "");)
+	_testFailure(SERIALIZATION_ERROR_NO_CONTAINER_STARTED, , context->writeBoolean(context, "key", false);)
+	_testFailure(SERIALIZATION_ERROR_NO_CONTAINER_STARTED, , context->writeEnumeration(context, "key", 0, "", 0, NULL);)
+	_testFailure(SERIALIZATION_ERROR_NO_CONTAINER_STARTED, , context->writeBitfield8(context, "key", 0, NULL);)
+	_testFailure(SERIALIZATION_ERROR_NO_CONTAINER_STARTED, , context->writeBitfield16(context, "key", 0, NULL);)
+	_testFailure(SERIALIZATION_ERROR_NO_CONTAINER_STARTED, , context->writeBitfield32(context, "key", 0, NULL);)
+	_testFailure(SERIALIZATION_ERROR_NO_CONTAINER_STARTED, , context->writeBitfield64(context, "key", 0, NULL);)
 	
-	_testFailure(SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->writeInt8(context, "key", 0);)
-	_testFailure(SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->writeUInt8(context, "key", 0);)
-	_testFailure(SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->writeInt16(context, "key", 0);)
-	_testFailure(SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->writeUInt16(context, "key", 0);)
-	_testFailure(SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->writeInt32(context, "key", 0);)
-	_testFailure(SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->writeUInt32(context, "key", 0);)
-	_testFailure(SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->writeInt64(context, "key", 0);)
-	_testFailure(SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->writeUInt64(context, "key", 0);)
-	_testFailure(SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->writeFloat(context, "key", 0);)
-	_testFailure(SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->writeDouble(context, "key", 0);)
-	_testFailure(SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->writeString(context, "key", "");)
-	_testFailure(SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->writeBoolean(context, "key", false);)
-	_testFailure(SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->writeEnumeration(context, "key", 0, "", 0, NULL);)
-	_testFailure(SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->writeBitfield8(context, "key", 0, NULL);)
-	_testFailure(SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->writeBitfield16(context, "key", 0, NULL);)
-	_testFailure(SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->writeBitfield32(context, "key", 0, NULL);)
-	_testFailure(SERIALIAZTION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->writeBitfield64(context, "key", 0, NULL);)
+	_testFailure(SERIALIZATION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->writeInt8(context, "key", 0);)
+	_testFailure(SERIALIZATION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->writeUInt8(context, "key", 0);)
+	_testFailure(SERIALIZATION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->writeInt16(context, "key", 0);)
+	_testFailure(SERIALIZATION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->writeUInt16(context, "key", 0);)
+	_testFailure(SERIALIZATION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->writeInt32(context, "key", 0);)
+	_testFailure(SERIALIZATION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->writeUInt32(context, "key", 0);)
+	_testFailure(SERIALIZATION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->writeInt64(context, "key", 0);)
+	_testFailure(SERIALIZATION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->writeUInt64(context, "key", 0);)
+	_testFailure(SERIALIZATION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->writeFloat(context, "key", 0);)
+	_testFailure(SERIALIZATION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->writeDouble(context, "key", 0);)
+	_testFailure(SERIALIZATION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->writeString(context, "key", "");)
+	_testFailure(SERIALIZATION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->writeBoolean(context, "key", false);)
+	_testFailure(SERIALIZATION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->writeEnumeration(context, "key", 0, "", 0, NULL);)
+	_testFailure(SERIALIZATION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->writeBitfield8(context, "key", 0, NULL);)
+	_testFailure(SERIALIZATION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->writeBitfield16(context, "key", 0, NULL);)
+	_testFailure(SERIALIZATION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->writeBitfield32(context, "key", 0, NULL);)
+	_testFailure(SERIALIZATION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->writeBitfield64(context, "key", 0, NULL);)
 	
 	_testFailure(SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH,
 	             context->beginArray(context, "key");,
