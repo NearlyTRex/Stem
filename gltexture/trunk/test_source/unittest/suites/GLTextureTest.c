@@ -401,17 +401,6 @@ static void testFormatVersionVerification() {
 	
 	context->expectCall(context, context->beginStructure, "gltexture");
 	context->expectCall(context, context->readUInt16, "format_version", GLTEXTURE_SERIALIZATION_FORMAT_VERSION + 1);
-	context->expectCall(context, context->readString, "image_name", "foo");
-	context->expectCall(context, context->readEnumeration, "bitmap_data_format", GL_RGBA, enumKV(GL_ALPHA), enumKV(GL_LUMINANCE), enumKV(GL_LUMINANCE_ALPHA), enumKV(GL_RGB), enumKV(GL_RGBA), NULL);
-	context->expectCall(context, context->readEnumeration, "bitmap_data_type", GL_UNSIGNED_BYTE, enumKV(GL_UNSIGNED_BYTE), enumKV(GL_UNSIGNED_SHORT_5_6_5), enumKV(GL_UNSIGNED_SHORT_4_4_4_4), enumKV(GL_UNSIGNED_SHORT_5_5_5_1), NULL);
-	context->expectCall(context, context->readEnumeration, "min_filter", GL_NEAREST, enumKV(GL_NEAREST), enumKV(GL_LINEAR), enumKV(GL_NEAREST_MIPMAP_NEAREST), enumKV(GL_LINEAR_MIPMAP_NEAREST), enumKV(GL_NEAREST_MIPMAP_LINEAR), enumKV(GL_LINEAR_MIPMAP_LINEAR), NULL);
-	context->expectCall(context, context->readEnumeration, "mag_filter", GL_LINEAR, enumKV(GL_NEAREST), enumKV(GL_LINEAR), NULL);
-	context->expectCall(context, context->readEnumeration, "wrap_s", GL_REPEAT, enumKV(GL_CLAMP_TO_EDGE), enumKV(GL_REPEAT), NULL);
-	context->expectCall(context, context->readEnumeration, "wrap_t", GL_CLAMP_TO_EDGE, enumKV(GL_CLAMP_TO_EDGE), enumKV(GL_REPEAT), NULL);
-	context->expectCall(context, context->readEnumeration, "auto_blend_mode", AUTO_BLEND_MODE_NONE, enumKV(AUTO_BLEND_MODE_NONE), enumKV(AUTO_BLEND_MODE_OPAQUE), enumKV(AUTO_BLEND_MODE_TRANSPARENT_NONPREMULTIPLIED), enumKV(AUTO_BLEND_MODE_TRANSPARENT_PREMULTIPLIED), NULL);
-	context->expectCall(context, context->readBoolean, "auto_mipmap", false);
-	context->expectCall(context, context->readBoolean, "anisotropic_filter", false);
-	context->expectCall(context, context->endStructure);
 	
 	texturePtr = GLTexture_deserialize((DeserializationContext *) context);
 	

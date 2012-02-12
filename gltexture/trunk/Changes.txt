@@ -1,3 +1,8 @@
+1.0.3
+ * Updated for stemobject 3.0.0 and serialization 1.2.2
+ * Deserialization now fails if the format version is greater than GLTEXTURE_SERIALIZATION_FORMAT_VERSION
+ * GL_TEXTURE_2D is no longer enabled or disabled for OpenGL ES2
+
 1.0.2
  * Added format_version field
  * Test harness can now load arbitrary texture.json file from command line

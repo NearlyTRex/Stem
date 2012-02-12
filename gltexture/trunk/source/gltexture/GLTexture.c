@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2010 Alex Diener
+  Copyright (c) 2012 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -24,6 +24,8 @@
 #include "glgraphics/GLGraphics.h"
 #include <string.h>
 
+#define SUPERCLASS StemObject
+
 GLTexture * GLTexture_create(GLenum bitmapDataFormat,
                              GLenum bitmapDataType,
                              GLenum minFilter,
@@ -36,7 +38,7 @@ GLTexture * GLTexture_create(GLenum bitmapDataFormat,
 	stemobject_create_implementation(GLTexture, init, bitmapDataFormat, bitmapDataType, minFilter, magFilter, wrapS, wrapT, autoBlendMode, autoMipmap, anisotropicFilter)
 }
 
-void GLTexture_init(compat_type(GLTexture *) selfPtr,
+void GLTexture_init(GLTexture * self,
                     GLenum bitmapDataFormat,
                     GLenum bitmapDataType,
                     GLenum minFilter,
@@ -46,9 +48,7 @@ void GLTexture_init(compat_type(GLTexture *) selfPtr,
                     enum GLTextureAutoBlendMode autoBlendMode,
                     bool autoMipmap,
                     bool anisotropicFilter) {
-	GLTexture * self = selfPtr;
-	
-	StemObject_init(self);
+	call_super(init, self);
 	
 	self->imageName = NULL;
 	self->imageNameAllocated = false;
@@ -70,16 +70,14 @@ void GLTexture_init(compat_type(GLTexture *) selfPtr,
 	self->deactivate = GLTexture_deactivate;
 }
 
-void GLTexture_dispose(compat_type(GLTexture *) selfPtr) {
-	GLTexture * self = selfPtr;
-	
+void GLTexture_dispose(GLTexture * self) {
 	if (self->imageNameAllocated) {
 		free(self->imageName);
 	}
 	if (self->textureName != 0) {
 		glDeleteTextures(1, &self->textureName);
 	}
-	StemObject_dispose((StemObject *) self);
+	call_super(dispose, self);
 }
 
 GLTexture * GLTexture_deserialize(compat_type(DeserializationContext *) deserializationContext) {
@@ -96,8 +94,7 @@ GLTexture * GLTexture_deserialize(compat_type(DeserializationContext *) deserial
 	return self;
 }
 
-bool GLTexture_loadSerializedData(compat_type(GLTexture *) selfPtr, compat_type(DeserializationContext *) deserializationContext) {
-	GLTexture * self = selfPtr;
+bool GLTexture_loadSerializedData(GLTexture * self, compat_type(DeserializationContext *) deserializationContext) {
 	DeserializationContext * context = deserializationContext;
 	uint16_t formatVersion;
 	const char * imageName;
@@ -113,6 +110,9 @@ bool GLTexture_loadSerializedData(compat_type(GLTexture *) selfPtr, compat_type(
 	
 	context->beginStructure(context, "gltexture");
 	formatVersion     = context->readUInt16(context, "format_version");
+	if (context->status == SERIALIZATION_ERROR_OK && formatVersion > GLTEXTURE_SERIALIZATION_FORMAT_VERSION) {
+		return false;
+	}
 	imageName         = context->readString(context, "image_name");
 	bitmapDataFormat  = context->readEnumeration(context, "bitmap_data_format", enumKV(GL_ALPHA), enumKV(GL_LUMINANCE), enumKV(GL_LUMINANCE_ALPHA), enumKV(GL_RGB), enumKV(GL_RGBA), NULL);
 	bitmapDataType    = context->readEnumeration(context, "bitmap_data_type", enumKV(GL_UNSIGNED_BYTE), enumKV(GL_UNSIGNED_SHORT_5_6_5), enumKV(GL_UNSIGNED_SHORT_4_4_4_4), enumKV(GL_UNSIGNED_SHORT_5_5_5_1), NULL);
@@ -125,7 +125,7 @@ bool GLTexture_loadSerializedData(compat_type(GLTexture *) selfPtr, compat_type(
 	anisotropicFilter = context->readBoolean(context, "anisotropic_filter");
 	context->endStructure(context);
 	
-	if (context->status != SERIALIZATION_ERROR_OK || formatVersion > GLTEXTURE_SERIALIZATION_FORMAT_VERSION) {
+	if (context->status != SERIALIZATION_ERROR_OK) {
 		return false;
 	}
 	
@@ -136,8 +136,7 @@ bool GLTexture_loadSerializedData(compat_type(GLTexture *) selfPtr, compat_type(
 	return true;
 }
 
-void GLTexture_serialize(compat_type(GLTexture *) selfPtr, compat_type(SerializationContext *) serializationContext) {
-	GLTexture * self = selfPtr;
+void GLTexture_serialize(GLTexture * self, compat_type(SerializationContext *) serializationContext) {
 	SerializationContext * context = serializationContext;
 	
 	context->beginStructure(context, "gltexture");
@@ -155,9 +154,7 @@ void GLTexture_serialize(compat_type(GLTexture *) selfPtr, compat_type(Serializa
 	context->endStructure(context);
 }
 
-void GLTexture_setImage(compat_type(GLTexture *) selfPtr, GLint mipmapLevel, GLsizei width, GLsizei height, unsigned int bytesPerRow, void * bitmapData) {
-	GLTexture * self = selfPtr;
-	
+void GLTexture_setImage(GLTexture * self, GLint mipmapLevel, GLsizei width, GLsizei height, unsigned int bytesPerRow, void * bitmapData) {
 	if (self->textureName == 0) {
 		glGenTextures(1, &self->textureName);
 	}
@@ -222,9 +219,7 @@ void GLTexture_setImage(compat_type(GLTexture *) selfPtr, GLint mipmapLevel, GLs
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void GLTexture_updateImage(compat_type(GLTexture *) selfPtr, GLint mipmapLevel, GLint x, GLint y, GLsizei width, GLsizei height, unsigned int bytesPerRow, void * bitmapData) {
-	GLTexture * self = selfPtr;
-	
+void GLTexture_updateImage(GLTexture * self, GLint mipmapLevel, GLint x, GLint y, GLsizei width, GLsizei height, unsigned int bytesPerRow, void * bitmapData) {
 	if (self->textureName != 0) {
 		glBindTexture(GL_TEXTURE_2D, self->textureName);
 		if (bytesPerRow % 4 == 0) {
@@ -239,9 +234,7 @@ void GLTexture_updateImage(compat_type(GLTexture *) selfPtr, GLint mipmapLevel, 
 	}
 }
 
-void GLTexture_updateTexParams(compat_type(GLTexture *) selfPtr) {
-	GLTexture * self = selfPtr;
-	
+void GLTexture_updateTexParams(GLTexture * self) {
 	if (self->textureName != 0) {
 		glBindTexture(GL_TEXTURE_2D, self->textureName);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, self->wrapS);
@@ -262,9 +255,7 @@ void GLTexture_updateTexParams(compat_type(GLTexture *) selfPtr) {
 	}
 }
 
-void GLTexture_activate(compat_type(GLTexture *) selfPtr) {
-	GLTexture * self = selfPtr;
-	
+void GLTexture_activate(GLTexture * self) {
 	switch (self->autoBlendMode) {
 		case AUTO_BLEND_MODE_NONE:
 			break;
@@ -280,15 +271,17 @@ void GLTexture_activate(compat_type(GLTexture *) selfPtr) {
 			glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 			break;
 	}
-	glEnable(GL_TEXTURE_2D);
+	if (GLGraphics_getOpenGLAPIVersion() != GL_API_VERSION_ES2) {
+		glEnable(GL_TEXTURE_2D);
+	}
 	glBindTexture(GL_TEXTURE_2D, self->textureName);
 }
 
-void GLTexture_deactivate(compat_type(GLTexture *) selfPtr) {
-	GLTexture * self = selfPtr;
-	
+void GLTexture_deactivate(GLTexture * self) {
 	glBindTexture(GL_TEXTURE_2D, 0);
-	glDisable(GL_TEXTURE_2D);
+	if (GLGraphics_getOpenGLAPIVersion() != GL_API_VERSION_ES2) {
+		glDisable(GL_TEXTURE_2D);
+	}
 	switch (self->autoBlendMode) {
 		case AUTO_BLEND_MODE_NONE:
 		case AUTO_BLEND_MODE_OPAQUE:

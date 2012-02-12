@@ -19,6 +19,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 
 #define NUM_TEXTURES 5
 #define NUM_MIN_FILTERS 6
@@ -85,8 +86,8 @@ enum GLTextureAutoBlendMode autoBlendModes[NUM_AUTO_BLEND_MODES] = {
 
 static unsigned int viewportWidth = 800, viewportHeight = 600;
 static GLTexture * texture = NULL;
-static char * jsonPath = NULL;
-static char * jsonImagePath = NULL;
+static const char * jsonPath = NULL;
+static const char * jsonImagePath = NULL;
 static int textureIndex = 0;
 static int minFilterIndex = 0;
 static int magFilterIndex = 0;
@@ -153,7 +154,7 @@ static void loadTextureImage() {
 	}
 	
 	if (texture == NULL) {
-		image = PNGImageIO_loadPNGFile(resourcePath(textureImages[textureIndex].fileName), PNG_PIXEL_FORMAT_AUTOMATIC, true);
+		image = PNGImageIO_loadPNGFile(textureImages[textureIndex].fileName, PNG_PIXEL_FORMAT_AUTOMATIC, true);
 		texture = GLTexture_create(textureImages[textureIndex].dataFormat,
 		                           GL_UNSIGNED_BYTE,
 		                           minFilters[minFilterIndex],
@@ -170,10 +171,11 @@ static void loadTextureImage() {
 }
 
 void Target_init() {
+	int result;
+	
+	result = chdir(Shell_getResourcePath());
 	loadTextureImage();
-	
 	glEnableClientState(GL_VERTEX_ARRAY);
-	
 	Shell_mainLoop();
 }
 
@@ -212,7 +214,7 @@ static void drawControl(float x, float y, float scale, int parameter) {
 	glDrawArrays(GL_TRIANGLE_FAN, 0, sizeof(vertices) / sizeof(struct vertex_p2f));
 }
 
-void Target_draw() {
+bool Target_draw() {
 	float ratio = textureImages[textureIndex].ratio;
 	float minTexCoordX = (ratio > 1.0f ? -0.5f : -0.5f / ratio) * (extendedTexCoords ? 2.0f : 1.0f) + 0.5f;
 	float maxTexCoordX = (ratio > 1.0f ?  0.5f :  0.5f / ratio) * (extendedTexCoords ? 2.0f : 1.0f) + 0.5f;
@@ -288,6 +290,8 @@ void Target_draw() {
 		drawControl(viewRatio - 1.0f / 6.0f, 4.0f / 6.0f, 1.0f / 6.0f, zoomedOut);
 		drawControl(viewRatio - 1.0f / 6.0f, 5.0f / 6.0f, 1.0f / 6.0f, 0);
 	}
+	
+	return true;
 }
 
 void Target_resized(unsigned int newWidth, unsigned int newHeight) {
@@ -399,7 +403,7 @@ static void updateTextureImage() {
 	Shell_redisplay();
 }
 
-void Target_keyDown(unsigned int charCode, unsigned int keyCode) {
+void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned int keyModifiers) {
 	if (charCode == '[') {
 		cycleTextures(-1);
 		
@@ -456,7 +460,10 @@ void Target_keyDown(unsigned int charCode, unsigned int keyCode) {
 	}
 }
 
-void Target_keyUp(unsigned int charCode, unsigned int keyCode) {
+void Target_keyUp(unsigned int keyCode, unsigned int keyModifiers) {
+}
+
+void Target_keyModifiersChanged(unsigned int keyModifiers) {
 }
 
 void Target_mouseDown(unsigned int buttonNumber, float x, float y) {
@@ -533,7 +540,7 @@ static void printUsage() {
 	fprintf(stderr, "Usage: gltexture_testharness [-json /path/to/texture.json] [-imagepath /path/to/dir/containing/image/]\n");
 }
 
-void GLUTTarget_configure(int argc, char ** argv, struct GLUTShellConfiguration * configuration) {
+void GLUTTarget_configure(int argc, const char ** argv, struct GLUTShellConfiguration * configuration) {
 	int argIndex;
 	
 	for (argIndex = 1; argIndex < argc; argIndex++) {

@@ -4,13 +4,14 @@
 #include <stdio.h>
 #include <string.h>
 
+#define SUPERCLASS DeserializationContext
+
 TestDeserializationContext * TestDeserializationContext_create(jmp_buf * sequenceBreakJmpEnv) {
 	stemobject_create_implementation(TestDeserializationContext, init, sequenceBreakJmpEnv)
 }
 
-void TestDeserializationContext_init(compat_type(TestDeserializationContext *) selfPtr, jmp_buf * sequenceBreakJmpEnv) {
-	TestDeserializationContext * self = selfPtr;
-	DeserializationContext_init((DeserializationContext *) self);
+void TestDeserializationContext_init(TestDeserializationContext * self, jmp_buf * sequenceBreakJmpEnv) {
+	call_super(init, self);
 	
 	self->sequenceBreakJmpEnv = sequenceBreakJmpEnv;
 	self->error[0] = '\x00';
@@ -51,8 +52,7 @@ void TestDeserializationContext_init(compat_type(TestDeserializationContext *) s
 	self->finish = TestDeserializationContext_finish;
 }
 
-void TestDeserializationContext_dispose(compat_type(TestDeserializationContext *) selfPtr) {
-	TestDeserializationContext * self = selfPtr;
+void TestDeserializationContext_dispose(TestDeserializationContext * self) {
 	unsigned int expectedCallIndex;
 	
 	for (expectedCallIndex = 0; expectedCallIndex < self->numExpectedCalls; expectedCallIndex++) {
@@ -60,7 +60,7 @@ void TestDeserializationContext_dispose(compat_type(TestDeserializationContext *
 	}
 	free(self->expectedCalls);
 	
-	DeserializationContext_dispose(selfPtr);
+	call_super(dispose, self);
 }
 
 static char * functionNameForPtr(TestDeserializationContext * self, void * functionPtr) {
@@ -191,131 +191,111 @@ static void failIfRequested(TestDeserializationContext * self) {
 	}
 }
 
-size_t TestDeserializationContext_beginStructure(compat_type(TestDeserializationContext *) selfPtr, const char * key) {
-	TestDeserializationContext * self = selfPtr;
+void TestDeserializationContext_beginStructure(TestDeserializationContext * self, const char * key) {
 	verifyCallIsInSequence(self, self->beginStructure, key);
 	failIfRequested(self);
-	return self->expectedCalls[self->nextExpectedCallIndex - 1].returnValue.sizeValue;
 }
 
-size_t TestDeserializationContext_beginDictionary(compat_type(TestDeserializationContext *) selfPtr, const char * key) {
-	TestDeserializationContext * self = selfPtr;
+size_t TestDeserializationContext_beginDictionary(TestDeserializationContext * self, const char * key) {
 	verifyCallIsInSequence(self, self->beginDictionary, key);
 	failIfRequested(self);
 	return self->expectedCalls[self->nextExpectedCallIndex - 1].returnValue.sizeValue;
 }
 
-size_t TestDeserializationContext_beginArray(compat_type(TestDeserializationContext *) selfPtr, const char * key) {
-	TestDeserializationContext * self = selfPtr;
+size_t TestDeserializationContext_beginArray(TestDeserializationContext * self, const char * key) {
 	verifyCallIsInSequence(self, self->beginArray, key);
 	failIfRequested(self);
 	return self->expectedCalls[self->nextExpectedCallIndex - 1].returnValue.sizeValue;
 }
 
-void TestDeserializationContext_endStructure(compat_type(TestDeserializationContext *) selfPtr) {
-	TestDeserializationContext * self = selfPtr;
+void TestDeserializationContext_endStructure(TestDeserializationContext * self) {
 	verifyCallIsInSequence(self, self->endStructure);
 	failIfRequested(self);
 }
 
-void TestDeserializationContext_endDictionary(compat_type(TestDeserializationContext *) selfPtr) {
-	TestDeserializationContext * self = selfPtr;
+void TestDeserializationContext_endDictionary(TestDeserializationContext * self) {
 	verifyCallIsInSequence(self, self->endDictionary);
 	failIfRequested(self);
 }
 
-void TestDeserializationContext_endArray(compat_type(TestDeserializationContext *) selfPtr) {
-	TestDeserializationContext * self = selfPtr;
+void TestDeserializationContext_endArray(TestDeserializationContext * self) {
 	verifyCallIsInSequence(self, self->endArray);
 	failIfRequested(self);
 }
 
-int8_t TestDeserializationContext_readInt8(compat_type(TestDeserializationContext *) selfPtr, const char * key) {
-	TestDeserializationContext * self = selfPtr;
+int8_t TestDeserializationContext_readInt8(TestDeserializationContext * self, const char * key) {
 	verifyCallIsInSequence(self, self->readInt8, key);
 	failIfRequested(self);
 	return self->expectedCalls[self->nextExpectedCallIndex - 1].returnValue.int8Value;
 }
 
-uint8_t TestDeserializationContext_readUInt8(compat_type(TestDeserializationContext *) selfPtr, const char * key) {
-	TestDeserializationContext * self = selfPtr;
+uint8_t TestDeserializationContext_readUInt8(TestDeserializationContext * self, const char * key) {
 	verifyCallIsInSequence(self, self->readUInt8, key);
 	failIfRequested(self);
 	return self->expectedCalls[self->nextExpectedCallIndex - 1].returnValue.uint8Value;
 }
 
-int16_t TestDeserializationContext_readInt16(compat_type(TestDeserializationContext *) selfPtr, const char * key) {
-	TestDeserializationContext * self = selfPtr;
+int16_t TestDeserializationContext_readInt16(TestDeserializationContext * self, const char * key) {
 	verifyCallIsInSequence(self, self->readInt16, key);
 	failIfRequested(self);
 	return self->expectedCalls[self->nextExpectedCallIndex - 1].returnValue.int16Value;
 }
 
-uint16_t TestDeserializationContext_readUInt16(compat_type(TestDeserializationContext *) selfPtr, const char * key) {
-	TestDeserializationContext * self = selfPtr;
+uint16_t TestDeserializationContext_readUInt16(TestDeserializationContext * self, const char * key) {
 	verifyCallIsInSequence(self, self->readUInt16, key);
 	failIfRequested(self);
 	return self->expectedCalls[self->nextExpectedCallIndex - 1].returnValue.uint16Value;
 }
 
-int32_t TestDeserializationContext_readInt32(compat_type(TestDeserializationContext *) selfPtr, const char * key) {
-	TestDeserializationContext * self = selfPtr;
+int32_t TestDeserializationContext_readInt32(TestDeserializationContext * self, const char * key) {
 	verifyCallIsInSequence(self, self->readInt32, key);
 	failIfRequested(self);
 	return self->expectedCalls[self->nextExpectedCallIndex - 1].returnValue.int32Value;
 }
 
-uint32_t TestDeserializationContext_readUInt32(compat_type(TestDeserializationContext *) selfPtr, const char * key) {
-	TestDeserializationContext * self = selfPtr;
+uint32_t TestDeserializationContext_readUInt32(TestDeserializationContext * self, const char * key) {
 	verifyCallIsInSequence(self, self->readUInt32, key);
 	failIfRequested(self);
 	return self->expectedCalls[self->nextExpectedCallIndex - 1].returnValue.uint32Value;
 }
 
-int64_t TestDeserializationContext_readInt64(compat_type(TestDeserializationContext *) selfPtr, const char * key) {
-	TestDeserializationContext * self = selfPtr;
+int64_t TestDeserializationContext_readInt64(TestDeserializationContext * self, const char * key) {
 	verifyCallIsInSequence(self, self->readInt64, key);
 	failIfRequested(self);
 	return self->expectedCalls[self->nextExpectedCallIndex - 1].returnValue.int64Value;
 }
 
-uint64_t TestDeserializationContext_readUInt64(compat_type(TestDeserializationContext *) selfPtr, const char * key) {
-	TestDeserializationContext * self = selfPtr;
+uint64_t TestDeserializationContext_readUInt64(TestDeserializationContext * self, const char * key) {
 	verifyCallIsInSequence(self, self->readUInt64, key);
 	failIfRequested(self);
 	return self->expectedCalls[self->nextExpectedCallIndex - 1].returnValue.uint64Value;
 }
 
-float TestDeserializationContext_readFloat(compat_type(TestDeserializationContext *) selfPtr, const char * key) {
-	TestDeserializationContext * self = selfPtr;
+float TestDeserializationContext_readFloat(TestDeserializationContext * self, const char * key) {
 	verifyCallIsInSequence(self, self->readFloat, key);
 	failIfRequested(self);
 	return self->expectedCalls[self->nextExpectedCallIndex - 1].returnValue.floatValue;
 }
 
-double TestDeserializationContext_readDouble(compat_type(TestDeserializationContext *) selfPtr, const char * key) {
-	TestDeserializationContext * self = selfPtr;
+double TestDeserializationContext_readDouble(TestDeserializationContext * self, const char * key) {
 	verifyCallIsInSequence(self, self->readDouble, key);
 	failIfRequested(self);
 	return self->expectedCalls[self->nextExpectedCallIndex - 1].returnValue.doubleValue;
 }
 
-const char * TestDeserializationContext_readString(compat_type(TestDeserializationContext *) selfPtr, const char * key) {
-	TestDeserializationContext * self = selfPtr;
+const char * TestDeserializationContext_readString(TestDeserializationContext * self, const char * key) {
 	verifyCallIsInSequence(self, self->readString, key);
 	failIfRequested(self);
 	return self->expectedCalls[self->nextExpectedCallIndex - 1].returnValue.stringValue;
 }
 
-bool TestDeserializationContext_readBoolean(compat_type(TestDeserializationContext *) selfPtr, const char * key) {
-	TestDeserializationContext * self = selfPtr;
+bool TestDeserializationContext_readBoolean(TestDeserializationContext * self, const char * key) {
 	verifyCallIsInSequence(self, self->readBoolean, key);
 	failIfRequested(self);
 	return self->expectedCalls[self->nextExpectedCallIndex - 1].returnValue.boolValue;
 }
 
-int TestDeserializationContext_readEnumeration(compat_type(TestDeserializationContext *) selfPtr, const char * key, ...) {
-	TestDeserializationContext * self = selfPtr;
+int TestDeserializationContext_readEnumeration(TestDeserializationContext * self, const char * key, ...) {
 	va_list args;
 	
 	va_start(args, key);
@@ -325,8 +305,7 @@ int TestDeserializationContext_readEnumeration(compat_type(TestDeserializationCo
 	return self->expectedCalls[self->nextExpectedCallIndex - 1].returnValue.enumValue;
 }
 
-uint8_t TestDeserializationContext_readBitfield8(compat_type(TestDeserializationContext *) selfPtr, const char * key, ...) {
-	TestDeserializationContext * self = selfPtr;
+uint8_t TestDeserializationContext_readBitfield8(TestDeserializationContext * self, const char * key, ...) {
 	va_list args;
 	
 	va_start(args, key);
@@ -336,8 +315,7 @@ uint8_t TestDeserializationContext_readBitfield8(compat_type(TestDeserialization
 	return self->expectedCalls[self->nextExpectedCallIndex - 1].returnValue.uint8Value;
 }
 
-uint16_t TestDeserializationContext_readBitfield16(compat_type(TestDeserializationContext *) selfPtr, const char * key, ...) {
-	TestDeserializationContext * self = selfPtr;
+uint16_t TestDeserializationContext_readBitfield16(TestDeserializationContext * self, const char * key, ...) {
 	va_list args;
 	
 	va_start(args, key);
@@ -347,8 +325,7 @@ uint16_t TestDeserializationContext_readBitfield16(compat_type(TestDeserializati
 	return self->expectedCalls[self->nextExpectedCallIndex - 1].returnValue.uint16Value;
 }
 
-uint32_t TestDeserializationContext_readBitfield32(compat_type(TestDeserializationContext *) selfPtr, const char * key, ...) {
-	TestDeserializationContext * self = selfPtr;
+uint32_t TestDeserializationContext_readBitfield32(TestDeserializationContext * self, const char * key, ...) {
 	va_list args;
 	
 	va_start(args, key);
@@ -358,8 +335,7 @@ uint32_t TestDeserializationContext_readBitfield32(compat_type(TestDeserializati
 	return self->expectedCalls[self->nextExpectedCallIndex - 1].returnValue.uint32Value;
 }
 
-uint64_t TestDeserializationContext_readBitfield64(compat_type(TestDeserializationContext *) selfPtr, const char * key, ...) {
-	TestDeserializationContext * self = selfPtr;
+uint64_t TestDeserializationContext_readBitfield64(TestDeserializationContext * self, const char * key, ...) {
 	va_list args;
 	
 	va_start(args, key);
@@ -369,22 +345,19 @@ uint64_t TestDeserializationContext_readBitfield64(compat_type(TestDeserializati
 	return self->expectedCalls[self->nextExpectedCallIndex - 1].returnValue.uint64Value;
 }
 
-const char * TestDeserializationContext_readNextDictionaryKey(compat_type(TestDeserializationContext *) selfPtr) {
-	TestDeserializationContext * self = selfPtr;
+const char * TestDeserializationContext_readNextDictionaryKey(TestDeserializationContext * self) {
 	verifyCallIsInSequence(self, self->readNextDictionaryKey);
 	failIfRequested(self);
 	return self->expectedCalls[self->nextExpectedCallIndex - 1].returnValue.stringValue;
 }
 
-bool TestDeserializationContext_hasDictionaryKey(compat_type(TestDeserializationContext *) selfPtr, const char * key) {
-	TestDeserializationContext * self = selfPtr;
+bool TestDeserializationContext_hasDictionaryKey(TestDeserializationContext * self, const char * key) {
 	verifyCallIsInSequence(self, self->hasDictionaryKey, key);
 	failIfRequested(self);
 	return self->expectedCalls[self->nextExpectedCallIndex - 1].returnValue.boolValue;
 }
 
-void TestDeserializationContext_expectCall(compat_type(TestDeserializationContext *) selfPtr, void * functionPtr, ...) {
-	TestDeserializationContext * self = selfPtr;
+void TestDeserializationContext_expectCall(TestDeserializationContext * self, void * functionPtr, ...) {
 	va_list args;
 	
 	self->expectedCalls = realloc(self->expectedCalls, sizeof(struct TestDeserializationContext_expectedCall) * (self->numExpectedCalls + 1));
@@ -396,7 +369,7 @@ void TestDeserializationContext_expectCall(compat_type(TestDeserializationContex
 		self->expectedCalls[self->numExpectedCalls].key = va_arg(args, char *);
 	}
 	
-	if (functionPtr == self->beginStructure || functionPtr == self->beginDictionary || functionPtr == self->beginArray) {
+	if (functionPtr == self->beginDictionary || functionPtr == self->beginArray) {
 		self->expectedCalls[self->numExpectedCalls].returnValue.sizeValue = va_arg(args, size_t);
 		
 	} else if (functionPtr == self->readInt8) {
@@ -473,16 +446,12 @@ void TestDeserializationContext_expectCall(compat_type(TestDeserializationContex
 	self->numExpectedCalls++;
 }
 
-void TestDeserializationContext_failNthCall(compat_type(TestDeserializationContext *) selfPtr, unsigned int callIndex, int status) {
-	TestDeserializationContext * self = selfPtr;
-	
+void TestDeserializationContext_failNthCall(TestDeserializationContext * self, unsigned int callIndex, int status) {
 	self->callIndexToFail = callIndex;
 	self->failStatus = status;
 }
 
-void TestDeserializationContext_finish(compat_type(TestDeserializationContext *) selfPtr) {
-	TestDeserializationContext * self = selfPtr;
-	
+void TestDeserializationContext_finish(TestDeserializationContext * self) {
 	if (self->nextExpectedCallIndex < self->numExpectedCalls) {
 		snprintf(self->error, DESERIALIZATION_ERROR_MAX, "%d expected call%s still left in queue at end (next expected call is %s)", self->numExpectedCalls - self->nextExpectedCallIndex, self->numExpectedCalls - self->nextExpectedCallIndex == 1 ? "" : "s", functionNameForPtr(self, self->expectedCalls[self->nextExpectedCallIndex].functionPtr));
 		longjmp(*self->sequenceBreakJmpEnv, 4);

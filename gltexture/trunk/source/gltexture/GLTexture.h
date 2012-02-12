@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2010 Alex Diener
+  Copyright (c) 2012 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -40,8 +40,8 @@ enum GLTextureAutoBlendMode {
 	AUTO_BLEND_MODE_TRANSPARENT_PREMULTIPLIED
 };
 
-#define GLTexture_structContents \
-	StemObject_structContents \
+#define GLTexture_structContents(self_type) \
+	StemObject_structContents(self_type) \
 	\
 	bool imageNameAllocated; \
 	char * imageName; \
@@ -58,15 +58,13 @@ enum GLTextureAutoBlendMode {
 	bool autoMipmap; \
 	bool anisotropicFilter; \
 	\
-	void (* setImage)(compat_type(GLTexture *) self, GLint mipmapLevel, GLsizei width, GLsizei height, unsigned int bytesPerRow, void * bitmapData); \
-	void (* updateImage)(compat_type(GLTexture *) self, GLint mipmapLevel, GLint x, GLint y, GLsizei width, GLsizei height, unsigned int bytesPerRow, void * bitmapData); \
-	void (* updateTexParams)(compat_type(GLTexture *) self); \
-	void (* activate)(compat_type(GLTexture *) self); \
-	void (* deactivate)(compat_type(GLTexture *) self);
+	void (* setImage)(self_type * self, GLint mipmapLevel, GLsizei width, GLsizei height, unsigned int bytesPerRow, void * bitmapData); \
+	void (* updateImage)(self_type * self, GLint mipmapLevel, GLint x, GLint y, GLsizei width, GLsizei height, unsigned int bytesPerRow, void * bitmapData); \
+	void (* updateTexParams)(self_type * self); \
+	void (* activate)(self_type * self); \
+	void (* deactivate)(self_type * self);
 
-struct GLTexture {
-	GLTexture_structContents
-};
+stemobject_struct_definition(GLTexture)
 
 GLTexture * GLTexture_create(GLenum bitmapDataFormat,
                              GLenum bitmapDataType,
@@ -77,7 +75,7 @@ GLTexture * GLTexture_create(GLenum bitmapDataFormat,
                              enum GLTextureAutoBlendMode autoBlendMode,
                              bool autoMipmap,
                              bool anisotropicFilter);
-void GLTexture_init(compat_type(GLTexture *) self,
+void GLTexture_init(GLTexture * self,
                     GLenum bitmapDataFormat,
                     GLenum bitmapDataType,
                     GLenum minFilter,
@@ -87,18 +85,18 @@ void GLTexture_init(compat_type(GLTexture *) self,
                     enum GLTextureAutoBlendMode autoBlendMode,
                     bool autoMipmap,
                     bool anisotropicFilter);
-void GLTexture_dispose(compat_type(GLTexture *) selfPtr);
+void GLTexture_dispose(GLTexture * self);
 
 GLTexture * GLTexture_deserialize(compat_type(DeserializationContext *) deserializationContext);
-bool GLTexture_loadSerializedData(compat_type(GLTexture *) selfPtr, compat_type(DeserializationContext *) deserializationContext);
-void GLTexture_serialize(compat_type(GLTexture *) selfPtr, compat_type(SerializationContext *) serializationContext);
+bool GLTexture_loadSerializedData(GLTexture * self, compat_type(DeserializationContext *) deserializationContext);
+void GLTexture_serialize(GLTexture * self, compat_type(SerializationContext *) serializationContext);
 
-void GLTexture_setImage(compat_type(GLTexture *) selfPtr, GLint mipmapLevel, GLsizei width, GLsizei height, unsigned int bytesPerRow, void * bitmapData);
-void GLTexture_updateImage(compat_type(GLTexture *) selfPtr, GLint mipmapLevel, GLint x, GLint y, GLsizei width, GLsizei height, unsigned int bytesPerRow, void * bitmapData);
+void GLTexture_setImage(GLTexture * self, GLint mipmapLevel, GLsizei width, GLsizei height, unsigned int bytesPerRow, void * bitmapData);
+void GLTexture_updateImage(GLTexture * self, GLint mipmapLevel, GLint x, GLint y, GLsizei width, GLsizei height, unsigned int bytesPerRow, void * bitmapData);
 /* Applicable to minFilter, magFilter, wrapS, wrapT, and anisotropicFilter */
-void GLTexture_updateTexParams(compat_type(GLTexture *) selfPtr);
+void GLTexture_updateTexParams(GLTexture * self);
 
-void GLTexture_activate(compat_type(GLTexture *) selfPtr);
-void GLTexture_deactivate(compat_type(GLTexture *) selfPtr);
+void GLTexture_activate(GLTexture * self);
+void GLTexture_deactivate(GLTexture * self);
 
 #endif

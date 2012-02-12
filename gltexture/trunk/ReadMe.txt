@@ -6,7 +6,7 @@ For performance and/or fine-grained control over texturing, you may not want to 
 
 GLTexture serialization schema:
 structure "gltexture" {
-	uint16 "format_version" // 1
+	uint16 "format_version" // GLTEXTURE_SERIALIZATION_FORMAT_VERSION
 	string "image_name"
 	enumeration "bitmap_data_format", GL_ALPHA, GL_LUMINANCE_ALPHA, GL_RGB, GL_RGBA
 	enumeration "bitmap_data_type", GL_UNSIGNED_BYTE, GL_UNSIGNED_SHORT_5_6_5, GL_UNSIGNED_SHORT_4_4_4_4, GL_UNSIGNED_SHORT_5_5_5_1

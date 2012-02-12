@@ -4,13 +4,14 @@
 #include <stdio.h>
 #include <string.h>
 
+#define SUPERCLASS SerializationContext
+
 TestSerializationContext * TestSerializationContext_create(jmp_buf * sequenceBreakJmpEnv) {
 	stemobject_create_implementation(TestSerializationContext, init, sequenceBreakJmpEnv)
 }
 
-void TestSerializationContext_init(compat_type(TestSerializationContext *) selfPtr, jmp_buf * sequenceBreakJmpEnv) {
-	TestSerializationContext * self = selfPtr;
-	SerializationContext_init((SerializationContext *) self);
+void TestSerializationContext_init(TestSerializationContext * self, jmp_buf * sequenceBreakJmpEnv) {
+	call_super(init, self);
 	
 	self->sequenceBreakJmpEnv = sequenceBreakJmpEnv;
 	self->error[0] = '\x00';
@@ -49,8 +50,7 @@ void TestSerializationContext_init(compat_type(TestSerializationContext *) selfP
 	self->finish = TestSerializationContext_finish;
 }
 
-void TestSerializationContext_dispose(compat_type(TestSerializationContext *) selfPtr) {
-	TestSerializationContext * self = selfPtr;
+void TestSerializationContext_dispose(TestSerializationContext * self) {
 	unsigned int expectedCallIndex;
 	
 	for (expectedCallIndex = 0; expectedCallIndex < self->numExpectedCalls; expectedCallIndex++) {
@@ -58,7 +58,7 @@ void TestSerializationContext_dispose(compat_type(TestSerializationContext *) se
 	}
 	free(self->expectedCalls);
 	
-	SerializationContext_dispose(selfPtr);
+	call_super(dispose, self);
 }
 
 static char * functionNameForPtr(TestSerializationContext * self, void * functionPtr) {
@@ -304,116 +304,97 @@ static void failIfRequested(TestSerializationContext * self) {
 	}
 }
 
-void TestSerializationContext_beginStructure(compat_type(TestSerializationContext *) selfPtr, const char * key) {
-	TestSerializationContext * self = selfPtr;
+void TestSerializationContext_beginStructure(TestSerializationContext * self, const char * key) {
 	verifyCallIsInSequence(self, self->beginStructure, key);
 	failIfRequested(self);
 }
 
-void TestSerializationContext_beginDictionary(compat_type(TestSerializationContext *) selfPtr, const char * key) {
-	TestSerializationContext * self = selfPtr;
+void TestSerializationContext_beginDictionary(TestSerializationContext * self, const char * key) {
 	verifyCallIsInSequence(self, self->beginDictionary, key);
 	failIfRequested(self);
 }
 
-void TestSerializationContext_beginArray(compat_type(TestSerializationContext *) selfPtr, const char * key) {
-	TestSerializationContext * self = selfPtr;
+void TestSerializationContext_beginArray(TestSerializationContext * self, const char * key) {
 	verifyCallIsInSequence(self, self->beginArray, key);
 	failIfRequested(self);
 }
 
-void TestSerializationContext_endStructure(compat_type(TestSerializationContext *) selfPtr) {
-	TestSerializationContext * self = selfPtr;
+void TestSerializationContext_endStructure(TestSerializationContext * self) {
 	verifyCallIsInSequence(self, self->endStructure);
 	failIfRequested(self);
 }
 
-void TestSerializationContext_endDictionary(compat_type(TestSerializationContext *) selfPtr) {
-	TestSerializationContext * self = selfPtr;
+void TestSerializationContext_endDictionary(TestSerializationContext * self) {
 	verifyCallIsInSequence(self, self->endDictionary);
 	failIfRequested(self);
 }
 
-void TestSerializationContext_endArray(compat_type(TestSerializationContext *) selfPtr) {
-	TestSerializationContext * self = selfPtr;
+void TestSerializationContext_endArray(TestSerializationContext * self) {
 	verifyCallIsInSequence(self, self->endArray);
 	failIfRequested(self);
 }
 
-void TestSerializationContext_writeInt8(compat_type(TestSerializationContext *) selfPtr, const char * key, int8_t value) {
-	TestSerializationContext * self = selfPtr;
+void TestSerializationContext_writeInt8(TestSerializationContext * self, const char * key, int8_t value) {
 	verifyCallIsInSequence(self, self->writeInt8, key, value);
 	failIfRequested(self);
 }
 
-void TestSerializationContext_writeUInt8(compat_type(TestSerializationContext *) selfPtr, const char * key, uint8_t value) {
-	TestSerializationContext * self = selfPtr;
+void TestSerializationContext_writeUInt8(TestSerializationContext * self, const char * key, uint8_t value) {
 	verifyCallIsInSequence(self, self->writeUInt8, key, value);
 	failIfRequested(self);
 }
 
-void TestSerializationContext_writeInt16(compat_type(TestSerializationContext *) selfPtr, const char * key, int16_t value) {
-	TestSerializationContext * self = selfPtr;
+void TestSerializationContext_writeInt16(TestSerializationContext * self, const char * key, int16_t value) {
 	verifyCallIsInSequence(self, self->writeInt16, key, value);
 	failIfRequested(self);
 }
 
-void TestSerializationContext_writeUInt16(compat_type(TestSerializationContext *) selfPtr, const char * key, uint16_t value) {
-	TestSerializationContext * self = selfPtr;
+void TestSerializationContext_writeUInt16(TestSerializationContext * self, const char * key, uint16_t value) {
 	verifyCallIsInSequence(self, self->writeUInt16, key, value);
 	failIfRequested(self);
 }
 
-void TestSerializationContext_writeInt32(compat_type(TestSerializationContext *) selfPtr, const char * key, int32_t value) {
-	TestSerializationContext * self = selfPtr;
+void TestSerializationContext_writeInt32(TestSerializationContext * self, const char * key, int32_t value) {
 	verifyCallIsInSequence(self, self->writeInt32, key, value);
 	failIfRequested(self);
 }
 
-void TestSerializationContext_writeUInt32(compat_type(TestSerializationContext *) selfPtr, const char * key, uint32_t value) {
-	TestSerializationContext * self = selfPtr;
+void TestSerializationContext_writeUInt32(TestSerializationContext * self, const char * key, uint32_t value) {
 	verifyCallIsInSequence(self, self->writeUInt32, key, value);
 	failIfRequested(self);
 }
 
-void TestSerializationContext_writeInt64(compat_type(TestSerializationContext *) selfPtr, const char * key, int64_t value) {
-	TestSerializationContext * self = selfPtr;
+void TestSerializationContext_writeInt64(TestSerializationContext * self, const char * key, int64_t value) {
 	verifyCallIsInSequence(self, self->writeInt64, key, value);
 	failIfRequested(self);
 }
 
-void TestSerializationContext_writeUInt64(compat_type(TestSerializationContext *) selfPtr, const char * key, uint64_t value) {
-	TestSerializationContext * self = selfPtr;
+void TestSerializationContext_writeUInt64(TestSerializationContext * self, const char * key, uint64_t value) {
 	verifyCallIsInSequence(self, self->writeUInt64, key, value);
 	failIfRequested(self);
 }
 
-void TestSerializationContext_writeFloat(compat_type(TestSerializationContext *) selfPtr, const char * key, float value) {
-	TestSerializationContext * self = selfPtr;
+void TestSerializationContext_writeFloat(TestSerializationContext * self, const char * key, float value) {
 	verifyCallIsInSequence(self, self->writeFloat, key, value);
 	failIfRequested(self);
 }
 
-void TestSerializationContext_writeDouble(compat_type(TestSerializationContext *) selfPtr, const char * key, double value) {
-	TestSerializationContext * self = selfPtr;
+void TestSerializationContext_writeDouble(TestSerializationContext * self, const char * key, double value) {
 	verifyCallIsInSequence(self, self->writeDouble, key, value);
 	failIfRequested(self);
 }
 
-void TestSerializationContext_writeString(compat_type(TestSerializationContext *) selfPtr, const char * key, const char * value) {
-	TestSerializationContext * self = selfPtr;
+void TestSerializationContext_writeString(TestSerializationContext * self, const char * key, const char * value) {
 	verifyCallIsInSequence(self, self->writeString, key, value);
 	failIfRequested(self);
 }
 
-void TestSerializationContext_writeBoolean(compat_type(TestSerializationContext *) selfPtr, const char * key, bool value) {
-	TestSerializationContext * self = selfPtr;
+void TestSerializationContext_writeBoolean(TestSerializationContext * self, const char * key, bool value) {
 	verifyCallIsInSequence(self, self->writeBoolean, key, value);
 	failIfRequested(self);
 }
 
-void TestSerializationContext_writeEnumeration(compat_type(TestSerializationContext *) selfPtr, const char * key, int value, ...) {
-	TestSerializationContext * self = selfPtr;
+void TestSerializationContext_writeEnumeration(TestSerializationContext * self, const char * key, int value, ...) {
 	va_list args;
 	
 	va_start(args, value);
@@ -422,8 +403,7 @@ void TestSerializationContext_writeEnumeration(compat_type(TestSerializationCont
 	failIfRequested(self);
 }
 
-void TestSerializationContext_writeBitfield8(compat_type(TestSerializationContext *) selfPtr, const char * key, uint8_t value, ...) {
-	TestSerializationContext * self = selfPtr;
+void TestSerializationContext_writeBitfield8(TestSerializationContext * self, const char * key, uint8_t value, ...) {
 	va_list args;
 	
 	va_start(args, value);
@@ -432,8 +412,7 @@ void TestSerializationContext_writeBitfield8(compat_type(TestSerializationContex
 	failIfRequested(self);
 }
 
-void TestSerializationContext_writeBitfield16(compat_type(TestSerializationContext *) selfPtr, const char * key, uint16_t value, ...) {
-	TestSerializationContext * self = selfPtr;
+void TestSerializationContext_writeBitfield16(TestSerializationContext * self, const char * key, uint16_t value, ...) {
 	va_list args;
 	
 	va_start(args, value);
@@ -442,8 +421,7 @@ void TestSerializationContext_writeBitfield16(compat_type(TestSerializationConte
 	failIfRequested(self);
 }
 
-void TestSerializationContext_writeBitfield32(compat_type(TestSerializationContext *) selfPtr, const char * key, uint32_t value, ...) {
-	TestSerializationContext * self = selfPtr;
+void TestSerializationContext_writeBitfield32(TestSerializationContext * self, const char * key, uint32_t value, ...) {
 	va_list args;
 	
 	va_start(args, value);
@@ -452,8 +430,7 @@ void TestSerializationContext_writeBitfield32(compat_type(TestSerializationConte
 	failIfRequested(self);
 }
 
-void TestSerializationContext_writeBitfield64(compat_type(TestSerializationContext *) selfPtr, const char * key, uint64_t value, ...) {
-	TestSerializationContext * self = selfPtr;
+void TestSerializationContext_writeBitfield64(TestSerializationContext * self, const char * key, uint64_t value, ...) {
 	va_list args;
 	
 	va_start(args, value);
@@ -462,8 +439,7 @@ void TestSerializationContext_writeBitfield64(compat_type(TestSerializationConte
 	failIfRequested(self);
 }
 
-void TestSerializationContext_expectCall(compat_type(TestSerializationContext *) selfPtr, void * functionPtr, ...) {
-	TestSerializationContext * self = selfPtr;
+void TestSerializationContext_expectCall(TestSerializationContext * self, void * functionPtr, ...) {
 	va_list args;
 	
 	self->expectedCalls = realloc(self->expectedCalls, sizeof(struct TestSerializationContext_expectedCall) * (self->numExpectedCalls + 1));
@@ -543,16 +519,12 @@ void TestSerializationContext_expectCall(compat_type(TestSerializationContext *)
 	self->numExpectedCalls++;
 }
 
-void TestSerializationContext_failNthCall(compat_type(TestSerializationContext *) selfPtr, unsigned int callIndex, int status) {
-	TestSerializationContext * self = selfPtr;
-	
+void TestSerializationContext_failNthCall(TestSerializationContext * self, unsigned int callIndex, int status) {
 	self->callIndexToFail = callIndex;
 	self->failStatus = status;
 }
 
-void TestSerializationContext_finish(compat_type(TestSerializationContext *) selfPtr) {
-	TestSerializationContext * self = selfPtr;
-	
+void TestSerializationContext_finish(TestSerializationContext * self) {
 	if (self->nextExpectedCallIndex < self->numExpectedCalls) {
 		snprintf(self->error, SERIALIZATION_ERROR_MAX, "%d expected call%s still left in queue at end (next expected call is %s)", self->numExpectedCalls - self->nextExpectedCallIndex, self->numExpectedCalls - self->nextExpectedCallIndex == 1 ? "" : "s", functionNameForPtr(self, self->expectedCalls[self->nextExpectedCallIndex].functionPtr));
 		longjmp(*self->sequenceBreakJmpEnv, 4);
