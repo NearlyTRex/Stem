@@ -386,13 +386,17 @@ void BinarySerializationContext_writeUInt64(BinarySerializationContext * self, c
 }
 
 void BinarySerializationContext_writeFloat(BinarySerializationContext * self, const char * key, float value) {
+	union {float f; uint32_t u;} valueUnion = {value};	
+	
 	writePreamble(self, key);
-	writeUInt32Internal(self, *(uint32_t *) &value);
+	writeUInt32Internal(self, valueUnion.u);
 }
 
 void BinarySerializationContext_writeDouble(BinarySerializationContext * self, const char * key, double value) {
+	union {double f; uint64_t u;} valueUnion = {value};	
+	
 	writePreamble(self, key);
-	writeUInt64Internal(self, *(uint64_t *) &value);
+	writeUInt64Internal(self, valueUnion.u);
 }
 
 void BinarySerializationContext_writeString(BinarySerializationContext * self, const char * key, const char * value) {

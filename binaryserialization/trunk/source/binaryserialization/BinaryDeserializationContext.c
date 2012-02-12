@@ -421,17 +421,17 @@ uint64_t BinaryDeserializationContext_readUInt64(BinaryDeserializationContext * 
 }
 
 float BinaryDeserializationContext_readFloat(BinaryDeserializationContext * self, const char * key) {
-	uint32_t value;
+	union {uint32_t u; float f;} value;
 	
-	value = self->readUInt32(self, key);
-	return *(float *) &value;
+	value.u = self->readUInt32(self, key);
+	return value.f;
 }
 
 double BinaryDeserializationContext_readDouble(BinaryDeserializationContext * self, const char * key) {
-	uint64_t value;
+	union {uint64_t u; double f;} value;
 	
-	value = self->readUInt64(self, key);
-	return *(double *) &value;
+	value.u = self->readUInt64(self, key);
+	return value.f;
 }
 
 const char * BinaryDeserializationContext_readString(BinaryDeserializationContext * self, const char * key) {
