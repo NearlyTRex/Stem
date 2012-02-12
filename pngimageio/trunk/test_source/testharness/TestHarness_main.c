@@ -123,7 +123,7 @@ int main(int argc, char ** argv) {
 				} else if (!strcmp(argv[argIndex], "gray")) {
 					outputFormat = BITMAP_PIXEL_FORMAT_GRAY_8;
 				} else {
-					fprintf(stderr, "Invalid argument following -iformat: %s (must be rgba, rgb, grayalpha, or gray)\n", argv[argIndex]);
+					fprintf(stderr, "Invalid argument following -oformat: %s (must be rgba, rgb, grayalpha, or gray)\n", argv[argIndex]);
 					return EXIT_FAILURE;
 				}
 			}
@@ -190,7 +190,7 @@ int main(int argc, char ** argv) {
 	}
 	
 	if (inputIsRaw) {
-		inputImage = BitmapImage_create(inputFormat, inputWidth * BitmapImage_pixelFormatBytes(inputFormat), infileLength / (inputWidth * BitmapImage_pixelFormatBytes(inputFormat)), inputWidth * BitmapImage_pixelFormatBytes(inputFormat), infileData);
+		inputImage = BitmapImage_create(inputFormat, inputWidth, infileLength / (inputWidth * BitmapImage_pixelFormatBytes(inputFormat)), inputWidth * BitmapImage_pixelFormatBytes(inputFormat), infileData);
 	} else {
 		inputImage = PNGImageIO_loadPNGData(infileData, infileLength, inputFormat, flipInput);
 		if (inputImage == NULL) {
