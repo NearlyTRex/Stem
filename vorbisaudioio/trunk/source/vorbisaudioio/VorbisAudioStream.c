@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2011 Alex Diener
+  Copyright (c) 2012 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -24,6 +24,8 @@
 #include "vorbisaudioio/VorbisAudioIOPrivate.h"
 #include "vorbis/codec.h"
 
+#define SUPERCLASS PCMAudioStream
+
 VorbisAudioStream * VorbisAudioStream_createWithFile(const char * filePath) {
 	stemobject_create_implementation(VorbisAudioStream, initWithFile, filePath)
 }
@@ -33,7 +35,7 @@ VorbisAudioStream * VorbisAudioStream_createWithData(void * data, size_t length,
 }
 
 static void sharedInit(VorbisAudioStream * self) {
-	StemObject_init(self);
+	call_super(init, self);
 	
 	self->dataOwned = false;
 	self->currentSection = 0;
@@ -57,8 +59,7 @@ static void sharedGetInfo(VorbisAudioStream * self) {
 	self->sampleCount = ov_pcm_total(&self->vorbisFile, -1);
 }
 
-void VorbisAudioStream_initWithFile(compat_type(VorbisAudioStream *) selfPtr, const char * filePath) {
-	VorbisAudioStream * self = selfPtr;
+void VorbisAudioStream_initWithFile(VorbisAudioStream * self, const char * filePath) {
 	int status;
 	
 	sharedInit(self);
@@ -70,8 +71,7 @@ void VorbisAudioStream_initWithFile(compat_type(VorbisAudioStream *) selfPtr, co
 	sharedGetInfo(self);
 }
 
-void VorbisAudioStream_initWithData(compat_type(VorbisAudioStream *) selfPtr, void * data, size_t length, bool takeOwnership) {
-	VorbisAudioStream * self = selfPtr;
+void VorbisAudioStream_initWithData(VorbisAudioStream * self, void * data, size_t length, bool takeOwnership) {
 	ov_callbacks callbacks;
 	int status;
 	
@@ -92,18 +92,16 @@ void VorbisAudioStream_initWithData(compat_type(VorbisAudioStream *) selfPtr, vo
 	sharedGetInfo(self);
 }
 
-void VorbisAudioStream_dispose(compat_type(VorbisAudioStream *) selfPtr) {
-	VorbisAudioStream * self = selfPtr;
+void VorbisAudioStream_dispose(VorbisAudioStream * self) {
 	
 	ov_clear(&self->vorbisFile);
 	if (self->dataOwned) {
 		free((void *) self->readContext.data);
 	}
-	StemObject_dispose(self);
+	call_super(dispose, self);
 }
 
-size_t VorbisAudioStream_read(compat_type(VorbisAudioStream *) selfPtr, size_t length, void * buffer, bool loop) {
-	VorbisAudioStream * self = selfPtr;
+size_t VorbisAudioStream_read(VorbisAudioStream * self, size_t length, void * buffer, bool loop) {
 	long readResult;
 	long bytesRead = 0;
 	
@@ -125,9 +123,7 @@ size_t VorbisAudioStream_read(compat_type(VorbisAudioStream *) selfPtr, size_t l
 	return bytesRead;
 }
 
-void VorbisAudioStream_seek(compat_type(VorbisAudioStream *) selfPtr, long offset, int whence) {
-	VorbisAudioStream * self = selfPtr;
-	
+void VorbisAudioStream_seek(VorbisAudioStream * self, long offset, int whence) {
 	switch (whence) {
 		case SEEK_CUR:
 			offset += ov_pcm_tell(&self->vorbisFile);

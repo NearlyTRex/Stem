@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2011 Alex Diener
+  Copyright (c) 2012 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -31,25 +31,23 @@ typedef struct VorbisAudioStream VorbisAudioStream;
 #include "vorbis/vorbisfile.h"
 #include "utilities/IOUtilities.h"
 
-#define VorbisAudioStream_structContents \
-	PCMAudioStream_structContents \
+#define VorbisAudioStream_structContents(self_type) \
+	PCMAudioStream_structContents(self_type) \
 	\
 	struct memreadContext readContext; \
 	bool dataOwned; \
 	OggVorbis_File vorbisFile; \
 	int currentSection;
 
-struct VorbisAudioStream {
-	VorbisAudioStream_structContents
-};
+stemobject_struct_definition(VorbisAudioStream)
 
 VorbisAudioStream * VorbisAudioStream_createWithFile(const char * filePath);
 VorbisAudioStream * VorbisAudioStream_createWithData(void * data, size_t length, bool takeOwnership);
-void VorbisAudioStream_initWithFile(compat_type(VorbisAudioStream *) selfPtr, const char * filePath);
-void VorbisAudioStream_initWithData(compat_type(VorbisAudioStream *) selfPtr, void * data, size_t length, bool takeOwnership);
+void VorbisAudioStream_initWithFile(VorbisAudioStream * self, const char * filePath);
+void VorbisAudioStream_initWithData(VorbisAudioStream * self, void * data, size_t length, bool takeOwnership);
 
-void VorbisAudioStream_dispose(compat_type(VorbisAudioStream *) selfPtr);
-size_t VorbisAudioStream_read(compat_type(VorbisAudioStream *) selfPtr, size_t length, void * buffer, bool loop);
-void VorbisAudioStream_seek(compat_type(VorbisAudioStream *) selfPtr, long offset, int whence);
+void VorbisAudioStream_dispose(VorbisAudioStream * self);
+size_t VorbisAudioStream_read(VorbisAudioStream * self, size_t length, void * buffer, bool loop);
+void VorbisAudioStream_seek(VorbisAudioStream * self, long offset, int whence);
 
 #endif
