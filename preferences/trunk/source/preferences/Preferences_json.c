@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2010 Alex Diener
+  Copyright (c) 2012 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -31,8 +31,7 @@
 #define NAME_MAX FILENAME_MAX
 #endif
 
-void Preferences_loadPrivate(compat_type(Preferences *) selfPtr) {
-	Preferences * self = selfPtr;
+void Preferences_loadPrivate(Preferences * self) {
 	char fileName[NAME_MAX];
 	char filePath[PATH_MAX];
 	struct JSONNode * jsonData;
@@ -88,8 +87,7 @@ void Preferences_loadPrivate(compat_type(Preferences *) selfPtr) {
 	}
 }
 
-void Preferences_savePrivate(compat_type(Preferences *) selfPtr) {
-	Preferences * self = selfPtr;
+void Preferences_savePrivate(Preferences * self) {
 	size_t valueIndex;
 	struct JSONNode rootNode;
 	char fileName[NAME_MAX];

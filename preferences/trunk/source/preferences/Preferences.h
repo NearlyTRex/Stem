@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2010 Alex Diener
+  Copyright (c) 2012 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -82,68 +82,66 @@ struct Preferences_valueRecord {
 	union PreferencesValue defaultValue;
 };
 
-#define Preferences_structContents \
-	StemObject_structContents \
+#define Preferences_structContents(self_type) \
+	StemObject_structContents(self_type) \
 	\
 	const char * identifier; \
 	size_t valueCount; \
 	struct Preferences_valueRecord * values; \
 	EventDispatcher * eventDispatcher; \
 	\
-	void (* addInteger)(compat_type(Preferences *) self, const char * name, int defaultValue); \
-	void (* addFloat)(compat_type(Preferences *) self, const char * name, float defaultValue); \
-	void (* addBoolean)(compat_type(Preferences *) self, const char * name, bool defaultValue); \
-	void (* addString)(compat_type(Preferences *) self, const char * name, const char * defaultValue); \
-	void (* addData)(compat_type(Preferences *) self, const char * name, const void * defaultValue, size_t defaultLength); \
+	void (* addInteger)(self_type * self, const char * name, int defaultValue); \
+	void (* addFloat)(self_type * self, const char * name, float defaultValue); \
+	void (* addBoolean)(self_type * self, const char * name, bool defaultValue); \
+	void (* addString)(self_type * self, const char * name, const char * defaultValue); \
+	void (* addData)(self_type * self, const char * name, const void * defaultValue, size_t defaultLength); \
 	\
-	int (* getInteger)(compat_type(Preferences *) self, const char * name); \
-	float (* getFloat)(compat_type(Preferences *) self, const char * name); \
-	bool (* getBoolean)(compat_type(Preferences *) self, const char * name); \
-	const char * (* getString)(compat_type(Preferences *) self, const char * name); \
-	void * (* getData)(compat_type(Preferences *) self, const char * name, size_t * outLength); \
+	int (* getInteger)(self_type * self, const char * name); \
+	float (* getFloat)(self_type * self, const char * name); \
+	bool (* getBoolean)(self_type * self, const char * name); \
+	const char * (* getString)(self_type * self, const char * name); \
+	void * (* getData)(self_type * self, const char * name, size_t * outLength); \
 	\
-	void (* setInteger)(compat_type(Preferences *) self, const char * name, int value); \
-	void (* setFloat)(compat_type(Preferences *) self, const char * name, float value); \
-	void (* setBoolean)(compat_type(Preferences *) self, const char * name, bool value); \
-	void (* setString)(compat_type(Preferences *) self, const char * name, const char * value); \
-	void (* setData)(compat_type(Preferences *) self, const char * name, const void * value, size_t length); \
+	void (* setInteger)(self_type * self, const char * name, int value); \
+	void (* setFloat)(self_type * self, const char * name, float value); \
+	void (* setBoolean)(self_type * self, const char * name, bool value); \
+	void (* setString)(self_type * self, const char * name, const char * value); \
+	void (* setData)(self_type * self, const char * name, const void * value, size_t length); \
 	\
-	void (* load)(compat_type(Preferences *) self); \
-	void (* save)(compat_type(Preferences *) self); \
-	void (* loadDefaultValues)(compat_type(Preferences *) self); \
-	void (* loadDefaultValue)(compat_type(Preferences *) self, const char * name);
+	void (* load)(self_type * self); \
+	void (* save)(self_type * self); \
+	void (* loadDefaultValues)(self_type * self); \
+	void (* loadDefaultValue)(self_type * self, const char * name);
 
-struct Preferences {
-	Preferences_structContents
-};
+stemobject_struct_definition(Preferences)
 
 void Preferences_getFilePath(const char * fileName, char * outPath);
 
 Preferences * Preferences_create(const char * identifier);
-void Preferences_init(compat_type(Preferences *) selfPtr, const char * identifier);
-void Preferences_dispose(compat_type(Preferences *) selfPtr);
+void Preferences_init(Preferences * self, const char * identifier);
+void Preferences_dispose(Preferences * self);
 
-void Preferences_addInteger(compat_type(Preferences *) selfPtr, const char * name, int defaultValue);
-void Preferences_addFloat(compat_type(Preferences *) selfPtr, const char * name, float defaultValue);
-void Preferences_addBoolean(compat_type(Preferences *) selfPtr, const char * name, bool defaultValue);
-void Preferences_addString(compat_type(Preferences *) selfPtr, const char * name, const char * defaultValue);
-void Preferences_addData(compat_type(Preferences *) selfPtr, const char * name, const void * defaultValue, size_t defaultLength);
+void Preferences_addInteger(Preferences * self, const char * name, int defaultValue);
+void Preferences_addFloat(Preferences * self, const char * name, float defaultValue);
+void Preferences_addBoolean(Preferences * self, const char * name, bool defaultValue);
+void Preferences_addString(Preferences * self, const char * name, const char * defaultValue);
+void Preferences_addData(Preferences * self, const char * name, const void * defaultValue, size_t defaultLength);
 
-int Preferences_getInteger(compat_type(Preferences *) selfPtr, const char * name);
-float Preferences_getFloat(compat_type(Preferences *) selfPtr, const char * name);
-bool Preferences_getBoolean(compat_type(Preferences *) selfPtr, const char * name);
-const char * Preferences_getString(compat_type(Preferences *) selfPtr, const char * name);
-void * Preferences_getData(compat_type(Preferences *) selfPtr, const char * name, size_t * outLength);
+int Preferences_getInteger(Preferences * self, const char * name);
+float Preferences_getFloat(Preferences * self, const char * name);
+bool Preferences_getBoolean(Preferences * self, const char * name);
+const char * Preferences_getString(Preferences * self, const char * name);
+void * Preferences_getData(Preferences * self, const char * name, size_t * outLength);
 
-void Preferences_setInteger(compat_type(Preferences *) selfPtr, const char * name, int value);
-void Preferences_setFloat(compat_type(Preferences *) selfPtr, const char * name, float value);
-void Preferences_setBoolean(compat_type(Preferences *) selfPtr, const char * name, bool value);
-void Preferences_setString(compat_type(Preferences *) selfPtr, const char * name, const char * value);
-void Preferences_setData(compat_type(Preferences *) selfPtr, const char * name, const void * value, size_t length);
+void Preferences_setInteger(Preferences * self, const char * name, int value);
+void Preferences_setFloat(Preferences * self, const char * name, float value);
+void Preferences_setBoolean(Preferences * self, const char * name, bool value);
+void Preferences_setString(Preferences * self, const char * name, const char * value);
+void Preferences_setData(Preferences * self, const char * name, const void * value, size_t length);
 
-void Preferences_load(compat_type(Preferences *) selfPtr);
-void Preferences_save(compat_type(Preferences *) selfPtr);
-void Preferences_loadDefaultValues(compat_type(Preferences *) selfPtr);
-void Preferences_loadDefaultValue(compat_type(Preferences *) selfPtr, const char * name);
+void Preferences_load(Preferences * self);
+void Preferences_save(Preferences * self);
+void Preferences_loadDefaultValues(Preferences * self);
+void Preferences_loadDefaultValue(Preferences * self, const char * name);
 
 #endif

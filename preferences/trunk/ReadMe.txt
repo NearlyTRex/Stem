@@ -2,7 +2,7 @@ Preferences provides a simple interface for persistent key-value storage in a lo
 
 After creating a Preferences object, the schema of your preferences keys and values must be set up by a series of function calls. addInteger, addFloat, addBoolean, addString, and addData must be called for each key/value the Preferences object is to handle.
 
-Once keys have been registered, you can call load() to read all of the specified values from disk; getInteger, getFloat, getBoolean, getString, and getData to access them; setInteger, setFloat, setBoolean, setString, and setData to modify them; and save() to write them back to disk. You can also use loadDefaultValue() to reset a single value to its default, or loadDefaultValues() to set all values to their defaults.
+Once keys have been registered, you can call load() to read all of the specified values from disk; getInteger(), getFloat(), getBoolean(), getString(), and getData() to access them; setInteger(), setFloat(), setBoolean(), setString(), and setData() to modify them; and save() to write them back to disk. You can also use loadDefaultValue() to reset a single value to its default, or loadDefaultValues() to set all values to their defaults.
 
 If you want to save a file separate from the one maintained by Preferences itself, you can use the Preferences_getFilePath() function to retrieve an appropriate file path for it.
 

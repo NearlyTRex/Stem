@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2010 Alex Diener
+  Copyright (c) 2012 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -24,6 +24,8 @@
 #include "preferences/Preferences_private.h"
 #include <string.h>
 
+#define SUPERCLASS StemObject
+
 void Preferences_getFilePath(const char * fileName, char * outPath) {
 	Preferences_getFilePathPrivate(fileName, outPath);
 }
@@ -32,11 +34,10 @@ Preferences * Preferences_create(const char * identifier) {
 	stemobject_create_implementation(Preferences, init, identifier)
 }
 
-void Preferences_init(compat_type(Preferences *) selfPtr, const char * identifier) {
-	Preferences * self = selfPtr;
+void Preferences_init(Preferences * self, const char * identifier) {
 	char * newIdentifier;
 	
-	StemObject_init(self);
+	call_super(init, self);
 	
 	self->valueCount = 0;
 	self->values = NULL;
@@ -67,8 +68,7 @@ void Preferences_init(compat_type(Preferences *) selfPtr, const char * identifie
 	self->loadDefaultValue = Preferences_loadDefaultValue;
 }
 
-void Preferences_dispose(compat_type(Preferences *) selfPtr) {
-	Preferences * self = selfPtr;
+void Preferences_dispose(Preferences * self) {
 	size_t valueIndex;
 	
 	for (valueIndex = 0; valueIndex < self->valueCount; valueIndex++) {
@@ -85,11 +85,10 @@ void Preferences_dispose(compat_type(Preferences *) selfPtr) {
 	free(self->values);
 	free((char *) self->identifier);
 	
-	StemObject_dispose(selfPtr);
+	call_super(dispose, self);
 }
 
-void Preferences_addInteger(compat_type(Preferences *) selfPtr, const char * name, int defaultValue) {
-	Preferences * self = selfPtr;
+void Preferences_addInteger(Preferences * self, const char * name, int defaultValue) {
 	size_t valueIndex;
 	
 	for (valueIndex = 0; valueIndex < self->valueCount; valueIndex++) {
@@ -107,8 +106,7 @@ void Preferences_addInteger(compat_type(Preferences *) selfPtr, const char * nam
 	self->valueCount++;
 }
 
-void Preferences_addFloat(compat_type(Preferences *) selfPtr, const char * name, float defaultValue) {
-	Preferences * self = selfPtr;
+void Preferences_addFloat(Preferences * self, const char * name, float defaultValue) {
 	size_t valueIndex;
 	
 	for (valueIndex = 0; valueIndex < self->valueCount; valueIndex++) {
@@ -126,8 +124,7 @@ void Preferences_addFloat(compat_type(Preferences *) selfPtr, const char * name,
 	self->valueCount++;
 }
 
-void Preferences_addBoolean(compat_type(Preferences *) selfPtr, const char * name, bool defaultValue) {
-	Preferences * self = selfPtr;
+void Preferences_addBoolean(Preferences * self, const char * name, bool defaultValue) {
 	size_t valueIndex;
 	
 	for (valueIndex = 0; valueIndex < self->valueCount; valueIndex++) {
@@ -145,8 +142,7 @@ void Preferences_addBoolean(compat_type(Preferences *) selfPtr, const char * nam
 	self->valueCount++;
 }
 
-void Preferences_addString(compat_type(Preferences *) selfPtr, const char * name, const char * defaultValue) {
-	Preferences * self = selfPtr;
+void Preferences_addString(Preferences * self, const char * name, const char * defaultValue) {
 	size_t valueIndex;
 	
 	for (valueIndex = 0; valueIndex < self->valueCount; valueIndex++) {
@@ -166,8 +162,7 @@ void Preferences_addString(compat_type(Preferences *) selfPtr, const char * name
 	self->valueCount++;
 }
 
-void Preferences_addData(compat_type(Preferences *) selfPtr, const char * name, const void * defaultValue, size_t defaultLength) {
-	Preferences * self = selfPtr;
+void Preferences_addData(Preferences * self, const char * name, const void * defaultValue, size_t defaultLength) {
 	size_t valueIndex;
 	
 	for (valueIndex = 0; valueIndex < self->valueCount; valueIndex++) {
@@ -189,8 +184,7 @@ void Preferences_addData(compat_type(Preferences *) selfPtr, const char * name, 
 	self->valueCount++;
 }
 
-int Preferences_getInteger(compat_type(Preferences *) selfPtr, const char * name) {
-	Preferences * self = selfPtr;
+int Preferences_getInteger(Preferences * self, const char * name) {
 	size_t valueIndex;
 	
 	for (valueIndex = 0; valueIndex < self->valueCount; valueIndex++) {
@@ -201,8 +195,7 @@ int Preferences_getInteger(compat_type(Preferences *) selfPtr, const char * name
 	return 0;
 }
 
-float Preferences_getFloat(compat_type(Preferences *) selfPtr, const char * name) {
-	Preferences * self = selfPtr;
+float Preferences_getFloat(Preferences * self, const char * name) {
 	size_t valueIndex;
 	
 	for (valueIndex = 0; valueIndex < self->valueCount; valueIndex++) {
@@ -213,8 +206,7 @@ float Preferences_getFloat(compat_type(Preferences *) selfPtr, const char * name
 	return 0.0f;
 }
 
-bool Preferences_getBoolean(compat_type(Preferences *) selfPtr, const char * name) {
-	Preferences * self = selfPtr;
+bool Preferences_getBoolean(Preferences * self, const char * name) {
 	size_t valueIndex;
 	
 	for (valueIndex = 0; valueIndex < self->valueCount; valueIndex++) {
@@ -225,8 +217,7 @@ bool Preferences_getBoolean(compat_type(Preferences *) selfPtr, const char * nam
 	return false;
 }
 
-const char * Preferences_getString(compat_type(Preferences *) selfPtr, const char * name) {
-	Preferences * self = selfPtr;
+const char * Preferences_getString(Preferences * self, const char * name) {
 	size_t valueIndex;
 	
 	for (valueIndex = 0; valueIndex < self->valueCount; valueIndex++) {
@@ -237,8 +228,7 @@ const char * Preferences_getString(compat_type(Preferences *) selfPtr, const cha
 	return NULL;
 }
 
-void * Preferences_getData(compat_type(Preferences *) selfPtr, const char * name, size_t * outLength) {
-	Preferences * self = selfPtr;
+void * Preferences_getData(Preferences * self, const char * name, size_t * outLength) {
 	size_t valueIndex;
 	
 	for (valueIndex = 0; valueIndex < self->valueCount; valueIndex++) {
@@ -252,8 +242,7 @@ void * Preferences_getData(compat_type(Preferences *) selfPtr, const char * name
 	return NULL;
 }
 
-void Preferences_setInteger(compat_type(Preferences *) selfPtr, const char * name, int value) {
-	Preferences * self = selfPtr;
+void Preferences_setInteger(Preferences * self, const char * name, int value) {
 	struct PreferencesEvent event;
 	
 	event.name = name;
@@ -265,8 +254,7 @@ void Preferences_setInteger(compat_type(Preferences *) selfPtr, const char * nam
 	Preferences_setIntegerPrivate(self, name, event.value.integer);
 }
 
-void Preferences_setFloat(compat_type(Preferences *) selfPtr, const char * name, float value) {
-	Preferences * self = selfPtr;
+void Preferences_setFloat(Preferences * self, const char * name, float value) {
 	struct PreferencesEvent event;
 	
 	event.name = name;
@@ -275,11 +263,10 @@ void Preferences_setFloat(compat_type(Preferences *) selfPtr, const char * name,
 	event.previousValue.number = self->getFloat(self, name);
 	self->eventDispatcher->dispatchEvent(self->eventDispatcher, Atom_fromString(PREFERENCES_EVENT_VALUE_CHANGED), &event);
 	
-	Preferences_setFloatPrivate(selfPtr, name, event.value.number);
+	Preferences_setFloatPrivate(self, name, event.value.number);
 }
 
-void Preferences_setBoolean(compat_type(Preferences *) selfPtr, const char * name, bool value) {
-	Preferences * self = selfPtr;
+void Preferences_setBoolean(Preferences * self, const char * name, bool value) {
 	struct PreferencesEvent event;
 	
 	event.name = name;
@@ -288,11 +275,10 @@ void Preferences_setBoolean(compat_type(Preferences *) selfPtr, const char * nam
 	event.previousValue.boolean = self->getBoolean(self, name);
 	self->eventDispatcher->dispatchEvent(self->eventDispatcher, Atom_fromString(PREFERENCES_EVENT_VALUE_CHANGED), &event);
 	
-	Preferences_setBooleanPrivate(selfPtr, name, event.value.boolean);
+	Preferences_setBooleanPrivate(self, name, event.value.boolean);
 }
 
-void Preferences_setString(compat_type(Preferences *) selfPtr, const char * name, const char * value) {
-	Preferences * self = selfPtr;
+void Preferences_setString(Preferences * self, const char * name, const char * value) {
 	struct PreferencesEvent event;
 	
 	event.name = name;
@@ -301,11 +287,10 @@ void Preferences_setString(compat_type(Preferences *) selfPtr, const char * name
 	event.previousValue.string = self->getString(self, name);
 	self->eventDispatcher->dispatchEvent(self->eventDispatcher, Atom_fromString(PREFERENCES_EVENT_VALUE_CHANGED), &event);
 	
-	Preferences_setStringPrivate(selfPtr, name, event.value.string);
+	Preferences_setStringPrivate(self, name, event.value.string);
 }
 
-void Preferences_setData(compat_type(Preferences *) selfPtr, const char * name, const void * value, size_t length) {
-	Preferences * self = selfPtr;
+void Preferences_setData(Preferences * self, const char * name, const void * value, size_t length) {
 	struct PreferencesEvent event;
 	
 	event.name = name;
@@ -315,19 +300,18 @@ void Preferences_setData(compat_type(Preferences *) selfPtr, const char * name, 
 	event.previousValue.data.bytes = self->getData(self, name, &event.previousValue.data.length);
 	self->eventDispatcher->dispatchEvent(self->eventDispatcher, Atom_fromString(PREFERENCES_EVENT_VALUE_CHANGED), &event);
 	
-	Preferences_setDataPrivate(selfPtr, name, event.value.data.bytes, event.value.data.length);
+	Preferences_setDataPrivate(self, name, event.value.data.bytes, event.value.data.length);
 }
 
-void Preferences_load(compat_type(Preferences *) selfPtr) {
-	Preferences_loadPrivate(selfPtr);
+void Preferences_load(Preferences * self) {
+	Preferences_loadPrivate(self);
 }
 
-void Preferences_save(compat_type(Preferences *) selfPtr) {
-	Preferences_savePrivate(selfPtr);
+void Preferences_save(Preferences * self) {
+	Preferences_savePrivate(self);
 }
 
-void Preferences_loadDefaultValues(compat_type(Preferences *) selfPtr) {
-	Preferences * self = selfPtr;
+void Preferences_loadDefaultValues(Preferences * self) {
 	size_t valueIndex;
 	
 	for (valueIndex = 0; valueIndex < self->valueCount; valueIndex++) {
@@ -335,8 +319,7 @@ void Preferences_loadDefaultValues(compat_type(Preferences *) selfPtr) {
 	}
 }
 
-void Preferences_loadDefaultValue(compat_type(Preferences *) selfPtr, const char * name) {
-	Preferences * self = selfPtr;
+void Preferences_loadDefaultValue(Preferences * self, const char * name) {
 	size_t valueIndex;
 	
 	for (valueIndex = 0; valueIndex < self->valueCount; valueIndex++) {

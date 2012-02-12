@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2010 Alex Diener
+  Copyright (c) 2012 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -23,8 +23,7 @@
 #include "preferences/Preferences_private.h"
 #include <string.h>
 
-void Preferences_setIntegerPrivate(compat_type(Preferences *) selfPtr, const char * name, int value) {
-	Preferences * self = selfPtr;
+void Preferences_setIntegerPrivate(Preferences * self, const char * name, int value) {
 	size_t valueIndex;
 	
 	for (valueIndex = 0; valueIndex < self->valueCount; valueIndex++) {
@@ -35,8 +34,7 @@ void Preferences_setIntegerPrivate(compat_type(Preferences *) selfPtr, const cha
 	}
 }
 
-void Preferences_setFloatPrivate(compat_type(Preferences *) selfPtr, const char * name, float value) {
-	Preferences * self = selfPtr;
+void Preferences_setFloatPrivate(Preferences * self, const char * name, float value) {
 	size_t valueIndex;
 	
 	for (valueIndex = 0; valueIndex < self->valueCount; valueIndex++) {
@@ -47,8 +45,7 @@ void Preferences_setFloatPrivate(compat_type(Preferences *) selfPtr, const char 
 	}
 }
 
-void Preferences_setBooleanPrivate(compat_type(Preferences *) selfPtr, const char * name, bool value) {
-	Preferences * self = selfPtr;
+void Preferences_setBooleanPrivate(Preferences * self, const char * name, bool value) {
 	size_t valueIndex;
 	
 	for (valueIndex = 0; valueIndex < self->valueCount; valueIndex++) {
@@ -59,8 +56,7 @@ void Preferences_setBooleanPrivate(compat_type(Preferences *) selfPtr, const cha
 	}
 }
 
-void Preferences_setStringPrivate(compat_type(Preferences *) selfPtr, const char * name, const char * value) {
-	Preferences * self = selfPtr;
+void Preferences_setStringPrivate(Preferences * self, const char * name, const char * value) {
 	size_t valueIndex;
 	
 	for (valueIndex = 0; valueIndex < self->valueCount; valueIndex++) {
@@ -73,8 +69,7 @@ void Preferences_setStringPrivate(compat_type(Preferences *) selfPtr, const char
 	}
 }
 
-void Preferences_setDataPrivate(compat_type(Preferences *) selfPtr, const char * name, const void * value, size_t length) {
-	Preferences * self = selfPtr;
+void Preferences_setDataPrivate(Preferences * self, const char * name, const void * value, size_t length) {
 	size_t valueIndex;
 	
 	for (valueIndex = 0; valueIndex < self->valueCount; valueIndex++) {

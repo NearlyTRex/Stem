@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2010 Alex Diener
+  Copyright (c) 2012 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -25,14 +25,14 @@
 
 #include "preferences/Preferences.h"
 
-void Preferences_setIntegerPrivate(compat_type(Preferences *) selfPtr, const char * name, int value);
-void Preferences_setFloatPrivate(compat_type(Preferences *) selfPtr, const char * name, float value);
-void Preferences_setBooleanPrivate(compat_type(Preferences *) selfPtr, const char * name, bool value);
-void Preferences_setStringPrivate(compat_type(Preferences *) selfPtr, const char * name, const char * value);
-void Preferences_setDataPrivate(compat_type(Preferences *) selfPtr, const char * name, const void * value, size_t length);
+void Preferences_setIntegerPrivate(Preferences * self, const char * name, int value);
+void Preferences_setFloatPrivate(Preferences * self, const char * name, float value);
+void Preferences_setBooleanPrivate(Preferences * self, const char * name, bool value);
+void Preferences_setStringPrivate(Preferences * self, const char * name, const char * value);
+void Preferences_setDataPrivate(Preferences * self, const char * name, const void * value, size_t length);
 
 void Preferences_getFilePathPrivate(const char * fileName, char * outFilePath);
-void Preferences_loadPrivate(compat_type(Preferences *) selfPtr);
-void Preferences_savePrivate(compat_type(Preferences *) selfPtr);
+void Preferences_loadPrivate(Preferences * self);
+void Preferences_savePrivate(Preferences * self);
 
 #endif

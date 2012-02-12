@@ -5,24 +5,24 @@
 static unsigned int loadCalls;
 static unsigned int saveCalls;
 
-void Preferences_loadPrivate(compat_type(Preferences *) selfPtr) {
+void Preferences_loadPrivate(Preferences * self) {
 	char data1[] = {0xFF, 0x00, 0x7F};
 	char data2[] = {0xAA};
 	
 	loadCalls++;
-	Preferences_setIntegerPrivate(selfPtr, "integer1", -3);
-	Preferences_setIntegerPrivate(selfPtr, "integer2", 0);
-	Preferences_setFloatPrivate(selfPtr, "float1", -4.5f);
-	Preferences_setFloatPrivate(selfPtr, "float2", 1.0f);
-	Preferences_setBooleanPrivate(selfPtr, "boolean1", false);
-	Preferences_setBooleanPrivate(selfPtr, "boolean2", true);
-	Preferences_setStringPrivate(selfPtr, "string1", "bar");
-	Preferences_setStringPrivate(selfPtr, "string2", "baz");
-	Preferences_setDataPrivate(selfPtr, "data1", data1, sizeof(data1));
-	Preferences_setDataPrivate(selfPtr, "data2", data2, sizeof(data2));
+	Preferences_setIntegerPrivate(self, "integer1", -3);
+	Preferences_setIntegerPrivate(self, "integer2", 0);
+	Preferences_setFloatPrivate(self, "float1", -4.5f);
+	Preferences_setFloatPrivate(self, "float2", 1.0f);
+	Preferences_setBooleanPrivate(self, "boolean1", false);
+	Preferences_setBooleanPrivate(self, "boolean2", true);
+	Preferences_setStringPrivate(self, "string1", "bar");
+	Preferences_setStringPrivate(self, "string2", "baz");
+	Preferences_setDataPrivate(self, "data1", data1, sizeof(data1));
+	Preferences_setDataPrivate(self, "data2", data2, sizeof(data2));
 }
 
-void Preferences_savePrivate(compat_type(Preferences *) selfPtr) {
+void Preferences_savePrivate(Preferences * self) {
 	saveCalls++;
 }
 
