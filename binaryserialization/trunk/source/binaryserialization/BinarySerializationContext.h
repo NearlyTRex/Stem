@@ -80,10 +80,10 @@ void BinarySerializationContext_writeFloat(BinarySerializationContext * self, co
 void BinarySerializationContext_writeDouble(BinarySerializationContext * self, const char * key, double value);
 void BinarySerializationContext_writeString(BinarySerializationContext * self, const char * key, const char * value);
 void BinarySerializationContext_writeBoolean(BinarySerializationContext * self, const char * key, bool value);
-void BinarySerializationContext_writeEnumeration(BinarySerializationContext * self, const char * key, int value, ...);
-void BinarySerializationContext_writeBitfield8(BinarySerializationContext * self, const char * key, uint8_t value, ...);
-void BinarySerializationContext_writeBitfield16(BinarySerializationContext * self, const char * key, uint16_t value, ...);
-void BinarySerializationContext_writeBitfield32(BinarySerializationContext * self, const char * key, uint32_t value, ...);
-void BinarySerializationContext_writeBitfield64(BinarySerializationContext * self, const char * key, uint64_t value, ...);
+void BinarySerializationContext_writeEnumeration(BinarySerializationContext * self, const char * key, int value, ...) __attribute__((sentinel));
+void BinarySerializationContext_writeBitfield8(BinarySerializationContext * self, const char * key, uint8_t value, ...) __attribute__((sentinel));
+void BinarySerializationContext_writeBitfield16(BinarySerializationContext * self, const char * key, uint16_t value, ...) __attribute__((sentinel));
+void BinarySerializationContext_writeBitfield32(BinarySerializationContext * self, const char * key, uint32_t value, ...) __attribute__((sentinel));
+void BinarySerializationContext_writeBitfield64(BinarySerializationContext * self, const char * key, uint64_t value, ...) __attribute__((sentinel));
 
 #endif

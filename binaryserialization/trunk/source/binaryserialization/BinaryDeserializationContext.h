@@ -74,11 +74,11 @@ float BinaryDeserializationContext_readFloat(BinaryDeserializationContext * self
 double BinaryDeserializationContext_readDouble(BinaryDeserializationContext * self, const char * key);
 const char * BinaryDeserializationContext_readString(BinaryDeserializationContext * self, const char * key);
 bool BinaryDeserializationContext_readBoolean(BinaryDeserializationContext * self, const char * key);
-int BinaryDeserializationContext_readEnumeration(BinaryDeserializationContext * self, const char * key, ...);
-uint8_t BinaryDeserializationContext_readBitfield8(BinaryDeserializationContext * self, const char * key, ...);
-uint16_t BinaryDeserializationContext_readBitfield16(BinaryDeserializationContext * self, const char * key, ...);
-uint32_t BinaryDeserializationContext_readBitfield32(BinaryDeserializationContext * self, const char * key, ...);
-uint64_t BinaryDeserializationContext_readBitfield64(BinaryDeserializationContext * self, const char * key, ...);
+int BinaryDeserializationContext_readEnumeration(BinaryDeserializationContext * self, const char * key, ...) __attribute__((sentinel));
+uint8_t BinaryDeserializationContext_readBitfield8(BinaryDeserializationContext * self, const char * key, ...) __attribute__((sentinel));
+uint16_t BinaryDeserializationContext_readBitfield16(BinaryDeserializationContext * self, const char * key, ...) __attribute__((sentinel));
+uint32_t BinaryDeserializationContext_readBitfield32(BinaryDeserializationContext * self, const char * key, ...) __attribute__((sentinel));
+uint64_t BinaryDeserializationContext_readBitfield64(BinaryDeserializationContext * self, const char * key, ...) __attribute__((sentinel));
 const char * BinaryDeserializationContext_readNextDictionaryKey(BinaryDeserializationContext * self);
 bool BinaryDeserializationContext_hasDictionaryKey(BinaryDeserializationContext * self, const char * key);
 
