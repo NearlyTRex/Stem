@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2011 Alex Diener
+  Copyright (c) 2012 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -22,10 +22,10 @@
 
 #include "pcmaudio/PCMAudioStream.h"
 
-void PCMAudioStream_init(compat_type(PCMAudioStream *) selfPtr) {
-	PCMAudioStream * self = selfPtr;
-	
-	StemObject_init(self);
+#define SUPERCLASS StemObject
+
+void PCMAudioStream_init(PCMAudioStream * self) {
+	call_super(init, self);
 	
 	self->bytesPerSample = 0;
 	self->channelCount = 0;
@@ -37,6 +37,6 @@ void PCMAudioStream_init(compat_type(PCMAudioStream *) selfPtr) {
 	self->seek = NULL;
 }
 
-void PCMAudioStream_dispose(compat_type(PCMAudioStream *) selfPtr) {
-	StemObject_dispose(selfPtr);
+void PCMAudioStream_dispose(PCMAudioStream * self) {
+	call_super(dispose, self);
 }

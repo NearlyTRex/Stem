@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2011 Alex Diener
+  Copyright (c) 2012 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -29,8 +29,8 @@ typedef struct PCMAudioStream PCMAudioStream;
 #include <stdbool.h>
 #include <stdlib.h>
 
-#define PCMAudioStream_structContents \
-	StemObject_structContents \
+#define PCMAudioStream_structContents(self_type) \
+	StemObject_structContents(self_type) \
 	\
 	unsigned int bytesPerSample; \
 	unsigned int channelCount; \
@@ -38,15 +38,13 @@ typedef struct PCMAudioStream PCMAudioStream;
 	size_t sampleCount; \
 	\
 	/* length is in bytes; if loop is true, audio will seamlessly wrap to the beginning if the end is reached during that read call */ \
-	size_t (* read)(compat_type(PCMAudioStream *) self, size_t length, void * buffer, bool loop); \
+	size_t (* read)(self_type * self, size_t length, void * buffer, bool loop); \
 	/* offset is in sample frames (bytesPerSample * channelCount bytes); whence is SEEK_SET, SEEK_CUR, or SEEK_END */ \
-	void (* seek)(compat_type(PCMAudioStream *) self, long offset, int whence);
+	void (* seek)(self_type * self, long offset, int whence);
 
-struct PCMAudioStream {
-	PCMAudioStream_structContents
-};
+stemobject_struct_definition(PCMAudioStream)
 
-void PCMAudioStream_init(compat_type(PCMAudioStream *) selfPtr);
-void PCMAudioStream_dispose(compat_type(PCMAudioStream *) selfPtr);
+void PCMAudioStream_init(PCMAudioStream * self);
+void PCMAudioStream_dispose(PCMAudioStream * self);
 
 #endif
