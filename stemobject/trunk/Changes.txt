@@ -1,3 +1,7 @@
+3.0.1
+ * stemobject_copy_implementation fixed not to expect a void * selfPtr parameter
+ * <Name>_init() methods no longer use compat_type. Implementation and documentation updated accordingly.
+
 3.0.0
  * Instance methods no longer use compat_type for the self parameter
  * <Name>_structContents definitions are now macros which take self_type as a parameter

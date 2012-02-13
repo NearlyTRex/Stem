@@ -27,9 +27,7 @@ StemObject * StemObject_create() {
 	stemobject_create_implementation(StemObject, init)
 }
 
-void StemObject_init(compat_type(StemObject *) selfPtr) {
-	StemObject * self = selfPtr;
-	
+void StemObject_init(StemObject * self) {
 	self->protected_ivar(allocated) = false;
 	self->dispose = StemObject_dispose;
 }

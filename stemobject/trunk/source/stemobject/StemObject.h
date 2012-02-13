@@ -43,7 +43,6 @@
 	return self;
 
 #define stemobject_copy_implementation(class_name, initcopy_suffix, init_args...) \
-	class_name * self = selfPtr; \
 	class_name * copy; \
 	\
 	copy = malloc(sizeof(class_name)); \
@@ -66,7 +65,7 @@ typedef struct StemObject StemObject;
 stemobject_struct_definition(StemObject)
 
 StemObject * StemObject_create();
-void StemObject_init(compat_type(StemObject *) selfPtr);
+void StemObject_init(StemObject * self);
 
 void StemObject_dispose(StemObject * self);
 

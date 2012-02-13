@@ -2,7 +2,7 @@ StemObject serves as the base for Stem's object system. The object system is ver
 
 	* Class and instance methods follow the naming convention ClassName_methodName().
 
-	* All instance methods receive, as their first parameter, self_type * self. This is the instance on which the method is being called. This does not include <Name>_init(), which uses compat_type(ClassName *) selfPtr instead. See notes on self_type and compat_type below.
+	* All instance methods receive, as their first parameter, self_type * self. This is the instance on which the method is being called.
 
 	* All instance methods have a corresponding function pointer field in the object struct. These function pointers are set to their corresponding function implementations in <Name>_init().
 
@@ -14,7 +14,7 @@ StemObject serves as the base for Stem's object system. The object system is ver
 
 	* Calls to superclass instance methods take the form: call_super(methodName, self, ...); (see notes about call_super below)
 
-	* All subclass objects must call their superclass's <Name>_init() method as the first thing in the subclass's <Name>_init().
+	* All subclass objects must call their superclass's <Name>_init() method as the first thing in the subclass's <Name>_init(). Use the call_super macro for this.
 
 	* All subclass objects must call their superclass's <Name>_dispose() method as the last thing in the subclass's <Name>_dispose().
 
