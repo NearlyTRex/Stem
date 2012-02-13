@@ -13,10 +13,10 @@ structure "glbitmapfont" {
 			float "glyph_width"
 			float "advance"
 			array "texture_bounds"[4] {
-				float
-				float
-				float
-				float
+				float // left
+				float // right
+				float // bottom
+				float // top
 			}
 			dictionary "kerning_table" {
 				optional float " "

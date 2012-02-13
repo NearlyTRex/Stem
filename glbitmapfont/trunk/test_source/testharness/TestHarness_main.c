@@ -19,13 +19,14 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 
 #define FREEFORM_LENGTH_MAX 100
 
 static char freeformText[FREEFORM_LENGTH_MAX + 1];
 static unsigned int viewportWidth = 800, viewportHeight = 600;
 static GLBitmapFont * font;
-static char * jsonPath = NULL;
+static const char * jsonPath = NULL;
 static size_t lastIndexAtWidth = 0;
 static bool lastLeadingEdge = false;
 static GLint matrixUniform;
@@ -37,9 +38,11 @@ void Target_init() {
 	JSONDeserializationContext * context;
 	GLTexture * texture;
 	BitmapImage * image;
+	int result;
 	
 	if (jsonPath == NULL) {
-		fontJSONFilePath = resourcePath("test_font.json");
+		result = chdir(Shell_getResourcePath());
+		fontJSONFilePath = "test_font.json";
 	} else {
 		fontJSONFilePath = jsonPath;
 	}
@@ -57,7 +60,7 @@ void Target_init() {
 	}
 	
 	if (jsonPath == NULL) {
-		strncpy(textureJSONFilePath, resourcePath(font->textureName), PATH_MAX);
+		strncpy(textureJSONFilePath, font->textureName, PATH_MAX);
 		
 	} else {
 		size_t charIndex;
@@ -85,7 +88,7 @@ void Target_init() {
 	}
 	
 	if (jsonPath == NULL) {
-		strncpy(textureImageFilePath, resourcePath(texture->imageName), PATH_MAX);
+		strncpy(textureImageFilePath, texture->imageName, PATH_MAX);
 		
 	} else {
 		size_t charIndex;
@@ -119,16 +122,18 @@ void Target_init() {
 		GLuint shaderProgram;
 		GLint logLength;
 		
+		result = chdir(Shell_getResourcePath());
+		
 		shaderProgram = glCreateProgram();
 		vertexShader = glCreateShader(GL_VERTEX_SHADER);
 		fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
 		
-		fileContents = readFileSimple(resourcePath("basic.vert"), &fileLength);
+		fileContents = readFileSimple("basic.vert", &fileLength);
 		shaderLength = fileLength;
 		glShaderSource(vertexShader, 1, (const GLchar **) &fileContents, &shaderLength);
 		free(fileContents);
 		
-		fileContents = readFileSimple(resourcePath("basic.frag"), &fileLength);
+		fileContents = readFileSimple("basic.frag", &fileLength);
 		shaderLength = fileLength;
 		glShaderSource(fragmentShader, 1, (const GLchar **) &fileContents, &shaderLength);
 		free(fileContents);
@@ -184,7 +189,7 @@ void Target_init() {
 #define glOrthof glOrtho
 #endif
 
-void Target_draw() {
+bool Target_draw() {
 	Matrix projectionMatrix;
 	float ratio;
 	float stringWidth;
@@ -221,6 +226,8 @@ void Target_draw() {
 	snprintf(indexString, 32, "%u, %s", (unsigned int) lastIndexAtWidth, lastLeadingEdge ? "true" : "false");
 	stringWidth = font->measureString(font, indexString, strlen(indexString));
 	font->drawString(font, indexString, strlen(indexString), 0.05f, stringWidth * -0.025f, 0.1f, 0.0f);
+	
+	return true;
 }
 
 void Target_resized(unsigned int newWidth, unsigned int newHeight) {
@@ -229,30 +236,24 @@ void Target_resized(unsigned int newWidth, unsigned int newHeight) {
 	viewportHeight = newHeight;
 }
 
-void Target_keyDown(unsigned int charCode, unsigned int keyCode) {
-#ifndef BUILD_PLATFORM_IPHONE
+void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned int keyModifiers) {
 	if (keyCode == KEYBOARD_DELETE_OR_BACKSPACE && strlen(freeformText) > 0) {
 		freeformText[strlen(freeformText) - 1] = '\x00';
 		Shell_redisplay();
 	} else if (charCode >= GLBITMAPFONT_PRINTABLE_MIN && charCode <= GLBITMAPFONT_PRINTABLE_MAX && strlen(freeformText) < FREEFORM_LENGTH_MAX) {
 		freeformText[strlen(freeformText)] = charCode;
 		Shell_redisplay();
-	}
-#endif
-}
-
-void Target_keyUp(unsigned int charCode, unsigned int keyCode) {
-#ifdef BUILD_PLATFORM_IPHONE
-	if (keyCode == KEYBOARD_DELETE_OR_BACKSPACE && strlen(freeformText) > 0) {
-		freeformText[strlen(freeformText) - 1] = '\x00';
-		Shell_redisplay();
-	} else if (charCode >= GLBITMAPFONT_PRINTABLE_MIN && charCode <= GLBITMAPFONT_PRINTABLE_MAX && strlen(freeformText) < FREEFORM_LENGTH_MAX) {
-		freeformText[strlen(freeformText)] = charCode;
-		Shell_redisplay();
+#if defined(STEM_PLATFORM_iphonesimulator) || defined(STEM_PLATFORM_iphoneos)
 	} else if (keyCode == KEYBOARD_RETURN_OR_ENTER) {
 		EAGLShell_hideKeyboard();
-	}
 #endif
+	}
+}
+
+void Target_keyUp(unsigned int keyCode, unsigned int keyModifiers) {
+}
+
+void Target_keyModifiersChanged(unsigned int keyModifiers) {
 }
 
 static void queryIndexAtPosition(float x, float y) {
@@ -279,7 +280,7 @@ static void queryIndexAtPosition(float x, float y) {
 
 void Target_mouseDown(unsigned int buttonNumber, float x, float y) {
 	queryIndexAtPosition(x, y);
-#ifdef BUILD_PLATFORM_IPHONE
+#if defined(STEM_PLATFORM_iphonesimulator) || defined(STEM_PLATFORM_iphoneos)
 	if (buttonNumber > 0) {
 		EAGLShell_showKeyboard();
 	}
@@ -314,7 +315,7 @@ static void printUsage() {
 	fprintf(stderr, "Usage: glbitmapfont_testharness [-json /path/to/font.json]\n");
 }
 
-void GLUTTarget_configure(int argc, char ** argv, struct GLUTShellConfiguration * configuration) {
+void GLUTTarget_configure(int argc, const char ** argv, struct GLUTShellConfiguration * configuration) {
 	int argIndex;
 	
 	for (argIndex = 1; argIndex < argc; argIndex++) {

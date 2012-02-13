@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2010 Alex Diener
+  Copyright (c) 2012 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -60,8 +60,8 @@ struct GLBitmapFont_charEntry {
 	} * kernChars;
 };
 
-#define GLBitmapFont_structContents \
-	GLFont_structContents \
+#define GLBitmapFont_structContents(self_type) \
+	GLFont_structContents(self_type) \
 	\
 	char * textureName; \
 	bool textureNameOwned; \
@@ -69,26 +69,24 @@ struct GLBitmapFont_charEntry {
 	bool textureOwned; \
 	struct GLBitmapFont_charEntry characters[GLBITMAPFONT_NUM_CHARS]; \
 	\
-	void (* setTexture)(compat_type(GLBitmapFont *) selfPtr, compat_type(GLTexture *) texturePtr, bool takeOwnership);
+	void (* setTexture)(self_type * self, compat_type(GLTexture *) texturePtr, bool takeOwnership);
 
-struct GLBitmapFont {
-	GLBitmapFont_structContents
-};
+stemobject_struct_definition(GLBitmapFont)
 
 GLBitmapFont * GLBitmapFont_create(struct GLBitmapFont_charEntry characters[GLBITMAPFONT_NUM_CHARS]);
-void GLBitmapFont_init(compat_type(GLBitmapFont *) selfPtr, struct GLBitmapFont_charEntry characters[GLBITMAPFONT_NUM_CHARS]);
-void GLBitmapFont_dispose(compat_type(GLBitmapFont *) selfPtr);
+void GLBitmapFont_init(GLBitmapFont * self, struct GLBitmapFont_charEntry characters[GLBITMAPFONT_NUM_CHARS]);
+void GLBitmapFont_dispose(GLBitmapFont * self);
 
 GLBitmapFont * GLBitmapFont_deserialize(compat_type(DeserializationContext *) deserializationContext);
-bool GLBitmapFont_loadSerializedData(compat_type(GLBitmapFont *) selfPtr, compat_type(DeserializationContext *) deserializationContext);
-void GLBitmapFont_serialize(compat_type(GLBitmapFont *) selfPtr, compat_type(SerializationContext *) serializationContext);
+bool GLBitmapFont_loadSerializedData(GLBitmapFont * self, compat_type(DeserializationContext *) deserializationContext);
+void GLBitmapFont_serialize(GLBitmapFont * self, compat_type(SerializationContext *) serializationContext);
 
-void GLBitmapFont_setTexture(compat_type(GLBitmapFont *) selfPtr, compat_type(GLTexture *) texturePtr, bool takeOwnership);
+void GLBitmapFont_setTexture(GLBitmapFont * self, compat_type(GLTexture *) texturePtr, bool takeOwnership);
 
-float GLBitmapFont_measureString(compat_type(GLBitmapFont *) selfPtr, const char * string, size_t length);
-size_t GLBitmapFont_indexAtWidth(compat_type(GLBitmapFont *) selfPtr, const char * string, size_t length, float emWidth, bool * outLeadingEdge);
+float GLBitmapFont_measureString(GLBitmapFont * self, const char * string, size_t length);
+size_t GLBitmapFont_indexAtWidth(GLBitmapFont * self, const char * string, size_t length, float emWidth, bool * outLeadingEdge);
 // string must not be modified while GLBitmapFont_drawString is executing
 // Currently cannot correctly draw strings longer than 16383 characters
-void GLBitmapFont_drawString(compat_type(GLBitmapFont *) selfPtr, const char * string, size_t length, float emHeight, float offsetX, float offsetY, float offsetZ);
+void GLBitmapFont_drawString(GLBitmapFont * self, const char * string, size_t length, float emHeight, float offsetX, float offsetY, float offsetZ);
 
 #endif

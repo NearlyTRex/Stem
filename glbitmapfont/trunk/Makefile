@@ -88,8 +88,8 @@ SPLINT_iphonesimulator = /usr/local/bin/splint
 CLANG_iphonesimulator = /usr/bin/clang
 SDKROOT_iphonesimulator = /Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator${IPHONE_BUILD_SDK_VERSION}.sdk
 ARCHS_iphonesimulator = i386
-CCFLAGS_iphonesimulator = -isysroot ${SDKROOT_iphonesimulator} -mmacosx-version-min=10.5 -D__IPHONE_OS_VERSION_MIN_REQUIRED=${call iphone_sdk_version_integer,${IPHONE_DEPLOYMENT_TARGET_VERSION}} -DBUILD_PLATFORM_IPHONE
-LINKFLAGS_iphonesimulator = -isysroot ${SDKROOT_iphonesimulator} -mmacosx-version-min=10.5 -framework Foundation -framework UIKit -framework QuartzCore -framework OpenGLES -framework CoreFoundation -lz
+CCFLAGS_iphonesimulator = -isysroot ${SDKROOT_iphonesimulator} -D__IPHONE_OS_VERSION_MIN_REQUIRED=${call iphone_sdk_version_integer,${IPHONE_DEPLOYMENT_TARGET_VERSION}}
+LINKFLAGS_iphonesimulator = -isysroot ${SDKROOT_iphonesimulator} -framework Foundation -framework UIKit -framework QuartzCore -framework OpenGLES -framework CoreFoundation -lz
 
 CC_iphoneos_armv6 = /Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/gcc-4.2 -arch armv6
 CC_iphoneos_armv7 = /Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/gcc-4.2 -arch armv7
@@ -99,7 +99,7 @@ SPLINT_iphoneos = /usr/local/bin/splint
 CLANG_iphoneos = /usr/bin/clang
 SDKROOT_iphoneos = /Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS${IPHONE_BUILD_SDK_VERSION}.sdk
 ARCHS_iphoneos = armv6 armv7
-CCFLAGS_iphoneos = -isysroot ${SDKROOT_iphoneos} -miphoneos-version-min=${IPHONE_DEPLOYMENT_TARGET_VERSION} -DBUILD_PLATFORM_IPHONE
+CCFLAGS_iphoneos = -isysroot ${SDKROOT_iphoneos} -miphoneos-version-min=${IPHONE_DEPLOYMENT_TARGET_VERSION}
 LINKFLAGS_iphoneos = -isysroot ${SDKROOT_iphoneos} -miphoneos-version-min=${IPHONE_DEPLOYMENT_TARGET_VERSION} -framework Foundation -framework UIKit -framework QuartzCore -framework OpenGLES -framework CoreFoundation -lz
 
 CC_linux_i686 = /usr/bin/gcc
@@ -356,6 +356,7 @@ define dependency_template #(target, configuration, platform, arch, source_file)
 build/intermediate/$1-$2-$3-$4/${notdir ${basename $5}}.d: $5 ${PREREQS_$1} | build/intermediate/$1-$2-$3-$4
 	${CC_$3_$4} ${CCFLAGS} ${CCFLAGS_$1} ${CCFLAGS_$2} ${CCFLAGS_$3} ${call include_ccflags_template,$1,$3} ${call define_ccflags_template,$1,$2,$3,$4} -MM -o $$@.temp $5
 	sed 's,\(${notdir ${basename $5}}\)\.o[ :]*,$${basename $$@}.o $${basename $$@}.d: ,g' < $$@.temp > $$@
+	rm $$@.temp
 endef
 
 #Produces dependency build targets for all source files in each configuration/platform/arch
@@ -526,7 +527,7 @@ define copy_target_resources #(target, platform, resources_dir)
 	${foreach resource,${RESOURCES_$1} ${RESOURCES_$1_$2}, \
 		cp -r ${resource} $3${newline_and_tab} \
 	}
-	find $3 -name .svn -print0 | xargs -0 rm -rf
+	find $3 -name .svn -print0 -or -name .DS_Store -print0 | xargs -0 rm -rf
 endef
 
 define assemble_executable_macosx #(target, configuration, platform)

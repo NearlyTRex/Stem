@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2010 Alex Diener
+  Copyright (c) 2012 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -25,12 +25,14 @@
 #include <string.h>
 #include <stddef.h>
 
+#define SUPERCLASS GLFont
+
 GLBitmapFont * GLBitmapFont_create(struct GLBitmapFont_charEntry characters[GLBITMAPFONT_NUM_CHARS]) {
 	stemobject_create_implementation(GLBitmapFont, init, characters)
 }
 
 static void sharedInit(GLBitmapFont * self) {
-	StemObject_init(self);
+	call_super(init, self);
 	
 	self->textureName = NULL;
 	self->textureNameOwned = false;
@@ -43,8 +45,7 @@ static void sharedInit(GLBitmapFont * self) {
 	self->setTexture = GLBitmapFont_setTexture;
 }
 
-void GLBitmapFont_init(compat_type(GLBitmapFont *) selfPtr, struct GLBitmapFont_charEntry characters[GLBITMAPFONT_NUM_CHARS]) {
-	GLBitmapFont * self = selfPtr;
+void GLBitmapFont_init(GLBitmapFont * self, struct GLBitmapFont_charEntry characters[GLBITMAPFONT_NUM_CHARS]) {
 	unsigned int charIndex;
 	
 	sharedInit(self);
@@ -57,8 +58,7 @@ void GLBitmapFont_init(compat_type(GLBitmapFont *) selfPtr, struct GLBitmapFont_
 	}
 }
 
-void GLBitmapFont_dispose(compat_type(GLBitmapFont *) selfPtr) {
-	GLBitmapFont * self = selfPtr;
+void GLBitmapFont_dispose(GLBitmapFont * self) {
 	unsigned int charIndex;
 	
 	if (self->textureNameOwned) {
@@ -70,7 +70,7 @@ void GLBitmapFont_dispose(compat_type(GLBitmapFont *) selfPtr) {
 	for (charIndex = 0; charIndex < GLBITMAPFONT_NUM_CHARS; charIndex++) {
 		free(self->characters[charIndex].kernChars);
 	}
-	GLFont_dispose(selfPtr);
+	call_super(dispose, self);
 }
 
 GLBitmapFont * GLBitmapFont_deserialize(compat_type(DeserializationContext *) deserializationContext) {
@@ -87,8 +87,7 @@ GLBitmapFont * GLBitmapFont_deserialize(compat_type(DeserializationContext *) de
 	return self;
 }
 
-bool GLBitmapFont_loadSerializedData(compat_type(GLBitmapFont *) selfPtr, compat_type(DeserializationContext *) deserializationContext) {
-	GLBitmapFont * self = selfPtr;
+bool GLBitmapFont_loadSerializedData(GLBitmapFont * self, compat_type(DeserializationContext *) deserializationContext) {
 	DeserializationContext * context = deserializationContext;
 	uint16_t formatVersion;
 	size_t kernCharIndex, kernCharIndex2, nchars;
@@ -164,8 +163,7 @@ bool GLBitmapFont_loadSerializedData(compat_type(GLBitmapFont *) selfPtr, compat
 	return true;
 }
 
-void GLBitmapFont_serialize(compat_type(GLBitmapFont *) selfPtr, compat_type(SerializationContext *) serializationContext) {
-	GLBitmapFont * self = selfPtr;
+void GLBitmapFont_serialize(GLBitmapFont * self, compat_type(SerializationContext *) serializationContext) {
 	SerializationContext * context = serializationContext;
 	unsigned int charIndex, kernCharIndex;
 	char charString[2] = {0, 0};
@@ -198,9 +196,7 @@ void GLBitmapFont_serialize(compat_type(GLBitmapFont *) selfPtr, compat_type(Ser
 	context->endStructure(context);
 }
 
-void GLBitmapFont_setTexture(compat_type(GLBitmapFont *) selfPtr, compat_type(GLTexture *) texturePtr, bool takeOwnership) {
-	GLBitmapFont * self = selfPtr;
-	
+void GLBitmapFont_setTexture(GLBitmapFont * self, compat_type(GLTexture *) texturePtr, bool takeOwnership) {
 	if (self->textureOwned) {
 		self->texture->dispose(self->texture);
 	}
@@ -208,8 +204,7 @@ void GLBitmapFont_setTexture(compat_type(GLBitmapFont *) selfPtr, compat_type(GL
 	self->textureOwned = takeOwnership;
 }
 
-float GLBitmapFont_measureString(compat_type(GLBitmapFont *) selfPtr, const char * string, size_t length) {
-	GLBitmapFont * self = selfPtr;
+float GLBitmapFont_measureString(GLBitmapFont * self, const char * string, size_t length) {
 	float width = 0.0f;
 	unsigned int charIndex, kernCharIndex;
 	
@@ -229,8 +224,7 @@ float GLBitmapFont_measureString(compat_type(GLBitmapFont *) selfPtr, const char
 	return width;
 }
 
-size_t GLBitmapFont_indexAtWidth(compat_type(GLBitmapFont *) selfPtr, const char * string, size_t length, float emWidth, bool * outLeadingEdge) {
-	GLBitmapFont * self = selfPtr;
+size_t GLBitmapFont_indexAtWidth(GLBitmapFont * self, const char * string, size_t length, float emWidth, bool * outLeadingEdge) {
 	float totalWidth = 0.0f, charWidth, halfKernOffset = 0.0f;
 	size_t charIndex, kernCharIndex;
 	
@@ -270,8 +264,7 @@ struct vertex_p4f_t2f {
 	GLfloat texCoords[2];
 };
 
-void GLBitmapFont_drawString(compat_type(GLBitmapFont *) selfPtr, const char * string, size_t length, float emHeight, float offsetX, float offsetY, float offsetZ) {
-	GLBitmapFont * self = selfPtr;
+void GLBitmapFont_drawString(GLBitmapFont * self, const char * string, size_t length, float emHeight, float offsetX, float offsetY, float offsetZ) {
 	struct vertex_p4f_t2f * vertices;
 	GLushort * indexes;
 	size_t charIndex, kernCharIndex, printableCharCount = 0, vertexIndex = 0, indexIndex = 0;
