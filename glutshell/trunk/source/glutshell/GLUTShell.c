@@ -25,6 +25,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <limits.h>
 
 #if defined(__APPLE__)
 #include <limits.h>
@@ -48,8 +50,6 @@
 #include "shell/ShellBatteryInfo.h"
 #include "shell/ShellKeyCodes.h"
 #include "shell/Target.h"
-
-#include <unistd.h>
 
 struct GLUTShellTimer {
 	double interval;
@@ -555,10 +555,12 @@ int main(int argc, char ** argv) {
 	GLint VBL = 1;
 #endif
 	char workingDir[PATH_MAX];
+	int chdirReturn;
+	char * getcwdReturn;
 	
-	getcwd(workingDir, PATH_MAX);
+	getcwdReturn = getcwd(workingDir, PATH_MAX);
 	glutInit(&argc, argv);
-	chdir(workingDir);
+	chdirReturn = chdir(workingDir);
 	
 	configuration.windowX = 2;
 	configuration.windowY = 28;
