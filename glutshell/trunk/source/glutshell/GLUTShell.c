@@ -49,6 +49,8 @@
 #include "shell/ShellKeyCodes.h"
 #include "shell/Target.h"
 
+#include <unistd.h>
+
 struct GLUTShellTimer {
 	double interval;
 	double nextFireTime;
@@ -552,8 +554,11 @@ int main(int argc, char ** argv) {
 #ifdef __APPLE__
 	GLint VBL = 1;
 #endif
+	char workingDir[PATH_MAX];
 	
+	getcwd(workingDir, PATH_MAX);
 	glutInit(&argc, argv);
+	chdir(workingDir);
 	
 	configuration.windowX = 2;
 	configuration.windowY = 28;
