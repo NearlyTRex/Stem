@@ -173,7 +173,8 @@ SOURCES_unittest_suites = \
 
 INCLUDES = \
 	source/binaryserialization/BinaryDeserializationContext.h \
-	source/binaryserialization/BinarySerializationContext.h
+	source/binaryserialization/BinarySerializationContext.h \
+	source/binaryserialization/BinarySerializationShared.h
 
 #Target resources
 

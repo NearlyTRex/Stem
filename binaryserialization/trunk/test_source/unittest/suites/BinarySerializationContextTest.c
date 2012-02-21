@@ -1843,8 +1843,65 @@ static void testErrorReporting() {
 	_testFailure(SERIALIZATION_ERROR_NULL_KEY,
 	             context->beginStructure(context, "key");,
 	             context->writeBitfield64(context, NULL, 0, NULL);)
+}
+
+static void testNullKeysAllowedInArrays() {
+	BinarySerializationContext * context;
+	jmp_buf jmpBuf;
+	int status;
 	
-#undef _testFailure
+	_testFailure(SERIALIZATION_ERROR_OK,
+	             context->beginArray(context, "key");,
+	             context->writeInt8(context, NULL, 0);)
+	_testFailure(SERIALIZATION_ERROR_OK,
+	             context->beginArray(context, "key");,
+	             context->writeUInt8(context, NULL, 0);)
+	_testFailure(SERIALIZATION_ERROR_OK,
+	             context->beginArray(context, "key");,
+	             context->writeInt16(context, NULL, 0);)
+	_testFailure(SERIALIZATION_ERROR_OK,
+	             context->beginArray(context, "key");,
+	             context->writeUInt16(context, NULL, 0);)
+	_testFailure(SERIALIZATION_ERROR_OK,
+	             context->beginArray(context, "key");,
+	             context->writeInt32(context, NULL, 0);)
+	_testFailure(SERIALIZATION_ERROR_OK,
+	             context->beginArray(context, "key");,
+	             context->writeUInt32(context, NULL, 0);)
+	_testFailure(SERIALIZATION_ERROR_OK,
+	             context->beginArray(context, "key");,
+	             context->writeInt64(context, NULL, 0);)
+	_testFailure(SERIALIZATION_ERROR_OK,
+	             context->beginArray(context, "key");,
+	             context->writeUInt64(context, NULL, 0);)
+	_testFailure(SERIALIZATION_ERROR_OK,
+	             context->beginArray(context, "key");,
+	             context->writeFloat(context, NULL, 0);)
+	_testFailure(SERIALIZATION_ERROR_OK,
+	             context->beginArray(context, "key");,
+	             context->writeDouble(context, NULL, 0);)
+	_testFailure(SERIALIZATION_ERROR_OK,
+	             context->beginArray(context, "key");,
+	             context->writeString(context, NULL, "");)
+	_testFailure(SERIALIZATION_ERROR_OK,
+	             context->beginArray(context, "key");,
+	             context->writeBoolean(context, NULL, false);)
+	_testFailure(SERIALIZATION_ERROR_OK,
+	             context->beginArray(context, "key");,
+	             context->writeEnumeration(context, NULL, 0, "", 0, NULL);)
+	_testFailure(SERIALIZATION_ERROR_OK,
+	             context->beginArray(context, "key");,
+	             context->writeBitfield8(context, NULL, 0, NULL);)
+	_testFailure(SERIALIZATION_ERROR_OK,
+	             context->beginArray(context, "key");,
+	             context->writeBitfield16(context, NULL, 0, NULL);)
+	_testFailure(SERIALIZATION_ERROR_OK,
+	             context->beginArray(context, "key");,
+	             context->writeBitfield32(context, NULL, 0, NULL);)
+	_testFailure(SERIALIZATION_ERROR_OK,
+	             context->beginArray(context, "key");,
+	             context->writeBitfield64(context, NULL, 0, NULL);)
+	
 }
 
 TEST_SUITE(BinarySerializationContextTest,
@@ -1861,4 +1918,5 @@ TEST_SUITE(BinarySerializationContextTest,
            testMixedContainers,
            testWriteToFile,
            testInvalidOperations,
-           testErrorReporting)
+           testErrorReporting,
+           testNullKeysAllowedInArrays)

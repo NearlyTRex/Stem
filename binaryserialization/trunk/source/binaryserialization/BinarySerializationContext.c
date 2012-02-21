@@ -129,7 +129,7 @@ bool BinarySerializationContext_writeToFile(BinarySerializationContext * self, c
 		failWithStatus(SERIALIZATION_ERROR_NO_CONTAINER_STARTED, return) \
 	} \
 	container = &self->containerStack[self->containerCount - 1]; \
-	if (key == NULL && (container->type == BINARY_SERIALIZATION_CONTAINER_TYPE_STRUCT || BINARY_SERIALIZATION_CONTAINER_TYPE_DICTIONARY)) { \
+	if (container->type != BINARY_SERIALIZATION_CONTAINER_TYPE_ARRAY && key == NULL) { \
 		failWithStatus(SERIALIZATION_ERROR_NULL_KEY, return) \
 	} \
 	if (container->type == BINARY_SERIALIZATION_CONTAINER_TYPE_DICTIONARY) { \
