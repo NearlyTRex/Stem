@@ -7,9 +7,9 @@ digraph stem {
 	"3dmath" -> glgraphics;
 	preferences;
 	serialization -> {glfont; gltexture; jsonserialization}
-	serialization -> {binaryserialization; bones} [style=dotted];
-	shell -> {eaglshell; glutshell; stubshell; utilities};
-	shell -> {glxshell; nsopenglshell; wglshell} [style=dotted];
+	serialization -> {binaryserialization; bones};
+	shell -> {eaglshell; glutshell; nsopenglshell; stubshell; utilities};
+	shell -> {glxshell; wglshell} [style=dotted];
 	stemobject -> {bitmapimage; glgraphics; pcmaudio; resourcemanager; serialization; utilities};
 	UnitTestFramework -> template_stemlib;
 	
@@ -18,9 +18,9 @@ digraph stem {
 	eaglshell -> gltexture [style=dashed];
 	glgraphics -> {eaglshell; gltexture; glutshell};
 	glutshell -> gltexture [style=dashed];
-	pcmaudio -> vorbisaudioio;
+	pcmaudio -> {alaudio; vorbisaudioio};
 	pngimageio -> gltexture [style=dashed];
-	utilities -> {gamepad; jsonio; pngimageio; preferences; statecontroller};
+	utilities -> {gamepad; jsonio; pngimageio; preferences; statecontroller; binaryserialization};
 	utilities -> vorbisaudioio;
 	
 	gamepad -> gamepadlayout [style=dotted];
@@ -29,6 +29,7 @@ digraph stem {
 	glfont -> glbitmapfont;
 	glfont -> {glfreetypefont, glnativefont} [style=dotted];
 	jsonio -> {jsonserialization; preferences};
+	vorbisaudioio -> alaudio [style=dashed];
 	
 	shell [group="shells"];
 	eaglshell [group="shells"];
@@ -57,36 +58,13 @@ digraph stem {
 	pcmaudio [group="audio"];
 	vorbisaudioio [group="audio"];
 	
-	alaudio [style=dotted];
-	binaryserialization [style=dotted];
 	bones [style=dotted];
 	gamepadlayout [style=dotted];
 	glfreetypefont [style=dotted];
 	glnativefont [style=dotted];
 	glxshell [style=dotted];
 	jpegimageio [style=dotted];
-	nsopenglshell [style=dotted];
 	wglshell [style=dotted];
 	
-	"3dmath" [peripheries=2];
-	bitmapimage [peripheries=2];
-	eaglshell [peripheries=2];
-	gamepad [peripheries=2];
-	glbitmapfont [peripheries=2];
-	glfont [peripheries=2];
-	glgraphics [peripheries=2];
-	gltexture [peripheries=2];
-	glutshell [peripheries=2];
-	jsonio [peripheries=2];
-	jsonserialization [peripheries=2];
-	pngimageio [peripheries=2];
-	preferences [peripheries=2];
-	resourcemanager [peripheries=2];
-	serialization [peripheries=2];
-	statecontroller [peripheries=2];
-	stemobject [peripheries=2];
-	stubshell [peripheries=2];
-	template_stemlib [peripheries=2];
-	UnitTestFramework [peripheries=2];
-	utilities [peripheries=2];
+	alaudio [style=dashed];
 }
