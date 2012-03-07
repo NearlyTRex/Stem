@@ -1,0 +1,3 @@
+0.0.1
+ * Updated for stemobject 3.0.1
+ * Fixed uninitialized ALAudioSource pause function

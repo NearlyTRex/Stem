@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2011 Alex Diener
+  Copyright (c) 2012 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -22,49 +22,40 @@
 
 #include "alaudio/ALAudioSource.h"
 
+#define SUPERCLASS StemObject
+
 ALAudioSource * ALAudioSource_create() {
 	stemobject_create_implementation(ALAudioSource, init)
 }
 
-void ALAudioSource_init(compat_type(ALAudioSource *) selfPtr) {
-	ALAudioSource * self = selfPtr;
-	
-	StemObject_init(self);
+void ALAudioSource_init(ALAudioSource * self) {
+	call_super(init, self);
 	alGenSources(1, &self->source);
 	self->dispose = ALAudioSource_dispose;
 	self->load = ALAudioSource_load;
 	self->play = ALAudioSource_play;
 	self->stop = ALAudioSource_stop;
+	self->pause = ALAudioSource_pause;
 }
 
-void ALAudioSource_dispose(compat_type(ALAudioSource *) selfPtr) {
-	ALAudioSource * self = selfPtr;
-	
+void ALAudioSource_dispose(ALAudioSource * self) {
 	alDeleteSources(1, &self->source);
-	StemObject_dispose(self);
+	call_super(dispose, self);
 }
 
-void ALAudioSource_load(compat_type(ALAudioSource *) selfPtr, ALAudioBuffer * buffer) {
-	ALAudioSource * self = selfPtr;
-	
+void ALAudioSource_load(ALAudioSource * self, ALAudioBuffer * buffer) {
 	alSourcei(self->source, AL_BUFFER, buffer->buffer);
 }
 
-void ALAudioSource_play(compat_type(ALAudioSource *) selfPtr) {
-	ALAudioSource * self = selfPtr;
-	
+void ALAudioSource_play(ALAudioSource * self) {
 	alSourcePlay(self->source);
 }
 
-void ALAudioSource_stop(compat_type(ALAudioSource *) selfPtr) {
-	ALAudioSource * self = selfPtr;
-	
+void ALAudioSource_stop(ALAudioSource * self) {
 	alSourceStop(self->source);
 	alSourceRewind(self->source);
 }
 
-void ALAudioSource_pause(compat_type(ALAudioSource *) selfPtr) {
-	ALAudioSource * self = selfPtr;
-	
+void ALAudioSource_pause(ALAudioSource * self) {
 	alSourcePause(self->source);
 }

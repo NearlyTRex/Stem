@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2011 Alex Diener
+  Copyright (c) 2012 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -23,12 +23,14 @@
 #include "alaudio/ALAudioSystem.h"
 #include <stdlib.h>
 
+#define SUPERCLASS StemObject
+
 ALAudioSystem * ALAudioSystem_create() {
 	stemobject_create_implementation(ALAudioSystem, init)
 }
 
-void ALAudioSystem_init(compat_type(ALAudioSystem *) selfPtr) {
-	ALAudioSystem * self = selfPtr;
+void ALAudioSystem_init(ALAudioSystem * self) {
+	call_super(init, self);
 	
 	self->device = alcOpenDevice(NULL);
 	self->context = alcCreateContext(self->device, NULL);
@@ -38,16 +40,12 @@ void ALAudioSystem_init(compat_type(ALAudioSystem *) selfPtr) {
 	self->makeCurrentContext = ALAudioSystem_makeCurrentContext;
 }
 
-void ALAudioSystem_dispose(compat_type(ALAudioSystem *) selfPtr) {
-	ALAudioSystem * self = selfPtr;
-	
+void ALAudioSystem_dispose(ALAudioSystem * self) {
 	alcDestroyContext(self->context);
 	alcCloseDevice(self->device);
-	StemObject_dispose(self);
+	call_super(dispose, self);
 }
 
-void ALAudioSystem_makeCurrentContext(compat_type(ALAudioSystem *) selfPtr) {
-	ALAudioSystem * self = selfPtr;
-	
+void ALAudioSystem_makeCurrentContext(ALAudioSystem * self) {
 	alcMakeContextCurrent(self->context);
 }

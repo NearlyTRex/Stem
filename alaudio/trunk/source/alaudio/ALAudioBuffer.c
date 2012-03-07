@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2011 Alex Diener
+  Copyright (c) 2012 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -22,36 +22,30 @@
 
 #include "alaudio/ALAudioBuffer.h"
 
+#define SUPERCLASS StemObject
+
 ALAudioBuffer * ALAudioBuffer_create() {
 	stemobject_create_implementation(ALAudioBuffer, init)
 }
 
-void ALAudioBuffer_init(compat_type(ALAudioBuffer *) selfPtr) {
-	ALAudioBuffer * self = selfPtr;
-	
-	StemObject_init(self);
+void ALAudioBuffer_init(ALAudioBuffer * self) {
+	call_super(init, self);
 	alGenBuffers(1, &self->buffer);
 	self->dispose = ALAudioBuffer_dispose;
 	self->bufferAudioData = ALAudioBuffer_bufferAudioData;
 	self->bufferPCMAudio = ALAudioBuffer_bufferPCMAudio;
 }
 
-void ALAudioBuffer_dispose(compat_type(ALAudioBuffer *) selfPtr) {
-	ALAudioBuffer * self = selfPtr;
-	
+void ALAudioBuffer_dispose(ALAudioBuffer * self) {
 	alDeleteBuffers(1, &self->buffer);
-	StemObject_dispose(self);
+	call_super(dispose, self);
 }
 
-void ALAudioBuffer_bufferAudioData(compat_type(ALAudioBuffer *) selfPtr, ALenum format, void * data, size_t length, unsigned int frequency) {
-	ALAudioBuffer * self = selfPtr;
-	
+void ALAudioBuffer_bufferAudioData(ALAudioBuffer * self, ALenum format, void * data, size_t length, unsigned int frequency) {
 	alBufferData(self->buffer, format, data, length, frequency);
 }
 
-void ALAudioBuffer_bufferPCMAudio(compat_type(ALAudioBuffer *) selfPtr, PCMAudio * pcmAudio) {
-	ALAudioBuffer * self = selfPtr;
-	
+void ALAudioBuffer_bufferPCMAudio(ALAudioBuffer * self, PCMAudio * pcmAudio) {
 	self->bufferAudioData(self,
 	                      pcmAudio->channelCount == 1 ? pcmAudio->bytesPerSample == 1 ? AL_FORMAT_MONO8 : AL_FORMAT_MONO16 : pcmAudio->bytesPerSample == 1 ? AL_FORMAT_STEREO8 : AL_FORMAT_STEREO16,
 	                      pcmAudio->samples,

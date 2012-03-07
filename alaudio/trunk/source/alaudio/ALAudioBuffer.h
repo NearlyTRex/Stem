@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2011 Alex Diener
+  Copyright (c) 2012 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -30,22 +30,20 @@ typedef struct ALAudioBuffer ALAudioBuffer;
 #include "stemobject/StemObject.h"
 #include <stdlib.h>
 
-#define ALAudioBuffer_structContents \
-	StemObject_structContents \
+#define ALAudioBuffer_structContents(self_type) \
+	StemObject_structContents(self_type) \
 	\
 	ALuint buffer; \
-	void (* bufferAudioData)(compat_type(ALAudioBuffer *) self, ALenum format, void * data, size_t length, unsigned int frequency); \
-	void (* bufferPCMAudio)(compat_type(ALAudioBuffer *) self, PCMAudio * audio);
+	void (* bufferAudioData)(self_type * self, ALenum format, void * data, size_t length, unsigned int frequency); \
+	void (* bufferPCMAudio)(self_type * self, PCMAudio * audio);
 
-struct ALAudioBuffer {
-	ALAudioBuffer_structContents
-};
+stemobject_struct_definition(ALAudioBuffer)
 
 ALAudioBuffer * ALAudioBuffer_create();
-void ALAudioBuffer_init(compat_type(ALAudioBuffer *) selfPtr);
-void ALAudioBuffer_dispose(compat_type(ALAudioBuffer *) selfPtr);
+void ALAudioBuffer_init(ALAudioBuffer * self);
+void ALAudioBuffer_dispose(ALAudioBuffer * self);
 
-void ALAudioBuffer_bufferAudioData(compat_type(ALAudioBuffer *) selfPtr, ALenum format, void * data, size_t length, unsigned int frequency);
-void ALAudioBuffer_bufferPCMAudio(compat_type(ALAudioBuffer *) selfPtr, PCMAudio * pcmAudio);
+void ALAudioBuffer_bufferAudioData(ALAudioBuffer * self, ALenum format, void * data, size_t length, unsigned int frequency);
+void ALAudioBuffer_bufferPCMAudio(ALAudioBuffer * self, PCMAudio * pcmAudio);
 
 #endif

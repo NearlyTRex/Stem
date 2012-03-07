@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2011 Alex Diener
+  Copyright (c) 2012 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -28,22 +28,20 @@ typedef struct ALAudioSystem ALAudioSystem;
 #include "stemobject/StemObject.h"
 #include "alaudio/ALIncludes.h"
 
-#define ALAudioSystem_structContents \
-	StemObject_structContents \
+#define ALAudioSystem_structContents(self_type) \
+	StemObject_structContents(self_type) \
 	\
 	ALCdevice * device; \
 	ALCcontext * context; \
 	\
-	void (* makeCurrentContext)(compat_type(ALAudioSystem *) self);
+	void (* makeCurrentContext)(self_type * self);
 
-struct ALAudioSystem {
-	ALAudioSystem_structContents
-};
+stemobject_struct_definition(ALAudioSystem)
 
 ALAudioSystem * ALAudioSystem_create();
-void ALAudioSystem_init(compat_type(ALAudioSystem *) selfPtr);
-void ALAudioSystem_dispose(compat_type(ALAudioSystem *) selfPtr);
+void ALAudioSystem_init(ALAudioSystem * self);
+void ALAudioSystem_dispose(ALAudioSystem * self);
 
-void ALAudioSystem_makeCurrentContext(compat_type(ALAudioSystem *) selfPtr);
+void ALAudioSystem_makeCurrentContext(ALAudioSystem * self);
 
 #endif

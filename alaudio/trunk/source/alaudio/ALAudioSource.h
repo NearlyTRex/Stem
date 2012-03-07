@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2011 Alex Diener
+  Copyright (c) 2012 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -28,27 +28,25 @@ typedef struct ALAudioSource ALAudioSource;
 #include "stemobject/StemObject.h"
 #include "alaudio/ALAudioBuffer.h"
 
-#define ALAudioSource_structContents \
-	StemObject_structContents \
+#define ALAudioSource_structContents(self_type) \
+	StemObject_structContents(self_type) \
 	\
 	ALuint source; \
-	void (* load)(compat_type(ALAudioSource *) self, ALAudioBuffer * buffer); \
-	void (* play)(compat_type(ALAudioSource *) self); \
-	void (* stop)(compat_type(ALAudioSource *) self); \
-	void (* pause)(compat_type(ALAudioSource *) self);
+	void (* load)(self_type * self, ALAudioBuffer * buffer); \
+	void (* play)(self_type * self); \
+	void (* stop)(self_type * self); \
+	void (* pause)(self_type * self);
 
-struct ALAudioSource {
-	ALAudioSource_structContents
-};
+stemobject_struct_definition(ALAudioSource)
 
 ALAudioSource * ALAudioSource_create();
-void ALAudioSource_init(compat_type(ALAudioSource *) selfPtr);
-void ALAudioSource_dispose(compat_type(ALAudioSource *) selfPtr);
+void ALAudioSource_init(ALAudioSource * self);
+void ALAudioSource_dispose(ALAudioSource * self);
 
-void ALAudioSource_load(compat_type(ALAudioSource *) selfPtr, ALAudioBuffer * buffer);
-void ALAudioSource_play(compat_type(ALAudioSource *) selfPtr);
-void ALAudioSource_stop(compat_type(ALAudioSource *) selfPtr);
-void ALAudioSource_pause(compat_type(ALAudioSource *) selfPtr);
+void ALAudioSource_load(ALAudioSource * self, ALAudioBuffer * buffer);
+void ALAudioSource_play(ALAudioSource * self);
+void ALAudioSource_stop(ALAudioSource * self);
+void ALAudioSource_pause(ALAudioSource * self);
 // TODO: Loop
 // TODO: Streaming
 
