@@ -74,7 +74,7 @@ RANLIB_macosx = /usr/bin/ranlib
 SPLINT_macosx = /usr/local/bin/splint
 CLANG_macosx = /usr/bin/clang
 SDKROOT_macosx = /Developer/SDKs/MacOSX10.5.sdk
-ARCHS_macosx = ppc i386 x86_64
+ARCHS_macosx = i386 x86_64
 CCFLAGS_macosx = -isysroot ${SDKROOT_macosx} -mmacosx-version-min=10.5
 LINKFLAGS_macosx = -isysroot ${SDKROOT_macosx} -mmacosx-version-min=10.5
 
@@ -131,7 +131,8 @@ LINKFLAGS = ${FRAMEWORK_LINKFLAGS} ${LIBRARY_LINKFLAGS} ${OTHER_LINKFLAGS}
 
 LINK_ORDER = \
 	library \
-	stemobject/libstem_stemobject.a
+	stemobject/libstem_stemobject.a \
+	stubshell/libstemshell_stub.a
 
 #Per-target dependencies
 
@@ -142,7 +143,8 @@ STEM_LIBRARY_DEPENDENCIES_library = \
 STEM_LIBRARY_DEPENDENCIES_unittest = \
 	stemobject/libstem_stemobject.a
 STEM_LIBRARY_DEPENDENCIES_testharness = \
-	stemobject/libstem_stemobject.a
+	stemobject/libstem_stemobject.a \
+	stubshell/libstemshell_stub.a
 STEM_SOURCE_DEPENDENCIES_unittest = 
 STEM_SOURCE_DEPENDENCIES_testharness = 
 THIRDPARTY_LIBRARY_DEPENDENCIES_unittest = 

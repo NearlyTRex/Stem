@@ -1,14 +1,19 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
+#include "shell/Shell.h"
+#include "utilities/Atom.h"
 #include "utilities/IOUtilities.h"
 #include "utilities/Ranrot.h"
 
+static void printUsage() {
+	fprintf(stderr, "Must specify -random, -tempfile, -readstdin, or -atomprofile as argv[1]\n");
+}
+
 int main(int argc, char ** argv) {
-	// Functionality other than random number generation and temporary file creation fully tested by unittest target
-	
 	if (argc < 2) {
-		fprintf(stderr, "Must specify -random, -tempfile, or -readstdin as argv[1]\n");
+		printUsage();
 		return EXIT_FAILURE;
 	}
 	
@@ -108,8 +113,38 @@ int main(int argc, char ** argv) {
 		printf("Read %u bytes from stdin:\n%s\n", (unsigned int) length, data);
 		free(data);
 		
+	} else if (!strcmp(argv[1], "-atomprofile")) {
+		unsigned int iteration, iterationCount = 1000000;
+		unsigned int stringIndex, stringCount = 500;
+		double currentTime;
+		char ** strings;
+		unsigned int charIndex, charCount;
+		
+		if (argc < 3 || !sscanf(argv[2], "%u", &iterationCount)) {
+			printf("Specify iteration count as argv[2] if desired; proceeding with %u\n", iterationCount);
+		}
+		if (argc < 4 || !sscanf(argv[3], "%u", &stringCount)) {
+			printf("Specify string count as argv[3] if desired; proceeding with %u\n", stringCount);
+		}
+		strings = malloc(sizeof(char *) * stringCount);
+		for (stringIndex = 0; stringIndex < stringCount; stringIndex++) {
+			charCount = stringIndex / 127 + 1;
+			strings[stringIndex] = malloc(charCount + 1);
+			for (charIndex = 0; charIndex < charCount; charIndex++) {
+				strings[stringIndex][charIndex] = stringIndex / (int) pow(127, charIndex) % 127 + 1;
+			}
+			strings[stringIndex][charIndex] = 0;
+		}
+		stringIndex = 0;
+		currentTime = Shell_getCurrentTime();
+		for (iteration = 0; iteration < iterationCount; iteration++) {
+			Atom_fromString(strings[stringIndex]);
+			stringIndex = (stringIndex + 1) % stringCount;
+		}
+		printf("Time taken: %f seconds\n", Shell_getCurrentTime() - currentTime);
+		
 	} else {
-		fprintf(stderr, "Unexpected value \"%s\" in argv[1] (expected -random, -tempfile, or -readstdin)\n", argv[1]);
+		printUsage();
 		return EXIT_FAILURE;
 	}
 	
