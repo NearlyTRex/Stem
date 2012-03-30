@@ -1,3 +1,6 @@
+1.6.1
+ * Atom_fromString now uses a hash table internally and performs significantly faster, with much less penalty for adding more atoms
+
 1.6.0
  * Random.h renamed to Ranrot.h
  * Ranrot can now be instantiated

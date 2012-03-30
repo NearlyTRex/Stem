@@ -166,6 +166,7 @@ SOURCES_library = \
 	source/utilities/EventDispatcher.c \
 	source/utilities/FixedIntervalRunLoop.c \
 	source/utilities/IOUtilities.c \
+	source/utilities/lookup3.c \
 	source/utilities/Ranrot.c \
 	source/utilities/UTFUtilities.c
 

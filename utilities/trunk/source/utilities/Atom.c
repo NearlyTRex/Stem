@@ -21,47 +21,73 @@
 */
 
 #include "utilities/Atom.h"
+#include "utilities/lookup3.h"
 
 #include <pthread.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
-static size_t numberOfAtoms = 0;
-static size_t atomListSize = 1;
-static Atom * atoms;
+#define ATOM_HASH_TABLE_SIZE 1024
+
+struct AtomEntry {
+	Atom atom;
+	uint32_t hash;
+};
+
+struct AtomBucket {
+	size_t count;
+	size_t allocatedSize;
+	struct AtomEntry * entries;
+};
+
+static struct AtomBucket atomBuckets[ATOM_HASH_TABLE_SIZE];
 static pthread_mutex_t mutex;
 
 Atom Atom_fromString(const char * string) {
-	unsigned int atomIndex;
+	unsigned int bucketIndex, entryIndex;
 	char * newAtom;
 	size_t length;
+	static bool mutexInited = false;
+	uint32_t hash;
 	
 	if (string == NULL) {
 		return NULL;
 	}
 	
-	if (atoms == NULL) {
-		atoms = malloc(sizeof(Atom) * atomListSize);
+	if (!mutexInited) {
 		pthread_mutex_init(&mutex, NULL);
+		mutexInited = true;
 	}
 	
+	length = strlen(string);
+	hash = hashlittle(string, length, 0);
+	bucketIndex = hash % ATOM_HASH_TABLE_SIZE;
+	
 	pthread_mutex_lock(&mutex);
-	for (atomIndex = 0; atomIndex < numberOfAtoms; atomIndex++) {
-		if (!strcmp(atoms[atomIndex], string)) {
+	
+	for (entryIndex = 0; entryIndex < atomBuckets[bucketIndex].count; entryIndex++) {
+		if (atomBuckets[bucketIndex].entries[entryIndex].hash == hash && !strcmp(atomBuckets[bucketIndex].entries[entryIndex].atom, string)) {
 			pthread_mutex_unlock(&mutex);
-			return atoms[atomIndex];
+			return atomBuckets[bucketIndex].entries[entryIndex].atom;
 		}
 	}
 	
-	if (numberOfAtoms >= atomListSize) {
-		atomListSize *= 2;
-		atoms = realloc(atoms, sizeof(Atom) * atomListSize);
+	if (atomBuckets[bucketIndex].count >= atomBuckets[bucketIndex].allocatedSize) {
+		if (atomBuckets[bucketIndex].allocatedSize == 0) {
+			atomBuckets[bucketIndex].allocatedSize = 1;
+		} else {
+			atomBuckets[bucketIndex].allocatedSize *= 2;
+		}
+		atomBuckets[bucketIndex].entries = realloc(atomBuckets[bucketIndex].entries, sizeof(struct AtomEntry) * atomBuckets[bucketIndex].allocatedSize);
 	}
-	length = strlen(string);
+	
 	newAtom = malloc(length + 1);
 	strcpy(newAtom, string);
 	newAtom[length] = '\x00';
-	atoms[numberOfAtoms++] = newAtom;
+	atomBuckets[bucketIndex].entries[atomBuckets[bucketIndex].count].atom = newAtom;
+	atomBuckets[bucketIndex].entries[atomBuckets[bucketIndex].count].hash = hash;
+	atomBuckets[bucketIndex].count++;
 	
 	pthread_mutex_unlock(&mutex);
 	return newAtom;
