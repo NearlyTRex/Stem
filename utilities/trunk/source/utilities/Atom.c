@@ -42,22 +42,16 @@ struct AtomBucket {
 };
 
 static struct AtomBucket atomBuckets[ATOM_HASH_TABLE_SIZE];
-static pthread_mutex_t mutex;
+static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 Atom Atom_fromString(const char * string) {
 	unsigned int bucketIndex, entryIndex;
 	char * newAtom;
 	size_t length;
-	static bool mutexInited = false;
 	uint32_t hash;
 	
 	if (string == NULL) {
 		return NULL;
-	}
-	
-	if (!mutexInited) {
-		pthread_mutex_init(&mutex, NULL);
-		mutexInited = true;
 	}
 	
 	length = strlen(string);
@@ -82,9 +76,7 @@ Atom Atom_fromString(const char * string) {
 		atomBuckets[bucketIndex].entries = realloc(atomBuckets[bucketIndex].entries, sizeof(struct AtomEntry) * atomBuckets[bucketIndex].allocatedSize);
 	}
 	
-	newAtom = malloc(length + 1);
-	strcpy(newAtom, string);
-	newAtom[length] = '\x00';
+	newAtom = strdup(string);
 	atomBuckets[bucketIndex].entries[atomBuckets[bucketIndex].count].atom = newAtom;
 	atomBuckets[bucketIndex].entries[atomBuckets[bucketIndex].count].hash = hash;
 	atomBuckets[bucketIndex].count++;
