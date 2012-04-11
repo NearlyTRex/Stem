@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2010 Alex Diener
+  Copyright (c) 2012 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -49,42 +49,6 @@ Vector4 Vector4_init(float x, float y, float z, float w) {
 	vector.z = z;
 	vector.w = w;
 	return vector;
-}
-
-Vector2 Vector2_zero() {
-	return Vector2_init(0.0f, 0.0f);
-}
-
-Vector3 Vector3_zero() {
-	return Vector3_init(0.0f, 0.0f, 0.0f);
-}
-
-Vector4 Vector4_zero() {
-	return Vector4_init(0.0f, 0.0f, 0.0f, 0.0f);
-}
-
-Vector3 Vector3_left() {
-	return Vector3_init(-1.0f, 0.0f, 0.0f);
-}
-
-Vector3 Vector3_right() {
-	return Vector3_init(1.0f, 0.0f, 0.0f);
-}
-
-Vector3 Vector3_down() {
-	return Vector3_init(0.0f, -1.0f, 0.0f);
-}
-
-Vector3 Vector3_up() {
-	return Vector3_init(0.0f, 1.0f, 0.0f);
-}
-
-Vector3 Vector3_back() {
-	return Vector3_init(0.0f, 0.0f, -1.0f);
-}
-
-Vector3 Vector3_front() {
-	return Vector3_init(0.0f, 0.0f, 1.0f);
 }
 
 void Vector2_normalize(Vector2 * vector) {

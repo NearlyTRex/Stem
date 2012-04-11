@@ -1,3 +1,6 @@
+1.3.0
+ * Replaced functions that return prefabricated vectors, matrices, and quaternions (Vector2_zero(), Vector3_up(), Quaternion_identity(), Matrix_identity(), etc.) with compile-time constants
+
 1.2.0
  * Added Vector2_rotate() function
  * Changed some parameter names for greater clarity (particularly to distinguish between degrees and radians)

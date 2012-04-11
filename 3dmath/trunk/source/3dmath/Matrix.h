@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2010 Alex Diener
+  Copyright (c) 2012 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -31,8 +31,12 @@ struct Matrix {
 
 #include "3dmath/Vector.h"
 
+#define MATRIX_IDENTITY ((Matrix) {{1.0f, 0.0f, 0.0f, 0.0f, \
+                                    0.0f, 1.0f, 0.0f, 0.0f, \
+                                    0.0f, 0.0f, 1.0f, 0.0f, \
+                                    0.0f, 0.0f, 0.0f, 1.0f}})
+
 void Matrix_loadIdentity(Matrix * matrix1);
-Matrix Matrix_identity();
 
 Matrix Matrix_init(float m0, float m4, float m8,  float m12,
                    float m1, float m5, float m9,  float m13,

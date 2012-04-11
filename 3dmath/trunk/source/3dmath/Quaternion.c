@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2010 Alex Diener
+  Copyright (c) 2012 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -33,13 +33,6 @@ void Quaternion_loadIdentity(Quaternion * quaternion) {
 	quaternion->y = 0.0f;
 	quaternion->z = 0.0f;
 	quaternion->w = 1.0f;
-}
-
-Quaternion Quaternion_identity() {
-	Quaternion quaternion;
-	
-	Quaternion_loadIdentity(&quaternion);
-	return quaternion;
 }
 
 Quaternion Quaternion_init(float x, float y, float z, float w) {

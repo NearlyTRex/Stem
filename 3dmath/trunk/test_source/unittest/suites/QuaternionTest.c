@@ -22,7 +22,7 @@ static void testLoadIdentity() {
 static void testIdentity() {
 	Quaternion quaternion;
 	
-	quaternion = Quaternion_identity();
+	quaternion = QUATERNION_IDENTITY;
 	TestCase_assert(quaternion.x == 0.0f &&
 	                quaternion.y == 0.0f &&
 	                quaternion.z == 0.0f &&
@@ -54,7 +54,7 @@ static void testInit() {
 static void testFromAxisAngle() {
 	Quaternion quaternion;
 	
-	quaternion = Quaternion_fromAxisAngle(Vector3_right(), 0.0f);
+	quaternion = Quaternion_fromAxisAngle(VECTOR3_RIGHT, 0.0f);
 	TestCase_assert(fabs(quaternion.x - 0.0f) < TEST_EPSILON &&
 	                fabs(quaternion.y - 0.0f) < TEST_EPSILON &&
 	                fabs(quaternion.z - 0.0f) < TEST_EPSILON &&
@@ -90,7 +90,7 @@ static void testFromAxisAngle() {
 	                0.0f, -0.707107f, 0.0f, 0.707107f,
 	                quaternion.x, quaternion.y, quaternion.z, quaternion.w);
 	
-	quaternion = Quaternion_fromAxisAngle(Vector3_zero(), 0.0f);
+	quaternion = Quaternion_fromAxisAngle(VECTOR3_ZERO, 0.0f);
 	TestCase_assert(isnan(quaternion.x) &&
 	                isnan(quaternion.y) &&
 	                isnan(quaternion.z) &&
@@ -389,8 +389,8 @@ static void testSlerp() {
 static void testRotate() {
 	Quaternion quaternion;
 	
-	quaternion = Quaternion_identity();
-	Quaternion_rotate(&quaternion, Vector3_up(), M_PI / 5);
+	quaternion = QUATERNION_IDENTITY;
+	Quaternion_rotate(&quaternion, VECTOR3_UP, M_PI / 5);
 	TestCase_assert(fabs(quaternion.x - 0.0f) < TEST_EPSILON &&
 	                fabs(quaternion.y - 0.309017f) < TEST_EPSILON &&
 	                fabs(quaternion.z - 0.0f) < TEST_EPSILON &&
@@ -412,8 +412,8 @@ static void testRotate() {
 static void testRotated() {
 	Quaternion quaternion;
 	
-	quaternion = Quaternion_identity();
-	quaternion = Quaternion_rotated(quaternion, Vector3_up(), M_PI / 5);
+	quaternion = QUATERNION_IDENTITY;
+	quaternion = Quaternion_rotated(quaternion, VECTOR3_UP, M_PI / 5);
 	TestCase_assert(fabs(quaternion.x - 0.0f) < TEST_EPSILON &&
 	                fabs(quaternion.y - 0.309017f) < TEST_EPSILON &&
 	                fabs(quaternion.z - 0.0f) < TEST_EPSILON &&
@@ -501,7 +501,7 @@ static void testInverted() {
 static void testMultiplyVector3() {
 	Vector3 vector;
 	
-	vector = Quaternion_multiplyVector3(Quaternion_fromAxisAngle(Vector3_up(), M_PI / 4),
+	vector = Quaternion_multiplyVector3(Quaternion_fromAxisAngle(VECTOR3_UP, M_PI / 4),
 	                                    Vector3_init(1.0f, 1.0f, 0.0f));
 	TestCase_assert(fabs(vector.x - 0.707107f) < TEST_EPSILON &&
 	                fabs(vector.y - 1.0f) < TEST_EPSILON &&
@@ -510,7 +510,7 @@ static void testMultiplyVector3() {
 	                0.707107f, 1.0f, -0.707107f,
 	                vector.x, vector.y, vector.z);
 	
-	vector = Quaternion_multiplyVector3(Quaternion_fromAxisAngle(Vector3_right(), M_PI / 4),
+	vector = Quaternion_multiplyVector3(Quaternion_fromAxisAngle(VECTOR3_RIGHT, M_PI / 4),
 	                                    Vector3_init(-2.5f, 2.0f, 0.0f));
 	TestCase_assert(fabs(vector.x - -2.5f) < TEST_EPSILON &&
 	                fabs(vector.y - 1.414213f) < TEST_EPSILON &&
@@ -519,7 +519,7 @@ static void testMultiplyVector3() {
 	                -2.5f, 1.414213f, 1.414213f,
 	                vector.x, vector.y, vector.z);
 	
-	vector = Quaternion_multiplyVector3(Quaternion_fromAxisAngle(Vector3_front(), M_PI / 4),
+	vector = Quaternion_multiplyVector3(Quaternion_fromAxisAngle(VECTOR3_FRONT, M_PI / 4),
 	                                    Vector3_init(1.0f, 1.0f, 0.0f));
 	TestCase_assert(fabs(vector.x - 0.0f) < TEST_EPSILON &&
 	                fabs(vector.y - 1.414213f) < TEST_EPSILON &&
@@ -532,7 +532,7 @@ static void testMultiplyVector3() {
 static void testMultiplyVector4() {
 	Vector4 vector;
 	
-	vector = Quaternion_multiplyVector4(Quaternion_fromAxisAngle(Vector3_up(), M_PI / 4),
+	vector = Quaternion_multiplyVector4(Quaternion_fromAxisAngle(VECTOR3_UP, M_PI / 4),
 	                                    Vector4_init(1.0f, 1.0f, 0.0f, 1.0f));
 	TestCase_assert(fabs(vector.x - 0.707107f) < TEST_EPSILON &&
 	                fabs(vector.y - 1.0f) < TEST_EPSILON &&
@@ -542,7 +542,7 @@ static void testMultiplyVector4() {
 	                0.707107f, 1.0f, -0.707107f, 1.0f,
 	                vector.x, vector.y, vector.z, vector.w);
 	
-	vector = Quaternion_multiplyVector4(Quaternion_fromAxisAngle(Vector3_right(), M_PI / 4),
+	vector = Quaternion_multiplyVector4(Quaternion_fromAxisAngle(VECTOR3_RIGHT, M_PI / 4),
 	                                    Vector4_init(-2.5f, 2.0f, 0.0f, 0.0f));
 	TestCase_assert(fabs(vector.x - -2.5f) < TEST_EPSILON &&
 	                fabs(vector.y - 1.414213f) < TEST_EPSILON &&
@@ -552,7 +552,7 @@ static void testMultiplyVector4() {
 	                -2.5f, 1.414213f, 1.414213f, 0.0f,
 	                vector.x, vector.y, vector.z, vector.w);
 	
-	vector = Quaternion_multiplyVector4(Quaternion_fromAxisAngle(Vector3_front(), M_PI / 4),
+	vector = Quaternion_multiplyVector4(Quaternion_fromAxisAngle(VECTOR3_FRONT, M_PI / 4),
 	                                    Vector4_init(1.0f, 1.0f, 0.0f, 0.0f));
 	TestCase_assert(fabs(vector.x - 0.0f) < TEST_EPSILON &&
 	                fabs(vector.y - 1.414213f) < TEST_EPSILON &&

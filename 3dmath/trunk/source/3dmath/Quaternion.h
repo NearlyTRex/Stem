@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2010 Alex Diener
+  Copyright (c) 2012 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -35,8 +35,9 @@ struct Quaternion {
 #include "3dmath/Matrix.h"
 #include "3dmath/Vector.h"
 
+#define QUATERNION_IDENTITY ((Quaternion) {0.0f, 0.0f, 0.0f, 1.0f})
+
 void Quaternion_loadIdentity(Quaternion * quaternion);
-Quaternion Quaternion_identity();
 Quaternion Quaternion_init(float x, float y, float z, float w);
 
 Quaternion Quaternion_fromAxisAngle(Vector3 axis, float radians);

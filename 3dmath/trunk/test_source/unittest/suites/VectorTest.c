@@ -67,26 +67,26 @@ static void testPrefabs() {
 	Vector3 vector3;
 	Vector4 vector4;
 	
-	vector2 = Vector2_zero();
+	vector2 = VECTOR2_ZERO;
 	assertVector2Exact(vector2, 0.0f, 0.0f);
-	vector3 = Vector3_zero();
+	vector3 = VECTOR3_ZERO;
 	assertVector3Exact(vector3, 0.0f, 0.0f, 0.0f);
-	vector4 = Vector4_zero();
+	vector4 = VECTOR4_ZERO;
 	assertVector4Exact(vector4, 0.0f, 0.0f, 0.0f, 0.0f);
 	
-	vector3 = Vector3_left();
+	vector3 = VECTOR3_LEFT;
 	assertVector3Exact(vector3, -1.0f, 0.0f, 0.0f);
-	vector3 = Vector3_right();
+	vector3 = VECTOR3_RIGHT;
 	assertVector3Exact(vector3, 1.0f, 0.0f, 0.0f);
 	
-	vector3 = Vector3_down();
+	vector3 = VECTOR3_DOWN;
 	assertVector3Exact(vector3, 0.0f, -1.0f, 0.0f);
-	vector3 = Vector3_up();
+	vector3 = VECTOR3_UP;
 	assertVector3Exact(vector3, 0.0f, 1.0f, 0.0f);
 	
-	vector3 = Vector3_back();
+	vector3 = VECTOR3_BACK;
 	assertVector3Exact(vector3, 0.0f, 0.0f, -1.0f);
-	vector3 = Vector3_front();
+	vector3 = VECTOR3_FRONT;
 	assertVector3Exact(vector3, 0.0f, 0.0f, 1.0f);
 }
 

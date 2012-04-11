@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2010 Alex Diener
+  Copyright (c) 2012 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -45,19 +45,19 @@ struct Vector4 {
 	float w;
 };
 
+#define VECTOR2_ZERO ((Vector2) {0.0f, 0.0f})
+#define VECTOR3_ZERO ((Vector3) {0.0f, 0.0f, 0.0f})
+#define VECTOR4_ZERO ((Vector4) {0.0f, 0.0f, 0.0f, 0.0f})
+#define VECTOR3_LEFT  ((Vector3) {-1.0f,  0.0f,  0.0f})
+#define VECTOR3_RIGHT ((Vector3) { 1.0f,  0.0f,  0.0f})
+#define VECTOR3_DOWN  ((Vector3) { 0.0f, -1.0f,  0.0f})
+#define VECTOR3_UP    ((Vector3) { 0.0f,  1.0f,  0.0f})
+#define VECTOR3_BACK  ((Vector3) { 0.0f,  0.0f, -1.0f})
+#define VECTOR3_FRONT ((Vector3) { 0.0f,  0.0f,  1.0f})
+
 Vector2 Vector2_init(float x, float y);
 Vector3 Vector3_init(float x, float y, float z);
 Vector4 Vector4_init(float x, float y, float z, float w);
-
-Vector2 Vector2_zero();
-Vector3 Vector3_zero();
-Vector4 Vector4_zero();
-Vector3 Vector3_left();
-Vector3 Vector3_right();
-Vector3 Vector3_down();
-Vector3 Vector3_up();
-Vector3 Vector3_back();
-Vector3 Vector3_front();
 
 void Vector2_normalize(Vector2 * vector);
 void Vector3_normalize(Vector3 * vector);

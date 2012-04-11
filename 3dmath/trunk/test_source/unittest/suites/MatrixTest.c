@@ -107,7 +107,7 @@ static void testInit() {
 static void testIdentity() {
 	Matrix matrix;
 	
-	matrix = Matrix_identity();
+	matrix = MATRIX_IDENTITY;
 	assertMatrixExact(matrix, 1.0f, 0.0f, 0.0f, 0.0f,
 	                          0.0f, 1.0f, 0.0f, 0.0f,
 	                          0.0f, 0.0f, 1.0f, 0.0f,
@@ -180,7 +180,7 @@ static void testMultiply() {
 static void testTranslate() {
 	Matrix matrix;
 	
-	matrix = Matrix_translated(Matrix_identity(), 3.0f, -1.5f, 1.0f);
+	matrix = Matrix_translated(MATRIX_IDENTITY, 3.0f, -1.5f, 1.0f);
 	assertMatrixApproximate(matrix, 1.0f, 0.0f, 0.0f, 3.0f,
 	                                0.0f, 1.0f, 0.0f, -1.5f,
 	                                0.0f, 0.0f, 1.0f, 1.0f,
@@ -195,7 +195,7 @@ static void testTranslate() {
 	                                0.0f, 1.0f, 0.0f, 3.0f,
 	                                0.0f, 0.0f, 0.0f, 1.0f, EPSILON);
 	
-	matrix = Matrix_identity();
+	matrix = MATRIX_IDENTITY;
 	Matrix_translate(&matrix, 3.0f, -1.5f, 1.0f);
 	assertMatrixApproximate(matrix, 1.0f, 0.0f, 0.0f, 3.0f,
 	                                0.0f, 1.0f, 0.0f, -1.5f,
@@ -215,7 +215,7 @@ static void testTranslate() {
 static void testScale() {
 	Matrix matrix;
 	
-	matrix = Matrix_scaled(Matrix_identity(), 2.0f, -1.0f, 0.5f);
+	matrix = Matrix_scaled(MATRIX_IDENTITY, 2.0f, -1.0f, 0.5f);
 	assertMatrixApproximate(matrix, 2.0f, 0.0f,  0.0f, 0.0f,
 	                                0.0f, -1.0f, 0.0f, 0.0f,
 	                                0.0f, 0.0f,  0.5f, 0.0f,
@@ -231,7 +231,7 @@ static void testScale() {
 	                                0.0f, 2.25f, 0.0f, 3.0f,
 	                                0.0f, 0.0f,  0.0f, 1.0f, EPSILON);
 	
-	matrix = Matrix_identity();
+	matrix = MATRIX_IDENTITY;
 	Matrix_scale(&matrix, 2.0f, -1.0f, 0.5f);
 	assertMatrixApproximate(matrix, 2.0f, 0.0f,  0.0f, 0.0f,
 	                                0.0f, -1.0f, 0.0f, 0.0f,
@@ -252,13 +252,13 @@ static void testScale() {
 static void testRotate() {
 	Matrix matrix;
 	
-	matrix = Matrix_rotated(Matrix_identity(), Vector3_init(0.0f, 1.0f, 0.0f), M_PI);
+	matrix = Matrix_rotated(MATRIX_IDENTITY, Vector3_init(0.0f, 1.0f, 0.0f), M_PI);
 	assertMatrixApproximate(matrix, -1.0f, 0.0f,  0.0f, 0.0f,
 	                                 0.0f, 1.0f,  0.0f, 0.0f,
 	                                 0.0f, 0.0f, -1.0f, 0.0f,
 	                                 0.0f, 0.0f,  0.0f, 1.0f, EPSILON);
 	
-	matrix = Matrix_rotated(Matrix_scaled(Matrix_identity(), 2.0f, 2.0f, 2.0f),
+	matrix = Matrix_rotated(Matrix_scaled(MATRIX_IDENTITY, 2.0f, 2.0f, 2.0f),
 	                        Vector3_init(-1.0f, 0.0f, 0.0f),
 	                        M_PI * 0.5f);
 	assertMatrixApproximate(matrix, 2.0f,  0.0f, 0.0f, 0.0f,
@@ -266,14 +266,14 @@ static void testRotate() {
 	                                0.0f, -2.0f, 0.0f, 0.0f,
 	                                0.0f,  0.0f, 0.0f, 1.0f, EPSILON);
 	
-	matrix = Matrix_identity();
+	matrix = MATRIX_IDENTITY;
 	Matrix_rotate(&matrix, Vector3_init(0.0f, 1.0f, 0.0f), M_PI);
 	assertMatrixApproximate(matrix, -1.0f, 0.0f,  0.0f, 0.0f,
 	                                 0.0f, 1.0f,  0.0f, 0.0f,
 	                                 0.0f, 0.0f, -1.0f, 0.0f,
 	                                 0.0f, 0.0f,  0.0f, 1.0f, EPSILON);
 	
-	matrix = Matrix_scaled(Matrix_identity(), 2.0f, 2.0f, 2.0f);
+	matrix = Matrix_scaled(MATRIX_IDENTITY, 2.0f, 2.0f, 2.0f);
 	Matrix_rotate(&matrix, Vector3_init(-1.0f, 0.0f, 0.0f), M_PI * 0.5f);
 	assertMatrixApproximate(matrix, 2.0f,  0.0f, 0.0f, 0.0f,
 	                                0.0f,  0.0f, 2.0f, 0.0f,
@@ -284,7 +284,7 @@ static void testRotate() {
 static void testShear() {
 	Matrix matrix;
 	
-	matrix = Matrix_shearedX(Matrix_identity(), 1.0f, 1.0f);
+	matrix = Matrix_shearedX(MATRIX_IDENTITY, 1.0f, 1.0f);
 	assertMatrixApproximate(matrix, 1.0f, 0.0f, 0.0f, 0.0f,
 	                                1.0f, 1.0f, 0.0f, 0.0f,
 	                                1.0f, 0.0f, 1.0f, 0.0f,
@@ -299,7 +299,7 @@ static void testShear() {
 	                                 0.5f, 1.0f, 0.0f, 0.0f,
 	                                 0.0f, 0.0f, 0.0f, 1.0f, EPSILON);
 	
-	matrix = Matrix_shearedY(Matrix_identity(), 1.0f, 1.0f);
+	matrix = Matrix_shearedY(MATRIX_IDENTITY, 1.0f, 1.0f);
 	assertMatrixApproximate(matrix, 1.0f, 1.0f, 0.0f, 0.0f,
 	                                0.0f, 1.0f, 0.0f, 0.0f,
 	                                0.0f, 1.0f, 1.0f, 0.0f,
@@ -314,7 +314,7 @@ static void testShear() {
 	                                0.0f,  1.0f, 0.0f, 0.0f,
 	                                0.0f,  0.0f, 0.0f, 1.0f, EPSILON);
 	
-	matrix = Matrix_shearedZ(Matrix_identity(), 1.0f, 1.0f);
+	matrix = Matrix_shearedZ(MATRIX_IDENTITY, 1.0f, 1.0f);
 	assertMatrixApproximate(matrix, 1.0f, 0.0f, 1.0f, 0.0f,
 	                                0.0f, 1.0f, 1.0f, 0.0f,
 	                                0.0f, 0.0f, 1.0f, 0.0f,
@@ -329,7 +329,7 @@ static void testShear() {
 	                                0.0f, 1.0f, -0.5f, 0.0f,
 	                                0.0f, 0.0f,  0.0f, 1.0f, EPSILON);
 	
-	matrix = Matrix_identity();
+	matrix = MATRIX_IDENTITY;
 	Matrix_shearX(&matrix, 1.0f, 1.0f);
 	assertMatrixApproximate(matrix, 1.0f, 0.0f, 0.0f, 0.0f,
 	                                1.0f, 1.0f, 0.0f, 0.0f,
@@ -345,7 +345,7 @@ static void testShear() {
 	                                 0.5f, 1.0f, 0.0f, 0.0f,
 	                                 0.0f, 0.0f, 0.0f, 1.0f, EPSILON);
 	
-	matrix = Matrix_identity();
+	matrix = MATRIX_IDENTITY;
 	Matrix_shearY(&matrix, 1.0f, 1.0f);
 	assertMatrixApproximate(matrix, 1.0f, 1.0f, 0.0f, 0.0f,
 	                                0.0f, 1.0f, 0.0f, 0.0f,
@@ -361,7 +361,7 @@ static void testShear() {
 	                                0.0f,  1.0f, 0.0f, 0.0f,
 	                                0.0f,  0.0f, 0.0f, 1.0f, EPSILON);
 	
-	matrix = Matrix_identity();
+	matrix = MATRIX_IDENTITY;
 	Matrix_shearZ(&matrix, 1.0f, 1.0f);
 	assertMatrixApproximate(matrix, 1.0f, 0.0f, 1.0f, 0.0f,
 	                                0.0f, 1.0f, 1.0f, 0.0f,
@@ -381,26 +381,26 @@ static void testShear() {
 static void testPerspective() {
 	Matrix matrix;
 	
-	matrix = Matrix_perspective(Matrix_identity(), 90.0f, 1.0f, 1.0f, 2.0f);
+	matrix = Matrix_perspective(MATRIX_IDENTITY, 90.0f, 1.0f, 1.0f, 2.0f);
 	assertMatrixApproximate(matrix, 1.0f, 0.0f,  0.0f,  0.0f,
 	                                0.0f, 1.0f,  0.0f,  0.0f,
 	                                0.0f, 0.0f, -3.0f, -4.0f,
 	                                0.0f, 0.0f, -1.0f,  0.0f, EPSILON);
 	
-	matrix = Matrix_perspective(Matrix_identity(), 45.0f, 2.0f, 0.5f, 4.0f);
+	matrix = Matrix_perspective(MATRIX_IDENTITY, 45.0f, 2.0f, 0.5f, 4.0f);
 	assertMatrixApproximate(matrix, 1.20710678118655f, 0.0f,               0.0f,               0.0f,
 	                                0.0f,              2.41421356237309f,  0.0f,               0.0f,
 	                                0.0f,              0.0f,              -1.28571428571429f, -1.14285714285714f,
 	                                0.0f,              0.0f,              -1.0f,               0.0f, EPSILON);
 	
-	matrix = Matrix_identity();
+	matrix = MATRIX_IDENTITY;
 	Matrix_applyPerspective(&matrix, 90.0f, 1.0f, 1.0f, 2.0f);
 	assertMatrixApproximate(matrix, 1.0f, 0.0f,  0.0f,  0.0f,
 	                                0.0f, 1.0f,  0.0f,  0.0f,
 	                                0.0f, 0.0f, -3.0f, -4.0f,
 	                                0.0f, 0.0f, -1.0f,  0.0f, EPSILON);
 	
-	matrix = Matrix_identity();
+	matrix = MATRIX_IDENTITY;
 	Matrix_applyPerspective(&matrix, 45.0f, 2.0f, 0.5f, 4.0f);
 	assertMatrixApproximate(matrix, 1.20710678118655f, 0.0f,               0.0f,               0.0f,
 	                                0.0f,              2.41421356237309f,  0.0f,               0.0f,
@@ -411,26 +411,26 @@ static void testPerspective() {
 static void testOrtho() {
 	Matrix matrix;
 	
-	matrix = Matrix_ortho(Matrix_identity(), -1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
+	matrix = Matrix_ortho(MATRIX_IDENTITY, -1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
 	assertMatrixApproximate(matrix, 1.0f, 0.0f,  0.0f, 0.0f,
 	                                0.0f, 1.0f,  0.0f, 0.0f,
 	                                0.0f, 0.0f, -1.0f, 0.0f,
 	                                0.0f, 0.0f,  0.0f, 1.0f, EPSILON);
 	
-	matrix = Matrix_ortho(Matrix_identity(), 0.0f, 4.0f, 8.0f, 0.0f, 0.0f, 10.0f);
+	matrix = Matrix_ortho(MATRIX_IDENTITY, 0.0f, 4.0f, 8.0f, 0.0f, 0.0f, 10.0f);
 	assertMatrixApproximate(matrix, 0.5f,  0.0f,   0.0f, -1.0f,
 	                                0.0f, -0.25f,  0.0f,  1.0f,
 	                                0.0f,  0.0f,  -0.2f, -1.0f,
 	                                0.0f,  0.0f,   0.0f,  1.0f, EPSILON);
 	
-	matrix = Matrix_identity();
+	matrix = MATRIX_IDENTITY;
 	Matrix_applyOrtho(&matrix, -1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
 	assertMatrixApproximate(matrix, 1.0f, 0.0f,  0.0f, 0.0f,
 	                                0.0f, 1.0f,  0.0f, 0.0f,
 	                                0.0f, 0.0f, -1.0f, 0.0f,
 	                                0.0f, 0.0f,  0.0f, 1.0f, EPSILON);
 	
-	matrix = Matrix_identity();
+	matrix = MATRIX_IDENTITY;
 	Matrix_applyOrtho(&matrix, 0.0f, 4.0f, 8.0f, 0.0f, 0.0f, 10.0f);
 	assertMatrixApproximate(matrix, 0.5f,  0.0f,   0.0f, -1.0f,
 	                                0.0f, -0.25f,  0.0f,  1.0f,
@@ -483,7 +483,7 @@ static void testTranspose() {
 static void testDeterminant() {
 	float determinant;
 	
-	determinant = Matrix_determinant(Matrix_identity());
+	determinant = Matrix_determinant(MATRIX_IDENTITY);
 	TestCase_assert(fabs(determinant - 1.0f) < EPSILON, "Expected 1.0 but got %f", determinant);
 	
 	determinant = Matrix_determinant(Matrix_init(0.0f, 0.0f, 2.0f, 2.0f,
@@ -496,7 +496,7 @@ static void testDeterminant() {
 static void testInvert() {
 	Matrix matrix;
 	
-	matrix = Matrix_inverted(Matrix_identity());
+	matrix = Matrix_inverted(MATRIX_IDENTITY);
 	assertMatrixApproximate(matrix, 1.0f, 0.0f, 0.0f, 0.0f,
 	                                0.0f, 1.0f, 0.0f, 0.0f,
 	                                0.0f, 0.0f, 1.0f, 0.0f,
@@ -511,7 +511,7 @@ static void testInvert() {
 	                                0.5f, 0.0f, 0.0f, -1.0f,
 	                                0.0f, 0.0f, 0.0f,  1.0f, EPSILON);
 	
-	matrix = Matrix_identity();
+	matrix = MATRIX_IDENTITY;
 	Matrix_invert(&matrix);
 	assertMatrixApproximate(matrix, 1.0f, 0.0f, 0.0f, 0.0f,
 	                                0.0f, 1.0f, 0.0f, 0.0f,
@@ -535,7 +535,7 @@ static void testMultiplyVector() {
 	Vector3 vector3;
 	Vector4 vector4;
 	
-	matrix = Matrix_identity();
+	matrix = MATRIX_IDENTITY;
 	vector2 = Matrix_multiplyVector2(matrix, Vector2_init(1.0f, 0.0f));
 	assertVector2Approximate(vector2, 1.0f, 0.0f, EPSILON);
 	

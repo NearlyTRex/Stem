@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2011 Alex Diener
+  Copyright (c) 2012 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -44,13 +44,6 @@ void Matrix_loadIdentity(Matrix * matrix) {
 	matrix->m[13] = 0.0f;
 	matrix->m[14] = 0.0f;
 	matrix->m[15] = 1.0f;
-}
-
-Matrix Matrix_identity() {
-	Matrix matrix;
-	
-	Matrix_loadIdentity(&matrix);
-	return matrix;
 }
 
 Matrix Matrix_init(float m0, float m4, float m8,  float m12,
