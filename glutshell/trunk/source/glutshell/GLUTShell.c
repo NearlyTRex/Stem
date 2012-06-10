@@ -218,7 +218,7 @@ static int lastUnhiddenCursor = ShellCursor_arrow;
 static bool mouseDeltaMode;
 static int restoreMouseX, restoreMouseY;
 static int lastMouseX, lastMouseY;
-static bool ignoreNextMouseMove;
+static int ignoreX = INT_MAX, ignoreY = INT_MAX;
 
 void Shell_setCursorVisible(bool visible) {
 	if (visible && cursorHiddenByHide) {
@@ -314,18 +314,24 @@ void Shell_setCursor(int cursor) {
 	}
 }
 
+static void warpPointerAndIgnoreEvent(int x, int y) {
+	ignoreX = x;
+	ignoreY = y;
+	lastMouseX = x;
+	lastMouseY = y;
+	glutWarpPointer(x, y);
+}
+
 void Shell_setMouseDeltaMode(bool deltaMode) {
 	if (!mouseDeltaMode && deltaMode) {
 		restoreMouseX = lastMouseX;
 		restoreMouseY = lastMouseY;
-		ignoreNextMouseMove = true;
-		glutWarpPointer(glutGet(GLUT_WINDOW_X) + glutGet(GLUT_WINDOW_WIDTH) / 2, glutGet(GLUT_WINDOW_Y) + glutGet(GLUT_WINDOW_HEIGHT) / 2);
+		warpPointerAndIgnoreEvent(glutGet(GLUT_WINDOW_WIDTH) / 2, glutGet(GLUT_WINDOW_HEIGHT) / 2);
 		glutSetCursor(GLUT_CURSOR_NONE);
 		mouseDeltaMode = true;
 		
 	} else if (mouseDeltaMode && !deltaMode) {
-		ignoreNextMouseMove = true;
-		glutWarpPointer(restoreMouseX, restoreMouseY);
+		warpPointerAndIgnoreEvent(restoreMouseX, restoreMouseY);
 		mouseDeltaMode = false;
 		Shell_setCursor(lastUnhiddenCursor);
 	}
@@ -664,8 +670,7 @@ static void mouseFunc(int button, int state, int x, int y) {
 static void motionFunc(int x, int y) {
 	int reportedX, reportedY;
 	
-	if (ignoreNextMouseMove) {
-		ignoreNextMouseMove = false;
+	if ((x == lastMouseX && y == lastMouseY) || (x == ignoreX && y == ignoreY)) {
 		return;
 	}
 	
@@ -687,9 +692,9 @@ static void motionFunc(int x, int y) {
 	} else {
 		Target_mouseMoved(reportedX, reportedY);
 	}
+	ignoreX = ignoreY = INT_MAX;
 	if (mouseDeltaMode) {
-		ignoreNextMouseMove = true;
-		glutWarpPointer(glutGet(GLUT_WINDOW_X) + glutGet(GLUT_WINDOW_WIDTH) / 2, glutGet(GLUT_WINDOW_Y) + glutGet(GLUT_WINDOW_HEIGHT) / 2);
+		warpPointerAndIgnoreEvent(glutGet(GLUT_WINDOW_WIDTH) / 2, glutGet(GLUT_WINDOW_HEIGHT) / 2);
 	}
 }
 
