@@ -27,6 +27,7 @@
 int g_argc = 0;
 const char ** g_argv = NULL;
 struct NSOpenGLShellConfiguration g_configuration;
+bool g_mouseDeltaMode = false;
 
 extern bool mainLoopCalled;
 

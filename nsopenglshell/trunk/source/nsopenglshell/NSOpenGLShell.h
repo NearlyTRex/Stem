@@ -47,12 +47,8 @@ struct NSOpenGLShellConfiguration {
 
 // NSOpenGLShellCursor_<name> == [NSCursor <name>Cursor]
 enum NSOpenGLShellCursor {
-	NSOpenGLShellCursor_arrow,
-	NSOpenGLShellCursor_IBeam,
-	NSOpenGLShellCursor_crosshair,
-	NSOpenGLShellCursor_closedHand,
+	NSOpenGLShellCursor_closedHand = 100,
 	NSOpenGLShellCursor_openHand,
-	NSOpenGLShellCursor_pointingHand,
 	NSOpenGLShellCursor_resizeLeft,
 	NSOpenGLShellCursor_resizeRight,
 	NSOpenGLShellCursor_resizeLeftRight,
@@ -66,15 +62,5 @@ enum NSOpenGLShellCursor {
 	NSOpenGLShellCursor_dragLink,
 	NSOpenGLShellCursor_operationNotAllowed
 };
-
-/** Shows the cursor if visible is set to true. Hides the cursor if visible is set to false. Has no effect if
-    the cursor already has the specified visibility. */
-void NSOpenGLShell_setCursorVisible(bool visible);
-
-/** Hides the cursor until the mouse moves, at which point it will be shown again. */
-void NSOpenGLShell_hideCursorUntilMouseMoves();
-
-/** Sets the cursor image to the specified value. */
-void NSOpenGLShell_setCursor(enum NSOpenGLShellCursor cursor);
 
 #endif

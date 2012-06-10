@@ -209,11 +209,13 @@ void Shell_cancelTimer(unsigned int timerID) {
 	}
 }
 
-void NSOpenGLShell_setCursorVisible(bool visible) {
+void Shell_setCursorVisible(bool visible) {
 	if (visible) {
 		if (cursorHiddenByHide) {
 			cursorHiddenByHide = false;
-			[NSCursor unhide];
+			if (!g_mouseDeltaMode) {
+				[NSCursor unhide];
+			}
 		}
 	} else {
 		if (!cursorHiddenByHide) {
@@ -223,7 +225,7 @@ void NSOpenGLShell_setCursorVisible(bool visible) {
 	}
 }
 
-void NSOpenGLShell_hideCursorUntilMouseMoves() {
+void Shell_hideCursorUntilMouseMoves() {
 	[NSCursor setHiddenUntilMouseMoves: YES];
 }
 
@@ -234,25 +236,25 @@ void NSOpenGLShell_hideCursorUntilMouseMoves() {
 + (NSCursor *)operationNotAllowedCursor;
 @end
 
-void NSOpenGLShell_setCursor(enum NSOpenGLShellCursor cursor) {
+void Shell_setCursor(int cursor) {
 	switch (cursor) {
-		case NSOpenGLShellCursor_arrow:
+		case ShellCursor_arrow:
 			[[NSCursor arrowCursor] set];
 			break;
-		case NSOpenGLShellCursor_IBeam:
+		case ShellCursor_iBeam:
 			[[NSCursor IBeamCursor] set];
 			break;
-		case NSOpenGLShellCursor_crosshair:
+		case ShellCursor_crosshair:
 			[[NSCursor crosshairCursor] set];
+			break;
+		case ShellCursor_hand:
+			[[NSCursor pointingHandCursor] set];
 			break;
 		case NSOpenGLShellCursor_closedHand:
 			[[NSCursor closedHandCursor] set];
 			break;
 		case NSOpenGLShellCursor_openHand:
 			[[NSCursor openHandCursor] set];
-			break;
-		case NSOpenGLShellCursor_pointingHand:
-			[[NSCursor pointingHandCursor] set];
 			break;
 		case NSOpenGLShellCursor_resizeLeft:
 			[[NSCursor resizeLeftCursor] set];
@@ -295,5 +297,19 @@ void NSOpenGLShell_setCursor(enum NSOpenGLShellCursor cursor) {
 				[[NSCursor operationNotAllowedCursor] set];
 			}
 			break;
+	}
+}
+
+void Shell_setMouseDeltaMode(bool deltaMode) {
+	if (g_mouseDeltaMode != deltaMode) {
+		g_mouseDeltaMode = deltaMode;
+		if (!cursorHiddenByHide) {
+			if (deltaMode) {
+				[NSCursor hide];
+			} else {
+				[NSCursor unhide];
+			}
+		}
+		CGAssociateMouseAndMouseCursorPosition(!deltaMode);
 	}
 }

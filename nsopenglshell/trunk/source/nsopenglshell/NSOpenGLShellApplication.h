@@ -26,6 +26,7 @@
 extern int g_argc;
 extern const char ** g_argv;
 extern struct NSOpenGLShellConfiguration g_configuration;
+extern bool g_mouseDeltaMode;
 
 @class NSOpenGLShellView;
 

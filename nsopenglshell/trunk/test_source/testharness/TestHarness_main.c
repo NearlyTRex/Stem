@@ -12,6 +12,7 @@
 #include <OpenGL/gl.h>
 
 static unsigned int timer1ID = UINT_MAX, timer2ID = UINT_MAX;
+static bool deltaMode;
 
 void NSOpenGLTarget_configure(int argc, const char ** argv, struct NSOpenGLShellConfiguration * configuration) {
 	int argIndex;
@@ -42,8 +43,7 @@ void NSOpenGLTarget_configure(int argc, const char ** argv, struct NSOpenGLShell
 	configuration->windowTitle = "NSOpenGLShell Test Harness";
 	printf("configuration->windowTitle = \"%s\"\n", configuration->windowTitle);
 	
-	getcwd(workingDir, PATH_MAX);
-	printf("getcwd(): %s\n", workingDir);
+	printf("getcwd(): %s\n", getcwd(workingDir, PATH_MAX));
 }
 
 void Target_init() {
@@ -116,65 +116,70 @@ void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned int mo
 			timer2ID = UINT_MAX;
 		}
 		
+	} else if (keyCode == KEYBOARD_SEMICOLON) {
+		deltaMode = !deltaMode;
+		Shell_setMouseDeltaMode(deltaMode);
+		printf("Shell_setMouseDeltaMode(%s)\n", deltaMode ? "true" : "false");
+		
 	} else if (keyCode == KEYBOARD_H) {
-		NSOpenGLShell_setCursorVisible(false);
+		Shell_setCursorVisible(false);
 		
 	} else if (keyCode == KEYBOARD_S) {
-		NSOpenGLShell_setCursorVisible(true);
+		Shell_setCursorVisible(true);
 		
 	} else if (keyCode == KEYBOARD_M) {
-		NSOpenGLShell_hideCursorUntilMouseMoves();
+		Shell_hideCursorUntilMouseMoves();
 		
 	} else if (keyCode == KEYBOARD_0 && !(modifierFlags & MODIFIER_SHIFT_BIT)) {
-		NSOpenGLShell_setCursor(NSOpenGLShellCursor_arrow);
+		Shell_setCursor(ShellCursor_arrow);
 		
 	} else if (keyCode == KEYBOARD_1 && !(modifierFlags & MODIFIER_SHIFT_BIT)) {
-		NSOpenGLShell_setCursor(NSOpenGLShellCursor_IBeam);
+		Shell_setCursor(ShellCursor_iBeam);
 		
 	} else if (keyCode == KEYBOARD_2 && !(modifierFlags & MODIFIER_SHIFT_BIT)) {
-		NSOpenGLShell_setCursor(NSOpenGLShellCursor_crosshair);
+		Shell_setCursor(ShellCursor_crosshair);
 		
 	} else if (keyCode == KEYBOARD_3 && !(modifierFlags & MODIFIER_SHIFT_BIT)) {
-		NSOpenGLShell_setCursor(NSOpenGLShellCursor_closedHand);
+		Shell_setCursor(NSOpenGLShellCursor_closedHand);
 		
 	} else if (keyCode == KEYBOARD_4 && !(modifierFlags & MODIFIER_SHIFT_BIT)) {
-		NSOpenGLShell_setCursor(NSOpenGLShellCursor_openHand);
+		Shell_setCursor(NSOpenGLShellCursor_openHand);
 		
 	} else if (keyCode == KEYBOARD_5 && !(modifierFlags & MODIFIER_SHIFT_BIT)) {
-		NSOpenGLShell_setCursor(NSOpenGLShellCursor_pointingHand);
+		Shell_setCursor(ShellCursor_hand);
 		
 	} else if (keyCode == KEYBOARD_6 && !(modifierFlags & MODIFIER_SHIFT_BIT)) {
-		NSOpenGLShell_setCursor(NSOpenGLShellCursor_resizeLeft);
+		Shell_setCursor(NSOpenGLShellCursor_resizeLeft);
 		
 	} else if (keyCode == KEYBOARD_7 && !(modifierFlags & MODIFIER_SHIFT_BIT)) {
-		NSOpenGLShell_setCursor(NSOpenGLShellCursor_resizeRight);
+		Shell_setCursor(NSOpenGLShellCursor_resizeRight);
 		
 	} else if (keyCode == KEYBOARD_8 && !(modifierFlags & MODIFIER_SHIFT_BIT)) {
-		NSOpenGLShell_setCursor(NSOpenGLShellCursor_resizeLeftRight);
+		Shell_setCursor(NSOpenGLShellCursor_resizeLeftRight);
 		
 	} else if (keyCode == KEYBOARD_9 && !(modifierFlags & MODIFIER_SHIFT_BIT)) {
-		NSOpenGLShell_setCursor(NSOpenGLShellCursor_resizeUp);
+		Shell_setCursor(NSOpenGLShellCursor_resizeUp);
 		
 	} else if (keyCode == KEYBOARD_1 && (modifierFlags & MODIFIER_SHIFT_BIT)) {
-		NSOpenGLShell_setCursor(NSOpenGLShellCursor_resizeDown);
+		Shell_setCursor(NSOpenGLShellCursor_resizeDown);
 		
 	} else if (keyCode == KEYBOARD_2 && (modifierFlags & MODIFIER_SHIFT_BIT)) {
-		NSOpenGLShell_setCursor(NSOpenGLShellCursor_resizeUpDown);
+		Shell_setCursor(NSOpenGLShellCursor_resizeUpDown);
 		
 	} else if (keyCode == KEYBOARD_3 && (modifierFlags & MODIFIER_SHIFT_BIT)) {
-		NSOpenGLShell_setCursor(NSOpenGLShellCursor_disappearingItem);
+		Shell_setCursor(NSOpenGLShellCursor_disappearingItem);
 		
 	} else if (keyCode == KEYBOARD_4 && (modifierFlags & MODIFIER_SHIFT_BIT)) {
-		NSOpenGLShell_setCursor(NSOpenGLShellCursor_contextualMenu);
+		Shell_setCursor(NSOpenGLShellCursor_contextualMenu);
 		
 	} else if (keyCode == KEYBOARD_5 && (modifierFlags & MODIFIER_SHIFT_BIT)) {
-		NSOpenGLShell_setCursor(NSOpenGLShellCursor_dragCopy);
+		Shell_setCursor(NSOpenGLShellCursor_dragCopy);
 		
 	} else if (keyCode == KEYBOARD_6 && (modifierFlags & MODIFIER_SHIFT_BIT)) {
-		NSOpenGLShell_setCursor(NSOpenGLShellCursor_dragLink);
+		Shell_setCursor(NSOpenGLShellCursor_dragLink);
 		
 	} else if (keyCode == KEYBOARD_7 && (modifierFlags & MODIFIER_SHIFT_BIT)) {
-		NSOpenGLShell_setCursor(NSOpenGLShellCursor_operationNotAllowed);
+		Shell_setCursor(NSOpenGLShellCursor_operationNotAllowed);
 	}
 }
 

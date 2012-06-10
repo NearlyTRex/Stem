@@ -20,6 +20,7 @@
   Alex Diener adiener@sacredsoftware.net
 */
 
+#import "nsopenglshell/NSOpenGLShell.h"
 #import "nsopenglshell/NSOpenGLShellView.h"
 #import "nsopenglshell/NSOpenGLShellApplication.h"
 #include "glgraphics/GLGraphics.h"
@@ -103,7 +104,11 @@
 }
 
 - (void) mouseMoved: (NSEvent *) event {
-	Target_mouseMoved([event locationInWindow].x, [self frame].size.height - [event locationInWindow].y);
+	if (g_mouseDeltaMode) {
+		Target_mouseMoved([event deltaX], -[event deltaY]);
+	} else {
+		Target_mouseMoved([event locationInWindow].x, [self frame].size.height - [event locationInWindow].y);
+	}
 }
 
 - (void) mouseDown: (NSEvent *) event {
@@ -112,7 +117,11 @@
 }
 
 - (void) mouseDragged: (NSEvent *) event {
-	Target_mouseDragged(buttonMask, [event locationInWindow].x, [self frame].size.height - [event locationInWindow].y);
+	if (g_mouseDeltaMode) {
+		Target_mouseDragged(buttonMask, [event deltaX], -[event deltaY]);
+	} else {
+		Target_mouseDragged(buttonMask, [event locationInWindow].x, [self frame].size.height - [event locationInWindow].y);
+	}
 }
 
 - (void) mouseUp: (NSEvent *) event {
