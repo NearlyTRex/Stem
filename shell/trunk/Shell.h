@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2011 Alex Diener
+  Copyright (c) 2012 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -24,6 +24,14 @@
 #define __SHELL_H__
 
 #include <stdbool.h>
+
+enum ShellCursor {
+	ShellCursor_arrow,
+	ShellCursor_iBeam,
+	ShellCursor_crosshair,
+	ShellCursor_hand,
+	ShellCursor_wait
+};
 
 /** Signals the shell to begin the main application loop. This function MAY or MAY NOT return,
     so you mustn't rely on the execution of any code following the call to Shell_mainLoop(). */
@@ -63,5 +71,21 @@ unsigned int Shell_setTimer(double interval, bool repeat, void (* callback)(unsi
 /** Stops a timer previously set with Shell_setTimer. The timer is guaranteed never to fire
     after this function is called. */
 void Shell_cancelTimer(unsigned int timerID);
+
+/** Shows the cursor if visible is set to true. Hides the cursor if visible is set to false. Has no effect if
+    the cursor already has the specified visibility. */
+void Shell_setCursorVisible(bool visible);
+
+/** Hides the cursor until the mouse moves, at which point it will be shown again. */
+void Shell_hideCursorUntilMouseMoves();
+
+/** Sets the cursor image to the specified value. Values are defined in the ShellCursor enum.
+    Additional values may be defined by specific shell implementations. */
+void Shell_setCursor(int cursor);
+
+/** If set to true, mouse movement will not move the cursor onscreen, and x and y values reported
+    to Target_mouseMoved() and Target_mouseDragged() will be deltas rather than absolute positions.
+    False by default. */
+void Shell_setMouseDeltaMode(bool deltaMode);
 
 #endif

@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2011 Alex Diener
+  Copyright (c) 2012 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -65,14 +65,16 @@ void Target_mouseDown(unsigned int buttonNumber, float x, float y);
 void Target_mouseUp(unsigned int buttonNumber, float x, float y);
 
 /** Called when the user has moved their mouse cursor without any buttons pressed. Not applicable to
-    touchscreen devices. */
+    touchscreen devices. In mouse delta mode, x and y are pixel offsets from the previous mouse
+    position. In normal mode, they're absolute mouse coordinates in window space. */
 void Target_mouseMoved(float x, float y);
 
 /** Called when the user has moved their mouse cursor, or finger in the case of a touchscreen device.
     For each button that's down, the bit at 1 << buttonNumber (as specified to Target_mouseDown) in
     buttonMask will be set. In the case of multi-touch, when multiple fingers are being moved across
     the screen, you'll get one call per finger moved with a single bit in buttonMask set each time.
-    See Target_mouseDown for other parameter descriptions. */
+    In mouse delta mode, x and y are pixel offsets from the previous mouse position. In normal mode,
+    they're absolute mouse coordinates in window space. */
 void Target_mouseDragged(unsigned int buttonMask, float x, float y);
 
 /** Called when your application has been placed in the background by the user switching away from it
