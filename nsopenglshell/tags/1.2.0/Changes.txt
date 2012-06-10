@@ -1,0 +1,14 @@
+1.2.0
+ * Updated API for shell Stable_2012-06-09 (adds cursor management and mouse deltas)
+
+1.1.0
+ * Updated API for shell Stable_2012-02-04 (adds timers, buffer swapping made optional)
+ * Fixed a bug that would cause an NSRangeException on when a dead key was pressed
+
+1.0.2
+ * NSOpenGLShell_getMainScreenDimensions is superseded by Shell_getMainScreenSize and has been removed.
+ * Target_keyUp no longer receives a charCode parameter.
+
+1.0.1
+ * nsopenglshell will no longer chdir to Shell_getResourcePath() at startup; this is now the target's responsibility
+ * Fixed a bug that caused the first mouse event not to fire after entering full screen mode from Target_init()
