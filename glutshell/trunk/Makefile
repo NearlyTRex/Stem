@@ -63,7 +63,7 @@ RANLIB_macosx = /usr/bin/ranlib
 SPLINT_macosx = /usr/local/bin/splint
 CLANG_macosx = /usr/bin/clang
 SDKROOT_macosx = /Developer/SDKs/MacOSX10.5.sdk
-ARCHS_macosx = ppc i386 x86_64
+ARCHS_macosx = i386 x86_64
 CCFLAGS_macosx = -isysroot ${SDKROOT_macosx} -mmacosx-version-min=10.5
 LINKFLAGS_macosx = -isysroot ${SDKROOT_macosx} -mmacosx-version-min=10.5 -framework OpenGL -framework GLUT -framework CoreFoundation
 
@@ -131,6 +131,7 @@ SOURCES_testharness = \
 #Include files to be distributed with library
 
 INCLUDES = \
+	source/glutshell/GLUTShell.h \
 	source/glutshell/GLUTTarget.h
 
 #Target resources

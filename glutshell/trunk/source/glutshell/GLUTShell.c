@@ -21,6 +21,7 @@
 */
 
 #include "shell/Shell.h"
+#include "glutshell/GLUTShell.h"
 #include "glutshell/GLUTTarget.h"
 
 #include <stdio.h>
@@ -208,6 +209,127 @@ void Shell_cancelTimer(unsigned int timerID) {
 			}
 			break;
 		}
+	}
+}
+
+static bool cursorHiddenByHide;
+static bool showCursorOnNextMouseMove;
+static int lastUnhiddenCursor = ShellCursor_arrow;
+static bool mouseDeltaMode;
+static int restoreMouseX, restoreMouseY;
+static int lastMouseX, lastMouseY;
+static bool warping;
+
+void Shell_setCursorVisible(bool visible) {
+	if (visible && cursorHiddenByHide) {
+		cursorHiddenByHide = false;
+		if (!mouseDeltaMode) {
+			Shell_setCursor(lastUnhiddenCursor);
+		}
+	} else if (!visible && !cursorHiddenByHide) {
+		cursorHiddenByHide = true;
+		glutSetCursor(GLUT_CURSOR_NONE);
+	}
+}
+
+void Shell_hideCursorUntilMouseMoves() {
+	if (!cursorHiddenByHide) {
+		showCursorOnNextMouseMove = true;
+		glutSetCursor(GLUT_CURSOR_NONE);
+	}
+}
+
+void Shell_setCursor(int cursor) {
+	lastUnhiddenCursor = cursor;
+	if (cursorHiddenByHide || mouseDeltaMode) {
+		return;
+	}
+	switch (cursor) {
+		case ShellCursor_arrow:
+			glutSetCursor(GLUT_CURSOR_LEFT_ARROW);
+			break;
+		case ShellCursor_iBeam:
+			glutSetCursor(GLUT_CURSOR_TEXT);
+			break;
+		case ShellCursor_crosshair:
+			glutSetCursor(GLUT_CURSOR_CROSSHAIR);
+			break;
+		case ShellCursor_hand:
+			glutSetCursor(GLUT_CURSOR_INFO);
+			break;
+		case ShellCursor_wait:
+			glutSetCursor(GLUT_CURSOR_WAIT);
+			break;
+		case GLUTShellCursor_rightArrow:
+			glutSetCursor(GLUT_CURSOR_RIGHT_ARROW);
+			break;
+		case GLUTShellCursor_destroy:
+			glutSetCursor(GLUT_CURSOR_DESTROY);
+			break;
+		case GLUTShellCursor_help:
+			glutSetCursor(GLUT_CURSOR_HELP);
+			break;
+		case GLUTShellCursor_cycle:
+			glutSetCursor(GLUT_CURSOR_CYCLE);
+			break;
+		case GLUTShellCursor_spray:
+			glutSetCursor(GLUT_CURSOR_SPRAY);
+			break;
+		case GLUTShellCursor_upDown:
+			glutSetCursor(GLUT_CURSOR_UP_DOWN);
+			break;
+		case GLUTShellCursor_leftRight:
+			glutSetCursor(GLUT_CURSOR_LEFT_RIGHT);
+			break;
+		case GLUTShellCursor_topSide:
+			glutSetCursor(GLUT_CURSOR_TOP_SIDE);
+			break;
+		case GLUTShellCursor_bottomSide:
+			glutSetCursor(GLUT_CURSOR_BOTTOM_SIDE);
+			break;
+		case GLUTShellCursor_leftSide:
+			glutSetCursor(GLUT_CURSOR_LEFT_SIDE);
+			break;
+		case GLUTShellCursor_rightSide:
+			glutSetCursor(GLUT_CURSOR_RIGHT_SIDE);
+			break;
+		case GLUTShellCursor_topLeftCorner:
+			glutSetCursor(GLUT_CURSOR_TOP_LEFT_CORNER);
+			break;
+		case GLUTShellCursor_topRightCorner:
+			glutSetCursor(GLUT_CURSOR_TOP_RIGHT_CORNER);
+			break;
+		case GLUTShellCursor_bottomRightCorner:
+			glutSetCursor(GLUT_CURSOR_BOTTOM_RIGHT_CORNER);
+			break;
+		case GLUTShellCursor_bottomLeftCorner:
+			glutSetCursor(GLUT_CURSOR_BOTTOM_LEFT_CORNER);
+			break;
+		case GLUTShellCursor_inherit:
+			glutSetCursor(GLUT_CURSOR_INHERIT);
+			break;
+		case GLUTShellCursor_fullCrosshair:
+			glutSetCursor(GLUT_CURSOR_FULL_CROSSHAIR);
+			break;
+	}
+}
+
+void Shell_setMouseDeltaMode(bool deltaMode) {
+	if (!mouseDeltaMode && deltaMode) {
+		restoreMouseX = lastMouseX;
+		restoreMouseY = lastMouseY;
+		warping = true;
+		glutWarpPointer(glutGet(GLUT_WINDOW_X) + glutGet(GLUT_WINDOW_WIDTH) / 2, glutGet(GLUT_WINDOW_Y) + glutGet(GLUT_WINDOW_HEIGHT) / 2);
+		warping = false;
+		glutSetCursor(GLUT_CURSOR_NONE);
+		mouseDeltaMode = true;
+		
+	} else if (mouseDeltaMode && !deltaMode) {
+		warping = true;
+		glutWarpPointer(restoreMouseX, restoreMouseY);
+		warping = false;
+		mouseDeltaMode = false;
+		Shell_setCursor(lastUnhiddenCursor);
 	}
 }
 
@@ -542,10 +664,34 @@ static void mouseFunc(int button, int state, int x, int y) {
 }
 
 static void motionFunc(int x, int y) {
-	if (buttonMask != 0) {
-		Target_mouseDragged(buttonMask, x, y);
+	int reportedX, reportedY;
+	
+	if (warping) {
+		return;
+	}
+	
+	if (showCursorOnNextMouseMove) {
+		Shell_setCursor(lastUnhiddenCursor);
+	}
+	
+	if (mouseDeltaMode) {
+		reportedX = x - lastMouseX;
+		reportedY = y - lastMouseY;
 	} else {
-		Target_mouseMoved(x, y);
+		reportedX = x;
+		reportedY = y;
+	}
+	lastMouseX = x;
+	lastMouseY = y;
+	if (buttonMask != 0) {
+		Target_mouseDragged(buttonMask, reportedX, reportedY);
+	} else {
+		Target_mouseMoved(reportedX, reportedY);
+	}
+	if (mouseDeltaMode) {
+		warping = true;
+		glutWarpPointer(glutGet(GLUT_WINDOW_X) + glutGet(GLUT_WINDOW_WIDTH) / 2, glutGet(GLUT_WINDOW_Y) + glutGet(GLUT_WINDOW_HEIGHT) / 2);
+		warping = false;
 	}
 }
 

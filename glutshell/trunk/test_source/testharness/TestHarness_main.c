@@ -1,11 +1,14 @@
 #include "shell/Shell.h"
+#include "glutshell/GLUTShell.h"
 #include "glutshell/GLUTTarget.h"
 
 #include <limits.h>
 #include <stdio.h>
 #include <unistd.h>
+#include "glgraphics/GLGraphics.h"
 #include "shell/ShellBatteryInfo.h"
 #include "shell/ShellKeyCodes.h"
+#include "shell/Target.h"
 
 #if defined(__APPLE__)
 #include <OpenGL/gl.h>
@@ -14,6 +17,7 @@
 #endif
 
 static unsigned int timer1ID = UINT_MAX, timer2ID = UINT_MAX;
+static bool deltaMode;
 
 void GLUTTarget_configure(int argc, const char ** argv, struct GLUTShellConfiguration * configuration) {
 	int argIndex;
@@ -44,6 +48,7 @@ void GLUTTarget_configure(int argc, const char ** argv, struct GLUTShellConfigur
 
 void Target_init() {
 	printf("Target_init()\n");
+	printf("GLGraphics_getOpenGLAPIVersion(): %d\n", GLGraphics_getOpenGLAPIVersion());
 	Shell_mainLoop();
 }
 
@@ -86,7 +91,7 @@ void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned int mo
 		printf("Shell_getBatteryLevel(): %f\n", Shell_getBatteryLevel());
 		
 	} else if (keyCode == KEYBOARD_X) {
-		unsigned int width, height;
+		unsigned int width = 0, height = 0;
 		
 		Shell_getMainScreenSize(&width, &height);
 		printf("Shell_getMainScreenSize(%u, %u)\n", width, height);
@@ -110,6 +115,86 @@ void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned int mo
 			Shell_cancelTimer(timer2ID);
 			timer2ID = UINT_MAX;
 		}
+		
+	} else if (keyCode == KEYBOARD_SEMICOLON) {
+		deltaMode = !deltaMode;
+		Shell_setMouseDeltaMode(deltaMode);
+		printf("Shell_setMouseDeltaMode(%s)\n", deltaMode ? "true" : "false");
+		
+	} else if (keyCode == KEYBOARD_H) {
+		Shell_setCursorVisible(false);
+		
+	} else if (keyCode == KEYBOARD_S) {
+		Shell_setCursorVisible(true);
+		
+	} else if (keyCode == KEYBOARD_M) {
+		Shell_hideCursorUntilMouseMoves();
+		
+	} else if (keyCode == KEYBOARD_0 && !(modifierFlags & MODIFIER_SHIFT_BIT)) {
+		Shell_setCursor(ShellCursor_arrow);
+		
+	} else if (keyCode == KEYBOARD_1 && !(modifierFlags & MODIFIER_SHIFT_BIT)) {
+		Shell_setCursor(ShellCursor_iBeam);
+		
+	} else if (keyCode == KEYBOARD_2 && !(modifierFlags & MODIFIER_SHIFT_BIT)) {
+		Shell_setCursor(ShellCursor_crosshair);
+		
+	} else if (keyCode == KEYBOARD_3 && !(modifierFlags & MODIFIER_SHIFT_BIT)) {
+		Shell_setCursor(ShellCursor_hand);
+		
+	} else if (keyCode == KEYBOARD_4 && !(modifierFlags & MODIFIER_SHIFT_BIT)) {
+		Shell_setCursor(ShellCursor_wait);
+		
+	} else if (keyCode == KEYBOARD_5 && !(modifierFlags & MODIFIER_SHIFT_BIT)) {
+		Shell_setCursor(GLUTShellCursor_rightArrow);
+		
+	} else if (keyCode == KEYBOARD_6 && !(modifierFlags & MODIFIER_SHIFT_BIT)) {
+		Shell_setCursor(GLUTShellCursor_destroy);
+		
+	} else if (keyCode == KEYBOARD_7 && !(modifierFlags & MODIFIER_SHIFT_BIT)) {
+		Shell_setCursor(GLUTShellCursor_help);
+		
+	} else if (keyCode == KEYBOARD_8 && !(modifierFlags & MODIFIER_SHIFT_BIT)) {
+		Shell_setCursor(GLUTShellCursor_cycle);
+		
+	} else if (keyCode == KEYBOARD_9 && !(modifierFlags & MODIFIER_SHIFT_BIT)) {
+		Shell_setCursor(GLUTShellCursor_spray);
+		
+	} else if (keyCode == KEYBOARD_1 && (modifierFlags & MODIFIER_SHIFT_BIT)) {
+		Shell_setCursor(GLUTShellCursor_upDown);
+		
+	} else if (keyCode == KEYBOARD_2 && (modifierFlags & MODIFIER_SHIFT_BIT)) {
+		Shell_setCursor(GLUTShellCursor_leftRight);
+		
+	} else if (keyCode == KEYBOARD_3 && (modifierFlags & MODIFIER_SHIFT_BIT)) {
+		Shell_setCursor(GLUTShellCursor_topSide);
+		
+	} else if (keyCode == KEYBOARD_4 && (modifierFlags & MODIFIER_SHIFT_BIT)) {
+		Shell_setCursor(GLUTShellCursor_bottomSide);
+		
+	} else if (keyCode == KEYBOARD_5 && (modifierFlags & MODIFIER_SHIFT_BIT)) {
+		Shell_setCursor(GLUTShellCursor_leftSide);
+		
+	} else if (keyCode == KEYBOARD_6 && (modifierFlags & MODIFIER_SHIFT_BIT)) {
+		Shell_setCursor(GLUTShellCursor_rightSide);
+		
+	} else if (keyCode == KEYBOARD_7 && (modifierFlags & MODIFIER_SHIFT_BIT)) {
+		Shell_setCursor(GLUTShellCursor_topLeftCorner);
+		
+	} else if (keyCode == KEYBOARD_8 && (modifierFlags & MODIFIER_SHIFT_BIT)) {
+		Shell_setCursor(GLUTShellCursor_topRightCorner);
+		
+	} else if (keyCode == KEYBOARD_9 && (modifierFlags & MODIFIER_SHIFT_BIT)) {
+		Shell_setCursor(GLUTShellCursor_bottomRightCorner);
+		
+	} else if (keyCode == KEYBOARD_0 && (modifierFlags & MODIFIER_SHIFT_BIT)) {
+		Shell_setCursor(GLUTShellCursor_bottomLeftCorner);
+		
+	} else if (keyCode == KEYBOARD_HYPHEN && (modifierFlags & MODIFIER_SHIFT_BIT)) {
+		Shell_setCursor(GLUTShellCursor_inherit);
+		
+	} else if (keyCode == KEYBOARD_EQUAL_SIGN && (modifierFlags & MODIFIER_SHIFT_BIT)) {
+		Shell_setCursor(GLUTShellCursor_fullCrosshair);
 	}
 }
 

@@ -1,3 +1,6 @@
+1.5.0
+ * Update API for shell Stable_2012-06-09 (adds cursor management and mouse deltas)
+
 1.4.1
  * Fixed a bug on Mac OS X that caused the working directory to be changed to the application bundle's Resources directory at startup if it contained any files
 
