@@ -218,7 +218,7 @@ static int lastUnhiddenCursor = ShellCursor_arrow;
 static bool mouseDeltaMode;
 static int restoreMouseX, restoreMouseY;
 static int lastMouseX, lastMouseY;
-static bool warping;
+static bool ignoreNextMouseMove;
 
 void Shell_setCursorVisible(bool visible) {
 	if (visible && cursorHiddenByHide) {
@@ -318,16 +318,14 @@ void Shell_setMouseDeltaMode(bool deltaMode) {
 	if (!mouseDeltaMode && deltaMode) {
 		restoreMouseX = lastMouseX;
 		restoreMouseY = lastMouseY;
-		warping = true;
+		ignoreNextMouseMove = true;
 		glutWarpPointer(glutGet(GLUT_WINDOW_X) + glutGet(GLUT_WINDOW_WIDTH) / 2, glutGet(GLUT_WINDOW_Y) + glutGet(GLUT_WINDOW_HEIGHT) / 2);
-		warping = false;
 		glutSetCursor(GLUT_CURSOR_NONE);
 		mouseDeltaMode = true;
 		
 	} else if (mouseDeltaMode && !deltaMode) {
-		warping = true;
+		ignoreNextMouseMove = true;
 		glutWarpPointer(restoreMouseX, restoreMouseY);
-		warping = false;
 		mouseDeltaMode = false;
 		Shell_setCursor(lastUnhiddenCursor);
 	}
@@ -666,7 +664,8 @@ static void mouseFunc(int button, int state, int x, int y) {
 static void motionFunc(int x, int y) {
 	int reportedX, reportedY;
 	
-	if (warping) {
+	if (ignoreNextMouseMove) {
+		ignoreNextMouseMove = false;
 		return;
 	}
 	
@@ -689,9 +688,8 @@ static void motionFunc(int x, int y) {
 		Target_mouseMoved(reportedX, reportedY);
 	}
 	if (mouseDeltaMode) {
-		warping = true;
+		ignoreNextMouseMove = true;
 		glutWarpPointer(glutGet(GLUT_WINDOW_X) + glutGet(GLUT_WINDOW_WIDTH) / 2, glutGet(GLUT_WINDOW_Y) + glutGet(GLUT_WINDOW_HEIGHT) / 2);
-		warping = false;
 	}
 }
 
