@@ -481,11 +481,11 @@ static void testWritePNG() {
 	bool success;
 	
 	for (sourceDataIndex = 0; sourceDataIndex < sizeof(sourcePixels) / sizeof(unsigned char *); sourceDataIndex++) {
-		sourceImage = BitmapImage_create(pixelFormats[sourceDataIndex + 1],
-		                                 imageDimensions[sourceDataIndex][0],
-		                                 imageDimensions[sourceDataIndex][1],
-		                                 imageDimensions[sourceDataIndex][0] * BitmapImage_pixelFormatBytes(pixelFormats[sourceDataIndex + 1]),
-		                                 sourcePixels[sourceDataIndex]);
+		sourceImage = BitmapImage_createWithPixels(pixelFormats[sourceDataIndex + 1],
+		                                           imageDimensions[sourceDataIndex][0],
+		                                           imageDimensions[sourceDataIndex][1],
+		                                           imageDimensions[sourceDataIndex][0] * BitmapImage_pixelFormatBytes(pixelFormats[sourceDataIndex + 1]),
+		                                           sourcePixels[sourceDataIndex]);
 		
 		for (pixelFormatIndex = 0; pixelFormatIndex < sizeof(pixelFormats) / sizeof(int); pixelFormatIndex++) {
 			expectedPixelFormat = pixelFormatIndex == 0 ? pixelFormats[sourceDataIndex + 1] : pixelFormats[pixelFormatIndex];

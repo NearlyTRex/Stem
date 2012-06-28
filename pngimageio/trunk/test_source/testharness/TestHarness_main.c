@@ -190,7 +190,7 @@ int main(int argc, char ** argv) {
 	}
 	
 	if (inputIsRaw) {
-		inputImage = BitmapImage_create(inputFormat, inputWidth, infileLength / (inputWidth * BitmapImage_pixelFormatBytes(inputFormat)), inputWidth * BitmapImage_pixelFormatBytes(inputFormat), infileData);
+		inputImage = BitmapImage_createWithPixels(inputFormat, inputWidth, infileLength / (inputWidth * BitmapImage_pixelFormatBytes(inputFormat)), inputWidth * BitmapImage_pixelFormatBytes(inputFormat), infileData);
 	} else {
 		inputImage = PNGImageIO_loadPNGData(infileData, infileLength, inputFormat, flipInput);
 		if (inputImage == NULL) {

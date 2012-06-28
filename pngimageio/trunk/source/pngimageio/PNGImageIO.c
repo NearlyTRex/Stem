@@ -174,8 +174,7 @@ BitmapImage * PNGImageIO_loadPNGData(const void * data, size_t length, int pixel
 	png_destroy_read_struct(&pngReadStruct, &pngInfoStruct, NULL);
 	free(rows);
 	
-	image = BitmapImage_create(chosenPixelFormat, width, height, width * BitmapImage_pixelFormatBytes(chosenPixelFormat), pixels);
-	free(pixels);
+	image = BitmapImage_createWithPixelsNoCopy(chosenPixelFormat, width, height, width * BitmapImage_pixelFormatBytes(chosenPixelFormat), pixels, true);
 	
 	return image;
 }
