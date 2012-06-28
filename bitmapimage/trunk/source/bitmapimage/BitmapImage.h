@@ -41,23 +41,55 @@ enum BitmapPixelFormat {
 	unsigned int width; \
 	unsigned int height; \
 	unsigned int bytesPerRow; \
-	unsigned char * pixels;
+	unsigned char * pixels; \
+	bool private_ivar(freePixelsOnDispose);
 
 stemobject_struct_definition(BitmapImage)
 
 #define BitmapImage_pixelFormatBytes(pixelFormat) (4 - pixelFormat)
 
+// create/init allocates memory for pixels and frees it when disposed.
+// createWithPixels/initWithPixels allocates memory and copies the contents of the buffer provided
+// by the caller into it.
+// createWithPixelsNoCopy/initWithPixelsNoCopy inserts the pointer provided by the caller directly
+// into the BitmapImage struct. If takeOwnership is true, the pointer will be freed when the
+// returned BitmapImage is disposed. If false, pixels will not be freed by BitmapImage.
+
 BitmapImage * BitmapImage_create(enum BitmapPixelFormat pixelFormat,
                                  unsigned int width,
                                  unsigned int height,
-                                 unsigned int bytesPerRow,
-                                 unsigned char * pixels);
+                                 unsigned int bytesPerRow);
+BitmapImage * BitmapImage_createWithPixels(enum BitmapPixelFormat pixelFormat,
+                                           unsigned int width,
+                                           unsigned int height,
+                                           unsigned int bytesPerRow,
+                                           const unsigned char * pixels);
+BitmapImage * BitmapImage_createWithPixelsNoCopy(enum BitmapPixelFormat pixelFormat,
+                                                 unsigned int width,
+                                                 unsigned int height,
+                                                 unsigned int bytesPerRow,
+                                                 unsigned char * pixels,
+                                                 bool takeOwnership);
+
 void BitmapImage_init(BitmapImage * self,
                       enum BitmapPixelFormat pixelFormat,
                       unsigned int width,
                       unsigned int height,
-                      unsigned int bytesPerRow,
-                      unsigned char * pixels);
+                      unsigned int bytesPerRow);
+void BitmapImage_initWithPixels(BitmapImage * self,
+                                enum BitmapPixelFormat pixelFormat,
+                                unsigned int width,
+                                unsigned int height,
+                                unsigned int bytesPerRow,
+                                const unsigned char * pixels);
+void BitmapImage_initWithPixelsNoCopy(BitmapImage * self,
+                                      enum BitmapPixelFormat pixelFormat,
+                                      unsigned int width,
+                                      unsigned int height,
+                                      unsigned int bytesPerRow,
+                                      unsigned char * pixels,
+                                      bool takeOwnership);
+
 void BitmapImage_dispose(BitmapImage * self);
 
 #endif

@@ -29,19 +29,28 @@
 BitmapImage * BitmapImage_create(enum BitmapPixelFormat pixelFormat,
                                  unsigned int width,
                                  unsigned int height,
-                                 unsigned int bytesPerRow,
-                                 unsigned char * pixels) {
-	stemobject_create_implementation(BitmapImage, init, pixelFormat, width, height, bytesPerRow, pixels)
+                                 unsigned int bytesPerRow) {
+	stemobject_create_implementation(BitmapImage, init, pixelFormat, width, height, bytesPerRow)
 }
 
-void BitmapImage_init(BitmapImage * self,
-                      enum BitmapPixelFormat pixelFormat,
-                      unsigned int width,
-                      unsigned int height,
-                      unsigned int bytesPerRow,
-                      unsigned char * pixels) {
-	unsigned int bytesPerPixel;
-	
+BitmapImage * BitmapImage_createWithPixels(enum BitmapPixelFormat pixelFormat,
+                                           unsigned int width,
+                                           unsigned int height,
+                                           unsigned int bytesPerRow,
+                                           const unsigned char * pixels) {
+	stemobject_create_implementation(BitmapImage, initWithPixels, pixelFormat, width, height, bytesPerRow, pixels)
+}
+
+BitmapImage * BitmapImage_createWithPixelsNoCopy(enum BitmapPixelFormat pixelFormat,
+                                                 unsigned int width,
+                                                 unsigned int height,
+                                                 unsigned int bytesPerRow,
+                                                 unsigned char * pixels,
+                                                 bool takeOwnership) {
+	stemobject_create_implementation(BitmapImage, initWithPixelsNoCopy, pixelFormat, width, height, bytesPerRow, pixels, takeOwnership)
+}
+
+static void sharedInit(BitmapImage * self, enum BitmapPixelFormat pixelFormat, unsigned int width, unsigned int height, unsigned int bytesPerRow) {
 	call_super(init, self);
 	
 	self->pixelFormat = pixelFormat;
@@ -49,14 +58,51 @@ void BitmapImage_init(BitmapImage * self,
 	self->height = height;
 	self->bytesPerRow = bytesPerRow;
 	
-	bytesPerPixel = BitmapImage_pixelFormatBytes(pixelFormat);
-	self->pixels = malloc(bytesPerRow * height * bytesPerPixel);
-	memcpy(self->pixels, pixels, bytesPerRow * height);
-	
 	self->dispose = BitmapImage_dispose;
 }
 
+void BitmapImage_init(BitmapImage * self,
+                      enum BitmapPixelFormat pixelFormat,
+                      unsigned int width,
+                      unsigned int height,
+                      unsigned int bytesPerRow) {
+	sharedInit(self, pixelFormat, width, height, bytesPerRow);
+	
+	self->pixels = malloc(width * height * BitmapImage_pixelFormatBytes(pixelFormat));
+	self->private_ivar(freePixelsOnDispose) = false;
+}
+
+void BitmapImage_initWithPixels(BitmapImage * self,
+                                enum BitmapPixelFormat pixelFormat,
+                                unsigned int width,
+                                unsigned int height,
+                                unsigned int bytesPerRow,
+                                const unsigned char * pixels) {
+	unsigned int bytesPerPixel;
+	
+	sharedInit(self, pixelFormat, width, height, bytesPerRow);
+	bytesPerPixel = BitmapImage_pixelFormatBytes(pixelFormat);
+	self->pixels = malloc(bytesPerRow * height * bytesPerPixel);
+	memcpy(self->pixels, pixels, bytesPerRow * height);
+	self->private_ivar(freePixelsOnDispose) = true;
+}
+
+void BitmapImage_initWithPixelsNoCopy(BitmapImage * self,
+                                      enum BitmapPixelFormat pixelFormat,
+                                      unsigned int width,
+                                      unsigned int height,
+                                      unsigned int bytesPerRow,
+                                      unsigned char * pixels,
+                                      bool takeOwnership) {
+	sharedInit(self, pixelFormat, width, height, bytesPerRow);
+	
+	self->pixels = pixels;
+	self->private_ivar(freePixelsOnDispose) = takeOwnership;
+}
+
 void BitmapImage_dispose(BitmapImage * self) {
-	free(self->pixels);
+	if (self->private_ivar(freePixelsOnDispose)) {
+		free(self->pixels);
+	}
 	call_super(dispose, self);
 }

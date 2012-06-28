@@ -1,3 +1,7 @@
+1.3.0
+ * Added two new ways of constructing a BitmapImage, which allows you to allocate an empty image or use an externally-allocated pixels pointer without copying it
+ * BitmapImage_create and BitmapImage_init have been renamed to BitmapImage_createWithPixels and BitmapImage_initWithPixels. The BitmapImage_create and BitmapImage_init functions no longer take a pixels pointer, and instead allocate an empty image.
+
 1.2.2
  * Updated for stemobject 3.0.0
 
