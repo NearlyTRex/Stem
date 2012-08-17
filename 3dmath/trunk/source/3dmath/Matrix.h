@@ -79,6 +79,9 @@ float Matrix_determinant(Matrix matrix);
 void Matrix_invert(Matrix * matrix);
 Matrix Matrix_inverted(Matrix matrix);
 
+void Matrix_interpolate(Matrix * left, Matrix right, float value);
+Matrix Matrix_interpolated(Matrix left, Matrix right, float value);
+
 Vector2 Matrix_multiplyVector2(Matrix matrix, Vector2 vector);
 Vector3 Matrix_multiplyVector3(Matrix matrix, Vector3 vector);
 Vector4 Matrix_multiplyVector4(Matrix matrix, Vector4 vector);

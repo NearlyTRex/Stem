@@ -529,6 +529,74 @@ static void testInvert() {
 	                                0.0f, 0.0f, 0.0f,  1.0f, EPSILON);
 }
 
+static void testInterpolate() {
+	Matrix matrixLeft, matrixRight, matrixInterpolated;
+	
+	matrixLeft = MATRIX_IDENTITY;
+	matrixRight = Matrix_init(0.0f, 1.0f, 1.0f, 1.0f,
+	                          1.0f, 0.0f, 1.0f, 1.0f,
+	                          1.0f, 1.0f, 0.0f, 1.0f,
+	                          1.0f, 1.0f, 1.0f, 0.0f);
+	
+	matrixInterpolated = Matrix_interpolated(matrixLeft, matrixRight, 0.0f);
+	assertMatrixApproximate(matrixInterpolated, 1.0f, 0.0f, 0.0f, 0.0f,
+	                                            0.0f, 1.0f, 0.0f, 0.0f,
+	                                            0.0f, 0.0f, 1.0f, 0.0f,
+	                                            0.0f, 0.0f, 0.0f, 1.0f, EPSILON);
+	
+	matrixInterpolated = Matrix_interpolated(matrixLeft, matrixRight, 0.25f);
+	assertMatrixApproximate(matrixInterpolated, 0.75f, 0.25f, 0.25f, 0.25f,
+	                                            0.25f, 0.75f, 0.25f, 0.25f,
+	                                            0.25f, 0.25f, 0.75f, 0.25f,
+	                                            0.25f, 0.25f, 0.25f, 0.75f, EPSILON);
+	
+	matrixInterpolated = matrixLeft;
+	Matrix_interpolate(&matrixInterpolated, matrixRight, 0.0f);
+	assertMatrixApproximate(matrixInterpolated, 1.0f, 0.0f, 0.0f, 0.0f,
+	                                            0.0f, 1.0f, 0.0f, 0.0f,
+	                                            0.0f, 0.0f, 1.0f, 0.0f,
+	                                            0.0f, 0.0f, 0.0f, 1.0f, EPSILON);
+	
+	matrixInterpolated = matrixLeft;
+	Matrix_interpolate(&matrixInterpolated, matrixRight, 0.25f);
+	assertMatrixApproximate(matrixInterpolated, 0.75f, 0.25f, 0.25f, 0.25f,
+	                                            0.25f, 0.75f, 0.25f, 0.25f,
+	                                            0.25f, 0.25f, 0.75f, 0.25f,
+	                                            0.25f, 0.25f, 0.25f, 0.75f, EPSILON);
+	
+	matrixLeft = Matrix_init(0.0f, 4.0f,  8.0f, 12.0f,
+	                         1.0f, 5.0f,  9.0f, 13.0f,
+	                         2.0f, 6.0f, 10.0f, 14.0f,
+	                         3.0f, 7.0f, 11.0f, 15.0f);
+	matrixRight = MATRIX_IDENTITY;
+	
+	matrixInterpolated = Matrix_interpolated(matrixLeft, matrixRight, -1.0f);
+	assertMatrixApproximate(matrixInterpolated, -1.0f,  8.0f, 16.0f, 24.0f,
+	                                             2.0f,  9.0f, 18.0f, 26.0f,
+	                                             4.0f, 12.0f, 19.0f, 28.0f,
+	                                             6.0f, 14.0f, 22.0f, 29.0f, EPSILON);
+	
+	matrixInterpolated = Matrix_interpolated(matrixLeft, matrixRight, 2.0f);
+	assertMatrixApproximate(matrixInterpolated,  2.0f, -4.0f,  -8.0f, -12.0f,
+	                                            -1.0f, -3.0f,  -9.0f, -13.0f,
+	                                            -2.0f, -6.0f,  -8.0f, -14.0f,
+	                                            -3.0f, -7.0f, -11.0f, -13.0f, EPSILON);
+	
+	matrixInterpolated = matrixLeft;
+	Matrix_interpolate(&matrixInterpolated, matrixRight, -1.0f);
+	assertMatrixApproximate(matrixInterpolated, -1.0f,  8.0f, 16.0f, 24.0f,
+	                                             2.0f,  9.0f, 18.0f, 26.0f,
+	                                             4.0f, 12.0f, 19.0f, 28.0f,
+	                                             6.0f, 14.0f, 22.0f, 29.0f, EPSILON);
+	
+	matrixInterpolated = matrixLeft;
+	Matrix_interpolate(&matrixInterpolated, matrixRight, 2.0f);
+	assertMatrixApproximate(matrixInterpolated,  2.0f, -4.0f,  -8.0f, -12.0f,
+	                                            -1.0f, -3.0f,  -9.0f, -13.0f,
+	                                            -2.0f, -6.0f,  -8.0f, -14.0f,
+	                                            -3.0f, -7.0f, -11.0f, -13.0f, EPSILON);
+}
+
 static void testMultiplyVector() {
 	Matrix matrix;
 	Vector2 vector2;
@@ -578,4 +646,5 @@ TEST_SUITE(MatrixTest,
            testTranspose,
            testDeterminant,
            testInvert,
+           testInterpolate,
            testMultiplyVector)

@@ -51,31 +51,43 @@ Vector4 Vector4_init(float x, float y, float z, float w) {
 	return vector;
 }
 
-void Vector2_normalize(Vector2 * vector) {
+bool Vector2_normalize(Vector2 * vector) {
 	float magnitude;
 	
 	magnitude = sqrtf(vector->x * vector->x + vector->y * vector->y);
-	vector->x /= magnitude;
-	vector->y /= magnitude;
+	if (magnitude > 0.0f) {
+		vector->x /= magnitude;
+		vector->y /= magnitude;
+		return true;
+	}
+	return false;
 }
 
-void Vector3_normalize(Vector3 * vector) {
+bool Vector3_normalize(Vector3 * vector) {
 	float magnitude;
 	
 	magnitude = sqrtf(vector->x * vector->x + vector->y * vector->y + vector->z * vector->z);
-	vector->x /= magnitude;
-	vector->y /= magnitude;
-	vector->z /= magnitude;
+	if (magnitude > 0.0f) {
+		vector->x /= magnitude;
+		vector->y /= magnitude;
+		vector->z /= magnitude;
+		return true;
+	}
+	return false;
 }
 
-void Vector4_normalize(Vector4 * vector) {
+bool Vector4_normalize(Vector4 * vector) {
 	float magnitude;
 	
 	magnitude = sqrtf(vector->x * vector->x + vector->y * vector->y + vector->z * vector->z + vector->w * vector->w);
-	vector->x /= magnitude;
-	vector->y /= magnitude;
-	vector->z /= magnitude;
-	vector->w /= magnitude;
+	if (magnitude > 0.0f) {
+		vector->x /= magnitude;
+		vector->y /= magnitude;
+		vector->z /= magnitude;
+		vector->w /= magnitude;
+		return true;
+	}
+	return false;
 }
 
 Vector2 Vector2_normalized(Vector2 vector) {
@@ -90,6 +102,45 @@ Vector3 Vector3_normalized(Vector3 vector) {
 
 Vector4 Vector4_normalized(Vector4 vector) {
 	Vector4_normalize(&vector);
+	return vector;
+}
+
+bool Vector2_scaleTo(Vector2 * vector, float magnitude) {
+	if (Vector2_normalize(vector)) {
+		*vector = Vector2_multiplyScalar(*vector, magnitude);
+		return true;
+	}
+	return false;
+}
+
+bool Vector3_scaleTo(Vector3 * vector, float magnitude) {
+	if (Vector3_normalize(vector)) {
+		*vector = Vector3_multiplyScalar(*vector, magnitude);
+		return true;
+	}
+	return false;
+}
+
+bool Vector4_scaleTo(Vector4 * vector, float magnitude) {
+	if (Vector4_normalize(vector)) {
+		*vector = Vector4_multiplyScalar(*vector, magnitude);
+		return true;
+	}
+	return false;
+}
+
+Vector2 Vector2_scaledTo(Vector2 vector, float magnitude) {
+	Vector2_scaleTo(&vector, magnitude);
+	return vector;
+}
+
+Vector3 Vector3_scaledTo(Vector3 vector, float magnitude) {
+	Vector3_scaleTo(&vector, magnitude);
+	return vector;
+}
+
+Vector4 Vector4_scaledTo(Vector4 vector, float magnitude) {
+	Vector4_scaleTo(&vector, magnitude);
 	return vector;
 }
 

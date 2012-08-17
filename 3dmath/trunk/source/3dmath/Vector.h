@@ -23,6 +23,8 @@
 #ifndef __VECTOR_H__
 #define __VECTOR_H__
 
+#include <stdbool.h>
+
 typedef struct Vector2 Vector2;
 typedef struct Vector3 Vector3;
 typedef struct Vector4 Vector4;
@@ -46,8 +48,12 @@ struct Vector4 {
 };
 
 #define VECTOR2_ZERO ((Vector2) {0.0f, 0.0f})
+#define VECTOR2_LEFT  ((Vector2) {-1.0f,  0.0f})
+#define VECTOR2_RIGHT ((Vector2) { 1.0f,  0.0f})
+#define VECTOR2_DOWN  ((Vector2) { 0.0f, -1.0f})
+#define VECTOR2_UP    ((Vector2) { 0.0f,  1.0f})
+
 #define VECTOR3_ZERO ((Vector3) {0.0f, 0.0f, 0.0f})
-#define VECTOR4_ZERO ((Vector4) {0.0f, 0.0f, 0.0f, 0.0f})
 #define VECTOR3_LEFT  ((Vector3) {-1.0f,  0.0f,  0.0f})
 #define VECTOR3_RIGHT ((Vector3) { 1.0f,  0.0f,  0.0f})
 #define VECTOR3_DOWN  ((Vector3) { 0.0f, -1.0f,  0.0f})
@@ -55,16 +61,33 @@ struct Vector4 {
 #define VECTOR3_BACK  ((Vector3) { 0.0f,  0.0f, -1.0f})
 #define VECTOR3_FRONT ((Vector3) { 0.0f,  0.0f,  1.0f})
 
+#define VECTOR4_ZERO ((Vector4) {0.0f, 0.0f, 0.0f, 0.0f})
+#define VECTOR4_LEFT  ((Vector4) {-1.0f,  0.0f,  0.0f,  0.0f})
+#define VECTOR4_RIGHT ((Vector4) { 1.0f,  0.0f,  0.0f,  0.0f})
+#define VECTOR4_DOWN  ((Vector4) { 0.0f, -1.0f,  0.0f,  0.0f})
+#define VECTOR4_UP    ((Vector4) { 0.0f,  1.0f,  0.0f,  0.0f})
+#define VECTOR4_BACK  ((Vector4) { 0.0f,  0.0f, -1.0f,  0.0f})
+#define VECTOR4_FRONT ((Vector4) { 0.0f,  0.0f,  1.0f,  0.0f})
+#define VECTOR4_KATA  ((Vector4) { 0.0f,  0.0f,  0.0f, -1.0f})
+#define VECTOR4_ANA   ((Vector4) { 0.0f,  0.0f,  0.0f,  1.0f})
+
 Vector2 Vector2_init(float x, float y);
 Vector3 Vector3_init(float x, float y, float z);
 Vector4 Vector4_init(float x, float y, float z, float w);
 
-void Vector2_normalize(Vector2 * vector);
-void Vector3_normalize(Vector3 * vector);
-void Vector4_normalize(Vector4 * vector);
+bool Vector2_normalize(Vector2 * vector);
+bool Vector3_normalize(Vector3 * vector);
+bool Vector4_normalize(Vector4 * vector);
 Vector2 Vector2_normalized(Vector2 vector);
 Vector3 Vector3_normalized(Vector3 vector);
 Vector4 Vector4_normalized(Vector4 vector);
+
+bool Vector2_scaleTo(Vector2 * vector, float magnitude);
+bool Vector3_scaleTo(Vector3 * vector, float magnitude);
+bool Vector4_scaleTo(Vector4 * vector, float magnitude);
+Vector2 Vector2_scaledTo(Vector2 vector, float magnitude);
+Vector3 Vector3_scaledTo(Vector3 vector, float magnitude);
+Vector4 Vector4_scaledTo(Vector4 vector, float magnitude);
 
 float Vector2_magnitude(Vector2 vector);
 float Vector3_magnitude(Vector3 vector);

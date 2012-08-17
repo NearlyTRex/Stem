@@ -50,12 +50,18 @@ Quaternion Quaternion_fromAxisAngle(Vector3 axis, float radians) {
 	float sinAngle;
 	
 	radians *= 0.5f;
-	Vector3_normalize(&axis);
-	sinAngle = sin(radians);
-	quaternion.x = axis.x * sinAngle;
-	quaternion.y = axis.y * sinAngle;
-	quaternion.z = axis.z * sinAngle;
-	quaternion.w = cos(radians);
+	if (!Vector3_normalize(&axis)) {
+		quaternion.x = NAN;
+		quaternion.y = NAN;
+		quaternion.z = NAN;
+		quaternion.w = 1.0f;
+	} else {
+		sinAngle = sin(radians);
+		quaternion.x = axis.x * sinAngle;
+		quaternion.y = axis.y * sinAngle;
+		quaternion.z = axis.z * sinAngle;
+		quaternion.w = cos(radians);
+	}
 	
 	return quaternion;
 }

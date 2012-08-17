@@ -316,6 +316,19 @@ Matrix Matrix_inverted(Matrix matrix) {
 	return matrix;
 }
 
+void Matrix_interpolate(Matrix * left, Matrix right, float value) {
+	unsigned int index;
+	
+	for (index = 0; index < 16; index++) {
+		left->m[index] = left->m[index] * (1.0f - value) + right.m[index] * value;
+	}
+}
+
+Matrix Matrix_interpolated(Matrix left, Matrix right, float value) {
+	Matrix_interpolate(&left, right, value);
+	return left;
+}
+
 Vector2 Matrix_multiplyVector2(Matrix matrix, Vector2 vector) {
 	Vector2 result;
 	

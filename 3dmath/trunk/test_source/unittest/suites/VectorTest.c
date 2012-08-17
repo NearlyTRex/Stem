@@ -94,42 +94,70 @@ static void testNormalize() {
 	Vector2 vector2, vector2Normalized;
 	Vector3 vector3, vector3Normalized;
 	Vector4 vector4, vector4Normalized;
+	bool success;
 	
 	vector2 = Vector2_init(5.0f, 0.0f);
 	vector2Normalized = Vector2_normalized(vector2);
-	Vector2_normalize(&vector2);
+	success = Vector2_normalize(&vector2);
 	TestCase_assert(!memcmp(&vector2, &vector2Normalized, sizeof(Vector2)), "Vector2_normalize produced different results (%f, %f) than Vector2_normalized (%f, %f)", vector2.x, vector2.y, vector2Normalized.x, vector2Normalized.y);
+	TestCase_assert(success, "Expected true but got false");
 	assertVector2Approximate(vector2, 1.0f, 0.0f, EPSILON);
 	
 	vector2 = Vector2_init(1.0f, 1.0f);
 	vector2Normalized = Vector2_normalized(vector2);
-	Vector2_normalize(&vector2);
+	success = Vector2_normalize(&vector2);
 	TestCase_assert(!memcmp(&vector2, &vector2Normalized, sizeof(Vector2)), "Vector2_normalize produced different results (%f, %f) than Vector2_normalized (%f, %f)", vector2.x, vector2.y, vector2Normalized.x, vector2Normalized.y);
+	TestCase_assert(success, "Expected true but got false");
 	assertVector2Approximate(vector2, 0.707106781186548f, 0.707106781186548f, EPSILON);
+	
+	vector2 = Vector2_init(0.0f, 0.0f);
+	vector2Normalized = Vector2_normalized(vector2);
+	success = Vector2_normalize(&vector2);
+	TestCase_assert(!memcmp(&vector2, &vector2Normalized, sizeof(Vector2)), "Vector2_normalize produced different results (%f, %f) than Vector2_normalized (%f, %f)", vector2.x, vector2.y, vector2Normalized.x, vector2Normalized.y);
+	TestCase_assert(!success, "Expected false but got true");
+	assertVector2Exact(vector2, 0.0f, 0.0f);
 	
 	vector3 = Vector3_init(0.0f, 5.0f, 0.0f);
 	vector3Normalized = Vector3_normalized(vector3);
-	Vector3_normalize(&vector3);
+	success = Vector3_normalize(&vector3);
 	TestCase_assert(!memcmp(&vector3, &vector3Normalized, sizeof(Vector3)), "Vector3_normalize produced different results (%f, %f, %f) than Vector3_normalized (%f, %f, %f)", vector3.x, vector3.y, vector3.z, vector3Normalized.x, vector3Normalized.y, vector3Normalized.z);
+	TestCase_assert(success, "Expected true but got false");
 	assertVector3Approximate(vector3, 0.0f, 1.0f, 0.0f, EPSILON);
 	
 	vector3 = Vector3_init(1.0f, 1.0f, 1.0f);
 	vector3Normalized = Vector3_normalized(vector3);
-	Vector3_normalize(&vector3);
+	success = Vector3_normalize(&vector3);
 	TestCase_assert(!memcmp(&vector3, &vector3Normalized, sizeof(Vector3)), "Vector3_normalize produced different results (%f, %f, %f) than Vector3_normalized (%f, %f, %f)", vector3.x, vector3.y, vector3.z, vector3Normalized.x, vector3Normalized.y, vector3Normalized.z);
+	TestCase_assert(success, "Expected true but got false");
 	assertVector3Approximate(vector3, 0.577350269189626f, 0.577350269189626f, 0.577350269189626f, EPSILON);
+	
+	vector3 = Vector3_init(0.0f, 0.0f, 0.0f);
+	vector3Normalized = Vector3_normalized(vector3);
+	success = Vector3_normalize(&vector3);
+	TestCase_assert(!memcmp(&vector3, &vector3Normalized, sizeof(Vector3)), "Vector3_normalize produced different results (%f, %f, %f) than Vector3_normalized (%f, %f, %f)", vector3.x, vector3.y, vector3.z, vector3Normalized.x, vector3Normalized.y, vector3Normalized.z);
+	TestCase_assert(!success, "Expected false but got true");
+	assertVector3Exact(vector3, 0.0f, 0.0f, 0.0f);
 	
 	vector4 = Vector4_init(0.0f, 0.0f, 5.0f, 0.0f);
 	vector4Normalized = Vector4_normalized(vector4);
-	Vector4_normalize(&vector4);
+	success = Vector4_normalize(&vector4);
 	TestCase_assert(!memcmp(&vector4, &vector4Normalized, sizeof(Vector4)), "Vector4_normalize produced different results (%f, %f, %f, %f) than Vector4_normalized (%f, %f, %f, %f)", vector4.x, vector4.y, vector4.z, vector4.w, vector4Normalized.x, vector4Normalized.y, vector4Normalized.z, vector4Normalized.w);
+	TestCase_assert(success, "Expected true but got false");
 	assertVector4Approximate(vector4, 0.0f, 0.0f, 1.0f, 0.0f, EPSILON);
 	
 	vector4 = Vector4_init(1.0f, 1.0f, 1.0f, 1.0f);
 	vector4Normalized = Vector4_normalized(vector4);
-	Vector4_normalize(&vector4);
+	success = Vector4_normalize(&vector4);
 	TestCase_assert(!memcmp(&vector4, &vector4Normalized, sizeof(Vector4)), "Vector4_normalize produced different results (%f, %f, %f, %f) than Vector4_normalized (%f, %f, %f, %f)", vector4.x, vector4.y, vector4.z, vector4.w, vector4Normalized.x, vector4Normalized.y, vector4Normalized.z, vector4Normalized.w);
+	TestCase_assert(success, "Expected true but got false");
 	assertVector4Approximate(vector4, 0.5f, 0.5f, 0.5f, 0.5f, EPSILON);
+	
+	vector4 = Vector4_init(0.0f, 0.0f, 0.0f, 0.0f);
+	vector4Normalized = Vector4_normalized(vector4);
+	success = Vector4_normalize(&vector4);
+	TestCase_assert(!memcmp(&vector4, &vector4Normalized, sizeof(Vector4)), "Vector4_normalize produced different results (%f, %f, %f, %f) than Vector4_normalized (%f, %f, %f, %f)", vector4.x, vector4.y, vector4.z, vector4.w, vector4Normalized.x, vector4Normalized.y, vector4Normalized.z, vector4Normalized.w);
+	TestCase_assert(!success, "Expected false but got true");
+	assertVector4Exact(vector4, 0.0f, 0.0f, 0.0f, 0.0f);
 }
 
 static void testMagnitude() {
