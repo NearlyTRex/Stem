@@ -22,7 +22,7 @@ iphone_sdk_version_integer = ${subst .,0,$1}${word ${words ${wordlist 2, ${words
 
 TARGET_PLATFORMS_macosx = macosx iphonesimulator iphoneos
 TARGET_PLATFORMS_linux = linux
-TARGET_PLATFORMS_windows = windows
+TARGET_PLATFORMS_windows = win32 win64
 
 PROJECT_NAME = 3dmath
 IPHONE_BUILD_SDK_VERSION ?= 4.2
@@ -35,7 +35,7 @@ EXECUTABLE_TARGETS = unittest
 APPLICATION_TARGETS = 
 TARGETS = ${LIBRARY_TARGETS} ${EXECUTABLE_TARGETS} ${APPLICATION_TARGETS}
 CONFIGURATIONS = debug profile release
-PLATFORMS = ${filter ${TARGET_PLATFORMS_${HOST_PLATFORM}},macosx iphonesimulator iphoneos linux windows}
+PLATFORMS = ${filter ${TARGET_PLATFORMS_${HOST_PLATFORM}},macosx iphonesimulator iphoneos linux win32 win64}
 ANALYZERS = splint clang
 
 TARGET_NAME_library = libstem_3dmath
@@ -46,8 +46,8 @@ CONFIGURATIONS_library = debug profile release
 CONFIGURATIONS_unittest = debug
 
 #Per-target platforms
-PLATFORMS_library = ${filter ${PLATFORMS},macosx iphonesimulator iphoneos linux windows}
-PLATFORMS_unittest = ${filter ${PLATFORMS},macosx iphonesimulator linux windows}
+PLATFORMS_library = ${filter ${PLATFORMS},macosx iphonesimulator iphoneos linux win32 win64}
+PLATFORMS_unittest = ${filter ${PLATFORMS},macosx iphonesimulator linux win32 win64}
 
 #Per-target compile/link settings
 CCFLAGS_unittest = -I test_source -include build/intermediate/TestList.h
@@ -104,15 +104,25 @@ ARCHS_linux = i686
 CCFLAGS_linux = 
 LINKFLAGS_linux = -lm -ldl -Wl,-E
 
-CC_windows_i686 = C:/MinGW/bin/gcc.exe
-AR_windows = C:/MinGW/bin/ar.exe
-RANLIB_windows = C:/MinGW/bin/ranlib.exe
-SPLINT_windows = C:/splint-3.1.1/bin/splint.exe
-CLANG_windows = C:/llvm/bin/clang.exe
-ARCHS_windows = i686
-CCFLAGS_windows = 
-LINKFLAGS_windows = 
-EXECUTABLE_SUFFIX_windows = .exe
+CC_win32_i386 = C:/MinGW/bin/gcc.exe
+AR_win32 = C:/MinGW/bin/ar.exe
+RANLIB_win32 = C:/MinGW/bin/ranlib.exe
+SPLINT_win32 = C:/splint-3.1.1/bin/splint.exe
+CLANG_win32 = C:/llvm/bin/clang.exe
+ARCHS_win32 = i386
+CCFLAGS_win32 = 
+LINKFLAGS_win32 = 
+EXECUTABLE_SUFFIX_win32 = .exe
+
+CC_win64_x86_64 = C:/MinGW-w64/bin/x86_64-w64-mingw32-gcc.exe
+AR_win64 = C:/MinGW-w64/bin/x86_64-w64-mingw32-ar.exe
+RANLIB_win64 = C:/MinGW-w64/bin/x86_64-w64-mingw32-ranlib.exe
+SPLINT_win64 = C:/splint-3.1.1/bin/splint.exe
+CLANG_win64 = C:/llvm/bin/clang.exe
+ARCHS_win64 = x86_64
+CCFLAGS_win64 = 
+LINKFLAGS_win64 = 
+EXECUTABLE_SUFFIX_win64 = .exe
 
 #General compile/link settings
 DEFINE_CCFLAGS = -DVERSION_MAJOR=${VERSION_MAJOR}u -DVERSION_MINOR=${VERSION_MINOR}u -DVERSION_TWEAK=${VERSION_TWEAK}u
@@ -179,7 +189,8 @@ RESOURCES_unittest =
 
 #General analyzer settings
 CLANGFLAGS = 
-CLANGFLAGS_windows = -I C:/MinGW/include -I C:/MinGW/lib/gcc/mingw32/4.3.2/include
+CLANGFLAGS_win32 = -I C:/MinGW/include -I C:/MinGW/lib/gcc/mingw32/4.3.2/include
+CLANGFLAGS_win64 = -I C:/MinGW/include -I C:/MinGW/lib/gcc/mingw32/4.3.2/include
 SPLINTFLAGS = -exportlocal
 
 #Source files excluded from static analysis
@@ -515,11 +526,18 @@ build/$1/$2-linux/${TARGET_NAME_$1}: ${THIN_BINARIES_$1_$2_linux} ${RESOURCES_$1
 	cp ${THIN_BINARIES_$1_$2_linux} $$@
 endef
 
-define assemble_application_windows #(target, configuration)
-build/$1/$2-windows/${TARGET_NAME_$1}.exe: ${THIN_BINARIES_$1_$2_windows} ${RESOURCES_$1} ${RESOURCES_$1_windows} | build/$1/$2-windows
-	mkdir -p build/$1/$2-windows/Resources
-	${call copy_target_resources,$1,windows,build/$1/$2-windows/Resources}
-	cp ${THIN_BINARIES_$1_$2_windows} $$@
+define assemble_application_win32 #(target, configuration)
+build/$1/$2-win32/${TARGET_NAME_$1}.exe: ${THIN_BINARIES_$1_$2_win32} ${RESOURCES_$1} ${RESOURCES_$1_win32} | build/$1/$2-win32
+	mkdir -p build/$1/$2-win32/Resources
+	${call copy_target_resources,$1,win32,build/$1/$2-win32/Resources}
+	cp ${THIN_BINARIES_$1_$2_win32} $$@
+endef
+
+define assemble_application_win64 #(target, configuration)
+build/$1/$2-win32/${TARGET_NAME_$1}.exe: ${THIN_BINARIES_$1_$2_win64} ${RESOURCES_$1} ${RESOURCES_$1_win64} | build/$1/$2-win64
+	mkdir -p build/$1/$2-win64/Resources
+	${call copy_target_resources,$1,win64,build/$1/$2-win32/Resources}
+	cp ${THIN_BINARIES_$1_$2_win64} $$@
 endef
 
 #Produces final application build targets
@@ -559,7 +577,11 @@ define application_file_template_linux #(target)
 ${TARGET_NAME_$1}
 endef
 
-define application_file_template_windows #(target)
+define application_file_template_win32 #(target)
+${TARGET_NAME_$1}.exe
+endef
+
+define application_file_template_win64 #(target)
 ${TARGET_NAME_$1}.exe
 endef
 
@@ -596,9 +618,13 @@ run_unittests_iphonesimulator: unittest
 run_unittests_linux: unittest
 	./build/unittest/debug-linux/${TARGET_NAME_unittest} "${CURDIR}/build/unittest/debug-linux"
 
-.PHONY: run_unittests_windows
-run_unittests_windows: unittest
-	./build/unittest/debug-windows/${TARGET_NAME_unittest}.exe "${CURDIR}/build/unittest/debug-windows"
+.PHONY: run_unittests_win32
+run_unittests_win32: unittest
+	./build/unittest/debug-win32/${TARGET_NAME_unittest}.exe "${CURDIR}/build/unittest/debug-win32"
+
+.PHONY: run_unittests_win64
+run_unittests_win64: unittest
+	./build/unittest/debug-win64/${TARGET_NAME_unittest}.exe "${CURDIR}/build/unittest/debug-win64"
 
 define analyze_file_template_clang #(target, platform, file)
 build/analyzer-results/clang-$1-$2/${basename ${notdir $3}}.txt: $3 ${PREREQS_$1} | build/analyzer-results/clang-$1-$2
