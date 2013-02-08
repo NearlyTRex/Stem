@@ -21,7 +21,7 @@ endef
 iphone_sdk_version_integer = ${subst .,0,$1}${word ${words ${wordlist 2, ${words ${subst ., ,$1}}, ${subst ., ,$1}}}, 00}
 
 TARGET_PLATFORMS_macosx = macosx iphonesimulator iphoneos
-TARGET_PLATFORMS_linux = linux
+TARGET_PLATFORMS_linux = linux32 linux64
 TARGET_PLATFORMS_windows = win32 win64
 
 PROJECT_NAME = 3dmath
@@ -35,7 +35,7 @@ EXECUTABLE_TARGETS = unittest
 APPLICATION_TARGETS = 
 TARGETS = ${LIBRARY_TARGETS} ${EXECUTABLE_TARGETS} ${APPLICATION_TARGETS}
 CONFIGURATIONS = debug profile release
-PLATFORMS = ${filter ${TARGET_PLATFORMS_${HOST_PLATFORM}},macosx iphonesimulator iphoneos linux win32 win64}
+PLATFORMS = ${filter ${TARGET_PLATFORMS_${HOST_PLATFORM}},macosx iphonesimulator iphoneos linux32 linux64 win32 win64}
 ANALYZERS = splint clang
 
 TARGET_NAME_library = libstem_3dmath
@@ -46,8 +46,8 @@ CONFIGURATIONS_library = debug profile release
 CONFIGURATIONS_unittest = debug
 
 #Per-target platforms
-PLATFORMS_library = ${filter ${PLATFORMS},macosx iphonesimulator iphoneos linux win32 win64}
-PLATFORMS_unittest = ${filter ${PLATFORMS},macosx iphonesimulator linux win32 win64}
+PLATFORMS_library = ${filter ${PLATFORMS},macosx iphonesimulator iphoneos linux32 linux64 win32 win64}
+PLATFORMS_unittest = ${filter ${PLATFORMS},macosx iphonesimulator linux32 linux64 win32 win64}
 
 #Per-target compile/link settings
 CCFLAGS_unittest = -I test_source -include build/intermediate/TestList.h
@@ -95,14 +95,23 @@ ARCHS_iphoneos = armv6 armv7
 CCFLAGS_iphoneos = -isysroot ${SDKROOT_iphoneos} -miphoneos-version-min=${IPHONE_DEPLOYMENT_TARGET_VERSION}
 LINKFLAGS_iphoneos = -isysroot ${SDKROOT_iphoneos} -miphoneos-version-min=${IPHONE_DEPLOYMENT_TARGET_VERSION}
 
-CC_linux_i686 = /usr/bin/gcc
-AR_linux = /usr/bin/ar
-RANLIB_linux = /usr/bin/ranlib
-SPLINT_linux = /usr/local/bin/splint
-CLANG_linux = /usr/local/bin/clang
-ARCHS_linux = i686
-CCFLAGS_linux = 
-LINKFLAGS_linux = -lm -ldl -Wl,-E
+CC_linux32_i386 = /usr/bin/gcc
+AR_linux32 = /usr/bin/ar
+RANLIB_linux32 = /usr/bin/ranlib
+SPLINT_linux32 = /usr/local/bin/splint
+CLANG_linux32 = /usr/local/bin/clang
+ARCHS_linux32 = i386
+CCFLAGS_linux32 = -m32
+LINKFLAGS_linux32 = -m32 -lm -ldl -Wl,-E
+
+CC_linux64_x86_64 = /usr/bin/gcc
+AR_linux64 = /usr/bin/ar
+RANLIB_linux64 = /usr/bin/ranlib
+SPLINT_linux64 = /usr/local/bin/splint
+CLANG_linux64 = /usr/local/bin/clang
+ARCHS_linux64 = x86_64
+CCFLAGS_linux64 = -m64
+LINKFLAGS_linux64 = -m64 -lm -ldl -Wl,-E
 
 CC_win32_i386 = C:/MinGW/bin/gcc.exe
 AR_win32 = C:/MinGW/bin/ar.exe
@@ -519,11 +528,18 @@ build/$1/$2-iphoneos/${TARGET_NAME_$1}.app/${TARGET_NAME_$1}: ${THIN_BINARIES_$1
 	lipo -create -output $$@ ${THIN_BINARIES_$1_$2_iphoneos}
 endef
 
-define assemble_application_linux #(target, configuration)
-build/$1/$2-linux/${TARGET_NAME_$1}: ${THIN_BINARIES_$1_$2_linux} ${RESOURCES_$1} ${RESOURCES_$1_linux} | build/$1/$2-linux
-	mkdir -p build/$1/$2-linux/Resources
-	${call copy_target_resources,$1,linux,build/$1/$2-linux/Resources}
-	cp ${THIN_BINARIES_$1_$2_linux} $$@
+define assemble_application_linux32 #(target, configuration)
+build/$1/$2-linux32/${TARGET_NAME_$1}: ${THIN_BINARIES_$1_$2_linux32} ${RESOURCES_$1} ${RESOURCES_$1_linux32} | build/$1/$2-linux32
+	mkdir -p build/$1/$2-linux32/Resources
+	${call copy_target_resources,$1,linux32,build/$1/$2-linux32/Resources}
+	cp ${THIN_BINARIES_$1_$2_linux32} $$@
+endef
+
+define assemble_application_linux64 #(target, configuration)
+build/$1/$2-linux64/${TARGET_NAME_$1}: ${THIN_BINARIES_$1_$2_linux64} ${RESOURCES_$1} ${RESOURCES_$1_linux64} | build/$1/$2-linux64
+	mkdir -p build/$1/$2-linux64/Resources
+	${call copy_target_resources,$1,linux64,build/$1/$2-linux64/Resources}
+	cp ${THIN_BINARIES_$1_$2_linux64} $$@
 endef
 
 define assemble_application_win32 #(target, configuration)
@@ -573,7 +589,11 @@ define application_file_template_iphoneos #(target)
 ${TARGET_NAME_$1}.app/${TARGET_NAME_$1}
 endef
 
-define application_file_template_linux #(target)
+define application_file_template_linux32 #(target)
+${TARGET_NAME_$1}
+endef
+
+define application_file_template_linux64 #(target)
 ${TARGET_NAME_$1}
 endef
 
@@ -614,9 +634,13 @@ run_unittests_iphonesimulator: unittest
 	DYLD_ROOT_PATH=${SDKROOT_iphonesimulator} \
 	./build/unittest/debug-iphonesimulator/${TARGET_NAME_unittest} "${CURDIR}/build/unittest/debug-iphonesimulator"
 
-.PHONY: run_unittests_linux
-run_unittests_linux: unittest
-	./build/unittest/debug-linux/${TARGET_NAME_unittest} "${CURDIR}/build/unittest/debug-linux"
+.PHONY: run_unittests_linux32
+run_unittests_linux32: unittest
+	./build/unittest/debug-linux32/${TARGET_NAME_unittest} "${CURDIR}/build/unittest/debug-linux32"
+
+.PHONY: run_unittests_linux64
+run_unittests_linux64: unittest
+	./build/unittest/debug-linux64/${TARGET_NAME_unittest} "${CURDIR}/build/unittest/debug-linux64"
 
 .PHONY: run_unittests_win32
 run_unittests_win32: unittest
