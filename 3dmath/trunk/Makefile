@@ -38,8 +38,8 @@ CONFIGURATIONS = debug profile release
 PLATFORMS = ${filter ${TARGET_PLATFORMS_${HOST_PLATFORM}},macosx iphonesimulator iphoneos linux32 linux64 win32 win64}
 ANALYZERS = splint clang
 
-TARGET_NAME_library = libstem_3dmath
-TARGET_NAME_unittest = 3dmath_unittest
+TARGET_NAME_library = libstem_${PROJECT_NAME}
+TARGET_NAME_unittest = ${PROJECT_NAME}_unittest
 
 #Per-target configurations
 CONFIGURATIONS_library = debug profile release
@@ -167,10 +167,10 @@ THIRDPARTY_LIBRARY_DEPENDENCIES_unittest_macosx =
 #Per-target source file lists
 
 SOURCES_library = \
-	source/3dmath/Frustum.c \
-	source/3dmath/Matrix.c \
-	source/3dmath/Quaternion.c \
-	source/3dmath/Vector.c
+	source/${PROJECT_NAME}/Frustum.c \
+	source/${PROJECT_NAME}/Matrix.c \
+	source/${PROJECT_NAME}/Quaternion.c \
+	source/${PROJECT_NAME}/Vector.c
 
 SOURCES_unittest = \
 	test_source/unittest/framework/unittest_main.c \
@@ -186,10 +186,10 @@ SOURCES_unittest_suites = \
 #Include files to be distributed with library
 
 INCLUDES = \
-	source/3dmath/Frustum.h \
-	source/3dmath/Matrix.h \
-	source/3dmath/Quaternion.h \
-	source/3dmath/Vector.h
+	source/${PROJECT_NAME}/Frustum.h \
+	source/${PROJECT_NAME}/Matrix.h \
+	source/${PROJECT_NAME}/Quaternion.h \
+	source/${PROJECT_NAME}/Vector.h
 
 #Target resources
 
@@ -550,9 +550,9 @@ build/$1/$2-win32/${TARGET_NAME_$1}.exe: ${THIN_BINARIES_$1_$2_win32} ${RESOURCE
 endef
 
 define assemble_application_win64 #(target, configuration)
-build/$1/$2-win32/${TARGET_NAME_$1}.exe: ${THIN_BINARIES_$1_$2_win64} ${RESOURCES_$1} ${RESOURCES_$1_win64} | build/$1/$2-win64
+build/$1/$2-win64/${TARGET_NAME_$1}.exe: ${THIN_BINARIES_$1_$2_win64} ${RESOURCES_$1} ${RESOURCES_$1_win64} | build/$1/$2-win64
 	mkdir -p build/$1/$2-win64/Resources
-	${call copy_target_resources,$1,win64,build/$1/$2-win32/Resources}
+	${call copy_target_resources,$1,win64,build/$1/$2-win64/Resources}
 	cp ${THIN_BINARIES_$1_$2_win64} $$@
 endef
 
@@ -802,7 +802,7 @@ endef
 source_dist:
 	#mkdir -p build/source_dist/include
 	#mkdir -p build/source_dist/lib
-	mkdir -p build/source_dist/source/3dmath
+	mkdir -p build/source_dist/source/${PROJECT_NAME}
 	mkdir -p build/source_dist/test_resources
 	mkdir -p build/source_dist/test_source/unittest/framework
 	mkdir -p build/source_dist/test_source/unittest/suites
@@ -815,7 +815,7 @@ source_dist:
 	#find build/source_dist/include -name .svn -print0 | xargs -0 rm -rf
 	#find build/source_dist/lib -name .svn -print0 | xargs -0 rm -rf
 	
-	cp source/3dmath/* build/source_dist/source/3dmath
+	cp source/${PROJECT_NAME}/* build/source_dist/source/${PROJECT_NAME}
 	
 	cp test_resources/* build/source_dist/test_resources
 	
