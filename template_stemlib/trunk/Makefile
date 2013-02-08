@@ -558,9 +558,9 @@ build/$1/$2-win32/${TARGET_NAME_$1}.exe: ${THIN_BINARIES_$1_$2_win32} ${RESOURCE
 endef
 
 define assemble_application_win64 #(target, configuration)
-build/$1/$2-win32/${TARGET_NAME_$1}.exe: ${THIN_BINARIES_$1_$2_win64} ${RESOURCES_$1} ${RESOURCES_$1_win64} | build/$1/$2-win64
+build/$1/$2-win64/${TARGET_NAME_$1}.exe: ${THIN_BINARIES_$1_$2_win64} ${RESOURCES_$1} ${RESOURCES_$1_win64} | build/$1/$2-win64
 	mkdir -p build/$1/$2-win64/Resources
-	${call copy_target_resources,$1,win64,build/$1/$2-win32/Resources}
+	${call copy_target_resources,$1,win64,build/$1/$2-win64/Resources}
 	cp ${THIN_BINARIES_$1_$2_win64} $$@
 endef
 
