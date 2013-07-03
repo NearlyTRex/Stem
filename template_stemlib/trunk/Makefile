@@ -38,9 +38,9 @@ CONFIGURATIONS = debug profile release
 PLATFORMS = ${filter ${TARGET_PLATFORMS_${HOST_PLATFORM}},macosx iphonesimulator iphoneos linux32 linux64 win32 win64}
 ANALYZERS = splint clang
 
-TARGET_NAME_library = libstem_template_stemlib
-TARGET_NAME_unittest = template_stemlib_unittest
-TARGET_NAME_testharness = template_stemlib_testharness
+TARGET_NAME_library = libstem_${PROJECT_NAME}
+TARGET_NAME_unittest = ${PROJECT_NAME}_unittest
+TARGET_NAME_testharness = ${PROJECT_NAME}_testharness
 HUMAN_READABLE_TARGET_NAME_testharness = StemTemplate
 
 #Per-target configurations
@@ -175,7 +175,7 @@ THIRDPARTY_LIBRARY_DEPENDENCIES_unittest_macosx =
 #Per-target source file lists
 
 SOURCES_library = \
-	source/template_stemlib/HelloWorld.c
+	source/${PROJECT_NAME}/HelloWorld.c
 
 SOURCES_unittest = \
 	test_source/unittest/framework/unittest_main.c \
@@ -191,7 +191,7 @@ SOURCES_testharness = \
 #Include files to be distributed with library
 
 INCLUDES = \
-	source/template_stemlib/HelloWorld.h
+	source/${PROJECT_NAME}/HelloWorld.h
 
 #Target resources
 
@@ -812,7 +812,7 @@ endef
 source_dist:
 	#mkdir -p build/source_dist/include
 	#mkdir -p build/source_dist/lib
-	mkdir -p build/source_dist/source/template_stemlib
+	mkdir -p build/source_dist/source/${PROJECT_NAME}
 	mkdir -p build/source_dist/test_resources
 	mkdir -p build/source_dist/test_source/testharness
 	mkdir -p build/source_dist/test_source/unittest/framework
@@ -826,7 +826,7 @@ source_dist:
 	#find build/source_dist/include -name .svn -print0 | xargs -0 rm -rf
 	#find build/source_dist/lib -name .svn -print0 | xargs -0 rm -rf
 	
-	cp source/template_stemlib/* build/source_dist/source/template_stemlib
+	cp source/${PROJECT_NAME}/* build/source_dist/source/${PROJECT_NAME}
 	
 	cp test_resources/* build/source_dist/test_resources
 	
