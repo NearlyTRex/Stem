@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2012 Alex Diener
+  Copyright (c) 2013 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -37,7 +37,8 @@ typedef struct GLSLShader GLSLShader;
 	\
 	GLint (* getUniformLocation)(self_type * self, const char * uniformName); \
 	void (* activate)(self_type * self); \
-	void (* deactivate)(self_type * self);
+	void (* deactivate)(self_type * self); \
+	bool (* validate)(self_type * self);
 
 stemobject_struct_definition(GLSLShader)
 
@@ -51,5 +52,6 @@ void GLSLShader_dispose(GLSLShader * self);
 GLint GLSLShader_getUniformLocation(GLSLShader * self, const char * uniformName);
 void GLSLShader_activate(GLSLShader * self);
 void GLSLShader_deactivate(GLSLShader * self);
+bool GLSLShader_validate(GLSLShader * self);
 
 #endif

@@ -1,3 +1,7 @@
+1.1.2
+ * Added GLSLShader_validate() function
+ * Updated for 3dmath 1.2.0
+
 1.1.1
  * GLIncludes.h now includes wglew.h and glxew.h as appropriate
  * Updated for stemobject 3.0.0 and shell Stable_2012-02-04

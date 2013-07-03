@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2012 Alex Diener
+  Copyright (c) 2013 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -61,6 +61,7 @@ void GLSLShader_vinit(GLSLShader * self, const char * vshaderSource, size_t vsha
 	self->getUniformLocation = GLSLShader_getUniformLocation;
 	self->activate = GLSLShader_activate;
 	self->deactivate = GLSLShader_deactivate;
+	self->validate = GLSLShader_validate;
 	
 	self->program = glCreateProgram();
 	vertexShader = glCreateShader(GL_VERTEX_SHADER);
@@ -115,17 +116,6 @@ void GLSLShader_vinit(GLSLShader * self, const char * vshaderSource, size_t vsha
 		}
 		free(log);
 	}
-	
-	glValidateProgram(self->program);
-	glGetProgramiv(self->program, GL_INFO_LOG_LENGTH, &logLength);
-	if (logLength > 0) {
-		GLchar * log = malloc(logLength);
-		glGetProgramInfoLog(self->program, logLength, &logLength, log);
-		if (logLength > 0) {
-			fprintf(stderr, "Program validation log:\n%s\n", log);
-		}
-		free(log);
-	}
 #endif
 	
 	glDeleteShader(vertexShader);
@@ -147,4 +137,21 @@ void GLSLShader_activate(GLSLShader * self) {
 
 void GLSLShader_deactivate(GLSLShader * self) {
 	glUseProgram(0);
+}
+
+bool GLSLShader_validate(GLSLShader * self) {
+	GLint logLength;
+	
+	glValidateProgram(self->program);
+	glGetProgramiv(self->program, GL_INFO_LOG_LENGTH, &logLength);
+	if (logLength > 0) {
+		GLchar * log = malloc(logLength);
+		glGetProgramInfoLog(self->program, logLength, &logLength, log);
+		if (logLength > 0) {
+			fprintf(stderr, "Program validation log:\n%s\n", log);
+		}
+		free(log);
+		return false;
+	}
+	return true;
 }
