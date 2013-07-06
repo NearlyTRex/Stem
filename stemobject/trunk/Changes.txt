@@ -1,3 +1,6 @@
+3.0.2
+ * Added 64-bit Windows and Linux support
+
 3.0.1
  * stemobject_copy_implementation fixed not to expect a void * selfPtr parameter
  * <Name>_init() methods no longer use compat_type. Implementation and documentation updated accordingly.
