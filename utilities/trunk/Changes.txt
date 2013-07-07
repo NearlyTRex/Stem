@@ -1,3 +1,7 @@
+1.7.0
+ * Added HashTable
+ * Added ATOM convenience macro (expands to Atom_fromString)
+
 1.6.1
  * Atom_fromString now uses a hash table internally and performs significantly faster, with much less penalty for adding more atoms
 

@@ -25,6 +25,8 @@
 
 typedef const char * Atom;
 
+#define ATOM(string) Atom_fromString(string)
+
 Atom Atom_fromString(const char * string);
 
 #endif
