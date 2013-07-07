@@ -3,6 +3,14 @@
 #include "unittest/framework/TestSuite.h"
 #include <float.h>
 
+#ifdef WIN32
+#define INT64_PRINTF_SPECIFIER "%I64d"
+#define UINT64_PRINTF_SPECIFIER "%I64u"
+#else
+#define INT64_PRINTF_SPECIFIER "%lld"
+#define UINT64_PRINTF_SPECIFIER "%llu"
+#endif
+
 static void testCreate() {
 	HashTable * hashTable;
 	size_t count;
@@ -197,13 +205,13 @@ static void testAccessors() {
 	TestCase_assert(uint32Result == 0, "Expected 0 but got %u", uint32Result);
 	
 	int64Result = hashGetInt64(hashTable, "int64_min");
-	TestCase_assert(int64Result == 0, "Expected 0 but got %lld", int64Result);
+	TestCase_assert(int64Result == 0, "Expected 0 but got " INT64_PRINTF_SPECIFIER, int64Result);
 	int64Result = hashGetInt64(hashTable, "int64_max");
-	TestCase_assert(int64Result == 0, "Expected 0 but got %lld", int64Result);
+	TestCase_assert(int64Result == 0, "Expected 0 but got " INT64_PRINTF_SPECIFIER, int64Result);
 	uint64Result = hashGetUInt64(hashTable, "uint64_min");
-	TestCase_assert(uint64Result == 0, "Expected 0 but got %llu", uint64Result);
+	TestCase_assert(uint64Result == 0, "Expected 0 but got " UINT64_PRINTF_SPECIFIER, uint64Result);
 	uint64Result = hashGetUInt64(hashTable, "uint64_max");
-	TestCase_assert(uint64Result == 0, "Expected 0 but got %llu", uint64Result);
+	TestCase_assert(uint64Result == 0, "Expected 0 but got " UINT64_PRINTF_SPECIFIER, uint64Result);
 	
 	floatResult = hashGetFloat(hashTable, "float_min");
 	TestCase_assert(floatResult == 0.0f, "Expected 0.0 but got %f", floatResult);
@@ -472,22 +480,22 @@ static void testAccessors() {
 	TestCase_assert(entryPtr != NULL, "Expected non-NULL but got NULL");
 	TestCase_assert(entryPtr->type == HASH_TYPE_INT64, "Expected %d but got %d", HASH_TYPE_INT64, entryPtr->type);
 	TestCase_assert(!strcmp(entryPtr->key, "int64_min"), "Expected \"int64_min\" but got \"%s\"", entryPtr->key);
-	TestCase_assert(entryPtr->value.int64 == INT64_MIN, "Expected %lld but got %lld", INT64_MIN, entryPtr->value.int64);
+	TestCase_assert(entryPtr->value.int64 == INT64_MIN, "Expected " INT64_PRINTF_SPECIFIER " but got " INT64_PRINTF_SPECIFIER, INT64_MIN, entryPtr->value.int64);
 	entryPtr = hashLookup(hashTable, "int64_max");
 	TestCase_assert(entryPtr != NULL, "Expected non-NULL but got NULL");
 	TestCase_assert(entryPtr->type == HASH_TYPE_INT64, "Expected %d but got %d", HASH_TYPE_INT64, entryPtr->type);
 	TestCase_assert(!strcmp(entryPtr->key, "int64_max"), "Expected \"int64_max\" but got \"%s\"", entryPtr->key);
-	TestCase_assert(entryPtr->value.int64 == INT64_MAX, "Expected %lld but got %lld", INT64_MAX, entryPtr->value.int64);
+	TestCase_assert(entryPtr->value.int64 == INT64_MAX, "Expected " INT64_PRINTF_SPECIFIER " but got " INT64_PRINTF_SPECIFIER, INT64_MAX, entryPtr->value.int64);
 	entryPtr = hashLookup(hashTable, "uint64_min");
 	TestCase_assert(entryPtr != NULL, "Expected non-NULL but got NULL");
 	TestCase_assert(entryPtr->type == HASH_TYPE_UINT64, "Expected %d but got %d", HASH_TYPE_UINT64, entryPtr->type);
 	TestCase_assert(!strcmp(entryPtr->key, "uint64_min"), "Expected \"uint64_min\" but got \"%s\"", entryPtr->key);
-	TestCase_assert(entryPtr->value.uint64 == 0, "Expected 0 but got %llu", entryPtr->value.uint64);
+	TestCase_assert(entryPtr->value.uint64 == 0, "Expected 0 but got " UINT64_PRINTF_SPECIFIER, entryPtr->value.uint64);
 	entryPtr = hashLookup(hashTable, "uint64_max");
 	TestCase_assert(entryPtr != NULL, "Expected non-NULL but got NULL");
 	TestCase_assert(entryPtr->type == HASH_TYPE_UINT64, "Expected %d but got %d", HASH_TYPE_UINT64, entryPtr->type);
 	TestCase_assert(!strcmp(entryPtr->key, "uint64_max"), "Expected \"uint64_max\" but got \"%s\"", entryPtr->key);
-	TestCase_assert(entryPtr->value.uint64 == UINT64_MAX, "Expected %llu but got %llu", UINT64_MAX, entryPtr->value.uint64);
+	TestCase_assert(entryPtr->value.uint64 == UINT64_MAX, "Expected " UINT64_PRINTF_SPECIFIER " but got " UINT64_PRINTF_SPECIFIER, UINT64_MAX, entryPtr->value.uint64);
 	
 	entryPtr = hashLookup(hashTable, "float_min");
 	TestCase_assert(entryPtr != NULL, "Expected non-NULL but got NULL");
@@ -583,13 +591,13 @@ static void testAccessors() {
 	TestCase_assert(uint32Result == UINT32_MAX, "Expected %u but got %u", UINT32_MAX, uint32Result);
 	
 	int64Result = hashGetInt64(hashTable, "int64_min");
-	TestCase_assert(int64Result == INT64_MIN, "Expected %lld but got %lld", INT64_MIN, int64Result);
+	TestCase_assert(int64Result == INT64_MIN, "Expected " INT64_PRINTF_SPECIFIER " but got " INT64_PRINTF_SPECIFIER, INT64_MIN, int64Result);
 	int64Result = hashGetInt64(hashTable, "int64_max");
-	TestCase_assert(int64Result == INT64_MAX, "Expected %lld but got %lld", INT64_MAX, int64Result);
+	TestCase_assert(int64Result == INT64_MAX, "Expected " INT64_PRINTF_SPECIFIER " but got " INT64_PRINTF_SPECIFIER, INT64_MAX, int64Result);
 	uint64Result = hashGetUInt64(hashTable, "uint64_min");
-	TestCase_assert(uint64Result == 0, "Expected 0 but got %llu", uint64Result);
+	TestCase_assert(uint64Result == 0, "Expected 0 but got " UINT64_PRINTF_SPECIFIER, uint64Result);
 	uint64Result = hashGetUInt64(hashTable, "uint64_max");
-	TestCase_assert(uint64Result == UINT64_MAX, "Expected %llu but got %llu", UINT64_MAX, uint64Result);
+	TestCase_assert(uint64Result == UINT64_MAX, "Expected " UINT64_PRINTF_SPECIFIER " but got " UINT64_PRINTF_SPECIFIER, UINT64_MAX, uint64Result);
 	
 	floatResult = hashGetFloat(hashTable, "float_min");
 	TestCase_assert(floatResult == -FLT_MAX, "Expected %f but got %f", -FLT_MAX, floatResult);
@@ -640,8 +648,8 @@ static void testCopy() {
 	TestCase_assert(blobCopy != NULL, "Expected non-NULL but got NULL");
 	TestCase_assert(length == 3, "Expected 3 but got %u", (unsigned int) length);
 	TestCase_assert(lengthCopy == 3, "Expected 3 but got %u", (unsigned int) lengthCopy);
-	TestCase_assert(!memcmp(blob, "foo", 3), "Expected \"foo\" but got \"%.*s\"", (unsigned int) length, blob);
-	TestCase_assert(!memcmp(blobCopy, "foo", 3), "Expected \"foo\" but got \"%.*s\"", (unsigned int) lengthCopy, blobCopy);
+	TestCase_assert(!memcmp(blob, "foo", 3), "Expected \"foo\" but got \"%.*s\"", (unsigned int) length, (char *) blob);
+	TestCase_assert(!memcmp(blobCopy, "foo", 3), "Expected \"foo\" but got \"%.*s\"", (unsigned int) lengthCopy, (char *) blobCopy);
 	TestCase_assert(blob != blobCopy, "Expected pointers to differ, but they didn't");
 	
 	subtable = hashGetHashTable(hashTable, "c");
