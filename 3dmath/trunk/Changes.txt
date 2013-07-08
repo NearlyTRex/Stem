@@ -3,6 +3,7 @@
  * Added Matrix_interpolate() and Matrix_interpolated()
  * Added Vector*_scaleTo() and Vector*_scaledTo()
  * Added Vector2 and Vector4 constants: VECTOR2_LEFT, VECTOR2_RIGHT, VECTOR2_DOWN, VECTOR2_UP, VECTOR4_LEFT, VECTOR4_RIGHT, VECTOR4_DOWN, VECTOR4_UP, VECTOR4_BACK, VECTOR4_FRONT, VECTOR4_KATA, and VECTOR4_ANA
+ * Added 64-bit Windows and Linux support
 
 1.3.0
  * Replaced functions that return prefabricated vectors, matrices, and quaternions (Vector2_zero(), Vector3_up(), Quaternion_identity(), Matrix_identity(), etc.) with compile-time constants
