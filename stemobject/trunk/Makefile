@@ -719,8 +719,8 @@ INSTALL_DIR = ${STEM_SHARED_DIR}/${PROJECT_NAME}/${VERSION_MAJOR}.${VERSION_MINO
 
 .PHONY: install
 install:
-	mkdir -p "${INSTALL_DIR}/include" "${INSTALL_DIR}/library" "${INSTALL_DIR}/testharness"
+	mkdir -p "${INSTALL_DIR}/include" "${INSTALL_DIR}/library"
 	cp Changes.txt License.txt ReadMe.txt version ${INSTALL_DIR}
 	cp -r build/include/* ${INSTALL_DIR}/include
 	cp -r build/library/* ${INSTALL_DIR}/library
-	cp -r build/testharness/* ${INSTALL_DIR}/testharness
+
