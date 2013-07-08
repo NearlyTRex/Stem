@@ -3,6 +3,8 @@
 This project serves as a starting point for all Stem library projects. It is meant to be copied and modified to suit the specific project being created. The centerpiece of this template is a robust, sophisticated makefile suitable for a wide range of build tasks and environments. Currently supported target platforms are Mac OS X, Windows, Linux, iPhone Simulator, and iPhone OS. Cross compilation is not supported except in the case of compiling for iPhone platforms from Mac OS X.
 
 
+**Warning: File contents below are out of date**
+
 
 = Makefile Usage =
 
