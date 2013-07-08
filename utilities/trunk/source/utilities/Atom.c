@@ -23,7 +23,7 @@
 #include "utilities/Atom.h"
 #include "utilities/lookup3.h"
 
-#include <pthread.h>
+#include "shell/Shell.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
@@ -42,7 +42,7 @@ struct AtomBucket {
 };
 
 static struct AtomBucket atomBuckets[ATOM_HASH_TABLE_SIZE];
-static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+static ShellMutex mutex;
 
 Atom Atom_fromString(const char * string) {
 	unsigned int bucketIndex, entryIndex;
@@ -58,11 +58,14 @@ Atom Atom_fromString(const char * string) {
 	hash = hashlittle(string, length, 0);
 	bucketIndex = hash % ATOM_HASH_TABLE_SIZE;
 	
-	pthread_mutex_lock(&mutex);
+	if (mutex == NULL) {
+		mutex = Shell_createMutex();
+	}
+	Shell_lockMutex(mutex);
 	
 	for (entryIndex = 0; entryIndex < atomBuckets[bucketIndex].count; entryIndex++) {
 		if (atomBuckets[bucketIndex].entries[entryIndex].hash == hash && !strcmp(atomBuckets[bucketIndex].entries[entryIndex].atom, string)) {
-			pthread_mutex_unlock(&mutex);
+			Shell_unlockMutex(mutex);
 			return atomBuckets[bucketIndex].entries[entryIndex].atom;
 		}
 	}
@@ -81,6 +84,6 @@ Atom Atom_fromString(const char * string) {
 	atomBuckets[bucketIndex].entries[atomBuckets[bucketIndex].count].hash = hash;
 	atomBuckets[bucketIndex].count++;
 	
-	pthread_mutex_unlock(&mutex);
+	Shell_unlockMutex(mutex);
 	return newAtom;
 }

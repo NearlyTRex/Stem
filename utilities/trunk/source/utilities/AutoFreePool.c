@@ -22,10 +22,10 @@
 
 #include "utilities/AutoFreePool.h"
 
-#include <pthread.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include "shell/Shell.h"
 
 struct AutoFreePool_callback {
 	void (* callback)(void * context);
@@ -46,24 +46,21 @@ struct AutoFreePool {
 
 static struct AutoFreePool poolStack[MAX_POOL_STACK_DEPTH];
 static int poolStackDepth = -1;
-static bool mutexInited = false;
-static pthread_mutex_t mutex;
+static ShellMutex mutex;
 
 void AutoFreePool_initMutex() {
-	pthread_mutex_init(&mutex, NULL);
-	mutexInited = true;
+	if (mutex == NULL) {
+		mutex = Shell_createMutex();
+	}
 }
 
 void AutoFreePool_push() {
-	if (mutexInited) {
-		pthread_mutex_lock(&mutex);
-	}
+	AutoFreePool_initMutex();
+	Shell_lockMutex(mutex);
 	
 	if (poolStackDepth >= MAX_POOL_STACK_DEPTH - 1) {
 		fprintf(stderr, "Warning: AutoFreePool maximum stack depth (%d) exceeded; couldn't push another pool as requested\n", MAX_POOL_STACK_DEPTH);
-		if (mutexInited) {
-			pthread_mutex_unlock(&mutex);
-		}
+		Shell_unlockMutex(mutex);
 		return;
 	}
 	
@@ -71,21 +68,16 @@ void AutoFreePool_push() {
 	poolStack[poolStackDepth].addresses = NULL;
 	poolStack[poolStackDepth].callbacks = NULL;
 	
-	if (mutexInited) {
-		pthread_mutex_unlock(&mutex);
-	}
+	Shell_unlockMutex(mutex);
 }
 
 void AutoFreePool_pop() {
-	if (mutexInited) {
-		pthread_mutex_lock(&mutex);
-	}
+	AutoFreePool_initMutex();
+	Shell_lockMutex(mutex);
 	
 	if (poolStackDepth < 0) {
 		fprintf(stderr, "Warning: AutoFreePool stack underflow; you've popped more times than you've pushed\n");
-		if (mutexInited) {
-			pthread_mutex_unlock(&mutex);
-		}
+		Shell_unlockMutex(mutex);
 		return;
 	}
 	
@@ -93,15 +85,17 @@ void AutoFreePool_pop() {
 	free(poolStack[poolStackDepth].addresses);
 	free(poolStack[poolStackDepth].callbacks);
 	poolStackDepth--;
+	Shell_unlockMutex(mutex);
 }
 
 void * AutoFreePool_add(void * address) {
-	if (mutexInited) {
-		pthread_mutex_lock(&mutex);
-	}
+	AutoFreePool_initMutex();
+	Shell_lockMutex(mutex);
 	
 	if (poolStackDepth == -1) {
+		Shell_unlockMutex(mutex);
 		AutoFreePool_push();
+		Shell_lockMutex(mutex);
 	}
 	
 	if (poolStack[poolStackDepth].addresses == NULL) {
@@ -115,17 +109,19 @@ void * AutoFreePool_add(void * address) {
 	}
 	
 	poolStack[poolStackDepth].addresses[poolStack[poolStackDepth].numberOfAddresses++] = address;
+	Shell_unlockMutex(mutex);
 	
 	return address;
 }
 
 void AutoFreePool_addCallback(void (* callback)(void * context), void * context) {
-	if (mutexInited) {
-		pthread_mutex_lock(&mutex);
-	}
+	AutoFreePool_initMutex();
+	Shell_lockMutex(mutex);
 	
 	if (poolStackDepth == -1) {
+		Shell_unlockMutex(mutex);
 		AutoFreePool_push();
+		Shell_lockMutex(mutex);
 	}
 	
 	if (poolStack[poolStackDepth].callbacks == NULL) {
@@ -141,17 +137,15 @@ void AutoFreePool_addCallback(void (* callback)(void * context), void * context)
 	poolStack[poolStackDepth].callbacks[poolStack[poolStackDepth].numberOfCallbacks].callback = callback;
 	poolStack[poolStackDepth].callbacks[poolStack[poolStackDepth].numberOfCallbacks].context = context;
 	poolStack[poolStackDepth].numberOfCallbacks++;
+	Shell_unlockMutex(mutex);
 }
 
 void AutoFreePool_empty() {
-	if (mutexInited) {
-		pthread_mutex_lock(&mutex);
-	}
+	AutoFreePool_initMutex();
+	Shell_lockMutex(mutex);
 	
 	if (poolStackDepth == -1) {
-		if (mutexInited) {
-			pthread_mutex_unlock(&mutex);
-		}
+		Shell_unlockMutex(mutex);
 		return;
 	}
 	
@@ -172,4 +166,5 @@ void AutoFreePool_empty() {
 		}
 		poolStack[poolStackDepth].numberOfCallbacks = 0;
 	}
+	Shell_unlockMutex(mutex);
 }

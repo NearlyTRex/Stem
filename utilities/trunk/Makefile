@@ -132,7 +132,7 @@ SPLINT_win32 = ${SPLINT_WIN_PATH}
 CLANG_win32 = ${CLANG_WIN_PATH}
 ARCHS_win32 = i386
 CCFLAGS_win32 = 
-LINKFLAGS_win32 = -lpthread
+LINKFLAGS_win32 = 
 EXECUTABLE_SUFFIX_win32 = .exe
 
 MINGW_W64_PATH ?= C:/MinGW-w64
@@ -144,7 +144,7 @@ SPLINT_win64 = ${SPLINT_WIN_PATH}
 CLANG_win64 = ${CLANG_WIN_PATH}
 ARCHS_win64 = x86_64
 CCFLAGS_win64 = 
-LINKFLAGS_win64 = C:/MinGW-w64/x86_64-w64-mingw32/lib/libpthread.a
+LINKFLAGS_win64 = 
 EXECUTABLE_SUFFIX_win64 = .exe
 
 #General compile/link settings
@@ -485,7 +485,7 @@ define copy_target_resources #(target, platform, resources_dir)
 	${foreach resource,${RESOURCES_$1} ${RESOURCES_$1_$2}, \
 		cp -r ${resource} $3${newline_and_tab} \
 	}
-	find $3 -name .svn -print0 -or -name .DS_Store -print0 | xargs -0 rm -rf
+	find $3 -name .svn -or -name .DS_Store -print0 | xargs -0 rm -rf
 endef
 
 define assemble_executable_macosx #(target, configuration, platform)
