@@ -1,3 +1,6 @@
+1.3.0
+ * Updated API for shell Stable_2013-07-07 (adds cursor, mouse delta mode, and thread/mutex functions)
+
 1.2.0
  * Updated API for shell Stable_2012-02-04 (adds Shell_setTimer and Shell_cancelTimer)
 

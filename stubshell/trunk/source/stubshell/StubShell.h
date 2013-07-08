@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2012 Alex Diener
+  Copyright (c) 2013 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -39,7 +39,21 @@ extern double (* StubShellCallback_getCurrentTime)(void * context);
 extern const char * (* StubShellCallback_getResourcePath)(void * context);
 extern enum ShellBatteryState (* StubShellCallback_getBatteryState)(void * context);
 extern float (* StubShellCallback_getBatteryLevel)(void * context);
-extern unsigned int (* StubShellCallback_setTimer)(double interval, bool repeat, void (* callback)(unsigned int timerID, void * timerContext), void * timerContext, void * context);
-extern void (* StubShellCallback_cancelTimer)(unsigned int timerID, void * context);
+extern unsigned int (* StubShellCallback_setTimer)(void * context, double interval, bool repeat, void (* callback)(unsigned int timerID, void * timerContext), void * timerContext);
+extern void (* StubShellCallback_cancelTimer)(void * context, unsigned int timerID);
+extern void (* StubShellCallback_setCursorVisible)(void * context, bool visible);
+extern void (* StubShellCallback_hideCursorUntilMouseMoves)(void * context);
+extern void (* StubShellCallback_setCursor)(void * context, int cursor);
+extern void (* StubShellCallback_setMouseDeltaMode)(void * context, bool deltaMode);
+extern ShellThread (* StubShellCallback_createThread)(void * context, void (* threadFunction)(void * context), void * threadContext);
+extern void (* StubShellCallback_exitThread)(void * context, int statusCode);
+extern void (* StubShellCallback_cancelThread)(void * context, ShellThread thread);
+extern void (* StubShellCallback_joinThread)(void * context, ShellThread thread);
+extern ShellThread (* StubShellCallback_getCurrentThread)(void * context);
+extern ShellMutex (* StubShellCallback_createMutex)(void * context);
+extern void (* StubShellCallback_disposeMutex)(void * context, ShellMutex mutex);
+extern void (* StubShellCallback_lockMutex)(void * context, ShellMutex mutex);
+extern bool (* StubShellCallback_tryLockMutex)(void * context, ShellMutex mutex);
+extern void (* StubShellCallback_unlockMutex)(void * context, ShellMutex mutex);
 
 #endif

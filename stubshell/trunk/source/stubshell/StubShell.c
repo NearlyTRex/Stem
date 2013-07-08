@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2012 Alex Diener
+  Copyright (c) 2013 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -44,8 +44,22 @@ double (* StubShellCallback_getCurrentTime)(void * context) = NULL;
 const char * (* StubShellCallback_getResourcePath)(void * context) = NULL;
 enum ShellBatteryState (* StubShellCallback_getBatteryState)(void * context) = NULL;
 float (* StubShellCallback_getBatteryLevel)(void * context) = NULL;
-unsigned int (* StubShellCallback_setTimer)(double interval, bool repeat, void (* callback)(unsigned int timerID, void * timerContext), void * timerContext, void * context) = NULL;
-void (* StubShellCallback_cancelTimer)(unsigned int timerID, void * context) = NULL;
+unsigned int (* StubShellCallback_setTimer)(void * context, double interval, bool repeat, void (* callback)(unsigned int timerID, void * timerContext), void * timerContext) = NULL;
+void (* StubShellCallback_cancelTimer)(void * context, unsigned int timerID) = NULL;
+void (* StubShellCallback_setCursorVisible)(void * context, bool visible) = NULL;
+void (* StubShellCallback_hideCursorUntilMouseMoves)(void * context) = NULL;
+void (* StubShellCallback_setCursor)(void * context, int cursor) = NULL;
+void (* StubShellCallback_setMouseDeltaMode)(void * context, bool deltaMode) = NULL;
+ShellThread (* StubShellCallback_createThread)(void * context, void (* threadFunction)(void * context), void * threadContext) = NULL;
+void (* StubShellCallback_exitThread)(void * context, int statusCode) = NULL;
+void (* StubShellCallback_cancelThread)(void * context, ShellThread thread) = NULL;
+void (* StubShellCallback_joinThread)(void * context, ShellThread thread) = NULL;
+ShellThread (* StubShellCallback_getCurrentThread)(void * context) = NULL;
+ShellMutex (* StubShellCallback_createMutex)(void * context) = NULL;
+void (* StubShellCallback_disposeMutex)(void * context, ShellMutex mutex) = NULL;
+void (* StubShellCallback_lockMutex)(void * context, ShellMutex mutex) = NULL;
+bool (* StubShellCallback_tryLockMutex)(void * context, ShellMutex mutex) = NULL;
+void (* StubShellCallback_unlockMutex)(void * context, ShellMutex mutex) = NULL;
 
 void Shell_mainLoop() {
 	if (StubShellCallback_mainLoop != NULL) {
@@ -131,13 +145,101 @@ float Shell_getBatteryLevel() {
 
 unsigned int Shell_setTimer(double interval, bool repeat, void (* callback)(unsigned int timerID, void * timerContext), void * timerContext) {
 	if (StubShellCallback_setTimer != NULL) {
-		return StubShellCallback_setTimer(interval, repeat, callback, timerContext, StubShell_callbackContext);
+		return StubShellCallback_setTimer(StubShell_callbackContext, interval, repeat, callback, timerContext);
 	}
 	return 0;
 }
 
 void Shell_cancelTimer(unsigned int timerID) {
 	if (StubShellCallback_cancelTimer != NULL) {
-		StubShellCallback_cancelTimer(timerID, StubShell_callbackContext);
+		StubShellCallback_cancelTimer(StubShell_callbackContext, timerID);
+	}
+}
+
+void Shell_setCursorVisible(bool visible) {
+	if (StubShellCallback_setCursorVisible != NULL) {
+		StubShellCallback_setCursorVisible(StubShell_callbackContext, visible);
+	}
+}
+
+void Shell_hideCursorUntilMouseMoves() {
+	if (StubShellCallback_hideCursorUntilMouseMoves != NULL) {
+		StubShellCallback_hideCursorUntilMouseMoves(StubShell_callbackContext);
+	}
+}
+
+void Shell_setCursor(int cursor) {
+	if (StubShellCallback_setCursor != NULL) {
+		StubShellCallback_setCursor(StubShell_callbackContext, cursor);
+	}
+}
+
+void Shell_setMouseDeltaMode(bool deltaMode) {
+	if (StubShellCallback_setMouseDeltaMode != NULL) {
+		StubShellCallback_setMouseDeltaMode(StubShell_callbackContext, deltaMode);
+	}
+}
+
+ShellThread Shell_createThread(void (* threadFunction)(void * context), void * context) {
+	if (StubShellCallback_createThread != NULL) {
+		return StubShellCallback_createThread(StubShell_callbackContext, threadFunction, context);
+	}
+	return NULL;
+}
+
+void Shell_exitThread(int statusCode) {
+	if (StubShellCallback_exitThread != NULL) {
+		StubShellCallback_exitThread(StubShell_callbackContext, statusCode);
+	}
+}
+
+void Shell_cancelThread(ShellThread thread) {
+	if (StubShellCallback_cancelThread != NULL) {
+		StubShellCallback_cancelThread(StubShell_callbackContext, thread);
+	}
+}
+
+void Shell_joinThread(ShellThread thread) {
+	if (StubShellCallback_joinThread != NULL) {
+		StubShellCallback_joinThread(StubShell_callbackContext, thread);
+	}
+}
+
+ShellThread Shell_getCurrentThread() {
+	if (StubShellCallback_getCurrentThread != NULL) {
+		return StubShellCallback_getCurrentThread(StubShell_callbackContext);
+	}
+	return NULL;
+}
+
+ShellMutex Shell_createMutex() {
+	if (StubShellCallback_createMutex != NULL) {
+		return StubShellCallback_createMutex(StubShell_callbackContext);
+	}
+	return NULL;
+}
+
+void Shell_disposeMutex(ShellMutex mutex) {
+	if (StubShellCallback_disposeMutex != NULL) {
+		StubShellCallback_disposeMutex(StubShell_callbackContext, mutex);
+	}
+}
+
+void Shell_lockMutex(ShellMutex mutex) {
+	if (StubShellCallback_lockMutex != NULL) {
+		StubShellCallback_lockMutex(StubShell_callbackContext, mutex);
+	}
+}
+
+bool Shell_tryLockMutex(ShellMutex mutex) {
+	if (StubShellCallback_tryLockMutex != NULL) {
+		return StubShellCallback_tryLockMutex(StubShell_callbackContext, mutex);
+	}
+	return false;
+}
+
+void Shell_unlockMutex(ShellMutex mutex) {
+	if (StubShellCallback_unlockMutex != NULL) {
+		StubShellCallback_unlockMutex(StubShell_callbackContext, mutex);
 	}
 }
