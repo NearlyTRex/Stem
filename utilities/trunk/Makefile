@@ -169,23 +169,25 @@ PROJECT_LIBRARY_DEPENDENCIES_unittest = library
 PROJECT_LIBRARY_DEPENDENCIES_testharness = library
 STEM_LIBRARY_DEPENDENCIES = \
 	stemobject/3.0.2
+STEM_LIBRARY_DEPENDENCIES_unittest = \
+	stubshell/1.3.0
 STEM_LIBRARY_DEPENDENCIES_testharness = \
-	stubshell/1.2.0
+	stubshell/1.3.0
 STEM_SOURCE_DEPENDENCIES = 
 THIRDPARTY_LIBRARY_DEPENDENCIES = 
 
 #Per-target source file lists
 
 SOURCES_library = \
-	source/utilities/Atom.c \
-	source/utilities/AutoFreePool.c \
-	source/utilities/EventDispatcher.c \
-	source/utilities/FixedIntervalRunLoop.c \
-	source/utilities/HashTable.c \
-	source/utilities/IOUtilities.c \
-	source/utilities/lookup3.c \
-	source/utilities/Ranrot.c \
-	source/utilities/UTFUtilities.c
+	source/${PROJECT_NAME}/Atom.c \
+	source/${PROJECT_NAME}/AutoFreePool.c \
+	source/${PROJECT_NAME}/EventDispatcher.c \
+	source/${PROJECT_NAME}/FixedIntervalRunLoop.c \
+	source/${PROJECT_NAME}/HashTable.c \
+	source/${PROJECT_NAME}/IOUtilities.c \
+	source/${PROJECT_NAME}/lookup3.c \
+	source/${PROJECT_NAME}/Ranrot.c \
+	source/${PROJECT_NAME}/UTFUtilities.c
 
 SOURCES_unittest = \
 	test_source/unittest/framework/unittest_main.c \
