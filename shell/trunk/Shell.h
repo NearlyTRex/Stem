@@ -93,7 +93,7 @@ void Shell_setMouseDeltaMode(bool deltaMode);
 
 /** Creates a new preemptive thread and invokes threadFunction from it, passing context as its
     only argument. */
-ShellThread Shell_createThread(void (void * context) threadFunction, void * context);
+ShellThread Shell_createThread(void (* threadFunction)(void * context), void * context);
 
 /** Exits the current thread, return statusCode to callers of Shell_joinThread(). */
 void Shell_exitThread(int statusCode);
