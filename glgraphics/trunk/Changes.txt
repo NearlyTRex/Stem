@@ -1,6 +1,7 @@
 1.1.2
  * Added GLSLShader_validate() function
  * Updated for 3dmath 1.2.0
+ * Added 64-bit Windows and Linux support
 
 1.1.1
  * GLIncludes.h now includes wglew.h and glxew.h as appropriate

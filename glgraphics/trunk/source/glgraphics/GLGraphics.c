@@ -21,9 +21,9 @@
 */
 
 #include "glgraphics/GLGraphics.h"
-#include "glgraphics/GLIncludes.h"
 #include <stdbool.h>
 #ifndef GLGRAPHICS_NO_GLEW
+#include "glgraphics/GLIncludes.h"
 #include <stdio.h>
 #endif
 

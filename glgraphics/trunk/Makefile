@@ -1,13 +1,18 @@
 .PHONY: all
-all: library library_noglew unittest unittest_noglew testharness test include
+all: library library_noglew unittest testharness test include
 
 UNAME = ${shell uname}
 ifeq (${UNAME},Linux)
+-include ~/.stem.defines
+STEM_SHARED_DIR ?= /usr/local/stem
 HOST_PLATFORM = linux
 else ifeq (${UNAME},Darwin)
 -include ~/.stem.defines
+STEM_SHARED_DIR ?= /usr/local/stem
 HOST_PLATFORM = macosx
 else
+STEM_SHARED_DIR ?= C:/stem
+-include ${STEM_SHARED_DIR}/stem.defines
 HOST_PLATFORM = windows
 endif
 
@@ -26,12 +31,11 @@ TARGET_PLATFORMS_windows = win32 win64
 
 PROJECT_NAME = glgraphics
 IPHONE_BUILD_SDK_VERSION ?= 4.2
-IPHONE_DEPLOYMENT_TARGET_VERSION = 3.1
-CODESIGN_IDENTITY = "iPhone Developer"
-SVNROOT = http://sacredsoftware.net/svn/misc#master_source_only
+IPHONE_DEPLOYMENT_TARGET_VERSION ?= 3.1
+CODESIGN_IDENTITY ?= "iPhone Developer"
 
 LIBRARY_TARGETS = library library_noglew
-EXECUTABLE_TARGETS = unittest unittest_noglew
+EXECUTABLE_TARGETS = unittest
 APPLICATION_TARGETS = testharness
 TARGETS = ${LIBRARY_TARGETS} ${EXECUTABLE_TARGETS} ${APPLICATION_TARGETS}
 CONFIGURATIONS = debug profile release
@@ -39,9 +43,8 @@ PLATFORMS = ${filter ${TARGET_PLATFORMS_${HOST_PLATFORM}},macosx iphonesimulator
 ANALYZERS = splint clang
 
 TARGET_NAME_library = libstem_${PROJECT_NAME}
-TARGET_NAME_library_noglew = libstem_${PROJECT_NAME}_noglew
+TARGET_NAME_library_noglew = libstem_${PROJECT_NAME}
 TARGET_NAME_unittest = ${PROJECT_NAME}_unittest
-TARGET_NAME_unittest_noglew = ${PROJECT_NAME}_unittest_noglew
 TARGET_NAME_testharness = ${PROJECT_NAME}_testharness
 HUMAN_READABLE_TARGET_NAME_testharness = GLGraphics
 
@@ -49,28 +52,23 @@ HUMAN_READABLE_TARGET_NAME_testharness = GLGraphics
 CONFIGURATIONS_library = debug profile release
 CONFIGURATIONS_library_noglew = debug profile release
 CONFIGURATIONS_unittest = debug
-CONFIGURATIONS_unittest_noglew = debug
 CONFIGURATIONS_testharness = debug profile release
 
 #Per-target platforms
 PLATFORMS_library = ${filter ${PLATFORMS},macosx linux32 linux64 win32 win64}
 PLATFORMS_library_noglew = ${filter ${PLATFORMS},macosx iphonesimulator iphoneos linux32 linux64 win32 win64}
-PLATFORMS_unittest = ${filter ${PLATFORMS},macosx linux32 linux64 win32 win64}
-PLATFORMS_unittest_noglew = ${filter ${PLATFORMS},macosx iphonesimulator linux32 linux64 win32 win64}
+PLATFORMS_unittest = ${filter ${PLATFORMS},macosx iphonesimulator linux32 linux64 win32 win64}
 PLATFORMS_testharness = ${filter ${PLATFORMS},macosx iphonesimulator iphoneos linux32 linux64 win32 win64}
 
 #Per-target compile/link settings
 CCFLAGS_library = -I include/glew -DGLEW_STATIC
 CCFLAGS_library_noglew = -DGLGRAPHICS_NO_GLEW
-CCFLAGS_unittest = -I include/glew -DGLEW_STATIC -I test_source -include build/intermediate/TestList.h
-CCFLAGS_unittest_noglew = -DGLGRAPHICS_NO_GLEW -I test_source -include build/intermediate/TestList.h
+CCFLAGS_unittest = -DGLGRAPHICS_NO_GLEW -I test_source -include build/intermediate/TestList.h
 CCFLAGS_testharness = -DGLEW_STATIC
 
 #Per-target analyzer settings
 CLANGFLAGS_unittest = ${CCFLAGS_unittest}
-CLANGFLAGS_unittest_noglew = ${CCFLAGS_unittest_noglew}
 SPLINTFLAGS_unittest = ${CCFLAGS_unittest}
-SPLINTFLAGS_unittest_noglew = ${CCFLAGS_unittest_noglew}
 
 #Per-configuration compile/link settings
 CCFLAGS_debug = -g -DDEBUG
@@ -88,7 +86,7 @@ CLANG_macosx = /usr/bin/clang
 SDKROOT_macosx = /Developer/SDKs/MacOSX10.5.sdk
 ARCHS_macosx = i386 x86_64
 CCFLAGS_macosx = -isysroot ${SDKROOT_macosx} -mmacosx-version-min=10.5 -DGLGRAPHICS_NO_GLEW
-LINKFLAGS_macosx = -isysroot ${SDKROOT_macosx} -mmacosx-version-min=10.5 -framework OpenGL -framework GLUT -framework CoreFoundation
+LINKFLAGS_macosx = -isysroot ${SDKROOT_macosx} -mmacosx-version-min=10.5 -framework OpenGL -framework GLUT -framework CoreFoundation -framework ApplicationServices
 
 CC_iphonesimulator_i386 = /Developer/Platforms/iPhoneSimulator.platform/Developer/usr/bin/gcc-4.2 -arch i386
 AR_iphonesimulator = /Developer/Platforms/iPhoneSimulator.platform/Developer/usr/bin/ar
@@ -129,21 +127,27 @@ ARCHS_linux64 = x86_64
 CCFLAGS_linux64 = -m64
 LINKFLAGS_linux64 = -m64 -lm -ldl -Wl,-E -lrt -lglut -lGLU
 
-CC_win32_i386 = C:/MinGW/bin/gcc.exe
-AR_win32 = C:/MinGW/bin/ar.exe
-RANLIB_win32 = C:/MinGW/bin/ranlib.exe
-SPLINT_win32 = C:/splint-3.1.1/bin/splint.exe
-CLANG_win32 = C:/llvm/bin/clang.exe
+MINGW_W32_PATH ?= C:/MinGW
+MINGW_W32_VERSION ?= 4.6.2
+SPLINT_WIN_PATH ?= C:/splint-3.1.1/bin/splint.exe
+CLANG_WIN_PATH ?= C:/llvm/bin/clang.exe
+CC_win32_i386 = ${MINGW_W32_PATH}/bin/gcc.exe
+AR_win32 = ${MINGW_W32_PATH}/bin/ar.exe
+RANLIB_win32 = ${MINGW_W32_PATH}/bin/ranlib.exe
+SPLINT_win32 = ${SPLINT_WIN_PATH}
+CLANG_win32 = ${CLANG_WIN_PATH}
 ARCHS_win32 = i386
 CCFLAGS_win32 = -DFREEGLUT_STATIC
 LINKFLAGS_win32 = -lfreeglut_static -lopengl32 -lglu32 -lwinmm -lgdi32 -lpthread
 EXECUTABLE_SUFFIX_win32 = .exe
 
-CC_win64_x86_64 = C:/MinGW-w64/bin/x86_64-w64-mingw32-gcc.exe
-AR_win64 = C:/MinGW-w64/bin/x86_64-w64-mingw32-ar.exe
-RANLIB_win64 = C:/MinGW-w64/bin/x86_64-w64-mingw32-ranlib.exe
-SPLINT_win64 = C:/splint-3.1.1/bin/splint.exe
-CLANG_win64 = C:/llvm/bin/clang.exe
+MINGW_W64_PATH ?= C:/MinGW-w64
+MINGW_W64_VERSION ?= 4.7.0
+CC_win64_x86_64 = ${MINGW_W64_PATH}/bin/x86_64-w64-mingw32-gcc.exe
+AR_win64 = ${MINGW_W64_PATH}/bin/x86_64-w64-mingw32-ar.exe
+RANLIB_win64 = ${MINGW_W64_PATH}/bin/x86_64-w64-mingw32-ranlib.exe
+SPLINT_win64 = ${SPLINT_WIN_PATH}
+CLANG_win64 = ${CLANG_WIN_PATH}
 ARCHS_win64 = x86_64
 CCFLAGS_win64 = -DFREEGLUT_STATIC
 LINKFLAGS_win64 = -lfreeglut_static -lopengl32 -lglu32 -lwinmm -lgdi32 -lpthread
@@ -161,25 +165,32 @@ OTHER_LINKFLAGS =
 LINKFLAGS = ${FRAMEWORK_LINKFLAGS} ${LIBRARY_LINKFLAGS} ${OTHER_LINKFLAGS}
 
 LINK_ORDER = \
-	glutshell/libstemshell_glut.a \
-	eaglshell/libstemshell_eagl.a \
+	glutshell \
+	eaglshell \
 	library \
 	library_noglew \
-	utilities/libstem_utilities.a \
-	3dmath/libstem_3dmath.a \
-	stemobject/libstem_stemobject.a \
-	glew/libglew.a
+	utilities \
+	3dmath \
+	stemobject \
+	glew
 
-#Per-target dependencies
+#Dependencies (can optionally be per-target or per-target-per-platform)
 
-PROJECT_LIBRARY_DEPENDENCIES_unittest_noglew = library_noglew
-STEM_LIBRARY_DEPENDENCIES_library = 3dmath/libstem_3dmath.a utilities/libstem_utilities.a stemobject/libstem_stemobject.a
-STEM_LIBRARY_DEPENDENCIES_library_noglew = 3dmath/libstem_3dmath.a utilities/libstem_utilities.a stemobject/libstem_stemobject.a
-STEM_LIBRARY_DEPENDENCIES_testharness = utilities/libstem_utilities.a stemobject/libstem_stemobject.a
-STEM_LIBRARY_DEPENDENCIES_unittest = 3dmath/libstem_3dmath.a stemobject/libstem_stemobject.a
-STEM_LIBRARY_DEPENDENCIES_unittest_noglew = 3dmath/libstem_3dmath.a stemobject/libstem_stemobject.a
-
-#Per-target per-platform dependencies
+PROJECT_LIBRARY_DEPENDENCIES_unittest = library_noglew
+STEM_LIBRARY_DEPENDENCIES_library = \
+	3dmath/1.4.0 \
+	utilities/1.7.0 \
+	stemobject/3.0.2
+STEM_LIBRARY_DEPENDENCIES_library_noglew = \
+	3dmath/1.4.0 \
+	utilities/1.7.0 \
+	stemobject/3.0.2
+STEM_LIBRARY_DEPENDENCIES_testharness = \
+	utilities/1.7.0 \
+	stemobject/3.0.2
+STEM_LIBRARY_DEPENDENCIES_unittest = \
+	3dmath/1.4.0 \
+	stemobject/3.0.2
 
 PROJECT_LIBRARY_DEPENDENCIES_testharness_macosx = library_noglew
 PROJECT_LIBRARY_DEPENDENCIES_testharness_iphonesimulator = library_noglew
@@ -190,17 +201,19 @@ PROJECT_LIBRARY_DEPENDENCIES_unittest_macosx = library_noglew
 PROJECT_LIBRARY_DEPENDENCIES_unittest_iphonesimulator = library_noglew
 PROJECT_LIBRARY_DEPENDENCIES_unittest_windows = library
 PROJECT_LIBRARY_DEPENDENCIES_unittest_linux = library
-STEM_LIBRARY_DEPENDENCIES_testharness_macosx = glutshell/libstemshell_glut.a
-STEM_LIBRARY_DEPENDENCIES_testharness_iphonesimulator = eaglshell/libstemshell_eagl.a
-STEM_LIBRARY_DEPENDENCIES_testharness_iphoneos = eaglshell/libstemshell_eagl.a
-STEM_LIBRARY_DEPENDENCIES_testharness_windows = glutshell/libstemshell_glut.a
-STEM_LIBRARY_DEPENDENCIES_testharness_linux = glutshell/libstemshell_glut.a
-THIRDPARTY_LIBRARY_DEPENDENCIES_library_windows = glew/libglew.a
-THIRDPARTY_LIBRARY_DEPENDENCIES_library_linux = glew/libglew.a
-THIRDPARTY_LIBRARY_DEPENDENCIES_unittest_windows = glew/libglew.a
-THIRDPARTY_LIBRARY_DEPENDENCIES_unittest_linux = glew/libglew.a
-THIRDPARTY_LIBRARY_DEPENDENCIES_testharness_windows = glew/libglew.a
-THIRDPARTY_LIBRARY_DEPENDENCIES_testharness_linux = glew/libglew.a
+STEM_LIBRARY_DEPENDENCIES_testharness_macosx = glutshell/1.6.0
+STEM_LIBRARY_DEPENDENCIES_testharness_iphonesimulator = eaglshell/2.5.0
+STEM_LIBRARY_DEPENDENCIES_testharness_iphoneos = eaglshell/2.5.0
+STEM_LIBRARY_DEPENDENCIES_testharness_windows = glutshell/1.6.0
+STEM_LIBRARY_DEPENDENCIES_testharness_linux = glutshell/1.6.0
+THIRDPARTY_LIBRARY_DEPENDENCIES_library_win32 = glew/1.5.2/libglew.a
+THIRDPARTY_LIBRARY_DEPENDENCIES_library_win64 = glew/1.5.2/libglew.a
+THIRDPARTY_LIBRARY_DEPENDENCIES_library_linux32 = glew/1.5.2/libglew.a
+THIRDPARTY_LIBRARY_DEPENDENCIES_library_linux64 = glew/1.5.2/libglew.a
+THIRDPARTY_LIBRARY_DEPENDENCIES_testharness_win32 = glew/1.5.2/libglew.a
+THIRDPARTY_LIBRARY_DEPENDENCIES_testharness_win64 = glew/1.5.2/libglew.a
+THIRDPARTY_LIBRARY_DEPENDENCIES_testharness_linux32 = glew/1.5.2/libglew.a
+THIRDPARTY_LIBRARY_DEPENDENCIES_testharness_linux64 = glew/1.5.2/libglew.a
 
 #Per-target source file lists
 
@@ -224,8 +237,6 @@ SOURCES_unittest = \
 	test_source/unittest/framework/TestList.c \
 	${SOURCES_unittest_suites}
 
-SOURCES_unittest_noglew = ${SOURCES_unittest}
-
 SOURCES_unittest_suites = \
 	test_source/unittest/suites/CameraTest.c \
 	test_source/unittest/suites/GLGraphicsTest.c \
@@ -247,7 +258,6 @@ INCLUDES = \
 
 RESOURCES_testharness = 
 RESOURCES_unittest = 
-RESOURCES_unittest_noglew = 
 RESOURCES_testharness_macosx = \
 	test_resources/desktop/shader1.frag \
 	test_resources/desktop/shader1.vert \
@@ -276,8 +286,8 @@ RESOURCES_testharness_linux = \
 
 #General analyzer settings
 CLANGFLAGS = 
-CLANGFLAGS_win32 = -I C:/MinGW/include -I C:/MinGW/lib/gcc/mingw32/4.3.2/include
-CLANGFLAGS_win64 = -I C:/MinGW/include -I C:/MinGW/lib/gcc/mingw32/4.3.2/include
+CLANGFLAGS_win32 = -I ${MINGW_W32_PATH}/include -I ${MINGW_W32_PATH}/lib/gcc/mingw32/${MINGW_W32_VERSION}/include
+CLANGFLAGS_win64 = -I ${MINGW_W64_PATH}/include -I ${MINGW_W64_PATH}/lib/gcc/mingw32/${MINGW_W64_VERSION}/include
 SPLINTFLAGS = -exportlocal
 
 #Source files excluded from static analysis
@@ -293,7 +303,6 @@ ANALYZER_EXCLUDE_SOURCES_splint = \
 #Additional target build prerequisites
 
 PREREQS_unittest = build/intermediate/TestList.h
-PREREQS_unittest_noglew = build/intermediate/TestList.h
 
 #TestList.h is automatically generated from ${SOURCES_unittest_suites}. It is used by the unit test framework to determine which tests to run.
 build/intermediate/TestList.h: build/intermediate/TestSuites.txt | build/intermediate
@@ -357,9 +366,9 @@ ${eval ${call create_directory_target_template,build/intermediate}}
 
 define include_ccflags_template #(target, platform)
 -I source -I include \
-${foreach stem_dependency,${STEM_LIBRARY_DEPENDENCIES_$1} ${STEM_LIBRARY_DEPENDENCIES_$1_$2},-I lib/${dir ${stem_dependency}}include} \
-${foreach thirdparty_dependency,${THIRDPARTY_LIBRARY_DEPENDENCIES_$1} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1_$2},-I lib/${dir ${thirdparty_dependency}}include} \
-${foreach source_dependency,${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$1_$2},-I dep/${word 1,${subst /, ,${source_dependency}}}/source}
+${foreach stem_dependency,${STEM_LIBRARY_DEPENDENCIES} ${STEM_LIBRARY_DEPENDENCIES_$1} ${STEM_LIBRARY_DEPENDENCIES_$1_$2},-I ${STEM_SHARED_DIR}/${stem_dependency}/include} \
+${foreach thirdparty_dependency,${THIRDPARTY_LIBRARY_DEPENDENCIES} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1_$2},-I ${STEM_SHARED_DIR}/${dir ${thirdparty_dependency}}include} \
+${foreach source_dependency,${STEM_SOURCE_DEPENDENCIES} ${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$1_$2},-I dep/${word 1,${subst /, ,${source_dependency}}}/source}
 endef
 
 define define_ccflags_template #(target, configuration, platform, arch)
@@ -437,17 +446,17 @@ endef
 
 define library_dependency_template #(target, configuration, platform)
 	${foreach link_library,${LINK_ORDER}, \
-		${foreach library,${filter ${link_library},${PROJECT_LIBRARY_DEPENDENCIES_$1} ${PROJECT_LIBRARY_DEPENDENCIES_$1_$3}}, \
+		${foreach library,${filter ${link_library}%,${PROJECT_LIBRARY_DEPENDENCIES} ${PROJECT_LIBRARY_DEPENDENCIES_$1} ${PROJECT_LIBRARY_DEPENDENCIES_$1_$3}}, \
 			build/${library}/$2-$3/${TARGET_NAME_${library}}.a \
 		} \
-		${foreach library,${filter ${link_library},${STEM_LIBRARY_DEPENDENCIES_$1} ${STEM_LIBRARY_DEPENDENCIES_$1_$3}}, \
-			lib/${dir ${library}}library/$2-$3/${notdir ${library}} \
+		${foreach library,${filter ${link_library}%,${STEM_LIBRARY_DEPENDENCIES} ${STEM_LIBRARY_DEPENDENCIES_$1} ${STEM_LIBRARY_DEPENDENCIES_$1_$3}}, \
+			${STEM_SHARED_DIR}/${library}/library/$2-$3/libstem_${word 1,${subst /, ,${library}}}.a \
 		} \
-		${foreach library,${filter ${link_library},${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$1_$3}}, \
+		${foreach library,${filter ${link_library}%,${STEM_SOURCE_DEPENDENCIES} ${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$1_$3}}, \
 			dep/${word 1,${subst /, ,${library}}}/build/${word 2,${subst /, ,${library}}}/$2-$3/${word 3,${subst /, ,${library}}} \
 		} \
-		${foreach library,${filter ${link_library},${THIRDPARTY_LIBRARY_DEPENDENCIES_$1} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1_$3}}, \
-			lib/${dir ${library}}library/$3/${notdir ${library}} \
+		${foreach library,${filter ${link_library}%,${THIRDPARTY_LIBRARY_DEPENDENCIES} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1_$3}}, \
+			${STEM_SHARED_DIR}/${dir ${library}}library/$3/${notdir ${library}} \
 		} \
 	}
 endef
@@ -472,7 +481,7 @@ $1:
 endef
 
 #Invokes make for each source dependency
-${foreach dependency,${sort ${foreach target,${TARGETS},${foreach platform,${PLATFORMS_${target}},${STEM_SOURCE_DEPENDENCIES_${target}} ${STEM_SOURCE_DEPENDENCIES_${target}_${platform}}}}}, \
+${foreach dependency,${sort ${foreach target,${TARGETS},${foreach platform,${PLATFORMS_${target}},${STEM_SOURCE_DEPENDENCIES} ${STEM_SOURCE_DEPENDENCIES_${target}} ${STEM_SOURCE_DEPENDENCIES_${target}_${platform}}}}}, \
 	${eval ${call dependency_submake_template,${dependency}}} \
 }
 
@@ -541,7 +550,7 @@ define copy_target_resources #(target, platform, resources_dir)
 	${foreach resource,${RESOURCES_$1} ${RESOURCES_$1_$2}, \
 		cp -r ${resource} $3${newline_and_tab} \
 	}
-	find $3 -name .svn -print0 -or -name .DS_Store -print0 | xargs -0 rm -rf
+	find $3 -name .svn -or -name .DS_Store -print0 | xargs -0 rm -rf
 endef
 
 define assemble_executable_macosx #(target, configuration, platform)
@@ -653,16 +662,16 @@ ${foreach target,${APPLICATION_TARGETS}, \
 	} \
 }
 
-define library_template #(target, configuration, platform)
-${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$1_$3} build/$1/$2-$3/${TARGET_NAME_$1}.a
+define library_dependency_template #(target, configuration, platform)
+${STEM_SOURCE_DEPENDENCIES} ${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$1_$3} build/$1/$2-$3/${TARGET_NAME_$1}.a
 endef
 
-define executable_template #(target, configuration, platform)
-${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$1_$3} build/$1/$2-$3/${TARGET_NAME_$1}${EXECUTABLE_SUFFIX_$3}
+define executable_dependency_template #(target, configuration, platform)
+${STEM_SOURCE_DEPENDENCIES} ${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$1_$3} build/$1/$2-$3/${TARGET_NAME_$1}${EXECUTABLE_SUFFIX_$3}
 endef
 
-define application_template #(target, configuration, platform)
-${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$1_$3} build/$1/$2-$3/${call application_file_template_$3,$1}
+define application_dependency_template #(target, configuration, platform)
+${STEM_SOURCE_DEPENDENCIES} ${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$1_$3} build/$1/$2-$3/${call application_file_template_$3,$1}
 endef
 
 define application_file_template_macosx #(target)
@@ -695,7 +704,7 @@ endef
 
 define target_template #(target, target_type)
 .PHONY: $1
-$1: ${foreach configuration,${CONFIGURATIONS_$1},${foreach platform,${PLATFORMS_$1},${call $2_template,$1,${configuration},${platform}}}}
+$1: ${foreach configuration,${CONFIGURATIONS_$1},${foreach platform,${PLATFORMS_$1},${call $2_dependency_template,$1,${configuration},${platform}}}}
 endef
 
 ${foreach target,${LIBRARY_TARGETS}, \
@@ -711,37 +720,32 @@ ${foreach target,${APPLICATION_TARGETS}, \
 }
 
 .PHONY: test
-test: ${foreach platform,${sort ${PLATFORMS_unittest} ${PLATFORMS_unittest_noglew}},run_unittests_${platform}}
+test: ${foreach platform,${PLATFORMS_unittest},run_unittests_${platform}}
 
 .PHONY: run_unittests_macosx
-run_unittests_macosx: unittest unittest_noglew
+run_unittests_macosx: unittest
 	./build/unittest/debug-macosx/${TARGET_NAME_unittest} "${CURDIR}/build/unittest/debug-macosx"
-	./build/unittest_noglew/debug-macosx/${TARGET_NAME_unittest_noglew} "${CURDIR}/build/unittest_noglew/debug-macosx"
 
 .PHONY: run_unittests_iphonesimulator
-run_unittests_iphonesimulator: unittest_noglew
+run_unittests_iphonesimulator: unittest
 	DYLD_ROOT_PATH=${SDKROOT_iphonesimulator} \
-	./build/unittest_noglew/debug-iphonesimulator/${TARGET_NAME_unittest_noglew} "${CURDIR}/build/unittest_noglew/debug-iphonesimulator"
+	./build/unittest/debug-iphonesimulator/${TARGET_NAME_unittest} "${CURDIR}/build/unittest/debug-iphonesimulator"
 
 .PHONY: run_unittests_linux32
-run_unittests_linux32: unittest unittest_noglew
+run_unittests_linux32: unittest
 	./build/unittest/debug-linux32/${TARGET_NAME_unittest} "${CURDIR}/build/unittest/debug-linux32"
-	./build/unittest_noglew/debug-linux32/${TARGET_NAME_unittest_noglew} "${CURDIR}/build/unittest_noglew/debug-linux32"
 
 .PHONY: run_unittests_linux64
-run_unittests_linux64: unittest unittest_noglew
+run_unittests_linux64: unittest
 	./build/unittest/debug-linux64/${TARGET_NAME_unittest} "${CURDIR}/build/unittest/debug-linux64"
-	./build/unittest_noglew/debug-linux64/${TARGET_NAME_unittest_noglew} "${CURDIR}/build/unittest_noglew/debug-linux64"
 
 .PHONY: run_unittests_win32
-run_unittests_win32: unittest unittest_noglew
+run_unittests_win32: unittest
 	./build/unittest/debug-win32/${TARGET_NAME_unittest}.exe "${CURDIR}/build/unittest/debug-win32"
-	./build/unittest_noglew/debug-win32/${TARGET_NAME_unittest_noglew}.exe "${CURDIR}/build/unittest_noglew/debug-win32"
 
 .PHONY: run_unittests_win64
-run_unittests_win64: unittest unittest_noglew
+run_unittests_win64: unittest
 	./build/unittest/debug-win64/${TARGET_NAME_unittest}.exe "${CURDIR}/build/unittest/debug-win64"
-	./build/unittest_noglew/debug-win64/${TARGET_NAME_unittest_noglew}.exe "${CURDIR}/build/unittest_noglew/debug-win64"
 
 define analyze_file_template_clang #(target, platform, file)
 build/analyzer-results/clang-$1-$2/${basename ${notdir $3}}.txt: $3 ${PREREQS_$1} | build/analyzer-results/clang-$1-$2
@@ -811,8 +815,7 @@ include: ${INCLUDES} | ${foreach include_file,${INCLUDES},build/include/${notdir
 .PHONY: clean
 clean:
 	rm -rf build
-	rm -rf dist #master_source_only
-	${foreach dependency,${sort ${foreach target,${TARGETS},${foreach platform,${PLATFORMS_${target}},${STEM_SOURCE_DEPENDENCIES_${target}} ${STEM_SOURCE_DEPENDENCIES_${target}_${platform}}}}}, \
+	${foreach dependency,${sort ${foreach target,${TARGETS},${foreach platform,${PLATFORMS_${target}},${STEM_SOURCE_DEPENDENCIES} ${STEM_SOURCE_DEPENDENCIES_${target}} ${STEM_SOURCE_DEPENDENCIES_${target}_${platform}}}}}, \
 		${MAKE} -C dep/${word 1,${subst /, ,${dependency}}} clean${newline_and_tab} \
 	}
 
@@ -821,15 +824,16 @@ TARGET_SUFFIX_iphone4 = _iphone4
 IPHONE_SDK_VERSION_iphone ?= 4.2
 IPHONE_SDK_VERSION_ipad ?= 3.2
 IPHONE_SDK_VERSION_iphone4 ?= 4.2
-IPHONESIMULATOR_APPLICATIONS_DIR_iphone ?= ${HOME}/Library/Application Support/iPhone Simulator/4.2/Applications
+IPHONESIMULATOR_APPLICATIONS_DIR_iphone ?= ${HOME}/Library/Application Support/iPhone Simulator/${IPHONE_SDK_VERSION_iphone}/Applications
 IPHONESIMULATOR_APPLICATIONS_DIR_ipad ?= ${HOME}/Library/Application Support/iPhone Simulator/${IPHONE_SDK_VERSION_ipad}/Applications
-IPHONESIMULATOR_APPLICATIONS_DIR_iphone4 ?= ${HOME}/Library/Application Support/iPhone Simulator/4.2/Applications
+IPHONESIMULATOR_APPLICATIONS_DIR_iphone4 ?= ${HOME}/Library/Application Support/iPhone Simulator/${IPHONE_SDK_VERSION_iphone4}/Applications
 SIMULATE_DEVICE_iphone = iPhone
 SIMULATE_DEVICE_ipad = iPad
 SIMULATE_DEVICE_iphone4 = iPhone 4
 SIMULATE_SDKROOT_iphone = /Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator${IPHONE_SDK_VERSION_iphone}.sdk
 SIMULATE_SDKROOT_ipad = /Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator${IPHONE_SDK_VERSION_ipad}.sdk
 SIMULATE_SDKROOT_iphone4 = /Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator${IPHONE_SDK_VERSION_iphone4}.sdk
+IPHONE_SIMULATOR_PATH ?= /Developer/Platforms/iPhoneSimulator.platform/Developer/Applications/iPhone Simulator.app
 
 define install_target_iphonesimulator_template #(target, simulate_device)
 .PHONY: install_$1_iphonesimulator${TARGET_SUFFIX_$2}
@@ -843,7 +847,7 @@ install_$1_iphonesimulator${TARGET_SUFFIX_$2}: $1
 	defaults write com.apple.iphonesimulator SimulateDevice -string "${SIMULATE_DEVICE_$2}"
 	defaults write com.apple.iphonesimulator SimulateSDKRoot -string "${SIMULATE_SDKROOT_$2}"
 	defaults write com.apple.iphonesimulator currentSDKRoot -string "${SIMULATE_SDKROOT_$2}"
-	open "/Developer/Platforms/iPhoneSimulator.platform/Developer/Applications/iPhone Simulator.app"
+	open "${IPHONE_SIMULATOR_PATH}"
 endef
 
 define add_blob_header #(source_file, target_file)
@@ -871,53 +875,18 @@ ${foreach target,${APPLICATION_TARGETS}, \
 	${eval ${call codesign_target_iphoneos_template,${target}}} \
 }
 
-#master_source_only_begin
-.PHONY: full_dist
-full_dist: clean all
-	mkdir dist dist/include dist/library dist/testharness
-	cp Changes.txt License.txt ReadMe.txt dist
-	cp -r build/include/* dist/include
-	cp -r build/library/* dist/library
-	cp -r build/library_noglew/* dist/library
-	cp -r build/testharness/* dist/testharness
+INSTALL_DIR = ${STEM_SHARED_DIR}/${PROJECT_NAME}/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_TWEAK}
+INSTALL_DIR_NOGLEW = ${STEM_SHARED_DIR}/${PROJECT_NAME}/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_TWEAK}_noglew
 
-.PHONY: append_dist
-append_dist: all
-	cp -r build/library/* dist/library
-	cp -r build/library_noglew/* dist/library
-	cp -r build/testharness/* dist/testharness
-
-.PHONY: commit_dist
-commit_dist:
-	svn import --no-ignore -m "Automated release of ${PROJECT_NAME} ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_TWEAK} from ${HOST_PLATFORM}" dist ${SVNROOT}/Releases/${PROJECT_NAME}/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_TWEAK}
-
-define filter_source_dist_file #(infile, outfile)
-	ruby -e "print STDIN.read.gsub(/^.*#master_source_only\b.*$\n?/, '').gsub(/\n?#master_source_only_begin[\s\S]*?#master_source_only_end/, '').gsub(/#source_dist_only/, '')" < "$1" > "$2"
-endef
-
-.PHONY: source_dist
-source_dist:
-	mkdir -p build/source_dist/include
-	mkdir -p build/source_dist/lib
-	mkdir -p build/source_dist/source/${PROJECT_NAME}
-	mkdir -p build/source_dist/test_resources
-	mkdir -p build/source_dist/test_source/testharness
-	mkdir -p build/source_dist/test_source/unittest/framework
-	mkdir -p build/source_dist/test_source/unittest/suites
-	
-	${call filter_source_dist_file,Makefile,build/source_dist/Makefile}
-	cp Changes.txt License.txt ReadMe.txt version build/source_dist
-	
-	cp -r include/* build/source_dist/include
-	cp -r lib/* build/source_dist/lib
-	find build/source_dist/include -name .svn -print0 | xargs -0 rm -rf
-	find build/source_dist/lib -name .svn -print0 | xargs -0 rm -rf
-	
-	cp source/${PROJECT_NAME}/* build/source_dist/source/${PROJECT_NAME}
-	
-	cp test_resources/* build/source_dist/test_resources
-	
-	cp test_source/testharness/* build/source_dist/test_source/testharness
-	cp test_source/unittest/framework/* build/source_dist/test_source/unittest/framework
-	cp test_source/unittest/suites/* build/source_dist/test_source/unittest/suites
-#master_source_only_end
+.PHONY: install
+install:
+	mkdir -p "${INSTALL_DIR}/include" "${INSTALL_DIR}/library" "${INSTALL_DIR}/testharness"
+	mkdir -p "${INSTALL_DIR_NOGLEW}/include" "${INSTALL_DIR_NOGLEW}/library" "${INSTALL_DIR_NOGLEW}/testharness"
+	cp Changes.txt License.txt ReadMe.txt version ${INSTALL_DIR}
+	cp Changes.txt License.txt ReadMe.txt version ${INSTALL_DIR_NOGLEW}
+	cp -r build/include/* ${INSTALL_DIR}/include
+	cp -r build/include/* ${INSTALL_DIR_NOGLEW}/include
+	cp -r build/library/* ${INSTALL_DIR}/library
+	cp -r build/library_noglew/* ${INSTALL_DIR_NOGLEW}/library
+	cp -r build/testharness/* ${INSTALL_DIR}/testharness
+	cp -r build/testharness/* ${INSTALL_DIR_NOGLEW}/testharness
