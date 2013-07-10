@@ -1,3 +1,7 @@
+1.6.0
+ * Update API for shell Stable_2012-07-09 (adds threads)
+ * Fixed unresponsiveness of mouse delta mode on Mac OS X
+
 1.5.0
  * Update API for shell Stable_2012-06-09 (adds cursor management and mouse deltas)
 

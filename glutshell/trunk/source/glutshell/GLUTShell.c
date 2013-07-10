@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2012 Alex Diener
+  Copyright (c) 2013 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -31,6 +31,7 @@
 
 #if defined(__APPLE__)
 #include <limits.h>
+#include <ApplicationServices/ApplicationServices.h>
 #include <CoreFoundation/CoreFoundation.h>
 #include <GLUT/glut.h>
 #include <OpenGL/OpenGL.h>
@@ -45,6 +46,10 @@
 #include <time.h>
 #elif defined(WIN32)
 #include <windows.h>
+#endif
+
+#if defined(__APPLE__) || defined(__linux)
+#include <pthread.h>
 #endif
 
 #include "glgraphics/GLGraphics.h"
@@ -335,6 +340,81 @@ void Shell_setMouseDeltaMode(bool deltaMode) {
 		mouseDeltaMode = false;
 		Shell_setCursor(lastUnhiddenCursor);
 	}
+}
+
+struct threadFuncInvocation {
+	int (* threadFunction)(void * context);
+	void * context;
+};
+
+static void * callThreadFunc(void * context) {
+	struct threadFuncInvocation * invocation = context;
+	int (* threadFunction)(void * context);
+	void * threadContext;
+	
+	threadFunction  = invocation->threadFunction;
+	threadContext = invocation->context;
+	free(invocation);
+	return (void *) threadFunction(threadContext);
+}
+
+ShellThread Shell_createThread(int (* threadFunction)(void * context), void * context) {
+	pthread_t thread;
+	struct threadFuncInvocation * invocation;
+	
+	invocation = malloc(sizeof(struct threadFuncInvocation));
+	invocation->threadFunction = threadFunction;
+	invocation->context = context;
+	pthread_create(&thread, NULL, callThreadFunc, invocation);
+	return thread;
+}
+
+void Shell_exitThread(int statusCode) {
+	pthread_exit((void *) statusCode);
+}
+
+void Shell_cancelThread(ShellThread thread) {
+	pthread_cancel(thread);
+}
+
+int Shell_joinThread(ShellThread thread) {
+	int status;
+	void * returnValue;
+	
+	status = pthread_join(thread, &returnValue);
+	if (status == 0) {
+		return (int) returnValue;
+	}
+	return status;
+}
+
+ShellThread Shell_getCurrentThread() {
+	return pthread_self();
+}
+
+ShellMutex Shell_createMutex() {
+	pthread_mutex_t * mutex;
+	
+	mutex = malloc(sizeof(pthread_mutex_t));
+	pthread_mutex_init(mutex, NULL);
+	return mutex;
+}
+
+void Shell_disposeMutex(ShellMutex mutex) {
+	pthread_mutex_destroy(mutex);
+	free(mutex);
+}
+
+void Shell_lockMutex(ShellMutex mutex) {
+	pthread_mutex_lock(mutex);
+}
+
+bool Shell_tryLockMutex(ShellMutex mutex) {
+	return !pthread_mutex_trylock(mutex);
+}
+
+void Shell_unlockMutex(ShellMutex mutex) {
+	pthread_mutex_unlock(mutex);
 }
 
 static void displayFunc() {
@@ -758,6 +838,7 @@ int main(int argc, char ** argv) {
 	
 #ifdef __APPLE__
 	CGLSetParameter(CGLGetCurrentContext(), kCGLCPSwapInterval, &VBL);
+	CGSetLocalEventsSuppressionInterval(0.0); // Without this, mouse delta mode only sends events every 0.25 seconds on 10.8
 #endif
 	
 	GLGraphics_init(GL_API_VERSION_DESKTOP_1);
