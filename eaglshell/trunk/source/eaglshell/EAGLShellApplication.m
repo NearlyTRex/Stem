@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2010 Alex Diener
+  Copyright (c) 2013 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -39,6 +39,7 @@ typedef enum {
 
 int g_argc = 0;
 char ** g_argv = NULL;
+bool g_mouseDeltaMode = false;
 
 extern bool mainLoopCalled;
 

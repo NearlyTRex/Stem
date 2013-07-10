@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2010 Alex Diener
+  Copyright (c) 2013 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -25,6 +25,7 @@
 
 extern int g_argc;
 extern char ** g_argv;
+extern bool g_mouseDeltaMode;
 
 @class EAGLView;
 

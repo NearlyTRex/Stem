@@ -6,6 +6,7 @@
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include "shell/ShellBatteryInfo.h"
 #include "shell/ShellKeyCodes.h"
 
@@ -32,6 +33,7 @@ static GLint projectionMatrixUniform;
 static GLint modelviewMatrixUniform;
 static GLint constantColorUniform;
 static unsigned int timer1ID = UINT_MAX, timer2ID = UINT_MAX;
+static bool deltaMode;
 
 #define VERTEX_ATTRIB_INDEX 0
 
@@ -242,16 +244,90 @@ bool Target_draw() {
 	return true;
 }
 
-void timerCallback(unsigned int timerID, void * context) {
+static void timerCallback(unsigned int timerID, void * context) {
 	printf("timerCallback(timerID, \"%s\")\n", (char *) context);
 	if (timerID == timer2ID) {
 		timer2ID = UINT_MAX;
 	}
 }
 
+static int threadFunc1(void * context) {
+	printf("Secondary thread 1 %p begin\n", Shell_getCurrentThread());
+	Shell_lockMutex(context);
+	sleep(1);
+	Shell_unlockMutex(context);
+	printf("Secondary thread 1 %p end\n", Shell_getCurrentThread());
+	return 0;
+}
+
+static int threadFunc2(void * context) {
+	printf("Secondary thread 2 %p begin\n", Shell_getCurrentThread());
+	Shell_unlockMutex(context);
+	sleep(1);
+	printf("Secondary thread 2 %p end\n", Shell_getCurrentThread());
+	return 0;
+}
+
+static int threadFunc3(void * context) {
+	printf("Secondary thread 3 %p begin\n", Shell_getCurrentThread());
+	sleep(1);
+	printf("Secondary thread 3 %p exit\n", Shell_getCurrentThread());
+	Shell_exitThread(2);
+	printf("Secondary thread 3 %p end (bad!)\n", Shell_getCurrentThread());
+	return 0;
+}
+
 void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned int modifierFlags) {
 	printf("Target_keyDown(%d, %d, 0x%X)\n", charCode, keyCode, modifierFlags);
-	if (keyCode == KEYBOARD_W) {
+	if (keyCode == KEYBOARD_Q) {
+		ShellThread thread;
+		ShellMutex mutex;
+		bool success;
+		int status;
+		
+		printf("Current thread: %p\n\n", Shell_getCurrentThread());
+		
+		mutex = Shell_createMutex();
+		printf("Created mutex %p\n", mutex);
+		success = Shell_tryLockMutex(mutex);
+		printf("Lock acquired: %s (expected true)\n", success ? "true" : "false");
+		success = Shell_tryLockMutex(mutex);
+		printf("Lock acquired: %s (expected false)\n\n", success ? "true" : "false");
+		Shell_unlockMutex(mutex);
+		
+		success = Shell_tryLockMutex(mutex);
+		printf("Lock acquired: %s (expected true)\n\n", success ? "true" : "false");
+		Shell_unlockMutex(mutex);
+		
+		thread = Shell_createThread(threadFunc1, mutex);
+		printf("Created thread %p at %f\n", thread, Shell_getCurrentTime());
+		status = Shell_joinThread(thread);
+		printf("Joined thread at %f, with status %d\n\n", Shell_getCurrentTime(), status);
+		
+		Shell_lockMutex(mutex);
+		thread = Shell_createThread(threadFunc2, mutex);
+		printf("Created thread %p at %f\n", thread, Shell_getCurrentTime());
+		Shell_lockMutex(mutex);
+		printf("Acquired lock at %f\n\n", Shell_getCurrentTime());
+		Shell_unlockMutex(mutex);
+		
+		Shell_lockMutex(mutex);
+		thread = Shell_createThread(threadFunc2, mutex);
+		printf("Created thread %p at %f\n", thread, Shell_getCurrentTime());
+		Shell_lockMutex(mutex);
+		printf("Acquired lock at %f\n", Shell_getCurrentTime());
+		Shell_cancelThread(thread);
+		printf("Canceled thread at %f\n\n", Shell_getCurrentTime());
+		Shell_unlockMutex(mutex);
+		
+		thread = Shell_createThread(threadFunc3, mutex);
+		printf("Created thread %p at %f\n", thread, Shell_getCurrentTime());
+		status = Shell_joinThread(thread);
+		printf("Joined thread at %f, with status %d\n\n", Shell_getCurrentTime(), status);
+		
+		Shell_disposeMutex(mutex);
+		
+	} else if (keyCode == KEYBOARD_W) {
 		printf("Shell_setFullScreen(false): %d\n", Shell_setFullScreen(false));
 		
 	} else if (keyCode == KEYBOARD_R) {
@@ -317,6 +393,11 @@ void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned int mo
 			Shell_cancelTimer(timer2ID);
 			timer2ID = UINT_MAX;
 		}
+		
+	} else if (keyCode == KEYBOARD_SEMICOLON) {
+		deltaMode = !deltaMode;
+		Shell_setMouseDeltaMode(deltaMode);
+		printf("Shell_setMouseDeltaMode(%s)\n", deltaMode ? "true" : "false");
 		
 	} else if (keyCode == KEYBOARD_N) {
 		EAGLShell_setBatteryMonitoringEnabled(false);
@@ -404,6 +485,8 @@ static int packedDepthAndStencil = 0;
 
 void EAGLTarget_configure(int argc, char ** argv, struct EAGLShellConfiguration * configuration) {
 	int argIndex;
+	
+	EAGLShell_redirectStdoutToFile();
 	
 	printf("EAGLTarget_configure(%d", argc);
 	for (argIndex = 0; argIndex < argc; argIndex++) {

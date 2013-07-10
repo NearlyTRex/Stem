@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2010 Alex Diener
+  Copyright (c) 2013 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -110,5 +110,10 @@ void EAGLShell_setBatteryMonitoringEnabled(bool enabled);
     accelerometer input if zero or a negative number is passed. Accelerometer input is disabled by
     default. */
 void EAGLShell_setAccelerometerInterval(double interval);
+
+/** This function can be called at any time to cause all future data written to stdout to be appended
+    to a file in the application's sandboxed Documents directory named "stdout". Once called, this
+    change will persist until the application is terminated. Primarily for debugging. */
+void EAGLShell_redirectStdoutToFile();
 
 #endif

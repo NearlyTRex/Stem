@@ -1,3 +1,7 @@
+2.5.0
+ * Updated API for shell Stable_2013-07-09 (adds threads and mouse delta mode)
+ * Added EAGLShell_redirectStdoutToFile() for easier debugging
+
 2.4.0
  * Updated API for shell Stable_2012-02-04 (adds timers, buffer swapping made optional)
 

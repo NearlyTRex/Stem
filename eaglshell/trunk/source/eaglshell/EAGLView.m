@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2010 Alex Diener
+  Copyright (c) 2013 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -323,12 +323,18 @@ static unsigned int lowestBitIndex(unsigned int value) {
 	NSArray * allTouches;
 	unsigned int touchIndex, activeTouchIndex;
 	UITouch * touch;
-	CGPoint location;
+	CGPoint location, lastLocation;
 	
 	allTouches = [touches allObjects];
 	for (touchIndex = 0; touchIndex < [allTouches count]; touchIndex++) {
 		touch = [allTouches objectAtIndex: touchIndex];
 		location = [touch locationInView: self];
+		
+		if (g_mouseDeltaMode) {
+			lastLocation = [touch previousLocationInView: self];
+			location.x -= lastLocation.x;
+			location.y -= lastLocation.y;
+		}
 		
 		if (isVersion4OrGreater) {
 			location.x *= self.contentScaleFactor;
