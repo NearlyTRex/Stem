@@ -92,8 +92,9 @@ void Shell_setCursor(int cursor);
 void Shell_setMouseDeltaMode(bool deltaMode);
 
 /** Creates a new preemptive thread and invokes threadFunction from it, passing context as its
-    only argument. */
-ShellThread Shell_createThread(void (* threadFunction)(void * context), void * context);
+    only argument. The thread function's return value will be returned to called of
+    Shell_joinThread(). */
+ShellThread Shell_createThread(int (* threadFunction)(void * context), void * context);
 
 /** Exits the current thread, return statusCode to callers of Shell_joinThread(). */
 void Shell_exitThread(int statusCode);
@@ -101,8 +102,9 @@ void Shell_exitThread(int statusCode);
 /** Terminates the specified thread. */
 void Shell_cancelThread(ShellThread thread);
 
-/** Suspends the current thread until the specified thread has completed. */
-void Shell_joinThread(ShellThread thread);
+/** Suspends the current thread until the specified thread has completed, returning the thread's
+    exit code. */
+int Shell_joinThread(ShellThread thread);
 
 /** Returns the thread in which the caller is executing. */
 ShellThread Shell_getCurrentThread();
