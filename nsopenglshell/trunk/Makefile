@@ -3,11 +3,16 @@ all: library testharness include
 
 UNAME = ${shell uname}
 ifeq (${UNAME},Linux)
+-include ~/.stem.defines
+STEM_SHARED_DIR ?= /usr/local/stem
 HOST_PLATFORM = linux
 else ifeq (${UNAME},Darwin)
 -include ~/.stem.defines
+STEM_SHARED_DIR ?= /usr/local/stem
 HOST_PLATFORM = macosx
 else
+STEM_SHARED_DIR ?= C:/stem
+-include ${STEM_SHARED_DIR}/stem.defines
 HOST_PLATFORM = windows
 endif
 
@@ -23,7 +28,6 @@ TARGET_PLATFORMS_linux =
 TARGET_PLATFORMS_windows = 
 
 PROJECT_NAME = nsopenglshell
-SVNROOT = http://sacredsoftware.net/svn/misc#master_source_only
 
 LIBRARY_TARGETS = library
 EXECUTABLE_TARGETS = 
@@ -33,8 +37,8 @@ CONFIGURATIONS = debug profile release
 PLATFORMS = ${filter ${TARGET_PLATFORMS_${HOST_PLATFORM}},macosx}
 ANALYZERS = splint clang
 
-TARGET_NAME_library = libstemshell_nsopengl
-TARGET_NAME_testharness = nsopenglshell_testharness
+TARGET_NAME_library = libstem_nsopenglshell
+TARGET_NAME_testharness = ${PROJECT_NAME}_testharness
 HUMAN_READABLE_TARGET_NAME_testharness = NSOpenGLShell
 
 #Per-target configurations
@@ -80,33 +84,23 @@ LINKFLAGS = ${FRAMEWORK_LINKFLAGS} ${LIBRARY_LINKFLAGS} ${OTHER_LINKFLAGS}
 
 LINK_ORDER = \
 	library \
-	glgraphics/libstem_glgraphics_noglew.a
+	glgraphics
 
-#Per-target dependencies
+#Dependencies (can optionally be per-target or per-target-per-platform)
 
 PROJECT_LIBRARY_DEPENDENCIES_testharness = library
-STEM_LIBRARY_DEPENDENCIES_library = glgraphics/libstem_glgraphics_noglew.a
-STEM_LIBRARY_DEPENDENCIES_testharness = glgraphics/libstem_glgraphics_noglew.a
-STEM_SOURCE_DEPENDENCIES_library = 
-STEM_SOURCE_DEPENDENCIES_testharness = 
-THIRDPARTY_LIBRARY_DEPENDENCIES_library = 
-THIRDPARTY_LIBRARY_DEPENDENCIES_testharness = 
-
-#Per-target per-platform dependencies
-
-PROJECT_LIBRARY_DEPENDENCIES_unittest_macosx = 
-STEM_LIBRARY_DEPENDENCIES_unittest_macosx = 
-STEM_SOURCE_DEPENDENCIES_unittest_macosx = 
-THIRDPARTY_LIBRARY_DEPENDENCIES_unittest_macosx = 
-#...
+STEM_LIBRARY_DEPENDENCIES_library = glgraphics/1.1.2_noglew
+STEM_LIBRARY_DEPENDENCIES_testharness = glgraphics/1.1.2_noglew
+STEM_SOURCE_DEPENDENCIES = 
+THIRDPARTY_LIBRARY_DEPENDENCIES = 
 
 #Per-target source file lists
 
 SOURCES_library = \
-	source/nsopenglshell/main.m \
-	source/nsopenglshell/NSOpenGLShell.m \
-	source/nsopenglshell/NSOpenGLShellApplication.m \
-	source/nsopenglshell/NSOpenGLShellView.m
+	source/${PROJECT_NAME}/main.m \
+	source/${PROJECT_NAME}/NSOpenGLShell.m \
+	source/${PROJECT_NAME}/NSOpenGLShellApplication.m \
+	source/${PROJECT_NAME}/NSOpenGLShellView.m
 
 SOURCES_testharness = \
 	test_source/testharness/TestHarness_main.c
@@ -114,8 +108,8 @@ SOURCES_testharness = \
 #Include files to be distributed with library
 
 INCLUDES = \
-	source/nsopenglshell/NSOpenGLShell.h \
-	source/nsopenglshell/NSOpenGLTarget.h
+	source/${PROJECT_NAME}/NSOpenGLShell.h \
+	source/${PROJECT_NAME}/NSOpenGLTarget.h
 
 #Target resources
 
@@ -183,9 +177,9 @@ ${eval ${call create_directory_target_template,build/intermediate}}
 
 define include_ccflags_template #(target, platform)
 -I source -I include \
-${foreach stem_dependency,${STEM_LIBRARY_DEPENDENCIES_$1} ${STEM_LIBRARY_DEPENDENCIES_$1_$2},-I lib/${dir ${stem_dependency}}include} \
-${foreach thirdparty_dependency,${THIRDPARTY_LIBRARY_DEPENDENCIES_$1} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1_$2},-I lib/${dir ${thirdparty_dependency}}include} \
-${foreach source_dependency,${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$1_$2},-I dep/${word 1,${subst /, ,${source_dependency}}}/source}
+${foreach stem_dependency,${STEM_LIBRARY_DEPENDENCIES} ${STEM_LIBRARY_DEPENDENCIES_$1} ${STEM_LIBRARY_DEPENDENCIES_$1_$2},-I ${STEM_SHARED_DIR}/${stem_dependency}/include} \
+${foreach thirdparty_dependency,${THIRDPARTY_LIBRARY_DEPENDENCIES} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1_$2},-I ${STEM_SHARED_DIR}/${dir ${thirdparty_dependency}}include} \
+${foreach source_dependency,${STEM_SOURCE_DEPENDENCIES} ${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$1_$2},-I dep/${word 1,${subst /, ,${source_dependency}}}/source}
 endef
 
 define define_ccflags_template #(target, configuration, platform, arch)
@@ -263,17 +257,17 @@ endef
 
 define library_dependency_template #(target, configuration, platform)
 	${foreach link_library,${LINK_ORDER}, \
-		${foreach library,${filter ${link_library},${PROJECT_LIBRARY_DEPENDENCIES_$1} ${PROJECT_LIBRARY_DEPENDENCIES_$1_$3}}, \
+		${foreach library,${filter ${link_library}%,${PROJECT_LIBRARY_DEPENDENCIES} ${PROJECT_LIBRARY_DEPENDENCIES_$1} ${PROJECT_LIBRARY_DEPENDENCIES_$1_$3}}, \
 			build/${library}/$2-$3/${TARGET_NAME_${library}}.a \
 		} \
-		${foreach library,${filter ${link_library},${STEM_LIBRARY_DEPENDENCIES_$1} ${STEM_LIBRARY_DEPENDENCIES_$1_$3}}, \
-			lib/${dir ${library}}library/$2-$3/${notdir ${library}} \
+		${foreach library,${filter ${link_library}%,${STEM_LIBRARY_DEPENDENCIES} ${STEM_LIBRARY_DEPENDENCIES_$1} ${STEM_LIBRARY_DEPENDENCIES_$1_$3}}, \
+			${STEM_SHARED_DIR}/${library}/library/$2-$3/libstem_${word 1,${subst /, ,${library}}}.a \
 		} \
-		${foreach library,${filter ${link_library},${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$1_$3}}, \
+		${foreach library,${filter ${link_library}%,${STEM_SOURCE_DEPENDENCIES} ${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$1_$3}}, \
 			dep/${word 1,${subst /, ,${library}}}/build/${word 2,${subst /, ,${library}}}/$2-$3/${word 3,${subst /, ,${library}}} \
 		} \
-		${foreach library,${filter ${link_library},${THIRDPARTY_LIBRARY_DEPENDENCIES_$1} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1_$3}}, \
-			lib/${dir ${library}}library/$3/${notdir ${library}} \
+		${foreach library,${filter ${link_library}%,${THIRDPARTY_LIBRARY_DEPENDENCIES} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1_$3}}, \
+			${STEM_SHARED_DIR}/${dir ${library}}library/$3/${notdir ${library}} \
 		} \
 	}
 endef
@@ -298,7 +292,7 @@ $1:
 endef
 
 #Invokes make for each source dependency
-${foreach dependency,${sort ${foreach target,${TARGETS},${foreach platform,${PLATFORMS_${target}},${STEM_SOURCE_DEPENDENCIES_${target}} ${STEM_SOURCE_DEPENDENCIES_${target}_${platform}}}}}, \
+${foreach dependency,${sort ${foreach target,${TARGETS},${foreach platform,${PLATFORMS_${target}},${STEM_SOURCE_DEPENDENCIES} ${STEM_SOURCE_DEPENDENCIES_${target}} ${STEM_SOURCE_DEPENDENCIES_${target}_${platform}}}}}, \
 	${eval ${call dependency_submake_template,${dependency}}} \
 }
 
@@ -357,7 +351,7 @@ define copy_target_resources #(target, platform, resources_dir)
 	${foreach resource,${RESOURCES_$1} ${RESOURCES_$1_$2}, \
 		cp -r ${resource} $3${newline_and_tab} \
 	}
-	find $3 -name .svn -print0 -or -name .DS_Store -print0 | xargs -0 rm -rf
+	find $3 -name .svn -or -name .DS_Store -print0 | xargs -0 rm -rf
 endef
 
 define assemble_executable_macosx #(target, configuration, platform)
@@ -407,16 +401,16 @@ ${foreach target,${APPLICATION_TARGETS}, \
 	} \
 }
 
-define library_template #(target, configuration, platform)
-${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$1_$3} build/$1/$2-$3/${TARGET_NAME_$1}.a
+define library_dependency_template #(target, configuration, platform)
+${STEM_SOURCE_DEPENDENCIES} ${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$1_$3} build/$1/$2-$3/${TARGET_NAME_$1}.a
 endef
 
-define executable_template #(target, configuration, platform)
-${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$1_$3} build/$1/$2-$3/${TARGET_NAME_$1}${EXECUTABLE_SUFFIX_$3}
+define executable_dependency_template #(target, configuration, platform)
+${STEM_SOURCE_DEPENDENCIES} ${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$1_$3} build/$1/$2-$3/${TARGET_NAME_$1}${EXECUTABLE_SUFFIX_$3}
 endef
 
-define application_template #(target, configuration, platform)
-${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$1_$3} build/$1/$2-$3/${call application_file_template_$3,$1}
+define application_dependency_template #(target, configuration, platform)
+${STEM_SOURCE_DEPENDENCIES} ${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$1_$3} build/$1/$2-$3/${call application_file_template_$3,$1}
 endef
 
 define application_file_template_macosx #(target)
@@ -425,7 +419,7 @@ endef
 
 define target_template #(target, target_type)
 .PHONY: $1
-$1: ${foreach configuration,${CONFIGURATIONS_$1},${foreach platform,${PLATFORMS_$1},${call $2_template,$1,${configuration},${platform}}}}
+$1: ${foreach configuration,${CONFIGURATIONS_$1},${foreach platform,${PLATFORMS_$1},${call $2_dependency_template,$1,${configuration},${platform}}}}
 endef
 
 ${foreach target,${LIBRARY_TARGETS}, \
@@ -508,52 +502,16 @@ include: ${INCLUDES} | ${foreach include_file,${INCLUDES},build/include/${notdir
 .PHONY: clean
 clean:
 	rm -rf build
-	rm -rf dist #master_source_only
-	${foreach dependency,${sort ${foreach target,${TARGETS},${foreach platform,${PLATFORMS_${target}},${STEM_SOURCE_DEPENDENCIES_${target}} ${STEM_SOURCE_DEPENDENCIES_${target}_${platform}}}}}, \
+	${foreach dependency,${sort ${foreach target,${TARGETS},${foreach platform,${PLATFORMS_${target}},${STEM_SOURCE_DEPENDENCIES} ${STEM_SOURCE_DEPENDENCIES_${target}} ${STEM_SOURCE_DEPENDENCIES_${target}_${platform}}}}}, \
 		${MAKE} -C dep/${word 1,${subst /, ,${dependency}}} clean${newline_and_tab} \
 	}
 
-#master_source_only_begin
-.PHONY: full_dist
-full_dist: clean all
-	mkdir dist dist/include dist/library dist/testharness
-	cp Changes.txt License.txt ReadMe.txt dist
-	cp -r build/include/* dist/include
-	cp -r build/library/* dist/library
-	cp -r build/testharness/* dist/testharness
+INSTALL_DIR = ${STEM_SHARED_DIR}/${PROJECT_NAME}/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_TWEAK}
 
-.PHONY: append_dist
-append_dist: all
-	cp -r build/library/* dist/library
-	cp -r build/testharness/* dist/testharness
-
-.PHONY: commit_dist
-commit_dist:
-	svn import --no-ignore -m "Automated release of ${PROJECT_NAME} ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_TWEAK} from ${HOST_PLATFORM}" dist ${SVNROOT}/Releases/${PROJECT_NAME}/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_TWEAK}
-
-define filter_source_dist_file #(infile, outfile)
-	ruby -e "print STDIN.read.gsub(/^.*#master_source_only\b.*$\n?/, '').gsub(/\n?#master_source_only_begin[\s\S]*?#master_source_only_end/, '').gsub(/#source_dist_only/, '')" < "$1" > "$2"
-endef
-
-.PHONY: source_dist
-source_dist:
-	mkdir -p build/source_dist/include
-	mkdir -p build/source_dist/lib
-	mkdir -p build/source_dist/source/nsopenglshell
-	mkdir -p build/source_dist/test_resources
-	mkdir -p build/source_dist/test_source/testharness
-	
-	${call filter_source_dist_file,Makefile,build/source_dist/Makefile}
-	cp Changes.txt License.txt ReadMe.txt version build/source_dist
-	
-	cp -r include/* build/source_dist/include
-	cp -r lib/* build/source_dist/lib
-	find build/source_dist/include -name .svn -print0 | xargs -0 rm -rf
-	find build/source_dist/lib -name .svn -print0 | xargs -0 rm -rf
-	
-	cp source/nsopenglshell/* build/source_dist/source/nsopenglshell
-	
-	cp test_resources/* build/source_dist/test_resources
-	
-	cp test_source/testharness/* build/source_dist/test_source/testharness
-#master_source_only_end
+.PHONY: install
+install:
+	mkdir -p "${INSTALL_DIR}/include" "${INSTALL_DIR}/library" "${INSTALL_DIR}/testharness"
+	cp Changes.txt License.txt ReadMe.txt version ${INSTALL_DIR}
+	cp -r build/include/* ${INSTALL_DIR}/include
+	cp -r build/library/* ${INSTALL_DIR}/library
+	cp -r build/testharness/* ${INSTALL_DIR}/testharness

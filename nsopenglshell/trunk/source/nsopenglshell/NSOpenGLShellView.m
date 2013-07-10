@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2012 Alex Diener
+  Copyright (c) 2013 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -20,9 +20,9 @@
   Alex Diener adiener@sacredsoftware.net
 */
 
-#import "nsopenglshell/NSOpenGLShell.h"
 #import "nsopenglshell/NSOpenGLShellView.h"
 #import "nsopenglshell/NSOpenGLShellApplication.h"
+#include "nsopenglshell/NSOpenGLShell.h"
 #include "glgraphics/GLGraphics.h"
 #include "nsopenglshell/NSOpenGLTarget.h"
 #include "shell/Target.h"
@@ -68,8 +68,6 @@
 	pixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes: attributes];
 	if ((self = [super initWithFrame: frame pixelFormat: pixelFormat]) != nil) {
 		const unsigned char * glExtensions;
-		
-		[pixelFormat release];
 		
 		[[self openGLContext] makeCurrentContext];
 		glExtensions = glGetString(GL_EXTENSIONS);
