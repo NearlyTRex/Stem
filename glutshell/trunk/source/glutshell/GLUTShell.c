@@ -48,10 +48,6 @@
 #include <windows.h>
 #endif
 
-#if defined(__APPLE__) || defined(__linux)
-#include <pthread.h>
-#endif
-
 #include "glgraphics/GLGraphics.h"
 #include "shell/ShellBatteryInfo.h"
 #include "shell/ShellKeyCodes.h"
@@ -340,81 +336,6 @@ void Shell_setMouseDeltaMode(bool deltaMode) {
 		mouseDeltaMode = false;
 		Shell_setCursor(lastUnhiddenCursor);
 	}
-}
-
-struct threadFuncInvocation {
-	int (* threadFunction)(void * context);
-	void * context;
-};
-
-static void * callThreadFunc(void * context) {
-	struct threadFuncInvocation * invocation = context;
-	int (* threadFunction)(void * context);
-	void * threadContext;
-	
-	threadFunction  = invocation->threadFunction;
-	threadContext = invocation->context;
-	free(invocation);
-	return (void *) threadFunction(threadContext);
-}
-
-ShellThread Shell_createThread(int (* threadFunction)(void * context), void * context) {
-	pthread_t thread;
-	struct threadFuncInvocation * invocation;
-	
-	invocation = malloc(sizeof(struct threadFuncInvocation));
-	invocation->threadFunction = threadFunction;
-	invocation->context = context;
-	pthread_create(&thread, NULL, callThreadFunc, invocation);
-	return thread;
-}
-
-void Shell_exitThread(int statusCode) {
-	pthread_exit((void *) statusCode);
-}
-
-void Shell_cancelThread(ShellThread thread) {
-	pthread_cancel(thread);
-}
-
-int Shell_joinThread(ShellThread thread) {
-	int status;
-	void * returnValue;
-	
-	status = pthread_join(thread, &returnValue);
-	if (status == 0) {
-		return (int) returnValue;
-	}
-	return status;
-}
-
-ShellThread Shell_getCurrentThread() {
-	return pthread_self();
-}
-
-ShellMutex Shell_createMutex() {
-	pthread_mutex_t * mutex;
-	
-	mutex = malloc(sizeof(pthread_mutex_t));
-	pthread_mutex_init(mutex, NULL);
-	return mutex;
-}
-
-void Shell_disposeMutex(ShellMutex mutex) {
-	pthread_mutex_destroy(mutex);
-	free(mutex);
-}
-
-void Shell_lockMutex(ShellMutex mutex) {
-	pthread_mutex_lock(mutex);
-}
-
-bool Shell_tryLockMutex(ShellMutex mutex) {
-	return !pthread_mutex_trylock(mutex);
-}
-
-void Shell_unlockMutex(ShellMutex mutex) {
-	pthread_mutex_unlock(mutex);
 }
 
 static void displayFunc() {
@@ -784,12 +705,10 @@ int main(int argc, char ** argv) {
 	GLint VBL = 1;
 #endif
 	char workingDir[PATH_MAX];
-	int chdirReturn;
-	char * getcwdReturn;
 	
-	getcwdReturn = getcwd(workingDir, PATH_MAX);
+	getcwd(workingDir, PATH_MAX);
 	glutInit(&argc, argv);
-	chdirReturn = chdir(workingDir);
+	chdir(workingDir);
 	
 	configuration.windowX = 2;
 	configuration.windowY = 28;

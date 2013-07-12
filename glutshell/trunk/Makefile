@@ -24,8 +24,8 @@ define newline_and_tab
 endef
 
 TARGET_PLATFORMS_macosx = macosx
-TARGET_PLATFORMS_linux = linux
-TARGET_PLATFORMS_windows = windows
+TARGET_PLATFORMS_linux = linux32 linux64
+TARGET_PLATFORMS_windows = win32 win64
 
 PROJECT_NAME = glutshell
 
@@ -100,7 +100,7 @@ SPLINT_win32 = ${SPLINT_WIN_PATH}
 CLANG_win32 = ${CLANG_WIN_PATH}
 ARCHS_win32 = i386
 CCFLAGS_win32 = -DFREEGLUT_STATIC
-LINKFLAGS_win32 = -lfreeglut_static -lopengl32 -lglu32 -lwinmm -lgdi32
+LINKFLAGS_win32 = -lfreeglut32_static -lopengl32 -lglu32 -lwinmm -lgdi32
 EXECUTABLE_SUFFIX_win32 = .exe
 
 MINGW_W64_PATH ?= C:/MinGW-w64
@@ -112,7 +112,7 @@ SPLINT_win64 = ${SPLINT_WIN_PATH}
 CLANG_win64 = ${CLANG_WIN_PATH}
 ARCHS_win64 = x86_64
 CCFLAGS_win64 = -DFREEGLUT_STATIC
-LINKFLAGS_win64 = -lfreeglut_static -lopengl32 -lglu32 -lwinmm -lgdi32
+LINKFLAGS_win64 = -lfreeglut64_static -lopengl32 -lglu32 -lwinmm -lgdi32
 EXECUTABLE_SUFFIX_win64 = .exe
 
 #General compile/link settings
@@ -144,6 +144,14 @@ THIRDPARTY_LIBRARY_DEPENDENCIES = glew/1.5.4/libglew.a
 
 SOURCES_library = \
 	source/${PROJECT_NAME}/GLUTShell.c
+
+SOURCES_library_macosx          = source/${PROJECT_NAME}/GLUTShellThreading_pthread.c
+SOURCES_library_iphoneos        = source/${PROJECT_NAME}/GLUTShellThreading_pthread.c
+SOURCES_library_iphonesimulator = source/${PROJECT_NAME}/GLUTShellThreading_pthread.c
+SOURCES_library_linux32         = source/${PROJECT_NAME}/GLUTShellThreading_pthread.c
+SOURCES_library_linux64         = source/${PROJECT_NAME}/GLUTShellThreading_pthread.c
+SOURCES_library_win32           = source/${PROJECT_NAME}/GLUTShellThreading_windows.c
+SOURCES_library_win64           = source/${PROJECT_NAME}/GLUTShellThreading_windows.c
 
 SOURCES_testharness = \
 	test_source/testharness/TestHarness_main.c
