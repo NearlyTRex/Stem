@@ -138,7 +138,7 @@ SPLINT_win32 = ${SPLINT_WIN_PATH}
 CLANG_win32 = ${CLANG_WIN_PATH}
 ARCHS_win32 = i386
 CCFLAGS_win32 = -DFREEGLUT_STATIC
-LINKFLAGS_win32 = -lfreeglut_static -lopengl32 -lglu32 -lwinmm -lgdi32 -lpthread
+LINKFLAGS_win32 = -lfreeglut32_static -lopengl32 -lglu32 -lwinmm -lgdi32 -lpthread
 EXECUTABLE_SUFFIX_win32 = .exe
 
 MINGW_W64_PATH ?= C:/MinGW-w64
@@ -150,7 +150,7 @@ SPLINT_win64 = ${SPLINT_WIN_PATH}
 CLANG_win64 = ${CLANG_WIN_PATH}
 ARCHS_win64 = x86_64
 CCFLAGS_win64 = -DFREEGLUT_STATIC
-LINKFLAGS_win64 = -lfreeglut_static -lopengl32 -lglu32 -lwinmm -lgdi32 -lpthread
+LINKFLAGS_win64 = -lfreeglut64_static -lopengl32 -lglu32 -lwinmm -lgdi32 -lpthread
 EXECUTABLE_SUFFIX_win64 = .exe
 
 #General compile/link settings
@@ -165,11 +165,11 @@ OTHER_LINKFLAGS =
 LINKFLAGS = ${FRAMEWORK_LINKFLAGS} ${LIBRARY_LINKFLAGS} ${OTHER_LINKFLAGS}
 
 LINK_ORDER = \
+	utilities \
 	glutshell \
 	eaglshell \
 	library \
 	library_noglew \
-	utilities \
 	3dmath \
 	stemobject \
 	glew
@@ -195,25 +195,31 @@ STEM_LIBRARY_DEPENDENCIES_unittest = \
 PROJECT_LIBRARY_DEPENDENCIES_testharness_macosx = library_noglew
 PROJECT_LIBRARY_DEPENDENCIES_testharness_iphonesimulator = library_noglew
 PROJECT_LIBRARY_DEPENDENCIES_testharness_iphoneos = library_noglew
-PROJECT_LIBRARY_DEPENDENCIES_testharness_windows = library
-PROJECT_LIBRARY_DEPENDENCIES_testharness_linux = library
+PROJECT_LIBRARY_DEPENDENCIES_testharness_win32 = library
+PROJECT_LIBRARY_DEPENDENCIES_testharness_win64 = library
+PROJECT_LIBRARY_DEPENDENCIES_testharness_linux32 = library
+PROJECT_LIBRARY_DEPENDENCIES_testharness_linux64 = library
 PROJECT_LIBRARY_DEPENDENCIES_unittest_macosx = library_noglew
 PROJECT_LIBRARY_DEPENDENCIES_unittest_iphonesimulator = library_noglew
-PROJECT_LIBRARY_DEPENDENCIES_unittest_windows = library
-PROJECT_LIBRARY_DEPENDENCIES_unittest_linux = library
+PROJECT_LIBRARY_DEPENDENCIES_unittest_win32 = library
+PROJECT_LIBRARY_DEPENDENCIES_unittest_win64 = library
+PROJECT_LIBRARY_DEPENDENCIES_unittest_linux32 = library
+PROJECT_LIBRARY_DEPENDENCIES_unittest_linux64 = library
 STEM_LIBRARY_DEPENDENCIES_testharness_macosx = glutshell/1.6.0
 STEM_LIBRARY_DEPENDENCIES_testharness_iphonesimulator = eaglshell/2.5.0
 STEM_LIBRARY_DEPENDENCIES_testharness_iphoneos = eaglshell/2.5.0
-STEM_LIBRARY_DEPENDENCIES_testharness_windows = glutshell/1.6.0
-STEM_LIBRARY_DEPENDENCIES_testharness_linux = glutshell/1.6.0
-THIRDPARTY_LIBRARY_DEPENDENCIES_library_win32 = glew/1.5.2/libglew.a
-THIRDPARTY_LIBRARY_DEPENDENCIES_library_win64 = glew/1.5.2/libglew.a
-THIRDPARTY_LIBRARY_DEPENDENCIES_library_linux32 = glew/1.5.2/libglew.a
-THIRDPARTY_LIBRARY_DEPENDENCIES_library_linux64 = glew/1.5.2/libglew.a
-THIRDPARTY_LIBRARY_DEPENDENCIES_testharness_win32 = glew/1.5.2/libglew.a
-THIRDPARTY_LIBRARY_DEPENDENCIES_testharness_win64 = glew/1.5.2/libglew.a
-THIRDPARTY_LIBRARY_DEPENDENCIES_testharness_linux32 = glew/1.5.2/libglew.a
-THIRDPARTY_LIBRARY_DEPENDENCIES_testharness_linux64 = glew/1.5.2/libglew.a
+STEM_LIBRARY_DEPENDENCIES_testharness_win32 = glutshell/1.6.0
+STEM_LIBRARY_DEPENDENCIES_testharness_win64 = glutshell/1.6.0
+STEM_LIBRARY_DEPENDENCIES_testharness_linux32 = glutshell/1.6.0
+STEM_LIBRARY_DEPENDENCIES_testharness_linux64 = glutshell/1.6.0
+THIRDPARTY_LIBRARY_DEPENDENCIES_library_win32 = glew/1.5.4/libglew.a
+THIRDPARTY_LIBRARY_DEPENDENCIES_library_win64 = glew/1.5.4/libglew.a
+THIRDPARTY_LIBRARY_DEPENDENCIES_library_linux32 = glew/1.5.4/libglew.a
+THIRDPARTY_LIBRARY_DEPENDENCIES_library_linux64 = glew/1.5.4/libglew.a
+THIRDPARTY_LIBRARY_DEPENDENCIES_testharness_win32 = glew/1.5.4/libglew.a
+THIRDPARTY_LIBRARY_DEPENDENCIES_testharness_win64 = glew/1.5.4/libglew.a
+THIRDPARTY_LIBRARY_DEPENDENCIES_testharness_linux32 = glew/1.5.4/libglew.a
+THIRDPARTY_LIBRARY_DEPENDENCIES_testharness_linux64 = glew/1.5.4/libglew.a
 
 #Per-target source file lists
 
@@ -256,33 +262,26 @@ INCLUDES = \
 
 #Target resources
 
+DESKTOP_SHADER_RESOURCES = \
+	test_resources/desktop/shader1.frag \
+	test_resources/desktop/shader1.vert \
+	test_resources/desktop/shader2.frag \
+	test_resources/desktop/shader2.vert
+IPHONE_SHADER_RESOURCES = \
+	test_resources/iphone/shader1.frag \
+	test_resources/iphone/shader1.vert \
+	test_resources/iphone/shader2.frag \
+	test_resources/iphone/shader2.vert
+
 RESOURCES_testharness = 
 RESOURCES_unittest = 
-RESOURCES_testharness_macosx = \
-	test_resources/desktop/shader1.frag \
-	test_resources/desktop/shader1.vert \
-	test_resources/desktop/shader2.frag \
-	test_resources/desktop/shader2.vert
-RESOURCES_testharness_iphonesimulator = \
-	test_resources/iphone/shader1.frag \
-	test_resources/iphone/shader1.vert \
-	test_resources/iphone/shader2.frag \
-	test_resources/iphone/shader2.vert
-RESOURCES_testharness_iphoneos = \
-	test_resources/iphone/shader1.frag \
-	test_resources/iphone/shader1.vert \
-	test_resources/iphone/shader2.frag \
-	test_resources/iphone/shader2.vert
-RESOURCES_testharness_windows = \
-	test_resources/desktop/shader1.frag \
-	test_resources/desktop/shader1.vert \
-	test_resources/desktop/shader2.frag \
-	test_resources/desktop/shader2.vert
-RESOURCES_testharness_linux = \
-	test_resources/desktop/shader1.frag \
-	test_resources/desktop/shader1.vert \
-	test_resources/desktop/shader2.frag \
-	test_resources/desktop/shader2.vert
+RESOURCES_testharness_macosx = ${DESKTOP_SHADER_RESOURCES}
+RESOURCES_testharness_iphonesimulator = ${IPHONE_SHADER_RESOURCES}
+RESOURCES_testharness_iphoneos = ${IPHONE_SHADER_RESOURCES}
+RESOURCES_testharness_win32 = ${DESKTOP_SHADER_RESOURCES}
+RESOURCES_testharness_win64 = ${DESKTOP_SHADER_RESOURCES}
+RESOURCES_testharness_linux32 = ${DESKTOP_SHADER_RESOURCES}
+RESOURCES_testharness_linux64 = ${DESKTOP_SHADER_RESOURCES}
 
 #General analyzer settings
 CLANGFLAGS = 

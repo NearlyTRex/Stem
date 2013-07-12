@@ -31,7 +31,6 @@ void Target_init() {
 		{{1.0f, -1.0f}, {0.0f, 0.0f, 1.0f, 1.0f}}
 	};
 	GLshort indexes[3] = {0, 1, 2};
-	int result;
 	
 #ifndef GLGRAPHICS_NO_GLEW
 	if (!GLEW_ARB_shader_objects ||
@@ -43,7 +42,7 @@ void Target_init() {
 	}
 #endif
 	
-	result = chdir(Shell_getResourcePath());
+	chdir(Shell_getResourcePath());
 	
 	vshaderSource = readFileSimple("shader1.vert", &vshaderLength);
 	fshaderSource = readFileSimple("shader1.frag", &fshaderLength);

@@ -43,7 +43,7 @@ void GLSLShader_init(GLSLShader * self, const char * vshaderSource, size_t vshad
 	va_list args;
 	
 	va_start(args, fshaderLength);
-	self = GLSLShader_vcreate(vshaderSource, vshaderLength, fshaderSource, fshaderLength, args);
+	GLSLShader_vinit(self, vshaderSource, vshaderLength, fshaderSource, fshaderLength, args);
 	va_end(args);
 }
 

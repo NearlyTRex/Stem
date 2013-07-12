@@ -1,7 +1,8 @@
-1.1.2
+1.2.0
  * Added GLSLShader_validate() function
  * Updated for 3dmath 1.2.0
  * Added 64-bit Windows and Linux support
+ * Fixed a major bug in GLSLShader_init() - previously, it would have had no effect if it had ever been called!
 
 1.1.1
  * GLIncludes.h now includes wglew.h and glxew.h as appropriate
