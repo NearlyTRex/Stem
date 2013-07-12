@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2012 Alex Diener
+  Copyright (c) 2013 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -32,9 +32,6 @@ enum ShellCursor {
 	ShellCursor_hand,
 	ShellCursor_wait
 };
-
-typedef void * ShellThread;
-typedef void * ShellMutex;
 
 /** Signals the shell to begin the main application loop. This function MAY or MAY NOT return,
     so you mustn't rely on the execution of any code following the call to Shell_mainLoop(). */
@@ -90,44 +87,5 @@ void Shell_setCursor(int cursor);
     to Target_mouseMoved() and Target_mouseDragged() will be deltas rather than absolute positions.
     False by default. */
 void Shell_setMouseDeltaMode(bool deltaMode);
-
-/** Creates a new preemptive thread and invokes threadFunction from it, passing context as its
-    only argument. The thread function's return value will be returned to called of
-    Shell_joinThread(). */
-ShellThread Shell_createThread(int (* threadFunction)(void * context), void * context);
-
-/** Exits the current thread, return statusCode to callers of Shell_joinThread(). */
-void Shell_exitThread(int statusCode);
-
-/** Terminates the specified thread. */
-void Shell_cancelThread(ShellThread thread);
-
-/** Suspends the current thread until the specified thread has completed, returning the thread's
-    exit code. */
-int Shell_joinThread(ShellThread thread);
-
-/** Returns the thread in which the caller is executing. */
-ShellThread Shell_getCurrentThread();
-
-/** Initializes and returns a new mutex object. The caller is responsible for calling
-    Shell_disposeMutex() when the mutex is no longer needed. */
-ShellMutex Shell_createMutex();
-
-/** Disposes the specified mutex, freeing any resources allocated to it. */
-void Shell_disposeMutex(ShellMutex mutex);
-
-/** Blocks the calling thread until a lock can be acquired on the specified mutex. Must be
-    balanced by a call to Shell_unlockMutex(). */
-void Shell_lockMutex(ShellMutex mutex);
-
-/** Attempts to lock the specified mutex without blocking the calling thread, returning true
-    if the lock could be acquired, and false if it could not. If true is returned, must be
-    balanced by a call to Shell_unlockMutex(). */
-bool Shell_tryLockMutex(ShellMutex mutex);
-
-/** Releases the current thread's lock on the specified mutex. Must be called only after
-    the specified mutex has been successfully locked by a call to Shell_lockMutex() or
-    Shell_tryLockMutex(). */
-void Shell_unlockMutex(ShellMutex mutex);
 
 #endif
