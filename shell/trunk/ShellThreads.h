@@ -25,21 +25,29 @@
 
 #include <stdbool.h>
 
-typedef void * ShellThread;
-typedef void * ShellMutex;
-typedef void * ShellSemaphore;
+typedef struct ShellThread * ShellThread;
+typedef struct ShellMutex * ShellMutex;
+typedef struct ShellSemaphore * ShellSemaphore;
 
 /** Creates a new preemptive thread and invokes threadFunction from it, passing context as its
     only argument. The thread function's return value will be returned to the caller of
     Shell_joinThread(). */
 ShellThread Shell_createThread(int (* threadFunction)(void * context), void * context);
 
-/** Exits the current thread, return statusCode to callers of Shell_joinThread(). */
-void Shell_exitThread(int statusCode);
+/** Marks the specified thread for disposal once it completes. You must call either this function
+    or Shell_joinThread() to allow threads created by Shell_createThread to free their resources.
+    If you don't wish to call Shell_joinThread() later, you can call Shell_detachThread()
+    immediately after Shell_createThread(). */
+void Shell_detachThread(ShellThread thread);
 
 /** Suspends the current thread until the specified thread has completed, returning the thread's
-    exit code. */
+    exit code. This function cannot be called on a detached thread. After Shell_joinThread()
+    completes, the thread will be automatically detached, so there is no need to call
+    Shell_detachThread() after Shell_joinThread(). */
 int Shell_joinThread(ShellThread thread);
+
+/** Exits the current thread, return statusCode to callers of Shell_joinThread(). */
+void Shell_exitThread(int statusCode);
 
 /** Returns the thread in which the caller is executing. */
 ShellThread Shell_getCurrentThread();
