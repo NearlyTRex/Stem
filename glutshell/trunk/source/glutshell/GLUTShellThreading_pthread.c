@@ -22,6 +22,7 @@
 
 #include "shell/ShellThreads.h"
 #include <pthread.h>
+#include <semaphore.h>
 #include <stdlib.h>
 
 struct threadFuncInvocation {
@@ -77,7 +78,7 @@ ShellMutex Shell_createMutex() {
 	pthread_mutexattr_init(&recursiveLock);
 	pthread_mutexattr_settype(&recursiveLock, PTHREAD_MUTEX_RECURSIVE);
 	mutex = malloc(sizeof(pthread_mutex_t));
-	pthread_mutex_init(mutex, NULL);
+	pthread_mutex_init(mutex, &recursiveLock);
 	pthread_mutexattr_destroy(&recursiveLock);
 	return mutex;
 }
