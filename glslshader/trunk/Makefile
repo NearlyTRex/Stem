@@ -131,7 +131,7 @@ RANLIB_win32 = ${MINGW_W32_PATH}/bin/ranlib.exe
 SPLINT_win32 = ${SPLINT_WIN_PATH}
 CLANG_win32 = ${CLANG_WIN_PATH}
 ARCHS_win32 = i386
-CCFLAGS_win32 = -DFREEGLUT_STATIC
+CCFLAGS_win32 = -DFREEGLUT_STATIC -DGLEW_STATIC
 LINKFLAGS_win32 = -lfreeglut32_static -lopengl32 -lglu32 -lwinmm -lgdi32
 EXECUTABLE_SUFFIX_win32 = .exe
 
@@ -143,7 +143,7 @@ RANLIB_win64 = ${MINGW_W64_PATH}/bin/x86_64-w64-mingw32-ranlib.exe
 SPLINT_win64 = ${SPLINT_WIN_PATH}
 CLANG_win64 = ${CLANG_WIN_PATH}
 ARCHS_win64 = x86_64
-CCFLAGS_win64 = -DFREEGLUT_STATIC
+CCFLAGS_win64 = -DFREEGLUT_STATIC -DGLEW_STATIC
 LINKFLAGS_win64 = -lfreeglut64_static -lopengl32 -lglu32 -lwinmm -lgdi32
 EXECUTABLE_SUFFIX_win64 = .exe
 
@@ -160,10 +160,10 @@ LINKFLAGS = ${FRAMEWORK_LINKFLAGS} ${LIBRARY_LINKFLAGS} ${OTHER_LINKFLAGS}
 
 LINK_ORDER = \
 	library \
+	utilities \
 	glutshell \
 	eaglshell \
 	glgraphics \
-	utilities \
 	stemobject \
 	glew
 
@@ -194,6 +194,10 @@ STEM_LIBRARY_DEPENDENCIES_testharness_win64 = glutshell/1.6.0 ${STEM_LIBRARY_DEP
 STEM_LIBRARY_DEPENDENCIES_testharness_linux32 = glutshell/1.6.0 ${STEM_LIBRARY_DEPENDENCIES_glew}
 STEM_LIBRARY_DEPENDENCIES_testharness_linux64 = glutshell/1.6.0 ${STEM_LIBRARY_DEPENDENCIES_glew}
 STEM_SOURCE_DEPENDENCIES = 
+THIRDPARTY_LIBRARY_DEPENDENCIES_library_win32 = glew/1.5.4/libglew.a
+THIRDPARTY_LIBRARY_DEPENDENCIES_library_win64 = glew/1.5.4/libglew.a
+THIRDPARTY_LIBRARY_DEPENDENCIES_library_linux32 = glew/1.5.4/libglew.a
+THIRDPARTY_LIBRARY_DEPENDENCIES_library_linux64 = glew/1.5.4/libglew.a
 THIRDPARTY_LIBRARY_DEPENDENCIES_testharness_win32 = glew/1.5.4/libglew.a
 THIRDPARTY_LIBRARY_DEPENDENCIES_testharness_win64 = glew/1.5.4/libglew.a
 THIRDPARTY_LIBRARY_DEPENDENCIES_testharness_linux32 = glew/1.5.4/libglew.a
