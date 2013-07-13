@@ -1,5 +1,5 @@
 .PHONY: all
-all: library library_noglew unittest testharness test include
+all: library testharness include
 
 UNAME = ${shell uname}
 ifeq (${UNAME},Linux)
@@ -29,13 +29,13 @@ TARGET_PLATFORMS_macosx = macosx iphonesimulator iphoneos
 TARGET_PLATFORMS_linux = linux32 linux64
 TARGET_PLATFORMS_windows = win32 win64
 
-PROJECT_NAME = glgraphics
+PROJECT_NAME = glslshader
 IPHONE_BUILD_SDK_VERSION ?= 4.2
 IPHONE_DEPLOYMENT_TARGET_VERSION ?= 3.1
 CODESIGN_IDENTITY ?= "iPhone Developer"
 
-LIBRARY_TARGETS = library library_noglew
-EXECUTABLE_TARGETS = unittest
+LIBRARY_TARGETS = library
+EXECUTABLE_TARGETS = 
 APPLICATION_TARGETS = testharness
 TARGETS = ${LIBRARY_TARGETS} ${EXECUTABLE_TARGETS} ${APPLICATION_TARGETS}
 CONFIGURATIONS = debug profile release
@@ -43,28 +43,22 @@ PLATFORMS = ${filter ${TARGET_PLATFORMS_${HOST_PLATFORM}},macosx iphonesimulator
 ANALYZERS = splint clang
 
 TARGET_NAME_library = libstem_${PROJECT_NAME}
-TARGET_NAME_library_noglew = libstem_${PROJECT_NAME}
 TARGET_NAME_unittest = ${PROJECT_NAME}_unittest
 TARGET_NAME_testharness = ${PROJECT_NAME}_testharness
-HUMAN_READABLE_TARGET_NAME_testharness = GLGraphics
+HUMAN_READABLE_TARGET_NAME_testharness = GLSLShader
 
 #Per-target configurations
 CONFIGURATIONS_library = debug profile release
-CONFIGURATIONS_library_noglew = debug profile release
 CONFIGURATIONS_unittest = debug
 CONFIGURATIONS_testharness = debug profile release
 
 #Per-target platforms
-PLATFORMS_library = ${filter ${PLATFORMS},macosx linux32 linux64 win32 win64}
-PLATFORMS_library_noglew = ${filter ${PLATFORMS},macosx iphonesimulator iphoneos linux32 linux64 win32 win64}
+PLATFORMS_library = ${filter ${PLATFORMS},macosx iphonesimulator iphoneos linux32 linux64 win32 win64}
 PLATFORMS_unittest = ${filter ${PLATFORMS},macosx iphonesimulator linux32 linux64 win32 win64}
 PLATFORMS_testharness = ${filter ${PLATFORMS},macosx iphonesimulator iphoneos linux32 linux64 win32 win64}
 
 #Per-target compile/link settings
-CCFLAGS_library = -I include/glew -DGLEW_STATIC
-CCFLAGS_library_noglew = -DGLGRAPHICS_NO_GLEW
-CCFLAGS_unittest = -DGLGRAPHICS_NO_GLEW -I test_source -include build/intermediate/TestList.h
-CCFLAGS_testharness = -DGLEW_STATIC
+CCFLAGS_unittest = -I test_source -include build/intermediate/TestList.h
 
 #Per-target analyzer settings
 CLANGFLAGS_unittest = ${CCFLAGS_unittest}
@@ -85,7 +79,7 @@ SPLINT_macosx = /usr/local/bin/splint
 CLANG_macosx = /usr/bin/clang
 SDKROOT_macosx = /Developer/SDKs/MacOSX10.5.sdk
 ARCHS_macosx = i386 x86_64
-CCFLAGS_macosx = -isysroot ${SDKROOT_macosx} -mmacosx-version-min=10.5 -DGLGRAPHICS_NO_GLEW
+CCFLAGS_macosx = -DGLGRAPHICS_NO_GLEW -isysroot ${SDKROOT_macosx} -mmacosx-version-min=10.5
 LINKFLAGS_macosx = -isysroot ${SDKROOT_macosx} -mmacosx-version-min=10.5 -framework OpenGL -framework GLUT -framework CoreFoundation -framework ApplicationServices
 
 CC_iphonesimulator_i386 = /Developer/Platforms/iPhoneSimulator.platform/Developer/usr/bin/gcc-4.2 -arch i386
@@ -95,7 +89,7 @@ SPLINT_iphonesimulator = /usr/local/bin/splint
 CLANG_iphonesimulator = /usr/bin/clang
 SDKROOT_iphonesimulator = /Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator${IPHONE_BUILD_SDK_VERSION}.sdk
 ARCHS_iphonesimulator = i386
-CCFLAGS_iphonesimulator = -isysroot ${SDKROOT_iphonesimulator} -D__IPHONE_OS_VERSION_MIN_REQUIRED=${call iphone_sdk_version_integer,${IPHONE_DEPLOYMENT_TARGET_VERSION}}
+CCFLAGS_iphonesimulator = -DGLGRAPHICS_NO_GLEW -isysroot ${SDKROOT_iphonesimulator} -D__IPHONE_OS_VERSION_MIN_REQUIRED=${call iphone_sdk_version_integer,${IPHONE_DEPLOYMENT_TARGET_VERSION}}
 LINKFLAGS_iphonesimulator = -isysroot ${SDKROOT_iphonesimulator} -Xlinker -objc_abi_version -Xlinker 2 -framework Foundation -framework UIKit -framework QuartzCore -framework OpenGLES -framework CoreFoundation
 
 CC_iphoneos_armv6 = /Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/gcc-4.2 -arch armv6
@@ -106,7 +100,7 @@ SPLINT_iphoneos = /usr/local/bin/splint
 CLANG_iphoneos = /usr/bin/clang
 SDKROOT_iphoneos = /Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS${IPHONE_BUILD_SDK_VERSION}.sdk
 ARCHS_iphoneos = armv6 armv7
-CCFLAGS_iphoneos = -isysroot ${SDKROOT_iphoneos} -miphoneos-version-min=${IPHONE_DEPLOYMENT_TARGET_VERSION}
+CCFLAGS_iphoneos = -DGLGRAPHICS_NO_GLEW -isysroot ${SDKROOT_iphoneos} -miphoneos-version-min=${IPHONE_DEPLOYMENT_TARGET_VERSION}
 LINKFLAGS_iphoneos = -isysroot ${SDKROOT_iphoneos} -miphoneos-version-min=${IPHONE_DEPLOYMENT_TARGET_VERSION} -Xlinker -objc_abi_version -Xlinker 2 -framework Foundation -framework UIKit -framework QuartzCore -framework OpenGLES -framework CoreFoundation
 
 CC_linux32_i386 = /usr/bin/gcc
@@ -138,7 +132,7 @@ SPLINT_win32 = ${SPLINT_WIN_PATH}
 CLANG_win32 = ${CLANG_WIN_PATH}
 ARCHS_win32 = i386
 CCFLAGS_win32 = -DFREEGLUT_STATIC
-LINKFLAGS_win32 = -lfreeglut32_static -lopengl32 -lglu32 -lwinmm -lgdi32 -lpthread
+LINKFLAGS_win32 = -lfreeglut32_static -lopengl32 -lglu32 -lwinmm -lgdi32
 EXECUTABLE_SUFFIX_win32 = .exe
 
 MINGW_W64_PATH ?= C:/MinGW-w64
@@ -150,7 +144,7 @@ SPLINT_win64 = ${SPLINT_WIN_PATH}
 CLANG_win64 = ${CLANG_WIN_PATH}
 ARCHS_win64 = x86_64
 CCFLAGS_win64 = -DFREEGLUT_STATIC
-LINKFLAGS_win64 = -lfreeglut64_static -lopengl32 -lglu32 -lwinmm -lgdi32 -lpthread
+LINKFLAGS_win64 = -lfreeglut64_static -lopengl32 -lglu32 -lwinmm -lgdi32
 EXECUTABLE_SUFFIX_win64 = .exe
 
 #General compile/link settings
@@ -165,57 +159,41 @@ OTHER_LINKFLAGS =
 LINKFLAGS = ${FRAMEWORK_LINKFLAGS} ${LIBRARY_LINKFLAGS} ${OTHER_LINKFLAGS}
 
 LINK_ORDER = \
-	utilities \
+	library \
 	glutshell \
 	eaglshell \
-	library \
-	library_noglew \
-	3dmath \
+	glgraphics \
+	utilities \
 	stemobject \
 	glew
 
 #Dependencies (can optionally be per-target or per-target-per-platform)
 
-PROJECT_LIBRARY_DEPENDENCIES_unittest = library_noglew
-STEM_LIBRARY_DEPENDENCIES_library = \
-	3dmath/1.4.0 \
-	utilities/1.7.0 \
+STEM_LIBRARY_DEPENDENCIES_glew = \
+	glgraphics/1.2.0 \
 	stemobject/3.0.2
-STEM_LIBRARY_DEPENDENCIES_library_noglew = \
-	3dmath/1.4.0 \
-	utilities/1.7.0 \
-	stemobject/3.0.2
-STEM_LIBRARY_DEPENDENCIES_testharness = \
-	utilities/1.7.0 \
-	stemobject/3.0.2
-STEM_LIBRARY_DEPENDENCIES_unittest = \
-	3dmath/1.4.0 \
+STEM_LIBRARY_DEPENDENCIES_noglew = \
+	glgraphics/1.2.0_noglew \
 	stemobject/3.0.2
 
-PROJECT_LIBRARY_DEPENDENCIES_testharness_macosx = library_noglew
-PROJECT_LIBRARY_DEPENDENCIES_testharness_iphonesimulator = library_noglew
-PROJECT_LIBRARY_DEPENDENCIES_testharness_iphoneos = library_noglew
-PROJECT_LIBRARY_DEPENDENCIES_testharness_win32 = library
-PROJECT_LIBRARY_DEPENDENCIES_testharness_win64 = library
-PROJECT_LIBRARY_DEPENDENCIES_testharness_linux32 = library
-PROJECT_LIBRARY_DEPENDENCIES_testharness_linux64 = library
-PROJECT_LIBRARY_DEPENDENCIES_unittest_macosx = library_noglew
-PROJECT_LIBRARY_DEPENDENCIES_unittest_iphonesimulator = library_noglew
-PROJECT_LIBRARY_DEPENDENCIES_unittest_win32 = library
-PROJECT_LIBRARY_DEPENDENCIES_unittest_win64 = library
-PROJECT_LIBRARY_DEPENDENCIES_unittest_linux32 = library
-PROJECT_LIBRARY_DEPENDENCIES_unittest_linux64 = library
-STEM_LIBRARY_DEPENDENCIES_testharness_macosx = glutshell/1.6.0
-STEM_LIBRARY_DEPENDENCIES_testharness_iphonesimulator = eaglshell/2.5.0
-STEM_LIBRARY_DEPENDENCIES_testharness_iphoneos = eaglshell/2.5.0
-STEM_LIBRARY_DEPENDENCIES_testharness_win32 = glutshell/1.6.0
-STEM_LIBRARY_DEPENDENCIES_testharness_win64 = glutshell/1.6.0
-STEM_LIBRARY_DEPENDENCIES_testharness_linux32 = glutshell/1.6.0
-STEM_LIBRARY_DEPENDENCIES_testharness_linux64 = glutshell/1.6.0
-THIRDPARTY_LIBRARY_DEPENDENCIES_library_win32 = glew/1.5.4/libglew.a
-THIRDPARTY_LIBRARY_DEPENDENCIES_library_win64 = glew/1.5.4/libglew.a
-THIRDPARTY_LIBRARY_DEPENDENCIES_library_linux32 = glew/1.5.4/libglew.a
-THIRDPARTY_LIBRARY_DEPENDENCIES_library_linux64 = glew/1.5.4/libglew.a
+PROJECT_LIBRARY_DEPENDENCIES_unittest = library
+PROJECT_LIBRARY_DEPENDENCIES_testharness = library
+STEM_LIBRARY_DEPENDENCIES_library_macosx = ${STEM_LIBRARY_DEPENDENCIES_noglew}
+STEM_LIBRARY_DEPENDENCIES_library_iphoneos = ${STEM_LIBRARY_DEPENDENCIES_noglew}
+STEM_LIBRARY_DEPENDENCIES_library_iphonesimulator = ${STEM_LIBRARY_DEPENDENCIES_noglew}
+STEM_LIBRARY_DEPENDENCIES_library_win32 = ${STEM_LIBRARY_DEPENDENCIES_glew}
+STEM_LIBRARY_DEPENDENCIES_library_win64 = ${STEM_LIBRARY_DEPENDENCIES_glew}
+STEM_LIBRARY_DEPENDENCIES_library_linux32 = ${STEM_LIBRARY_DEPENDENCIES_glew}
+STEM_LIBRARY_DEPENDENCIES_library_linux64 = ${STEM_LIBRARY_DEPENDENCIES_glew}
+STEM_LIBRARY_DEPENDENCIES_testharness = utilities/1.7.0
+STEM_LIBRARY_DEPENDENCIES_testharness_macosx = glutshell/1.6.0 ${STEM_LIBRARY_DEPENDENCIES_noglew}
+STEM_LIBRARY_DEPENDENCIES_testharness_iphonesimulator = eaglshell/2.5.0 ${STEM_LIBRARY_DEPENDENCIES_noglew}
+STEM_LIBRARY_DEPENDENCIES_testharness_iphoneos = eaglshell/2.5.0 ${STEM_LIBRARY_DEPENDENCIES_noglew}
+STEM_LIBRARY_DEPENDENCIES_testharness_win32 = glutshell/1.6.0 ${STEM_LIBRARY_DEPENDENCIES_glew}
+STEM_LIBRARY_DEPENDENCIES_testharness_win64 = glutshell/1.6.0 ${STEM_LIBRARY_DEPENDENCIES_glew}
+STEM_LIBRARY_DEPENDENCIES_testharness_linux32 = glutshell/1.6.0 ${STEM_LIBRARY_DEPENDENCIES_glew}
+STEM_LIBRARY_DEPENDENCIES_testharness_linux64 = glutshell/1.6.0 ${STEM_LIBRARY_DEPENDENCIES_glew}
+STEM_SOURCE_DEPENDENCIES = 
 THIRDPARTY_LIBRARY_DEPENDENCIES_testharness_win32 = glew/1.5.4/libglew.a
 THIRDPARTY_LIBRARY_DEPENDENCIES_testharness_win64 = glew/1.5.4/libglew.a
 THIRDPARTY_LIBRARY_DEPENDENCIES_testharness_linux32 = glew/1.5.4/libglew.a
@@ -224,29 +202,14 @@ THIRDPARTY_LIBRARY_DEPENDENCIES_testharness_linux64 = glew/1.5.4/libglew.a
 #Per-target source file lists
 
 SOURCES_library = \
-	source/${PROJECT_NAME}/Camera.c \
-	source/${PROJECT_NAME}/GLGraphics.c \
-	source/${PROJECT_NAME}/GLSLShader.c \
-	source/${PROJECT_NAME}/GLUtilities.c
-
-SOURCES_library_noglew = \
-	source/${PROJECT_NAME}/Camera.c \
-	source/${PROJECT_NAME}/GLGraphics.c \
-	source/${PROJECT_NAME}/GLUtilities.c
-
-SOURCES_library_noglew_macosx = source/${PROJECT_NAME}/GLSLShader.c
-SOURCES_library_noglew_iphonesimulator = source/${PROJECT_NAME}/GLSLShader.c
-SOURCES_library_noglew_iphoneos = source/${PROJECT_NAME}/GLSLShader.c
+	source/${PROJECT_NAME}/GLSLShader.c
 
 SOURCES_unittest = \
 	test_source/unittest/framework/unittest_main.c \
 	test_source/unittest/framework/TestList.c \
 	${SOURCES_unittest_suites}
 
-SOURCES_unittest_suites = \
-	test_source/unittest/suites/CameraTest.c \
-	test_source/unittest/suites/GLGraphicsTest.c \
-	test_source/unittest/suites/GLUtilitiesTest.c
+SOURCES_unittest_suites = 
 
 SOURCES_testharness = \
 	test_source/testharness/TestHarness_main.c
@@ -254,11 +217,7 @@ SOURCES_testharness = \
 #Include files to be distributed with library
 
 INCLUDES = \
-	source/${PROJECT_NAME}/Camera.h \
-	source/${PROJECT_NAME}/GLGraphics.h \
-	source/${PROJECT_NAME}/GLIncludes.h \
-	source/${PROJECT_NAME}/GLSLShader.h \
-	source/${PROJECT_NAME}/GLUtilities.h
+	source/${PROJECT_NAME}/GLSLShader.h
 
 #Target resources
 
@@ -291,13 +250,8 @@ SPLINTFLAGS = -exportlocal
 
 #Source files excluded from static analysis
 
-ANALYZER_EXCLUDE_SOURCES_clang = \
-	source/${PROJECT_NAME}/GLGraphics.c \
-	source/${PROJECT_NAME}/GLUtilities.c
-ANALYZER_EXCLUDE_SOURCES_splint = \
-	source/${PROJECT_NAME}/GLGraphics.c \
-	source/${PROJECT_NAME}/GLUtilities.c \
-	${SOURCES_unittest}
+ANALYZER_EXCLUDE_SOURCES_clang = 
+ANALYZER_EXCLUDE_SOURCES_splint = ${SOURCES_unittest}
 
 #Additional target build prerequisites
 
@@ -875,17 +829,11 @@ ${foreach target,${APPLICATION_TARGETS}, \
 }
 
 INSTALL_DIR = ${STEM_SHARED_DIR}/${PROJECT_NAME}/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_TWEAK}
-INSTALL_DIR_NOGLEW = ${STEM_SHARED_DIR}/${PROJECT_NAME}/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_TWEAK}_noglew
 
 .PHONY: install
 install:
 	mkdir -p "${INSTALL_DIR}/include" "${INSTALL_DIR}/library" "${INSTALL_DIR}/testharness"
-	mkdir -p "${INSTALL_DIR_NOGLEW}/include" "${INSTALL_DIR_NOGLEW}/library" "${INSTALL_DIR_NOGLEW}/testharness"
 	cp Changes.txt License.txt ReadMe.txt version ${INSTALL_DIR}
-	cp Changes.txt License.txt ReadMe.txt version ${INSTALL_DIR_NOGLEW}
 	cp -r build/include/* ${INSTALL_DIR}/include
-	cp -r build/include/* ${INSTALL_DIR_NOGLEW}/include
 	cp -r build/library/* ${INSTALL_DIR}/library
-	cp -r build/library_noglew/* ${INSTALL_DIR_NOGLEW}/library
 	cp -r build/testharness/* ${INSTALL_DIR}/testharness
-	cp -r build/testharness/* ${INSTALL_DIR_NOGLEW}/testharness

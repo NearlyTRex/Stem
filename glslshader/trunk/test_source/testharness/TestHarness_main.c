@@ -1,7 +1,7 @@
 #include "shell/Shell.h"
 #include "shell/Target.h"
 #include "glgraphics/GLGraphics.h"
-#include "glgraphics/GLSLShader.h"
+#include "glslshader/GLSLShader.h"
 #include "utilities/IOUtilities.h"
 #include <stddef.h>
 #include <stdio.h>
@@ -128,6 +128,6 @@ void EAGLTarget_accelerometer(double x, double y, double z) {
 }
 #else
 void GLUTTarget_configure(int argc, const char ** argv, struct GLUTShellConfiguration * configuration) {
-	configuration->windowTitle = "GLGraphics Test Harness";
+	configuration->windowTitle = "GLSLShader Test Harness";
 }
 #endif

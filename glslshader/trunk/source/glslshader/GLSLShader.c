@@ -20,7 +20,7 @@
   Alex Diener adiener@sacredsoftware.net
 */
 
-#include "glgraphics/GLSLShader.h"
+#include "glslshader/GLSLShader.h"
 #include <stdio.h>
 
 #define SUPERCLASS StemObject
