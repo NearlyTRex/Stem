@@ -1,0 +1,3 @@
+1.0.0
+ * Added GLSLShader_validate() function
+ * Fixed a major bug in GLSLShader_init() - previously, it would have had no effect if it had ever been called!
