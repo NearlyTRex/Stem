@@ -121,6 +121,7 @@ void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned int mo
 		Shell_unlockMutex(mutex);
 		
 		thread = Shell_createThread(threadFunc1, mutex);
+		Shell_detachThread(thread);
 		printf("Created thread %p at %f\n", thread, Shell_getCurrentTime());
 		msleep(500);
 		Shell_lockMutex(mutex);
@@ -130,6 +131,7 @@ void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned int mo
 		semaphore = Shell_createSemaphore(0);
 		printf("Try wait semaphore: %s (expected false)\n", Shell_tryWaitSemaphore(semaphore) ? "true" : "false");
 		thread = Shell_createThread(threadFunc2, semaphore);
+		Shell_detachThread(thread);
 		printf("Created thread %p at %f\n", thread, Shell_getCurrentTime());
 		printf("Try wait semaphore: %s (expected false)\n", Shell_tryWaitSemaphore(semaphore) ? "true" : "false");
 		Shell_waitSemaphore(semaphore);
