@@ -52,8 +52,8 @@ ShellThread Shell_createThread(int (* threadFunction)(void * context), void * co
 	return thread;
 }
 
-void Shell_exitThread(int statusCode) {
-	ExitThread(statusCode);
+void Shell_detachThread(ShellThread thread) {
+	CloseHandle(thread);
 }
 
 int Shell_joinThread(ShellThread thread) {
@@ -68,8 +68,17 @@ int Shell_joinThread(ShellThread thread) {
 	return status;
 }
 
+void Shell_exitThread(int statusCode) {
+	ExitThread(statusCode);
+}
+
 ShellThread Shell_getCurrentThread() {
-	return GetCurrentThread();
+	HANDLE duplicate = NULL;
+	
+	if (DuplicateHandle(GetCurrentProcess(), GetCurrentThread(), GetCurrentProcess(), &duplicate, 0, true, DUPLICATE_SAME_ACCESS)) {
+		CloseHandle(&duplicate);
+	}
+	return duplicate;
 }
 
 ShellMutex Shell_createMutex() {

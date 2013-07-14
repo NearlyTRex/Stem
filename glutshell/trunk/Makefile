@@ -134,8 +134,12 @@ LINK_ORDER = \
 #Dependencies (can optionally be per-target or per-target-per-platform)
 
 PROJECT_LIBRARY_DEPENDENCIES_testharness = library
-STEM_LIBRARY_DEPENDENCIES_library = glgraphics/1.2.0
-STEM_LIBRARY_DEPENDENCIES_testharness = glgraphics/1.2.0
+STEM_LIBRARY_DEPENDENCIES_library = \
+	glgraphics/1.2.0 \
+	shell/1.0.0
+STEM_LIBRARY_DEPENDENCIES_testharness = \
+	glgraphics/1.2.0 \
+	shell/1.0.0
 STEM_SOURCE_DEPENDENCIES_library = 
 STEM_SOURCE_DEPENDENCIES_testharness = 
 THIRDPARTY_LIBRARY_DEPENDENCIES = glew/1.5.4/libglew.a
@@ -231,7 +235,7 @@ ${eval ${call create_directory_target_template,build/intermediate}}
 
 
 define include_ccflags_template #(target, platform)
--I source -I include \
+-I source \
 ${foreach stem_dependency,${STEM_LIBRARY_DEPENDENCIES} ${STEM_LIBRARY_DEPENDENCIES_$1} ${STEM_LIBRARY_DEPENDENCIES_$1_$2},-I ${STEM_SHARED_DIR}/${stem_dependency}/include} \
 ${foreach thirdparty_dependency,${THIRDPARTY_LIBRARY_DEPENDENCIES} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1_$2},-I ${STEM_SHARED_DIR}/${dir ${thirdparty_dependency}}include} \
 ${foreach source_dependency,${STEM_SOURCE_DEPENDENCIES} ${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$1_$2},-I dep/${word 1,${subst /, ,${source_dependency}}}/source}
