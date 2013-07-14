@@ -1,5 +1,5 @@
 1.3.0
- * Updated API for shell Stable_2013-07-09 (adds threads)
+ * Updated API for shell 1.0.0 (adds threads)
  * Fixed overrelease of an object allocated during view initialization (had no observable effect, but theoretically could lead to a crash)
 
 1.2.0
