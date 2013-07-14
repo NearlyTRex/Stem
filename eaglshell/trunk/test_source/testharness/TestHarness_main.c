@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include "shell/ShellBatteryInfo.h"
 #include "shell/ShellKeyCodes.h"
+#include "shell/ShellThreads.h"
 
 #include <OpenGLES/ES1/gl.h>
 #include <OpenGLES/ES1/glext.h>
@@ -34,6 +35,8 @@ static GLint modelviewMatrixUniform;
 static GLint constantColorUniform;
 static unsigned int timer1ID = UINT_MAX, timer2ID = UINT_MAX;
 static bool deltaMode;
+
+#define msleep(ms) usleep((ms) * 1000)
 
 #define VERTEX_ATTRIB_INDEX 0
 
@@ -254,7 +257,7 @@ static void timerCallback(unsigned int timerID, void * context) {
 static int threadFunc1(void * context) {
 	printf("Secondary thread 1 %p begin\n", Shell_getCurrentThread());
 	Shell_lockMutex(context);
-	sleep(1);
+	msleep(1000);
 	Shell_unlockMutex(context);
 	printf("Secondary thread 1 %p end\n", Shell_getCurrentThread());
 	return 0;
@@ -262,15 +265,15 @@ static int threadFunc1(void * context) {
 
 static int threadFunc2(void * context) {
 	printf("Secondary thread 2 %p begin\n", Shell_getCurrentThread());
-	Shell_unlockMutex(context);
-	sleep(1);
+	msleep(1000);
+	Shell_postSemaphore(context);
 	printf("Secondary thread 2 %p end\n", Shell_getCurrentThread());
 	return 0;
 }
 
 static int threadFunc3(void * context) {
 	printf("Secondary thread 3 %p begin\n", Shell_getCurrentThread());
-	sleep(1);
+	msleep(1000);
 	printf("Secondary thread 3 %p exit\n", Shell_getCurrentThread());
 	Shell_exitThread(2);
 	printf("Secondary thread 3 %p end (bad!)\n", Shell_getCurrentThread());
@@ -278,10 +281,11 @@ static int threadFunc3(void * context) {
 }
 
 void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned int modifierFlags) {
-	printf("Target_keyDown(%d, %d, 0x%X)\n", charCode, keyCode, modifierFlags);
+	printf("Target_keyDown(%u, %u, 0x%X)\n", charCode, keyCode, modifierFlags);
 	if (keyCode == KEYBOARD_Q) {
 		ShellThread thread;
 		ShellMutex mutex;
+		ShellSemaphore semaphore;
 		bool success;
 		int status;
 		
@@ -292,33 +296,26 @@ void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned int mo
 		success = Shell_tryLockMutex(mutex);
 		printf("Lock acquired: %s (expected true)\n", success ? "true" : "false");
 		success = Shell_tryLockMutex(mutex);
-		printf("Lock acquired: %s (expected false)\n\n", success ? "true" : "false");
-		Shell_unlockMutex(mutex);
-		
-		success = Shell_tryLockMutex(mutex);
 		printf("Lock acquired: %s (expected true)\n\n", success ? "true" : "false");
+		Shell_unlockMutex(mutex);
 		Shell_unlockMutex(mutex);
 		
 		thread = Shell_createThread(threadFunc1, mutex);
+		Shell_detachThread(thread);
 		printf("Created thread %p at %f\n", thread, Shell_getCurrentTime());
-		status = Shell_joinThread(thread);
-		printf("Joined thread at %f, with status %d\n\n", Shell_getCurrentTime(), status);
-		
-		Shell_lockMutex(mutex);
-		thread = Shell_createThread(threadFunc2, mutex);
-		printf("Created thread %p at %f\n", thread, Shell_getCurrentTime());
+		msleep(500);
 		Shell_lockMutex(mutex);
 		printf("Acquired lock at %f\n\n", Shell_getCurrentTime());
 		Shell_unlockMutex(mutex);
 		
-		Shell_lockMutex(mutex);
-		thread = Shell_createThread(threadFunc2, mutex);
+		semaphore = Shell_createSemaphore(0);
+		printf("Try wait semaphore: %s (expected false)\n", Shell_tryWaitSemaphore(semaphore) ? "true" : "false");
+		thread = Shell_createThread(threadFunc2, semaphore);
+		Shell_detachThread(thread);
 		printf("Created thread %p at %f\n", thread, Shell_getCurrentTime());
-		Shell_lockMutex(mutex);
-		printf("Acquired lock at %f\n", Shell_getCurrentTime());
-		Shell_cancelThread(thread);
-		printf("Canceled thread at %f\n\n", Shell_getCurrentTime());
-		Shell_unlockMutex(mutex);
+		printf("Try wait semaphore: %s (expected false)\n", Shell_tryWaitSemaphore(semaphore) ? "true" : "false");
+		Shell_waitSemaphore(semaphore);
+		printf("Acquired semaphore at %f\n\n", Shell_getCurrentTime());
 		
 		thread = Shell_createThread(threadFunc3, mutex);
 		printf("Created thread %p at %f\n", thread, Shell_getCurrentTime());
@@ -326,6 +323,7 @@ void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned int mo
 		printf("Joined thread at %f, with status %d\n\n", Shell_getCurrentTime(), status);
 		
 		Shell_disposeMutex(mutex);
+		Shell_disposeSemaphore(semaphore);
 		
 	} else if (keyCode == KEYBOARD_W) {
 		printf("Shell_setFullScreen(false): %d\n", Shell_setFullScreen(false));

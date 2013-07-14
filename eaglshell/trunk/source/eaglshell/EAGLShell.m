@@ -26,10 +26,12 @@
 #include <mach/mach.h>
 #include <mach/mach_time.h>
 #include <pthread.h>
+#include <semaphore.h>
 
 #import "eaglshell/EAGLShellApplication.h"
 #include "shell/Shell.h"
 #include "shell/ShellBatteryInfo.h"
+#include "shell/ShellThreads.h"
 
 #ifndef __IPHONE_3_2
 typedef enum {
@@ -223,55 +225,84 @@ ShellThread Shell_createThread(int (* threadFunction)(void * context), void * co
 	invocation->threadFunction = threadFunction;
 	invocation->context = context;
 	pthread_create(&thread, NULL, callThreadFunc, invocation);
-	return thread;
+	return (ShellThread) thread;
 }
 
-void Shell_exitThread(int statusCode) {
-	pthread_exit((void *) statusCode);
-}
-
-void Shell_cancelThread(ShellThread thread) {
-	pthread_cancel(thread);
+void Shell_detachThread(ShellThread thread) {
+	pthread_detach((pthread_t) thread);
 }
 
 int Shell_joinThread(ShellThread thread) {
 	int status;
 	void * returnValue;
 	
-	status = pthread_join(thread, &returnValue);
+	status = pthread_join((pthread_t) thread, &returnValue);
 	if (status == 0) {
 		return (int) returnValue;
 	}
 	return status;
 }
 
+void Shell_exitThread(int statusCode) {
+	pthread_exit((void *) statusCode);
+}
+
 ShellThread Shell_getCurrentThread() {
-	return pthread_self();
+	return (ShellThread) pthread_self();
 }
 
 ShellMutex Shell_createMutex() {
 	pthread_mutex_t * mutex;
-	
+	pthread_mutexattr_t recursiveLock;
+
+	pthread_mutexattr_init(&recursiveLock);
+	pthread_mutexattr_settype(&recursiveLock, PTHREAD_MUTEX_RECURSIVE);
 	mutex = malloc(sizeof(pthread_mutex_t));
-	pthread_mutex_init(mutex, NULL);
-	return mutex;
+	pthread_mutex_init(mutex, &recursiveLock);
+	pthread_mutexattr_destroy(&recursiveLock);
+	return (ShellMutex) mutex;
 }
 
 void Shell_disposeMutex(ShellMutex mutex) {
-	pthread_mutex_destroy(mutex);
+	pthread_mutex_destroy((pthread_mutex_t *) mutex);
 	free(mutex);
 }
 
 void Shell_lockMutex(ShellMutex mutex) {
-	pthread_mutex_lock(mutex);
+	pthread_mutex_lock((pthread_mutex_t *) mutex);
 }
 
 bool Shell_tryLockMutex(ShellMutex mutex) {
-	return !pthread_mutex_trylock(mutex);
+	return !pthread_mutex_trylock((pthread_mutex_t *) mutex);
 }
 
 void Shell_unlockMutex(ShellMutex mutex) {
-	pthread_mutex_unlock(mutex);
+	pthread_mutex_unlock((pthread_mutex_t *) mutex);
+}
+
+ShellSemaphore Shell_createSemaphore(unsigned int value) {
+	sem_t * semaphore;
+	
+	semaphore = malloc(sizeof(sem_t));
+	sem_init(semaphore, 0, value > SEM_VALUE_MAX ? SEM_VALUE_MAX : value);
+	return (ShellSemaphore) semaphore;
+}
+
+void Shell_disposeSemaphore(ShellSemaphore semaphore) {
+	sem_destroy((sem_t *) semaphore);
+	free(semaphore);
+}
+
+void Shell_postSemaphore(ShellSemaphore semaphore) {
+	sem_post((sem_t *) semaphore);
+}
+
+void Shell_waitSemaphore(ShellSemaphore semaphore) {
+	sem_wait((sem_t *) semaphore);
+}
+
+bool Shell_tryWaitSemaphore(ShellSemaphore semaphore) {
+	return !sem_trywait((sem_t *) semaphore);
 }
 
 enum EAGLShellOpenGLVersion EAGLShell_getOpenGLAPIVersion() {
