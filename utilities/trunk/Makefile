@@ -31,8 +31,8 @@ TARGET_PLATFORMS_windows = win32 win64
 
 PROJECT_NAME = utilities
 IPHONE_BUILD_SDK_VERSION ?= 4.2
-IPHONE_DEPLOYMENT_TARGET_VERSION = 3.1
-CODESIGN_IDENTITY = "iPhone Developer"
+IPHONE_DEPLOYMENT_TARGET_VERSION ?= 3.1
+CODESIGN_IDENTITY ?= "iPhone Developer"
 
 LIBRARY_TARGETS = library
 EXECUTABLE_TARGETS = unittest testharness
@@ -168,6 +168,7 @@ LINK_ORDER = \
 PROJECT_LIBRARY_DEPENDENCIES_unittest = library
 PROJECT_LIBRARY_DEPENDENCIES_testharness = library
 STEM_LIBRARY_DEPENDENCIES = \
+	shell/1.0.0 \
 	stemobject/3.0.2
 STEM_LIBRARY_DEPENDENCIES_unittest = \
 	stubshell/1.3.0
@@ -302,9 +303,9 @@ ${eval ${call create_directory_target_template,build/intermediate}}
 
 
 define include_ccflags_template #(target, platform)
--I source -I include \
+-I source \
 ${foreach stem_dependency,${STEM_LIBRARY_DEPENDENCIES} ${STEM_LIBRARY_DEPENDENCIES_$1} ${STEM_LIBRARY_DEPENDENCIES_$1_$2},-I ${STEM_SHARED_DIR}/${stem_dependency}/include} \
-${foreach thirdparty_dependency,${THIRDPARTY_LIBRARY_DEPENDENCIES} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1_$2},-I ${STEM_SHARED_DIR}${thirdparty_dependency}/include} \
+${foreach thirdparty_dependency,${THIRDPARTY_LIBRARY_DEPENDENCIES} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1_$2},-I ${STEM_SHARED_DIR}/${dir ${thirdparty_dependency}}include} \
 ${foreach source_dependency,${STEM_SOURCE_DEPENDENCIES} ${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$1_$2},-I dep/${word 1,${subst /, ,${source_dependency}}}/source}
 endef
 
@@ -757,15 +758,16 @@ TARGET_SUFFIX_iphone4 = _iphone4
 IPHONE_SDK_VERSION_iphone ?= 4.2
 IPHONE_SDK_VERSION_ipad ?= 3.2
 IPHONE_SDK_VERSION_iphone4 ?= 4.2
-IPHONESIMULATOR_APPLICATIONS_DIR_iphone ?= ${HOME}/Library/Application Support/iPhone Simulator/4.2/Applications
+IPHONESIMULATOR_APPLICATIONS_DIR_iphone ?= ${HOME}/Library/Application Support/iPhone Simulator/${IPHONE_SDK_VERSION_iphone}/Applications
 IPHONESIMULATOR_APPLICATIONS_DIR_ipad ?= ${HOME}/Library/Application Support/iPhone Simulator/${IPHONE_SDK_VERSION_ipad}/Applications
-IPHONESIMULATOR_APPLICATIONS_DIR_iphone4 ?= ${HOME}/Library/Application Support/iPhone Simulator/4.2/Applications
+IPHONESIMULATOR_APPLICATIONS_DIR_iphone4 ?= ${HOME}/Library/Application Support/iPhone Simulator/${IPHONE_SDK_VERSION_iphone4}/Applications
 SIMULATE_DEVICE_iphone = iPhone
 SIMULATE_DEVICE_ipad = iPad
 SIMULATE_DEVICE_iphone4 = iPhone 4
 SIMULATE_SDKROOT_iphone = /Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator${IPHONE_SDK_VERSION_iphone}.sdk
 SIMULATE_SDKROOT_ipad = /Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator${IPHONE_SDK_VERSION_ipad}.sdk
 SIMULATE_SDKROOT_iphone4 = /Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator${IPHONE_SDK_VERSION_iphone4}.sdk
+IPHONE_SIMULATOR_PATH ?= /Developer/Platforms/iPhoneSimulator.platform/Developer/Applications/iPhone Simulator.app
 
 define install_target_iphonesimulator_template #(target, simulate_device)
 .PHONY: install_$1_iphonesimulator${TARGET_SUFFIX_$2}
@@ -779,7 +781,7 @@ install_$1_iphonesimulator${TARGET_SUFFIX_$2}: $1
 	defaults write com.apple.iphonesimulator SimulateDevice -string "${SIMULATE_DEVICE_$2}"
 	defaults write com.apple.iphonesimulator SimulateSDKRoot -string "${SIMULATE_SDKROOT_$2}"
 	defaults write com.apple.iphonesimulator currentSDKRoot -string "${SIMULATE_SDKROOT_$2}"
-	open "/Developer/Platforms/iPhoneSimulator.platform/Developer/Applications/iPhone Simulator.app"
+	open "${IPHONE_SIMULATOR_PATH}"
 endef
 
 define add_blob_header #(source_file, target_file)

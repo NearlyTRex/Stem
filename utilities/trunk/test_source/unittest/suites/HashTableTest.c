@@ -37,14 +37,14 @@ static void testAccessors() {
 	uint64_t uint64Result;
 	float floatResult;
 	double doubleResult;
-	void * pointerResult;
+	const void * pointerResult;
 	const char * stringResult;
-	void * blobResult;
+	const void * blobResult;
 	HashTable * hashTableResult;
 	size_t length;
 	bool keyPresent;
 	void * ptrZero, * ptrNegativeOne;
-	const char * stringEmpty = "", * stringHello = "hello";
+	const char * stringEmpty = "", * stringHello = "hello ";
 	char blob0[1] = {'\x00'}, blob1234[4] = {'\x01', '\x02', '\x03', '\x04'};
 	HashTable * tableA, * tableB;
 	
@@ -55,6 +55,7 @@ static void testAccessors() {
 	ptrNegativeOne = (void *) -1;
 	tableA = hashCreate();
 	tableB = hashCreate();
+	hashSetBoolean(tableB, "a", true);
 	
 	// Verify table empty
 	keyPresent = hashHas(hashTable, "bool_false");
@@ -108,6 +109,8 @@ static void testAccessors() {
 	keyPresent = hashHas(hashTable, "string_empty");
 	TestCase_assert(!keyPresent, "Expected false but got true");
 	keyPresent = hashHas(hashTable, "string_hello");
+	TestCase_assert(!keyPresent, "Expected false but got true");
+	keyPresent = hashHas(hashTable, "string_hello_strlen");
 	TestCase_assert(!keyPresent, "Expected false but got true");
 	keyPresent = hashHas(hashTable, "blob_0");
 	TestCase_assert(!keyPresent, "Expected false but got true");
@@ -230,15 +233,16 @@ static void testAccessors() {
 	TestCase_assert(stringResult == NULL, "Expected NULL but got %p", stringResult);
 	stringResult = hashGetString(hashTable, "string_hello", &length);
 	TestCase_assert(stringResult == NULL, "Expected NULL but got %p", stringResult);
+	stringResult = hashGetString(hashTable, "string_hello_strlen", &length);
+	TestCase_assert(stringResult == NULL, "Expected NULL but got %p", stringResult);
 	blobResult = hashGetBlob(hashTable, "blob_0", &length);
 	TestCase_assert(blobResult == NULL, "Expected NULL but got %p", blobResult);
 	blobResult = hashGetBlob(hashTable, "blob_1234", &length);
 	TestCase_assert(blobResult == NULL, "Expected NULL but got %p", blobResult);
 	hashTableResult = hashGetHashTable(hashTable, "table_a");
 	TestCase_assert(hashTableResult == NULL, "Expected NULL but got %p", hashTableResult);
-	return;
 	hashTableResult = hashGetHashTable(hashTable, "table_b");
-	TestCase_assert(hashTableResult, "Expected NULL but got %p", hashTableResult);
+	TestCase_assert(hashTableResult == NULL, "Expected NULL but got %p", hashTableResult);
 	
 	// Set values
 	hashSetBoolean(hashTable, "bool_false", false);
@@ -322,21 +326,24 @@ static void testAccessors() {
 	hashSetString(hashTable, "string_empty", stringEmpty, HASH_USE_STRLEN);
 	count = hashGetCount(hashTable);
 	TestCase_assert(count == 25, "Expected 25 but got %u", (unsigned int) count);
-	hashSetString(hashTable, "string_hello", stringHello, HASH_USE_STRLEN);
+	hashSetString(hashTable, "string_hello", stringHello, 5);
 	count = hashGetCount(hashTable);
 	TestCase_assert(count == 26, "Expected 26 but got %u", (unsigned int) count);
-	hashSetBlob(hashTable, "blob_0", blob0, 1);
+	hashSetString(hashTable, "string_hello_strlen", stringHello, HASH_USE_STRLEN);
 	count = hashGetCount(hashTable);
 	TestCase_assert(count == 27, "Expected 27 but got %u", (unsigned int) count);
-	hashSetBlob(hashTable, "blob_1234", blob1234, 4);
+	hashSetBlob(hashTable, "blob_0", blob0, 1);
 	count = hashGetCount(hashTable);
 	TestCase_assert(count == 28, "Expected 28 but got %u", (unsigned int) count);
-	hashSetHashTable(hashTable, "table_a", tableA);
+	hashSetBlob(hashTable, "blob_1234", blob1234, 4);
 	count = hashGetCount(hashTable);
 	TestCase_assert(count == 29, "Expected 29 but got %u", (unsigned int) count);
-	hashSetHashTable(hashTable, "table_b", tableB);
+	hashSetHashTable(hashTable, "table_a", tableA);
 	count = hashGetCount(hashTable);
 	TestCase_assert(count == 30, "Expected 30 but got %u", (unsigned int) count);
+	hashSetHashTable(hashTable, "table_b", tableB);
+	count = hashGetCount(hashTable);
+	TestCase_assert(count == 31, "Expected 31 but got %u", (unsigned int) count);
 	
 	// Verify table full
 	keyPresent = hashHas(hashTable, "bool_false");
@@ -390,6 +397,8 @@ static void testAccessors() {
 	keyPresent = hashHas(hashTable, "string_empty");
 	TestCase_assert(keyPresent, "Expected true but got false");
 	keyPresent = hashHas(hashTable, "string_hello");
+	TestCase_assert(keyPresent, "Expected true but got false");
+	keyPresent = hashHas(hashTable, "string_hello_strlen");
 	TestCase_assert(keyPresent, "Expected true but got false");
 	keyPresent = hashHas(hashTable, "blob_0");
 	TestCase_assert(keyPresent, "Expected true but got false");
@@ -540,6 +549,12 @@ static void testAccessors() {
 	TestCase_assert(!strcmp(entryPtr->key, "string_hello"), "Expected \"string_hello\" but got \"%s\"", entryPtr->key);
 	TestCase_assert(entryPtr->value.string.length == 5, "Expected 5 but got %u", (unsigned int) entryPtr->value.string.length);
 	TestCase_assert(!strcmp(entryPtr->value.string.bytes, "hello"), "Expected \"hello\" but got \"%s\"", entryPtr->value.string.bytes);
+	entryPtr = hashLookup(hashTable, "string_hello_strlen");
+	TestCase_assert(entryPtr != NULL, "Expected non-NULL but got NULL");
+	TestCase_assert(entryPtr->type == HASH_TYPE_STRING, "Expected %d but got %d", HASH_TYPE_STRING, entryPtr->type);
+	TestCase_assert(!strcmp(entryPtr->key, "string_hello_strlen"), "Expected \"string_hello_strlen\" but got \"%s\"", entryPtr->key);
+	TestCase_assert(entryPtr->value.string.length == 6, "Expected 6 but got %u", (unsigned int) entryPtr->value.string.length);
+	TestCase_assert(!strcmp(entryPtr->value.string.bytes, "hello "), "Expected \"hello \" but got \"%s\"", entryPtr->value.string.bytes);
 	entryPtr = hashLookup(hashTable, "blob_0");
 	TestCase_assert(entryPtr != NULL, "Expected non-NULL but got NULL");
 	TestCase_assert(entryPtr->type == HASH_TYPE_BLOB, "Expected %d but got %d", HASH_TYPE_BLOB, entryPtr->type);
@@ -550,13 +565,29 @@ static void testAccessors() {
 	TestCase_assert(entryPtr != NULL, "Expected non-NULL but got NULL");
 	TestCase_assert(entryPtr->type == HASH_TYPE_BLOB, "Expected %d but got %d", HASH_TYPE_BLOB, entryPtr->type);
 	TestCase_assert(!strcmp(entryPtr->key, "blob_1234"), "Expected \"blob_1234\" but got \"%s\"", entryPtr->key);
-	TestCase_assert(entryPtr->value.blob.length == 1, "Expected 1 but got %u", (unsigned int) entryPtr->value.blob.length);
-	TestCase_assert(!memcmp(entryPtr->value.blob.bytes, blob1234, sizeof(blob1234)), "Expected \"%.*s\" but got \"%.*s\"", 1, blob1234, 1, entryPtr->value.string.bytes);
+	TestCase_assert(entryPtr->value.blob.length == 4, "Expected 4 but got %u", (unsigned int) entryPtr->value.blob.length);
+	TestCase_assert(!memcmp(entryPtr->value.blob.bytes, blob1234, sizeof(blob1234)), "Expected \"%.*s\" but got \"%.*s\"", 4, blob1234, 4, entryPtr->value.string.bytes);
 	entryPtr = hashLookup(hashTable, "table_a");
 	TestCase_assert(entryPtr != NULL, "Expected non-NULL but got NULL");
 	TestCase_assert(entryPtr->type == HASH_TYPE_HASH, "Expected %d but got %d", HASH_TYPE_HASH, entryPtr->type);
 	TestCase_assert(!strcmp(entryPtr->key, "table_a"), "Expected \"table_a\" but got \"%s\"", entryPtr->key);
-	//TestCase_assert(entryPtr->value.hashTable, "Expected 1 but got %u", (unsigned int) entryPtr->value.blob.length);
+	TestCase_assert(entryPtr->value.hashTable != NULL, "Expected non-NULL but got NULL");
+	count = hashGetCount(entryPtr->value.hashTable);
+	TestCase_assert(count == 0, "Expected 0 but got %u", (unsigned int) count);
+	TestCase_assert(entryPtr->value.hashTable != tableA, "Expected pointers to differ, but they didn't");
+	entryPtr = hashLookup(hashTable, "table_b");
+	TestCase_assert(entryPtr != NULL, "Expected non-NULL but got NULL");
+	TestCase_assert(entryPtr->type == HASH_TYPE_HASH, "Expected %d but got %d", HASH_TYPE_HASH, entryPtr->type);
+	TestCase_assert(!strcmp(entryPtr->key, "table_b"), "Expected \"table_b\" but got \"%s\"", entryPtr->key);
+	TestCase_assert(entryPtr->value.hashTable != NULL, "Expected non-NULL but got NULL");
+	count = hashGetCount(entryPtr->value.hashTable);
+	TestCase_assert(count == 1, "Expected 1 but got %u", (unsigned int) count);
+	TestCase_assert(entryPtr->value.hashTable != tableB, "Expected pointers to differ, but they didn't");
+	entryPtr = hashLookup(entryPtr->value.hashTable, "a");
+	TestCase_assert(entryPtr != NULL, "Expected non-NULL but got NULL");
+	TestCase_assert(entryPtr->type == HASH_TYPE_BOOLEAN, "Expected %d but got %d", HASH_TYPE_BOOLEAN, entryPtr->type);
+	TestCase_assert(!strcmp(entryPtr->key, "a"), "Expected \"a\" but got \"%s\"", entryPtr->key);
+	TestCase_assert(entryPtr->value.boolean, "Expected true but got false");
 	
 	// Verify accessors return correct values for set keys
 	boolResult = hashGetBoolean(hashTable, "bool_false");
@@ -609,7 +640,42 @@ static void testAccessors() {
 	doubleResult = hashGetDouble(hashTable, "double_max");
 	TestCase_assert(doubleResult == DBL_MAX, "Expected %f but got %f", DBL_MAX, doubleResult);
 	
-	hashDispose(hashTable);
+	pointerResult = hashGetPointer(hashTable, "pointer_NULL");
+	TestCase_assert(pointerResult == ptrZero, "Expected %p but got %p", ptrZero, pointerResult);
+	pointerResult = hashGetPointer(hashTable, "pointer_-1");
+	TestCase_assert(pointerResult == ptrNegativeOne, "Expected %p but got %p", ptrNegativeOne, pointerResult);
+	stringResult = hashGetString(hashTable, "string_empty", &length);
+	TestCase_assert(stringResult != NULL, "Expected non-NULL but got NULL");
+	TestCase_assert(!strcmp(stringResult, stringEmpty), "Expected \"%s\" but got \"%s\"", stringEmpty, stringResult);
+	TestCase_assert(length == 0, "Expected 0 but got %u", (unsigned int) length);
+	stringResult = hashGetString(hashTable, "string_hello", &length);
+	TestCase_assert(stringResult != NULL, "Expected non-NULL but got NULL");
+	TestCase_assert(!strncmp(stringResult, stringHello, 5), "Expected \"%.5s\" but got \"%.5s\"", stringHello, stringResult);
+	TestCase_assert(length == 5, "Expected 5 but got %u", (unsigned int) length);
+	stringResult = hashGetString(hashTable, "string_hello_strlen", &length);
+	TestCase_assert(stringResult != NULL, "Expected non-NULL but got NULL");
+	TestCase_assert(!strcmp(stringResult, stringHello), "Expected \"%s\" but got \"%s\"", stringHello, stringResult);
+	TestCase_assert(length == 6, "Expected 6 but got %u", (unsigned int) length);
+	blobResult = hashGetBlob(hashTable, "blob_0", &length);
+	TestCase_assert(blobResult != NULL, "Expected non-NULL but got NULL");
+	TestCase_assert(length == 1, "Expected 1 but got %u", (unsigned int) length);
+	TestCase_assert(!memcmp(blobResult, blob0, sizeof(blob0)), "Expected \"%.*s\" but got \"%.*s\"", 1, (char *) blob0, 1, (char *) blobResult);
+	blobResult = hashGetBlob(hashTable, "blob_1234", &length);
+	TestCase_assert(blobResult != NULL, "Expected non-NULL but got NULL");
+	TestCase_assert(length == 4, "Expected 4 but got %u", (unsigned int) length);
+	TestCase_assert(!memcmp(blobResult, blob1234, sizeof(blob1234)), "Expected \"%.*s\" but got \"%.*s\"", 4, (char *) blob1234, 4, (char *) blobResult);
+	hashTableResult = hashGetHashTable(hashTable, "table_a");
+	TestCase_assert(hashTableResult != NULL, "Expected non-NULL but got NULL");
+	count = hashGetCount(hashTableResult);
+	TestCase_assert(count == 0, "Expected 0 but got %u", (unsigned int) count);
+	TestCase_assert(hashTableResult != tableA, "Expected pointers to differ, but they didn't");
+	hashTableResult = hashGetHashTable(hashTable, "table_b");
+	TestCase_assert(hashTableResult != NULL, "Expected non-NULL but got NULL");
+	count = hashGetCount(hashTableResult);
+	TestCase_assert(count == 1, "Expected 1 but got %u", (unsigned int) count);
+	TestCase_assert(hashTableResult != tableB, "Expected pointers to differ, but they didn't");
+	boolResult = hashGetBoolean(hashTableResult, "a");
+	TestCase_assert(boolResult, "Expected true but got false");
 }
 
 static void testCopy() {
@@ -617,18 +683,22 @@ static void testCopy() {
 	HashTable * copy;
 	size_t count, countCopy;
 	const char * string, * stringCopy;
-	void * blob, * blobCopy;
+	const void * blob, * blobCopy;
 	HashTable * subtable, * subtableCopy;
 	size_t length, lengthCopy;
 	
 	hashTable = hashCreate();
 	hashSetString(hashTable, "a", "hello", HASH_USE_STRLEN);
 	hashSetBlob(hashTable, "b", "foo", 3);
-	hashSetHashTable(hashTable, "c", hashCreate());
+	subtable = hashCreate();
+	hashSetString(subtable, "c", "foo", HASH_USE_STRLEN);
+	hashSetPointer(subtable, "d", (void *) 0x1234);
+	hashSetHashTable(hashTable, "c", subtable);
+	hashDispose(subtable);
 	
-	return;
 	copy = hashCopy(hashTable);
 	TestCase_assert(copy != NULL, "Expected non-NULL but got NULL");
+	TestCase_assert(copy != hashTable, "Expected pointers to differ, but they didn't");
 	
 	count = hashGetCount(hashTable);
 	countCopy = hashGetCount(copy);
@@ -660,8 +730,8 @@ static void testCopy() {
 	TestCase_assert(subtableCopy != NULL, "Expected non-NULL but got NULL");
 	count = hashGetCount(subtable);
 	countCopy = hashGetCount(subtableCopy);
-	TestCase_assert(count == 0, "Expected 0 but got %u", (unsigned int) count);
-	TestCase_assert(countCopy == 0, "Expected 0 but got %u", (unsigned int) countCopy);
+	TestCase_assert(count == 2, "Expected 2 but got %u", (unsigned int) count);
+	TestCase_assert(countCopy == 2, "Expected 2 but got %u", (unsigned int) countCopy);
 	TestCase_assert(subtable != subtableCopy, "Expected pointers to differ, but they didn't");
 	
 	hashDispose(hashTable);
@@ -669,15 +739,116 @@ static void testCopy() {
 }
 
 static void testReplaceValues() {
+	HashTable * hash;
+	size_t count;
+	const char ** keys;
+	int32_t int32;
+	const char * string;
+	
+	hash = hashCreate();
+	hashSetInt32(hash, "a", 1);
+	hashSetInt32(hash, "b", 2);
+	count = hashGetCount(hash);
+	TestCase_assert(count == 2, "Expected 2 but got %u", (unsigned int) count);
+	int32 = hashGetInt32(hash, "b");
+	TestCase_assert(int32 == 2, "Expected 2 but got %d", int32);
+	
+	hashSetInt32(hash, "b", 3);
+	count = hashGetCount(hash);
+	TestCase_assert(count == 2, "Expected 2 but got %u", (unsigned int) count);
+	int32 = hashGetInt32(hash, "b");
+	TestCase_assert(int32 == 3, "Expected 3 but got %d", int32);
+	
+	hashSetString(hash, "a", "hello", HASH_USE_STRLEN);
+	count = hashGetCount(hash);
+	TestCase_assert(count == 2, "Expected 2 but got %u", (unsigned int) count);
+	string = hashGetString(hash, "a", NULL);
+	TestCase_assert(string != NULL, "Expected non-NULL but got NULL");
+	TestCase_assert(!strcmp(string, "hello"), "Expected \"hello\" but got \"%s\"", string);
+	
+	hashSetInt32(hash, "a", 1);
+	count = hashGetCount(hash);
+	TestCase_assert(count == 2, "Expected 2 but got %u", (unsigned int) count);
+	int32 = hashGetInt32(hash, "a");
+	TestCase_assert(int32 == 1, "Expected 1 but got %d", int32);
+	
+	keys = hashGetKeys(hash, &count);
+	TestCase_assert(count == 2, "Expected 2 but got %u", (unsigned int) count);
+	TestCase_assert((!strcmp(keys[0], "a") && !strcmp(keys[1], "b")) || (!strcmp(keys[0], "b") && !strcmp(keys[1], "a")), "Expected \"a\" and \"b\", but got \"%s\" and \"%s\"", keys[0], keys[1]);
+	free(keys);
 }
 
 static void testDeleteValues() {
+	HashTable * hash;
+	size_t count;
+	const char ** keys;
+	bool found;
+	
+	hash = hashCreate();
+	hashSetInt32(hash, "a", 1);
+	hashSetInt32(hash, "b", 2);
+	hashSetInt32(hash, "c", 3);
+	count = hashGetCount(hash);
+	TestCase_assert(count == 3, "Expected 3 but got %u", (unsigned int) count);
+	
+	found = hashDelete(hash, "d");
+	TestCase_assert(!found, "Expected false but got true");
+	
+	found = hashDelete(hash, "b");
+	TestCase_assert(found, "Expected true but got false");
+	count = hashGetCount(hash);
+	TestCase_assert(count == 2, "Expected 2 but got %u", (unsigned int) count);
+	TestCase_assert(!hashHas(hash, "b"), "Expected false but got true");
+	keys = hashGetKeys(hash, &count);
+	TestCase_assert(count == 2, "Expected 2 but got %u", (unsigned int) count);
+	TestCase_assert((!strcmp(keys[0], "a") && !strcmp(keys[1], "c")) || (!strcmp(keys[0], "c") && !strcmp(keys[1], "a")), "Expected \"a\" and \"c\", but got \"%s\" and \"%s\"", keys[0], keys[1]);
+	free(keys);
+	
+	found = hashDelete(hash, "b");
+	TestCase_assert(!found, "Expected false but got true");
+	
+	found = hashDelete(hash, "a");
+	TestCase_assert(found, "Expected true but got false");
+	count = hashGetCount(hash);
+	TestCase_assert(count == 1, "Expected 1 but got %u", (unsigned int) count);
+	TestCase_assert(!hashHas(hash, "a"), "Expected false but got true");
+	keys = hashGetKeys(hash, &count);
+	TestCase_assert(count == 1, "Expected 1 but got %u", (unsigned int) count);
+	TestCase_assert(!strcmp(keys[0], "c"), "Expected \"c\" but got \"%s\"", keys[0]);
+	free(keys);
+	
+	hashDispose(hash);
 }
 
 static void testGetKeys() {
-}
-
-static void testShallowCopy() {
+	HashTable * hashTable;
+	const char ** keys;
+	size_t count;
+	
+	hashTable = hashCreate();
+	hashSetBoolean(hashTable, "a", false);
+	count = 0;
+	keys = hashGetKeys(hashTable, &count);
+	
+	TestCase_assert(keys != NULL, "Expected non-NULL but got NULL");
+	TestCase_assert(count == 1, "Expected 1 but got %u", (unsigned int) count);
+	TestCase_assert(!strcmp(keys[0], "a"), "Expected \"a\" but got \"%s\"", keys[0]);
+	
+	hashDispose(hashTable);
+	free(keys);
+	
+	hashTable = hashCreate();
+	hashSetBoolean(hashTable, "bar", true);
+	hashSetInt32(hashTable, "foo", 1);
+	count = 0;
+	keys = hashGetKeys(hashTable, &count);
+	
+	TestCase_assert(keys != NULL, "Expected non-NULL but got NULL");
+	TestCase_assert(count == 2, "Expected 2 but got %u", (unsigned int) count);
+	TestCase_assert((!strcmp(keys[0], "foo") && !strcmp(keys[1], "bar")) || (!strcmp(keys[0], "bar") && !strcmp(keys[1], "foo")), "Expected \"foo\" and \"bar\" but got \"%s\" and \"%s\"", keys[0], keys[1]);
+	
+	hashDispose(hashTable);
+	free(keys);
 }
 
 TEST_SUITE(HashTableTest,
@@ -686,5 +857,4 @@ TEST_SUITE(HashTableTest,
            testCopy,
            testReplaceValues,
            testDeleteValues,
-           testGetKeys,
-           testShallowCopy)
+           testGetKeys)

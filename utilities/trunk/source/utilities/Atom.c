@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2012 Alex Diener
+  Copyright (c) 2013 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -23,7 +23,7 @@
 #include "utilities/Atom.h"
 #include "utilities/lookup3.h"
 
-#include "shell/Shell.h"
+#include "shell/ShellThreads.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>

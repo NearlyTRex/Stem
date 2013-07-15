@@ -1,8 +1,8 @@
 1.7.0
- * Added HashTable (NOT DONE YET DON'T TAG)
+ * Added HashTable (not yet optimized; functional, but likely to be slow and/or memory-inefficient)
  * Added ATOM convenience macro (expands to Atom_fromString)
  * Added 64-bit Windows and Linux support
- * Updated API for Shell Stable_2013-07-07
+ * Updated API for shell 1.0.0
 
 1.6.1
  * Atom_fromString now uses a hash table internally and performs significantly faster, with much less penalty for adding more atoms

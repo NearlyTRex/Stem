@@ -1,3 +1,25 @@
+/*
+  Copyright (c) 2013 Alex Diener
+  
+  This software is provided 'as-is', without any express or implied
+  warranty. In no event will the authors be held liable for any damages
+  arising from the use of this software.
+  
+  Permission is granted to anyone to use this software for any purpose,
+  including commercial applications, and to alter it and redistribute it
+  freely, subject to the following restrictions:
+  
+  1. The origin of this software must not be misrepresented; you must not
+     claim that you wrote the original software. If you use this software
+     in a product, an acknowledgment in the product documentation would be
+     appreciated but is not required.
+  2. Altered source versions must be plainly marked as such, and must not be
+     misrepresented as being the original software.
+  3. This notice may not be removed or altered from any source distribution.
+  
+  Alex Diener adiener@sacredsoftware.net
+*/
+
 #ifndef __HashTable_H__
 #define __HashTable_H__
 
@@ -97,7 +119,7 @@ size_t hashGetCount(HashTable * hash);
     itself.
     
     Although you can pass NULL for outCount and count the items with hashGetCount, it's recommended to instead
-    retrieve the number of items with outCount, for reasons of atomicity. */
+    retrieve the number of items with outCount. */
 const char ** hashGetKeys(HashTable * hash, size_t * outCount);
 
 /** Sets the specified value for the specified key in the hash table. If a value with the same key already
@@ -113,7 +135,7 @@ void hashSetInt64(    HashTable * hash, const char * key, int64_t value);
 void hashSetUInt64(   HashTable * hash, const char * key, uint64_t value);
 void hashSetFloat(    HashTable * hash, const char * key, float value);
 void hashSetDouble(   HashTable * hash, const char * key, double value);
-void hashSetPointer(  HashTable * hash, const char * key, void * value);
+void hashSetPointer(  HashTable * hash, const char * key, const void * value);
 
 /** These three make a copy of their inputs, so the caller retains ownership of the data. The copies will be
     freed automatically when the corresponding key is deleted. In a situation where you want to retain full
@@ -122,7 +144,7 @@ void hashSetPointer(  HashTable * hash, const char * key, void * value);
     An additional note on hashSetString: If you want the string's length to be determined by strlen(), pass
     HASH_USE_STRLEN for the length parameter. */
 void hashSetString(   HashTable * hash, const char * key, const char * value, size_t length);
-void hashSetBlob(     HashTable * hash, const char * key, void * value,       size_t length);
+void hashSetBlob(     HashTable * hash, const char * key, const void * value, size_t length);
 void hashSetHashTable(HashTable * hash, const char * key, HashTable * value);
 
 /** Returns the corresponding value for the specified key in the hash table, or false/0/NULL if it doesn't
@@ -140,11 +162,11 @@ int64_t            hashGetInt64(    HashTable * hash, const char * key);
 uint64_t           hashGetUInt64(   HashTable * hash, const char * key);
 float              hashGetFloat(    HashTable * hash, const char * key);
 double             hashGetDouble(   HashTable * hash, const char * key);
-void *             hashGetPointer(  HashTable * hash, const char * key);
+const void *       hashGetPointer(  HashTable * hash, const char * key);
 
 /** Returned values are owned by HashTable and must not be altered or freed by the caller. */
 const char *       hashGetString(   HashTable * hash, const char * key, size_t * outLength);
-void *             hashGetBlob(     HashTable * hash, const char * key, size_t * outLength);
+const void *       hashGetBlob(     HashTable * hash, const char * key, size_t * outLength);
 HashTable *        hashGetHashTable(HashTable * hash, const char * key);
 
 #endif

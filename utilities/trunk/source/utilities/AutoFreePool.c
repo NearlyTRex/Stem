@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2012 Alex Diener
+  Copyright (c) 2013 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -25,7 +25,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "shell/Shell.h"
+#include "shell/ShellThreads.h"
 
 struct AutoFreePool_callback {
 	void (* callback)(void * context);
