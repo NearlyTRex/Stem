@@ -3,11 +3,16 @@ all: library unittest test include
 
 UNAME = ${shell uname}
 ifeq (${UNAME},Linux)
+-include ~/.stem.defines
+STEM_SHARED_DIR ?= /usr/local/stem
 HOST_PLATFORM = linux
 else ifeq (${UNAME},Darwin)
 -include ~/.stem.defines
+STEM_SHARED_DIR ?= /usr/local/stem
 HOST_PLATFORM = macosx
 else
+STEM_SHARED_DIR ?= C:/stem
+-include ${STEM_SHARED_DIR}/stem.defines
 HOST_PLATFORM = windows
 endif
 
@@ -21,33 +26,32 @@ endef
 iphone_sdk_version_integer = ${subst .,0,$1}${word ${words ${wordlist 2, ${words ${subst ., ,$1}}, ${subst ., ,$1}}}, 00}
 
 TARGET_PLATFORMS_macosx = macosx iphonesimulator iphoneos
-TARGET_PLATFORMS_linux = linux
-TARGET_PLATFORMS_windows = windows
+TARGET_PLATFORMS_linux = linux32 linux64
+TARGET_PLATFORMS_windows = win32 win64
 
 PROJECT_NAME = serialization
 IPHONE_BUILD_SDK_VERSION ?= 4.2
-IPHONE_DEPLOYMENT_TARGET_VERSION = 3.1
-CODESIGN_IDENTITY = "iPhone Developer"
-SVNROOT = http://sacredsoftware.net/svn/misc#master_source_only
+IPHONE_DEPLOYMENT_TARGET_VERSION ?= 3.1
+CODESIGN_IDENTITY ?= "iPhone Developer"
 
 LIBRARY_TARGETS = library
 EXECUTABLE_TARGETS = unittest
 APPLICATION_TARGETS = 
 TARGETS = ${LIBRARY_TARGETS} ${EXECUTABLE_TARGETS} ${APPLICATION_TARGETS}
 CONFIGURATIONS = debug profile release
-PLATFORMS = ${filter ${TARGET_PLATFORMS_${HOST_PLATFORM}},macosx iphonesimulator iphoneos linux windows}
+PLATFORMS = ${filter ${TARGET_PLATFORMS_${HOST_PLATFORM}},macosx iphonesimulator iphoneos linux32 linux64 win32 win64}
 ANALYZERS = splint clang
 
-TARGET_NAME_library = libstem_serialization
-TARGET_NAME_unittest = serialization_unittest
+TARGET_NAME_library = libstem_${PROJECT_NAME}
+TARGET_NAME_unittest = ${PROJECT_NAME}_unittest
 
 #Per-target configurations
 CONFIGURATIONS_library = debug profile release
 CONFIGURATIONS_unittest = debug
 
 #Per-target platforms
-PLATFORMS_library = ${filter ${PLATFORMS},macosx iphonesimulator iphoneos linux windows}
-PLATFORMS_unittest = ${filter ${PLATFORMS},macosx iphonesimulator linux windows}
+PLATFORMS_library = ${filter ${PLATFORMS},macosx iphonesimulator iphoneos linux32 linux64 win32 win64}
+PLATFORMS_unittest = ${filter ${PLATFORMS},macosx iphonesimulator linux32 linux64 win32 win64}
 
 #Per-target compile/link settings
 CCFLAGS_unittest = -I test_source -include build/intermediate/TestList.h
@@ -62,17 +66,16 @@ CCFLAGS_profile = -g -O3
 CCFLAGS_release = -O3
 
 #Per-platform compile/link settings
-CC_macosx_ppc = /usr/bin/gcc-4.2 -arch ppc
 CC_macosx_i386 = /usr/bin/clang -arch i386
 CC_macosx_x86_64 = /usr/bin/clang -arch x86_64
 AR_macosx = /usr/bin/ar
 RANLIB_macosx = /usr/bin/ranlib
 SPLINT_macosx = /usr/local/bin/splint
 CLANG_macosx = /usr/bin/clang
-SDKROOT_macosx = /Developer/SDKs/MacOSX10.5.sdk
-ARCHS_macosx = ppc i386 x86_64
-CCFLAGS_macosx = -isysroot ${SDKROOT_macosx} -mmacosx-version-min=10.5
-LINKFLAGS_macosx = -isysroot ${SDKROOT_macosx} -mmacosx-version-min=10.5
+SDKROOT_macosx = /Developer/SDKs/MacOSX10.6.sdk
+ARCHS_macosx = i386 x86_64
+CCFLAGS_macosx = -isysroot ${SDKROOT_macosx} -mmacosx-version-min=10.6
+LINKFLAGS_macosx = -isysroot ${SDKROOT_macosx} -mmacosx-version-min=10.6
 
 CC_iphonesimulator_i386 = /Developer/Platforms/iPhoneSimulator.platform/Developer/usr/bin/gcc-4.2 -arch i386
 AR_iphonesimulator = /Developer/Platforms/iPhoneSimulator.platform/Developer/usr/bin/ar
@@ -95,24 +98,49 @@ ARCHS_iphoneos = armv6 armv7
 CCFLAGS_iphoneos = -isysroot ${SDKROOT_iphoneos} -miphoneos-version-min=${IPHONE_DEPLOYMENT_TARGET_VERSION}
 LINKFLAGS_iphoneos = -isysroot ${SDKROOT_iphoneos} -miphoneos-version-min=${IPHONE_DEPLOYMENT_TARGET_VERSION}
 
-CC_linux_i686 = /usr/bin/gcc
-AR_linux = /usr/bin/ar
-RANLIB_linux = /usr/bin/ranlib
-SPLINT_linux = /usr/local/bin/splint
-CLANG_linux = /usr/local/bin/clang
-ARCHS_linux = i686
-CCFLAGS_linux = 
-LINKFLAGS_linux = -lm -ldl -Wl,-E
+CC_linux32_i386 = /usr/bin/gcc
+AR_linux32 = /usr/bin/ar
+RANLIB_linux32 = /usr/bin/ranlib
+SPLINT_linux32 = /usr/local/bin/splint
+CLANG_linux32 = /usr/local/bin/clang
+ARCHS_linux32 = i386
+CCFLAGS_linux32 = -m32
+LINKFLAGS_linux32 = -m32 -lm -ldl -Wl,-E
 
-CC_windows_i686 = C:/MinGW/bin/gcc.exe
-AR_windows = C:/MinGW/bin/ar.exe
-RANLIB_windows = C:/MinGW/bin/ranlib.exe
-SPLINT_windows = C:/splint-3.1.1/bin/splint.exe
-CLANG_windows = C:/llvm/bin/clang.exe
-ARCHS_windows = i686
-CCFLAGS_windows = 
-LINKFLAGS_windows = 
-EXECUTABLE_SUFFIX_windows = .exe
+CC_linux64_x86_64 = /usr/bin/gcc
+AR_linux64 = /usr/bin/ar
+RANLIB_linux64 = /usr/bin/ranlib
+SPLINT_linux64 = /usr/local/bin/splint
+CLANG_linux64 = /usr/local/bin/clang
+ARCHS_linux64 = x86_64
+CCFLAGS_linux64 = -m64
+LINKFLAGS_linux64 = -m64 -lm -ldl -Wl,-E
+
+MINGW_W32_PATH ?= C:/MinGW
+MINGW_W32_VERSION ?= 4.6.2
+SPLINT_WIN_PATH ?= C:/splint-3.1.1/bin/splint.exe
+CLANG_WIN_PATH ?= C:/llvm/bin/clang.exe
+CC_win32_i386 = ${MINGW_W32_PATH}/bin/gcc.exe
+AR_win32 = ${MINGW_W32_PATH}/bin/ar.exe
+RANLIB_win32 = ${MINGW_W32_PATH}/bin/ranlib.exe
+SPLINT_win32 = ${SPLINT_WIN_PATH}
+CLANG_win32 = ${CLANG_WIN_PATH}
+ARCHS_win32 = i386
+CCFLAGS_win32 = 
+LINKFLAGS_win32 = 
+EXECUTABLE_SUFFIX_win32 = .exe
+
+MINGW_W64_PATH ?= C:/MinGW-w64
+MINGW_W64_VERSION ?= 4.7.0
+CC_win64_x86_64 = ${MINGW_W64_PATH}/bin/x86_64-w64-mingw32-gcc.exe
+AR_win64 = ${MINGW_W64_PATH}/bin/x86_64-w64-mingw32-ar.exe
+RANLIB_win64 = ${MINGW_W64_PATH}/bin/x86_64-w64-mingw32-ranlib.exe
+SPLINT_win64 = ${SPLINT_WIN_PATH}
+CLANG_win64 = ${CLANG_WIN_PATH}
+ARCHS_win64 = x86_64
+CCFLAGS_win64 = 
+LINKFLAGS_win64 = 
+EXECUTABLE_SUFFIX_win64 = .exe
 
 #General compile/link settings
 DEFINE_CCFLAGS = -DVERSION_MAJOR=${VERSION_MAJOR}u -DVERSION_MINOR=${VERSION_MINOR}u -DVERSION_TWEAK=${VERSION_TWEAK}u
@@ -127,31 +155,21 @@ LINKFLAGS = ${FRAMEWORK_LINKFLAGS} ${LIBRARY_LINKFLAGS} ${OTHER_LINKFLAGS}
 
 LINK_ORDER = \
 	library \
-	stemobject/libstem_stemobject.a
+	stemobject
 
-#Per-target dependencies
+#Dependencies (can optionally be per-target or per-target-per-platform)
 
 PROJECT_LIBRARY_DEPENDENCIES_unittest = library
-STEM_LIBRARY_DEPENDENCIES_library = stemobject/libstem_stemobject.a
-STEM_LIBRARY_DEPENDENCIES_unittest = stemobject/libstem_stemobject.a
-STEM_SOURCE_DEPENDENCIES_library = 
-STEM_SOURCE_DEPENDENCIES_unittest = 
-THIRDPARTY_LIBRARY_DEPENDENCIES_library = 
-THIRDPARTY_LIBRARY_DEPENDENCIES_unittest = 
-
-#Per-target per-platform dependencies
-
-PROJECT_LIBRARY_DEPENDENCIES_unittest_macosx = 
-STEM_LIBRARY_DEPENDENCIES_unittest_macosx = 
-STEM_SOURCE_DEPENDENCIES_unittest_macosx = 
-THIRDPARTY_LIBRARY_DEPENDENCIES_unittest_macosx = 
-#...
+STEM_LIBRARY_DEPENDENCIES = stemobject/3.0.2
+STEM_SOURCE_DEPENDENCIES = 
+THIRDPARTY_LIBRARY_DEPENDENCIES = 
 
 #Per-target source file lists
 
 SOURCES_library = \
-	source/serialization/DeserializationContext.c \
-	source/serialization/SerializationContext.c
+	source/${PROJECT_NAME}/DeserializationContext.c \
+	source/${PROJECT_NAME}/SerializationContext.c \
+	source/${PROJECT_NAME}/SerializationShared.c
 
 SOURCES_unittest = \
 	test_source/unittest/framework/unittest_main.c \
@@ -165,9 +183,9 @@ SOURCES_unittest_suites = \
 #Include files to be distributed with library
 
 INCLUDES = \
-	source/serialization/DeserializationContext.h \
-	source/serialization/SerializationContext.h \
-	source/serialization/SerializationShared.h
+	source/${PROJECT_NAME}/DeserializationContext.h \
+	source/${PROJECT_NAME}/SerializationContext.h \
+	source/${PROJECT_NAME}/SerializationShared.h
 
 #Target resources
 
@@ -177,7 +195,8 @@ RESOURCES_unittest_macosx =
 
 #General analyzer settings
 CLANGFLAGS = 
-CLANGFLAGS_windows = -I C:/MinGW/include -I C:/MinGW/lib/gcc/mingw32/4.3.2/include
+CLANGFLAGS_win32 = -I ${MINGW_W32_PATH}/include -I ${MINGW_W32_PATH}/lib/gcc/mingw32/${MINGW_W32_VERSION}/include
+CLANGFLAGS_win64 = -I ${MINGW_W64_PATH}/include -I ${MINGW_W64_PATH}/lib/gcc/mingw32/${MINGW_W64_VERSION}/include
 SPLINTFLAGS = -exportlocal -nullstate -mustfreeonly
 
 #Source files excluded from static analysis
@@ -250,10 +269,10 @@ ${eval ${call create_directory_target_template,build/intermediate}}
 
 
 define include_ccflags_template #(target, platform)
--I source -I include \
-${foreach stem_dependency,${STEM_LIBRARY_DEPENDENCIES_$1} ${STEM_LIBRARY_DEPENDENCIES_$1_$2},-I lib/${dir ${stem_dependency}}include} \
-${foreach thirdparty_dependency,${THIRDPARTY_LIBRARY_DEPENDENCIES_$1} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1_$2},-I lib/${dir ${thirdparty_dependency}}include} \
-${foreach source_dependency,${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$1_$2},-I dep/${word 1,${subst /, ,${source_dependency}}}/source}
+-I source \
+${foreach stem_dependency,${STEM_LIBRARY_DEPENDENCIES} ${STEM_LIBRARY_DEPENDENCIES_$1} ${STEM_LIBRARY_DEPENDENCIES_$2} ${STEM_LIBRARY_DEPENDENCIES_$1_$2},-I ${STEM_SHARED_DIR}/${stem_dependency}/include} \
+${foreach thirdparty_dependency,${THIRDPARTY_LIBRARY_DEPENDENCIES} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$2} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1_$2},-I ${STEM_SHARED_DIR}/${dir ${thirdparty_dependency}}include} \
+${foreach source_dependency,${STEM_SOURCE_DEPENDENCIES} ${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$2} ${STEM_SOURCE_DEPENDENCIES_$1_$2},-I dep/${word 1,${subst /, ,${source_dependency}}}/source}
 endef
 
 define define_ccflags_template #(target, configuration, platform, arch)
@@ -331,17 +350,17 @@ endef
 
 define library_dependency_template #(target, configuration, platform)
 	${foreach link_library,${LINK_ORDER}, \
-		${foreach library,${filter ${link_library},${PROJECT_LIBRARY_DEPENDENCIES_$1} ${PROJECT_LIBRARY_DEPENDENCIES_$1_$3}}, \
+		${foreach library,${filter ${link_library}%,${PROJECT_LIBRARY_DEPENDENCIES} ${PROJECT_LIBRARY_DEPENDENCIES_$1} ${PROJECT_LIBRARY_DEPENDENCIES_$3} ${PROJECT_LIBRARY_DEPENDENCIES_$1_$3}}, \
 			build/${library}/$2-$3/${TARGET_NAME_${library}}.a \
 		} \
-		${foreach library,${filter ${link_library},${STEM_LIBRARY_DEPENDENCIES_$1} ${STEM_LIBRARY_DEPENDENCIES_$1_$3}}, \
-			lib/${dir ${library}}library/$2-$3/${notdir ${library}} \
+		${foreach library,${filter ${link_library}%,${STEM_LIBRARY_DEPENDENCIES} ${STEM_LIBRARY_DEPENDENCIES_$1} ${STEM_LIBRARY_DEPENDENCIES_$3} ${STEM_LIBRARY_DEPENDENCIES_$1_$3}}, \
+			${STEM_SHARED_DIR}/${library}/library/$2-$3/libstem_${word 1,${subst /, ,${library}}}.a \
 		} \
-		${foreach library,${filter ${link_library},${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$1_$3}}, \
+		${foreach library,${filter ${link_library}%,${STEM_SOURCE_DEPENDENCIES} ${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$3} ${STEM_SOURCE_DEPENDENCIES_$1_$3}}, \
 			dep/${word 1,${subst /, ,${library}}}/build/${word 2,${subst /, ,${library}}}/$2-$3/${word 3,${subst /, ,${library}}} \
 		} \
-		${foreach library,${filter ${link_library},${THIRDPARTY_LIBRARY_DEPENDENCIES_$1} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1_$3}}, \
-			lib/${dir ${library}}library/$3/${notdir ${library}} \
+		${foreach library,${filter ${link_library}%,${THIRDPARTY_LIBRARY_DEPENDENCIES} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$3} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1_$3}}, \
+			${STEM_SHARED_DIR}/${dir ${library}}library/$3/${notdir ${library}} \
 		} \
 	}
 endef
@@ -366,7 +385,7 @@ $1:
 endef
 
 #Invokes make for each source dependency
-${foreach dependency,${sort ${foreach target,${TARGETS},${foreach platform,${PLATFORMS_${target}},${STEM_SOURCE_DEPENDENCIES_${target}} ${STEM_SOURCE_DEPENDENCIES_${target}_${platform}}}}}, \
+${foreach dependency,${sort ${foreach target,${TARGETS},${foreach platform,${PLATFORMS_${target}},${STEM_SOURCE_DEPENDENCIES} ${STEM_SOURCE_DEPENDENCIES_${target}} ${STEM_SOURCE_DEPENDENCIES_${platform}} ${STEM_SOURCE_DEPENDENCIES_${target}_${platform}}}}}, \
 	${eval ${call dependency_submake_template,${dependency}}} \
 }
 
@@ -432,10 +451,11 @@ ${foreach target,${LIBRARY_TARGETS}, \
 }
 
 define copy_target_resources #(target, platform, resources_dir)
+	${if ${strip ${RESOURCES_$1} ${RESOURCES_$1_$2}},mkdir -p $3,}
 	${foreach resource,${RESOURCES_$1} ${RESOURCES_$1_$2}, \
 		cp -r ${resource} $3${newline_and_tab} \
 	}
-	find $3 -name .svn -print0 -or -name .DS_Store -print0 | xargs -0 rm -rf
+	find $3 -name .svn -or -name .DS_Store -print0 | xargs -0 rm -rf
 endef
 
 define assemble_executable_macosx #(target, configuration, platform)
@@ -506,18 +526,28 @@ build/$1/$2-iphoneos/${TARGET_NAME_$1}.app/${TARGET_NAME_$1}: ${THIN_BINARIES_$1
 	lipo -create -output $$@ ${THIN_BINARIES_$1_$2_iphoneos}
 endef
 
-define assemble_application_linux #(target, configuration)
-build/$1/$2-linux/${TARGET_NAME_$1}: ${THIN_BINARIES_$1_$2_linux} ${RESOURCES_$1} ${RESOURCES_$1_linux} | build/$1/$2-linux
-	mkdir -p build/$1/$2-linux/Resources
-	${call copy_target_resources,$1,linux,build/$1/$2-linux/Resources}
-	cp ${THIN_BINARIES_$1_$2_linux} $$@
+define assemble_application_linux32 #(target, configuration)
+build/$1/$2-linux32/${TARGET_NAME_$1}: ${THIN_BINARIES_$1_$2_linux32} ${RESOURCES_$1} ${RESOURCES_$1_linux32} | build/$1/$2-linux32
+	${call copy_target_resources,$1,linux32,build/$1/$2-linux32/Resources}
+	cp ${THIN_BINARIES_$1_$2_linux32} $$@
 endef
 
-define assemble_application_windows #(target, configuration)
-build/$1/$2-windows/${TARGET_NAME_$1}.exe: ${THIN_BINARIES_$1_$2_windows} ${RESOURCES_$1} ${RESOURCES_$1_windows} | build/$1/$2-windows
-	mkdir -p build/$1/$2-windows/Resources
-	${call copy_target_resources,$1,windows,build/$1/$2-windows/Resources}
-	cp ${THIN_BINARIES_$1_$2_windows} $$@
+define assemble_application_linux64 #(target, configuration)
+build/$1/$2-linux64/${TARGET_NAME_$1}: ${THIN_BINARIES_$1_$2_linux64} ${RESOURCES_$1} ${RESOURCES_$1_linux64} | build/$1/$2-linux64
+	${call copy_target_resources,$1,linux64,build/$1/$2-linux64/Resources}
+	cp ${THIN_BINARIES_$1_$2_linux64} $$@
+endef
+
+define assemble_application_win32 #(target, configuration)
+build/$1/$2-win32/${TARGET_NAME_$1}.exe: ${THIN_BINARIES_$1_$2_win32} ${RESOURCES_$1} ${RESOURCES_$1_win32} | build/$1/$2-win32
+	${call copy_target_resources,$1,win32,build/$1/$2-win32/Resources}
+	cp ${THIN_BINARIES_$1_$2_win32} $$@
+endef
+
+define assemble_application_win64 #(target, configuration)
+build/$1/$2-win64/${TARGET_NAME_$1}.exe: ${THIN_BINARIES_$1_$2_win64} ${RESOURCES_$1} ${RESOURCES_$1_win64} | build/$1/$2-win64
+	${call copy_target_resources,$1,win64,build/$1/$2-win64/Resources}
+	cp ${THIN_BINARIES_$1_$2_win64} $$@
 endef
 
 #Produces final application build targets
@@ -529,16 +559,16 @@ ${foreach target,${APPLICATION_TARGETS}, \
 	} \
 }
 
-define library_template #(target, configuration, platform)
-${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$1_$3} build/$1/$2-$3/${TARGET_NAME_$1}.a
+define library_dependency_template #(target, configuration, platform)
+${STEM_SOURCE_DEPENDENCIES} ${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$1_$3} build/$1/$2-$3/${TARGET_NAME_$1}.a
 endef
 
-define executable_template #(target, configuration, platform)
-${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$1_$3} build/$1/$2-$3/${TARGET_NAME_$1}${EXECUTABLE_SUFFIX_$3}
+define executable_dependency_template #(target, configuration, platform)
+${STEM_SOURCE_DEPENDENCIES} ${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$1_$3} build/$1/$2-$3/${TARGET_NAME_$1}${EXECUTABLE_SUFFIX_$3}
 endef
 
-define application_template #(target, configuration, platform)
-${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$1_$3} build/$1/$2-$3/${call application_file_template_$3,$1}
+define application_dependency_template #(target, configuration, platform)
+${STEM_SOURCE_DEPENDENCIES} ${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$1_$3} build/$1/$2-$3/${call application_file_template_$3,$1}
 endef
 
 define application_file_template_macosx #(target)
@@ -553,17 +583,25 @@ define application_file_template_iphoneos #(target)
 ${TARGET_NAME_$1}.app/${TARGET_NAME_$1}
 endef
 
-define application_file_template_linux #(target)
+define application_file_template_linux32 #(target)
 ${TARGET_NAME_$1}
 endef
 
-define application_file_template_windows #(target)
+define application_file_template_linux64 #(target)
+${TARGET_NAME_$1}
+endef
+
+define application_file_template_win32 #(target)
+${TARGET_NAME_$1}.exe
+endef
+
+define application_file_template_win64 #(target)
 ${TARGET_NAME_$1}.exe
 endef
 
 define target_template #(target, target_type)
 .PHONY: $1
-$1: ${foreach configuration,${CONFIGURATIONS_$1},${foreach platform,${PLATFORMS_$1},${call $2_template,$1,${configuration},${platform}}}}
+$1: ${foreach configuration,${CONFIGURATIONS_$1},${foreach platform,${PLATFORMS_$1},${call $2_dependency_template,$1,${configuration},${platform}}}}
 endef
 
 ${foreach target,${LIBRARY_TARGETS}, \
@@ -590,13 +628,21 @@ run_unittests_iphonesimulator: unittest
 	DYLD_ROOT_PATH=${SDKROOT_iphonesimulator} \
 	./build/unittest/debug-iphonesimulator/${TARGET_NAME_unittest} "${CURDIR}/build/unittest/debug-iphonesimulator"
 
-.PHONY: run_unittests_linux
-run_unittests_linux: unittest
-	./build/unittest/debug-linux/${TARGET_NAME_unittest} "${CURDIR}/build/unittest/debug-linux"
+.PHONY: run_unittests_linux32
+run_unittests_linux32: unittest
+	./build/unittest/debug-linux32/${TARGET_NAME_unittest} "${CURDIR}/build/unittest/debug-linux32"
 
-.PHONY: run_unittests_windows
-run_unittests_windows: unittest
-	./build/unittest/debug-windows/${TARGET_NAME_unittest}.exe "${CURDIR}/build/unittest/debug-windows"
+.PHONY: run_unittests_linux64
+run_unittests_linux64: unittest
+	./build/unittest/debug-linux64/${TARGET_NAME_unittest} "${CURDIR}/build/unittest/debug-linux64"
+
+.PHONY: run_unittests_win32
+run_unittests_win32: unittest
+	./build/unittest/debug-win32/${TARGET_NAME_unittest}.exe "${CURDIR}/build/unittest/debug-win32"
+
+.PHONY: run_unittests_win64
+run_unittests_win64: unittest
+	./build/unittest/debug-win64/${TARGET_NAME_unittest}.exe "${CURDIR}/build/unittest/debug-win64"
 
 define analyze_file_template_clang #(target, platform, file)
 build/analyzer-results/clang-$1-$2/${basename ${notdir $3}}.txt: $3 ${PREREQS_$1} | build/analyzer-results/clang-$1-$2
@@ -666,49 +712,71 @@ include: ${INCLUDES} | ${foreach include_file,${INCLUDES},build/include/${notdir
 .PHONY: clean
 clean:
 	rm -rf build
-	rm -rf dist #master_source_only
-	${foreach dependency,${sort ${foreach target,${TARGETS},${foreach platform,${PLATFORMS_${target}},${STEM_SOURCE_DEPENDENCIES_${target}} ${STEM_SOURCE_DEPENDENCIES_${target}_${platform}}}}}, \
+	${foreach dependency,${sort ${foreach target,${TARGETS},${foreach platform,${PLATFORMS_${target}},${STEM_SOURCE_DEPENDENCIES} ${STEM_SOURCE_DEPENDENCIES_${target}} ${STEM_SOURCE_DEPENDENCIES_${platform}} ${STEM_SOURCE_DEPENDENCIES_${target}_${platform}}}}}, \
 		${MAKE} -C dep/${word 1,${subst /, ,${dependency}}} clean${newline_and_tab} \
 	}
 
-#master_source_only_begin
-.PHONY: full_dist
-full_dist: clean all
-	mkdir dist dist/include dist/library
-	cp Changes.txt License.txt ReadMe.txt dist
-	cp -r build/include/* dist/include
-	cp -r build/library/* dist/library
+TARGET_SUFFIX_ipad = _ipad
+TARGET_SUFFIX_iphone4 = _iphone4
+IPHONE_SDK_VERSION_iphone ?= 4.2
+IPHONE_SDK_VERSION_ipad ?= 3.2
+IPHONE_SDK_VERSION_iphone4 ?= 4.2
+IPHONESIMULATOR_APPLICATIONS_DIR_iphone ?= ${HOME}/Library/Application Support/iPhone Simulator/${IPHONE_SDK_VERSION_iphone}/Applications
+IPHONESIMULATOR_APPLICATIONS_DIR_ipad ?= ${HOME}/Library/Application Support/iPhone Simulator/${IPHONE_SDK_VERSION_ipad}/Applications
+IPHONESIMULATOR_APPLICATIONS_DIR_iphone4 ?= ${HOME}/Library/Application Support/iPhone Simulator/${IPHONE_SDK_VERSION_iphone4}/Applications
+SIMULATE_DEVICE_iphone = iPhone
+SIMULATE_DEVICE_ipad = iPad
+SIMULATE_DEVICE_iphone4 = iPhone 4
+SIMULATE_SDKROOT_iphone = /Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator${IPHONE_SDK_VERSION_iphone}.sdk
+SIMULATE_SDKROOT_ipad = /Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator${IPHONE_SDK_VERSION_ipad}.sdk
+SIMULATE_SDKROOT_iphone4 = /Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator${IPHONE_SDK_VERSION_iphone4}.sdk
+IPHONE_SIMULATOR_PATH ?= /Developer/Platforms/iPhoneSimulator.platform/Developer/Applications/iPhone Simulator.app
 
-.PHONY: append_dist
-append_dist: all
-	cp -r build/library/* dist/library
-
-.PHONY: commit_dist
-commit_dist:
-	svn import --no-ignore -m "Automated release of ${PROJECT_NAME} ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_TWEAK} from ${HOST_PLATFORM}" dist ${SVNROOT}/Releases/${PROJECT_NAME}/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_TWEAK}
-
-define filter_source_dist_file #(infile, outfile)
-	ruby -e "print STDIN.read.gsub(/^.*#master_source_only\b.*$\n?/, '').gsub(/\n?#master_source_only_begin[\s\S]*?#master_source_only_end/, '').gsub(/#source_dist_only/, '')" < "$1" > "$2"
+define install_target_iphonesimulator_template #(target, simulate_device)
+.PHONY: install_$1_iphonesimulator${TARGET_SUFFIX_$2}
+install_$1_iphonesimulator${TARGET_SUFFIX_$2}: $1
+	killall "iPhone Simulator"; true
+	rm -rf "${IPHONESIMULATOR_APPLICATIONS_DIR_$2}/${TARGET_NAME_$1}"
+	mkdir -p "${IPHONESIMULATOR_APPLICATIONS_DIR_$2}/${TARGET_NAME_$1}/Documents"
+	mkdir -p "${IPHONESIMULATOR_APPLICATIONS_DIR_$2}/${TARGET_NAME_$1}/Library/Preferences"
+	mkdir -p "${IPHONESIMULATOR_APPLICATIONS_DIR_$2}/${TARGET_NAME_$1}/tmp"
+	cp -r "build/$1/debug-iphonesimulator/${TARGET_NAME_$1}.app" "${IPHONESIMULATOR_APPLICATIONS_DIR_$2}/${TARGET_NAME_$1}"
+	defaults write com.apple.iphonesimulator SimulateDevice -string "${SIMULATE_DEVICE_$2}"
+	defaults write com.apple.iphonesimulator SimulateSDKRoot -string "${SIMULATE_SDKROOT_$2}"
+	defaults write com.apple.iphonesimulator currentSDKRoot -string "${SIMULATE_SDKROOT_$2}"
+	open "${IPHONE_SIMULATOR_PATH}"
 endef
 
-.PHONY: source_dist
-source_dist:
-	mkdir -p build/source_dist/include
-	mkdir -p build/source_dist/lib
-	mkdir -p build/source_dist/source/serialization
-	mkdir -p build/source_dist/test_source/unittest/framework
-	mkdir -p build/source_dist/test_source/unittest/suites
-	
-	${call filter_source_dist_file,Makefile,build/source_dist/Makefile}
-	cp Changes.txt License.txt ReadMe.txt version build/source_dist
-	
-	#cp -r include/* build/source_dist/include
-	cp -r lib/* build/source_dist/lib
-	#find build/source_dist/include -name .svn -print0 | xargs -0 rm -rf
-	find build/source_dist/lib -name .svn -print0 | xargs -0 rm -rf
-	
-	cp source/serialization/* build/source_dist/source/serialization
-	
-	cp test_source/unittest/framework/* build/source_dist/test_source/unittest/framework
-	cp test_source/unittest/suites/* build/source_dist/test_source/unittest/suites
-#master_source_only_end
+define add_blob_header #(source_file, target_file)
+	ruby -e "contents = \"\"; File.open(\"$1\", \"r\") {|file| contents = file.read}; File.open(\"$2\", \"w\") {|file| file.write(\"\xFA\xDE\x71\x71\"); file.write([contents.length + 8].pack(\"N\")); file.write(contents)}"
+endef
+
+RESOURCE_RULES_PLIST = /Developer/Platforms/MacOSX.platform/ResourceRules.plist
+
+define codesign_target_iphoneos_template #(target)
+.PHONY: codesign_$1_iphoneos
+codesign_$1_iphoneos: $1
+	sed -e "s/\$$$${PRODUCT_NAME}/${TARGET_NAME_$1}/g" test_resources/Entitlements.plist > build/intermediate/Entitlements.plist
+	${call add_blob_header,build/intermediate/Entitlements.plist,build/intermediate/Entitlements.xcent}
+	export CODESIGN_ALLOCATE=/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/codesign_allocate
+	${foreach configuration,${CONFIGURATIONS_$1},\
+		cp "${RESOURCE_RULES_PLIST}" "build/$1/${configuration}-iphoneos/${TARGET_NAME_$1}.app"${newline_and_tab} \
+		/usr/bin/codesign -f -s ${CODESIGN_IDENTITY} --resource-rules=${RESOURCE_RULES_PLIST} --entitlements=build/intermediate/Entitlements.xcent "build/$1/${configuration}-iphoneos/${TARGET_NAME_$1}.app"${newline_and_tab} \
+	}
+endef
+
+${foreach target,${APPLICATION_TARGETS}, \
+	${eval ${call install_target_iphonesimulator_template,${target},iphone}} \
+	${eval ${call install_target_iphonesimulator_template,${target},ipad}} \
+	${eval ${call install_target_iphonesimulator_template,${target},iphone4}} \
+	${eval ${call codesign_target_iphoneos_template,${target}}} \
+}
+
+INSTALL_DIR = ${STEM_SHARED_DIR}/${PROJECT_NAME}/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_TWEAK}
+
+.PHONY: install
+install:
+	mkdir -p "${INSTALL_DIR}/include" "${INSTALL_DIR}/library"
+	cp Changes.txt License.txt ReadMe.txt version ${INSTALL_DIR}
+	cp -r build/include/* ${INSTALL_DIR}/include
+	cp -r build/library/* ${INSTALL_DIR}/library

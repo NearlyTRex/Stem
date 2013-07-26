@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2012 Alex Diener
+  Copyright (c) 2013 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -50,6 +50,8 @@ typedef struct DeserializationContext DeserializationContext;
 	jmp_buf * jmpBuf; \
 	int status; \
 	\
+	const char * (* errorString)(int status); \
+	\
 	/* Implementations should return the number of elements in the container (except beginStructure) */ \
 	void (* beginStructure)(self_type * self, const char * key); \
 	size_t (* beginDictionary)(self_type * self, const char * key); \
@@ -94,7 +96,7 @@ typedef struct DeserializationContext DeserializationContext;
 
 stemobject_struct_definition(DeserializationContext)
 
-void DeserializationContext_init(compat_type(DeserializationContext *) selfPtr);
+void DeserializationContext_init(DeserializationContext * self);
 void DeserializationContext_dispose(DeserializationContext * self);
 
 #endif

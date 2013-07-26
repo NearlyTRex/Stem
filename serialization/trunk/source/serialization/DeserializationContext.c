@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2012 Alex Diener
+  Copyright (c) 2013 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -25,14 +25,13 @@
 
 #define SUPERCLASS StemObject
 
-void DeserializationContext_init(compat_type(DeserializationContext *) selfPtr) {
-	DeserializationContext * self = selfPtr;
-	
-	StemObject_init(self);
+void DeserializationContext_init(DeserializationContext * self) {
+	call_super(init, self);
 	
 	self->jmpBuf = NULL;
 	self->status = SERIALIZATION_ERROR_OK;
 	self->dispose = DeserializationContext_dispose;
+	self->errorString = Serialization_errorString;
 	self->beginStructure = NULL;
 	self->beginDictionary = NULL;
 	self->beginArray = NULL;

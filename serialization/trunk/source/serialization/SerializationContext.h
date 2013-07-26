@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2012 Alex Diener
+  Copyright (c) 2013 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -37,6 +37,8 @@ typedef struct SerializationContext SerializationContext;
 	jmp_buf * jmpBuf; \
 	int status; \
 	\
+	const char * (* errorString)(int status); \
+	\
 	void (* beginStructure)(self_type * self, const char * key); \
 	void (* beginDictionary)(self_type * self, const char * key); \
 	void (* beginArray)(self_type * self, const char * key); \
@@ -72,7 +74,7 @@ typedef struct SerializationContext SerializationContext;
 
 stemobject_struct_definition(SerializationContext)
 
-void SerializationContext_init(compat_type(SerializationContext *) selfPtr);
+void SerializationContext_init(SerializationContext * self);
 void SerializationContext_dispose(SerializationContext * self);
 
 #endif

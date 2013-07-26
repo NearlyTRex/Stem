@@ -9,7 +9,8 @@ static void testInit() {
 	DeserializationContext_init(&context);
 	TestCase_assert(context.jmpBuf == NULL, "Expected NULL but got %p", context.jmpBuf);
 	TestCase_assert(context.status == SERIALIZATION_ERROR_OK, "Expected %d but got %d", SERIALIZATION_ERROR_OK, context.status);
-	TestCase_assert(context.dispose != NULL, "Expected non-NULL but got NULL");
+	TestCase_assert(context.dispose == DeserializationContext_dispose, "Expected %p but got %p", DeserializationContext_dispose, context.dispose);
+	TestCase_assert(context.errorString == Serialization_errorString, "Expected %p but got %p", Serialization_errorString, context.errorString);
 	TestCase_assert(context.beginStructure == NULL, "Expected NULL but got %p", context.beginStructure);
 	TestCase_assert(context.beginDictionary == NULL, "Expected NULL but got %p", context.beginDictionary);
 	TestCase_assert(context.beginArray == NULL, "Expected NULL but got %p", context.beginArray);
