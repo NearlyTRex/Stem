@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2012 Alex Diener
+  Copyright (c) 2013 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -44,6 +44,7 @@ JSONDeserializationContext * JSONDeserializationContext_createWithJSONNode(struc
 static void JSONDeserializationContext_init(JSONDeserializationContext * self) {
 	call_super(init, self);
 	self->dispose = JSONDeserializationContext_dispose;
+	self->errorString = JSONSerialization_errorString;
 	self->beginStructure = JSONDeserializationContext_beginStructure;
 	self->beginDictionary = JSONDeserializationContext_beginDictionary;
 	self->beginArray = JSONDeserializationContext_beginArray;

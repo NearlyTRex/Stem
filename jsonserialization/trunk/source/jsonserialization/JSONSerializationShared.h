@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2012 Alex Diener
+  Copyright (c) 2013 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -43,5 +43,7 @@ enum JSONSerializationContainerType {
 	JSON_SERIALIZATION_CONTAINER_TYPE_STRUCTURE,
 	JSON_SERIALIZATION_CONTAINER_TYPE_DICTIONARY
 };
+
+const char * JSONSerialization_errorString(int status);
 
 #endif

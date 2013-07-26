@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2012 Alex Diener
+  Copyright (c) 2013 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -70,6 +70,7 @@ JSONSerializationContext * JSONSerializationContext_create() {
 void JSONSerializationContext_init(JSONSerializationContext * self) {
 	call_super(init, self);
 	self->dispose = JSONSerializationContext_dispose;
+	self->errorString = JSONSerialization_errorString;
 	self->beginStructure = JSONSerializationContext_beginStructure;
 	self->beginDictionary = JSONSerializationContext_beginDictionary;
 	self->beginArray = JSONSerializationContext_beginArray;
