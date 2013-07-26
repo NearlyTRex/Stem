@@ -165,7 +165,8 @@ PROJECT_LIBRARY_DEPENDENCIES_unittest = library
 STEM_LIBRARY_DEPENDENCIES = \
 	serialization/1.3.0 \
 	stemobject/3.0.2 \
-	utilities/1.7.0 \
+	utilities/1.7.0
+STEM_LIBRARY_DEPENDENCIES_unittest = \
 	stubshell/1.3.0
 STEM_SOURCE_DEPENDENCIES = 
 THIRDPARTY_LIBRARY_DEPENDENCIES = 
