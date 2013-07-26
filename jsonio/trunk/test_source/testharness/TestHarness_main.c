@@ -59,6 +59,10 @@ int main(int argc, char ** argv) {
 			} else if (!strcmp(argv[argIndex], "-f")) {
 				nextArgIsFormat = true;
 				
+			} else if (!strcmp(argv[argIndex], "--help")) {
+				printUsage();
+				return EXIT_SUCCESS;
+				
 			} else {
 				if (infileName != NULL) {
 					fprintf(stderr, "Error: input file may only be specified once\n");

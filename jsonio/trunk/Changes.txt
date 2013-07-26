@@ -1,3 +1,6 @@
+1.2.4
+ * Added 64-bit Windows and Linux support
+
 1.2.3
  * Fixed a potential crash in JSONParser
 
