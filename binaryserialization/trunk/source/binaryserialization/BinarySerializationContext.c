@@ -45,6 +45,7 @@ void BinarySerializationContext_init(BinarySerializationContext * self, bool big
 	self->finished = false;
 	
 	self->dispose = BinarySerializationContext_dispose;
+	self->errorString = BinarySerialization_errorString;
 	self->beginStructure = BinarySerializationContext_beginStructure;
 	self->beginDictionary = BinarySerializationContext_beginDictionary;
 	self->beginArray = BinarySerializationContext_beginArray;

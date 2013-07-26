@@ -13,6 +13,7 @@ static void testInit() {
 	TestCase_assert(context.jmpBuf == NULL, "Expected NULL but got %p", context.jmpBuf);
 	TestCase_assert(context.status == SERIALIZATION_ERROR_OK, "Expected %d but got %d", SERIALIZATION_ERROR_OK, context.status);
 	TestCase_assert(context.dispose == BinarySerializationContext_dispose, "Expected %p but got %p", BinarySerializationContext_dispose, context.dispose);
+	TestCase_assert(context.errorString == BinarySerialization_errorString, "Expected %p but got %p", BinarySerialization_errorString, context.errorString);
 	TestCase_assert(context.beginStructure == BinarySerializationContext_beginStructure, "Expected %p but got %p", BinarySerializationContext_beginStructure, context.beginStructure);
 	TestCase_assert(context.beginDictionary == BinarySerializationContext_beginDictionary, "Expected %p but got %p", BinarySerializationContext_beginDictionary, context.beginDictionary);
 	TestCase_assert(context.beginArray == BinarySerializationContext_beginArray, "Expected %p but got %p", BinarySerializationContext_beginArray, context.beginArray);
@@ -45,6 +46,7 @@ static void testInit() {
 	TestCase_assert(contextPtr->jmpBuf == NULL, "Expected NULL but got %p", contextPtr->jmpBuf);
 	TestCase_assert(contextPtr->status == SERIALIZATION_ERROR_OK, "Expected %d but got %d", SERIALIZATION_ERROR_OK, contextPtr->status);
 	TestCase_assert(contextPtr->dispose == BinarySerializationContext_dispose, "Expected %p but got %p", BinarySerializationContext_dispose, contextPtr->dispose);
+	TestCase_assert(contextPtr->errorString == BinarySerialization_errorString, "Expected %p but got %p", BinarySerialization_errorString, contextPtr->errorString);
 	TestCase_assert(contextPtr->beginStructure == BinarySerializationContext_beginStructure, "Expected %p but got %p", BinarySerializationContext_beginStructure, contextPtr->beginStructure);
 	TestCase_assert(contextPtr->beginDictionary == BinarySerializationContext_beginDictionary, "Expected %p but got %p", BinarySerializationContext_beginDictionary, contextPtr->beginDictionary);
 	TestCase_assert(contextPtr->beginArray == BinarySerializationContext_beginArray, "Expected %p but got %p", BinarySerializationContext_beginArray, contextPtr->beginArray);

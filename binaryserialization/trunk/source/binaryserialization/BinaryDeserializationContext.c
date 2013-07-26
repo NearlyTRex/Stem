@@ -120,6 +120,7 @@ static void sharedInit(BinaryDeserializationContext * self) {
 	self->finished = false;
 	
 	self->dispose = BinaryDeserializationContext_dispose;
+	self->errorString = BinarySerialization_errorString;
 	self->beginStructure = BinaryDeserializationContext_beginStructure;
 	self->beginDictionary = BinaryDeserializationContext_beginDictionary;
 	self->beginArray = BinaryDeserializationContext_beginArray;

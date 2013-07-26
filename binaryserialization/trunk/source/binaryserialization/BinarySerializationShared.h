@@ -47,4 +47,6 @@ enum BinarySerializationContainerType {
 	BINARY_SERIALIZATION_CONTAINER_TYPE_DICTIONARY
 };
 
+const char * BinarySerialization_errorString(int status);
+
 #endif
