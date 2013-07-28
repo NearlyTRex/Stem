@@ -199,7 +199,7 @@ bool Target_draw() {
 	glClear(GL_COLOR_BUFFER_BIT);
 	
 	ratio = (float) viewportWidth / viewportHeight;
-	projectionMatrix = Matrix_ortho(Matrix_identity(), -ratio, ratio, -1.0f, 1.0f, -1.0f, 1.0f);
+	projectionMatrix = Matrix_ortho(MATRIX_IDENTITY, -ratio, ratio, -1.0f, 1.0f, -1.0f, 1.0f);
 	
 	if (GLGraphics_getOpenGLAPIVersion() == GL_API_VERSION_ES2) {
 		glUniformMatrix4fv(matrixUniform, 1, GL_FALSE, projectionMatrix.m);
