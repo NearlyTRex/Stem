@@ -1,3 +1,6 @@
+1.0.3
+ * Added 64-bit Windows and Linux support
+
 1.0.2
  * Updated for stemobject 3.0.0
 
