@@ -188,7 +188,7 @@ static void drawControl(float x, float y, float scale, int parameter) {
 	};
 	Matrix matrix;
 	
-	matrix = Matrix_scaled(Matrix_translated(Matrix_identity(), x, y, 0.0f), scale, scale, 1.0f);
+	matrix = Matrix_scaled(Matrix_translated(MATRIX_IDENTITY, x, y, 0.0f), scale, scale, 1.0f);
 	glLoadMatrixf(matrix.m);
 	switch (parameter) {
 		case 0:
@@ -253,7 +253,7 @@ bool Target_draw() {
 	glClear(GL_COLOR_BUFFER_BIT);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	matrix = Matrix_perspective(Matrix_identity(), 60.0f, (float) viewportWidth / viewportHeight, 0.25f, 100.0f);
+	matrix = Matrix_perspective(MATRIX_IDENTITY, 60.0f, (float) viewportWidth / viewportHeight, 0.25f, 100.0f);
 	glMultMatrixf(matrix.m);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
@@ -273,7 +273,7 @@ bool Target_draw() {
 		
 		glMatrixMode(GL_PROJECTION);
 		glLoadIdentity();
-		matrix = Matrix_ortho(Matrix_identity(), 0.0f, viewRatio, 0.0f, 1.0f, -1.0f, 1.0f);
+		matrix = Matrix_ortho(MATRIX_IDENTITY, 0.0f, viewRatio, 0.0f, 1.0f, -1.0f, 1.0f);
 		glMultMatrixf(matrix.m);
 		glMatrixMode(GL_MODELVIEW);
 		
