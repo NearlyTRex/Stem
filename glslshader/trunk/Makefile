@@ -170,10 +170,12 @@ LINK_ORDER = \
 
 STEM_LIBRARY_DEPENDENCIES_glew = \
 	glgraphics/1.2.0 \
-	stemobject/3.0.2
+	stemobject/3.0.2 \
+	shell/1.0.0
 STEM_LIBRARY_DEPENDENCIES_noglew = \
 	glgraphics/1.2.0_noglew \
-	stemobject/3.0.2
+	stemobject/3.0.2 \
+	shell/1.0.0
 
 PROJECT_LIBRARY_DEPENDENCIES_unittest = library
 PROJECT_LIBRARY_DEPENDENCIES_testharness = library
