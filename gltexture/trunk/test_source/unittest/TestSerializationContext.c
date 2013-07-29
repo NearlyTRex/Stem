@@ -6,6 +6,14 @@
 
 #define SUPERCLASS SerializationContext
 
+#if defined(WIN32)
+#define INT64_T_FORMAT "%I64d"
+#define UINT64_T_FORMAT "%I64u"
+#else
+#define INT64_T_FORMAT "%lld"
+#define UINT64_T_FORMAT "%llu"
+#endif
+
 TestSerializationContext * TestSerializationContext_create(jmp_buf * sequenceBreakJmpEnv) {
 	stemobject_create_implementation(TestSerializationContext, init, sequenceBreakJmpEnv)
 }
@@ -172,7 +180,7 @@ static void verifyCallIsInSequence(TestSerializationContext * self, void * funct
 		
 		int64Value = va_arg(args, int64_t);
 		if (self->expectedCalls[self->nextExpectedCallIndex].value.int64Value != int64Value) {
-			snprintf(self->error, SERIALIZATION_ERROR_MAX, "Arg 3 to call %d (%s) was expected to be %lld, but was %lld instead", self->nextExpectedCallIndex, functionNameForPtr(self, functionPtr), self->expectedCalls[self->nextExpectedCallIndex].value.int64Value, int64Value);
+			snprintf(self->error, SERIALIZATION_ERROR_MAX, "Arg 3 to call %d (%s) was expected to be " INT64_T_FORMAT ", but was " INT64_T_FORMAT " instead", self->nextExpectedCallIndex, functionNameForPtr(self, functionPtr), self->expectedCalls[self->nextExpectedCallIndex].value.int64Value, int64Value);
 			longjmp(*self->sequenceBreakJmpEnv, 3);
 		}
 		
@@ -181,7 +189,7 @@ static void verifyCallIsInSequence(TestSerializationContext * self, void * funct
 		
 		uint64Value = va_arg(args, uint64_t);
 		if (self->expectedCalls[self->nextExpectedCallIndex].value.uint64Value != uint64Value) {
-			snprintf(self->error, SERIALIZATION_ERROR_MAX, "Arg 3 to call %d (%s) was expected to be %llu, but was %llu instead", self->nextExpectedCallIndex, functionNameForPtr(self, functionPtr), self->expectedCalls[self->nextExpectedCallIndex].value.uint64Value, uint64Value);
+			snprintf(self->error, SERIALIZATION_ERROR_MAX, "Arg 3 to call %d (%s) was expected to be " UINT64_T_FORMAT ", but was " UINT64_T_FORMAT " instead", self->nextExpectedCallIndex, functionNameForPtr(self, functionPtr), self->expectedCalls[self->nextExpectedCallIndex].value.uint64Value, uint64Value);
 			longjmp(*self->sequenceBreakJmpEnv, 3);
 		}
 		

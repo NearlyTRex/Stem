@@ -171,9 +171,7 @@ static void loadTextureImage() {
 }
 
 void Target_init() {
-	int result;
-	
-	result = chdir(Shell_getResourcePath());
+	chdir(Shell_getResourcePath());
 	loadTextureImage();
 	glEnableClientState(GL_VERTEX_ARRAY);
 	Shell_mainLoop();
