@@ -69,7 +69,7 @@ int main(int argc, char ** argv) {
 		} else {
 			stream = VorbisAudioStream_createWithFile(inFileName);
 		}
-		printf("Stream has %zu samples\n%u bytes per sample\n%u channels\n%u samples per second\n", stream->sampleCount, stream->bytesPerSample, stream->channelCount, stream->sampleRate);
+		printf("Stream has %u samples\n%u bytes per sample\n%u channels\n%u samples per second\n", (unsigned int) stream->sampleCount, stream->bytesPerSample, stream->channelCount, stream->sampleRate);
 		
 		if (outFileName != NULL) {
 			FILE * outFile;
@@ -85,10 +85,10 @@ int main(int argc, char ** argv) {
 			while (bytesToRead > 0) {
 				bytesRead = stream->read(stream, STREAM_READ_SIZE > bytesToRead ? bytesToRead : STREAM_READ_SIZE, buffer, loop);
 				if (bytesRead == 0) {
-					fprintf(stderr, "Unexpectedly couldn't read %zu more bytes\n", bytesToRead);
+					fprintf(stderr, "Unexpectedly couldn't read %u more bytes\n", (unsigned int) bytesToRead);
 					break;
 				}
-				printf("Read %zu bytes\n", bytesRead);
+				printf("Read %u bytes\n", (unsigned int) bytesRead);
 				bytesToRead -= bytesRead;
 				fwrite(buffer, 1, bytesRead, outFile);
 			}
@@ -105,7 +105,7 @@ int main(int argc, char ** argv) {
 			return EXIT_FAILURE;
 		}
 		
-		printf("Read %zu samples\n%u bytes per sample\n%u channels\n%u samples per second\n", audio->sampleCount, audio->bytesPerSample, audio->channelCount, audio->sampleRate);
+		printf("Read %u samples\n%u bytes per sample\n%u channels\n%u samples per second\n", (unsigned int) audio->sampleCount, audio->bytesPerSample, audio->channelCount, audio->sampleRate);
 		
 		if (outFileName != NULL) {
 			FILE * outFile;
