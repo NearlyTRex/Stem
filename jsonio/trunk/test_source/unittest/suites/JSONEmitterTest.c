@@ -16,6 +16,11 @@
 	close(fd); \
 	unlink(tempFilePath); \
 }
+#if defined(WIN32)
+#define SIZE_T_FORMAT "%Iu"
+#else
+#define SIZE_T_FORMAT "%zu"
+#endif
 
 static void testTopLevelNode() {
 	char * string;
@@ -27,13 +32,13 @@ static void testTopLevelNode() {
 	
 	string = JSONEmitter_writeString(&node, JSONEmitterFormat_singleLine, &length, NULL);
 	TestCase_assert(string != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(length == 2, "Expected 2 but got %zu", length);
+	TestCase_assert(length == 2, "Expected 2 but got " SIZE_T_FORMAT, length);
 	TestCase_assert(!strncmp(string, "[]", length), "Expected \"[]\" but got \"%s\"", string);
 	free(string);
 	
 	writeNodeToTemporaryFile(&node, string, &length, JSONEmitterFormat_singleLine, NULL);
 	TestCase_assert(string != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(length == 2, "Expected 2 but got %zu", length);
+	TestCase_assert(length == 2, "Expected 2 but got " SIZE_T_FORMAT, length);
 	TestCase_assert(!strncmp(string, "[]", length), "Expected \"[]\" but got \"%s\"", string);
 	free(string);
 	
@@ -42,13 +47,13 @@ static void testTopLevelNode() {
 	
 	string = JSONEmitter_writeString(&node, JSONEmitterFormat_singleLine, &length, NULL);
 	TestCase_assert(string != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(length == 2, "Expected 2 but got %zu", length);
+	TestCase_assert(length == 2, "Expected 2 but got " SIZE_T_FORMAT, length);
 	TestCase_assert(!strncmp(string, "{}", length), "Expected \"{}\" but got \"%s\"", string);
 	free(string);
 	
 	writeNodeToTemporaryFile(&node, string, &length, JSONEmitterFormat_singleLine, NULL);
 	TestCase_assert(string != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(length == 2, "Expected 2 but got %zu", length);
+	TestCase_assert(length == 2, "Expected 2 but got " SIZE_T_FORMAT, length);
 	TestCase_assert(!strncmp(string, "{}", length), "Expected \"{}\" but got \"%s\"", string);
 	free(string);
 }
@@ -66,13 +71,13 @@ static void testNumberValues() {
 	
 	string = JSONEmitter_writeString(&node, JSONEmitterFormat_singleLine, &length, NULL);
 	TestCase_assert(string != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(length == 3, "Expected 3 but got %zu", length);
+	TestCase_assert(length == 3, "Expected 3 but got " SIZE_T_FORMAT, length);
 	TestCase_assert(!strncmp(string, "[1]", length), "Expected \"[1]\" but got \"%s\"", string);
 	free(string);
 	
 	writeNodeToTemporaryFile(&node, string, &length, JSONEmitterFormat_singleLine, NULL);
 	TestCase_assert(string != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(length == 3, "Expected 3 but got %zu", length);
+	TestCase_assert(length == 3, "Expected 3 but got " SIZE_T_FORMAT, length);
 	TestCase_assert(!strncmp(string, "[1]", length), "Expected \"[1]\" but got \"%s\"", string);
 	free(string);
 	
@@ -80,13 +85,13 @@ static void testNumberValues() {
 	
 	string = JSONEmitter_writeString(&node, JSONEmitterFormat_singleLine, &length, NULL);
 	TestCase_assert(string != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(length == 7, "Expected 7 but got %zu", length);
+	TestCase_assert(length == 7, "Expected 7 but got " SIZE_T_FORMAT, length);
 	TestCase_assert(!strncmp(string, "[-8.25]", length), "Expected \"[-8.25]\" but got \"%s\"", string);
 	free(string);
 	
 	writeNodeToTemporaryFile(&node, string, &length, JSONEmitterFormat_singleLine, NULL);
 	TestCase_assert(string != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(length == 7, "Expected 7 but got %zu", length);
+	TestCase_assert(length == 7, "Expected 7 but got " SIZE_T_FORMAT, length);
 	TestCase_assert(!strncmp(string, "[-8.25]", length), "Expected \"[-8.25]\" but got \"%s\"", string);
 	free(string);
 	
@@ -107,13 +112,13 @@ static void testStringValues() {
 	
 	string = JSONEmitter_writeString(&node, JSONEmitterFormat_singleLine, &length, NULL);
 	TestCase_assert(string != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(length == 4, "Expected 4 but got %zu", length);
+	TestCase_assert(length == 4, "Expected 4 but got " SIZE_T_FORMAT, length);
 	TestCase_assert(!strncmp(string, "[\"\"]", length), "Expected \"[\"\"]\" but got \"%s\"", string);
 	free(string);
 	
 	writeNodeToTemporaryFile(&node, string, &length, JSONEmitterFormat_singleLine, NULL);
 	TestCase_assert(string != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(length == 4, "Expected 4 but got %zu", length);
+	TestCase_assert(length == 4, "Expected 4 but got " SIZE_T_FORMAT, length);
 	TestCase_assert(!strncmp(string, "[\"\"]", length), "Expected \"[\"\"]\" but got \"%s\"", string);
 	free(string);
 	
@@ -122,13 +127,13 @@ static void testStringValues() {
 	
 	string = JSONEmitter_writeString(&node, JSONEmitterFormat_singleLine, &length, NULL);
 	TestCase_assert(string != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(length == 9, "Expected 9 but got %zu", length);
+	TestCase_assert(length == 9, "Expected 9 but got " SIZE_T_FORMAT, length);
 	TestCase_assert(!strncmp(string, "[\"hello\"]", length), "Expected \"[\"hello\"]\" but got \"%s\"", string);
 	free(string);
 	
 	writeNodeToTemporaryFile(&node, string, &length, JSONEmitterFormat_singleLine, NULL);
 	TestCase_assert(string != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(length == 9, "Expected 9 but got %zu", length);
+	TestCase_assert(length == 9, "Expected 9 but got " SIZE_T_FORMAT, length);
 	TestCase_assert(!strncmp(string, "[\"hello\"]", length), "Expected \"[\"hello\"]\" but got \"%s\"", string);
 	free(string);
 	
@@ -148,13 +153,13 @@ static void testBooleanValues() {
 	
 	string = JSONEmitter_writeString(&node, JSONEmitterFormat_singleLine, &length, NULL);
 	TestCase_assert(string != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(length == 7, "Expected 7 but got %zu", length);
+	TestCase_assert(length == 7, "Expected 7 but got " SIZE_T_FORMAT, length);
 	TestCase_assert(!strncmp(string, "[false]", length), "Expected \"[false]\" but got \"%s\"", string);
 	free(string);
 	
 	writeNodeToTemporaryFile(&node, string, &length, JSONEmitterFormat_singleLine, NULL);
 	TestCase_assert(string != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(length == 7, "Expected 7 but got %zu", length);
+	TestCase_assert(length == 7, "Expected 7 but got " SIZE_T_FORMAT, length);
 	TestCase_assert(!strncmp(string, "[false]", length), "Expected \"[false]\" but got \"%s\"", string);
 	free(string);
 	
@@ -162,13 +167,13 @@ static void testBooleanValues() {
 	
 	string = JSONEmitter_writeString(&node, JSONEmitterFormat_singleLine, &length, NULL);
 	TestCase_assert(string != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(length == 6, "Expected 6 but got %zu", length);
+	TestCase_assert(length == 6, "Expected 6 but got " SIZE_T_FORMAT, length);
 	TestCase_assert(!strncmp(string, "[true]", length), "Expected \"[true]\" but got \"%s\"", string);
 	free(string);
 	
 	writeNodeToTemporaryFile(&node, string, &length, JSONEmitterFormat_singleLine, NULL);
 	TestCase_assert(string != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(length == 6, "Expected 6 but got %zu", length);
+	TestCase_assert(length == 6, "Expected 6 but got " SIZE_T_FORMAT, length);
 	TestCase_assert(!strncmp(string, "[true]", length), "Expected \"[true]\" but got \"%s\"", string);
 	free(string);
 	
@@ -187,13 +192,13 @@ static void testNullValue() {
 	
 	string = JSONEmitter_writeString(&node, JSONEmitterFormat_singleLine, &length, NULL);
 	TestCase_assert(string != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(length == 6, "Expected 6 but got %zu", length);
+	TestCase_assert(length == 6, "Expected 6 but got " SIZE_T_FORMAT, length);
 	TestCase_assert(!strncmp(string, "[null]", length), "Expected \"[null]\" but got \"%s\"", string);
 	free(string);
 	
 	writeNodeToTemporaryFile(&node, string, &length, JSONEmitterFormat_singleLine, NULL);
 	TestCase_assert(string != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(length == 6, "Expected 6 but got %zu", length);
+	TestCase_assert(length == 6, "Expected 6 but got " SIZE_T_FORMAT, length);
 	TestCase_assert(!strncmp(string, "[null]", length), "Expected \"[null]\" but got \"%s\"", string);
 	free(string);
 	
@@ -215,13 +220,13 @@ static void testArrays() {
 	
 	string = JSONEmitter_writeString(&node, JSONEmitterFormat_singleLine, &length, NULL);
 	TestCase_assert(string != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(length == 13, "Expected 13 but got %zu", length);
+	TestCase_assert(length == 13, "Expected 13 but got " SIZE_T_FORMAT, length);
 	TestCase_assert(!strncmp(string, "[false, true]", length), "Expected \"[false, true]\" but got \"%s\"", string);
 	free(string);
 	
 	writeNodeToTemporaryFile(&node, string, &length, JSONEmitterFormat_singleLine, NULL);
 	TestCase_assert(string != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(length == 13, "Expected 13 but got %zu", length);
+	TestCase_assert(length == 13, "Expected 13 but got " SIZE_T_FORMAT, length);
 	TestCase_assert(!strncmp(string, "[false, true]", length), "Expected \"[false, true]\" but got \"%s\"", string);
 	free(string);
 	
@@ -233,13 +238,13 @@ static void testArrays() {
 	
 	string = JSONEmitter_writeString(&node, JSONEmitterFormat_singleLine, &length, NULL);
 	TestCase_assert(string != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(length == 15, "Expected 15 but got %zu", length);
+	TestCase_assert(length == 15, "Expected 15 but got " SIZE_T_FORMAT, length);
 	TestCase_assert(!strncmp(string, "[true, 3, null]", length), "Expected \"[true, 3, null]\" but got \"%s\"", string);
 	free(string);
 	
 	writeNodeToTemporaryFile(&node, string, &length, JSONEmitterFormat_singleLine, NULL);
 	TestCase_assert(string != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(length == 15, "Expected 15 but got %zu", length);
+	TestCase_assert(length == 15, "Expected 15 but got " SIZE_T_FORMAT, length);
 	TestCase_assert(!strncmp(string, "[true, 3, null]", length), "Expected \"[true, 3, null]\" but got \"%s\"", string);
 	free(string);
 	
@@ -265,13 +270,13 @@ static void testObjects() {
 	
 	string = JSONEmitter_writeString(&node, JSONEmitterFormat_singleLine, &length, NULL);
 	TestCase_assert(string != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(length == 23, "Expected 23 but got %zu", length);
+	TestCase_assert(length == 23, "Expected 23 but got " SIZE_T_FORMAT, length);
 	TestCase_assert(!strncmp(string, "{\"a\": false, \"b\": true}", length), "Expected \"{\"a\": false, \"b\": true}\" but got \"%s\"", string);
 	free(string);
 	
 	writeNodeToTemporaryFile(&node, string, &length, JSONEmitterFormat_singleLine, NULL);
 	TestCase_assert(string != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(length == 23, "Expected 23 but got %zu", length);
+	TestCase_assert(length == 23, "Expected 23 but got " SIZE_T_FORMAT, length);
 	TestCase_assert(!strncmp(string, "{\"a\": false, \"b\": true}", length), "Expected \"{\"a\": false, \"b\": true}\" but got \"%s\"", string);
 	free(string);
 	
@@ -291,13 +296,13 @@ static void testObjects() {
 	
 	string = JSONEmitter_writeString(&node, JSONEmitterFormat_singleLine, &length, NULL);
 	TestCase_assert(string != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(length == 38, "Expected 38 but got %zu", length);
+	TestCase_assert(length == 38, "Expected 38 but got " SIZE_T_FORMAT, length);
 	TestCase_assert(!strncmp(string, "{\"foo\": 1, \"bar\": null, \"baz\": \"test\"}", length), "Expected \"{\"foo\": 1, \"bar\": null, \"baz\": \"test\"}\" but got \"%s\"", string);
 	free(string);
 	
 	writeNodeToTemporaryFile(&node, string, &length, JSONEmitterFormat_singleLine, NULL);
 	TestCase_assert(string != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(length == 38, "Expected 38 but got %zu", length);
+	TestCase_assert(length == 38, "Expected 38 but got " SIZE_T_FORMAT, length);
 	TestCase_assert(!strncmp(string, "{\"foo\": 1, \"bar\": null, \"baz\": \"test\"}", length), "Expected \"{\"foo\": 1, \"bar\": null, \"baz\": \"test\"}\" but got \"%s\"", string);
 	free(string);
 	
@@ -321,13 +326,13 @@ static void testNestedArraysAndObjects() {
 	
 	string = JSONEmitter_writeString(&node, JSONEmitterFormat_singleLine, &length, NULL);
 	TestCase_assert(string != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(length == 8, "Expected 8 but got %zu", length);
+	TestCase_assert(length == 8, "Expected 8 but got " SIZE_T_FORMAT, length);
 	TestCase_assert(!strncmp(string, "[{}, []]", length), "Expected \"[{}, []]\" but got \"%s\"", string);
 	free(string);
 	
 	writeNodeToTemporaryFile(&node, string, &length, JSONEmitterFormat_singleLine, NULL);
 	TestCase_assert(string != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(length == 8, "Expected 8 but got %zu", length);
+	TestCase_assert(length == 8, "Expected 8 but got " SIZE_T_FORMAT, length);
 	TestCase_assert(!strncmp(string, "[{}, []]", length), "Expected \"[{}, []]\" but got \"%s\"", string);
 	free(string);
 	
@@ -361,13 +366,13 @@ static void testNestedArraysAndObjects() {
 	
 	string = JSONEmitter_writeString(&node, JSONEmitterFormat_singleLine, &length, NULL);
 	TestCase_assert(string != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(length == 47, "Expected 47 but got %zu", length);
+	TestCase_assert(length == 47, "Expected 47 but got " SIZE_T_FORMAT, length);
 	TestCase_assert(!strncmp(string, "{\"1\": [false, 2, {}], \"2\": {\"\": []}, \"3\": null}", length), "Expected \"{\"1\": [false, 2, {}], \"2\": {\"\": []}, \"3\": null}\" but got \"%s\"", string);
 	free(string);
 	
 	writeNodeToTemporaryFile(&node, string, &length, JSONEmitterFormat_singleLine, NULL);
 	TestCase_assert(string != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(length == 47, "Expected 47 but got %zu", length);
+	TestCase_assert(length == 47, "Expected 47 but got " SIZE_T_FORMAT, length);
 	TestCase_assert(!strncmp(string, "{\"1\": [false, 2, {}], \"2\": {\"\": []}, \"3\": null}", length), "Expected \"{\"1\": [false, 2, {}], \"2\": {\"\": []}, \"3\": null}\" but got \"%s\"", string);
 	free(string);
 	
@@ -390,13 +395,13 @@ static void testStringEscapes() {
 	
 	string = JSONEmitter_writeString(&node, JSONEmitterFormat_singleLine, &length, NULL);
 	TestCase_assert(string != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(length == 6, "Expected 6 but got %zu", length);
+	TestCase_assert(length == 6, "Expected 6 but got " SIZE_T_FORMAT, length);
 	TestCase_assert(!strncmp(string, "[\"\\\\\"]", length), "Expected \"[\"\\\\\"]\" but got \"%s\"", string);
 	free(string);
 	
 	writeNodeToTemporaryFile(&node, string, &length, JSONEmitterFormat_singleLine, NULL);
 	TestCase_assert(string != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(length == 6, "Expected 6 but got %zu", length);
+	TestCase_assert(length == 6, "Expected 6 but got " SIZE_T_FORMAT, length);
 	TestCase_assert(!strncmp(string, "[\"\\\\\"]", length), "Expected \"[\"\\\\\"]\" but got \"%s\"", string);
 	free(string);
 	
@@ -405,13 +410,13 @@ static void testStringEscapes() {
 	
 	string = JSONEmitter_writeString(&node, JSONEmitterFormat_singleLine, &length, NULL);
 	TestCase_assert(string != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(length == 6, "Expected 6 but got %zu", length);
+	TestCase_assert(length == 6, "Expected 6 but got " SIZE_T_FORMAT, length);
 	TestCase_assert(!strncmp(string, "[\"\\\"\"]", length), "Expected \"[\"\\\"\"]\" but got \"%s\"", string);
 	free(string);
 	
 	writeNodeToTemporaryFile(&node, string, &length, JSONEmitterFormat_singleLine, NULL);
 	TestCase_assert(string != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(length == 6, "Expected 6 but got %zu", length);
+	TestCase_assert(length == 6, "Expected 6 but got " SIZE_T_FORMAT, length);
 	TestCase_assert(!strncmp(string, "[\"\\\"\"]", length), "Expected \"[\"\\\"\"]\" but got \"%s\"", string);
 	free(string);
 	
@@ -420,13 +425,13 @@ static void testStringEscapes() {
 	
 	string = JSONEmitter_writeString(&node, JSONEmitterFormat_singleLine, &length, NULL);
 	TestCase_assert(string != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(length == 13, "Expected 13 but got %zu", length);
+	TestCase_assert(length == 13, "Expected 13 but got " SIZE_T_FORMAT, length);
 	TestCase_assert(!strncmp(string, "[\"\\b\\f\\n\\r\t\"]", length), "Expected \"[\"\\b\\f\\n\\r\t\"]\" but got \"%s\"", string);
 	free(string);
 	
 	writeNodeToTemporaryFile(&node, string, &length, JSONEmitterFormat_singleLine, NULL);
 	TestCase_assert(string != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(length == 13, "Expected 13 but got %zu", length);
+	TestCase_assert(length == 13, "Expected 13 but got " SIZE_T_FORMAT, length);
 	TestCase_assert(!strncmp(string, "[\"\\b\\f\\n\\r\t\"]", length), "Expected \"[\"\\b\\f\\n\\r\t\"]\" but got \"%s\"", string);
 	free(string);
 	
@@ -435,13 +440,13 @@ static void testStringEscapes() {
 	
 	string = JSONEmitter_writeString(&node, JSONEmitterFormat_singleLine, &length, NULL);
 	TestCase_assert(string != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(length == 12, "Expected 12 but got %zu", length);
+	TestCase_assert(length == 12, "Expected 12 but got " SIZE_T_FORMAT, length);
 	TestCase_assert(!strncmp(string, "[\"\x20\xE2\x9A\xA0\xF0\x9D\x84\x9E\"]", length), "Expected \"[\"\x20\xE2\x9A\xA0\xF0\x9D\x84\x9E\"]\" but got \"%s\"", string);
 	free(string);
 	
 	writeNodeToTemporaryFile(&node, string, &length, JSONEmitterFormat_singleLine, NULL);
 	TestCase_assert(string != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(length == 12, "Expected 12 but got %zu", length);
+	TestCase_assert(length == 12, "Expected 12 but got " SIZE_T_FORMAT, length);
 	TestCase_assert(!strncmp(string, "[\"\x20\xE2\x9A\xA0\xF0\x9D\x84\x9E\"]", length), "Expected \"[\"\x20\xE2\x9A\xA0\xF0\x9D\x84\x9E\"]\" but got \"%s\"", string);
 	free(string);
 	
@@ -450,13 +455,13 @@ static void testStringEscapes() {
 	
 	string = JSONEmitter_writeString(&node, JSONEmitterFormat_singleLine, &length, NULL);
 	TestCase_assert(string != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(length == 12, "Expected 12 but got %zu", length);
+	TestCase_assert(length == 12, "Expected 12 but got " SIZE_T_FORMAT, length);
 	TestCase_assert(!strncmp(string, "[\"a\\u0000b\"]", length), "Expected \"[\"a\\u0000b\"]\" but got \"%s\"", string);
 	free(string);
 	
 	writeNodeToTemporaryFile(&node, string, &length, JSONEmitterFormat_singleLine, NULL);
 	TestCase_assert(string != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(length == 12, "Expected 12 but got %zu", length);
+	TestCase_assert(length == 12, "Expected 12 but got " SIZE_T_FORMAT, length);
 	TestCase_assert(!strncmp(string, "[\"a\\u0000b\"]", length), "Expected \"[\"a\\u0000b\"]\" but got \"%s\"", string);
 	free(string);
 	
@@ -465,13 +470,13 @@ static void testStringEscapes() {
 	
 	string = JSONEmitter_writeString(&node, JSONEmitterFormat_singleLine, &length, NULL);
 	TestCase_assert(string != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(length == 5, "Expected 5 but got %zu", length);
+	TestCase_assert(length == 5, "Expected 5 but got " SIZE_T_FORMAT, length);
 	TestCase_assert(!strncmp(string, "[\"/\"]", length), "Expected \"[\"/\"]\" but got \"%s\"", string);
 	free(string);
 	
 	writeNodeToTemporaryFile(&node, string, &length, JSONEmitterFormat_singleLine, NULL);
 	TestCase_assert(string != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(length == 5, "Expected 5 but got %zu", length);
+	TestCase_assert(length == 5, "Expected 5 but got " SIZE_T_FORMAT, length);
 	TestCase_assert(!strncmp(string, "[\"/\"]", length), "Expected \"[\"/\"]\" but got \"%s\"", string);
 	free(string);
 	
@@ -622,37 +627,37 @@ static void testFormatVariations() {
 	
 	string = JSONEmitter_writeString(&node, JSONEmitterFormat_singleLine, &length, NULL);
 	TestCase_assert(string != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(length == 65, "Expected 65 but got %zu", length);
+	TestCase_assert(length == 65, "Expected 65 but got " SIZE_T_FORMAT, length);
 	TestCase_assert(!strcmp(string, "[null, 1, false, {\"string\": true, \"array\": [null]}, \"string\", {}]"), "Expected \"[null, 1, false, {\"string\": true, \"array\": [null]}, \"string\", {}]\" but got \"%s\"", string);
 	free(string);
 	
 	string = JSONEmitter_writeString(&node, JSONEmitterFormat_compact, &length, NULL);
 	TestCase_assert(string != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(length == 57, "Expected 57 but got %zu", length);
+	TestCase_assert(length == 57, "Expected 57 but got " SIZE_T_FORMAT, length);
 	TestCase_assert(!strcmp(string, "[null,1,false,{\"string\":true,\"array\":[null]},\"string\",{}]"), "Expected \"[null,1,false,{\"string\":true,\"array\":[null]},\"string\",{}]\" but got \"%s\"", string);
 	free(string);
 	
 	string = JSONEmitter_writeString(&node, JSONEmitterFormat_multiLine, &length, NULL);
 	TestCase_assert(string != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(length == 89, "Expected 89 but got %zu", length);
+	TestCase_assert(length == 89, "Expected 89 but got " SIZE_T_FORMAT, length);
 	TestCase_assert(!strcmp(string, "[\n\tnull,\n\t1,\n\tfalse,\n\t{\n\t\t\"string\": true,\n\t\t\"array\": [\n\t\t\tnull\n\t\t]\n\t},\n\t\"string\",\n\t{\n\t}\n]"), "Expected \"[\n\tnull,\n\t1,\n\tfalse,\n\t{\n\t\t\"string\": true,\n\t\t\"array\": [\n\t\t\tnull\n\t\t]\n\t},\n\t\"string\",\n\t{\n\t}\n]\" but got \"%s\"", string);
 	free(string);
 	
 	writeNodeToTemporaryFile(&node, string, &length, JSONEmitterFormat_singleLine, NULL);
 	TestCase_assert(string != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(length == 65, "Expected 65 but got %zu", length);
+	TestCase_assert(length == 65, "Expected 65 but got " SIZE_T_FORMAT, length);
 	TestCase_assert(!strncmp(string, "[null, 1, false, {\"string\": true, \"array\": [null]}, \"string\", {}]", length), "Expected \"[null, 1, false, {\"string\": true, \"array\": [null]}, \"string\", {}]\" but got \"%s\"", string);
 	free(string);
 	
 	writeNodeToTemporaryFile(&node, string, &length, JSONEmitterFormat_compact, NULL);
 	TestCase_assert(string != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(length == 57, "Expected 57 but got %zu", length);
+	TestCase_assert(length == 57, "Expected 57 but got " SIZE_T_FORMAT, length);
 	TestCase_assert(!strncmp(string, "[null,1,false,{\"string\":true,\"array\":[null]},\"string\",{}]", length), "Expected \"[null,1,false,{\"string\":true,\"array\":[null]},\"string\",{}]\" but got \"%s\"", string);
 	free(string);
 	
 	writeNodeToTemporaryFile(&node, string, &length, JSONEmitterFormat_multiLine, NULL);
 	TestCase_assert(string != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(length == 89, "Expected 89 but got %zu", length);
+	TestCase_assert(length == 89, "Expected 89 but got " SIZE_T_FORMAT, length);
 	TestCase_assert(!strncmp(string, "[\n\tnull,\n\t1,\n\tfalse,\n\t{\n\t\t\"string\": true,\n\t\t\"array\": [\n\t\t\tnull\n\t\t]\n\t},\n\t\"string\",\n\t{\n\t}\n]", length), "Expected \"[\n\tnull,\n\t1,\n\tfalse,\n\t{\n\t\t\"string\": true,\n\t\t\"array\": [\n\t\t\tnull\n\t\t]\n\t},\n\t\"string\",\n\t{\n\t}\n]\" but got \"%s\"", string);
 	free(string);
 	
@@ -691,37 +696,37 @@ static void testFormatVariations() {
 	
 	string = JSONEmitter_writeString(&node, JSONEmitterFormat_singleLine, &length, NULL);
 	TestCase_assert(string != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(length == 63, "Expected 63 but got %zu", length);
+	TestCase_assert(length == 63, "Expected 63 but got " SIZE_T_FORMAT, length);
 	TestCase_assert(!strcmp(string, "{\"string\": true, \"array\": [null, 1, false, {\"\": null}], \"\": []}"), "Expected \"{\"string\": true, \"array\": [null, 1, false, {\"\": null}], \"\": []}\" but got \"%s\"", string);
 	free(string);
 	
 	string = JSONEmitter_writeString(&node, JSONEmitterFormat_compact, &length, NULL);
 	TestCase_assert(string != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(length == 54, "Expected 54 but got %zu", length);
+	TestCase_assert(length == 54, "Expected 54 but got " SIZE_T_FORMAT, length);
 	TestCase_assert(!strcmp(string, "{\"string\":true,\"array\":[null,1,false,{\"\":null}],\"\":[]}"), "Expected \"{\"string\":true,\"array\":[null,1,false,{\"\":null}],\"\":[]}\" but got \"%s\"", string);
 	free(string);
 	
 	string = JSONEmitter_writeString(&node, JSONEmitterFormat_multiLine, &length, NULL);
 	TestCase_assert(string != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(length == 88, "Expected 88 but got %zu", length);
+	TestCase_assert(length == 88, "Expected 88 but got " SIZE_T_FORMAT, length);
 	TestCase_assert(!strcmp(string, "{\n\t\"string\": true,\n\t\"array\": [\n\t\tnull,\n\t\t1,\n\t\tfalse,\n\t\t{\n\t\t\t\"\": null\n\t\t}\n\t],\n\t\"\": [\n\t]\n}"), "Expected \"{\n\t\"string\": true,\n\t\"array\": [\n\t\tnull,\n\t\t1,\n\t\tfalse,\n\t\t{\n\t\t\t\"\": null\n\t\t}\n\t],\n\t\"\": [\n\t]\n}\" but got \"%s\"", string);
 	free(string);
 	
 	writeNodeToTemporaryFile(&node, string, &length, JSONEmitterFormat_singleLine, NULL);
 	TestCase_assert(string != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(length == 63, "Expected 63 but got %zu", length);
+	TestCase_assert(length == 63, "Expected 63 but got " SIZE_T_FORMAT, length);
 	TestCase_assert(!strncmp(string, "{\"string\": true, \"array\": [null, 1, false, {\"\": null}], \"\": []}", length), "Expected \"{\"string\": true, \"array\": [null, 1, false, {\"\": null}], \"\": []}\" but got \"%s\"", string);
 	free(string);
 	
 	writeNodeToTemporaryFile(&node, string, &length, JSONEmitterFormat_compact, NULL);
 	TestCase_assert(string != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(length == 54, "Expected 54 but got %zu", length);
+	TestCase_assert(length == 54, "Expected 54 but got " SIZE_T_FORMAT, length);
 	TestCase_assert(!strncmp(string, "{\"string\":true,\"array\":[null,1,false,{\"\":null}],\"\":[]}", length), "Expected \"{\"string\":true,\"array\":[null,1,false,{\"\":null}],\"\":[]}\" but got \"%s\"", string);
 	free(string);
 	
 	writeNodeToTemporaryFile(&node, string, &length, JSONEmitterFormat_multiLine, NULL);
 	TestCase_assert(string != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(length == 88, "Expected 88 but got %zu", length);
+	TestCase_assert(length == 88, "Expected 88 but got " SIZE_T_FORMAT, length);
 	TestCase_assert(!strncmp(string, "{\n\t\"string\": true,\n\t\"array\": [\n\t\tnull,\n\t\t1,\n\t\tfalse,\n\t\t{\n\t\t\t\"\": null\n\t\t}\n\t],\n\t\"\": [\n\t]\n}", length), "Expected \"{\n\t\"string\": true,\n\t\"array\": [\n\t\tnull,\n\t\t1,\n\t\tfalse,\n\t\t{\n\t\t\t\"\": null\n\t\t}\n\t],\n\t\"\": [\n\t]\n}\" but got \"%s\"", string);
 	free(string);
 	
