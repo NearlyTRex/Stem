@@ -15,7 +15,7 @@ static void testInit() {
 	TestCase_assert(audio.bytesPerSample == 1, "Expected 1 but got %u", audio.bytesPerSample);
 	TestCase_assert(audio.channelCount == 2, "Expected 2 but got %u", audio.channelCount);
 	TestCase_assert(audio.sampleRate == 22050, "Expected 22050 but got %u", audio.sampleRate);
-	TestCase_assert(audio.sampleCount == 3, "Expected 3 but got %zu", audio.sampleCount);
+	TestCase_assert(audio.sampleCount == 3, "Expected 3 but got %u", (unsigned int) audio.sampleCount);
 	TestCase_assert(audio.samples == samples3, "Expected %p but got %p", samples3, audio.samples);
 	audio.dispose(&audio);
 	
@@ -27,7 +27,7 @@ static void testInit() {
 	TestCase_assert(audioPtr->bytesPerSample == 1, "Expected 1 but got %u", audioPtr->bytesPerSample);
 	TestCase_assert(audioPtr->channelCount == 2, "Expected 2 but got %u", audioPtr->channelCount);
 	TestCase_assert(audioPtr->sampleRate == 22050, "Expected 22050 but got %u", audioPtr->sampleRate);
-	TestCase_assert(audioPtr->sampleCount == 3, "Expected 3 but got %zu", audioPtr->sampleCount);
+	TestCase_assert(audioPtr->sampleCount == 3, "Expected 3 but got %u", (unsigned int) audioPtr->sampleCount);
 	TestCase_assert(audioPtr->samples == samples3, "Expected %p but got %p", samples3, audioPtr->samples);
 	audioPtr->dispose(audioPtr);
 	
@@ -36,7 +36,7 @@ static void testInit() {
 	TestCase_assert(audio.bytesPerSample == 2, "Expected 2 but got %u", audio.bytesPerSample);
 	TestCase_assert(audio.channelCount == 3, "Expected 3 but got %u", audio.channelCount);
 	TestCase_assert(audio.sampleRate == 44100, "Expected 44100 but got %u", audio.sampleRate);
-	TestCase_assert(audio.sampleCount == 4, "Expected 4 but got %zu", audio.sampleCount);
+	TestCase_assert(audio.sampleCount == 4, "Expected 4 but got %u", (unsigned int) audio.sampleCount);
 	TestCase_assert(audio.samples != samples4, "Pointers expected to differ, but didn't");
 	TestCase_assert(!memcmp(samples4, audio.samples, 4), "Expected {0x%02X, 0x%02X, 0x%02X, 0x%02X} but got {0x%02X, 0x%02X, 0x%02X, 0x%02X}", samples4[0], samples4[1], samples4[2], samples4[3], ((char *) audio.samples)[0], ((char *) audio.samples)[1], ((char *) audio.samples)[2], ((char *) audio.samples)[3]);
 	audio.dispose(&audio);
@@ -48,7 +48,7 @@ static void testInit() {
 	TestCase_assert(audioPtr->bytesPerSample == 2, "Expected 2 but got %u", audioPtr->bytesPerSample);
 	TestCase_assert(audioPtr->channelCount == 3, "Expected 3 but got %u", audioPtr->channelCount);
 	TestCase_assert(audioPtr->sampleRate == 44100, "Expected 44100 but got %u", audioPtr->sampleRate);
-	TestCase_assert(audioPtr->sampleCount == 4, "Expected 4 but got %zu", audioPtr->sampleCount);
+	TestCase_assert(audioPtr->sampleCount == 4, "Expected 4 but got %u", (unsigned int) audioPtr->sampleCount);
 	TestCase_assert(audioPtr->samples != samples4, "Pointers expected to differ, but didn't");
 	TestCase_assert(!memcmp(samples4, audioPtr->samples, 4), "Expected {0x%02X, 0x%02X, 0x%02X, 0x%02X} but got {0x%02X, 0x%02X, 0x%02X, 0x%02X}", samples4[0], samples4[1], samples4[2], samples4[3], ((char *) audioPtr->samples)[0], ((char *) audioPtr->samples)[1], ((char *) audioPtr->samples)[2], ((char *) audioPtr->samples)[3]);
 	audioPtr->dispose(audioPtr);
@@ -64,7 +64,7 @@ static void testInitStream() {
 	TestCase_assert(stream.bytesPerSample == 0, "Expected 0 but got %u", stream.bytesPerSample);
 	TestCase_assert(stream.channelCount == 0, "Expected 0 but got %u", stream.channelCount);
 	TestCase_assert(stream.sampleRate == 0, "Expected 0 but got %u", stream.sampleRate);
-	TestCase_assert(stream.sampleCount == 0, "Expected 0 but got %zu", stream.sampleCount);
+	TestCase_assert(stream.sampleCount == 0, "Expected 0 but got %u", (unsigned int) stream.sampleCount);
 	stream.dispose(&stream);
 }
 
