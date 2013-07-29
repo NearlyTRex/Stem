@@ -50,10 +50,9 @@ void (* StubShellCallback_setCursorVisible)(void * context, bool visible) = NULL
 void (* StubShellCallback_hideCursorUntilMouseMoves)(void * context) = NULL;
 void (* StubShellCallback_setCursor)(void * context, int cursor) = NULL;
 void (* StubShellCallback_setMouseDeltaMode)(void * context, bool deltaMode) = NULL;
-ShellThread (* StubShellCallback_createThread)(void * context, void (* threadFunction)(void * context), void * threadContext) = NULL;
+ShellThread (* StubShellCallback_createThread)(void * context, int (* threadFunction)(void * context), void * threadContext) = NULL;
 void (* StubShellCallback_exitThread)(void * context, int statusCode) = NULL;
-void (* StubShellCallback_cancelThread)(void * context, ShellThread thread) = NULL;
-void (* StubShellCallback_joinThread)(void * context, ShellThread thread) = NULL;
+int (* StubShellCallback_joinThread)(void * context, ShellThread thread) = NULL;
 ShellThread (* StubShellCallback_getCurrentThread)(void * context) = NULL;
 ShellMutex (* StubShellCallback_createMutex)(void * context) = NULL;
 void (* StubShellCallback_disposeMutex)(void * context, ShellMutex mutex) = NULL;
@@ -180,7 +179,7 @@ void Shell_setMouseDeltaMode(bool deltaMode) {
 	}
 }
 
-ShellThread Shell_createThread(void (* threadFunction)(void * context), void * context) {
+ShellThread Shell_createThread(int (* threadFunction)(void * context), void * context) {
 	if (StubShellCallback_createThread != NULL) {
 		return StubShellCallback_createThread(StubShell_callbackContext, threadFunction, context);
 	}
@@ -193,16 +192,11 @@ void Shell_exitThread(int statusCode) {
 	}
 }
 
-void Shell_cancelThread(ShellThread thread) {
-	if (StubShellCallback_cancelThread != NULL) {
-		StubShellCallback_cancelThread(StubShell_callbackContext, thread);
-	}
-}
-
-void Shell_joinThread(ShellThread thread) {
+int Shell_joinThread(ShellThread thread) {
 	if (StubShellCallback_joinThread != NULL) {
-		StubShellCallback_joinThread(StubShell_callbackContext, thread);
+		return StubShellCallback_joinThread(StubShell_callbackContext, thread);
 	}
+	return 0;
 }
 
 ShellThread Shell_getCurrentThread() {

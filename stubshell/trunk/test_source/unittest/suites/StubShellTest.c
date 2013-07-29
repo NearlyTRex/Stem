@@ -25,13 +25,14 @@ static bool lastBoolArg;
 static int lastIntArg;
 static ShellThread lastShellThreadArg;
 static ShellMutex lastShellMutexArg;
-static void (* lastThreadCallback)(void * threadContext);
+static int (* lastThreadCallback)(void * threadContext);
 
 static bool boolReturnValue;
 static double doubleReturnValue;
 static const char * constCharPtrReturnValue;
 static enum ShellBatteryState shellBatteryStateReturnValue;
 static float floatReturnValue;
+static int intReturnValue;
 static unsigned int uintReturnValue;
 static void * ptrReturnValue;
 
@@ -105,7 +106,7 @@ static void intArgTestCallback(void * context, int intArg) {
 	lastIntArg = intArg;
 }
 
-static ShellThread createThreadTestCallback(void * context, void (* callback)(void * threadContext), void * threadContext) {
+static ShellThread createThreadTestCallback(void * context, int (* callback)(void * threadContext), void * threadContext) {
 	callbackCalls++;
 	lastThreadCallback = callback;
 	lastPtrArg = threadContext;
@@ -113,10 +114,11 @@ static ShellThread createThreadTestCallback(void * context, void (* callback)(vo
 	return ptrReturnValue;
 }
 
-static void shellThreadArgTestCallback(void * context, ShellThread shellThreadArg) {
+static int shellThreadArgTestCallback(void * context, ShellThread shellThreadArg) {
 	callbackCalls++;
 	lastContext = context;
 	lastShellThreadArg = shellThreadArg;
+	return intReturnValue;
 }
 
 static void shellMutexArgTestCallback(void * context, ShellMutex shellMutexArg) {
@@ -132,7 +134,13 @@ static bool tryLockMutexTestCallback(void * context, ShellMutex shellMutexArg) {
 	return boolReturnValue;
 }
 
-static void * ptrReturnTestCallback(void * context) {
+static ShellThread shellThreadReturnTestCallback(void * context) {
+	callbackCalls++;
+	lastContext = context;
+	return ptrReturnValue;
+}
+
+static ShellMutex shellMutexReturnTestCallback(void * context) {
 	callbackCalls++;
 	lastContext = context;
 	return ptrReturnValue;
@@ -448,20 +456,20 @@ static void testCreateThread() {
 	StubShellCallback_createThread = createThreadTestCallback;
 	StubShell_callbackContext = (void *) 0x1A;
 	ptrReturnValue = (ShellThread) 0x3;
-	result = Shell_createThread((void (*)(void *)) 0x1, (void *) 0x2);
+	result = Shell_createThread((int (*)(void *)) 0x1, (void *) 0x2);
 	TestCase_assert(result == (ShellThread) 0x3, "Expected 0x3 but got %p", result);
 	TestCase_assert(callbackCalls == 1, "Expected 1 but got %d", callbackCalls);
 	TestCase_assert(lastContext == (void *) 0x1A, "Expected 0x1A but got %p", lastContext);
-	TestCase_assert(lastThreadCallback == (void (*)(void *)) 0x1, "Expected 0x1 but got %p", lastThreadCallback);
+	TestCase_assert(lastThreadCallback == (int (*)(void *)) 0x1, "Expected 0x1 but got %p", lastThreadCallback);
 	TestCase_assert(lastPtrArg == (void *) 0x2, "Expected 0x2 but got %p", lastPtrArg);
 	
 	StubShell_callbackContext = (void *) 0x1B;
 	ptrReturnValue = (ShellThread) 0x2;
-	result = Shell_createThread((void (*)(void *)) 0x4, (void *) 0x3);
+	result = Shell_createThread((int (*)(void *)) 0x4, (void *) 0x3);
 	TestCase_assert(result == (ShellThread) 0x2, "Expected 0x2 but got %p", result);
 	TestCase_assert(callbackCalls == 2, "Expected 2 but got %d", callbackCalls);
 	TestCase_assert(lastContext == (void *) 0x1B, "Expected 0x1B but got %p", lastContext);
-	TestCase_assert(lastThreadCallback == (void (*)(void *)) 0x4, "Expected 0x4 but got %p", lastThreadCallback);
+	TestCase_assert(lastThreadCallback == (int (*)(void *)) 0x4, "Expected 0x4 but got %p", lastThreadCallback);
 	TestCase_assert(lastPtrArg == (void *) 0x3, "Expected 0x3 but got %p", lastPtrArg);
 }
 
@@ -483,40 +491,28 @@ static void testExitThread() {
 	TestCase_assert(lastIntArg == 1, "Expected 1 but got %d", lastIntArg);
 }
 
-static void testCancelThread() {
-	callbackCalls = 0;
-	lastContext = NULL;
-	
-	StubShellCallback_cancelThread = shellThreadArgTestCallback;
-	StubShell_callbackContext = (void *) 0x1E;
-	Shell_cancelThread((ShellThread) 0x3);
-	TestCase_assert(callbackCalls == 1, "Expected 1 but got %d", callbackCalls);
-	TestCase_assert(lastContext == (void *) 0x1E, "Expected 0x1E but got %p", lastContext);
-	TestCase_assert(lastShellThreadArg == (ShellThread) 0x3, "Expected 0x3 but got %p", lastShellThreadArg);
-	
-	StubShell_callbackContext = (void *) 0x1F;
-	Shell_cancelThread((ShellThread) 0x4);
-	TestCase_assert(callbackCalls == 2, "Expected 2 but got %d", callbackCalls);
-	TestCase_assert(lastContext == (void *) 0x1F, "Expected 0x1F but got %p", lastContext);
-	TestCase_assert(lastShellThreadArg == (ShellThread) 0x4, "Expected 0x4 but got %p", lastShellThreadArg);
-}
-
 static void testJoinThread() {
+	int result;
+	
 	callbackCalls = 0;
 	lastContext = NULL;
 	
+	intReturnValue = 1;
 	StubShellCallback_joinThread = shellThreadArgTestCallback;
 	StubShell_callbackContext = (void *) 0x20;
-	Shell_joinThread((ShellThread) 0x5);
+	result = Shell_joinThread((ShellThread) 0x5);
 	TestCase_assert(callbackCalls == 1, "Expected 1 but got %d", callbackCalls);
 	TestCase_assert(lastContext == (void *) 0x20, "Expected 0x20 but got %p", lastContext);
 	TestCase_assert(lastShellThreadArg == (ShellThread) 0x5, "Expected 0x5 but got %p", lastShellThreadArg);
+	TestCase_assert(result == 1, "Expected 1 but got %d", result);
 	
+	intReturnValue = 3;
 	StubShell_callbackContext = (void *) 0x21;
-	Shell_joinThread((ShellThread) 0x6);
+	result = Shell_joinThread((ShellThread) 0x6);
 	TestCase_assert(callbackCalls == 2, "Expected 2 but got %d", callbackCalls);
 	TestCase_assert(lastContext == (void *) 0x21, "Expected 0x21 but got %p", lastContext);
 	TestCase_assert(lastShellThreadArg == (ShellThread) 0x6, "Expected 0x6 but got %p", lastShellThreadArg);
+	TestCase_assert(result == 3, "Expected 3 but got %d", result);
 }
 
 static void testGetCurrentThread() {
@@ -527,7 +523,7 @@ static void testGetCurrentThread() {
 	result = Shell_getCurrentThread();
 	TestCase_assert(result == NULL, "Expected NULL but got %p", result);
 	
-	StubShellCallback_getCurrentThread = ptrReturnTestCallback;
+	StubShellCallback_getCurrentThread = shellThreadReturnTestCallback;
 	StubShell_callbackContext = (void *) 0x22;
 	ptrReturnValue = (void *) 0x7;
 	result = Shell_getCurrentThread();
@@ -544,14 +540,14 @@ static void testGetCurrentThread() {
 }
 
 static void testCreateMutex() {
-	ShellThread result;
+	ShellMutex result;
 	
 	callbackCalls = 0;
 	lastContext = NULL;
 	result = Shell_createMutex();
 	TestCase_assert(result == NULL, "Expected NULL but got %p", result);
 	
-	StubShellCallback_createMutex = ptrReturnTestCallback;
+	StubShellCallback_createMutex = shellMutexReturnTestCallback;
 	StubShell_callbackContext = (void *) 0x24;
 	ptrReturnValue = (void *) 0x9;
 	result = Shell_createMutex();
@@ -662,7 +658,6 @@ TEST_SUITE(StubShellTest,
            testSetMouseDeltaMode,
            testCreateThread,
            testExitThread,
-           testCancelThread,
            testJoinThread,
            testGetCurrentThread,
            testCreateMutex,

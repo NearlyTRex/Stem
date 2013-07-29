@@ -24,6 +24,7 @@
 #define __STUBSHELL_H__
 
 #include "shell/ShellBatteryInfo.h"
+#include "shell/ShellThreads.h"
 
 /** Passed as the first argument to all StubShellCallback_* functions. Defaults to NULL. */
 extern void * StubShell_callbackContext;
@@ -45,10 +46,9 @@ extern void (* StubShellCallback_setCursorVisible)(void * context, bool visible)
 extern void (* StubShellCallback_hideCursorUntilMouseMoves)(void * context);
 extern void (* StubShellCallback_setCursor)(void * context, int cursor);
 extern void (* StubShellCallback_setMouseDeltaMode)(void * context, bool deltaMode);
-extern ShellThread (* StubShellCallback_createThread)(void * context, void (* threadFunction)(void * context), void * threadContext);
+extern ShellThread (* StubShellCallback_createThread)(void * context, int (* threadFunction)(void * context), void * threadContext);
 extern void (* StubShellCallback_exitThread)(void * context, int statusCode);
-extern void (* StubShellCallback_cancelThread)(void * context, ShellThread thread);
-extern void (* StubShellCallback_joinThread)(void * context, ShellThread thread);
+extern int (* StubShellCallback_joinThread)(void * context, ShellThread thread);
 extern ShellThread (* StubShellCallback_getCurrentThread)(void * context);
 extern ShellMutex (* StubShellCallback_createMutex)(void * context);
 extern void (* StubShellCallback_disposeMutex)(void * context, ShellMutex mutex);
