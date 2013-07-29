@@ -416,7 +416,7 @@ void BinarySerializationContext_writeBoolean(BinarySerializationContext * self, 
 void BinarySerializationContext_writeEnumeration(BinarySerializationContext * self, const char * key, int value, ...) {
 	va_list args;
 	char * string;
-	int namedValue, returnValue = 0;
+	int namedValue;
 	bool found = false;
 	struct enumListItem {const char * name; int value;} * enumList;
 	size_t enumListAllocatedSize, enumCount, enumIndex;
@@ -430,7 +430,6 @@ void BinarySerializationContext_writeEnumeration(BinarySerializationContext * se
 		namedValue = va_arg(args, int);
 		if (namedValue == value) {
 			found = true;
-			returnValue = value;
 		}
 		
 		if (enumCount >= enumListAllocatedSize) {

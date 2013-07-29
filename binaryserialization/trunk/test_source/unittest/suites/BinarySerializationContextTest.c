@@ -5,6 +5,12 @@
 #include <float.h>
 #include <unistd.h>
 
+#if defined(WIN32)
+#define SIZE_T_FORMAT "%Iu"
+#else
+#define SIZE_T_FORMAT "%zu"
+#endif
+
 static void testInit() {
 	BinarySerializationContext context, * contextPtr;
 	
@@ -101,7 +107,7 @@ static size_t firstByteDifference(unsigned char * bytes, unsigned char * expecte
 	return charIndex;
 }
 
-#define assertBytesMatch(bytes, expected, length) TestCase_assert(!memcmp(bytes, expected, length), "Bytes didn't match; got %s (first difference at %zu)", printableBytes(bytes, length), firstByteDifference(bytes, (unsigned char *) expected, length))
+#define assertBytesMatch(bytes, expected, length) TestCase_assert(!memcmp(bytes, expected, length), "Bytes didn't match; got %s (first difference at " SIZE_T_FORMAT ")", printableBytes(bytes, length), firstByteDifference(bytes, (unsigned char *) expected, length))
 
 static void testTopLevelContainers() {
 	BinarySerializationContext * context;
@@ -118,7 +124,7 @@ static void testTopLevelContainers() {
 	context->dispose(context);
 	TestCase_assert(bytes != NULL, "Expected non-NULL but got NULL");
 	if (bytes == NULL) {return;} // Suppress clang warning
-	TestCase_assert(length == 4, "Expected 4 but got %zu", length);
+	TestCase_assert(length == 4, "Expected 4 but got " SIZE_T_FORMAT, length);
 	assertBytesMatch(bytes, "Stem", length);
 	free(bytes);
 	
@@ -132,7 +138,7 @@ static void testTopLevelContainers() {
 	context->dispose(context);
 	TestCase_assert(bytes != NULL, "Expected non-NULL but got NULL");
 	if (bytes == NULL) {return;} // Suppress clang warning
-	TestCase_assert(length == 8, "Expected 8 but got %zu", length);
+	TestCase_assert(length == 8, "Expected 8 but got " SIZE_T_FORMAT, length);
 	assertBytesMatch(bytes, "Stem\x00\x00\x00\x00", length);
 	free(bytes);
 	
@@ -146,7 +152,7 @@ static void testTopLevelContainers() {
 	context->dispose(context);
 	TestCase_assert(bytes != NULL, "Expected non-NULL but got NULL");
 	if (bytes == NULL) {return;} // Suppress clang warning
-	TestCase_assert(length == 12, "Expected 12 but got %zu", length);
+	TestCase_assert(length == 12, "Expected 12 but got " SIZE_T_FORMAT, length);
 	assertBytesMatch(bytes, "Stem\x00\x00\x00\x00\x00\x00\x00\x08", length);
 	free(bytes);
 }
@@ -176,7 +182,7 @@ static void testNumberValues() {
 	context->dispose(context);
 	TestCase_assert(bytes != NULL, "Expected non-NULL but got NULL");
 	if (bytes == NULL) {return;} // Suppress clang warning
-	TestCase_assert(length == 50, "Expected 50 but got %zu", length);
+	TestCase_assert(length == 50, "Expected 50 but got " SIZE_T_FORMAT, length);
 	assertBytesMatch(bytes, "Stem"
 	                        "\x00\x00\x00\x0A"
 	                        "\x00"
@@ -211,7 +217,7 @@ static void testNumberValues() {
 	context->dispose(context);
 	TestCase_assert(bytes != NULL, "Expected non-NULL but got NULL");
 	if (bytes == NULL) {return;} // Suppress clang warning
-	TestCase_assert(length == 50, "Expected 50 but got %zu", length);
+	TestCase_assert(length == 50, "Expected 50 but got " SIZE_T_FORMAT, length);
 	assertBytesMatch(bytes, "metS"
 	                        "\x0A\x00\x00\x00"
 	                        "\x00"
@@ -246,7 +252,7 @@ static void testNumberValues() {
 	context->dispose(context);
 	TestCase_assert(bytes != NULL, "Expected non-NULL but got NULL");
 	if (bytes == NULL) {return;} // Suppress clang warning
-	TestCase_assert(length == 50, "Expected 50 but got %zu", length);
+	TestCase_assert(length == 50, "Expected 50 but got " SIZE_T_FORMAT, length);
 	assertBytesMatch(bytes, "metS"
 	                        "\x0A\x00\x00\x00"
 	                        "\x80"
@@ -281,7 +287,7 @@ static void testNumberValues() {
 	context->dispose(context);
 	TestCase_assert(bytes != NULL, "Expected non-NULL but got NULL");
 	if (bytes == NULL) {return;} // Suppress clang warning
-	TestCase_assert(length == 50, "Expected 50 but got %zu", length);
+	TestCase_assert(length == 50, "Expected 50 but got " SIZE_T_FORMAT, length);
 	assertBytesMatch(bytes, "Stem"
 	                        "\x00\x00\x00\x0A"
 	                        "\x80"
@@ -314,7 +320,7 @@ static void testStringValues() {
 	context->dispose(context);
 	TestCase_assert(bytes != NULL, "Expected non-NULL but got NULL");
 	if (bytes == NULL) {return;} // Suppress clang warning
-	TestCase_assert(length == 26, "Expected 26 but got %zu", length);
+	TestCase_assert(length == 26, "Expected 26 but got " SIZE_T_FORMAT, length);
 	assertBytesMatch(bytes, "Stem"
 	                        "\x00\x00\x00\x02"
 	                        "foo\x00"
@@ -333,7 +339,7 @@ static void testStringValues() {
 	context->dispose(context);
 	TestCase_assert(bytes != NULL, "Expected non-NULL but got NULL");
 	if (bytes == NULL) {return;} // Suppress clang warning
-	TestCase_assert(length == 26, "Expected 26 but got %zu", length);
+	TestCase_assert(length == 26, "Expected 26 but got " SIZE_T_FORMAT, length);
 	assertBytesMatch(bytes, "metS"
 	                        "\x02\x00\x00\x00"
 	                        "foo\x00"
@@ -358,7 +364,7 @@ static void testBooleanValues() {
 	context->dispose(context);
 	TestCase_assert(bytes != NULL, "Expected non-NULL but got NULL");
 	if (bytes == NULL) {return;} // Suppress clang warning
-	TestCase_assert(length == 10, "Expected 10 but got %zu", length);
+	TestCase_assert(length == 10, "Expected 10 but got " SIZE_T_FORMAT, length);
 	assertBytesMatch(bytes, "Stem"
 	                        "\x00\x00\x00\x02"
 	                        "\x00"
@@ -377,7 +383,7 @@ static void testBooleanValues() {
 	context->dispose(context);
 	TestCase_assert(bytes != NULL, "Expected non-NULL but got NULL");
 	if (bytes == NULL) {return;} // Suppress clang warning
-	TestCase_assert(length == 10, "Expected 10 but got %zu", length);
+	TestCase_assert(length == 10, "Expected 10 but got " SIZE_T_FORMAT, length);
 	assertBytesMatch(bytes, "metS"
 	                        "\x02\x00\x00\x00"
 	                        "\x00"
@@ -411,7 +417,7 @@ static void testEnumerations() {
 	context->dispose(context);
 	TestCase_assert(bytes != NULL, "Expected non-NULL but got NULL");
 	if (bytes == NULL) {return;} // Suppress clang warning
-	TestCase_assert(length == 28, "Expected 28 but got %zu", length);
+	TestCase_assert(length == 28, "Expected 28 but got " SIZE_T_FORMAT, length);
 	assertBytesMatch(bytes, "Stem"
 	                        "\x00\x00\x00\x05"
 	                        "\x00\x00\x00\x00"
@@ -436,7 +442,7 @@ static void testEnumerations() {
 	context->dispose(context);
 	TestCase_assert(bytes != NULL, "Expected non-NULL but got NULL");
 	if (bytes == NULL) {return;} // Suppress clang warning
-	TestCase_assert(length == 28, "Expected 28 but got %zu", length);
+	TestCase_assert(length == 28, "Expected 28 but got " SIZE_T_FORMAT, length);
 	assertBytesMatch(bytes, "metS"
 	                        "\x05\x00\x00\x00"
 	                        "\x00\x00\x00\x00"
@@ -474,7 +480,7 @@ static void testBitfields() {
 	context->dispose(context);
 	TestCase_assert(bytes != NULL, "Expected non-NULL but got NULL");
 	if (bytes == NULL) {return;} // Suppress clang warning
-	TestCase_assert(length == 53, "Expected 53 but got %zu", length);
+	TestCase_assert(length == 53, "Expected 53 but got " SIZE_T_FORMAT, length);
 	assertBytesMatch(bytes, "Stem"
 	                        "\x00\x00\x00\x0C"
 	                        "\xAA"
@@ -513,7 +519,7 @@ static void testBitfields() {
 	context->dispose(context);
 	TestCase_assert(bytes != NULL, "Expected non-NULL but got NULL");
 	if (bytes == NULL) {return;} // Suppress clang warning
-	TestCase_assert(length == 53, "Expected 53 but got %zu", length);
+	TestCase_assert(length == 53, "Expected 53 but got " SIZE_T_FORMAT, length);
 	assertBytesMatch(bytes, "metS"
 	                        "\x0C\x00\x00\x00"
 	                        "\xAA"
@@ -548,7 +554,7 @@ static void testArrays() {
 	context->dispose(context);
 	TestCase_assert(bytes != NULL, "Expected non-NULL but got NULL");
 	if (bytes == NULL) {return;} // Suppress clang warning
-	TestCase_assert(length == 12, "Expected 12 but got %zu", length);
+	TestCase_assert(length == 12, "Expected 12 but got " SIZE_T_FORMAT, length);
 	assertBytesMatch(bytes, "Stem"
 	                        "\x00\x00\x00\x01"
 	                        "\x00\x00\x00\x00", length);
@@ -566,7 +572,7 @@ static void testArrays() {
 	context->dispose(context);
 	TestCase_assert(bytes != NULL, "Expected non-NULL but got NULL");
 	if (bytes == NULL) {return;} // Suppress clang warning
-	TestCase_assert(length == 12, "Expected 12 but got %zu", length);
+	TestCase_assert(length == 12, "Expected 12 but got " SIZE_T_FORMAT, length);
 	assertBytesMatch(bytes, "metS"
 	                        "\x01\x00\x00\x00"
 	                        "\x00\x00\x00\x00", length);
@@ -605,7 +611,7 @@ static void testArrays() {
 	context->dispose(context);
 	TestCase_assert(bytes != NULL, "Expected non-NULL but got NULL");
 	if (bytes == NULL) {return;} // Suppress clang warning
-	TestCase_assert(length == 85, "Expected 85 but got %zu", length);
+	TestCase_assert(length == 85, "Expected 85 but got " SIZE_T_FORMAT, length);
 	assertBytesMatch(bytes, "Stem"
 	                        "\x00\x00\x00\x02"
 	                        "\x00\x00\x00\x01"
@@ -663,7 +669,7 @@ static void testArrays() {
 	context->dispose(context);
 	TestCase_assert(bytes != NULL, "Expected non-NULL but got NULL");
 	if (bytes == NULL) {return;} // Suppress clang warning
-	TestCase_assert(length == 85, "Expected 85 but got %zu", length);
+	TestCase_assert(length == 85, "Expected 85 but got " SIZE_T_FORMAT, length);
 	assertBytesMatch(bytes, "metS"
 	                        "\x02\x00\x00\x00"
 	                        "\x01\x00\x00\x00"
@@ -706,7 +712,7 @@ static void testStructures() {
 	context->dispose(context);
 	TestCase_assert(bytes != NULL, "Expected non-NULL but got NULL");
 	if (bytes == NULL) {return;} // Suppress clang warning
-	TestCase_assert(length == 4, "Expected 4 but got %zu", length);
+	TestCase_assert(length == 4, "Expected 4 but got " SIZE_T_FORMAT, length);
 	assertBytesMatch(bytes, "Stem", length);
 	free(bytes);
 	
@@ -722,7 +728,7 @@ static void testStructures() {
 	context->dispose(context);
 	TestCase_assert(bytes != NULL, "Expected non-NULL but got NULL");
 	if (bytes == NULL) {return;} // Suppress clang warning
-	TestCase_assert(length == 4, "Expected 4 but got %zu", length);
+	TestCase_assert(length == 4, "Expected 4 but got " SIZE_T_FORMAT, length);
 	assertBytesMatch(bytes, "metS", length);
 	free(bytes);
 	
@@ -759,7 +765,7 @@ static void testStructures() {
 	context->dispose(context);
 	TestCase_assert(bytes != NULL, "Expected non-NULL but got NULL");
 	if (bytes == NULL) {return;} // Suppress clang warning
-	TestCase_assert(length == 69, "Expected 69 but got %zu", length);
+	TestCase_assert(length == 69, "Expected 69 but got " SIZE_T_FORMAT, length);
 	assertBytesMatch(bytes, "Stem"
 	                        "\x00"
 	                        "\x01"
@@ -813,7 +819,7 @@ static void testStructures() {
 	context->dispose(context);
 	TestCase_assert(bytes != NULL, "Expected non-NULL but got NULL");
 	if (bytes == NULL) {return;} // Suppress clang warning
-	TestCase_assert(length == 69, "Expected 69 but got %zu", length);
+	TestCase_assert(length == 69, "Expected 69 but got " SIZE_T_FORMAT, length);
 	assertBytesMatch(bytes, "metS"
 	                        "\x00"
 	                        "\x01"
@@ -852,7 +858,7 @@ static void testDictionaries() {
 	context->dispose(context);
 	TestCase_assert(bytes != NULL, "Expected non-NULL but got NULL");
 	if (bytes == NULL) {return;} // Suppress clang warning
-	TestCase_assert(length == 29, "Expected 29 but got %zu", length);
+	TestCase_assert(length == 29, "Expected 29 but got " SIZE_T_FORMAT, length);
 	assertBytesMatch(bytes, "Stem"
 	                        "\x00\x00\x00\x01\x00\x00\x00\x19"
 	                        "item\x00"
@@ -872,7 +878,7 @@ static void testDictionaries() {
 	context->dispose(context);
 	TestCase_assert(bytes != NULL, "Expected non-NULL but got NULL");
 	if (bytes == NULL) {return;} // Suppress clang warning
-	TestCase_assert(length == 29, "Expected 29 but got %zu", length);
+	TestCase_assert(length == 29, "Expected 29 but got " SIZE_T_FORMAT, length);
 	assertBytesMatch(bytes, "metS"
 	                        "\x01\x00\x00\x00\x19\x00\x00\x00"
 	                        "item\x00"
@@ -913,7 +919,7 @@ static void testDictionaries() {
 	context->dispose(context);
 	TestCase_assert(bytes != NULL, "Expected non-NULL but got NULL");
 	if (bytes == NULL) {return;} // Suppress clang warning
-	TestCase_assert(length == 338, "Expected 338 but got %zu", length);
+	TestCase_assert(length == 338, "Expected 338 but got " SIZE_T_FORMAT, length);
 	assertBytesMatch(bytes, "Stem" // 4
 	                        "\x00\x00\x00\x02\x00\x00\x01\x4E" // 12
 	                        "struct1\x00" // 20
@@ -1011,7 +1017,7 @@ static void testDictionaries() {
 	context->dispose(context);
 	TestCase_assert(bytes != NULL, "Expected non-NULL but got NULL");
 	if (bytes == NULL) {return;} // Suppress clang warning
-	TestCase_assert(length == 338, "Expected 338 but got %zu", length);
+	TestCase_assert(length == 338, "Expected 338 but got " SIZE_T_FORMAT, length);
 	assertBytesMatch(bytes, "metS" // 4
 	                        "\x02\x00\x00\x00\x4E\x01\x00\x00" // 12
 	                        "struct1\x00" // 20
@@ -1104,7 +1110,7 @@ static void testMixedContainers() {
 	context->dispose(context);
 	TestCase_assert(bytes != NULL, "Expected non-NULL but got NULL");
 	if (bytes == NULL) {return;} // Suppress clang warning
-	TestCase_assert(length == 64, "Expected 64 but got %zu", length);
+	TestCase_assert(length == 64, "Expected 64 but got " SIZE_T_FORMAT, length);
 	assertBytesMatch(bytes, "Stem"
 	                        "\x00\x00\x00\x02"
 	                        "\x00\x00\x00\x00"
@@ -1139,7 +1145,7 @@ static void testMixedContainers() {
 	context->dispose(context);
 	TestCase_assert(bytes != NULL, "Expected non-NULL but got NULL");
 	if (bytes == NULL) {return;} // Suppress clang warning
-	TestCase_assert(length == 64, "Expected 64 but got %zu", length);
+	TestCase_assert(length == 64, "Expected 64 but got " SIZE_T_FORMAT, length);
 	assertBytesMatch(bytes, "metS"
 	                        "\x02\x00\x00\x00"
 	                        "\x00\x00\x00\x00"
@@ -1181,7 +1187,7 @@ static void testWriteToFile() {
 	unlink(tempFilePath);
 	TestCase_assert(success, "Expected true but got false");
 	TestCase_assert(bytes != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(length == 27, "Expected 27 but got %zu", length);
+	TestCase_assert(length == 27, "Expected 27 but got " SIZE_T_FORMAT, length);
 	assertBytesMatch(bytes, "Stem"
 	                        "\x00\x00\x00\x02"
 	                        "\x00\x00\x00\x0A"
@@ -1209,7 +1215,7 @@ static void testWriteToFile() {
 	unlink(tempFilePath);
 	TestCase_assert(success, "Expected true but got false");
 	TestCase_assert(bytes != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(length == 27, "Expected 27 but got %zu", length);
+	TestCase_assert(length == 27, "Expected 27 but got " SIZE_T_FORMAT, length);
 	assertBytesMatch(bytes, "metS"
 	                        "\x02\x00\x00\x00"
 	                        "\x0A\x00\x00\x00"
