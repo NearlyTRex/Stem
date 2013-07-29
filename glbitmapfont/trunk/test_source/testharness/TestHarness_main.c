@@ -39,10 +39,9 @@ void Target_init() {
 	JSONDeserializationContext * context;
 	GLTexture * texture;
 	BitmapImage * image;
-	int result;
 	
 	if (jsonPath == NULL) {
-		result = chdir(Shell_getResourcePath());
+		chdir(Shell_getResourcePath());
 		fontJSONFilePath = "test_font.json";
 	} else {
 		fontJSONFilePath = jsonPath;
@@ -123,7 +122,7 @@ void Target_init() {
 		GLuint shaderProgram;
 		GLint logLength;
 		
-		result = chdir(Shell_getResourcePath());
+		chdir(Shell_getResourcePath());
 		
 		shaderProgram = glCreateProgram();
 		vertexShader = glCreateShader(GL_VERTEX_SHADER);

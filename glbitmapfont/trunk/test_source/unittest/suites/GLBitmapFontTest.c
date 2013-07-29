@@ -4,6 +4,12 @@
 #include "unittest/TestSerializationContext.h"
 #include <math.h>
 
+#if defined(WIN32)
+#define SIZE_T_FORMAT "%Iu"
+#else
+#define SIZE_T_FORMAT "%zu"
+#endif
+
 static void testInit() {
 	GLBitmapFont font, * fontPtr;
 	struct GLBitmapFont_charEntry characters[GLBITMAPFONT_NUM_CHARS];
@@ -29,7 +35,7 @@ static void testInit() {
 	TestCase_assert(font.characters[0].textureRight == 3.0f, "Expected 3.0 but got %f", font.characters[0].textureRight);
 	TestCase_assert(font.characters[0].textureBottom == 4.0f, "Expected 4.0 but got %f", font.characters[0].textureBottom);
 	TestCase_assert(font.characters[0].textureTop == 5.0f, "Expected 5.0 but got %f", font.characters[0].textureTop);
-	TestCase_assert(font.characters[0].kernCharCount == 0, "Expected 0 but got %zu", font.characters[0].kernCharCount);
+	TestCase_assert(font.characters[0].kernCharCount == 0, "Expected 0 but got " SIZE_T_FORMAT, font.characters[0].kernCharCount);
 	TestCase_assert(font.characters[0].kernChars == NULL, "Expected NULL but got %p", font.characters[0].kernChars);
 	for (charIndex = 1; charIndex < GLBITMAPFONT_NUM_CHARS; charIndex++) {
 		TestCase_assert(font.characters[charIndex].advance == 7.0f, "Expected 7.0 but got %f", font.characters[charIndex].advance);
@@ -39,7 +45,7 @@ static void testInit() {
 		TestCase_assert(font.characters[charIndex].textureRight == 9.0f, "Expected 9.0 but got %f", font.characters[charIndex].textureRight);
 		TestCase_assert(font.characters[charIndex].textureBottom == 10.0f, "Expected 10.0 but got %f", font.characters[charIndex].textureBottom);
 		TestCase_assert(font.characters[charIndex].textureTop == 11.0f, "Expected 11.0 but got %f", font.characters[charIndex].textureTop);
-		TestCase_assert(font.characters[charIndex].kernCharCount == 1, "Expected 1 but got %zu", font.characters[charIndex].kernCharCount);
+		TestCase_assert(font.characters[charIndex].kernCharCount == 1, "Expected 1 but got " SIZE_T_FORMAT, font.characters[charIndex].kernCharCount);
 		TestCase_assert(font.characters[charIndex].kernChars != NULL, "Expected non-NULL but got NULL");
 		TestCase_assert(font.characters[charIndex].kernChars != testCharEntry2.kernChars, "Pointers expected to differ but didn't");
 		TestCase_assert(font.characters[charIndex].kernChars != font.characters[charIndex - 1].kernChars, "Pointers expected to differ but didn't");
@@ -61,7 +67,7 @@ static void testInit() {
 	TestCase_assert(fontPtr->characters[0].textureRight == 3.0f, "Expected 3.0 but got %f", fontPtr->characters[0].textureRight);
 	TestCase_assert(fontPtr->characters[0].textureBottom == 4.0f, "Expected 4.0 but got %f", fontPtr->characters[0].textureBottom);
 	TestCase_assert(fontPtr->characters[0].textureTop == 5.0f, "Expected 5.0 but got %f", fontPtr->characters[0].textureTop);
-	TestCase_assert(fontPtr->characters[0].kernCharCount == 0, "Expected 0 but got %zu", fontPtr->characters[0].kernCharCount);
+	TestCase_assert(fontPtr->characters[0].kernCharCount == 0, "Expected 0 but got " SIZE_T_FORMAT, fontPtr->characters[0].kernCharCount);
 	TestCase_assert(fontPtr->characters[0].kernChars == NULL, "Expected NULL but got %p", fontPtr->characters[0].kernChars);
 	for (charIndex = 1; charIndex < GLBITMAPFONT_NUM_CHARS; charIndex++) {
 		TestCase_assert(fontPtr->characters[charIndex].advance == 7.0f, "Expected 7.0 but got %f", fontPtr->characters[charIndex].advance);
@@ -71,7 +77,7 @@ static void testInit() {
 		TestCase_assert(fontPtr->characters[charIndex].textureRight == 9.0f, "Expected 9.0 but got %f", fontPtr->characters[charIndex].textureRight);
 		TestCase_assert(fontPtr->characters[charIndex].textureBottom == 10.0f, "Expected 10.0 but got %f", fontPtr->characters[charIndex].textureBottom);
 		TestCase_assert(fontPtr->characters[charIndex].textureTop == 11.0f, "Expected 11.0 but got %f", fontPtr->characters[charIndex].textureTop);
-		TestCase_assert(fontPtr->characters[charIndex].kernCharCount == 1, "Expected 1 but got %zu", fontPtr->characters[charIndex].kernCharCount);
+		TestCase_assert(fontPtr->characters[charIndex].kernCharCount == 1, "Expected 1 but got " SIZE_T_FORMAT, fontPtr->characters[charIndex].kernCharCount);
 		TestCase_assert(fontPtr->characters[charIndex].kernChars != NULL, "Expected non-NULL but got NULL");
 		TestCase_assert(fontPtr->characters[charIndex].kernChars != testCharEntry2.kernChars, "Pointers expected to differ but didn't");
 		TestCase_assert(fontPtr->characters[charIndex].kernChars != fontPtr->characters[charIndex - 1].kernChars, "Pointers expected to differ but didn't");
@@ -95,7 +101,7 @@ static void testInit() {
 	TestCase_assert(font.characters[GLBITMAPFONT_NUM_CHARS - 1].textureRight == 3.0f, "Expected 3.0 but got %f", font.characters[GLBITMAPFONT_NUM_CHARS - 1].textureRight);
 	TestCase_assert(font.characters[GLBITMAPFONT_NUM_CHARS - 1].textureBottom == 4.0f, "Expected 4.0 but got %f", font.characters[GLBITMAPFONT_NUM_CHARS - 1].textureBottom);
 	TestCase_assert(font.characters[GLBITMAPFONT_NUM_CHARS - 1].textureTop == 5.0f, "Expected 5.0 but got %f", font.characters[GLBITMAPFONT_NUM_CHARS - 1].textureTop);
-	TestCase_assert(font.characters[GLBITMAPFONT_NUM_CHARS - 1].kernCharCount == 0, "Expected 0 but got %zu", font.characters[GLBITMAPFONT_NUM_CHARS - 1].kernCharCount);
+	TestCase_assert(font.characters[GLBITMAPFONT_NUM_CHARS - 1].kernCharCount == 0, "Expected 0 but got " SIZE_T_FORMAT, font.characters[GLBITMAPFONT_NUM_CHARS - 1].kernCharCount);
 	TestCase_assert(font.characters[GLBITMAPFONT_NUM_CHARS - 1].kernChars == NULL, "Expected NULL but got %p", font.characters[GLBITMAPFONT_NUM_CHARS - 1].kernChars);
 	for (charIndex = 0; charIndex < GLBITMAPFONT_NUM_CHARS - 1; charIndex++) {
 		TestCase_assert(font.characters[charIndex].advance == 7.0f, "Expected 7.0 but got %f", font.characters[charIndex].advance);
@@ -105,7 +111,7 @@ static void testInit() {
 		TestCase_assert(font.characters[charIndex].textureRight == 9.0f, "Expected 9.0 but got %f", font.characters[charIndex].textureRight);
 		TestCase_assert(font.characters[charIndex].textureBottom == 10.0f, "Expected 10.0 but got %f", font.characters[charIndex].textureBottom);
 		TestCase_assert(font.characters[charIndex].textureTop == 11.0f, "Expected 11.0 but got %f", font.characters[charIndex].textureTop);
-		TestCase_assert(font.characters[charIndex].kernCharCount == 1, "Expected 1 but got %zu", font.characters[charIndex].kernCharCount);
+		TestCase_assert(font.characters[charIndex].kernCharCount == 1, "Expected 1 but got " SIZE_T_FORMAT, font.characters[charIndex].kernCharCount);
 		TestCase_assert(font.characters[charIndex].kernChars != NULL, "Expected non-NULL but got NULL");
 		TestCase_assert(font.characters[charIndex].kernChars != testCharEntry2.kernChars, "Pointers expected to differ but didn't");
 		TestCase_assert(font.characters[charIndex].kernChars != font.characters[charIndex + 1].kernChars, "Pointers expected to differ but didn't");
@@ -127,7 +133,7 @@ static void testInit() {
 	TestCase_assert(fontPtr->characters[GLBITMAPFONT_NUM_CHARS - 1].textureRight == 3.0f, "Expected 3.0 but got %f", fontPtr->characters[GLBITMAPFONT_NUM_CHARS - 1].textureRight);
 	TestCase_assert(fontPtr->characters[GLBITMAPFONT_NUM_CHARS - 1].textureBottom == 4.0f, "Expected 4.0 but got %f", fontPtr->characters[GLBITMAPFONT_NUM_CHARS - 1].textureBottom);
 	TestCase_assert(fontPtr->characters[GLBITMAPFONT_NUM_CHARS - 1].textureTop == 5.0f, "Expected 5.0 but got %f", fontPtr->characters[GLBITMAPFONT_NUM_CHARS - 1].textureTop);
-	TestCase_assert(fontPtr->characters[GLBITMAPFONT_NUM_CHARS - 1].kernCharCount == 0, "Expected 0 but got %zu", fontPtr->characters[GLBITMAPFONT_NUM_CHARS - 1].kernCharCount);
+	TestCase_assert(fontPtr->characters[GLBITMAPFONT_NUM_CHARS - 1].kernCharCount == 0, "Expected 0 but got " SIZE_T_FORMAT, fontPtr->characters[GLBITMAPFONT_NUM_CHARS - 1].kernCharCount);
 	TestCase_assert(fontPtr->characters[GLBITMAPFONT_NUM_CHARS - 1].kernChars == NULL, "Expected NULL but got %p", fontPtr->characters[GLBITMAPFONT_NUM_CHARS - 1].kernChars);
 	for (charIndex = 0; charIndex < GLBITMAPFONT_NUM_CHARS - 1; charIndex++) {
 		TestCase_assert(fontPtr->characters[charIndex].advance == 7.0f, "Expected 7.0 but got %f", fontPtr->characters[charIndex].advance);
@@ -137,7 +143,7 @@ static void testInit() {
 		TestCase_assert(fontPtr->characters[charIndex].textureRight == 9.0f, "Expected 9.0 but got %f", fontPtr->characters[charIndex].textureRight);
 		TestCase_assert(fontPtr->characters[charIndex].textureBottom == 10.0f, "Expected 10.0 but got %f", fontPtr->characters[charIndex].textureBottom);
 		TestCase_assert(fontPtr->characters[charIndex].textureTop == 11.0f, "Expected 11.0 but got %f", fontPtr->characters[charIndex].textureTop);
-		TestCase_assert(fontPtr->characters[charIndex].kernCharCount == 1, "Expected 1 but got %zu", fontPtr->characters[charIndex].kernCharCount);
+		TestCase_assert(fontPtr->characters[charIndex].kernCharCount == 1, "Expected 1 but got " SIZE_T_FORMAT, fontPtr->characters[charIndex].kernCharCount);
 		TestCase_assert(fontPtr->characters[charIndex].kernChars != NULL, "Expected non-NULL but got NULL");
 		TestCase_assert(fontPtr->characters[charIndex].kernChars != testCharEntry2.kernChars, "Pointers expected to differ but didn't");
 		TestCase_assert(fontPtr->characters[charIndex].kernChars != fontPtr->characters[charIndex + 1].kernChars, "Pointers expected to differ but didn't");
@@ -223,7 +229,7 @@ static void testDeserialization() {
 	TestCase_assert(font.characters[0].textureRight == 1.0f, "Expected 1.0 but got %f", font.characters[0].textureRight);
 	TestCase_assert(font.characters[0].textureBottom == 2.0f, "Expected 2.0 but got %f", font.characters[0].textureBottom);
 	TestCase_assert(font.characters[0].textureTop == 3.0f, "Expected 3.0 but got %f", font.characters[0].textureTop);
-	TestCase_assert(font.characters[0].kernCharCount == 2, "Expected 2 but got %zu", font.characters[0].kernCharCount);
+	TestCase_assert(font.characters[0].kernCharCount == 2, "Expected 2 but got " SIZE_T_FORMAT, font.characters[0].kernCharCount);
 	TestCase_assert(font.characters[0].kernChars != NULL, "Expected non-NULL but got NULL");
 	TestCase_assert(font.characters[0].kernChars[0].previous == 'a', "Expected 'a' but got '%c'", font.characters[0].kernChars[0].previous);
 	TestCase_assert(font.characters[0].kernChars[0].offset == -1.0f, "Expected -1.0 but got %f", font.characters[0].kernChars[0].offset);
@@ -237,7 +243,7 @@ static void testDeserialization() {
 		TestCase_assert(font.characters[charIndex].textureRight == 6.0f, "Expected 6.0 but got %f (char %u)", font.characters[charIndex].textureRight, charIndex);
 		TestCase_assert(font.characters[charIndex].textureBottom == 7.0f, "Expected 7.0 but got %f (char %u)", font.characters[charIndex].textureBottom, charIndex);
 		TestCase_assert(font.characters[charIndex].textureTop == 8.0f, "Expected 8.0 but got %f (char %u)", font.characters[charIndex].textureTop, charIndex);
-		TestCase_assert(font.characters[charIndex].kernCharCount == 0, "Expected 0 but got %zu (char %u)", font.characters[charIndex].kernCharCount, charIndex);
+		TestCase_assert(font.characters[charIndex].kernCharCount == 0, "Expected 0 but got " SIZE_T_FORMAT " (char %u)", font.characters[charIndex].kernCharCount, charIndex);
 		TestCase_assert(font.characters[charIndex].kernChars == NULL, "Expected NULL but got %p (char %u)", font.characters[charIndex].kernChars, charIndex);
 	}
 	font.dispose(&font);
@@ -306,7 +312,7 @@ static void testDeserialization() {
 	TestCase_assert(font.characters[GLBITMAPFONT_NUM_CHARS - 1].textureRight == 2.0f, "Expected 2.0 but got %f", font.characters[GLBITMAPFONT_NUM_CHARS - 1].textureRight);
 	TestCase_assert(font.characters[GLBITMAPFONT_NUM_CHARS - 1].textureBottom == 3.0f, "Expected 3.0 but got %f", font.characters[GLBITMAPFONT_NUM_CHARS - 1].textureBottom);
 	TestCase_assert(font.characters[GLBITMAPFONT_NUM_CHARS - 1].textureTop == 4.0f, "Expected 4.0 but got %f", font.characters[GLBITMAPFONT_NUM_CHARS - 1].textureTop);
-	TestCase_assert(font.characters[GLBITMAPFONT_NUM_CHARS - 1].kernCharCount == 1, "Expected 1 but got %zu", font.characters[GLBITMAPFONT_NUM_CHARS - 1].kernCharCount);
+	TestCase_assert(font.characters[GLBITMAPFONT_NUM_CHARS - 1].kernCharCount == 1, "Expected 1 but got " SIZE_T_FORMAT, font.characters[GLBITMAPFONT_NUM_CHARS - 1].kernCharCount);
 	TestCase_assert(font.characters[GLBITMAPFONT_NUM_CHARS - 1].kernChars != NULL, "Expected non-NULL but got NULL");
 	TestCase_assert(font.characters[GLBITMAPFONT_NUM_CHARS - 1].kernChars[0].previous == 'b', "Expected 'a' but got '%c'", font.characters[GLBITMAPFONT_NUM_CHARS - 1].kernChars[0].previous);
 	TestCase_assert(font.characters[GLBITMAPFONT_NUM_CHARS - 1].kernChars[0].offset == 1.0f, "Expected 1.0 but got %f", font.characters[GLBITMAPFONT_NUM_CHARS - 1].kernChars[0].offset);
@@ -318,7 +324,7 @@ static void testDeserialization() {
 		TestCase_assert(font.characters[charIndex].textureRight == 3.0f, "Expected 3.0 but got %f (char %u)", font.characters[charIndex].textureRight, charIndex);
 		TestCase_assert(font.characters[charIndex].textureBottom == 4.0f, "Expected 4.0 but got %f (char %u)", font.characters[charIndex].textureBottom, charIndex);
 		TestCase_assert(font.characters[charIndex].textureTop == 5.0f, "Expected 5.0 but got %f (char %u)", font.characters[charIndex].textureTop, charIndex);
-		TestCase_assert(font.characters[charIndex].kernCharCount == 0, "Expected 0 but got %zu (char %u)", font.characters[charIndex].kernCharCount, charIndex);
+		TestCase_assert(font.characters[charIndex].kernCharCount == 0, "Expected 0 but got " SIZE_T_FORMAT " (char %u)", font.characters[charIndex].kernCharCount, charIndex);
 		TestCase_assert(font.characters[charIndex].kernChars == NULL, "Expected NULL but got %p (char %u)", font.characters[charIndex].kernChars, charIndex);
 	}
 	font.dispose(&font);
@@ -388,7 +394,7 @@ static void testDeserialization() {
 	TestCase_assert(fontPtr->characters[0].textureRight == 1.0f, "Expected 1.0 but got %f", fontPtr->characters[0].textureRight);
 	TestCase_assert(fontPtr->characters[0].textureBottom == 2.0f, "Expected 2.0 but got %f", fontPtr->characters[0].textureBottom);
 	TestCase_assert(fontPtr->characters[0].textureTop == 3.0f, "Expected 3.0 but got %f", fontPtr->characters[0].textureTop);
-	TestCase_assert(fontPtr->characters[0].kernCharCount == 2, "Expected 2 but got %zu", fontPtr->characters[0].kernCharCount);
+	TestCase_assert(fontPtr->characters[0].kernCharCount == 2, "Expected 2 but got " SIZE_T_FORMAT, fontPtr->characters[0].kernCharCount);
 	TestCase_assert(fontPtr->characters[0].kernChars != NULL, "Expected non-NULL but got NULL");
 	TestCase_assert(fontPtr->characters[0].kernChars[0].previous == 'a', "Expected 'a' but got '%c'", fontPtr->characters[0].kernChars[0].previous);
 	TestCase_assert(fontPtr->characters[0].kernChars[0].offset == -1.0f, "Expected -1.0 but got %f", fontPtr->characters[0].kernChars[0].offset);
@@ -402,7 +408,7 @@ static void testDeserialization() {
 		TestCase_assert(fontPtr->characters[charIndex].textureRight == 6.0f, "Expected 6.0 but got %f (char %u)", fontPtr->characters[charIndex].textureRight, charIndex);
 		TestCase_assert(fontPtr->characters[charIndex].textureBottom == 7.0f, "Expected 7.0 but got %f (char %u)", fontPtr->characters[charIndex].textureBottom, charIndex);
 		TestCase_assert(fontPtr->characters[charIndex].textureTop == 8.0f, "Expected 8.0 but got %f (char %u)", fontPtr->characters[charIndex].textureTop, charIndex);
-		TestCase_assert(fontPtr->characters[charIndex].kernCharCount == 0, "Expected 0 but got %zu (char %u)", fontPtr->characters[charIndex].kernCharCount, charIndex);
+		TestCase_assert(fontPtr->characters[charIndex].kernCharCount == 0, "Expected 0 but got " SIZE_T_FORMAT " (char %u)", fontPtr->characters[charIndex].kernCharCount, charIndex);
 		TestCase_assert(fontPtr->characters[charIndex].kernChars == NULL, "Expected NULL but got %p (char %u)", fontPtr->characters[charIndex].kernChars, charIndex);
 	}
 	fontPtr->dispose(fontPtr);
@@ -470,7 +476,7 @@ static void testDeserialization() {
 	TestCase_assert(fontPtr->characters[GLBITMAPFONT_NUM_CHARS - 1].textureRight == 2.0f, "Expected 2.0 but got %f", fontPtr->characters[GLBITMAPFONT_NUM_CHARS - 1].textureRight);
 	TestCase_assert(fontPtr->characters[GLBITMAPFONT_NUM_CHARS - 1].textureBottom == 3.0f, "Expected 3.0 but got %f", fontPtr->characters[GLBITMAPFONT_NUM_CHARS - 1].textureBottom);
 	TestCase_assert(fontPtr->characters[GLBITMAPFONT_NUM_CHARS - 1].textureTop == 4.0f, "Expected 4.0 but got %f", fontPtr->characters[GLBITMAPFONT_NUM_CHARS - 1].textureTop);
-	TestCase_assert(fontPtr->characters[GLBITMAPFONT_NUM_CHARS - 1].kernCharCount == 1, "Expected 1 but got %zu", fontPtr->characters[GLBITMAPFONT_NUM_CHARS - 1].kernCharCount);
+	TestCase_assert(fontPtr->characters[GLBITMAPFONT_NUM_CHARS - 1].kernCharCount == 1, "Expected 1 but got " SIZE_T_FORMAT, fontPtr->characters[GLBITMAPFONT_NUM_CHARS - 1].kernCharCount);
 	TestCase_assert(fontPtr->characters[GLBITMAPFONT_NUM_CHARS - 1].kernChars != NULL, "Expected non-NULL but got NULL");
 	TestCase_assert(fontPtr->characters[GLBITMAPFONT_NUM_CHARS - 1].kernChars[0].previous == 'b', "Expected 'a' but got '%c'", fontPtr->characters[GLBITMAPFONT_NUM_CHARS - 1].kernChars[0].previous);
 	TestCase_assert(fontPtr->characters[GLBITMAPFONT_NUM_CHARS - 1].kernChars[0].offset == 1.0f, "Expected 1.0 but got %f", fontPtr->characters[GLBITMAPFONT_NUM_CHARS - 1].kernChars[0].offset);
@@ -482,7 +488,7 @@ static void testDeserialization() {
 		TestCase_assert(fontPtr->characters[charIndex].textureRight == 3.0f, "Expected 3.0 but got %f (char %u)", fontPtr->characters[charIndex].textureRight, charIndex);
 		TestCase_assert(fontPtr->characters[charIndex].textureBottom == 4.0f, "Expected 4.0 but got %f (char %u)", fontPtr->characters[charIndex].textureBottom, charIndex);
 		TestCase_assert(fontPtr->characters[charIndex].textureTop == 5.0f, "Expected 5.0 but got %f (char %u)", fontPtr->characters[charIndex].textureTop, charIndex);
-		TestCase_assert(fontPtr->characters[charIndex].kernCharCount == 0, "Expected 0 but got %zu (char %u)", fontPtr->characters[charIndex].kernCharCount, charIndex);
+		TestCase_assert(fontPtr->characters[charIndex].kernCharCount == 0, "Expected 0 but got " SIZE_T_FORMAT " (char %u)", fontPtr->characters[charIndex].kernCharCount, charIndex);
 		TestCase_assert(fontPtr->characters[charIndex].kernChars == NULL, "Expected NULL but got %p (char %u)", fontPtr->characters[charIndex].kernChars, charIndex);
 	}
 	fontPtr->dispose(fontPtr);
@@ -1084,142 +1090,142 @@ static void testIndexAtWidth() {
 	writeMeasurementTestChars1(characters);
 	font = GLBitmapFont_create(characters);
 	charIndex = font->indexAtWidth(font, "abc", 3, -1.0f, NULL);
-	TestCase_assert(charIndex == 0, "Expected 0 but got %zu", charIndex);
+	TestCase_assert(charIndex == 0, "Expected 0 but got " SIZE_T_FORMAT, charIndex);
 	charIndex = font->indexAtWidth(font, "abc", 3, -1.0f, &leadingEdge);
-	TestCase_assert(charIndex == 0, "Expected 0 but got %zu", charIndex);
+	TestCase_assert(charIndex == 0, "Expected 0 but got " SIZE_T_FORMAT, charIndex);
 	TestCase_assert(leadingEdge, "Expected true but got false");
 	charIndex = font->indexAtWidth(font, "abc", 3, 0.49f, &leadingEdge);
-	TestCase_assert(charIndex == 0, "Expected 0 but got %zu", charIndex);
+	TestCase_assert(charIndex == 0, "Expected 0 but got " SIZE_T_FORMAT, charIndex);
 	TestCase_assert(leadingEdge, "Expected true but got false");
 	charIndex = font->indexAtWidth(font, "abc", 3, 0.51f, &leadingEdge);
-	TestCase_assert(charIndex == 0, "Expected 0 but got %zu", charIndex);
+	TestCase_assert(charIndex == 0, "Expected 0 but got " SIZE_T_FORMAT, charIndex);
 	TestCase_assert(!leadingEdge, "Expected false but got true");
 	charIndex = font->indexAtWidth(font, "abc", 3, 2.99f, &leadingEdge);
-	TestCase_assert(charIndex == 1, "Expected 1 but got %zu", charIndex);
+	TestCase_assert(charIndex == 1, "Expected 1 but got " SIZE_T_FORMAT, charIndex);
 	TestCase_assert(leadingEdge, "Expected true but got false");
 	charIndex = font->indexAtWidth(font, "abc", 3, 3.01f, &leadingEdge);
-	TestCase_assert(charIndex == 1, "Expected 1 but got %zu", charIndex);
+	TestCase_assert(charIndex == 1, "Expected 1 but got " SIZE_T_FORMAT, charIndex);
 	TestCase_assert(!leadingEdge, "Expected false but got true");
 	charIndex = font->indexAtWidth(font, "abc", 3, 12.99f, &leadingEdge);
-	TestCase_assert(charIndex == 2, "Expected 2 but got %zu", charIndex);
+	TestCase_assert(charIndex == 2, "Expected 2 but got " SIZE_T_FORMAT, charIndex);
 	TestCase_assert(leadingEdge, "Expected true but got false");
 	charIndex = font->indexAtWidth(font, "abc", 3, 13.01f, &leadingEdge);
-	TestCase_assert(charIndex == 2, "Expected 2 but got %zu", charIndex);
+	TestCase_assert(charIndex == 2, "Expected 2 but got " SIZE_T_FORMAT, charIndex);
 	TestCase_assert(!leadingEdge, "Expected false but got true");
 	charIndex = font->indexAtWidth(font, "abc", 3, 22.0f, &leadingEdge);
-	TestCase_assert(charIndex == 2, "Expected 2 but got %zu", charIndex);
+	TestCase_assert(charIndex == 2, "Expected 2 but got " SIZE_T_FORMAT, charIndex);
 	TestCase_assert(!leadingEdge, "Expected false but got true");
 	
 	charIndex = font->indexAtWidth(font, "ba", 2, 1.99f, &leadingEdge);
-	TestCase_assert(charIndex == 0, "Expected 0 but got %zu", charIndex);
+	TestCase_assert(charIndex == 0, "Expected 0 but got " SIZE_T_FORMAT, charIndex);
 	TestCase_assert(leadingEdge, "Expected true but got false");
 	charIndex = font->indexAtWidth(font, "ba", 2, 2.01f, &leadingEdge);
-	TestCase_assert(charIndex == 0, "Expected 0 but got %zu", charIndex);
+	TestCase_assert(charIndex == 0, "Expected 0 but got " SIZE_T_FORMAT, charIndex);
 	TestCase_assert(!leadingEdge, "Expected false but got true");
 	charIndex = font->indexAtWidth(font, "ba", 2, 4.49f, &leadingEdge);
-	TestCase_assert(charIndex == 1, "Expected 1 but got %zu", charIndex);
+	TestCase_assert(charIndex == 1, "Expected 1 but got " SIZE_T_FORMAT, charIndex);
 	TestCase_assert(leadingEdge, "Expected true but got false");
 	charIndex = font->indexAtWidth(font, "ba", 2, 4.51f, &leadingEdge);
-	TestCase_assert(charIndex == 1, "Expected 1 but got %zu", charIndex);
+	TestCase_assert(charIndex == 1, "Expected 1 but got " SIZE_T_FORMAT, charIndex);
 	TestCase_assert(!leadingEdge, "Expected false but got true");
 	charIndex = font->indexAtWidth(font, "ba", 2, 5.01f, &leadingEdge);
-	TestCase_assert(charIndex == 1, "Expected 1 but got %zu", charIndex);
+	TestCase_assert(charIndex == 1, "Expected 1 but got " SIZE_T_FORMAT, charIndex);
 	TestCase_assert(!leadingEdge, "Expected false but got true");
 	
 	charIndex = font->indexAtWidth(font, "cdd", 3, 7.865f, &leadingEdge);
-	TestCase_assert(charIndex == 0, "Expected 0 but got %zu", charIndex);
+	TestCase_assert(charIndex == 0, "Expected 0 but got " SIZE_T_FORMAT, charIndex);
 	TestCase_assert(leadingEdge, "Expected true but got false");
 	charIndex = font->indexAtWidth(font, "cdd", 3, 7.885f, &leadingEdge);
-	TestCase_assert(charIndex == 0, "Expected 0 but got %zu", charIndex);
+	TestCase_assert(charIndex == 0, "Expected 0 but got " SIZE_T_FORMAT, charIndex);
 	TestCase_assert(!leadingEdge, "Expected false but got true");
 	charIndex = font->indexAtWidth(font, "cdd", 3, 47.365f, &leadingEdge);
-	TestCase_assert(charIndex == 1, "Expected 1 but got %zu", charIndex);
+	TestCase_assert(charIndex == 1, "Expected 1 but got " SIZE_T_FORMAT, charIndex);
 	TestCase_assert(leadingEdge, "Expected true but got false");
 	charIndex = font->indexAtWidth(font, "cdd", 3, 47.385f, &leadingEdge);
-	TestCase_assert(charIndex == 1, "Expected 1 but got %zu", charIndex);
+	TestCase_assert(charIndex == 1, "Expected 1 but got " SIZE_T_FORMAT, charIndex);
 	TestCase_assert(!leadingEdge, "Expected false but got true");
 	charIndex = font->indexAtWidth(font, "cdd", 3, 110.74f, &leadingEdge);
-	TestCase_assert(charIndex == 2, "Expected 2 but got %zu", charIndex);
+	TestCase_assert(charIndex == 2, "Expected 2 but got " SIZE_T_FORMAT, charIndex);
 	TestCase_assert(leadingEdge, "Expected true but got false");
 	charIndex = font->indexAtWidth(font, "cdd", 3, 110.76f, &leadingEdge);
-	TestCase_assert(charIndex == 2, "Expected 2 but got %zu", charIndex);
+	TestCase_assert(charIndex == 2, "Expected 2 but got " SIZE_T_FORMAT, charIndex);
 	TestCase_assert(!leadingEdge, "Expected false but got true");
 	charIndex = font->indexAtWidth(font, "\tcdd\x7F", 5, 110.74f, &leadingEdge);
-	TestCase_assert(charIndex == 3, "Expected 3 but got %zu", charIndex);
+	TestCase_assert(charIndex == 3, "Expected 3 but got " SIZE_T_FORMAT, charIndex);
 	TestCase_assert(leadingEdge, "Expected true but got false");
 	charIndex = font->indexAtWidth(font, "\tcdd\x7F", 5, 110.76f, &leadingEdge);
-	TestCase_assert(charIndex == 3, "Expected 3 but got %zu", charIndex);
+	TestCase_assert(charIndex == 3, "Expected 3 but got " SIZE_T_FORMAT, charIndex);
 	TestCase_assert(!leadingEdge, "Expected false but got true");
 	font->dispose(font);
 	
 	writeMeasurementTestChars2(characters);
 	font = GLBitmapFont_create(characters);
 	charIndex = font->indexAtWidth(font, "abc", 3, -1.0f, NULL);
-	TestCase_assert(charIndex == 0, "Expected 0 but got %zu", charIndex);
+	TestCase_assert(charIndex == 0, "Expected 0 but got " SIZE_T_FORMAT, charIndex);
 	charIndex = font->indexAtWidth(font, "abc", 3, -1.0f, &leadingEdge);
-	TestCase_assert(charIndex == 0, "Expected 0 but got %zu", charIndex);
+	TestCase_assert(charIndex == 0, "Expected 0 but got " SIZE_T_FORMAT, charIndex);
 	TestCase_assert(leadingEdge, "Expected true but got false");
 	charIndex = font->indexAtWidth(font, "abc", 3, 3.99f, &leadingEdge);
-	TestCase_assert(charIndex == 0, "Expected 0 but got %zu", charIndex);
+	TestCase_assert(charIndex == 0, "Expected 0 but got " SIZE_T_FORMAT, charIndex);
 	TestCase_assert(leadingEdge, "Expected true but got false");
 	charIndex = font->indexAtWidth(font, "abc", 3, 4.01f, &leadingEdge);
-	TestCase_assert(charIndex == 0, "Expected 0 but got %zu", charIndex);
+	TestCase_assert(charIndex == 0, "Expected 0 but got " SIZE_T_FORMAT, charIndex);
 	TestCase_assert(!leadingEdge, "Expected false but got true");
 	charIndex = font->indexAtWidth(font, "abc", 3, 8.24f, &leadingEdge);
-	TestCase_assert(charIndex == 1, "Expected 1 but got %zu", charIndex);
+	TestCase_assert(charIndex == 1, "Expected 1 but got " SIZE_T_FORMAT, charIndex);
 	TestCase_assert(leadingEdge, "Expected true but got false");
 	charIndex = font->indexAtWidth(font, "abc", 3, 8.26f, &leadingEdge);
-	TestCase_assert(charIndex == 1, "Expected 1 but got %zu", charIndex);
+	TestCase_assert(charIndex == 1, "Expected 1 but got " SIZE_T_FORMAT, charIndex);
 	TestCase_assert(!leadingEdge, "Expected false but got true");
 	charIndex = font->indexAtWidth(font, "abc", 3, 9.49f, &leadingEdge);
-	TestCase_assert(charIndex == 2, "Expected 2 but got %zu", charIndex);
+	TestCase_assert(charIndex == 2, "Expected 2 but got " SIZE_T_FORMAT, charIndex);
 	TestCase_assert(leadingEdge, "Expected true but got false");
 	charIndex = font->indexAtWidth(font, "abc", 3, 9.51f, &leadingEdge);
-	TestCase_assert(charIndex == 2, "Expected 2 but got %zu", charIndex);
+	TestCase_assert(charIndex == 2, "Expected 2 but got " SIZE_T_FORMAT, charIndex);
 	TestCase_assert(!leadingEdge, "Expected false but got true");
 	charIndex = font->indexAtWidth(font, "abc", 3, 11.5f, &leadingEdge);
-	TestCase_assert(charIndex == 2, "Expected 2 but got %zu", charIndex);
+	TestCase_assert(charIndex == 2, "Expected 2 but got " SIZE_T_FORMAT, charIndex);
 	TestCase_assert(!leadingEdge, "Expected false but got true");
 	
 	charIndex = font->indexAtWidth(font, "ba", 2, 0.24f, &leadingEdge);
-	TestCase_assert(charIndex == 0, "Expected 0 but got %zu", charIndex);
+	TestCase_assert(charIndex == 0, "Expected 0 but got " SIZE_T_FORMAT, charIndex);
 	TestCase_assert(leadingEdge, "Expected true but got false");
 	charIndex = font->indexAtWidth(font, "ba", 2, 0.26f, &leadingEdge);
-	TestCase_assert(charIndex == 0, "Expected 0 but got %zu", charIndex);
+	TestCase_assert(charIndex == 0, "Expected 0 but got " SIZE_T_FORMAT, charIndex);
 	TestCase_assert(!leadingEdge, "Expected false but got true");
 	charIndex = font->indexAtWidth(font, "ba", 2, 4.49f, &leadingEdge);
-	TestCase_assert(charIndex == 1, "Expected 1 but got %zu", charIndex);
+	TestCase_assert(charIndex == 1, "Expected 1 but got " SIZE_T_FORMAT, charIndex);
 	TestCase_assert(leadingEdge, "Expected true but got false");
 	charIndex = font->indexAtWidth(font, "ba", 2, 4.51f, &leadingEdge);
-	TestCase_assert(charIndex == 1, "Expected 1 but got %zu", charIndex);
+	TestCase_assert(charIndex == 1, "Expected 1 but got " SIZE_T_FORMAT, charIndex);
 	TestCase_assert(!leadingEdge, "Expected false but got true");
 	charIndex = font->indexAtWidth(font, "ba", 2, 9.5f, NULL);
-	TestCase_assert(charIndex == 1, "Expected 1 but got %zu", charIndex);
+	TestCase_assert(charIndex == 1, "Expected 1 but got " SIZE_T_FORMAT, charIndex);
 	TestCase_assert(!leadingEdge, "Expected false but got true");
 	
 	charIndex = font->indexAtWidth(font, "add", 3, 3.865f, &leadingEdge);
-	TestCase_assert(charIndex == 0, "Expected 0 but got %zu", charIndex);
+	TestCase_assert(charIndex == 0, "Expected 0 but got " SIZE_T_FORMAT, charIndex);
 	TestCase_assert(leadingEdge, "Expected true but got false");
 	charIndex = font->indexAtWidth(font, "add", 3, 3.885f, &leadingEdge);
-	TestCase_assert(charIndex == 0, "Expected 0 but got %zu", charIndex);
+	TestCase_assert(charIndex == 0, "Expected 0 but got " SIZE_T_FORMAT, charIndex);
 	TestCase_assert(!leadingEdge, "Expected false but got true");
 	charIndex = font->indexAtWidth(font, "add", 3, 23.5525f, &leadingEdge);
-	TestCase_assert(charIndex == 1, "Expected 1 but got %zu", charIndex);
+	TestCase_assert(charIndex == 1, "Expected 1 but got " SIZE_T_FORMAT, charIndex);
 	TestCase_assert(leadingEdge, "Expected true but got false");
 	charIndex = font->indexAtWidth(font, "add", 3, 23.5725f, &leadingEdge);
-	TestCase_assert(charIndex == 1, "Expected 1 but got %zu", charIndex);
+	TestCase_assert(charIndex == 1, "Expected 1 but got " SIZE_T_FORMAT, charIndex);
 	TestCase_assert(!leadingEdge, "Expected false but got true");
 	charIndex = font->indexAtWidth(font, "add", 3, 55.3025f, &leadingEdge);
-	TestCase_assert(charIndex == 2, "Expected 2 but got %zu", charIndex);
+	TestCase_assert(charIndex == 2, "Expected 2 but got " SIZE_T_FORMAT, charIndex);
 	TestCase_assert(leadingEdge, "Expected true but got false");
 	charIndex = font->indexAtWidth(font, "add", 3, 55.3225f, &leadingEdge);
-	TestCase_assert(charIndex == 2, "Expected 2 but got %zu", charIndex);
+	TestCase_assert(charIndex == 2, "Expected 2 but got " SIZE_T_FORMAT, charIndex);
 	TestCase_assert(!leadingEdge, "Expected false but got true");
 	charIndex = font->indexAtWidth(font, "\tadd\x7F", 5, 55.3025f, &leadingEdge);
-	TestCase_assert(charIndex == 3, "Expected 3 but got %zu", charIndex);
+	TestCase_assert(charIndex == 3, "Expected 3 but got " SIZE_T_FORMAT, charIndex);
 	TestCase_assert(leadingEdge, "Expected true but got false");
 	charIndex = font->indexAtWidth(font, "\tadd\x7F", 5, 55.3225f, &leadingEdge);
-	TestCase_assert(charIndex == 3, "Expected 3 but got %zu", charIndex);
+	TestCase_assert(charIndex == 3, "Expected 3 but got " SIZE_T_FORMAT, charIndex);
 	TestCase_assert(!leadingEdge, "Expected false but got true");
 	font->dispose(font);
 }

@@ -162,9 +162,6 @@ LINKFLAGS = ${FRAMEWORK_LINKFLAGS} ${LIBRARY_LINKFLAGS} ${OTHER_LINKFLAGS}
 
 LINK_ORDER = \
 	library \
-	eaglshell \
-	glutshell \
-	glgraphics \
 	glgraphics \
 	glfont \
 	gltexture \
@@ -173,6 +170,8 @@ LINK_ORDER = \
 	jsonserialization \
 	jsonio \
 	utilities \
+	eaglshell \
+	glutshell \
 	stubshell \
 	serialization \
 	stemobject \
