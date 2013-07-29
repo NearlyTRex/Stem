@@ -7,6 +7,11 @@
 #include <unistd.h>
 
 #define stringAndLength(str) str, strlen(str)
+#if defined(WIN32)
+#define SIZE_T_FORMAT "%Iu"
+#else
+#define SIZE_T_FORMAT "%zu"
+#endif
 
 static void testInit() {
 	JSONDeserializationContext context, * contextPtr;
@@ -232,7 +237,7 @@ static void testInit() {
 #define beginAndVerifyContainer(CONTAINER_TYPE, KEY, EXPECTED_SIZE) { \
 	size_t size; \
 	size = context->begin##CONTAINER_TYPE(context, KEY); \
-	TestCase_assert(size == (EXPECTED_SIZE), "Expected %zu but got %zu", (size_t) (EXPECTED_SIZE), size); \
+	TestCase_assert(size == (EXPECTED_SIZE), "Expected " SIZE_T_FORMAT " but got " SIZE_T_FORMAT, (size_t) (EXPECTED_SIZE), size); \
 }
 #define beginAndVerifyArray(KEY, EXPECTED_SIZE) beginAndVerifyContainer(Array, KEY, EXPECTED_SIZE)
 #define beginAndVerifyDictionary(KEY, EXPECTED_SIZE) beginAndVerifyContainer(Dictionary, KEY, EXPECTED_SIZE)
@@ -254,8 +259,13 @@ static void testInit() {
 #define printfSpecifier_uint16_t "%u"
 #define printfSpecifier_int32_t "%d"
 #define printfSpecifier_uint32_t "%u"
+#if defined(WIN32)
+#define printfSpecifier_int64_t "%I64d"
+#define printfSpecifier_uint64_t "%I64u"
+#else
 #define printfSpecifier_int64_t "%lld"
 #define printfSpecifier_uint64_t "%llu"
+#endif
 #define printfSpecifier_float "%f"
 #define printfSpecifier_double "%f"
 #define printfSpecifier_bool "%d"
@@ -283,7 +293,11 @@ static void testInit() {
 #define printfSpecifier_bitfield8 "0x%02X"
 #define printfSpecifier_bitfield16 "0x%04X"
 #define printfSpecifier_bitfield32 "0x%08X"
+#if defined(WIN32)
+#define printfSpecifier_bitfield64 "0x%016I64X"
+#else
 #define printfSpecifier_bitfield64 "0x%016llX"
+#endif
 #define readAndVerifyBitfield(NBITS, KEY, EXPECTED_VALUE, ...) { \
 	uint##NBITS##_t value; \
 	value = context->readBitfield##NBITS(context, KEY, __VA_ARGS__); \

@@ -419,7 +419,7 @@ int64_t JSONDeserializationContext_readInt64(JSONDeserializationContext * self, 
 		
 		conversions = sscanf(self->currentNode->subitems[nextNodeIndex].value.string,
 #ifdef __WIN32
-		                     "%I64d%n", (int *) &value,
+		                     "%I64d%n", &value,
 #else
 		                     "%lld%n", &value,
 #endif
@@ -451,7 +451,7 @@ uint64_t JSONDeserializationContext_readUInt64(JSONDeserializationContext * self
 		
 		conversions = sscanf(self->currentNode->subitems[nextNodeIndex].value.string,
 #ifdef __WIN32
-		                     "%I64u%n", (unsigned int *) &value,
+		                     "%I64u%n", &value,
 #else
 		                     "%llu%n", &value,
 #endif

@@ -371,7 +371,13 @@ void JSONSerializationContext_writeInt64(JSONSerializationContext * self, const 
 		// Not representable as double; use string instead
 		self->currentNode->subitems[self->currentNode->value.count].type = JSON_TYPE_STRING;
 		self->currentNode->subitems[self->currentNode->value.count].value.string = malloc(24); // Generous; INT64_MIN should only be 20 chars long
-		self->currentNode->subitems[self->currentNode->value.count].stringLength = snprintf(self->currentNode->subitems[self->currentNode->value.count].value.string, 24, "%lld", value);
+		self->currentNode->subitems[self->currentNode->value.count].stringLength = snprintf(self->currentNode->subitems[self->currentNode->value.count].value.string, 24,
+#if defined(WIN32)
+		"%I64d"
+#else
+		"%lld"
+#endif
+		, value);
 	}
 	self->currentNode->value.count++;
 }
@@ -384,7 +390,13 @@ void JSONSerializationContext_writeUInt64(JSONSerializationContext * self, const
 		// Not representable as double; use string instead
 		self->currentNode->subitems[self->currentNode->value.count].type = JSON_TYPE_STRING;
 		self->currentNode->subitems[self->currentNode->value.count].value.string = malloc(24); // Generous; UINT64_MAX should only be 20 chars long
-		self->currentNode->subitems[self->currentNode->value.count].stringLength = snprintf(self->currentNode->subitems[self->currentNode->value.count].value.string, 24, "%llu", value);
+		self->currentNode->subitems[self->currentNode->value.count].stringLength = snprintf(self->currentNode->subitems[self->currentNode->value.count].value.string, 24,
+#if defined(WIN32)
+		"%I64u"
+#else
+		"%llu"
+#endif
+		, value);
 	}
 	self->currentNode->value.count++;
 }
