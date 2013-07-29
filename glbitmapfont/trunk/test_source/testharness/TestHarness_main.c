@@ -31,6 +31,7 @@ static size_t lastIndexAtWidth = 0;
 static bool lastLeadingEdge = false;
 static GLint matrixUniform;
 static GLint textureUniform;
+static float scale = 1.0f;
 
 void Target_init() {
 	const char * fontJSONFilePath;
@@ -213,10 +214,10 @@ bool Target_draw() {
 	}
 	
 	stringWidth = font->measureString(font, "Hello, world!", 13);
-	font->drawString(font, "Hello, world!", 13, 0.1f, stringWidth * -0.05f, 0.0f, 0.0f);
+	font->drawString(font, "Hello, world!", 13, 0.1f * scale, stringWidth * -0.05f * scale, 0.0f, 0.0f);
 	
 	stringWidth = font->measureString(font, freeformText, strlen(freeformText));
-	font->drawString(font, freeformText, strlen(freeformText), 0.0625f, stringWidth * -0.03125f, -0.0625f, 0.0f);
+	font->drawString(font, freeformText, strlen(freeformText), 0.0625f * scale, stringWidth * -0.03125f * scale, -0.0625f * scale, 0.0f);
 	
 	if (GLGraphics_getOpenGLAPIVersion() == GL_API_VERSION_ES2) {
 		glVertexAttrib4f(2, 0.875f, 0.875f, 0.5f, 1.0f);
@@ -225,7 +226,7 @@ bool Target_draw() {
 	}
 	snprintf(indexString, 32, "%u, %s", (unsigned int) lastIndexAtWidth, lastLeadingEdge ? "true" : "false");
 	stringWidth = font->measureString(font, indexString, strlen(indexString));
-	font->drawString(font, indexString, strlen(indexString), 0.05f, stringWidth * -0.025f, 0.1f, 0.0f);
+	font->drawString(font, indexString, strlen(indexString), 0.05f * scale, stringWidth * -0.025f * scale, 0.1f * scale, 0.0f);
 	
 	return true;
 }
@@ -312,24 +313,46 @@ void EAGLTarget_accelerometer(double x, double y, double z) {
 }
 #else
 static void printUsage() {
-	fprintf(stderr, "Usage: glbitmapfont_testharness [-json /path/to/font.json]\n");
+	fprintf(stderr, "Usage: glbitmapfont_testharness [-json /path/to/font.json] [-scale %%f]\n");
 }
 
 void GLUTTarget_configure(int argc, const char ** argv, struct GLUTShellConfiguration * configuration) {
 	int argIndex;
+	bool printUsageAfterParsing = false;
 	
 	for (argIndex = 1; argIndex < argc; argIndex++) {
-		if (!strcmp(argv[argIndex], "-json")) {
+		if (!strcmp(argv[argIndex], "--help")) {
+			printUsageAfterParsing = true;
+			
+		} else if (!strcmp(argv[argIndex], "-json")) {
 			argIndex++;
 			if (argIndex >= argc) {
-				printUsage();
+				printf("-json specified as last argument; must be followed by a file path\n");
+				printUsageAfterParsing = true;
 				break;
 			}
 			jsonPath = argv[argIndex];
 			
+		} else if (!strcmp(argv[argIndex], "-scale")) {
+			argIndex++;
+			if (argIndex >= argc) {
+				printf("-scale specified as last argument; must be followed by a number\n");
+				printUsageAfterParsing = true;
+				break;
+			}
+			if (!sscanf(argv[argIndex], "%f", &scale)) {
+				printf("Couldn't parse value specified to -scale (%s) as a number\n", argv[argIndex]);
+				printUsageAfterParsing = true;
+				break;
+			}
+			
 		} else {
-			printUsage();
+			printf("Unrecognized argument: %s\n", argv[argIndex]);
+			printUsageAfterParsing = true;
 		}
+	}
+	if (printUsageAfterParsing) {
+		printUsage();
 	}
 	configuration->windowTitle = "GLBitmapFont Test Harness";
 }
