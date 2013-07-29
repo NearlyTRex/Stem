@@ -159,11 +159,11 @@ static void testNULLResources() {
 	resourceToLoad = NULL;
 	
 	resourceManager->referenceResource(resourceManager, "type", resourceNameToLoad);
-	TestCase_assert(resourceManager->resourceCount == 0, "Expected 0 but got %zu\n", resourceManager->resourceCount);
+	TestCase_assert(resourceManager->resourceCount == 0, "Expected 0 but got %u\n", (unsigned int) resourceManager->resourceCount);
 	
 	resourceToLoad = "!NULL";
 	resourceManager->referenceResource(resourceManager, "type", resourceNameToLoad);
-	TestCase_assert(resourceManager->resourceCount == 1, "Expected 1 but got %zu\n", resourceManager->resourceCount);
+	TestCase_assert(resourceManager->resourceCount == 1, "Expected 1 but got %u\n", (unsigned int) resourceManager->resourceCount);
 	
 	resourceManager->dispose(resourceManager);
 }
