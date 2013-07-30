@@ -108,8 +108,8 @@ RANLIB_linux32 = /usr/bin/ranlib
 SPLINT_linux32 = /usr/local/bin/splint
 CLANG_linux32 = /usr/local/bin/clang
 ARCHS_linux32 = i386
-CCFLAGS_linux32 = -m32
-LINKFLAGS_linux32 = -m32 -lm -ldl -Wl,-E -lrt -lglut -lGLU
+CCFLAGS_linux32 = -m32 -Wno-unused-result
+LINKFLAGS_linux32 = -m32 -lm -ldl -Wl,-E -lrt -lglut -lGLU -lGL -lm
 
 CC_linux64_x86_64 = /usr/bin/gcc
 AR_linux64 = /usr/bin/ar
@@ -117,8 +117,8 @@ RANLIB_linux64 = /usr/bin/ranlib
 SPLINT_linux64 = /usr/local/bin/splint
 CLANG_linux64 = /usr/local/bin/clang
 ARCHS_linux64 = x86_64
-CCFLAGS_linux64 = -m64
-LINKFLAGS_linux64 = -m64 -lm -ldl -Wl,-E -lrt -lglut -lGLU
+CCFLAGS_linux64 = -m64 -Wno-unused-result
+LINKFLAGS_linux64 = -m64 -lm -ldl -Wl,-E -lrt -lglut -lGLU -lGL -lm
 
 MINGW_W32_PATH ?= C:/MinGW
 MINGW_W32_VERSION ?= 4.6.2
