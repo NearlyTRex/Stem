@@ -9,6 +9,9 @@
 #if defined(WIN32)
 #define INT64_T_FORMAT "%I64d"
 #define UINT64_T_FORMAT "%I64u"
+#elif defined(linux) && defined(_LP64)
+#define INT64_T_FORMAT "%ld"
+#define UINT64_T_FORMAT "%lu"
 #else
 #define INT64_T_FORMAT "%lld"
 #define UINT64_T_FORMAT "%llu"
