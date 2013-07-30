@@ -374,6 +374,8 @@ void JSONSerializationContext_writeInt64(JSONSerializationContext * self, const 
 		self->currentNode->subitems[self->currentNode->value.count].stringLength = snprintf(self->currentNode->subitems[self->currentNode->value.count].value.string, 24,
 #if defined(WIN32)
 		"%I64d"
+#elif defined(linux) && defined(_LP64)
+		"%ld"
 #else
 		"%lld"
 #endif
@@ -393,6 +395,8 @@ void JSONSerializationContext_writeUInt64(JSONSerializationContext * self, const
 		self->currentNode->subitems[self->currentNode->value.count].stringLength = snprintf(self->currentNode->subitems[self->currentNode->value.count].value.string, 24,
 #if defined(WIN32)
 		"%I64u"
+#elif defined(linux) && defined(_LP64)
+		"%lu"
 #else
 		"%llu"
 #endif

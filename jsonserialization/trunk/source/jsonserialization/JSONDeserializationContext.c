@@ -420,6 +420,8 @@ int64_t JSONDeserializationContext_readInt64(JSONDeserializationContext * self, 
 		conversions = sscanf(self->currentNode->subitems[nextNodeIndex].value.string,
 #ifdef __WIN32
 		                     "%I64d%n", &value,
+#elif defined(linux) && defined(_LP64)
+		                     "%ld%n", &value,
 #else
 		                     "%lld%n", &value,
 #endif
@@ -452,6 +454,8 @@ uint64_t JSONDeserializationContext_readUInt64(JSONDeserializationContext * self
 		conversions = sscanf(self->currentNode->subitems[nextNodeIndex].value.string,
 #ifdef __WIN32
 		                     "%I64u%n", &value,
+#elif defined(linux) && defined(_LP64)
+		                     "%lu%n", &value,
 #else
 		                     "%llu%n", &value,
 #endif
