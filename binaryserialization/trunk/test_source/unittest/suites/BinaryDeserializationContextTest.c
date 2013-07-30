@@ -223,6 +223,9 @@ static void testInitErrors() {
 #if defined(WIN32)
 #define printfSpecifier_int64_t "%I64d"
 #define printfSpecifier_uint64_t "%I64u"
+#elif defined(linux) && defined(_LP64)
+#define printfSpecifier_int64_t "%ld"
+#define printfSpecifier_uint64_t "%lu"
 #else
 #define printfSpecifier_int64_t "%lld"
 #define printfSpecifier_uint64_t "%llu"
@@ -257,6 +260,8 @@ static void testInitErrors() {
 #define printfSpecifier_bitfield32 "0x%08X"
 #if defined(WIN32)
 #define printfSpecifier_bitfield64 "0x%016I64X"
+#elif defined(linux) && defined(_LP64)
+#define printfSpecifier_bitfield64 "0x%016lX"
 #else
 #define printfSpecifier_bitfield64 "0x%016llX"
 #endif
@@ -524,12 +529,12 @@ static void testBitfields() {
 	readAndVerifyBitfield(16, "", 0x000F, "b0", "b1", "b2", "b3", "b4", "b5", NULL);
 	readAndVerifyBitfield(32, "", 0xF0000001, "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "1A", "1B", "1C", "1D", "1E", "1F", NULL);
 	readAndVerifyBitfield(32, "", 0x0000001E, "b0", "b1", "b2", "b3", "b4", "b5", NULL);
-	readAndVerifyBitfield(64, "", 0xF000000000000001ull, "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "1A", "1B", "1C", "1D", "1E", "1F", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "2A", "2B", "2C", "2D", "2E", "2F", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "3A", "3B", "3C", "3D", "3E", "3F", NULL);
-	readAndVerifyBitfield(64, "", 0x000000000000003Cull, "b0", "b1", "b2", "b3", "b4", "b5", NULL);
+	readAndVerifyBitfield(64, "", (uint64_t) 0xF000000000000001ull, "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "1A", "1B", "1C", "1D", "1E", "1F", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "2A", "2B", "2C", "2D", "2E", "2F", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "3A", "3B", "3C", "3D", "3E", "3F", NULL);
+	readAndVerifyBitfield(64, "", (uint64_t) 0x000000000000003Cull, "b0", "b1", "b2", "b3", "b4", "b5", NULL);
 	readAndVerifyBitfield(8, "", 0x00, NULL);
 	readAndVerifyBitfield(16, "", 0x0000, NULL);
 	readAndVerifyBitfield(32, "", 0x00000000, NULL);
-	readAndVerifyBitfield(64, "", 0x0000000000000000ull, NULL);
+	readAndVerifyBitfield(64, "", (uint64_t) 0x0000000000000000ull, NULL);
 	context->endArray(context);
 	context->dispose(context);
 	
@@ -559,12 +564,12 @@ static void testBitfields() {
 	readAndVerifyBitfield(16, "", 0x000F, "b0", "b1", "b2", "b3", "b4", "b5", NULL);
 	readAndVerifyBitfield(32, "", 0xF0000001, "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "1A", "1B", "1C", "1D", "1E", "1F", NULL);
 	readAndVerifyBitfield(32, "", 0x0000001E, "b0", "b1", "b2", "b3", "b4", "b5", NULL);
-	readAndVerifyBitfield(64, "", 0xF000000000000001ull, "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "1A", "1B", "1C", "1D", "1E", "1F", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "2A", "2B", "2C", "2D", "2E", "2F", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "3A", "3B", "3C", "3D", "3E", "3F", NULL);
-	readAndVerifyBitfield(64, "", 0x000000000000003Cull, "b0", "b1", "b2", "b3", "b4", "b5", NULL);
+	readAndVerifyBitfield(64, "", (uint64_t) 0xF000000000000001ull, "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "1A", "1B", "1C", "1D", "1E", "1F", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "2A", "2B", "2C", "2D", "2E", "2F", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "3A", "3B", "3C", "3D", "3E", "3F", NULL);
+	readAndVerifyBitfield(64, "", (uint64_t) 0x000000000000003Cull, "b0", "b1", "b2", "b3", "b4", "b5", NULL);
 	readAndVerifyBitfield(8, "", 0x00, NULL);
 	readAndVerifyBitfield(16, "", 0x0000, NULL);
 	readAndVerifyBitfield(32, "", 0x00000000, NULL);
-	readAndVerifyBitfield(64, "", 0x0000000000000000ull, NULL);
+	readAndVerifyBitfield(64, "", (uint64_t) 0x0000000000000000ull, NULL);
 	context->endArray(context);
 	context->dispose(context);
 }
@@ -623,7 +628,7 @@ static void testArrays() {
 			readAndVerifyBitfield(8, "", 0x01, "13", NULL)
 			readAndVerifyBitfield(16, "", 0x0001, "14", NULL)
 			readAndVerifyBitfield(32, "", 0x00000001, "15", NULL)
-			readAndVerifyBitfield(64, "", 0x0000000000000001ull, "16", NULL)
+			readAndVerifyBitfield(64, "", (uint64_t) 0x0000000000000001ull, "16", NULL)
 		context->endArray(context);
 	context->endArray(context);
 	context->dispose(context);
@@ -679,7 +684,7 @@ static void testStructures() {
 			readAndVerifyBitfield(8, "r", 0x01, "13", NULL)
 			readAndVerifyBitfield(16, "s", 0x0001, "14", NULL)
 			readAndVerifyBitfield(32, "t", 0x00000001, "15", NULL)
-			readAndVerifyBitfield(64, "u", 0x0000000000000001ull, "16", NULL)
+			readAndVerifyBitfield(64, "u", (uint64_t) 0x0000000000000001ull, "16", NULL)
 		context->endStructure(context);
 	context->endStructure(context);
 	context->dispose(context);
@@ -790,7 +795,7 @@ static void testDictionaries() {
 			readAndVerifyBitfield(8, "r", 0x01, "13", NULL)
 			readAndVerifyBitfield(16, "s", 0x0001, "14", NULL)
 			readAndVerifyBitfield(32, "t", 0x00000001, "15", NULL)
-			readAndVerifyBitfield(64, "u", 0x0000000000000001ull, "16", NULL)
+			readAndVerifyBitfield(64, "u", (uint64_t) 0x0000000000000001ull, "16", NULL)
 		context->endDictionary(context);
 	context->endDictionary(context);
 	context->dispose(context);
@@ -900,7 +905,7 @@ static void testDictionaries() {
 			readAndVerifyBitfield(8, "r", 0x01, "13", NULL)
 			readAndVerifyBitfield(16, "s", 0x0001, "14", NULL)
 			readAndVerifyBitfield(32, "t", 0x00000001, "15", NULL)
-			readAndVerifyBitfield(64, "u", 0x0000000000000001ull, "16", NULL)
+			readAndVerifyBitfield(64, "u", (uint64_t) 0x0000000000000001ull, "16", NULL)
 		context->endDictionary(context);
 	context->endDictionary(context);
 	context->dispose(context);
@@ -1096,7 +1101,7 @@ static void testDictionaries() {
 		verifyReadNextDictionaryKey("")
 		readAndVerifyBitfield(32, key, 0x00000001, "15", NULL)
 		verifyReadNextDictionaryKey("")
-		readAndVerifyBitfield(64, key, 0x0000000000000001ull, "16", NULL)
+		readAndVerifyBitfield(64, key, (uint64_t) 0x0000000000000001ull, "16", NULL)
 		verifyReadNextDictionaryKey("")
 		beginAndVerifyArray(key, 0)
 		context->endArray(context);
