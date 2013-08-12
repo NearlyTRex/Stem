@@ -2,6 +2,12 @@
 #include "preferences/Preferences.h"
 #include "preferences/Preferences_private.h"
 
+#if defined(WIN32)
+#define SIZE_T_FORMAT "%Iu"
+#else
+#define SIZE_T_FORMAT "%zu"
+#endif
+
 static unsigned int loadCalls;
 static unsigned int saveCalls;
 
@@ -134,11 +140,11 @@ static void testLoad() {
 	TestCase_assert(!strcmp(preferences->getString(preferences, "string2"), "foo"), "Expected \"foo\" but got \"%s\"", preferences->getString(preferences, "string2"));
 	data = preferences->getData(preferences, "data1", &dataSize);
 	TestCase_assert(data != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(dataSize == 5, "Expected 5 but got %zu", dataSize);
+	TestCase_assert(dataSize == 5, "Expected 5 but got " SIZE_T_FORMAT, dataSize);
 	TestCase_assert(!memcmp(data, "\x00\x01\x02\x03\x04", 5), "Data didn't match expected value");
 	data = preferences->getData(preferences, "data2", &dataSize);
 	TestCase_assert(data != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(dataSize == 4, "Expected 4 but got %zu", dataSize);
+	TestCase_assert(dataSize == 4, "Expected 4 but got " SIZE_T_FORMAT, dataSize);
 	TestCase_assert(!memcmp(data, "\xFE\xED\xFA\xCE", 4), "Data didn't match expected value");
 	
 	loadCalls = 0;
@@ -157,11 +163,11 @@ static void testLoad() {
 	TestCase_assert(!strcmp(preferences->getString(preferences, "string2"), "baz"), "Expected \"baz\" but got \"%s\"", preferences->getString(preferences, "string2"));
 	data = preferences->getData(preferences, "data1", &dataSize);
 	TestCase_assert(data != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(dataSize == 3, "Expected 3 but got %zu", dataSize);
+	TestCase_assert(dataSize == 3, "Expected 3 but got " SIZE_T_FORMAT, dataSize);
 	TestCase_assert(!memcmp(data, "\xFF\x00\x7F", 3), "Data didn't match expected value");
 	data = preferences->getData(preferences, "data2", &dataSize);
 	TestCase_assert(data != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(dataSize == 1, "Expected 1 but got %zu", dataSize);
+	TestCase_assert(dataSize == 1, "Expected 1 but got " SIZE_T_FORMAT, dataSize);
 	TestCase_assert(!memcmp(data, "\xAA", 1), "Data didn't match expected value");
 	
 	preferences->dispose(preferences);
@@ -204,11 +210,11 @@ static void testLoadDefaults() {
 	TestCase_assert(!strcmp(preferences->getString(preferences, "string2"), "baz"), "Expected \"baz\" but got \"%s\"", preferences->getString(preferences, "string2"));
 	data = preferences->getData(preferences, "data1", &dataSize);
 	TestCase_assert(data != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(dataSize == 5, "Expected 5 but got %zu", dataSize);
+	TestCase_assert(dataSize == 5, "Expected 5 but got " SIZE_T_FORMAT, dataSize);
 	TestCase_assert(!memcmp(data, "\x00\x01\x02\x03\x04", 5), "Data didn't match expected value");
 	data = preferences->getData(preferences, "data2", &dataSize);
 	TestCase_assert(data != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(dataSize == 1, "Expected 1 but got %zu", dataSize);
+	TestCase_assert(dataSize == 1, "Expected 1 but got " SIZE_T_FORMAT, dataSize);
 	TestCase_assert(!memcmp(data, "\xAA", 1), "Data didn't match expected value");
 	
 	preferences->loadDefaultValues(preferences);
@@ -224,11 +230,11 @@ static void testLoadDefaults() {
 	TestCase_assert(!strcmp(preferences->getString(preferences, "string2"), "foo"), "Expected \"foo\" but got \"%s\"", preferences->getString(preferences, "string2"));
 	data = preferences->getData(preferences, "data1", &dataSize);
 	TestCase_assert(data != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(dataSize == 5, "Expected 5 but got %zu", dataSize);
+	TestCase_assert(dataSize == 5, "Expected 5 but got " SIZE_T_FORMAT, dataSize);
 	TestCase_assert(!memcmp(data, "\x00\x01\x02\x03\x04", 5), "Data didn't match expected value");
 	data = preferences->getData(preferences, "data2", &dataSize);
 	TestCase_assert(data != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(dataSize == 4, "Expected 4 but got %zu", dataSize);
+	TestCase_assert(dataSize == 4, "Expected 4 but got " SIZE_T_FORMAT, dataSize);
 	TestCase_assert(!memcmp(data, "\xFE\xED\xFA\xCE", 4), "Data didn't match expected value");
 	
 	preferences->dispose(preferences);
@@ -278,11 +284,11 @@ static void testSet() {
 	TestCase_assert(!strcmp(preferences->getString(preferences, "string2"), "baz"), "Expected \"baz\" but got \"%s\"", preferences->getString(preferences, "string2"));
 	data = preferences->getData(preferences, "data1", &dataSize);
 	TestCase_assert(data != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(dataSize == 3, "Expected 3 but got %zu", dataSize);
+	TestCase_assert(dataSize == 3, "Expected 3 but got " SIZE_T_FORMAT, dataSize);
 	TestCase_assert(!memcmp(data, "\xFF\x7F\x00", 3), "Data didn't match expected value");
 	data = preferences->getData(preferences, "data2", &dataSize);
 	TestCase_assert(data != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(dataSize == 2, "Expected 2 but got %zu", dataSize);
+	TestCase_assert(dataSize == 2, "Expected 2 but got " SIZE_T_FORMAT, dataSize);
 	TestCase_assert(!memcmp(data, "\xCC\xB7", 2), "Data didn't match expected value");
 	
 	preferences->dispose(preferences);
@@ -368,9 +374,9 @@ static bool valueChanged(void * sender, const char * eventID, void * eventData, 
 			break;
 			
 		case PREFERENCES_TYPE_DATA:
-			TestCase_assert(event->value.data.length == expectedValue.data.length, "Expected %zu but got %zu", expectedValue.data.length, event->value.data.length);
+			TestCase_assert(event->value.data.length == expectedValue.data.length, "Expected " SIZE_T_FORMAT " but got " SIZE_T_FORMAT, expectedValue.data.length, event->value.data.length);
 			TestCase_assert(!memcmp(event->value.data.bytes, expectedValue.data.bytes, expectedValue.data.length), "Expected data didn't match actual");
-			TestCase_assert(event->previousValue.data.length == expectedPreviousValue.data.length, "Expected %zu but got %zu", expectedPreviousValue.data.length, event->previousValue.data.length);
+			TestCase_assert(event->previousValue.data.length == expectedPreviousValue.data.length, "Expected " SIZE_T_FORMAT " but got " SIZE_T_FORMAT, expectedPreviousValue.data.length, event->previousValue.data.length);
 			TestCase_assert(!memcmp(event->previousValue.data.bytes, expectedPreviousValue.data.bytes, expectedPreviousValue.data.length), "Expected data didn't match actual");
 			event->value.data.length = newValue.data.length;
 			event->value.data.bytes = newValue.data.bytes;
@@ -445,7 +451,7 @@ static void testEvents() {
 	preferences->setData(preferences, "data1", data1, 2);
 	TestCase_assert(valueChangedCalls == 5, "Expected 5 but got %u", valueChangedCalls);
 	data = preferences->getData(preferences, "data1", &dataLength);
-	TestCase_assert(dataLength == 3, "Expected 3 but got %zu", dataLength);
+	TestCase_assert(dataLength == 3, "Expected 3 but got " SIZE_T_FORMAT, dataLength);
 	TestCase_assert(!memcmp(data, data2, 3), "Expected data didn't match actual");
 	
 	preferences->load(preferences);
@@ -473,82 +479,82 @@ static void testDuplicateNamesChecked() {
 	
 	preferences = Preferences_create("preferences_unittest");
 	
-	TestCase_assert(preferences->valueCount == 0, "Expected 0 but got %zu", preferences->valueCount);
+	TestCase_assert(preferences->valueCount == 0, "Expected 0 but got " SIZE_T_FORMAT, preferences->valueCount);
 	preferences->addInteger(preferences, "integer", 0);
-	TestCase_assert(preferences->valueCount == 1, "Expected 1 but got %zu", preferences->valueCount);
+	TestCase_assert(preferences->valueCount == 1, "Expected 1 but got " SIZE_T_FORMAT, preferences->valueCount);
 	preferences->addFloat(preferences, "float", 0.0f);
-	TestCase_assert(preferences->valueCount == 2, "Expected 2 but got %zu", preferences->valueCount);
+	TestCase_assert(preferences->valueCount == 2, "Expected 2 but got " SIZE_T_FORMAT, preferences->valueCount);
 	preferences->addBoolean(preferences, "boolean", false);
-	TestCase_assert(preferences->valueCount == 3, "Expected 3 but got %zu", preferences->valueCount);
+	TestCase_assert(preferences->valueCount == 3, "Expected 3 but got " SIZE_T_FORMAT, preferences->valueCount);
 	preferences->addString(preferences, "string", "");
-	TestCase_assert(preferences->valueCount == 4, "Expected 4 but got %zu", preferences->valueCount);
+	TestCase_assert(preferences->valueCount == 4, "Expected 4 but got " SIZE_T_FORMAT, preferences->valueCount);
 	preferences->addData(preferences, "data", "", 1);
-	TestCase_assert(preferences->valueCount == 5, "Expected 5 but got %zu", preferences->valueCount);
+	TestCase_assert(preferences->valueCount == 5, "Expected 5 but got " SIZE_T_FORMAT, preferences->valueCount);
 	
 	preferences->addInteger(preferences, "integer", 0);
-	TestCase_assert(preferences->valueCount == 5, "Expected 5 but got %zu", preferences->valueCount);
+	TestCase_assert(preferences->valueCount == 5, "Expected 5 but got " SIZE_T_FORMAT, preferences->valueCount);
 	preferences->addInteger(preferences, "float", 0);
-	TestCase_assert(preferences->valueCount == 5, "Expected 5 but got %zu", preferences->valueCount);
+	TestCase_assert(preferences->valueCount == 5, "Expected 5 but got " SIZE_T_FORMAT, preferences->valueCount);
 	preferences->addInteger(preferences, "boolean", 0);
-	TestCase_assert(preferences->valueCount == 5, "Expected 5 but got %zu", preferences->valueCount);
+	TestCase_assert(preferences->valueCount == 5, "Expected 5 but got " SIZE_T_FORMAT, preferences->valueCount);
 	preferences->addInteger(preferences, "string", 0);
-	TestCase_assert(preferences->valueCount == 5, "Expected 5 but got %zu", preferences->valueCount);
+	TestCase_assert(preferences->valueCount == 5, "Expected 5 but got " SIZE_T_FORMAT, preferences->valueCount);
 	preferences->addInteger(preferences, "data", 0);
-	TestCase_assert(preferences->valueCount == 5, "Expected 5 but got %zu", preferences->valueCount);
+	TestCase_assert(preferences->valueCount == 5, "Expected 5 but got " SIZE_T_FORMAT, preferences->valueCount);
 	preferences->addInteger(preferences, "integer2", 0);
-	TestCase_assert(preferences->valueCount == 6, "Expected 6 but got %zu", preferences->valueCount);
+	TestCase_assert(preferences->valueCount == 6, "Expected 6 but got " SIZE_T_FORMAT, preferences->valueCount);
 	
 	preferences->addFloat(preferences, "integer", 0.0f);
-	TestCase_assert(preferences->valueCount == 6, "Expected 6 but got %zu", preferences->valueCount);
+	TestCase_assert(preferences->valueCount == 6, "Expected 6 but got " SIZE_T_FORMAT, preferences->valueCount);
 	preferences->addFloat(preferences, "float", 0.0f);
-	TestCase_assert(preferences->valueCount == 6, "Expected 6 but got %zu", preferences->valueCount);
+	TestCase_assert(preferences->valueCount == 6, "Expected 6 but got " SIZE_T_FORMAT, preferences->valueCount);
 	preferences->addFloat(preferences, "boolean", 0.0f);
-	TestCase_assert(preferences->valueCount == 6, "Expected 6 but got %zu", preferences->valueCount);
+	TestCase_assert(preferences->valueCount == 6, "Expected 6 but got " SIZE_T_FORMAT, preferences->valueCount);
 	preferences->addFloat(preferences, "string", 0.0f);
-	TestCase_assert(preferences->valueCount == 6, "Expected 6 but got %zu", preferences->valueCount);
+	TestCase_assert(preferences->valueCount == 6, "Expected 6 but got " SIZE_T_FORMAT, preferences->valueCount);
 	preferences->addFloat(preferences, "data", 0.0f);
-	TestCase_assert(preferences->valueCount == 6, "Expected 6 but got %zu", preferences->valueCount);
+	TestCase_assert(preferences->valueCount == 6, "Expected 6 but got " SIZE_T_FORMAT, preferences->valueCount);
 	preferences->addFloat(preferences, "float2", 0.0f);
-	TestCase_assert(preferences->valueCount == 7, "Expected 7 but got %zu", preferences->valueCount);
+	TestCase_assert(preferences->valueCount == 7, "Expected 7 but got " SIZE_T_FORMAT, preferences->valueCount);
 	
 	preferences->addBoolean(preferences, "integer", false);
-	TestCase_assert(preferences->valueCount == 7, "Expected 7 but got %zu", preferences->valueCount);
+	TestCase_assert(preferences->valueCount == 7, "Expected 7 but got " SIZE_T_FORMAT, preferences->valueCount);
 	preferences->addBoolean(preferences, "float", false);
-	TestCase_assert(preferences->valueCount == 7, "Expected 7 but got %zu", preferences->valueCount);
+	TestCase_assert(preferences->valueCount == 7, "Expected 7 but got " SIZE_T_FORMAT, preferences->valueCount);
 	preferences->addBoolean(preferences, "boolean", false);
-	TestCase_assert(preferences->valueCount == 7, "Expected 7 but got %zu", preferences->valueCount);
+	TestCase_assert(preferences->valueCount == 7, "Expected 7 but got " SIZE_T_FORMAT, preferences->valueCount);
 	preferences->addBoolean(preferences, "string", false);
-	TestCase_assert(preferences->valueCount == 7, "Expected 7 but got %zu", preferences->valueCount);
+	TestCase_assert(preferences->valueCount == 7, "Expected 7 but got " SIZE_T_FORMAT, preferences->valueCount);
 	preferences->addBoolean(preferences, "data", false);
-	TestCase_assert(preferences->valueCount == 7, "Expected 7 but got %zu", preferences->valueCount);
+	TestCase_assert(preferences->valueCount == 7, "Expected 7 but got " SIZE_T_FORMAT, preferences->valueCount);
 	preferences->addBoolean(preferences, "boolean2", false);
-	TestCase_assert(preferences->valueCount == 8, "Expected 8 but got %zu", preferences->valueCount);
+	TestCase_assert(preferences->valueCount == 8, "Expected 8 but got " SIZE_T_FORMAT, preferences->valueCount);
 	
 	preferences->addString(preferences, "integer", "");
-	TestCase_assert(preferences->valueCount == 8, "Expected 8 but got %zu", preferences->valueCount);
+	TestCase_assert(preferences->valueCount == 8, "Expected 8 but got " SIZE_T_FORMAT, preferences->valueCount);
 	preferences->addString(preferences, "float", "");
-	TestCase_assert(preferences->valueCount == 8, "Expected 8 but got %zu", preferences->valueCount);
+	TestCase_assert(preferences->valueCount == 8, "Expected 8 but got " SIZE_T_FORMAT, preferences->valueCount);
 	preferences->addString(preferences, "boolean", "");
-	TestCase_assert(preferences->valueCount == 8, "Expected 8 but got %zu", preferences->valueCount);
+	TestCase_assert(preferences->valueCount == 8, "Expected 8 but got " SIZE_T_FORMAT, preferences->valueCount);
 	preferences->addString(preferences, "string", "");
-	TestCase_assert(preferences->valueCount == 8, "Expected 8 but got %zu", preferences->valueCount);
+	TestCase_assert(preferences->valueCount == 8, "Expected 8 but got " SIZE_T_FORMAT, preferences->valueCount);
 	preferences->addString(preferences, "data", "");
-	TestCase_assert(preferences->valueCount == 8, "Expected 8 but got %zu", preferences->valueCount);
+	TestCase_assert(preferences->valueCount == 8, "Expected 8 but got " SIZE_T_FORMAT, preferences->valueCount);
 	preferences->addString(preferences, "string2", "");
-	TestCase_assert(preferences->valueCount == 9, "Expected 9 but got %zu", preferences->valueCount);
+	TestCase_assert(preferences->valueCount == 9, "Expected 9 but got " SIZE_T_FORMAT, preferences->valueCount);
 	
 	preferences->addData(preferences, "integer", "", 1);
-	TestCase_assert(preferences->valueCount == 9, "Expected 9 but got %zu", preferences->valueCount);
+	TestCase_assert(preferences->valueCount == 9, "Expected 9 but got " SIZE_T_FORMAT, preferences->valueCount);
 	preferences->addData(preferences, "float", "", 1);
-	TestCase_assert(preferences->valueCount == 9, "Expected 9 but got %zu", preferences->valueCount);
+	TestCase_assert(preferences->valueCount == 9, "Expected 9 but got " SIZE_T_FORMAT, preferences->valueCount);
 	preferences->addData(preferences, "boolean", "", 1);
-	TestCase_assert(preferences->valueCount == 9, "Expected 9 but got %zu", preferences->valueCount);
+	TestCase_assert(preferences->valueCount == 9, "Expected 9 but got " SIZE_T_FORMAT, preferences->valueCount);
 	preferences->addData(preferences, "string", "", 1);
-	TestCase_assert(preferences->valueCount == 9, "Expected 9 but got %zu", preferences->valueCount);
+	TestCase_assert(preferences->valueCount == 9, "Expected 9 but got " SIZE_T_FORMAT, preferences->valueCount);
 	preferences->addData(preferences, "data", "", 1);
-	TestCase_assert(preferences->valueCount == 9, "Expected 9 but got %zu", preferences->valueCount);
+	TestCase_assert(preferences->valueCount == 9, "Expected 9 but got " SIZE_T_FORMAT, preferences->valueCount);
 	preferences->addData(preferences, "data2", "", 1);
-	TestCase_assert(preferences->valueCount == 10, "Expected 10 but got %zu", preferences->valueCount);
+	TestCase_assert(preferences->valueCount == 10, "Expected 10 but got " SIZE_T_FORMAT, preferences->valueCount);
 	
 	preferences->dispose(preferences);
 }
