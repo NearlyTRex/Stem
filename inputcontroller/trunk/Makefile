@@ -1,5 +1,5 @@
 .PHONY: all
-all: library unittest testharness test include
+all: library unittest test include
 
 UNAME = ${shell uname}
 ifeq (${UNAME},Linux)
@@ -29,14 +29,14 @@ TARGET_PLATFORMS_macosx = macosx iphonesimulator iphoneos
 TARGET_PLATFORMS_linux = linux32 linux64
 TARGET_PLATFORMS_windows = win32 win64
 
-PROJECT_NAME = template_stemlib
+PROJECT_NAME = inputcontroller
 IPHONE_BUILD_SDK_VERSION ?= 4.2
 IPHONE_DEPLOYMENT_TARGET_VERSION ?= 3.1
 CODESIGN_IDENTITY ?= "iPhone Developer"
 
 LIBRARY_TARGETS = library
 EXECUTABLE_TARGETS = unittest
-APPLICATION_TARGETS = testharness
+APPLICATION_TARGETS = 
 TARGETS = ${LIBRARY_TARGETS} ${EXECUTABLE_TARGETS} ${APPLICATION_TARGETS}
 CONFIGURATIONS = debug profile release
 PLATFORMS = ${filter ${TARGET_PLATFORMS_${HOST_PLATFORM}},macosx iphonesimulator iphoneos linux32 linux64 win32 win64}
@@ -45,7 +45,7 @@ ANALYZERS = splint clang
 TARGET_NAME_library = libstem_${PROJECT_NAME}
 TARGET_NAME_unittest = ${PROJECT_NAME}_unittest
 TARGET_NAME_testharness = ${PROJECT_NAME}_testharness
-HUMAN_READABLE_TARGET_NAME_testharness = StemTemplate
+HUMAN_READABLE_TARGET_NAME_testharness = InputController
 
 #Per-target configurations
 CONFIGURATIONS_library = debug profile release
@@ -53,9 +53,9 @@ CONFIGURATIONS_unittest = debug
 CONFIGURATIONS_testharness = debug profile release
 
 #Per-target platforms
-PLATFORMS_library = ${filter ${PLATFORMS},macosx iphonesimulator iphoneos linux32 linux64 win32 win64}
-PLATFORMS_unittest = ${filter ${PLATFORMS},macosx iphonesimulator linux32 linux64 win32 win64}
-PLATFORMS_testharness = ${filter ${PLATFORMS},macosx iphonesimulator iphoneos linux32 linux64 win32 win64}
+PLATFORMS_library = ${filter ${PLATFORMS},macosx linux32 linux64 win32 win64}
+PLATFORMS_unittest = ${filter ${PLATFORMS},macosx linux32 linux64 win32 win64}
+PLATFORMS_testharness = ${filter ${PLATFORMS},macosx linux32 linux64 win32 win64}
 
 #Per-target compile/link settings
 CCFLAGS_unittest = -I test_source -include build/intermediate/TestList.h
@@ -157,20 +157,33 @@ LIBRARY_LINKFLAGS =
 OTHER_LINKFLAGS = 
 LINKFLAGS = ${FRAMEWORK_LINKFLAGS} ${LIBRARY_LINKFLAGS} ${OTHER_LINKFLAGS}
 
-LINK_ORDER = library
+LINK_ORDER = \
+	library \
+	gamepad \
+	serialization \
+	utilities \
+	stubshell \
+	stemobject
 
 #Dependencies (can optionally be per-target or per-target-per-platform)
 
 PROJECT_LIBRARY_DEPENDENCIES_unittest = library
 PROJECT_LIBRARY_DEPENDENCIES_testharness = library
-STEM_LIBRARY_DEPENDENCIES =
+STEM_LIBRARY_DEPENDENCIES = \
+	gamepad/1.3.0 \
+	serialization/1.3.0 \
+	stemobject/3.0.2 \
+	utilities/1.7.0
+STEM_LIBRARY_DEPENDENCIES_unittest = \
+	stubshell/1.3.0
 STEM_SOURCE_DEPENDENCIES = 
 THIRDPARTY_LIBRARY_DEPENDENCIES = 
 
 #Per-target source file lists
 
 SOURCES_library = \
-	source/${PROJECT_NAME}/HelloWorld.c
+	source/${PROJECT_NAME}/InputController.c \
+	source/${PROJECT_NAME}/InputMap.c
 
 SOURCES_unittest = \
 	test_source/unittest/framework/unittest_main.c \
@@ -178,15 +191,15 @@ SOURCES_unittest = \
 	${SOURCES_unittest_suites}
 
 SOURCES_unittest_suites = \
-	test_source/unittest/suites/HelloWorldTest.c
+	test_source/unittest/suites/InputMapTest.c
 
-SOURCES_testharness = \
-	test_source/testharness/TestHarness_main.c
+SOURCES_testharness = 
 
 #Include files to be distributed with library
 
 INCLUDES = \
-	source/${PROJECT_NAME}/HelloWorld.h
+	source/${PROJECT_NAME}/InputController.h \
+	source/${PROJECT_NAME}/InputMap.h
 
 #Target resources
 
@@ -782,8 +795,7 @@ INSTALL_DIR = ${STEM_SHARED_DIR}/${PROJECT_NAME}/${VERSION_MAJOR}.${VERSION_MINO
 
 .PHONY: install
 install:
-	mkdir -p "${INSTALL_DIR}/include" "${INSTALL_DIR}/library" "${INSTALL_DIR}/testharness"
+	mkdir -p "${INSTALL_DIR}/include" "${INSTALL_DIR}/library"
 	cp Changes.txt License.txt ReadMe.txt version ${INSTALL_DIR}
 	cp -r build/include/* ${INSTALL_DIR}/include
 	cp -r build/library/* ${INSTALL_DIR}/library
-	cp -r build/testharness/* ${INSTALL_DIR}/testharness
