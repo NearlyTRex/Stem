@@ -1,7 +1,7 @@
 #include "glbitmapfont/GLBitmapFont.h"
 #include "unittest/framework/TestSuite.h"
-#include "unittest/TestDeserializationContext.h"
-#include "unittest/TestSerializationContext.h"
+#include "unittest/framework/TestDeserializationContext.h"
+#include "unittest/framework/TestSerializationContext.h"
 #include <math.h>
 
 #if defined(WIN32)
