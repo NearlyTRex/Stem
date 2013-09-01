@@ -52,7 +52,10 @@
 		#if defined(WIN32)
 			#include "GL/wglew.h"
 		#elif defined(__linux)
+			// glxew.h includes X.h, which defines Atom and conflicts with the Atom in utilities
+			#define Atom Atom_not
 			#include "GL/glxew.h"
+			#undef Atom
 		#endif
 	#endif
 	#include <GL/gl.h>
