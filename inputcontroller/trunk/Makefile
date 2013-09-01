@@ -109,7 +109,7 @@ SPLINT_linux32 = /usr/local/bin/splint
 CLANG_linux32 = /usr/local/bin/clang
 ARCHS_linux32 = i386
 CCFLAGS_linux32 = -m32
-LINKFLAGS_linux32 = -m32 -lm -ldl -Wl,-E
+LINKFLAGS_linux32 = -m32 -lm -ldl -lrt -Wl,-E
 
 CC_linux64_x86_64 = /usr/bin/gcc
 AR_linux64 = /usr/bin/ar
@@ -118,7 +118,7 @@ SPLINT_linux64 = /usr/local/bin/splint
 CLANG_linux64 = /usr/local/bin/clang
 ARCHS_linux64 = x86_64
 CCFLAGS_linux64 = -m64
-LINKFLAGS_linux64 = -m64 -lm -ldl -Wl,-E
+LINKFLAGS_linux64 = -m64 -lm -ldl -lrt -Wl,-E
 
 MINGW_W32_PATH ?= C:/MinGW
 MINGW_W32_VERSION ?= 4.6.2
