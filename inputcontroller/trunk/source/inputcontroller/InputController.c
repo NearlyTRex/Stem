@@ -149,7 +149,7 @@ void InputController_dispose(InputController * self) {
 	call_super(dispose, self);
 }
 
-bool InputController_keyDown(InputController * self, unsigned int charCode, unsigned int keyCode, unsigned int modifiers) {
+bool InputController_keyDown(InputController * self, unsigned int keyCode, unsigned int modifiers) {
 	unsigned int bindingIndex;
 	bool handled = false;
 	

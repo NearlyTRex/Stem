@@ -51,7 +51,7 @@ struct InputController_action {
 	unsigned int actionCount; \
 	struct InputController_action * actions; \
 	\
-	bool (* keyDown)(self_type * self, unsigned int charCode, unsigned int keyCode, unsigned int modifiers); \
+	bool (* keyDown)(self_type * self, unsigned int keyCode, unsigned int modifiers); \
 	bool (* keyUp)(self_type * self, unsigned int keyCode, unsigned int modifiers); \
 	bool (* keyModifiersChanged)(self_type * self, unsigned int modifiers); \
 	bool (* gamepadButtonDown)(self_type * self, struct Gamepad_device * device, unsigned int buttonID, double timestamp); \
@@ -69,7 +69,8 @@ void InputController_init(InputController * self, InputMap * inputMap, ...) __at
 void InputController_vinit(InputController * self, InputMap * inputMap, va_list args);
 void InputController_dispose(InputController * self);
 
-bool InputController_keyDown(InputController * self, unsigned int charCode, unsigned int keyCode, unsigned int modifiers);
+// TODO: Remove modifiers if not using them
+bool InputController_keyDown(InputController * self, unsigned int keyCode, unsigned int modifiers);
 bool InputController_keyUp(InputController * self, unsigned int keyCode, unsigned int modifiers);
 bool InputController_keyModifiersChanged(InputController * self, unsigned int modifiers);
 bool InputController_gamepadButtonDown(InputController * self, struct Gamepad_device * device, unsigned int buttonID, double timestamp);

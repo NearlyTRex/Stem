@@ -236,9 +236,11 @@ static void testAxisBindings() {
 }
 
 static void testSerialization() {
+	// TODO: Implement me!
 }
 
 static void testDeserialization() {
+	// TODO: Implement me!
 }
 
 TEST_SUITE(InputMapTest,
