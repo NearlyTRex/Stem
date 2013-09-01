@@ -52,7 +52,7 @@ static bool isKeyBound(InputMap * inputMap, Atom actionID, unsigned int keyCode,
 }
 
 static void verifyKeyNotBound(InputMap * inputMap, Atom actionID, unsigned int keyCode, unsigned int charCode, int callingLine) {
-	TestCase_assert(!inputMap->isKeyBound(inputMap, actionID, keyCode), "Key unexpectedly reported as bound (keyCode = %u, actionID = \"%s\") (line %d)", keyCode, charCode, actionID, callingLine);
+	TestCase_assert(!inputMap->isKeyBound(inputMap, actionID, keyCode), "Key unexpectedly reported as bound (keyCode = %u, charCode = %u, actionID = \"%s\") (line %d)", keyCode, charCode, actionID, callingLine);
 	TestCase_assert(!isKeyBound(inputMap, actionID, keyCode, charCode), "Unexpectedly found bound key (keyCode = %u, charCode = %u, actionID = \"%s\") (line %d)", keyCode, charCode, actionID, callingLine);
 }
 

@@ -209,11 +209,9 @@ void InputMap_bindKey(InputMap * self, Atom actionID, unsigned int keyCode, unsi
 
 void InputMap_unbindKey(InputMap * self, Atom actionID, unsigned int keyCode) {
 	unsigned int bindingIndex;
-	struct InputMap_keyboardBinding binding;
 	
 	for (bindingIndex = 0; bindingIndex < self->keyboardBindingCount; bindingIndex++) {
 		if (self->keyboardBindings[bindingIndex].actionID == actionID && self->keyboardBindings[bindingIndex].keyCode == keyCode) {
-			binding = self->keyboardBindings[bindingIndex];
 			self->keyboardBindingCount--;
 			for (; bindingIndex < self->keyboardBindingCount; bindingIndex++) {
 				self->keyboardBindings[bindingIndex] = self->keyboardBindings[bindingIndex + 1];
