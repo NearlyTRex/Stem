@@ -236,11 +236,343 @@ static void testAxisBindings() {
 }
 
 static void testSerialization() {
-	// TODO: Implement me!
+	InputMap inputMap;
+	TestSerializationContext * context;
+	jmp_buf jmpEnv;
+	
+	context = TestSerializationContext_create(&jmpEnv);
+	if (setjmp(jmpEnv) != 0) {
+		TestCase_assert(false, "%s", context->error);
+	}
+	
+	InputMap_init(&inputMap);
+	
+	context->expectCall(context, context->beginStructure, "input_map");
+	context->expectCall(context, context->writeUInt16, "format_version", INPUT_MAP_SERIALIZATION_FORMAT_VERSION);
+	context->expectCall(context, context->beginArray, "keyboard_bindings");
+	context->expectCall(context, context->endArray);
+	context->expectCall(context, context->beginArray, "gamepad_maps");
+	context->expectCall(context, context->endArray);
+	context->expectCall(context, context->endStructure);
+	
+	InputMap_serialize(&inputMap, context);
+	
+	context->finish(context);
+	context->dispose(context);
+	inputMap.dispose(&inputMap);
+	
+	context = TestSerializationContext_create(&jmpEnv);
+	if (setjmp(jmpEnv) != 0) {
+		TestCase_assert(false, "%s", context->error);
+	}
+	
+	InputMap_init(&inputMap);
+	inputMap.bindKey(&inputMap, ATOM("a"), 1, 2);
+	inputMap.bindKey(&inputMap, ATOM("b"), 3, 4);
+	inputMap.bindButton(&inputMap, ATOM("a"), 1, 2, 3);
+	inputMap.bindButton(&inputMap, ATOM("b"), 1, 2, 4);
+	inputMap.bindButton(&inputMap, ATOM("c"), 4, 5, 6);
+	inputMap.bindAxis(&inputMap, ATOM("a"), 1, 2, 3, -1, 0.5f, 0.5f);
+	inputMap.bindAxis(&inputMap, ATOM("b"), 1, 2, 4, -1, 0.5f, 0.5f);
+	inputMap.bindAxis(&inputMap, ATOM("c"), 4, 5, 6, 1, 1.0f, 0.0f);
+	
+	context->expectCall(context, context->beginStructure, "input_map");
+		context->expectCall(context, context->writeUInt16, "format_version", INPUT_MAP_SERIALIZATION_FORMAT_VERSION);
+		context->expectCall(context, context->beginArray, "keyboard_bindings");
+			context->expectCall(context, context->beginStructure, NULL);
+				context->expectCall(context, context->writeString, "action", "a");
+				context->expectCall(context, context->writeUInt32, "key_code", 1);
+				context->expectCall(context, context->writeUInt32, "char_code", 2);
+			context->expectCall(context, context->endStructure);
+			context->expectCall(context, context->beginStructure, NULL);
+				context->expectCall(context, context->writeString, "action", "b");
+				context->expectCall(context, context->writeUInt32, "key_code", 3);
+				context->expectCall(context, context->writeUInt32, "char_code", 4);
+			context->expectCall(context, context->endStructure);
+		context->expectCall(context, context->endArray);
+		context->expectCall(context, context->beginArray, "gamepad_maps");
+			context->expectCall(context, context->beginStructure, NULL);
+				context->expectCall(context, context->writeInt32, "vendor_id", 1);
+				context->expectCall(context, context->writeInt32, "product_id", 2);
+				context->expectCall(context, context->beginDictionary, "button_bindings");
+					context->expectCall(context, context->writeUInt32, "a", 3);
+					context->expectCall(context, context->writeUInt32, "b", 4);
+				context->expectCall(context, context->endDictionary);
+				context->expectCall(context, context->beginArray, "axis_bindings");
+					context->expectCall(context, context->beginStructure, NULL);
+						context->expectCall(context, context->writeString, "action", "a");
+						context->expectCall(context, context->writeUInt32, "axis_id", 3);
+						context->expectCall(context, context->writeInt8, "direction", -1);
+						context->expectCall(context, context->writeFloat, "trigger_threshold", 0.5f);
+						context->expectCall(context, context->writeFloat, "release_threshold", 0.5f);
+					context->expectCall(context, context->endStructure);
+					context->expectCall(context, context->beginStructure, NULL);
+						context->expectCall(context, context->writeString, "action", "b");
+						context->expectCall(context, context->writeUInt32, "axis_id", 4);
+						context->expectCall(context, context->writeInt8, "direction", -1);
+						context->expectCall(context, context->writeFloat, "trigger_threshold", 0.5f);
+						context->expectCall(context, context->writeFloat, "release_threshold", 0.5f);
+					context->expectCall(context, context->endStructure);
+				context->expectCall(context, context->endArray);
+			context->expectCall(context, context->endStructure);
+			context->expectCall(context, context->beginStructure, NULL);
+				context->expectCall(context, context->writeInt32, "vendor_id", 4);
+				context->expectCall(context, context->writeInt32, "product_id", 5);
+				context->expectCall(context, context->beginDictionary, "button_bindings");
+					context->expectCall(context, context->writeUInt32, "c", 6);
+				context->expectCall(context, context->endDictionary);
+				context->expectCall(context, context->beginArray, "axis_bindings");
+					context->expectCall(context, context->beginStructure, NULL);
+						context->expectCall(context, context->writeString, "action", "c");
+						context->expectCall(context, context->writeUInt32, "axis_id", 6);
+						context->expectCall(context, context->writeInt8, "direction", 1);
+						context->expectCall(context, context->writeFloat, "trigger_threshold", 1.0f);
+						context->expectCall(context, context->writeFloat, "release_threshold", 0.0f);
+					context->expectCall(context, context->endStructure);
+				context->expectCall(context, context->endArray);
+			context->expectCall(context, context->endStructure);
+		context->expectCall(context, context->endArray);
+	context->expectCall(context, context->endStructure);
+	
+	InputMap_serialize(&inputMap, context);
+	
+	context->finish(context);
+	context->dispose(context);
+	inputMap.dispose(&inputMap);
+}
+
+static void setUpBlankDeserializationContext(TestDeserializationContext * context) {
+	context->expectCall(context, context->beginStructure, "input_map");
+	context->expectCall(context, context->readUInt16, "format_version", INPUT_MAP_SERIALIZATION_FORMAT_VERSION);
+	context->expectCall(context, context->beginArray, "keyboard_bindings", 0);
+	context->expectCall(context, context->endArray);
+	context->expectCall(context, context->beginArray, "gamepad_maps", 0);
+	context->expectCall(context, context->endArray);
+	context->expectCall(context, context->endStructure);
+}
+
+static void verifyBlankInputMap(InputMap * inputMap, unsigned int lineNumber) {
+	TestCase_assert(inputMap != NULL, "Expected non-NULL but got NULL (%u)", lineNumber);
+	TestCase_assert(inputMap->keyboardBindingCount == 0, "Expected 0 but got %u (%u)", inputMap->keyboardBindingCount, lineNumber);
+	TestCase_assert(inputMap->gamepadMapCount == 0, "Expected 0 but got %u (%u)", inputMap->gamepadMapCount, lineNumber);
+}
+
+static void setUpBasicDeserializationContext(TestDeserializationContext * context) {
+	context->expectCall(context, context->beginStructure, "input_map");
+		context->expectCall(context, context->readUInt16, "format_version", INPUT_MAP_SERIALIZATION_FORMAT_VERSION);
+		context->expectCall(context, context->beginArray, "keyboard_bindings", 2);
+			context->expectCall(context, context->beginStructure, NULL);
+				context->expectCall(context, context->readString, "action", "a");
+				context->expectCall(context, context->readUInt32, "key_code", 1);
+				context->expectCall(context, context->readUInt32, "char_code", 2);
+			context->expectCall(context, context->endStructure);
+			context->expectCall(context, context->beginStructure, NULL);
+				context->expectCall(context, context->readString, "action", "b");
+				context->expectCall(context, context->readUInt32, "key_code", 3);
+				context->expectCall(context, context->readUInt32, "char_code", 4);
+			context->expectCall(context, context->endStructure);
+		context->expectCall(context, context->endArray);
+		context->expectCall(context, context->beginArray, "gamepad_maps", 2);
+			context->expectCall(context, context->beginStructure, NULL);
+				context->expectCall(context, context->readInt32, "vendor_id", 1);
+				context->expectCall(context, context->readInt32, "product_id", 2);
+				context->expectCall(context, context->beginDictionary, "button_bindings", 2);
+					context->expectCall(context, context->readNextDictionaryKey, "a");
+					context->expectCall(context, context->readUInt32, "a", 3);
+					context->expectCall(context, context->readNextDictionaryKey, "b");
+					context->expectCall(context, context->readUInt32, "b", 4);
+				context->expectCall(context, context->endDictionary);
+				context->expectCall(context, context->beginArray, "axis_bindings", 2);
+					context->expectCall(context, context->beginStructure, NULL);
+						context->expectCall(context, context->readString, "action", "a");
+						context->expectCall(context, context->readUInt32, "axis_id", 3);
+						context->expectCall(context, context->readInt8, "direction", -1);
+						context->expectCall(context, context->readFloat, "trigger_threshold", 0.5f);
+						context->expectCall(context, context->readFloat, "release_threshold", 0.5f);
+					context->expectCall(context, context->endStructure);
+					context->expectCall(context, context->beginStructure, NULL);
+						context->expectCall(context, context->readString, "action", "b");
+						context->expectCall(context, context->readUInt32, "axis_id", 4);
+						context->expectCall(context, context->readInt8, "direction", -1);
+						context->expectCall(context, context->readFloat, "trigger_threshold", 0.5f);
+						context->expectCall(context, context->readFloat, "release_threshold", 0.5f);
+					context->expectCall(context, context->endStructure);
+				context->expectCall(context, context->endArray);
+			context->expectCall(context, context->endStructure);
+			context->expectCall(context, context->beginStructure, NULL);
+				context->expectCall(context, context->readInt32, "vendor_id", 4);
+				context->expectCall(context, context->readInt32, "product_id", 5);
+				context->expectCall(context, context->beginDictionary, "button_bindings", 1);
+					context->expectCall(context, context->readNextDictionaryKey, "c");
+					context->expectCall(context, context->readUInt32, "c", 6);
+				context->expectCall(context, context->endDictionary);
+				context->expectCall(context, context->beginArray, "axis_bindings", 1);
+					context->expectCall(context, context->beginStructure, NULL);
+						context->expectCall(context, context->readString, "action", "c");
+						context->expectCall(context, context->readUInt32, "axis_id", 6);
+						context->expectCall(context, context->readInt8, "direction", 1);
+						context->expectCall(context, context->readFloat, "trigger_threshold", 1.0f);
+						context->expectCall(context, context->readFloat, "release_threshold", 0.0f);
+					context->expectCall(context, context->endStructure);
+				context->expectCall(context, context->endArray);
+			context->expectCall(context, context->endStructure);
+		context->expectCall(context, context->endArray);
+	context->expectCall(context, context->endStructure);
+}
+
+static void verifyBasicInputMap(InputMap * inputMap, unsigned int lineNumber) {
+	TestCase_assert(inputMap != NULL, "Expected non-NULL but got NULL (%u)", lineNumber);
+	TestCase_assert(inputMap->keyboardBindingCount == 2, "Expected 2 but got %u (%u)", inputMap->keyboardBindingCount, lineNumber);
+	TestCase_assert(inputMap->keyboardBindings != NULL, "Expected non-NULL but got NULL (%u)", lineNumber);
+	TestCase_assert(inputMap->keyboardBindings[0].actionID == ATOM("a"), "Expected \"a\" (%p) but got \"%s\" (%p) (%u)", ATOM("a"), inputMap->keyboardBindings[0].actionID, inputMap->keyboardBindings[0].actionID, lineNumber);
+	TestCase_assert(inputMap->keyboardBindings[0].keyCode == 1, "Expected 1 but got %u (%u)", inputMap->keyboardBindings[0].keyCode, lineNumber);
+	TestCase_assert(inputMap->keyboardBindings[0].charCode == 2, "Expected 2 but got %u (%u)", inputMap->keyboardBindings[0].charCode, lineNumber);
+	TestCase_assert(inputMap->keyboardBindings[1].actionID == ATOM("b"), "Expected \"a\" (%p) but got \"%s\" (%p) (%u)", ATOM("b"), inputMap->keyboardBindings[1].actionID, inputMap->keyboardBindings[1].actionID, lineNumber);
+	TestCase_assert(inputMap->keyboardBindings[1].keyCode == 3, "Expected 3 but got %u (%u)", inputMap->keyboardBindings[1].keyCode, lineNumber);
+	TestCase_assert(inputMap->keyboardBindings[1].charCode == 4, "Expected 4 but got %u (%u)", inputMap->keyboardBindings[1].charCode, lineNumber);
+	TestCase_assert(inputMap->gamepadMapCount == 2, "Expected 2 but got %u (%u)", inputMap->gamepadMapCount, lineNumber);
+	TestCase_assert(inputMap->gamepadMaps != NULL, "Expected non-NULL but got NULL (%u)", lineNumber);
+	TestCase_assert(inputMap->gamepadMaps[0].vendorID == 1, "Expected 1 but got %d (%u)", inputMap->gamepadMaps[0].vendorID, lineNumber);
+	TestCase_assert(inputMap->gamepadMaps[0].productID == 2, "Expected 2 but got %d (%u)", inputMap->gamepadMaps[0].productID, lineNumber);
+	TestCase_assert(inputMap->gamepadMaps[0].buttonBindingCount == 2, "Expected 2 but got %d (%u)", inputMap->gamepadMaps[0].buttonBindingCount, lineNumber);
+	TestCase_assert(inputMap->gamepadMaps[0].buttonBindings != NULL, "Expected non-NULL but got NULL (%u)", lineNumber);
+	TestCase_assert(inputMap->gamepadMaps[0].buttonBindings[0].actionID == ATOM("a"), "Expected \"a\" (%p) but got \"%s\" (%p) (%u)", ATOM("a"), inputMap->gamepadMaps[0].buttonBindings[0].actionID, inputMap->gamepadMaps[0].buttonBindings[0].actionID, lineNumber);
+	TestCase_assert(inputMap->gamepadMaps[0].buttonBindings[0].buttonID == 3, "Expected 3 but got %u (%u)", inputMap->gamepadMaps[0].buttonBindings[0].buttonID, lineNumber);
+	TestCase_assert(inputMap->gamepadMaps[0].buttonBindings[1].actionID == ATOM("b"), "Expected \"b\" (%p) but got \"%s\" (%p) (%u)", ATOM("b"), inputMap->gamepadMaps[0].buttonBindings[1].actionID, inputMap->gamepadMaps[0].buttonBindings[1].actionID, lineNumber);
+	TestCase_assert(inputMap->gamepadMaps[0].buttonBindings[1].buttonID == 4, "Expected 4 but got %u (%u)", inputMap->gamepadMaps[0].buttonBindings[1].buttonID, lineNumber);
+	TestCase_assert(inputMap->gamepadMaps[0].axisBindingCount == 2, "Expected 2 but got %d (%u)", inputMap->gamepadMaps[0].axisBindingCount, lineNumber);
+	TestCase_assert(inputMap->gamepadMaps[0].axisBindings != NULL, "Expected non-NULL but got NULL (%u)", lineNumber);
+	TestCase_assert(inputMap->gamepadMaps[0].axisBindings[0].actionID == ATOM("a"), "Expected \"a\" (%p) but got \"%s\" (%p) (%u)", ATOM("a"), inputMap->gamepadMaps[0].axisBindings[0].actionID, inputMap->gamepadMaps[0].axisBindings[0].actionID, lineNumber);
+	TestCase_assert(inputMap->gamepadMaps[0].axisBindings[0].axisID == 3, "Expected 3 but got %u (%u)", inputMap->gamepadMaps[0].axisBindings[0].axisID, lineNumber);
+	TestCase_assert(inputMap->gamepadMaps[0].axisBindings[0].direction == -1, "Expected -1 but got %d (%u)", inputMap->gamepadMaps[0].axisBindings[0].direction, lineNumber);
+	TestCase_assert(inputMap->gamepadMaps[0].axisBindings[0].triggerThreshold == 0.5f, "Expected 0.5 but got %f (%u)", inputMap->gamepadMaps[0].axisBindings[0].triggerThreshold, lineNumber);
+	TestCase_assert(inputMap->gamepadMaps[0].axisBindings[0].releaseThreshold == 0.5f, "Expected 0.5 but got %f (%u)", inputMap->gamepadMaps[0].axisBindings[0].releaseThreshold, lineNumber);
+	TestCase_assert(inputMap->gamepadMaps[0].axisBindings[1].actionID == ATOM("b"), "Expected \"b\" (%p) but got \"%s\" (%p) (%u)", ATOM("b"), inputMap->gamepadMaps[0].axisBindings[1].actionID, inputMap->gamepadMaps[0].axisBindings[1].actionID, lineNumber);
+	TestCase_assert(inputMap->gamepadMaps[0].axisBindings[1].axisID == 4, "Expected 4 but got %u (%u)", inputMap->gamepadMaps[0].axisBindings[1].axisID, lineNumber);
+	TestCase_assert(inputMap->gamepadMaps[0].axisBindings[1].direction == -1, "Expected -1 but got %d (%u)", inputMap->gamepadMaps[0].axisBindings[1].direction, lineNumber);
+	TestCase_assert(inputMap->gamepadMaps[0].axisBindings[1].triggerThreshold == 0.5f, "Expected 0.5 but got %f (%u)", inputMap->gamepadMaps[0].axisBindings[1].triggerThreshold, lineNumber);
+	TestCase_assert(inputMap->gamepadMaps[0].axisBindings[1].releaseThreshold == 0.5f, "Expected 0.5 but got %f (%u)", inputMap->gamepadMaps[0].axisBindings[1].releaseThreshold, lineNumber);
+	TestCase_assert(inputMap->gamepadMaps[1].vendorID == 4, "Expected 4 but got %d (%u)", inputMap->gamepadMaps[1].vendorID, lineNumber);
+	TestCase_assert(inputMap->gamepadMaps[1].productID == 5, "Expected 5 but got %d (%u)", inputMap->gamepadMaps[1].productID, lineNumber);
+	TestCase_assert(inputMap->gamepadMaps[1].buttonBindingCount == 1, "Expected 1 but got %d (%u)", inputMap->gamepadMaps[1].buttonBindingCount, lineNumber);
+	TestCase_assert(inputMap->gamepadMaps[1].buttonBindings != NULL, "Expected non-NULL but got NULL (%u)", lineNumber);
+	TestCase_assert(inputMap->gamepadMaps[1].buttonBindings[0].actionID == ATOM("c"), "Expected \"c\" (%p) but got \"%s\" (%p) (%u)", ATOM("c"), inputMap->gamepadMaps[1].buttonBindings[0].actionID, inputMap->gamepadMaps[1].buttonBindings[0].actionID, lineNumber);
+	TestCase_assert(inputMap->gamepadMaps[1].buttonBindings[0].buttonID == 6, "Expected 6 but got %u (%u)", inputMap->gamepadMaps[1].buttonBindings[0].buttonID, lineNumber);
+	TestCase_assert(inputMap->gamepadMaps[1].axisBindingCount == 1, "Expected 1 but got %d (%u)", inputMap->gamepadMaps[1].axisBindingCount, lineNumber);
+	TestCase_assert(inputMap->gamepadMaps[1].axisBindings != NULL, "Expected non-NULL but got NULL (%u)", lineNumber);
+	TestCase_assert(inputMap->gamepadMaps[1].axisBindings[0].actionID == ATOM("c"), "Expected \"c\" (%p) but got \"%s\" (%p) (%u)", ATOM("c"), inputMap->gamepadMaps[1].axisBindings[0].actionID, inputMap->gamepadMaps[1].axisBindings[0].actionID, lineNumber);
+	TestCase_assert(inputMap->gamepadMaps[1].axisBindings[0].axisID == 6, "Expected 6 but got %u (%u)", inputMap->gamepadMaps[1].axisBindings[0].axisID, lineNumber);
+	TestCase_assert(inputMap->gamepadMaps[1].axisBindings[0].direction == 1, "Expected 1 but got %d (%u)", inputMap->gamepadMaps[1].axisBindings[0].direction, lineNumber);
+	TestCase_assert(inputMap->gamepadMaps[1].axisBindings[0].triggerThreshold == 1.0f, "Expected 1.0 but got %f (%u)", inputMap->gamepadMaps[1].axisBindings[0].triggerThreshold, lineNumber);
+	TestCase_assert(inputMap->gamepadMaps[1].axisBindings[0].releaseThreshold == 0.0f, "Expected 0.0 but got %f (%u)", inputMap->gamepadMaps[1].axisBindings[0].releaseThreshold, lineNumber);
 }
 
 static void testDeserialization() {
-	// TODO: Implement me!
+	InputMap inputMap, * inputMapPtr;
+	TestDeserializationContext * context;
+	jmp_buf jmpEnv;
+	bool success;
+	unsigned int failIndex;
+	
+	context = TestDeserializationContext_create(&jmpEnv);
+	if (setjmp(jmpEnv) != 0) {
+		TestCase_assert(false, "%s", context->error);
+	}
+	InputMap_init(&inputMap);
+	setUpBlankDeserializationContext(context);
+	success = InputMap_loadSerializedData(&inputMap, context);
+	context->finish(context);
+	context->dispose(context);
+	TestCase_assert(success, "Expected true but got false");
+	verifyBlankInputMap(&inputMap, __LINE__);
+	inputMap.dispose(&inputMap);
+	
+	context = TestDeserializationContext_create(&jmpEnv);
+	if (setjmp(jmpEnv) != 0) {
+		TestCase_assert(false, "%s", context->error);
+	}
+	setUpBlankDeserializationContext(context);
+	inputMapPtr = InputMap_deserialize(context);
+	context->finish(context);
+	context->dispose(context);
+	verifyBlankInputMap(inputMapPtr, __LINE__);
+	inputMapPtr->dispose(inputMapPtr);
+	
+	context = TestDeserializationContext_create(&jmpEnv);
+	if (setjmp(jmpEnv) != 0) {
+		TestCase_assert(false, "%s", context->error);
+	}
+	InputMap_init(&inputMap);
+	setUpBasicDeserializationContext(context);
+	success = InputMap_loadSerializedData(&inputMap, context);
+	context->finish(context);
+	context->dispose(context);
+	TestCase_assert(success, "Expected true but got false");
+	verifyBasicInputMap(&inputMap, __LINE__);
+	inputMap.dispose(&inputMap);
+	
+	context = TestDeserializationContext_create(&jmpEnv);
+	if (setjmp(jmpEnv) != 0) {
+		TestCase_assert(false, "%s", context->error);
+	}
+	setUpBasicDeserializationContext(context);
+	inputMapPtr = InputMap_deserialize(context);
+	context->finish(context);
+	context->dispose(context);
+	verifyBasicInputMap(inputMapPtr, __LINE__);
+	inputMapPtr->dispose(inputMapPtr);
+	
+	for (failIndex = 0; failIndex < 60; failIndex++) {
+		context = TestDeserializationContext_create(&jmpEnv);
+		if (setjmp(jmpEnv) != 0) {
+			TestCase_assert(false, "%s", context->error);
+		}
+		
+		InputMap_init(&inputMap);
+		setUpBasicDeserializationContext(context);
+		context->failNthCall(context, failIndex, 1);
+		success = InputMap_loadSerializedData(&inputMap, context);
+		context->finish(context);
+		context->dispose(context);
+		TestCase_assert(!success, "InputMap_loadSerializedData didn't return false when deserialization call %d failed", failIndex);
+		inputMap.dispose(&inputMap);
+		
+		context = TestDeserializationContext_create(&jmpEnv);
+		if (setjmp(jmpEnv) != 0) {
+			TestCase_assert(false, "%s", context->error);
+		}
+		
+		setUpBasicDeserializationContext(context);
+		context->failNthCall(context, failIndex, 1);
+		inputMapPtr = InputMap_deserialize(context);
+		context->finish(context);
+		context->dispose(context);
+		TestCase_assert(inputMapPtr == NULL, "InputMap_deserialize didn't return NULL when deserialization call %d failed", failIndex);
+	}
+	
+	context = TestDeserializationContext_create(&jmpEnv);
+	if (setjmp(jmpEnv) != 0) {
+		TestCase_assert(false, "%s", context->error);
+	}
+	InputMap_init(&inputMap);
+	context->expectCall(context, context->beginStructure, "input_map");
+	context->expectCall(context, context->readUInt16, "format_version", INPUT_MAP_SERIALIZATION_FORMAT_VERSION + 1);
+	InputMap_loadSerializedData(&inputMap, context);
+	context->finish(context);
+	context->dispose(context);
+	TestCase_assert(!success, "InputMap_loadSerializedData didn't return false when format version was too new");
+	inputMap.dispose(&inputMap);
+	
+	context = TestDeserializationContext_create(&jmpEnv);
+	if (setjmp(jmpEnv) != 0) {
+		TestCase_assert(false, "%s", context->error);
+	}
+	context->expectCall(context, context->beginStructure, "input_map");
+	context->expectCall(context, context->readUInt16, "format_version", INPUT_MAP_SERIALIZATION_FORMAT_VERSION + 1);
+	inputMapPtr = InputMap_deserialize(context);
+	context->finish(context);
+	context->dispose(context);
+	TestCase_assert(inputMapPtr == NULL, "InputMap_deserialize didn't return NULL when format version was too new");
 }
 
 TEST_SUITE(InputMapTest,

@@ -188,6 +188,8 @@ SOURCES_library = \
 SOURCES_unittest = \
 	test_source/unittest/framework/unittest_main.c \
 	test_source/unittest/framework/TestList.c \
+	test_source/unittest/framework/TestDeserializationContext.c \
+	test_source/unittest/framework/TestSerializationContext.c \
 	${SOURCES_unittest_suites}
 
 SOURCES_unittest_suites = \
