@@ -34,6 +34,9 @@ void InputMap_init(InputMap * self) {
 	self->isKeyBound = InputMap_isKeyBound;
 	self->bindKey = InputMap_bindKey;
 	self->unbindKey = InputMap_unbindKey;
+	self->isKeyModifierBound = InputMap_isKeyModifierBound;
+	self->bindKeyModifier = InputMap_bindKeyModifier;
+	self->unbindKeyModifier = InputMap_unbindKeyModifier;
 	self->isButtonBound = InputMap_isButtonBound;
 	self->bindButton = InputMap_bindButton;
 	self->unbindButton = InputMap_unbindButton;
@@ -43,6 +46,8 @@ void InputMap_init(InputMap * self) {
 	
 	self->keyboardBindingCount = 0;
 	self->keyboardBindings = NULL;
+	self->keyModifierBindingCount = 0;
+	self->keyModifierBindings = NULL;
 	self->gamepadMapCount = 0;
 	self->gamepadMaps = NULL;
 }
@@ -51,6 +56,7 @@ void InputMap_dispose(InputMap * self) {
 	unsigned int gamepadMapIndex;
 	
 	free(self->keyboardBindings);
+	free(self->keyModifierBindings);
 	for (gamepadMapIndex = 0; gamepadMapIndex < self->gamepadMapCount; gamepadMapIndex++) {
 		free(self->gamepadMaps[gamepadMapIndex].buttonBindings);
 		free(self->gamepadMaps[gamepadMapIndex].axisBindings);
@@ -107,7 +113,6 @@ bool InputMap_loadSerializedData(InputMap * self, compat_type(DeserializationCon
 			context->beginStructure(context, NULL);
 			gamepadMaps[gamepadMapIndex].axisBindings[bindingIndex].actionID = Atom_fromString(context->readString(context, "action"));
 			gamepadMaps[gamepadMapIndex].axisBindings[bindingIndex].axisID = context->readUInt32(context, "axis_id");
-			gamepadMaps[gamepadMapIndex].axisBindings[bindingIndex].direction = context->readInt8(context, "direction");
 			gamepadMaps[gamepadMapIndex].axisBindings[bindingIndex].triggerThreshold = context->readFloat(context, "trigger_threshold");
 			gamepadMaps[gamepadMapIndex].axisBindings[bindingIndex].releaseThreshold = context->readFloat(context, "release_threshold");
 			context->endStructure(context);
@@ -168,7 +173,6 @@ void InputMap_serialize(InputMap * self, compat_type(SerializationContext *) ser
 			context->beginStructure(context, NULL);
 			context->writeString(context, "action", self->gamepadMaps[gamepadMapIndex].axisBindings[bindingIndex].actionID);
 			context->writeUInt32(context, "axis_id", self->gamepadMaps[gamepadMapIndex].axisBindings[bindingIndex].axisID);
-			context->writeInt8(context, "direction", self->gamepadMaps[gamepadMapIndex].axisBindings[bindingIndex].direction);
 			context->writeFloat(context, "trigger_threshold", self->gamepadMaps[gamepadMapIndex].axisBindings[bindingIndex].triggerThreshold);
 			context->writeFloat(context, "release_threshold", self->gamepadMaps[gamepadMapIndex].axisBindings[bindingIndex].releaseThreshold);
 			context->endStructure(context);
@@ -215,6 +219,45 @@ void InputMap_unbindKey(InputMap * self, Atom actionID, unsigned int keyCode) {
 			self->keyboardBindingCount--;
 			for (; bindingIndex < self->keyboardBindingCount; bindingIndex++) {
 				self->keyboardBindings[bindingIndex] = self->keyboardBindings[bindingIndex + 1];
+			}
+			break;
+		}
+	}
+}
+
+bool InputMap_isKeyModifierBound(InputMap * self, Atom actionID, int modifierBit) {
+	unsigned int bindingIndex;
+	
+	for (bindingIndex = 0; bindingIndex < self->keyModifierBindingCount; bindingIndex++) {
+		if (self->keyModifierBindings[bindingIndex].actionID == actionID && self->keyModifierBindings[bindingIndex].modifierBit == modifierBit) {
+			return true;
+		}
+	}
+	return false;
+}
+
+void InputMap_bindKeyModifier(InputMap * self, Atom actionID, int modifierBit) {
+	unsigned int bindingIndex;
+	
+	for (bindingIndex = 0; bindingIndex < self->keyModifierBindingCount; bindingIndex++) {
+		if (self->keyModifierBindings[bindingIndex].actionID == actionID && self->keyModifierBindings[bindingIndex].modifierBit == modifierBit) {
+			return;
+		}
+	}
+	self->keyModifierBindings = realloc(self->keyModifierBindings, sizeof(struct InputMap_keyModifierBinding) * (self->keyModifierBindingCount + 1));
+	self->keyModifierBindings[self->keyModifierBindingCount].actionID = actionID;
+	self->keyModifierBindings[self->keyModifierBindingCount].modifierBit = modifierBit;
+	self->keyModifierBindingCount++;
+}
+
+void InputMap_unbindKeyModifier(InputMap * self, Atom actionID, int modifierBit) {
+	unsigned int bindingIndex;
+	
+	for (bindingIndex = 0; bindingIndex < self->keyModifierBindingCount; bindingIndex++) {
+		if (self->keyModifierBindings[bindingIndex].actionID == actionID && self->keyModifierBindings[bindingIndex].modifierBit == modifierBit) {
+			self->keyModifierBindingCount--;
+			for (; bindingIndex < self->keyModifierBindingCount; bindingIndex++) {
+				self->keyModifierBindings[bindingIndex] = self->keyModifierBindings[bindingIndex + 1];
 			}
 			break;
 		}
@@ -284,13 +327,13 @@ void InputMap_unbindButton(InputMap * self, Atom actionID, int vendorID, int pro
 	}
 }
 
-bool InputMap_isAxisBound(InputMap * self, Atom actionID, int vendorID, int productID, unsigned int axisID, int direction) {
+bool InputMap_isAxisBound(InputMap * self, Atom actionID, int vendorID, int productID, unsigned int axisID) {
 	unsigned int gamepadIndex, bindingIndex;
 	
 	for (gamepadIndex = 0; gamepadIndex < self->gamepadMapCount; gamepadIndex++) {
 		if (self->gamepadMaps[gamepadIndex].vendorID == vendorID && self->gamepadMaps[gamepadIndex].productID == productID) {
 			for (bindingIndex = 0; bindingIndex < self->gamepadMaps[gamepadIndex].axisBindingCount; bindingIndex++) {
-				if (self->gamepadMaps[gamepadIndex].axisBindings[bindingIndex].actionID == actionID && self->gamepadMaps[gamepadIndex].axisBindings[bindingIndex].axisID == axisID && self->gamepadMaps[gamepadIndex].axisBindings[bindingIndex].direction == direction) {
+				if (self->gamepadMaps[gamepadIndex].axisBindings[bindingIndex].actionID == actionID && self->gamepadMaps[gamepadIndex].axisBindings[bindingIndex].axisID == axisID) {
 					return true;
 				}
 			}
@@ -299,13 +342,13 @@ bool InputMap_isAxisBound(InputMap * self, Atom actionID, int vendorID, int prod
 	return false;
 }
 
-void InputMap_bindAxis(InputMap * self, Atom actionID, int vendorID, int productID, unsigned int axisID, int direction, float triggerThreshold, float releaseThreshold) {
+void InputMap_bindAxis(InputMap * self, Atom actionID, int vendorID, int productID, unsigned int axisID, float triggerThreshold, float releaseThreshold) {
 	unsigned int gamepadIndex, bindingIndex;
 	
 	for (gamepadIndex = 0; gamepadIndex < self->gamepadMapCount; gamepadIndex++) {
 		if (self->gamepadMaps[gamepadIndex].vendorID == vendorID && self->gamepadMaps[gamepadIndex].productID == productID) {
 			for (bindingIndex = 0; bindingIndex < self->gamepadMaps[gamepadIndex].axisBindingCount; bindingIndex++) {
-				if (self->gamepadMaps[gamepadIndex].axisBindings[bindingIndex].actionID == actionID && self->gamepadMaps[gamepadIndex].axisBindings[bindingIndex].axisID == axisID && self->gamepadMaps[gamepadIndex].axisBindings[bindingIndex].direction == direction) {
+				if (self->gamepadMaps[gamepadIndex].axisBindings[bindingIndex].actionID == actionID && self->gamepadMaps[gamepadIndex].axisBindings[bindingIndex].axisID == axisID) {
 					self->gamepadMaps[gamepadIndex].axisBindings[bindingIndex].triggerThreshold = triggerThreshold;
 					self->gamepadMaps[gamepadIndex].axisBindings[bindingIndex].releaseThreshold = releaseThreshold;
 					return;
@@ -314,7 +357,6 @@ void InputMap_bindAxis(InputMap * self, Atom actionID, int vendorID, int product
 			self->gamepadMaps[gamepadIndex].axisBindings = realloc(self->gamepadMaps[gamepadIndex].axisBindings, sizeof(struct InputMap_gamepadAxisBinding) * (self->gamepadMaps[gamepadIndex].axisBindingCount + 1));
 			self->gamepadMaps[gamepadIndex].axisBindings[self->gamepadMaps[gamepadIndex].axisBindingCount].actionID = actionID;
 			self->gamepadMaps[gamepadIndex].axisBindings[self->gamepadMaps[gamepadIndex].axisBindingCount].axisID = axisID;
-			self->gamepadMaps[gamepadIndex].axisBindings[self->gamepadMaps[gamepadIndex].axisBindingCount].direction = direction;
 			self->gamepadMaps[gamepadIndex].axisBindings[self->gamepadMaps[gamepadIndex].axisBindingCount].triggerThreshold = triggerThreshold;
 			self->gamepadMaps[gamepadIndex].axisBindings[self->gamepadMaps[gamepadIndex].axisBindingCount].releaseThreshold = releaseThreshold;
 			self->gamepadMaps[gamepadIndex].axisBindingCount++;
@@ -331,19 +373,18 @@ void InputMap_bindAxis(InputMap * self, Atom actionID, int vendorID, int product
 	self->gamepadMaps[self->gamepadMapCount].axisBindings = malloc(sizeof(struct InputMap_gamepadAxisBinding));
 	self->gamepadMaps[self->gamepadMapCount].axisBindings[0].actionID = actionID;
 	self->gamepadMaps[self->gamepadMapCount].axisBindings[0].axisID = axisID;
-	self->gamepadMaps[self->gamepadMapCount].axisBindings[0].direction = direction;
 	self->gamepadMaps[self->gamepadMapCount].axisBindings[0].triggerThreshold = triggerThreshold;
 	self->gamepadMaps[self->gamepadMapCount].axisBindings[0].releaseThreshold = releaseThreshold;
 	self->gamepadMapCount++;
 }
 
-void InputMap_unbindAxis(InputMap * self, Atom actionID, int vendorID, int productID, unsigned int axisID, int direction) {
+void InputMap_unbindAxis(InputMap * self, Atom actionID, int vendorID, int productID, unsigned int axisID) {
 	unsigned int gamepadIndex, bindingIndex;
 	
 	for (gamepadIndex = 0; gamepadIndex < self->gamepadMapCount; gamepadIndex++) {
 		if (self->gamepadMaps[gamepadIndex].vendorID == vendorID && self->gamepadMaps[gamepadIndex].productID == productID) {
 			for (bindingIndex = 0; bindingIndex < self->gamepadMaps[gamepadIndex].axisBindingCount; bindingIndex++) {
-				if (self->gamepadMaps[gamepadIndex].axisBindings[bindingIndex].actionID == actionID && self->gamepadMaps[gamepadIndex].axisBindings[bindingIndex].axisID == axisID && self->gamepadMaps[gamepadIndex].axisBindings[bindingIndex].direction == direction) {
+				if (self->gamepadMaps[gamepadIndex].axisBindings[bindingIndex].actionID == actionID && self->gamepadMaps[gamepadIndex].axisBindings[bindingIndex].axisID == axisID) {
 					self->gamepadMaps[gamepadIndex].axisBindingCount--;
 					for (; bindingIndex < self->gamepadMaps[gamepadIndex].axisBindingCount; bindingIndex++) {
 						self->gamepadMaps[gamepadIndex].axisBindings[bindingIndex] = self->gamepadMaps[gamepadIndex].axisBindings[bindingIndex + 1];

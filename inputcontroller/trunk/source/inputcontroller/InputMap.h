@@ -42,6 +42,11 @@ struct InputMap_keyboardBinding {
 	unsigned int charCode;
 };
 
+struct InputMap_keyModifierBinding {
+	Atom actionID;
+	int modifierBit;
+};
+
 struct InputMap_gamepadButtonBinding {
 	Atom actionID;
 	unsigned int buttonID;
@@ -50,7 +55,6 @@ struct InputMap_gamepadButtonBinding {
 struct InputMap_gamepadAxisBinding {
 	Atom actionID;
 	unsigned int axisID;
-	int direction;
 	float triggerThreshold;
 	float releaseThreshold;
 };
@@ -69,18 +73,23 @@ struct InputMap_gamepadMap {
 	\
 	unsigned int keyboardBindingCount; \
 	struct InputMap_keyboardBinding * keyboardBindings; \
+	unsigned int keyModifierBindingCount; \
+	struct InputMap_keyModifierBinding * keyModifierBindings; \
 	unsigned int gamepadMapCount; \
 	struct InputMap_gamepadMap * gamepadMaps; \
 	\
 	bool (* isKeyBound)(self_type * self, Atom actionID, unsigned int keyCode); \
 	void (* bindKey)(self_type * self, Atom actionID, unsigned int keyCode, unsigned int charCode); \
 	void (* unbindKey)(self_type * self, Atom actionID, unsigned int keyCode); \
+	bool (* isKeyModifierBound)(self_type * self, Atom actionID, int modifierBit); \
+	void (* bindKeyModifier)(self_type * self, Atom actionID, int modifierBit); \
+	void (* unbindKeyModifier)(self_type * self, Atom actionID, int modifierBit); \
 	bool (* isButtonBound)(self_type * self, Atom actionID, int vendorID, int productID, unsigned int buttonID); \
 	void (* bindButton)(self_type * self, Atom actionID, int vendorID, int productID, unsigned int buttonID); \
 	void (* unbindButton)(self_type * self, Atom actionID, int vendorID, int productID, unsigned int buttonID); \
-	bool (* isAxisBound)(self_type * self, Atom actionID, int vendorID, int productID, unsigned int axisID, int direction); \
-	void (* bindAxis)(self_type * self, Atom actionID, int vendorID, int productID, unsigned int axisID, int direction, float triggerThreshold, float releaseThreshold); \
-	void (* unbindAxis)(self_type * self, Atom actionID, int vendorID, int productID, unsigned int axisID, int direction);
+	bool (* isAxisBound)(self_type * self, Atom actionID, int vendorID, int productID, unsigned int axisID); \
+	void (* bindAxis)(self_type * self, Atom actionID, int vendorID, int productID, unsigned int axisID, float triggerThreshold, float releaseThreshold); \
+	void (* unbindAxis)(self_type * self, Atom actionID, int vendorID, int productID, unsigned int axisID);
 
 stemobject_struct_definition(InputMap)
 
@@ -95,12 +104,15 @@ void InputMap_serialize(InputMap * self, compat_type(SerializationContext *) ser
 bool InputMap_isKeyBound(InputMap * self, Atom actionID, unsigned int keyCode);
 void InputMap_bindKey(InputMap * self, Atom actionID, unsigned int keyCode, unsigned int charCode);
 void InputMap_unbindKey(InputMap * self, Atom actionID, unsigned int keyCode);
+bool InputMap_isKeyModifierBound(InputMap * self, Atom actionID, int modifierBit);
+void InputMap_bindKeyModifier(InputMap * self, Atom actionID, int modifierBit);
+void InputMap_unbindKeyModifier(InputMap * self, Atom actionID, int modifierBit);
 bool InputMap_isButtonBound(InputMap * self, Atom actionID, int vendorID, int productID, unsigned int buttonID);
 void InputMap_bindButton(InputMap * self, Atom actionID, int vendorID, int productID, unsigned int buttonID);
 void InputMap_unbindButton(InputMap * self, Atom actionID, int vendorID, int productID, unsigned int buttonID);
-bool InputMap_isAxisBound(InputMap * self, Atom actionID, int vendorID, int productID, unsigned int axisID, int direction);
-void InputMap_bindAxis(InputMap * self, Atom actionID, int vendorID, int productID, unsigned int axisID, int direction, float triggerThreshold, float releaseThreshold);
-void InputMap_unbindAxis(InputMap * self, Atom actionID, int vendorID, int productID, unsigned int axisID, int direction);
+bool InputMap_isAxisBound(InputMap * self, Atom actionID, int vendorID, int productID, unsigned int axisID);
+void InputMap_bindAxis(InputMap * self, Atom actionID, int vendorID, int productID, unsigned int axisID, float triggerThreshold, float releaseThreshold);
+void InputMap_unbindAxis(InputMap * self, Atom actionID, int vendorID, int productID, unsigned int axisID);
 
 #ifdef __cplusplus
 }

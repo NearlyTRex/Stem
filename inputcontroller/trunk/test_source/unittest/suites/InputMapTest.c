@@ -7,17 +7,21 @@
 static void verifyInit(InputMap * inputMap, int callingLine) {
 	TestCase_assert(inputMap != NULL, "Expected non-NULL but got NULL (line %d)", callingLine);
 	TestCase_assert(inputMap->keyboardBindingCount == 0, "Expected 0 but got %u (line %d)", inputMap->keyboardBindingCount, callingLine);
+	TestCase_assert(inputMap->keyModifierBindingCount == 0, "Expected 0 but got %u (line %d)", inputMap->keyModifierBindingCount, callingLine);
 	TestCase_assert(inputMap->gamepadMapCount == 0, "Expected 0 but got %u (line %d)", inputMap->gamepadMapCount, callingLine);
-	TestCase_assert(inputMap->dispose       == InputMap_dispose,       "Expected %p but got %p (line %d)", InputMap_dispose,       inputMap->dispose,       callingLine);
-	TestCase_assert(inputMap->isKeyBound    == InputMap_isKeyBound,    "Expected %p but got %p (line %d)", InputMap_isKeyBound,    inputMap->isKeyBound,    callingLine);
-	TestCase_assert(inputMap->bindKey       == InputMap_bindKey,       "Expected %p but got %p (line %d)", InputMap_bindKey,       inputMap->bindKey,       callingLine);
-	TestCase_assert(inputMap->unbindKey     == InputMap_unbindKey,     "Expected %p but got %p (line %d)", InputMap_unbindKey,     inputMap->unbindKey,     callingLine);
-	TestCase_assert(inputMap->isButtonBound == InputMap_isButtonBound, "Expected %p but got %p (line %d)", InputMap_isButtonBound, inputMap->isButtonBound, callingLine);
-	TestCase_assert(inputMap->bindButton    == InputMap_bindButton,    "Expected %p but got %p (line %d)", InputMap_bindButton,    inputMap->bindButton,    callingLine);
-	TestCase_assert(inputMap->unbindButton  == InputMap_unbindButton,  "Expected %p but got %p (line %d)", InputMap_unbindButton,  inputMap->unbindButton,  callingLine);
-	TestCase_assert(inputMap->isAxisBound   == InputMap_isAxisBound,   "Expected %p but got %p (line %d)", InputMap_isAxisBound,   inputMap->isAxisBound,   callingLine);
-	TestCase_assert(inputMap->bindAxis      == InputMap_bindAxis,      "Expected %p but got %p (line %d)", InputMap_bindAxis,      inputMap->bindAxis,      callingLine);
-	TestCase_assert(inputMap->unbindAxis    == InputMap_unbindAxis,    "Expected %p but got %p (line %d)", InputMap_unbindAxis,    inputMap->unbindAxis,    callingLine);
+	TestCase_assert(inputMap->dispose            == InputMap_dispose,            "Expected %p but got %p (line %d)", InputMap_dispose,            inputMap->dispose,            callingLine);
+	TestCase_assert(inputMap->isKeyBound         == InputMap_isKeyBound,         "Expected %p but got %p (line %d)", InputMap_isKeyBound,         inputMap->isKeyBound,         callingLine);
+	TestCase_assert(inputMap->bindKey            == InputMap_bindKey,            "Expected %p but got %p (line %d)", InputMap_bindKey,            inputMap->bindKey,            callingLine);
+	TestCase_assert(inputMap->unbindKey          == InputMap_unbindKey,          "Expected %p but got %p (line %d)", InputMap_unbindKey,          inputMap->unbindKey,          callingLine);
+	TestCase_assert(inputMap->isKeyModifierBound == InputMap_isKeyModifierBound, "Expected %p but got %p (line %d)", InputMap_isKeyModifierBound, inputMap->isKeyModifierBound, callingLine);
+	TestCase_assert(inputMap->bindKeyModifier    == InputMap_bindKeyModifier,    "Expected %p but got %p (line %d)", InputMap_bindKeyModifier,    inputMap->bindKeyModifier,    callingLine);
+	TestCase_assert(inputMap->unbindKeyModifier  == InputMap_unbindKeyModifier,  "Expected %p but got %p (line %d)", InputMap_unbindKeyModifier,  inputMap->unbindKeyModifier,  callingLine);
+	TestCase_assert(inputMap->isButtonBound      == InputMap_isButtonBound,      "Expected %p but got %p (line %d)", InputMap_isButtonBound,      inputMap->isButtonBound,      callingLine);
+	TestCase_assert(inputMap->bindButton         == InputMap_bindButton,         "Expected %p but got %p (line %d)", InputMap_bindButton,         inputMap->bindButton,         callingLine);
+	TestCase_assert(inputMap->unbindButton       == InputMap_unbindButton,       "Expected %p but got %p (line %d)", InputMap_unbindButton,       inputMap->unbindButton,       callingLine);
+	TestCase_assert(inputMap->isAxisBound        == InputMap_isAxisBound,        "Expected %p but got %p (line %d)", InputMap_isAxisBound,        inputMap->isAxisBound,        callingLine);
+	TestCase_assert(inputMap->bindAxis           == InputMap_bindAxis,           "Expected %p but got %p (line %d)", InputMap_bindAxis,           inputMap->bindAxis,           callingLine);
+	TestCase_assert(inputMap->unbindAxis         == InputMap_unbindAxis,         "Expected %p but got %p (line %d)", InputMap_unbindAxis,         inputMap->unbindAxis,         callingLine);
 }
 
 static void testInit() {
@@ -90,6 +94,53 @@ static void testKeyboardBindings() {
 	verifyKeyBound(inputMap, ATOM("b"), 1, 2, __LINE__);
 }
 
+static bool isKeyModifierBound(InputMap * inputMap, Atom actionID, int modifierBit) {
+	unsigned int bindingIndex;
+	
+	for (bindingIndex = 0; bindingIndex < inputMap->keyModifierBindingCount; bindingIndex++) {
+		if (inputMap->keyModifierBindings[bindingIndex].actionID == actionID &&
+		    inputMap->keyModifierBindings[bindingIndex].modifierBit == modifierBit) {
+			return true;
+		}
+	}
+	return false;
+}
+
+static void verifyKeyModifierNotBound(InputMap * inputMap, Atom actionID, int modifierBit, int callingLine) {
+	TestCase_assert(!inputMap->isKeyModifierBound(inputMap, actionID, modifierBit), "Modifier unexpectedly reported as bound (modifierBit = 0x%X, actionID = \"%s\") (line %d)", modifierBit, actionID, callingLine);
+	TestCase_assert(!isKeyModifierBound(inputMap, actionID, modifierBit), "Unexpectedly found bound modifier (modifierBit = 0x%X, actionID = \"%s\") (line %d)", modifierBit, actionID, callingLine);
+}
+
+static void verifyKeyModifierBound(InputMap * inputMap, Atom actionID, int modifierBit, int callingLine) {
+	TestCase_assert(inputMap->isKeyModifierBound(inputMap, actionID, modifierBit), "Modifier unexpectedly reported as unbound (modifierBit = 0x%X, actionID = \"%s\") (line %d)", modifierBit, actionID, callingLine);
+	TestCase_assert(isKeyModifierBound(inputMap, actionID, modifierBit), "Couldn't find bound modifier (modifierBit = 0x%X, actionID = \"%s\") (line %d)", modifierBit, actionID, callingLine);
+}
+
+static void testKeyModifierBindings() {
+	InputMap * inputMap;
+	
+	inputMap = InputMap_create();
+	verifyKeyModifierNotBound(inputMap, ATOM("a"), 1, __LINE__);
+	verifyKeyModifierNotBound(inputMap, ATOM("b"), 2, __LINE__);
+	
+	inputMap->bindKeyModifier(inputMap, ATOM("a"), 1);
+	verifyKeyModifierBound(inputMap, ATOM("a"), 1, __LINE__);
+	
+	inputMap->bindKeyModifier(inputMap, ATOM("a"), 4);
+	verifyKeyModifierBound(inputMap, ATOM("a"), 1, __LINE__);
+	verifyKeyModifierBound(inputMap, ATOM("a"), 4, __LINE__);
+	
+	inputMap->bindKeyModifier(inputMap, ATOM("b"), 2);
+	verifyKeyModifierBound(inputMap, ATOM("a"), 1, __LINE__);
+	verifyKeyModifierBound(inputMap, ATOM("a"), 4, __LINE__);
+	verifyKeyModifierBound(inputMap, ATOM("b"), 2, __LINE__);
+	
+	inputMap->unbindKeyModifier(inputMap, ATOM("a"), 1);
+	verifyKeyModifierNotBound(inputMap, ATOM("a"), 1, __LINE__);
+	verifyKeyModifierBound(inputMap, ATOM("a"), 4, __LINE__);
+	verifyKeyModifierBound(inputMap, ATOM("b"), 2, __LINE__);
+}
+
 static bool isButtonBound(InputMap * inputMap, Atom actionID, int vendorID, int productID, unsigned int buttonID) {
 	unsigned int gamepadMapIndex, bindingIndex;
 	
@@ -152,7 +203,7 @@ static void testButtonBindings() {
 	verifyButtonBound(inputMap, ATOM("b"), 0, 0, 0, __LINE__);
 }
 
-static bool isAxisBound(InputMap * inputMap, Atom actionID, int vendorID, int productID, unsigned int axisID, int direction, float triggerThreshold, float releaseThreshold) {
+static bool isAxisBound(InputMap * inputMap, Atom actionID, int vendorID, int productID, unsigned int axisID, float triggerThreshold, float releaseThreshold) {
 	unsigned int gamepadMapIndex, bindingIndex;
 	
 	for (gamepadMapIndex = 0; gamepadMapIndex < inputMap->gamepadMapCount; gamepadMapIndex++) {
@@ -163,7 +214,6 @@ static bool isAxisBound(InputMap * inputMap, Atom actionID, int vendorID, int pr
 		for (bindingIndex = 0; bindingIndex < inputMap->gamepadMaps[gamepadMapIndex].axisBindingCount; bindingIndex++) {
 			if (inputMap->gamepadMaps[gamepadMapIndex].axisBindings[bindingIndex].actionID == actionID &&
 					inputMap->gamepadMaps[gamepadMapIndex].axisBindings[bindingIndex].axisID == axisID &&
-					inputMap->gamepadMaps[gamepadMapIndex].axisBindings[bindingIndex].direction == direction &&
 					inputMap->gamepadMaps[gamepadMapIndex].axisBindings[bindingIndex].triggerThreshold == triggerThreshold &&
 					inputMap->gamepadMaps[gamepadMapIndex].axisBindings[bindingIndex].releaseThreshold == releaseThreshold) {
 				return true;
@@ -173,66 +223,66 @@ static bool isAxisBound(InputMap * inputMap, Atom actionID, int vendorID, int pr
 	return false;
 }
 
-static void verifyAxisNotBound(InputMap * inputMap, Atom actionID, int vendorID, int productID, unsigned int axisID, int direction, float triggerThreshold, float releaseThreshold, int callingLine) {
-	TestCase_assert(!inputMap->isAxisBound(inputMap, actionID, vendorID, productID, axisID, direction), "Axis unexpectedly reported as bound (vendorID = %u, productID = %u, axisID = %u, direction = %d, triggerThreshold = %f, releaseThreshold = %f, actionID = \"%s\") (line %d)", vendorID, productID, axisID, direction, triggerThreshold, releaseThreshold, actionID, callingLine);
-	TestCase_assert(!isAxisBound(inputMap, actionID, vendorID, productID, axisID, direction, triggerThreshold, releaseThreshold), "Unexpectedly found bound axis (vendorID = %u, productID = %u, axisID = %u, direction = %d, triggerThreshold = %f, releaseThreshold = %f, actionID = \"%s\") (line %d)", vendorID, productID, axisID, direction, triggerThreshold, releaseThreshold, actionID, callingLine);
+static void verifyAxisNotBound(InputMap * inputMap, Atom actionID, int vendorID, int productID, unsigned int axisID, float triggerThreshold, float releaseThreshold, int callingLine) {
+	TestCase_assert(!inputMap->isAxisBound(inputMap, actionID, vendorID, productID, axisID), "Axis unexpectedly reported as bound (vendorID = %u, productID = %u, axisID = %u, triggerThreshold = %f, releaseThreshold = %f, actionID = \"%s\") (line %d)", vendorID, productID, axisID, triggerThreshold, releaseThreshold, actionID, callingLine);
+	TestCase_assert(!isAxisBound(inputMap, actionID, vendorID, productID, axisID, triggerThreshold, releaseThreshold), "Unexpectedly found bound axis (vendorID = %u, productID = %u, axisID = %u, triggerThreshold = %f, releaseThreshold = %f, actionID = \"%s\") (line %d)", vendorID, productID, axisID, triggerThreshold, releaseThreshold, actionID, callingLine);
 }
 
-static void verifyAxisBound(InputMap * inputMap, Atom actionID, int vendorID, int productID, unsigned int axisID, int direction, float triggerThreshold, float releaseThreshold, int callingLine) {
-	TestCase_assert(inputMap->isAxisBound(inputMap, actionID, vendorID, productID, axisID, direction), "axis unexpectedly reported as unbound (vendorID = %u, productID = %u, axisID = %u, direction = %d, triggerThreshold = %f, releaseThreshold = %f, actionID = \"%s\") (line %d)", vendorID, productID, axisID, direction, triggerThreshold, releaseThreshold, actionID, callingLine);
-	TestCase_assert(isAxisBound(inputMap, actionID, vendorID, productID, axisID, direction, triggerThreshold, releaseThreshold), "Couldn't find bound axis (vendorID = %u, productID = %u, axisID = %u, actionID, direction = %d, triggerThreshold = %f, releaseThreshold = %f = \"%s\") (line %d)", vendorID, productID, axisID, direction, triggerThreshold, releaseThreshold, actionID, callingLine);
+static void verifyAxisBound(InputMap * inputMap, Atom actionID, int vendorID, int productID, unsigned int axisID, float triggerThreshold, float releaseThreshold, int callingLine) {
+	TestCase_assert(inputMap->isAxisBound(inputMap, actionID, vendorID, productID, axisID), "axis unexpectedly reported as unbound (vendorID = %u, productID = %u, axisID = %u, triggerThreshold = %f, releaseThreshold = %f, actionID = \"%s\") (line %d)", vendorID, productID, axisID, triggerThreshold, releaseThreshold, actionID, callingLine);
+	TestCase_assert(isAxisBound(inputMap, actionID, vendorID, productID, axisID, triggerThreshold, releaseThreshold), "Couldn't find bound axis (vendorID = %u, productID = %u, axisID = %u, actionID, triggerThreshold = %f, releaseThreshold = %f = \"%s\") (line %d)", vendorID, productID, axisID, triggerThreshold, releaseThreshold, actionID, callingLine);
 }
 
 static void testAxisBindings() {
 	InputMap * inputMap;
 	
 	inputMap = InputMap_create();
-	verifyAxisNotBound(inputMap, ATOM("a"), 0, 0, 0, 1, 1.0f, 0.0f, __LINE__);
-	verifyAxisNotBound(inputMap, ATOM("a"), 0, 0, 1, 1, 1.0f, 0.0f, __LINE__);
-	verifyAxisNotBound(inputMap, ATOM("a"), 1, 1, 1, 1, 1.0f, 0.0f, __LINE__);
-	verifyAxisNotBound(inputMap, ATOM("b"), 0, 0, 0, 1, 1.0f, 0.0f, __LINE__);
+	verifyAxisNotBound(inputMap, ATOM("a"), 0, 0, 0, 1.0f, 0.0f, __LINE__);
+	verifyAxisNotBound(inputMap, ATOM("a"), 0, 0, 1, 1.0f, 0.0f, __LINE__);
+	verifyAxisNotBound(inputMap, ATOM("a"), 1, 1, 1, 1.0f, 0.0f, __LINE__);
+	verifyAxisNotBound(inputMap, ATOM("b"), 0, 0, 0, 1.0f, 0.0f, __LINE__);
 	
-	inputMap->bindAxis(inputMap, ATOM("a"), 0, 0, 0, 1, 1.0f, 0.0f);
-	verifyAxisBound(inputMap, ATOM("a"), 0, 0, 0, 1, 1.0f, 0.0f, __LINE__);
+	inputMap->bindAxis(inputMap, ATOM("a"), 0, 0, 0, 1.0f, 0.0f);
+	verifyAxisBound(inputMap, ATOM("a"), 0, 0, 0, 1.0f, 0.0f, __LINE__);
 	
-	inputMap->bindAxis(inputMap, ATOM("a"), 0, 0, 1, 1, 1.0f, 0.0f);
-	verifyAxisBound(inputMap, ATOM("a"), 0, 0, 0, 1, 1.0f, 0.0f, __LINE__);
-	verifyAxisBound(inputMap, ATOM("a"), 0, 0, 1, 1, 1.0f, 0.0f, __LINE__);
+	inputMap->bindAxis(inputMap, ATOM("a"), 0, 0, 1, 1.0f, 0.0f);
+	verifyAxisBound(inputMap, ATOM("a"), 0, 0, 0, 1.0f, 0.0f, __LINE__);
+	verifyAxisBound(inputMap, ATOM("a"), 0, 0, 1, 1.0f, 0.0f, __LINE__);
 	
-	inputMap->bindAxis(inputMap, ATOM("a"), 0, 0, 1, 1, 0.5f, 0.0f);
-	verifyAxisBound(inputMap, ATOM("a"), 0, 0, 0, 1, 1.0f, 0.0f, __LINE__);
-	verifyAxisBound(inputMap, ATOM("a"), 0, 0, 1, 1, 0.5f, 0.0f, __LINE__);
-	TestCase_assert(!isAxisBound(inputMap, ATOM("a"), 0, 0, 1, 1, 1.0f, 0.0f), "Expected false but got true");
+	inputMap->bindAxis(inputMap, ATOM("a"), 0, 0, 1, 0.5f, 0.0f);
+	verifyAxisBound(inputMap, ATOM("a"), 0, 0, 0, 1.0f, 0.0f, __LINE__);
+	verifyAxisBound(inputMap, ATOM("a"), 0, 0, 1, 0.5f, 0.0f, __LINE__);
+	TestCase_assert(!isAxisBound(inputMap, ATOM("a"), 0, 0, 1, 1.0f, 0.0f), "Expected false but got true");
 	
-	inputMap->bindAxis(inputMap, ATOM("a"), 0, 0, 1, 1, 0.5f, 0.5f);
-	verifyAxisBound(inputMap, ATOM("a"), 0, 0, 0, 1, 1.0f, 0.0f, __LINE__);
-	verifyAxisBound(inputMap, ATOM("a"), 0, 0, 1, 1, 0.5f, 0.5f, __LINE__);
-	TestCase_assert(!isAxisBound(inputMap, ATOM("a"), 0, 0, 1, 1, 0.5f, 0.0f), "Expected false but got true");
+	inputMap->bindAxis(inputMap, ATOM("a"), 0, 0, 1, 0.5f, 0.5f);
+	verifyAxisBound(inputMap, ATOM("a"), 0, 0, 0, 1.0f, 0.0f, __LINE__);
+	verifyAxisBound(inputMap, ATOM("a"), 0, 0, 1, 0.5f, 0.5f, __LINE__);
+	TestCase_assert(!isAxisBound(inputMap, ATOM("a"), 0, 0, 1, 0.5f, 0.0f), "Expected false but got true");
 	
-	inputMap->bindAxis(inputMap, ATOM("a"), 0, 0, 1, -1, 0.5f, 0.5f);
-	verifyAxisBound(inputMap, ATOM("a"), 0, 0, 0, 1, 1.0f, 0.0f, __LINE__);
-	verifyAxisBound(inputMap, ATOM("a"), 0, 0, 1, 1, 0.5f, 0.5f, __LINE__);
-	verifyAxisBound(inputMap, ATOM("a"), 0, 0, 1, -1, 0.5f, 0.5f, __LINE__);
+	inputMap->bindAxis(inputMap, ATOM("a"), 0, 0, 1, 0.5f, 0.5f);
+	verifyAxisBound(inputMap, ATOM("a"), 0, 0, 0, 1.0f, 0.0f, __LINE__);
+	verifyAxisBound(inputMap, ATOM("a"), 0, 0, 1, 0.5f, 0.5f, __LINE__);
+	verifyAxisBound(inputMap, ATOM("a"), 0, 0, 1, 0.5f, 0.5f, __LINE__);
 	
-	inputMap->bindAxis(inputMap, ATOM("a"), 1, 1, 1, 1, 1.0f, 0.0f);
-	verifyAxisBound(inputMap, ATOM("a"), 0, 0, 0, 1, 1.0f, 0.0f, __LINE__);
-	verifyAxisBound(inputMap, ATOM("a"), 0, 0, 1, 1, 0.5f, 0.5f, __LINE__);
-	verifyAxisBound(inputMap, ATOM("a"), 0, 0, 1, -1, 0.5f, 0.5f, __LINE__);
-	verifyAxisBound(inputMap, ATOM("a"), 1, 1, 1, 1, 1.0f, 0.0f, __LINE__);
+	inputMap->bindAxis(inputMap, ATOM("a"), 1, 1, 1, 1.0f, 0.0f);
+	verifyAxisBound(inputMap, ATOM("a"), 0, 0, 0, 1.0f, 0.0f, __LINE__);
+	verifyAxisBound(inputMap, ATOM("a"), 0, 0, 1, 0.5f, 0.5f, __LINE__);
+	verifyAxisBound(inputMap, ATOM("a"), 0, 0, 1, 0.5f, 0.5f, __LINE__);
+	verifyAxisBound(inputMap, ATOM("a"), 1, 1, 1, 1.0f, 0.0f, __LINE__);
 	
-	inputMap->bindAxis(inputMap, ATOM("b"), 0, 0, 0, 1, 1.0f, 0.0f);
-	verifyAxisBound(inputMap, ATOM("a"), 0, 0, 0, 1, 1.0f, 0.0f, __LINE__);
-	verifyAxisBound(inputMap, ATOM("a"), 0, 0, 1, 1, 0.5f, 0.5f, __LINE__);
-	verifyAxisBound(inputMap, ATOM("a"), 0, 0, 1, -1, 0.5f, 0.5f, __LINE__);
-	verifyAxisBound(inputMap, ATOM("a"), 1, 1, 1, 1, 1.0f, 0.0f, __LINE__);
-	verifyAxisBound(inputMap, ATOM("b"), 0, 0, 0, 1, 1.0f, 0.0f, __LINE__);
+	inputMap->bindAxis(inputMap, ATOM("b"), 0, 0, 0, 1.0f, 0.0f);
+	verifyAxisBound(inputMap, ATOM("a"), 0, 0, 0, 1.0f, 0.0f, __LINE__);
+	verifyAxisBound(inputMap, ATOM("a"), 0, 0, 1, 0.5f, 0.5f, __LINE__);
+	verifyAxisBound(inputMap, ATOM("a"), 0, 0, 1, 0.5f, 0.5f, __LINE__);
+	verifyAxisBound(inputMap, ATOM("a"), 1, 1, 1, 1.0f, 0.0f, __LINE__);
+	verifyAxisBound(inputMap, ATOM("b"), 0, 0, 0, 1.0f, 0.0f, __LINE__);
 	
-	inputMap->unbindAxis(inputMap, ATOM("a"), 0, 0, 0, 1);
-	verifyAxisNotBound(inputMap, ATOM("a"), 0, 0, 0, 1, 1.0f, 0.0f, __LINE__);
-	verifyAxisBound(inputMap, ATOM("a"), 0, 0, 1, 1, 0.5f, 0.5f, __LINE__);
-	verifyAxisBound(inputMap, ATOM("a"), 0, 0, 1, -1, 0.5f, 0.5f, __LINE__);
-	verifyAxisBound(inputMap, ATOM("a"), 1, 1, 1, 1, 1.0f, 0.0f, __LINE__);
-	verifyAxisBound(inputMap, ATOM("b"), 0, 0, 0, 1, 1.0f, 0.0f, __LINE__);
+	inputMap->unbindAxis(inputMap, ATOM("a"), 0, 0, 0);
+	verifyAxisNotBound(inputMap, ATOM("a"), 0, 0, 0, 1.0f, 0.0f, __LINE__);
+	verifyAxisBound(inputMap, ATOM("a"), 0, 0, 1, 0.5f, 0.5f, __LINE__);
+	verifyAxisBound(inputMap, ATOM("a"), 0, 0, 1, 0.5f, 0.5f, __LINE__);
+	verifyAxisBound(inputMap, ATOM("a"), 1, 1, 1, 1.0f, 0.0f, __LINE__);
+	verifyAxisBound(inputMap, ATOM("b"), 0, 0, 0, 1.0f, 0.0f, __LINE__);
 }
 
 static void testSerialization() {
@@ -272,9 +322,9 @@ static void testSerialization() {
 	inputMap.bindButton(&inputMap, ATOM("a"), 1, 2, 3);
 	inputMap.bindButton(&inputMap, ATOM("b"), 1, 2, 4);
 	inputMap.bindButton(&inputMap, ATOM("c"), 4, 5, 6);
-	inputMap.bindAxis(&inputMap, ATOM("a"), 1, 2, 3, -1, 0.5f, 0.5f);
-	inputMap.bindAxis(&inputMap, ATOM("b"), 1, 2, 4, -1, 0.5f, 0.5f);
-	inputMap.bindAxis(&inputMap, ATOM("c"), 4, 5, 6, 1, 1.0f, 0.0f);
+	inputMap.bindAxis(&inputMap, ATOM("a"), 1, 2, 3, 0.5f, 0.5f);
+	inputMap.bindAxis(&inputMap, ATOM("b"), 1, 2, 4, 0.5f, 0.5f);
+	inputMap.bindAxis(&inputMap, ATOM("c"), 4, 5, 6, 1.0f, 0.0f);
 	
 	context->expectCall(context, context->beginStructure, "input_map");
 		context->expectCall(context, context->writeUInt16, "format_version", INPUT_MAP_SERIALIZATION_FORMAT_VERSION);
@@ -302,14 +352,12 @@ static void testSerialization() {
 					context->expectCall(context, context->beginStructure, NULL);
 						context->expectCall(context, context->writeString, "action", "a");
 						context->expectCall(context, context->writeUInt32, "axis_id", 3);
-						context->expectCall(context, context->writeInt8, "direction", -1);
 						context->expectCall(context, context->writeFloat, "trigger_threshold", 0.5f);
 						context->expectCall(context, context->writeFloat, "release_threshold", 0.5f);
 					context->expectCall(context, context->endStructure);
 					context->expectCall(context, context->beginStructure, NULL);
 						context->expectCall(context, context->writeString, "action", "b");
 						context->expectCall(context, context->writeUInt32, "axis_id", 4);
-						context->expectCall(context, context->writeInt8, "direction", -1);
 						context->expectCall(context, context->writeFloat, "trigger_threshold", 0.5f);
 						context->expectCall(context, context->writeFloat, "release_threshold", 0.5f);
 					context->expectCall(context, context->endStructure);
@@ -325,7 +373,6 @@ static void testSerialization() {
 					context->expectCall(context, context->beginStructure, NULL);
 						context->expectCall(context, context->writeString, "action", "c");
 						context->expectCall(context, context->writeUInt32, "axis_id", 6);
-						context->expectCall(context, context->writeInt8, "direction", 1);
 						context->expectCall(context, context->writeFloat, "trigger_threshold", 1.0f);
 						context->expectCall(context, context->writeFloat, "release_threshold", 0.0f);
 					context->expectCall(context, context->endStructure);
@@ -386,14 +433,12 @@ static void setUpBasicDeserializationContext(TestDeserializationContext * contex
 					context->expectCall(context, context->beginStructure, NULL);
 						context->expectCall(context, context->readString, "action", "a");
 						context->expectCall(context, context->readUInt32, "axis_id", 3);
-						context->expectCall(context, context->readInt8, "direction", -1);
 						context->expectCall(context, context->readFloat, "trigger_threshold", 0.5f);
 						context->expectCall(context, context->readFloat, "release_threshold", 0.5f);
 					context->expectCall(context, context->endStructure);
 					context->expectCall(context, context->beginStructure, NULL);
 						context->expectCall(context, context->readString, "action", "b");
 						context->expectCall(context, context->readUInt32, "axis_id", 4);
-						context->expectCall(context, context->readInt8, "direction", -1);
 						context->expectCall(context, context->readFloat, "trigger_threshold", 0.5f);
 						context->expectCall(context, context->readFloat, "release_threshold", 0.5f);
 					context->expectCall(context, context->endStructure);
@@ -410,7 +455,6 @@ static void setUpBasicDeserializationContext(TestDeserializationContext * contex
 					context->expectCall(context, context->beginStructure, NULL);
 						context->expectCall(context, context->readString, "action", "c");
 						context->expectCall(context, context->readUInt32, "axis_id", 6);
-						context->expectCall(context, context->readInt8, "direction", 1);
 						context->expectCall(context, context->readFloat, "trigger_threshold", 1.0f);
 						context->expectCall(context, context->readFloat, "release_threshold", 0.0f);
 					context->expectCall(context, context->endStructure);
@@ -444,12 +488,10 @@ static void verifyBasicInputMap(InputMap * inputMap, unsigned int lineNumber) {
 	TestCase_assert(inputMap->gamepadMaps[0].axisBindings != NULL, "Expected non-NULL but got NULL (%u)", lineNumber);
 	TestCase_assert(inputMap->gamepadMaps[0].axisBindings[0].actionID == ATOM("a"), "Expected \"a\" (%p) but got \"%s\" (%p) (%u)", ATOM("a"), inputMap->gamepadMaps[0].axisBindings[0].actionID, inputMap->gamepadMaps[0].axisBindings[0].actionID, lineNumber);
 	TestCase_assert(inputMap->gamepadMaps[0].axisBindings[0].axisID == 3, "Expected 3 but got %u (%u)", inputMap->gamepadMaps[0].axisBindings[0].axisID, lineNumber);
-	TestCase_assert(inputMap->gamepadMaps[0].axisBindings[0].direction == -1, "Expected -1 but got %d (%u)", inputMap->gamepadMaps[0].axisBindings[0].direction, lineNumber);
 	TestCase_assert(inputMap->gamepadMaps[0].axisBindings[0].triggerThreshold == 0.5f, "Expected 0.5 but got %f (%u)", inputMap->gamepadMaps[0].axisBindings[0].triggerThreshold, lineNumber);
 	TestCase_assert(inputMap->gamepadMaps[0].axisBindings[0].releaseThreshold == 0.5f, "Expected 0.5 but got %f (%u)", inputMap->gamepadMaps[0].axisBindings[0].releaseThreshold, lineNumber);
 	TestCase_assert(inputMap->gamepadMaps[0].axisBindings[1].actionID == ATOM("b"), "Expected \"b\" (%p) but got \"%s\" (%p) (%u)", ATOM("b"), inputMap->gamepadMaps[0].axisBindings[1].actionID, inputMap->gamepadMaps[0].axisBindings[1].actionID, lineNumber);
 	TestCase_assert(inputMap->gamepadMaps[0].axisBindings[1].axisID == 4, "Expected 4 but got %u (%u)", inputMap->gamepadMaps[0].axisBindings[1].axisID, lineNumber);
-	TestCase_assert(inputMap->gamepadMaps[0].axisBindings[1].direction == -1, "Expected -1 but got %d (%u)", inputMap->gamepadMaps[0].axisBindings[1].direction, lineNumber);
 	TestCase_assert(inputMap->gamepadMaps[0].axisBindings[1].triggerThreshold == 0.5f, "Expected 0.5 but got %f (%u)", inputMap->gamepadMaps[0].axisBindings[1].triggerThreshold, lineNumber);
 	TestCase_assert(inputMap->gamepadMaps[0].axisBindings[1].releaseThreshold == 0.5f, "Expected 0.5 but got %f (%u)", inputMap->gamepadMaps[0].axisBindings[1].releaseThreshold, lineNumber);
 	TestCase_assert(inputMap->gamepadMaps[1].vendorID == 4, "Expected 4 but got %d (%u)", inputMap->gamepadMaps[1].vendorID, lineNumber);
@@ -462,7 +504,6 @@ static void verifyBasicInputMap(InputMap * inputMap, unsigned int lineNumber) {
 	TestCase_assert(inputMap->gamepadMaps[1].axisBindings != NULL, "Expected non-NULL but got NULL (%u)", lineNumber);
 	TestCase_assert(inputMap->gamepadMaps[1].axisBindings[0].actionID == ATOM("c"), "Expected \"c\" (%p) but got \"%s\" (%p) (%u)", ATOM("c"), inputMap->gamepadMaps[1].axisBindings[0].actionID, inputMap->gamepadMaps[1].axisBindings[0].actionID, lineNumber);
 	TestCase_assert(inputMap->gamepadMaps[1].axisBindings[0].axisID == 6, "Expected 6 but got %u (%u)", inputMap->gamepadMaps[1].axisBindings[0].axisID, lineNumber);
-	TestCase_assert(inputMap->gamepadMaps[1].axisBindings[0].direction == 1, "Expected 1 but got %d (%u)", inputMap->gamepadMaps[1].axisBindings[0].direction, lineNumber);
 	TestCase_assert(inputMap->gamepadMaps[1].axisBindings[0].triggerThreshold == 1.0f, "Expected 1.0 but got %f (%u)", inputMap->gamepadMaps[1].axisBindings[0].triggerThreshold, lineNumber);
 	TestCase_assert(inputMap->gamepadMaps[1].axisBindings[0].releaseThreshold == 0.0f, "Expected 0.0 but got %f (%u)", inputMap->gamepadMaps[1].axisBindings[0].releaseThreshold, lineNumber);
 }
@@ -522,7 +563,7 @@ static void testDeserialization() {
 	verifyBasicInputMap(inputMapPtr, __LINE__);
 	inputMapPtr->dispose(inputMapPtr);
 	
-	for (failIndex = 0; failIndex < 60; failIndex++) {
+	for (failIndex = 0; failIndex < 57; failIndex++) {
 		context = TestDeserializationContext_create(&jmpEnv);
 		if (setjmp(jmpEnv) != 0) {
 			TestCase_assert(false, "%s", context->error);
@@ -578,6 +619,7 @@ static void testDeserialization() {
 TEST_SUITE(InputMapTest,
            testInit,
            testKeyboardBindings,
+           testKeyModifierBindings,
            testButtonBindings,
            testAxisBindings,
            testSerialization,

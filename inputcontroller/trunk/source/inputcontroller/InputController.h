@@ -29,7 +29,6 @@ extern "C" {
 typedef struct InputController InputController;
 
 #include "inputcontroller/InputMap.h"
-#include "gamepad/Gamepad.h"
 #include "stemobject/StemObject.h"
 #include "utilities/EventDispatcher.h"
 #include <stdarg.h>
@@ -48,17 +47,18 @@ struct InputController_action {
 	\
 	EventDispatcher * eventDispatcher; \
 	InputMap * inputMap; \
+	unsigned int lastModifiers; \
 	unsigned int actionCount; \
 	struct InputController_action * actions; \
 	\
-	bool (* keyDown)(self_type * self, unsigned int keyCode, unsigned int modifiers); \
-	bool (* keyUp)(self_type * self, unsigned int keyCode, unsigned int modifiers); \
+	bool (* keyDown)(self_type * self, unsigned int keyCode); \
+	bool (* keyUp)(self_type * self, unsigned int keyCode); \
 	bool (* keyModifiersChanged)(self_type * self, unsigned int modifiers); \
-	bool (* gamepadButtonDown)(self_type * self, struct Gamepad_device * device, unsigned int buttonID, double timestamp); \
-	bool (* gamepadButtonUp)(self_type * self, struct Gamepad_device * device, unsigned int buttonID, double timestamp); \
-	bool (* gamepadAxisMoved)(self_type * self, struct Gamepad_device * device, unsigned int axisID, float value, float lastValue, double timestamp); \
-	bool (* protected_ivar(triggerAction))(self_type * self, Atom actionID); \
-	bool (* protected_ivar(releaseAction))(self_type * self, Atom actionID);
+	bool (* gamepadButtonDown)(self_type * self, int vendorID, int productID, unsigned int buttonID); \
+	bool (* gamepadButtonUp)(self_type * self, int vendorID, int productID, unsigned int buttonID); \
+	bool (* gamepadAxisMoved)(self_type * self, int vendorID, int productID, unsigned int axisID, float value, float lastValue); \
+	bool (* triggerAction)(self_type * self, Atom actionID); \
+	bool (* releaseAction)(self_type * self, Atom actionID);
 
 stemobject_struct_definition(InputController)
 
@@ -69,13 +69,12 @@ void InputController_init(InputController * self, InputMap * inputMap, ...) __at
 void InputController_vinit(InputController * self, InputMap * inputMap, va_list args);
 void InputController_dispose(InputController * self);
 
-// TODO: Remove modifiers if not using them
-bool InputController_keyDown(InputController * self, unsigned int keyCode, unsigned int modifiers);
-bool InputController_keyUp(InputController * self, unsigned int keyCode, unsigned int modifiers);
+bool InputController_keyDown(InputController * self, unsigned int keyCode);
+bool InputController_keyUp(InputController * self, unsigned int keyCode);
 bool InputController_keyModifiersChanged(InputController * self, unsigned int modifiers);
-bool InputController_gamepadButtonDown(InputController * self, struct Gamepad_device * device, unsigned int buttonID, double timestamp);
-bool InputController_gamepadButtonUp(InputController * self, struct Gamepad_device * device, unsigned int buttonID, double timestamp);
-bool InputController_gamepadAxisMoved(InputController * self, struct Gamepad_device * device, unsigned int axisID, float value, float lastValue, double timestamp);
+bool InputController_gamepadButtonDown(InputController * self, int vendorID, int productID, unsigned int buttonID);
+bool InputController_gamepadButtonUp(InputController * self, int vendorID, int productID, unsigned int buttonID);
+bool InputController_gamepadAxisMoved(InputController * self, int vendorID, int productID, unsigned int axisID, float value, float lastValue);
 bool InputController_triggerAction(InputController * self, Atom actionID);
 bool InputController_releaseAction(InputController * self, Atom actionID);
 

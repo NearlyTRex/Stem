@@ -183,7 +183,9 @@ THIRDPARTY_LIBRARY_DEPENDENCIES =
 
 SOURCES_library = \
 	source/${PROJECT_NAME}/InputController.c \
-	source/${PROJECT_NAME}/InputMap.c
+	source/${PROJECT_NAME}/InputMap.c \
+	source/${PROJECT_NAME}/InputPlayback.c \
+	source/${PROJECT_NAME}/InputRecorder.c
 
 SOURCES_unittest = \
 	test_source/unittest/framework/unittest_main.c \
@@ -193,7 +195,10 @@ SOURCES_unittest = \
 	${SOURCES_unittest_suites}
 
 SOURCES_unittest_suites = \
-	test_source/unittest/suites/InputMapTest.c
+	test_source/unittest/suites/InputControllerTest.c \
+	test_source/unittest/suites/InputMapTest.c \
+	test_source/unittest/suites/InputPlaybackTest.c \
+	test_source/unittest/suites/InputRecorderTest.c
 
 SOURCES_testharness = 
 
