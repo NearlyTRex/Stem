@@ -300,6 +300,39 @@ static void testTemporaryFilePath() {
 	unlink(path);
 }
 
+static void testEndianSwapping() {
+	uint16_t value16;
+	uint32_t value32;
+	uint64_t value64;
+	
+	value16 = swapLittleEndian16(*(uint16_t *) "\x01\x00");
+	TestCase_assert(value16 == 0x1, "Expected 0x1 but got 0x%X", value16);
+	value16 = swapLittleEndian16(*(uint16_t *) "\x02\x03");
+	TestCase_assert(value16 == 0x302, "Expected 0x302 but got 0x%X", value16);
+	value16 = swapBigEndian16(*(uint16_t *) "\x01\x00");
+	TestCase_assert(value16 == 0x100, "Expected 0x100 but got 0x%X", value16);
+	value16 = swapBigEndian16(*(uint16_t *) "\x02\x03");
+	TestCase_assert(value16 == 0x203, "Expected 0x203 but got 0x%X", value16);
+	
+	value32 = swapLittleEndian32(*(uint32_t *) "\x01\x00\x00\x00");
+	TestCase_assert(value32 == 0x1, "Expected 0x1 but got 0x%X", value32);
+	value32 = swapLittleEndian32(*(uint32_t *) "\x02\x03\x04\x05");
+	TestCase_assert(value32 == 0x5040302, "Expected 0x5040302 but got 0x%X", value32);
+	value32 = swapBigEndian32(*(uint32_t *) "\x01\x00\x00\x00");
+	TestCase_assert(value32 == 0x1000000, "Expected 0x1000000 but got 0x%X", value32);
+	value32 = swapBigEndian32(*(uint32_t *) "\x02\x03\x04\x05");
+	TestCase_assert(value32 == 0x2030405, "Expected 0x2030405 but got 0x%X", value32);
+	
+	value64 = swapLittleEndian64(*(uint64_t *) "\x01\x00\x00\x00\x00\x00\x00\x00");
+	TestCase_assert(value64 == 0x1, "Expected 0x1 but got 0x%llX", value64);
+	value64 = swapLittleEndian64(*(uint64_t *) "\x02\x03\x04\x05\x06\x07\x08\x09");
+	TestCase_assert(value64 == 0x908070605040302ull, "Expected 0x908070605040302 but got 0x%llX", value64);
+	value64 = swapBigEndian64(*(uint64_t *) "\x01\x00\x00\x00\x00\x00\x00\x00");
+	TestCase_assert(value64 == 0x100000000000000ull, "Expected 0x100000000000000 but got 0x%llX", value64);
+	value64 = swapBigEndian64(*(uint64_t *) "\x02\x03\x04\x05\x06\x07\x08\x09");
+	TestCase_assert(value64 == 0x203040506070809ull, "Expected 0x203040506070809 but got 0x%llX", value64);
+}
+
 TEST_SUITE(IOUtilitiesTest,
            testMemreadContextInit,
            testMemread,
@@ -307,4 +340,5 @@ TEST_SUITE(IOUtilitiesTest,
            testMemwrite,
            testReadFileSimple,
            testWriteFileSimple,
-           testTemporaryFilePath)
+           testTemporaryFilePath,
+           testEndianSwapping)

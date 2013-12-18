@@ -25,6 +25,7 @@
 
 #include <stdbool.h>
 #include <stdlib.h>
+#include <stdint.h>
 
 struct memreadContext {
 	const void * data;
@@ -56,5 +57,35 @@ void * readStdinSimple(size_t * outLength);
 
 // fileNameTemplate is a mkstemp template. Return value is added to AutoFreePool, so it needn't be freed directly by the caller.
 const char * temporaryFilePath(const char * fileNameTemplate, int * outFD);
+
+static inline uint16_t swapLittleEndian16(uint16_t value) {
+	unsigned char * valueBytes = (unsigned char *) &value;
+	return valueBytes[1] << 8 | valueBytes[0];
+}
+
+static inline uint32_t swapLittleEndian32(uint32_t value) {
+	unsigned char * valueBytes = (unsigned char *) &value;
+	return valueBytes[3] << 24 | valueBytes[2] << 16 | valueBytes[1] << 8 | valueBytes[0];
+}
+
+static inline uint64_t swapLittleEndian64(uint64_t value) {
+	unsigned char * valueBytes = (unsigned char *) &value;
+	return (uint64_t) valueBytes[7] << 56 | (uint64_t) valueBytes[6] << 48 | (uint64_t) valueBytes[5] << 40 | (uint64_t) valueBytes[4] << 32 | valueBytes[3] << 24 | valueBytes[2] << 16 | valueBytes[1] << 8 | valueBytes[0];
+}
+
+static inline uint16_t swapBigEndian16(uint16_t value) {
+	unsigned char * valueBytes = (unsigned char *) &value;
+	return valueBytes[0] << 8 | valueBytes[1];
+}
+
+static inline uint32_t swapBigEndian32(uint32_t value) {
+	unsigned char * valueBytes = (unsigned char *) &value;
+	return valueBytes[0] << 24 | valueBytes[1] << 16 | valueBytes[2] << 8 | valueBytes[3];
+}
+
+static inline uint64_t swapBigEndian64(uint64_t value) {
+	unsigned char * valueBytes = (unsigned char *) &value;
+	return (uint64_t) valueBytes[0] << 56 | (uint64_t) valueBytes[1] << 48 | (uint64_t) valueBytes[2] << 40 | (uint64_t) valueBytes[3] << 32 | valueBytes[4] << 24 | valueBytes[5] << 16 | valueBytes[6] << 8 | valueBytes[7];
+}
 
 #endif
