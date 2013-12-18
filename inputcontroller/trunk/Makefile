@@ -173,7 +173,7 @@ STEM_LIBRARY_DEPENDENCIES = \
 	gamepad/1.3.0 \
 	serialization/1.3.0 \
 	stemobject/3.0.2 \
-	utilities/1.7.0
+	utilities/1.7.1
 STEM_LIBRARY_DEPENDENCIES_unittest = \
 	stubshell/1.3.0
 STEM_SOURCE_DEPENDENCIES = 
@@ -185,7 +185,8 @@ SOURCES_library = \
 	source/${PROJECT_NAME}/InputController.c \
 	source/${PROJECT_NAME}/InputMap.c \
 	source/${PROJECT_NAME}/InputPlayback.c \
-	source/${PROJECT_NAME}/InputRecorder.c
+	source/${PROJECT_NAME}/InputRecorder.c \
+	source/${PROJECT_NAME}/InputSession.c
 
 SOURCES_unittest = \
 	test_source/unittest/framework/unittest_main.c \
@@ -198,7 +199,8 @@ SOURCES_unittest_suites = \
 	test_source/unittest/suites/InputControllerTest.c \
 	test_source/unittest/suites/InputMapTest.c \
 	test_source/unittest/suites/InputPlaybackTest.c \
-	test_source/unittest/suites/InputRecorderTest.c
+	test_source/unittest/suites/InputRecorderTest.c \
+	test_source/unittest/suites/InputSessionTest.c
 
 SOURCES_testharness = 
 
@@ -206,7 +208,10 @@ SOURCES_testharness =
 
 INCLUDES = \
 	source/${PROJECT_NAME}/InputController.h \
-	source/${PROJECT_NAME}/InputMap.h
+	source/${PROJECT_NAME}/InputMap.h \
+	source/${PROJECT_NAME}/InputPlayback.h \
+	source/${PROJECT_NAME}/InputRecorder.h \
+	source/${PROJECT_NAME}/InputSession.h
 
 #Target resources
 
