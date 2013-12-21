@@ -43,6 +43,9 @@ typedef struct InputPlayback InputPlayback;
 	InputSession * inputSession; \
 	EventDispatcher * eventDispatcher; \
 	unsigned int frameIndex; \
+	unsigned int lastFrameIndex; \
+	unsigned int eventIndex; \
+	bool * actionsTriggered; \
 	\
 	void (* step)(self_type * self); \
 	void (* rewind)(self_type * self);

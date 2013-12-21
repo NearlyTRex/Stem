@@ -22,7 +22,7 @@ static void verifyInit(InputPlayback * playback, InputController * controller, I
 static void testInit() {
 	InputPlayback playback, * playbackPtr;
 	InputController * controller = (InputController *) 1;
-	InputSession * session = (InputSession *) 2;
+	InputSession * session = InputSession_loadData("\x00\x00\x00\x00\x00\x00\x00\x00", 8, NULL);
 	
 	memset(&playback, 0x00, sizeof(playback));
 	InputPlayback_init(&playback, NULL, NULL);
@@ -37,28 +37,141 @@ static void testInit() {
 	playbackPtr = InputPlayback_create(controller, session);
 	verifyInit(playbackPtr, controller, session, __LINE__);
 	playbackPtr->dispose(playbackPtr);
+	InputSession_dispose(session);
+}
+
+static unsigned int triggerActionCalls, releaseActionCalls;
+static Atom lastTriggeredActionID, lastReleasedActionID;
+static bool lastCallWasTrigger;
+
+static bool testTriggerAction(InputController * self, Atom actionID) {
+	triggerActionCalls++;
+	lastTriggeredActionID = actionID;
+	lastCallWasTrigger = true;
+	return true;
+}
+
+static bool testReleaseAction(InputController * self, Atom actionID) {
+	releaseActionCalls++;
+	lastReleasedActionID = actionID;
+	lastCallWasTrigger = false;
+	return true;
 }
 
 static void testBasicPlayback() {
-	//InputSession * session;
-	//InputPlayback * playback;
-	//char testData1[] = "";
+	InputSession * session;
+	InputPlayback * playback;
+	InputController testInputController;
+	char testData1[] = "\x00\x00" "\x00\x00\x00\x00" "\x01\x00" "\x61\x00" "\x00\x00\x00\x00\x00\x00" "\x00\x00\x00\x00\x00\x00";
+	char testData2[] = "\x00\x00" "\x00\x00\x00\x00" "\x02\x00" "\x61\x00" "\x62\x00" "\x00\x00\x00\x00\x01\x00" "\x01\x00\x00\x00\x00\x00" "\x02\x00\x00\x00\x01\x00";
 	
-	//session = InputSession_loadData(testData1, sizeof(testData1), NULL);
-	//playback = InputPlayback_create(NULL, session);
-	TestCase_assert(false, "Unimplemented");
+	testInputController.triggerAction = testTriggerAction;
+	testInputController.releaseAction = testReleaseAction;
+	
+	session = InputSession_loadData(testData1, sizeof(testData1) - 1, NULL);
+	playback = InputPlayback_create(&testInputController, session);
+	triggerActionCalls = releaseActionCalls = 0;
+	
+	playback->step(playback);
+	TestCase_assert(triggerActionCalls == 1, "Expected 1 but got %u", triggerActionCalls);
+	TestCase_assert(lastTriggeredActionID == ATOM("a"), "Expected \"a\" (%p) but got \"%s\" (%p)", ATOM("a"), lastTriggeredActionID, lastTriggeredActionID);
+	TestCase_assert(releaseActionCalls == 1, "Expected 1 but got %u", releaseActionCalls);
+	TestCase_assert(lastReleasedActionID == ATOM("a"), "Expected \"a\" (%p) but got \"%s\" (%p)", ATOM("a"), lastReleasedActionID, lastReleasedActionID);
+	TestCase_assert(!lastCallWasTrigger, "Trigger and release called in the wrong sequence");
+	
+	playback->dispose(playback);
+	InputSession_dispose(session);
+	
+	session = InputSession_loadData(testData2, sizeof(testData2) - 1, NULL);
+	playback = InputPlayback_create(&testInputController, session);
+	triggerActionCalls = releaseActionCalls = 0;
+	
+	playback->step(playback);
+	TestCase_assert(triggerActionCalls == 1, "Expected 1 but got %u", triggerActionCalls);
+	TestCase_assert(lastTriggeredActionID == ATOM("b"), "Expected \"b\" (%p) but got \"%s\" (%p)", ATOM("b"), lastTriggeredActionID, lastTriggeredActionID);
+	
+	playback->step(playback);
+	TestCase_assert(triggerActionCalls == 2, "Expected 2 but got %u", triggerActionCalls);
+	TestCase_assert(lastTriggeredActionID == ATOM("a"), "Expected \"a\" (%p) but got \"%s\" (%p)", ATOM("a"), lastTriggeredActionID, lastTriggeredActionID);
+	
+	playback->step(playback);
+	TestCase_assert(triggerActionCalls == 2, "Expected 2 but got %u", triggerActionCalls);
+	TestCase_assert(releaseActionCalls == 0, "Expected 0 but got %u", releaseActionCalls);
+	
+	playback->step(playback);
+	TestCase_assert(releaseActionCalls == 1, "Expected 1 but got %u", releaseActionCalls);
+	TestCase_assert(lastReleasedActionID == ATOM("b"), "Expected \"b\" (%p) but got \"%s\" (%p)", ATOM("b"), lastReleasedActionID, lastReleasedActionID);
+	
+	playback->dispose(playback);
+	InputSession_dispose(session);
 }
 
-static void testRewind() {
-	TestCase_assert(false, "Unimplemented");
+static unsigned int playbackCompleteCalls;
+
+bool playbackComplete(void * sender, Atom eventID, void * eventData, void * context) {
+	playbackCompleteCalls++;
+	return true;
 }
 
 static void testPlaybackCompleteEvent() {
-	TestCase_assert(false, "Unimplemented");
+	InputSession * session;
+	InputPlayback * playback;
+	InputController testInputController;
+	char testData1[] = "\x00\x00" "\x00\x00\x00\x00" "\x01\x00" "\x61\x00" "\x01\x00\x00\x00\x00\x00";
+	
+	testInputController.triggerAction = testTriggerAction;
+	testInputController.releaseAction = testReleaseAction;
+	playbackCompleteCalls = 0;
+	
+	session = InputSession_loadData(testData1, sizeof(testData1) - 1, NULL);
+	playback = InputPlayback_create(&testInputController, session);
+	playback->eventDispatcher->registerForEvent(playback->eventDispatcher, ATOM(INPUT_PLAYBACK_EVENT_PLAYBACK_COMPLETE), playbackComplete, NULL);
+	
+	playback->step(playback);
+	TestCase_assert(playbackCompleteCalls == 0, "Expected 0 but got %u", playbackCompleteCalls);
+	playback->step(playback);
+	TestCase_assert(playbackCompleteCalls == 1, "Expected 1 but got %u", playbackCompleteCalls);
+	playback->step(playback);
+	TestCase_assert(playbackCompleteCalls == 1, "Expected 1 but got %u", playbackCompleteCalls);
+	
+	playback->dispose(playback);
+	InputSession_dispose(session);
+}
+
+static void testRewind() {
+	InputSession * session;
+	InputPlayback * playback;
+	InputController testInputController;
+	char testData1[] = "\x00\x00" "\x00\x00\x00\x00" "\x01\x00" "\x61\x00" "\x00\x00\x00\x00\x00\x00" "\x00\x00\x00\x00\x00\x00";
+	
+	testInputController.triggerAction = testTriggerAction;
+	testInputController.releaseAction = testReleaseAction;
+	
+	session = InputSession_loadData(testData1, sizeof(testData1) - 1, NULL);
+	playback = InputPlayback_create(&testInputController, session);
+	triggerActionCalls = releaseActionCalls = 0;
+	
+	playback->step(playback);
+	TestCase_assert(triggerActionCalls == 1, "Expected 1 but got %u", triggerActionCalls);
+	TestCase_assert(lastTriggeredActionID == ATOM("a"), "Expected \"a\" (%p) but got \"%s\" (%p)", ATOM("a"), lastTriggeredActionID, lastTriggeredActionID);
+	TestCase_assert(releaseActionCalls == 1, "Expected 1 but got %u", releaseActionCalls);
+	TestCase_assert(lastReleasedActionID == ATOM("a"), "Expected \"a\" (%p) but got \"%s\" (%p)", ATOM("a"), lastReleasedActionID, lastReleasedActionID);
+	TestCase_assert(!lastCallWasTrigger, "Trigger and release called in the wrong sequence");
+	
+	playback->rewind(playback);
+	playback->step(playback);
+	TestCase_assert(triggerActionCalls == 2, "Expected 2 but got %u", triggerActionCalls);
+	TestCase_assert(lastTriggeredActionID == ATOM("a"), "Expected \"a\" (%p) but got \"%s\" (%p)", ATOM("a"), lastTriggeredActionID, lastTriggeredActionID);
+	TestCase_assert(releaseActionCalls == 2, "Expected 2 but got %u", releaseActionCalls);
+	TestCase_assert(lastReleasedActionID == ATOM("a"), "Expected \"a\" (%p) but got \"%s\" (%p)", ATOM("a"), lastReleasedActionID, lastReleasedActionID);
+	TestCase_assert(!lastCallWasTrigger, "Trigger and release called in the wrong sequence");
+	
+	playback->dispose(playback);
+	InputSession_dispose(session);
 }
 
 TEST_SUITE(InputPlaybackTest,
            testInit,
            testBasicPlayback,
-           testRewind,
-           testPlaybackCompleteEvent)
+           testPlaybackCompleteEvent,
+           testRewind)
