@@ -1,3 +1,7 @@
+1.1.0:
+ * Added Shell_getSupportPath()
+ * Added typedef for ShellTimer
+
 1.0.0:
  * Added thread API
  * Changed project structure to standard stem library rather than naked header files

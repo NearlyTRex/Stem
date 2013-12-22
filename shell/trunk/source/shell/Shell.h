@@ -33,6 +33,8 @@ enum ShellCursor {
 	ShellCursor_wait
 };
 
+typedef unsigned int ShellTimer;
+
 /** Signals the shell to begin the main application loop. This function MAY or MAY NOT return,
     so you mustn't rely on the execution of any code following the call to Shell_mainLoop(). */
 void Shell_mainLoop();
@@ -58,6 +60,11 @@ double Shell_getCurrentTime();
     use relative paths to open files without having to call this function. */
 const char * Shell_getResourcePath();
 
+/** Returns a path to a system location appropriate for writing local data. This location may not be
+    appropriate for storing preferences; for that, use Preferences_getFilePath() from the
+    preferences library. */
+const char * Shell_getSupportPath();
+
 /** Returns the width and height of the main screen in outWidth and outHeight. If you're only
     interested in size on one axis, you can safely pass NULL for the other one. */
 void Shell_getMainScreenSize(unsigned int * outWidth, unsigned int * outHeight);
@@ -66,11 +73,11 @@ void Shell_getMainScreenSize(unsigned int * outWidth, unsigned int * outHeight);
     by operating system and runtime conditions. The return value of this function can be
     passed to Shell_cancelTimer to halt a timer before the next fire time. If repeat is false,
     the timer will automatically be canceled after the first time it fires. */
-unsigned int Shell_setTimer(double interval, bool repeat, void (* callback)(unsigned int timerID, void * context), void * context);
+ShellTimer Shell_setTimer(double interval, bool repeat, void (* callback)(ShellTimer timerID, void * context), void * context);
 
 /** Stops a timer previously set with Shell_setTimer. The timer is guaranteed never to fire
     after this function is called. */
-void Shell_cancelTimer(unsigned int timerID);
+void Shell_cancelTimer(ShellTimer timerID);
 
 /** Shows the cursor if visible is set to true. Hides the cursor if visible is set to false. Has no effect if
     the cursor already has the specified visibility. */
