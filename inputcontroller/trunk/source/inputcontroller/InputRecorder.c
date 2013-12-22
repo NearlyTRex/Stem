@@ -21,32 +21,119 @@
 */
 
 #include "inputcontroller/InputRecorder.h"
+#include "inputcontroller/InputSession.h"
+#include "utilities/IOUtilities.h"
 #include <stdlib.h>
+#include <string.h>
 
 #define SUPERCLASS StemObject
 
-InputRecorder * InputRecorder_createWithFileOutput(InputController * inputController, void * replayStartupData, size_t replayStartupDataSize, const char * filePath) {
+InputRecorder * InputRecorder_createWithFileOutput(InputController * inputController, const void * replayStartupData, uint32_t replayStartupDataSize, const char * filePath) {
 	stemobject_create_implementation(InputRecorder, initWithFileOutput, inputController, replayStartupData, replayStartupDataSize, filePath)
 }
 
-InputRecorder * InputRecorder_createWithMemwriteOutput(InputController * inputController, void * replayStartupData, size_t replayStartupDataSize) {
+InputRecorder * InputRecorder_createWithMemwriteOutput(InputController * inputController, const void * replayStartupData, uint32_t replayStartupDataSize) {
 	stemobject_create_implementation(InputRecorder, initWithMemwriteOutput, inputController, replayStartupData, replayStartupDataSize)
 }
 
-void InputRecorder_initWithFileOutput(InputRecorder * self, InputController * inputController, void * replayStartupData, size_t replayStartupDataSize, const char * filePath) {
-	call_super(init, self);
+static void writeData(InputRecorder * self, unsigned int size, const void * data) {
+	if (self->outputFile == NULL) {
+		memwrite(&self->memwriteContext, size, data);
+	} else {
+		fwrite(data, 1, size, self->outputFile);
+	}
 }
 
-void InputRecorder_initWithMemwriteOutput(InputRecorder * self, InputController * inputController, void * replayStartupData, size_t replayStartupDataSize) {
+static bool action(void * sender, Atom eventID, void * eventData, void * context) {
+	InputRecorder * self = context;
+	unsigned int actionIndex;
+	uint16_t uint16;
+	uint32_t uint32;
+	
+	for (actionIndex = 0; actionIndex < self->inputController->actionCount; actionIndex++) {
+		if (self->inputController->actions[actionIndex].actionID == eventData) {
+			break;
+		}
+	}
+	if (actionIndex >= self->inputController->actionCount) {
+		fprintf(stderr, "Warning: Unrecognized actionID \"%s\" %s in InputRecorder\n", (const char *) eventData, eventID == ATOM(INPUT_CONTROLLER_EVENT_ACTION_DOWN) ? "triggered" : "released");
+		return false;
+	}
+	
+	uint32 = swapLittleEndian32(self->frameIndex - self->lastFrameIndex);
+	writeData(self, 4, &uint32);
+	uint16 = swapLittleEndian16(actionIndex);
+	writeData(self, 2, &uint16);
+	self->lastFrameIndex = self->frameIndex;
+	return true;
+}
+
+static void sharedInit(InputRecorder * self, InputController * inputController) {
+	self->inputController = inputController;
+	self->frameIndex = 0;
+	self->lastFrameIndex = 0;
+	self->dispose = InputRecorder_dispose;
+	self->nextFrame = InputRecorder_nextFrame;
+	
+	if (self->inputController != NULL) {
+		self->inputController->eventDispatcher->registerForEvent(self->inputController->eventDispatcher, ATOM(INPUT_CONTROLLER_EVENT_ACTION_DOWN), action, self);
+		self->inputController->eventDispatcher->registerForEvent(self->inputController->eventDispatcher, ATOM(INPUT_CONTROLLER_EVENT_ACTION_UP), action, self);
+	}
+}
+
+static void writeHeader(InputRecorder * self, const void * replayStartupData, uint32_t replayStartupDataSize) {
+	uint16_t uint16;
+	uint32_t uint32;
+	
+	uint16 = swapLittleEndian16(INPUT_SESSION_FORMAT_VERSION);
+	writeData(self, 2, &uint16);
+	uint32 = swapLittleEndian32(replayStartupDataSize);
+	writeData(self, 4, &uint32);
+	writeData(self, replayStartupDataSize, replayStartupData);
+	
+	if (self->inputController == NULL) {
+		writeData(self, 2, NULL);
+		
+	} else {
+		unsigned int actionIndex;
+		
+		uint16 = swapLittleEndian16(self->inputController->actionCount);
+		writeData(self, 2, &uint16);
+		for (actionIndex = 0; actionIndex < self->inputController->actionCount; actionIndex++) {
+			writeData(self, strlen(self->inputController->actions[actionIndex].actionID) + 1, self->inputController->actions[actionIndex].actionID);
+		}
+	}
+}
+
+void InputRecorder_initWithFileOutput(InputRecorder * self, InputController * inputController, const void * replayStartupData, uint32_t replayStartupDataSize, const char * filePath) {
 	call_super(init, self);
+	sharedInit(self, inputController);
+	self->outputFile = fopen(filePath, "wb");
+	setvbuf(self->outputFile, NULL, _IONBF, 0);
+	writeHeader(self, replayStartupData, replayStartupDataSize);
+}
+
+void InputRecorder_initWithMemwriteOutput(InputRecorder * self, InputController * inputController, const void * replayStartupData, uint32_t replayStartupDataSize) {
+	call_super(init, self);
+	sharedInit(self, inputController);
+	self->outputFile = NULL;
+	self->memwriteContext = memwriteContextInit(NULL, 0, 0, true);
+	writeHeader(self, replayStartupData, replayStartupDataSize);
 }
 
 void InputRecorder_dispose(InputRecorder * self) {
 	call_super(dispose, self);
+	if (self->inputController != NULL) {
+		self->inputController->eventDispatcher->unregisterForEvent(self->inputController->eventDispatcher, ATOM(INPUT_CONTROLLER_EVENT_ACTION_DOWN), action, self);
+		self->inputController->eventDispatcher->unregisterForEvent(self->inputController->eventDispatcher, ATOM(INPUT_CONTROLLER_EVENT_ACTION_UP), action, self);
+	}
+	if (self->outputFile == NULL) {
+		free(self->memwriteContext.data);
+	} else {
+		fclose(self->outputFile);
+	}
 }
 
 void InputRecorder_nextFrame(InputRecorder * self) {
-}
-
-void InputRecorder_skipFrames(InputRecorder * self, unsigned int frameCount) {
+	self->frameIndex++;
 }

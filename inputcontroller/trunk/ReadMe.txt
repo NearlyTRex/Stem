@@ -10,16 +10,14 @@ The data format used by InputSession is designed to be robust in the case of a c
 
 Because of these special requirements, InputSession does not use Stem's serialization facilities, and instead uses a custom binary format:
 
-format inputSession { // Little endian
+format inputSession { // All integers little endian
 	uint16 formatVersion; // INPUT_SESSION_FORMAT_VERSION
 	uint32 replayStartupDataSize;
 	uint8 replayStartupData[replayStartupDataSize];
 	uint16 actionCount;
-	struct {
-		cstring actionID;
-	} actions[actionCount];
+	cstring actionIDs[actionCount];
 	struct {
 		uint32 frameDelta;
-		uint16 actionIndex; // Index into actions[]
+		uint16 actionIndex; // Index into actionIDs[]
 	} events[]; // All data past this point is assumed to be an event and parsed accordingly
 };

@@ -32,27 +32,27 @@ typedef struct InputRecorder InputRecorder;
 #include "inputcontroller/InputController.h"
 #include "utilities/IOUtilities.h"
 #include <stdio.h>
+#include <stdint.h>
 
 #define InputRecorder_structContents(self_type) \
 	StemObject_structContents(self_type) \
 	\
 	InputController * inputController; \
 	unsigned int frameIndex; \
+	unsigned int lastFrameIndex; \
 	FILE * outputFile; \
 	struct memwriteContext memwriteContext; \
 	\
-	void (* nextFrame)(self_type * self); \
-	void (* skipFrames)(self_type * self, unsigned int frameCount);
+	void (* nextFrame)(self_type * self);
 
 stemobject_struct_definition(InputRecorder)
 
-InputRecorder * InputRecorder_createWithFileOutput(InputController * inputController, void * replayStartupData, size_t replayStartupDataSize, const char * filePath);
-InputRecorder * InputRecorder_createWithMemwriteOutput(InputController * inputController, void * replayStartupData, size_t replayStartupDataSize);
-void InputRecorder_initWithFileOutput(InputRecorder * self, InputController * inputController, void * replayStartupData, size_t replayStartupDataSize, const char * filePath);
-void InputRecorder_initWithMemwriteOutput(InputRecorder * self, InputController * inputController, void * replayStartupData, size_t replayStartupDataSize);
+InputRecorder * InputRecorder_createWithFileOutput(InputController * inputController, const void * replayStartupData, uint32_t replayStartupDataSize, const char * filePath);
+InputRecorder * InputRecorder_createWithMemwriteOutput(InputController * inputController, const void * replayStartupData, uint32_t replayStartupDataSize);
+void InputRecorder_initWithFileOutput(InputRecorder * self, InputController * inputController, const void * replayStartupData, uint32_t replayStartupDataSize, const char * filePath);
+void InputRecorder_initWithMemwriteOutput(InputRecorder * self, InputController * inputController, const void * replayStartupData, uint32_t replayStartupDataSize);
 void InputRecorder_dispose(InputRecorder * self);
 void InputRecorder_nextFrame(InputRecorder * self);
-void InputRecorder_skipFrames(InputRecorder * self, unsigned int frameCount);
 
 #ifdef __cplusplus
 }
