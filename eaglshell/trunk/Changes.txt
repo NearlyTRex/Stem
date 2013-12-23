@@ -1,3 +1,6 @@
+2.5.1
+ * Updated API for shell 1.1.0 (adds Shell_getSupportPath)
+
 2.5.0
  * Updated API for shell 1.0.0 (adds threads and mouse delta mode)
  * Added EAGLShell_redirectStdoutToFile() for easier debugging

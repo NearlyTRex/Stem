@@ -105,7 +105,7 @@ LINK_ORDER = \
 PROJECT_LIBRARY_DEPENDENCIES_testharness = library
 STEM_LIBRARY_DEPENDENCIES = \
 	glgraphics/1.1.2_noglew \
-	shell/1.0.0
+	shell/1.1.0
 STEM_SOURCE_DEPENDENCIES = 
 THIRDPARTY_LIBRARY_DEPENDENCIES = 
 
@@ -561,7 +561,7 @@ SIMULATE_DEVICE_iphone4 = iPhone 4
 SIMULATE_SDKROOT_iphone = /Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator${IPHONE_SDK_VERSION_iphone}.sdk
 SIMULATE_SDKROOT_ipad = /Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator${IPHONE_SDK_VERSION_ipad}.sdk
 SIMULATE_SDKROOT_iphone4 = /Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator${IPHONE_SDK_VERSION_iphone4}.sdk
-IPHONE_SIMULATOR_PATH ?= /Developer/Platforms/iPhoneSimulator.platform/Developer/Applications/iPhone Simulator.app
+IPHONE_SIMULATOR_PATH ?= /Applications/Xcode.app/Contents/Applications/iPhone Simulator.app
 
 define install_target_iphonesimulator_template #(target, simulate_device)
 .PHONY: install_$1_iphonesimulator${TARGET_SUFFIX_$2}
