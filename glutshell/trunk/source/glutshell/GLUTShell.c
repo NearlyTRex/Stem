@@ -28,6 +28,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <limits.h>
+#include <sys/stat.h>
 
 #if defined(__APPLE__)
 #include <limits.h>
@@ -141,6 +142,26 @@ const char * Shell_getResourcePath() {
 #else
 	return "Resources";
 #endif
+}
+
+const char * Shell_getSupportPath() {
+	static char supportPath[PATH_MAX];
+	
+#if defined(__APPLE__)
+	snprintf(supportPath, PATH_MAX, "%s/Library/Application Support", getenv("HOME"));
+#elif defined(WIN32)
+	strncpy(supportPath, getenv("APPDATA"), PATH_MAX);
+#elif defined(__linux)
+	snprintf(supportPath, PATH_MAX, "%s/.stem_data", getenv("HOME"), fileName);
+#else
+#error Unsupported platform
+#endif
+	mkdir(supportPath
+#ifndef WIN32
+	, 0777
+#endif
+	);
+	return supportPath;
 }
 
 enum ShellBatteryState Shell_getBatteryState() {
