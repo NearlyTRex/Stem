@@ -146,6 +146,9 @@ void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned int mo
 	} else if (keyCode == KEYBOARD_R) {
 		printf("Shell_getResourcePath(): %s\n", Shell_getResourcePath());
 		
+	} else if (keyCode == KEYBOARD_Y) {
+		printf("Shell_getSupportPath(): %s\n", Shell_getSupportPath());
+		
 	} else if (keyCode == KEYBOARD_D) {
 		Shell_redisplay();
 		

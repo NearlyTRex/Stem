@@ -114,6 +114,16 @@ const char * Shell_getResourcePath() {
 	return resourcePath;
 }
 
+const char * Shell_getSupportPath() {
+	static char supportPath[PATH_MAX];
+	NSArray * paths;
+	
+	paths = NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, YES);
+	strncpy(supportPath, [[paths objectAtIndex: 0] UTF8String], PATH_MAX);
+	
+	return supportPath;
+}
+
 enum ShellBatteryState Shell_getBatteryState() {
 	CFTypeRef info;
 	CFArrayRef list;

@@ -73,7 +73,7 @@ LINKFLAGS_macosx = -isysroot ${SDKROOT_macosx} -mmacosx-version-min=10.5 -framew
 
 #General compile/link settings
 DEFINE_CCFLAGS = -DVERSION_MAJOR=${VERSION_MAJOR}u -DVERSION_MINOR=${VERSION_MINOR}u -DVERSION_TWEAK=${VERSION_TWEAK}u
-WARNING_CCFLAGS = -Wall -Wextra -Wno-unused-parameter -Werror
+WARNING_CCFLAGS = -Wall -Wextra -Wno-unused-parameter -Werror -Wno-int-to-void-pointer-cast
 OTHER_CCFLAGS = -std=gnu99
 CCFLAGS = ${DEFINE_CCFLAGS} ${WARNING_CCFLAGS} ${OTHER_CCFLAGS}
 
@@ -91,7 +91,7 @@ LINK_ORDER = \
 PROJECT_LIBRARY_DEPENDENCIES_testharness = library
 STEM_LIBRARY_DEPENDENCIES = \
 	glgraphics/1.1.2_noglew \
-	shell/1.0.0
+	shell/1.1.0
 STEM_SOURCE_DEPENDENCIES = 
 THIRDPARTY_LIBRARY_DEPENDENCIES = 
 
