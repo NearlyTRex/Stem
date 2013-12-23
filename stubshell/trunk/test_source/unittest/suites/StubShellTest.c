@@ -281,6 +281,30 @@ static void testGetResourcePath() {
 	TestCase_assert(lastContext == (void *) 0xA, "Expected 0xA but got %p", lastContext);
 }
 
+static void testGetSupportPath() {
+	const char * result;
+	
+	callbackCalls = 0;
+	lastContext = NULL;
+	result = Shell_getSupportPath();
+	TestCase_assert(!strcmp("", result), "Expected \"\" but got \"%s\"", result);
+	
+	StubShellCallback_getSupportPath = constCharPtrReturnTestCallback;
+	StubShell_callbackContext = (void *) 0x9;
+	constCharPtrReturnValue = "foo";
+	result = Shell_getSupportPath();
+	TestCase_assert(!strcmp("foo", result), "Expected \"foo\" but got \"%s\"", result);
+	TestCase_assert(callbackCalls == 1, "Expected 1 but got %d", callbackCalls);
+	TestCase_assert(lastContext == (void *) 0x9, "Expected 0x9 but got %p", lastContext);
+	
+	StubShell_callbackContext = (void *) 0xA;
+	constCharPtrReturnValue = "bar";
+	result = Shell_getSupportPath();
+	TestCase_assert(!strcmp("bar", result), "Expected \"bar\" but got \"%s\"", result);
+	TestCase_assert(callbackCalls == 2, "Expected 2 but got %d", callbackCalls);
+	TestCase_assert(lastContext == (void *) 0xA, "Expected 0xA but got %p", lastContext);
+}
+
 static void testGetBatteryState() {
 	enum ShellBatteryState result;
 	
@@ -648,6 +672,7 @@ TEST_SUITE(StubShellTest,
            testSetFullScreen,
            testGetCurrentTime,
            testGetResourcePath,
+           testGetSupportPath,
            testGetBatteryState,
            testGetBatteryLevel,
            testSetTimer,
