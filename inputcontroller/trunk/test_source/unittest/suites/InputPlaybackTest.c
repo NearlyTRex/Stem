@@ -1,12 +1,7 @@
 #include "unittest/framework/TestSuite.h"
+#include "unittest/framework/printfFormats.h"
 #include "inputcontroller/InputPlayback.h"
 #include "utilities/IOUtilities.h"
-
-#if defined(WIN32)
-#define SIZE_T_FORMAT "%Iu"
-#else
-#define SIZE_T_FORMAT "%zu"
-#endif
 
 static void verifyInit(InputPlayback * playback, InputController * controller, InputSession * session, unsigned int lineNumber) {
 	TestCase_assert(playback != NULL, "Expected non-NULL but got NULL (%u)", lineNumber);

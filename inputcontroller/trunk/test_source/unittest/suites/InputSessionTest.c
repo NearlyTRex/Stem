@@ -1,14 +1,9 @@
 #include "unittest/framework/TestSuite.h"
+#include "unittest/framework/printfFormats.h"
 #include "utilities/IOUtilities.h"
 #include "inputcontroller/InputSession.h"
 #include <stdbool.h>
 #include <unistd.h>
-
-#if defined(WIN32)
-#define SIZE_T_FORMAT "%Iu"
-#else
-#define SIZE_T_FORMAT "%zu"
-#endif
 
 static const char testData1[] = \
 "\x00\x00" // formatVersion
