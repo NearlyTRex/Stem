@@ -300,6 +300,12 @@ static void testTemporaryFilePath() {
 	unlink(path);
 }
 
+#ifdef WIN32
+#define UINT64_HEX_FORMAT "%I64X"
+#else
+#define UINT64_HEX_FORMAT "%llX"
+#endif
+
 static void testEndianSwapping() {
 	uint16_t value16;
 	uint32_t value32;
@@ -324,13 +330,13 @@ static void testEndianSwapping() {
 	TestCase_assert(value32 == 0x2030405, "Expected 0x2030405 but got 0x%X", value32);
 	
 	value64 = swapLittleEndian64(*(uint64_t *) "\x01\x00\x00\x00\x00\x00\x00\x00");
-	TestCase_assert(value64 == 0x1, "Expected 0x1 but got 0x%llX", value64);
+	TestCase_assert(value64 == 0x1, "Expected 0x1 but got 0x" UINT64_HEX_FORMAT, value64);
 	value64 = swapLittleEndian64(*(uint64_t *) "\x02\x03\x04\x05\x06\x07\x08\x09");
-	TestCase_assert(value64 == 0x908070605040302ull, "Expected 0x908070605040302 but got 0x%llX", value64);
+	TestCase_assert(value64 == 0x908070605040302ull, "Expected 0x908070605040302 but got 0x" UINT64_HEX_FORMAT, value64);
 	value64 = swapBigEndian64(*(uint64_t *) "\x01\x00\x00\x00\x00\x00\x00\x00");
-	TestCase_assert(value64 == 0x100000000000000ull, "Expected 0x100000000000000 but got 0x%llX", value64);
+	TestCase_assert(value64 == 0x100000000000000ull, "Expected 0x100000000000000 but got 0x" UINT64_HEX_FORMAT, value64);
 	value64 = swapBigEndian64(*(uint64_t *) "\x02\x03\x04\x05\x06\x07\x08\x09");
-	TestCase_assert(value64 == 0x203040506070809ull, "Expected 0x203040506070809 but got 0x%llX", value64);
+	TestCase_assert(value64 == 0x203040506070809ull, "Expected 0x203040506070809 but got 0x" UINT64_HEX_FORMAT, value64);
 }
 
 TEST_SUITE(IOUtilitiesTest,
