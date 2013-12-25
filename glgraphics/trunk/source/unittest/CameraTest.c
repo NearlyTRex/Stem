@@ -1,4 +1,4 @@
-#include "unittest/framework/TestSuite.h"
+#include "unittest/TestSuite.h"
 #include "glgraphics/Camera.h"
 #include <math.h>
 
@@ -27,8 +27,10 @@
 static void testInit() {
 	Camera * cameraPtr;
 	Camera cameraStruct;
+	bool success;
 	
 	cameraPtr = Camera_create();
+	TestCase_assert(cameraPtr != NULL, "Expected non-NULL but got NULL");
 	TestCase_assert(cameraPtr->orientation.x == 0.0f, "Expected 0 but got %f", cameraPtr->orientation.x);
 	TestCase_assert(cameraPtr->orientation.y == 0.0f, "Expected 0 but got %f", cameraPtr->orientation.y);
 	TestCase_assert(cameraPtr->orientation.z == 0.0f, "Expected 0 but got %f", cameraPtr->orientation.z);
@@ -40,7 +42,8 @@ static void testInit() {
 	TestCase_assert(cameraPtr->getMatrix != NULL, "Method unexpectedly NULL");
 	cameraPtr->dispose(cameraPtr);
 	
-	Camera_init(&cameraStruct);
+	success = Camera_init(&cameraStruct);
+	TestCase_assert(success, "Expected true but got false");
 	TestCase_assert(cameraStruct.orientation.x == 0.0f, "Expected 0 but got %f", cameraStruct.orientation.x);
 	TestCase_assert(cameraStruct.orientation.y == 0.0f, "Expected 0 but got %f", cameraStruct.orientation.y);
 	TestCase_assert(cameraStruct.orientation.z == 0.0f, "Expected 0 but got %f", cameraStruct.orientation.z);

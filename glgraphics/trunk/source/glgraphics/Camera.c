@@ -31,7 +31,7 @@ Camera * Camera_create() {
 	stemobject_create_implementation(Camera, init)
 }
 
-void Camera_init(Camera * self) {
+bool Camera_init(Camera * self) {
 	call_super(init, self);
 	
 	self->orientation = QUATERNION_IDENTITY;
@@ -39,6 +39,7 @@ void Camera_init(Camera * self) {
 	
 	self->dispose = Camera_dispose;
 	self->getMatrix = Camera_getMatrix;
+	return true;
 }
 
 void Camera_dispose(Camera * self) {

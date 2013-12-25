@@ -1,9 +1,7 @@
-1.2.1
- * Fixed a potential name conflict on Linux by redefining Atom before including glxew.h
-
 1.2.0
+ * Fixed a potential name conflict on Linux by redefining Atom before including glxew.h
  * Split GLSLShader off into its own glslshader library to resolve circular dependencies with glutshell and eaglshell
- * Updated for 3dmath 1.2.0
+ * Updated for 3dmath 1.4.0 and stemobject 3.1.0
  * Added 64-bit Windows and Linux support
 
 1.1.1

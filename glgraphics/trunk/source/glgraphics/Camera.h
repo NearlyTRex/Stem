@@ -41,7 +41,7 @@ typedef struct Camera Camera;
 stemobject_struct_definition(Camera)
 
 Camera * Camera_create();
-void Camera_init(Camera * self);
+bool Camera_init(Camera * self);
 
 void Camera_dispose(Camera * self);
 Matrix Camera_getMatrix(Camera * self);
