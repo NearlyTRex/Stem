@@ -1,6 +1,6 @@
 #include "utilities/HashTable.h"
-#include "unittest/framework/TestSuite.h"
-#include "unittest/framework/printfFormats.h"
+#include "unittest/TestSuite.h"
+#include "unittest/printfFormats.h"
 #include <float.h>
 
 static void testCreate() {

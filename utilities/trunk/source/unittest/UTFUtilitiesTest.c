@@ -3,7 +3,7 @@
 
 #include "utilities/UTFUtilities.h"
 
-#include "unittest/framework/TestSuite.h"
+#include "unittest/TestSuite.h"
 
 static void testConversions() {
 	uint8_t stringUTF8[] = {0x61, 0xC2, 0xA3, 0xE4, 0xB8, 0x89, 0xF0, 0x9D, 0x84, 0x90, 0x7A, 0x00};

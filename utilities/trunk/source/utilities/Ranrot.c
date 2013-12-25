@@ -35,7 +35,7 @@ Ranrot * Ranrot_create() {
 	stemobject_create_implementation(Ranrot, init)
 }
 
-void Ranrot_init(Ranrot * self) {
+bool Ranrot_init(Ranrot * self) {
 	call_super(init, self);
 	self->protected_ivar(low) = 0;
 	self->protected_ivar(high) = ~0;
@@ -46,6 +46,7 @@ void Ranrot_init(Ranrot * self) {
 	self->irand = Ranrot_irand;
 	self->ufrand = Ranrot_ufrand;
 	self->frand = Ranrot_frand;
+	return true;
 }
 
 void Ranrot_dispose(Ranrot * self) {

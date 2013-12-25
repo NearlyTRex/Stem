@@ -35,7 +35,7 @@ EventDispatcher * EventDispatcher_create(void * owner) {
 	stemobject_create_implementation(EventDispatcher, init, owner)
 }
 
-void EventDispatcher_init(EventDispatcher * self, void * owner) {
+bool EventDispatcher_init(EventDispatcher * self, void * owner) {
 	call_super(init, self);
 	
 	self->dispose = EventDispatcher_dispose;
@@ -47,6 +47,7 @@ void EventDispatcher_init(EventDispatcher * self, void * owner) {
 	self->numberOfTargets = 0;
 	self->targetListSize = 1;
 	self->targets = (struct EventTarget *) malloc(sizeof(struct EventTarget) * self->targetListSize);
+	return true;
 }
 
 void EventDispatcher_dispose(EventDispatcher * self) {

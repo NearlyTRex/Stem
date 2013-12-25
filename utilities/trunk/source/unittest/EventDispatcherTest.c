@@ -1,4 +1,4 @@
-#include "unittest/framework/TestSuite.h"
+#include "unittest/TestSuite.h"
 #include "utilities/Atom.h"
 #include "utilities/EventDispatcher.h"
 

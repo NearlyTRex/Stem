@@ -43,7 +43,7 @@ typedef struct Ranrot Ranrot;
 stemobject_struct_definition(Ranrot)
 
 Ranrot * Ranrot_create();
-void Ranrot_init(Ranrot * self);
+bool Ranrot_init(Ranrot * self);
 void Ranrot_dispose(Ranrot * self);
 void Ranrot_sdrand(Ranrot * self, int seed);
 void Ranrot_stirrand(Ranrot * self, int iterations);

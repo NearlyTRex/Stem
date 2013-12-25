@@ -1,5 +1,6 @@
 1.7.1
  * Added endian swap functions to IOUtilities
+ * Updated for stemobject 3.1.0
 
 1.7.0
  * Added HashTable (not yet optimized; functional, but likely to be slow and/or memory-inefficient)

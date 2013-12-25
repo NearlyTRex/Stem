@@ -1,4 +1,4 @@
-#include "unittest/framework/TestSuite.h"
+#include "unittest/TestSuite.h"
 #include "utilities/Ranrot.h"
 #include <math.h>
 
@@ -68,12 +68,25 @@ static void testStaticRandom() {
 
 static void testInstancedRandom() {
 	Ranrot ranrot, * ranrotPtr;
+	bool success;
 	unsigned int uirandResult;
 	int irandResult;
 	float ufrandResult, frandResult;
 	
-	memset(&ranrot, 0, sizeof(ranrot));
-	Ranrot_init(&ranrot);
+	memset(&ranrot, 0x00, sizeof(ranrot));
+	success = Ranrot_init(&ranrot);
+	TestCase_assert(success, "Expected true but got false");
+	TestCase_assert(ranrot.dispose == Ranrot_dispose, "Expected %p but got %p", Ranrot_dispose, ranrot.dispose);
+	TestCase_assert(ranrot.sdrand == Ranrot_sdrand, "Expected %p but got %p", Ranrot_sdrand, ranrot.sdrand);
+	TestCase_assert(ranrot.stirrand == Ranrot_stirrand, "Expected %p but got %p", Ranrot_stirrand, ranrot.stirrand);
+	TestCase_assert(ranrot.uirand == Ranrot_uirand, "Expected %p but got %p", Ranrot_uirand, ranrot.uirand);
+	TestCase_assert(ranrot.irand == Ranrot_irand, "Expected %p but got %p", Ranrot_irand, ranrot.irand);
+	TestCase_assert(ranrot.ufrand == Ranrot_ufrand, "Expected %p but got %p", Ranrot_ufrand, ranrot.ufrand);
+	TestCase_assert(ranrot.frand == Ranrot_frand, "Expected %p but got %p", Ranrot_frand, ranrot.frand);
+	
+	memset(&ranrot, 0xFF, sizeof(ranrot));
+	success = Ranrot_init(&ranrot);
+	TestCase_assert(success, "Expected true but got false");
 	TestCase_assert(ranrot.dispose == Ranrot_dispose, "Expected %p but got %p", Ranrot_dispose, ranrot.dispose);
 	TestCase_assert(ranrot.sdrand == Ranrot_sdrand, "Expected %p but got %p", Ranrot_sdrand, ranrot.sdrand);
 	TestCase_assert(ranrot.stirrand == Ranrot_stirrand, "Expected %p but got %p", Ranrot_stirrand, ranrot.stirrand);

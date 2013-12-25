@@ -62,7 +62,7 @@ EventDispatcher * EventDispatcher_create(void * owner);
 
 /* Initialize an already allocated EventDispatcher. owner will be passed to event callbacks as the
    sender parameter. */
-void EventDispatcher_init(EventDispatcher * self, void * owner);
+bool EventDispatcher_init(EventDispatcher * self, void * owner);
 
 /* Free all memory allocated by EventDispatcher (including self if allocated with
    EventDispatcher_create()), and remove all registered listeners. */

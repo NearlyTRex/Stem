@@ -48,7 +48,7 @@ stemobject_struct_definition(FixedIntervalRunLoop)
 
 // timeFunction is a pointer to a function that will return the current time in seconds when called
 FixedIntervalRunLoop * FixedIntervalRunLoop_create(double (* timeFunction)(), double stepInterval, FixedIntervalRunLoopCallback stepCallback, void * stepContext);
-void FixedIntervalRunLoop_init(FixedIntervalRunLoop * self, double (* timeFunction)(), double stepInterval, FixedIntervalRunLoopCallback stepCallback, void * stepContext);
+bool FixedIntervalRunLoop_init(FixedIntervalRunLoop * self, double (* timeFunction)(), double stepInterval, FixedIntervalRunLoopCallback stepCallback, void * stepContext);
 
 void FixedIntervalRunLoop_dispose(FixedIntervalRunLoop * self);
 void FixedIntervalRunLoop_run(FixedIntervalRunLoop * self);
