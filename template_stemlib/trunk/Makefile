@@ -38,7 +38,6 @@ LIBRARY_TARGETS = library
 EXECUTABLE_TARGETS = unittest
 APPLICATION_TARGETS = testharness
 TARGETS = ${LIBRARY_TARGETS} ${EXECUTABLE_TARGETS} ${APPLICATION_TARGETS}
-CONFIGURATIONS = debug profile release
 PLATFORMS = ${filter ${TARGET_PLATFORMS_${HOST_PLATFORM}},macosx iphonesimulator iphoneos linux32 linux64 win32 win64}
 ANALYZERS = splint clang
 
@@ -56,9 +55,6 @@ CONFIGURATIONS_testharness = debug profile release
 PLATFORMS_library = ${filter ${PLATFORMS},macosx iphonesimulator iphoneos linux32 linux64 win32 win64}
 PLATFORMS_unittest = ${filter ${PLATFORMS},macosx iphonesimulator linux32 linux64 win32 win64}
 PLATFORMS_testharness = ${filter ${PLATFORMS},macosx iphonesimulator iphoneos linux32 linux64 win32 win64}
-
-#Per-target compile/link settings
-CCFLAGS_unittest = -I test_source -include build/intermediate/TestList.h
 
 #Per-target analyzer settings
 CLANGFLAGS_unittest = ${CCFLAGS_unittest}
@@ -157,13 +153,15 @@ LIBRARY_LINKFLAGS =
 OTHER_LINKFLAGS = 
 LINKFLAGS = ${FRAMEWORK_LINKFLAGS} ${LIBRARY_LINKFLAGS} ${OTHER_LINKFLAGS}
 
-LINK_ORDER = library
+LINK_ORDER = \
+	library \
+	unittest
 
 #Dependencies (can optionally be per-target or per-target-per-platform)
 
 PROJECT_LIBRARY_DEPENDENCIES_unittest = library
 PROJECT_LIBRARY_DEPENDENCIES_testharness = library
-STEM_LIBRARY_DEPENDENCIES =
+STEM_LIBRARY_DEPENDENCIES_unittest = unittest/1.0.0
 STEM_SOURCE_DEPENDENCIES = 
 THIRDPARTY_LIBRARY_DEPENDENCIES = 
 
@@ -173,15 +171,14 @@ SOURCES_library = \
 	source/${PROJECT_NAME}/HelloWorld.c
 
 SOURCES_unittest = \
-	test_source/unittest/framework/unittest_main.c \
-	test_source/unittest/framework/TestList.c \
+	build/intermediate/TestList.c \
 	${SOURCES_unittest_suites}
 
 SOURCES_unittest_suites = \
-	test_source/unittest/suites/HelloWorldTest.c
+	source/unittest/HelloWorldTest.c
 
 SOURCES_testharness = \
-	test_source/testharness/TestHarness_main.c
+	source/testharness/TestHarness_main.c
 
 #Include files to be distributed with library
 
@@ -207,14 +204,13 @@ ANALYZER_EXCLUDE_SOURCES_clang =
 ANALYZER_EXCLUDE_SOURCES_splint = ${SOURCES_unittest}
 
 #Additional target build prerequisites
+PREREQS_unittest = 
 
-PREREQS_unittest = build/intermediate/TestList.h
+#TestList.c is automatically generated from ${SOURCES_unittest_suites}. It is used by the unit test framework to determine which tests to run.
+build/intermediate/TestList.c: build/intermediate/TestSuites.txt | build/intermediate
+	echo 'const char * UnitTest_suiteNameList[] = {${foreach file,${SOURCES_unittest_suites},"${basename ${notdir ${file}}}",} (void *) 0};' > $@
 
-#TestList.h is automatically generated from ${SOURCES_unittest_suites}. It is used by the unit test framework to determine which tests to run.
-build/intermediate/TestList.h: build/intermediate/TestSuites.txt | build/intermediate
-	echo '#define SUITE_FILE_LIST ${foreach file,${SOURCES_unittest_suites},"${basename ${notdir ${file}}}",} NULL' > $@
-
-#TestSuites.txt tracks the state of ${SOURCES_unittest_suites} so that TestList.h can be updated if and only if ${SOURCES_unittest_suites} has changed. .PHONY is abused slightly to cause the target to be conditionally remade.
+#TestSuites.txt tracks the state of ${SOURCES_unittest_suites} so that TestList.c can be updated if and only if ${SOURCES_unittest_suites} has changed. .PHONY is abused slightly to cause the target to be conditionally remade.
 ifneq (${shell echo "${SOURCES_unittest_suites}" | cmp - build/intermediate/TestSuites.txt 2>&1},)
 .PHONY: build/intermediate/TestSuites.txt
 endif
@@ -487,14 +483,14 @@ ${foreach target,${EXECUTABLE_TARGETS}, \
 	} \
 }
 
-PLIST_FILE_testharness_macosx = test_resources/Info_testharness_macosx.plist
+PLIST_FILE_testharness_macosx = resources/Info_testharness_macosx.plist
 
-PLIST_FILE_testharness_iphonesimulator = test_resources/Info_testharness_iphone.plist
+PLIST_FILE_testharness_iphonesimulator = resources/Info_testharness_iphone.plist
 PLIST_PLATFORM_CASED_iphonesimulator = iPhoneSimulator
 PLIST_PLATFORM_LOWER_iphonesimulator = iphonesimulator
 PLIST_SDK_NAME_iphonesimulator = iphonesimulator${IPHONE_BUILD_SDK_VERSION}
 
-PLIST_FILE_testharness_iphoneos = test_resources/Info_testharness_iphone.plist
+PLIST_FILE_testharness_iphoneos = resources/Info_testharness_iphone.plist
 PLIST_PLATFORM_CASED_iphoneos = iPhoneOS
 PLIST_PLATFORM_LOWER_iphoneos = iphoneos
 PLIST_SDK_NAME_iphoneos = iphoneos${IPHONE_BUILD_SDK_VERSION}
@@ -762,7 +758,7 @@ RESOURCE_RULES_PLIST = /Developer/Platforms/MacOSX.platform/ResourceRules.plist
 define codesign_target_iphoneos_template #(target)
 .PHONY: codesign_$1_iphoneos
 codesign_$1_iphoneos: $1
-	sed -e "s/\$$$${PRODUCT_NAME}/${TARGET_NAME_$1}/g" test_resources/Entitlements.plist > build/intermediate/Entitlements.plist
+	sed -e "s/\$$$${PRODUCT_NAME}/${TARGET_NAME_$1}/g" resources/Entitlements.plist > build/intermediate/Entitlements.plist
 	${call add_blob_header,build/intermediate/Entitlements.plist,build/intermediate/Entitlements.xcent}
 	export CODESIGN_ALLOCATE=/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/codesign_allocate
 	${foreach configuration,${CONFIGURATIONS_$1},\

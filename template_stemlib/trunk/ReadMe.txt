@@ -3,7 +3,7 @@
 This project serves as a starting point for all Stem library projects. It is meant to be copied and modified to suit the specific project being created. The centerpiece of this template is a robust, sophisticated makefile suitable for a wide range of build tasks and environments. Currently supported target platforms are Mac OS X, Windows, Linux, iPhone Simulator, and iPhone OS. Cross compilation is not supported except in the case of compiling for iPhone platforms from Mac OS X.
 
 
-**Warning: File contents below are out of date**
+**Warning: File contents below are somewhat incomplete and out of date**
 
 
 = Makefile Usage =
@@ -15,6 +15,8 @@ The makefile's default task will build all configurations of all targets for all
 	* analyze: Perform static analysis of source code in the project. You must have splint and clang installed to use this task; see the "Platform Details" section below for installation instructions on each platform. Analyzer output will be stored in build/analyzer-results, as well as printed for each file for which there are results.
 
 		* You can also run each analyzer separately by invoking the analyze_splint and analyze_clang tasks. splint tends to produce significantly more output than clang, so it may be useful to only work with clang output until its analyzer warnings are resolved before moving on to splint.
+
+	* install: Copy built libraries, executables, and public headers to STEM_SHARED_DIR in a format suitable for use by other Stem libraries.
 
 	* install_<application_target>_iphonesimulator: Build <application_target> and deploy it to the iPhone Simulator. If the iPhone Simulator is running when this task is invoked, it will be killed. The simulator is launched when this task completes. Due to limitations of the iPhone SDK, this task is unable to launch the deployed application itself inside the simulator; you must start it manually from the simulator's Springboard.
 
@@ -40,11 +42,11 @@ Building with the stem build system on Mac OS X:
 
 Building with the stem build system on Windows:
 
-	* Has been tested under Windows XP with MinGW and MSYS 1.0.11
+	* Has been tested under Windows XP and Windows 7 with MinGW and MSYS 1.0.11
 
-	* MinGW (http://mingw.org/), TDM-GCC (http://www.tdragon.net/recentgcc/), and MSYS (http://mingw.org/wiki/MSYS) must be installed. Be sure to add C:\msys\bin and C:\MinGW\bin to your Path environment variable. If you install MinGW at a different location, you'll need to update the CC_windows_i686, AR_windows, and RANLIB_windows makefile variables.
+	* MinGW (http://mingw.org/), MinGW-w64 (http://mingw-w64.sourceforge.net/), and MSYS (http://mingw.org/wiki/MSYS) must be installed. Be sure to add C:\msys\bin and C:\MinGW\bin to your Path environment variable. If you install MinGW at a different location, you'll need to update the MINGW_W32_PATH and MINGW_W64_PATH makefile variables accordingly.
 
-	* Call mingw32-make to use the makefile. MSYS make (as of version 1.0.11, at least) will not work.
+	* Call mingw32-make to use the makefile. MSYS make (as of version 1.0.11) will not work.
 
 	* In order to use the "analyze" make target, you must have splint and clang installed.
 

@@ -1,6 +1,6 @@
 #include <string.h>
 #include "template_stemlib/HelloWorld.h"
-#include "unittest/framework/TestSuite.h"
+#include "unittest/TestSuite.h"
 
 static void testHelloWorld() {
 	const char * hello;
