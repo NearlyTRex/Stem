@@ -55,7 +55,7 @@ int main(int argc, const char ** argv) {
 	
 	pool = [[NSAutoreleasePool alloc] init];
 	
-	[[NSOpenGLShellApplication sharedApplication] setDelegate: [NSOpenGLShellApplication sharedApplication]];
+	[[NSOpenGLShellApplication sharedApplication] setDelegate: (NSOpenGLShellApplication *) [NSOpenGLShellApplication sharedApplication]];
 	
 	NSOpenGLTarget_configure(g_argc, g_argv, &g_configuration);
 	

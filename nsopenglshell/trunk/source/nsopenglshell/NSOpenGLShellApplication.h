@@ -30,7 +30,7 @@ extern bool g_mouseDeltaMode;
 
 @class NSOpenGLShellView;
 
-@interface NSOpenGLShellApplication : NSApplication {
+@interface NSOpenGLShellApplication : NSApplication <NSApplicationDelegate, NSWindowDelegate> {
 	NSWindow * window;
 	NSOpenGLShellView * view;
 }
