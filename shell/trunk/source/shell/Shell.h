@@ -60,10 +60,13 @@ double Shell_getCurrentTime();
     use relative paths to open files without having to call this function. */
 const char * Shell_getResourcePath();
 
-/** Returns a path to a system location appropriate for writing local data. This location may not be
-    appropriate for storing preferences; for that, use Preferences_getFilePath() from the
-    preferences library. */
-const char * Shell_getSupportPath();
+/** Returns a path to a system location appropriate for writing local data. The directory is
+    created if it doesn't already exist. This location might not be appropriate for storing
+    preferences; for that, use Preferences_getFilePath() from the preferences library. The
+    subdirectory argument may be NULL to get the root support directory, but it's strongly
+    recommended to pass a non-NULL string if you're writing noninvisible files, because the
+    returned path may be a visible location like the user's home directory. */
+const char * Shell_getSupportPath(const char * subdirectory);
 
 /** Returns the width and height of the main screen in outWidth and outHeight. If you're only
     interested in size on one axis, you can safely pass NULL for the other one. */
