@@ -1,4 +1,4 @@
-#include "unittest/framework/TestSuite.h"
+#include "unittest/TestSuite.h"
 #include "3dmath/Vector.h"
 #include <math.h>
 #include <string.h>

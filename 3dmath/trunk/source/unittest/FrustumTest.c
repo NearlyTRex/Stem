@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include "3dmath/Frustum.h"
 #include "3dmath/Matrix.h"
-#include "unittest/framework/TestSuite.h"
+#include "unittest/TestSuite.h"
 
 void assertVector4Approximate(Vector4 lhs, Vector4 rhs, float epsilon) {
 	TestCase_assert(fabs(lhs.x - rhs.x) < epsilon, "%f not within %f of expected %f", lhs.x, epsilon, rhs.x);

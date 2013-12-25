@@ -3,7 +3,7 @@
 #include "3dmath/Matrix.h"
 #include "3dmath/Quaternion.h"
 #include "3dmath/Vector.h"
-#include "unittest/framework/TestSuite.h"
+#include "unittest/TestSuite.h"
 
 #define TEST_EPSILON 0.00001f
 
