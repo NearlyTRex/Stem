@@ -61,7 +61,7 @@ static void sharedInit(BitmapImage * self, enum BitmapPixelFormat pixelFormat, u
 	self->dispose = BitmapImage_dispose;
 }
 
-void BitmapImage_init(BitmapImage * self,
+bool BitmapImage_init(BitmapImage * self,
                       enum BitmapPixelFormat pixelFormat,
                       unsigned int width,
                       unsigned int height,
@@ -70,9 +70,10 @@ void BitmapImage_init(BitmapImage * self,
 	
 	self->pixels = malloc(width * height * BitmapImage_pixelFormatBytes(pixelFormat));
 	self->private_ivar(freePixelsOnDispose) = false;
+	return true;
 }
 
-void BitmapImage_initWithPixels(BitmapImage * self,
+bool BitmapImage_initWithPixels(BitmapImage * self,
                                 enum BitmapPixelFormat pixelFormat,
                                 unsigned int width,
                                 unsigned int height,
@@ -85,9 +86,10 @@ void BitmapImage_initWithPixels(BitmapImage * self,
 	self->pixels = malloc(bytesPerRow * height * bytesPerPixel);
 	memcpy(self->pixels, pixels, bytesPerRow * height);
 	self->private_ivar(freePixelsOnDispose) = true;
+	return true;
 }
 
-void BitmapImage_initWithPixelsNoCopy(BitmapImage * self,
+bool BitmapImage_initWithPixelsNoCopy(BitmapImage * self,
                                       enum BitmapPixelFormat pixelFormat,
                                       unsigned int width,
                                       unsigned int height,
@@ -98,6 +100,7 @@ void BitmapImage_initWithPixelsNoCopy(BitmapImage * self,
 	
 	self->pixels = pixels;
 	self->private_ivar(freePixelsOnDispose) = takeOwnership;
+	return true;
 }
 
 void BitmapImage_dispose(BitmapImage * self) {

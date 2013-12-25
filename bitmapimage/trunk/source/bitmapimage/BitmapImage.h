@@ -71,18 +71,18 @@ BitmapImage * BitmapImage_createWithPixelsNoCopy(enum BitmapPixelFormat pixelFor
                                                  unsigned char * pixels,
                                                  bool takeOwnership);
 
-void BitmapImage_init(BitmapImage * self,
+bool BitmapImage_init(BitmapImage * self,
                       enum BitmapPixelFormat pixelFormat,
                       unsigned int width,
                       unsigned int height,
                       unsigned int bytesPerRow);
-void BitmapImage_initWithPixels(BitmapImage * self,
+bool BitmapImage_initWithPixels(BitmapImage * self,
                                 enum BitmapPixelFormat pixelFormat,
                                 unsigned int width,
                                 unsigned int height,
                                 unsigned int bytesPerRow,
                                 const unsigned char * pixels);
-void BitmapImage_initWithPixelsNoCopy(BitmapImage * self,
+bool BitmapImage_initWithPixelsNoCopy(BitmapImage * self,
                                       enum BitmapPixelFormat pixelFormat,
                                       unsigned int width,
                                       unsigned int height,
