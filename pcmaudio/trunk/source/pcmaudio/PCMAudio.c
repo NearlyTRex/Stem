@@ -35,7 +35,7 @@ PCMAudio * PCMAudio_create(unsigned int bytesPerSample,
 	stemobject_create_implementation(PCMAudio, init, bytesPerSample, channelCount, sampleRate, sampleCount, samples, copySamples)
 }
 
-void PCMAudio_init(PCMAudio * self,
+bool PCMAudio_init(PCMAudio * self,
                    unsigned int bytesPerSample,
                    unsigned int channelCount,
                    unsigned int sampleRate,
@@ -58,6 +58,7 @@ void PCMAudio_init(PCMAudio * self,
 	}
 	
 	self->dispose = PCMAudio_dispose;
+	return true;
 }
 
 void PCMAudio_dispose(PCMAudio * self) {

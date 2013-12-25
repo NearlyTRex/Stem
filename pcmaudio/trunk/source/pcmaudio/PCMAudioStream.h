@@ -44,7 +44,7 @@ typedef struct PCMAudioStream PCMAudioStream;
 
 stemobject_struct_definition(PCMAudioStream)
 
-void PCMAudioStream_init(PCMAudioStream * self);
+bool PCMAudioStream_init(PCMAudioStream * self);
 void PCMAudioStream_dispose(PCMAudioStream * self);
 
 #endif

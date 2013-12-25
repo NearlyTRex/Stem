@@ -1,4 +1,4 @@
-#include "unittest/framework/TestSuite.h"
+#include "unittest/TestSuite.h"
 #include "pcmaudio/PCMAudio.h"
 #include "pcmaudio/PCMAudioStream.h"
 #include <string.h>

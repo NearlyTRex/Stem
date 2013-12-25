@@ -24,7 +24,7 @@
 
 #define SUPERCLASS StemObject
 
-void PCMAudioStream_init(PCMAudioStream * self) {
+bool PCMAudioStream_init(PCMAudioStream * self) {
 	call_super(init, self);
 	
 	self->bytesPerSample = 0;
@@ -35,6 +35,7 @@ void PCMAudioStream_init(PCMAudioStream * self) {
 	self->dispose = PCMAudioStream_dispose;
 	self->read = NULL;
 	self->seek = NULL;
+	return true;
 }
 
 void PCMAudioStream_dispose(PCMAudioStream * self) {

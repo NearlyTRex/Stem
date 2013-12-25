@@ -48,7 +48,7 @@ PCMAudio * PCMAudio_create(unsigned int bytesPerSample,
                            size_t sampleCount,
                            void * samples,
                            bool copySamples);
-void PCMAudio_init(PCMAudio * self,
+bool PCMAudio_init(PCMAudio * self,
                    unsigned int bytesPerSample,
                    unsigned int channelCount,
                    unsigned int sampleRate,
