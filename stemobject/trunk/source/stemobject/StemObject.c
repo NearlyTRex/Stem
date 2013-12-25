@@ -27,9 +27,10 @@ StemObject * StemObject_create() {
 	stemobject_create_implementation(StemObject, init)
 }
 
-void StemObject_init(StemObject * self) {
+bool StemObject_init(StemObject * self) {
 	self->protected_ivar(allocated) = false;
 	self->dispose = StemObject_dispose;
+	return true;
 }
 
 void StemObject_dispose(StemObject * self) {

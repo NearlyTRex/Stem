@@ -1,3 +1,7 @@
+3.1.0 (2013-12-25)
+ * init methods now return a success boolean
+ * stemobject_create_implementation returns NULL if init was unsuccessful
+
 3.0.2
  * Added 64-bit Windows and Linux support
 

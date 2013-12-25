@@ -38,7 +38,9 @@
 	class_name * self; \
 	\
 	self = malloc(sizeof(class_name)); \
-	class_name##_##init_suffix(self, ##init_args); \
+	if (!class_name##_##init_suffix(self, ##init_args)) { \
+		return NULL; \
+	} \
 	self->protected_ivar(allocated) = true; \
 	return self;
 
@@ -65,7 +67,7 @@ typedef struct StemObject StemObject;
 stemobject_struct_definition(StemObject)
 
 StemObject * StemObject_create();
-void StemObject_init(StemObject * self);
+bool StemObject_init(StemObject * self);
 
 void StemObject_dispose(StemObject * self);
 
