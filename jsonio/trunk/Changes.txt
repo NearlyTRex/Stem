@@ -1,23 +1,26 @@
-1.2.4
+1.2.4 (2013-12-25)
  * Added 64-bit Windows and Linux support
 
-1.2.3
+1.2.3 (2011-10-14)
  * Fixed a potential crash in JSONParser
 
-1.2.2
+1.2.2 (2011-01-13)
  * JSONEmitter_writeFile now returns an error code and message if writeFileSimple fails
  * JSONParser will no longer fail parsing when a string contains characters above 0x7F
  * Synchronized with template_stemlib Stable_2011-01-13
 
-1.2.1
+1.2.1 (2010-12-06)
  * Added documentation for JSONEmitterFormat constants
  * Updated dependencies: stemobject 1.1.0 -> 2.0.0; stubshell 1.1.0 -> 1.1.1; utilities 1.3.0 -> 1.4.0
  * Synchronized with template_stemlib Stable_2010-11-14
 
-1.2.0
+1.2.0 (2010-06-10)
  * Added JSONNode_copy and JSONNode_copyContents
  * Refreshed makefile from template_stemlib Stable_2010-06-10
 
-1.1.0
+1.1.0 (2010-06-04)
  * Updated dependencies: stemobject 1.0.0 -> 1.1.0, stubshell 1.0.0 -> 1.1.0, utilities 1.2.0 -> 1.3.0
  * Refreshed makefile from template_stemlib Stable_2010-06-02
+
+1.0.0 (2010-05-31)
+ * Initial version
