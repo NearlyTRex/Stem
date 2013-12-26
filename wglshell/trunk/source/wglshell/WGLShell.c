@@ -139,6 +139,13 @@ void Shell_getMainScreenSize(unsigned int * outWidth, unsigned int * outHeight) 
 	}
 }
 
+unsigned int Shell_setTimer(double interval, bool repeat, void (* callback)(unsigned int timerID, void * context), void * context) {
+	return 0;
+}
+
+void Shell_cancelTimer(unsigned int timerID) {
+}
+
 void Shell_setCursorVisible(bool visible) {
 	if (visible) {
 		if (cursorHiddenByHide) {
