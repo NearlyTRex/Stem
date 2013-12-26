@@ -1,14 +1,9 @@
 #include "glbitmapfont/GLBitmapFont.h"
-#include "unittest/framework/TestSuite.h"
-#include "unittest/framework/TestDeserializationContext.h"
-#include "unittest/framework/TestSerializationContext.h"
+#include "unittest/TestSuite.h"
+#include "unittest/printfFormats.h"
+#include "unittest/TestDeserializationContext.h"
+#include "unittest/TestSerializationContext.h"
 #include <math.h>
-
-#if defined(WIN32)
-#define SIZE_T_FORMAT "%Iu"
-#else
-#define SIZE_T_FORMAT "%zu"
-#endif
 
 static void testInit() {
 	GLBitmapFont font, * fontPtr;

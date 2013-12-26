@@ -45,7 +45,7 @@ static void sharedInit(GLBitmapFont * self) {
 	self->setTexture = GLBitmapFont_setTexture;
 }
 
-void GLBitmapFont_init(GLBitmapFont * self, struct GLBitmapFont_charEntry characters[GLBITMAPFONT_NUM_CHARS]) {
+bool GLBitmapFont_init(GLBitmapFont * self, struct GLBitmapFont_charEntry characters[GLBITMAPFONT_NUM_CHARS]) {
 	unsigned int charIndex;
 	
 	sharedInit(self);
@@ -56,6 +56,7 @@ void GLBitmapFont_init(GLBitmapFont * self, struct GLBitmapFont_charEntry charac
 			memcpy(self->characters[charIndex].kernChars, characters[charIndex].kernChars, sizeof(struct GLBitmapFont_kernEntry) * characters[charIndex].kernCharCount);
 		}
 	}
+	return true;
 }
 
 void GLBitmapFont_dispose(GLBitmapFont * self) {

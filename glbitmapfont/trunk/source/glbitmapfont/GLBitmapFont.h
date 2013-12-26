@@ -20,8 +20,11 @@
   Alex Diener adiener@sacredsoftware.net
 */
 
-#ifndef __GL_BITMAP_FONT_H__
-#define __GL_BITMAP_FONT_H__
+#ifndef __GLBitmapFont_H__
+#define __GLBitmapFont_H__
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include "glfont/GLFont.h"
 #include "gltexture/GLTexture.h"
@@ -74,7 +77,7 @@ struct GLBitmapFont_charEntry {
 stemobject_struct_definition(GLBitmapFont)
 
 GLBitmapFont * GLBitmapFont_create(struct GLBitmapFont_charEntry characters[GLBITMAPFONT_NUM_CHARS]);
-void GLBitmapFont_init(GLBitmapFont * self, struct GLBitmapFont_charEntry characters[GLBITMAPFONT_NUM_CHARS]);
+bool GLBitmapFont_init(GLBitmapFont * self, struct GLBitmapFont_charEntry characters[GLBITMAPFONT_NUM_CHARS]);
 void GLBitmapFont_dispose(GLBitmapFont * self);
 
 GLBitmapFont * GLBitmapFont_deserialize(compat_type(DeserializationContext *) deserializationContext);
@@ -89,4 +92,7 @@ size_t GLBitmapFont_indexAtWidth(GLBitmapFont * self, const char * string, size_
 // Currently cannot correctly draw strings longer than 16383 characters
 void GLBitmapFont_drawString(GLBitmapFont * self, const char * string, size_t length, float emHeight, float offsetX, float offsetY, float offsetZ);
 
+#ifdef __cplusplus
+}
+#endif
 #endif

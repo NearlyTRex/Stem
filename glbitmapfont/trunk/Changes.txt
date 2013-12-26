@@ -1,5 +1,6 @@
 1.0.3
  * Added 64-bit Windows and Linux support
+ * Updated for stemobject 3.1.0
 
 1.0.2
  * Updated for stemobject 3.0.0 and serialization 1.2.2
