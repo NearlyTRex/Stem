@@ -1,4 +1,5 @@
-#include "unittest/framework/TestSuite.h"
+#include "unittest/TestSuite.h"
+#include "unittest/printfFormats.h"
 #include "jsonio/JSONParser.h"
 #include "utilities/IOUtilities.h"
 #include <limits.h>
@@ -19,11 +20,6 @@
 #define loadConstantStringFromTemporaryFile(outNode, string, outError) loadStringFromTemporaryFile(outNode, string, strlen(string), outError);
 
 #define stringAndLength(str) str, strlen(str)
-#if defined(WIN32)
-#define SIZE_T_FORMAT "%Iu"
-#else
-#define SIZE_T_FORMAT "%zu"
-#endif
 
 static void testTopLevelNode() {
 	struct JSONNode * node;

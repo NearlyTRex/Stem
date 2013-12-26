@@ -1,14 +1,10 @@
 #include "jsonio/JSONIO.h"
-#include "unittest/framework/TestSuite.h"
+#include "unittest/TestSuite.h"
+#include "unittest/printfFormats.h"
 #include "jsonio/JSONParser.h"
 #include "jsonio/JSONEmitter.h"
 
 #define stringAndLength(str) str, strlen(str)
-#if defined(WIN32)
-#define SIZE_T_FORMAT "%Iu"
-#else
-#define SIZE_T_FORMAT "%zu"
-#endif
 
 static void testEscapeJSONString() {
 	char * string;

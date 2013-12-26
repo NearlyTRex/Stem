@@ -1,5 +1,6 @@
 #include "jsonio/JSONEmitter.h"
-#include "unittest/framework/TestSuite.h"
+#include "unittest/TestSuite.h"
+#include "unittest/printfFormats.h"
 #include "utilities/IOUtilities.h"
 #include <unistd.h>
 
@@ -16,11 +17,6 @@
 	close(fd); \
 	unlink(tempFilePath); \
 }
-#if defined(WIN32)
-#define SIZE_T_FORMAT "%Iu"
-#else
-#define SIZE_T_FORMAT "%zu"
-#endif
 
 static void testTopLevelNode() {
 	char * string;
