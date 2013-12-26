@@ -1,0 +1,35 @@
+1.1.0 (2013-12-25)
+ * Added Shell_getSupportPath()
+ * Added typedef for ShellTimer
+
+1.0.0 (2013-07-13)
+ * Added thread API
+ * Changed project structure to standard stem library rather than naked header files
+
+Stable_2012-06-09
+ * Added Shell_setMouseDeltaMode()
+ * Made Shell_setCursorVisible(), Shell_hideCursorUntilMouseMoves(), and Shell_setCursor() part of the core shell API (previously were implemented by individual shells as extensions)
+
+Stable_2012-02-04
+ * Added Shell_setTimer and Shell_cancelTimer
+ * Target_draw now returns a bool, and can opt not to swap buffers by returning false
+
+Stable_2011-10-23
+ * Target_keyUp() no longer receives charCode parameter
+ * Added Shell_getMainScreenSize()
+
+Stable_2011-07-04
+ * Added key modifiers
+ * Added background and foreground notifications
+
+Stable_2010-05-18
+ * Removed Target_getName()
+ * Removed argc and argv from Target_init()
+
+Stable_2010-03-31
+ * Added documentation
+ * Added battery info API
+ * Added full screen mode
+
+Stable_2009-11-24
+ * Initial version
