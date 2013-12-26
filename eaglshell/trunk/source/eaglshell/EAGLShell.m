@@ -27,6 +27,7 @@
 #include <mach/mach_time.h>
 #include <pthread.h>
 #include <semaphore.h>
+#include <sys/stat.h>
 
 #import "eaglshell/EAGLShellApplication.h"
 #include "shell/Shell.h"
@@ -128,12 +129,17 @@ const char * Shell_getResourcePath() {
 	return resourcePath;
 }
 
-const char * Shell_getSupportPath() {
+const char * Shell_getSupportPath(const char * subdirectory) {
 	static char supportPath[PATH_MAX];
 	NSArray * paths;
 	
 	paths = NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, YES);
-	strncpy(supportPath, [[paths objectAtIndex: 0] UTF8String], PATH_MAX);
+	if (subdirectory == NULL) {
+		strncpy(supportPath, [[paths objectAtIndex: 0] UTF8String], PATH_MAX);
+	} else {
+		snprintf(supportPath, PATH_MAX, "%s/%s", [[paths objectAtIndex: 0] UTF8String], subdirectory);
+	}
+	mkdir(supportPath, 0777);
 	
 	return supportPath;
 }
