@@ -1,0 +1,1 @@
+BitmapImage defines an object that represents an uncompressed pixel map. No I/O operations, transformations, or other functionality is provided; these are implemented by other stem libraries that depend on bitmapimage.
