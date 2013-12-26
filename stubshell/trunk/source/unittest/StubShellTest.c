@@ -2,7 +2,7 @@
 #include <string.h>
 #include "shell/Shell.h"
 #include "stubshell/StubShell.h"
-#include "unittest/framework/TestSuite.h"
+#include "unittest/TestSuite.h"
 #include <stdio.h>
 
 #ifdef WIN32
@@ -26,6 +26,7 @@ static int lastIntArg;
 static ShellThread lastShellThreadArg;
 static ShellMutex lastShellMutexArg;
 static int (* lastThreadCallback)(void * threadContext);
+static const char * lastSubdirectory;
 
 static bool boolReturnValue;
 static double doubleReturnValue;
@@ -63,6 +64,13 @@ static double doubleReturnTestCallback(void * context) {
 static const char * constCharPtrReturnTestCallback(void * context) {
 	callbackCalls++;
 	lastContext = context;
+	return constCharPtrReturnValue;
+}
+
+static const char * getSupportPathTestCallback(void * context, const char * subdirectory) {
+	callbackCalls++;
+	lastContext = context;
+	lastSubdirectory = subdirectory;
 	return constCharPtrReturnValue;
 }
 
@@ -286,23 +294,26 @@ static void testGetSupportPath() {
 	
 	callbackCalls = 0;
 	lastContext = NULL;
-	result = Shell_getSupportPath();
+	lastSubdirectory = NULL;
+	result = Shell_getSupportPath(NULL);
 	TestCase_assert(!strcmp("", result), "Expected \"\" but got \"%s\"", result);
 	
-	StubShellCallback_getSupportPath = constCharPtrReturnTestCallback;
+	StubShellCallback_getSupportPath = getSupportPathTestCallback;
 	StubShell_callbackContext = (void *) 0x9;
 	constCharPtrReturnValue = "foo";
-	result = Shell_getSupportPath();
+	result = Shell_getSupportPath("bar");
 	TestCase_assert(!strcmp("foo", result), "Expected \"foo\" but got \"%s\"", result);
 	TestCase_assert(callbackCalls == 1, "Expected 1 but got %d", callbackCalls);
 	TestCase_assert(lastContext == (void *) 0x9, "Expected 0x9 but got %p", lastContext);
+	TestCase_assert(!strcmp("bar", lastSubdirectory), "Expected \"bar\" but got \"%s\"", lastSubdirectory);
 	
 	StubShell_callbackContext = (void *) 0xA;
 	constCharPtrReturnValue = "bar";
-	result = Shell_getSupportPath();
+	result = Shell_getSupportPath("baz");
 	TestCase_assert(!strcmp("bar", result), "Expected \"bar\" but got \"%s\"", result);
 	TestCase_assert(callbackCalls == 2, "Expected 2 but got %d", callbackCalls);
 	TestCase_assert(lastContext == (void *) 0xA, "Expected 0xA but got %p", lastContext);
+	TestCase_assert(!strcmp("baz", lastSubdirectory), "Expected \"baz\" but got \"%s\"", lastSubdirectory);
 }
 
 static void testGetBatteryState() {

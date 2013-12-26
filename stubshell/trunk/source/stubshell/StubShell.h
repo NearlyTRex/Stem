@@ -38,7 +38,7 @@ extern bool (* StubShellCallback_isFullScreen)(void * context);
 extern bool (* StubShellCallback_setFullScreen)(void * context, bool fullScreen);
 extern double (* StubShellCallback_getCurrentTime)(void * context);
 extern const char * (* StubShellCallback_getResourcePath)(void * context);
-extern const char * (* StubShellCallback_getSupportPath)(void * context);
+extern const char * (* StubShellCallback_getSupportPath)(void * context, const char * subdirectory);
 extern enum ShellBatteryState (* StubShellCallback_getBatteryState)(void * context);
 extern float (* StubShellCallback_getBatteryLevel)(void * context);
 extern unsigned int (* StubShellCallback_setTimer)(void * context, double interval, bool repeat, void (* callback)(unsigned int timerID, void * timerContext), void * timerContext);

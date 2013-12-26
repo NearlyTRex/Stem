@@ -42,7 +42,7 @@ bool (* StubShellCallback_isFullScreen)(void * context) = NULL;
 bool (* StubShellCallback_setFullScreen)(void * context, bool fullScreen) = NULL;
 double (* StubShellCallback_getCurrentTime)(void * context) = NULL;
 const char * (* StubShellCallback_getResourcePath)(void * context) = NULL;
-const char * (* StubShellCallback_getSupportPath)(void * context) = NULL;
+const char * (* StubShellCallback_getSupportPath)(void * context, const char * subdirectory) = NULL;
 enum ShellBatteryState (* StubShellCallback_getBatteryState)(void * context) = NULL;
 float (* StubShellCallback_getBatteryLevel)(void * context) = NULL;
 unsigned int (* StubShellCallback_setTimer)(void * context, double interval, bool repeat, void (* callback)(unsigned int timerID, void * timerContext), void * timerContext) = NULL;
@@ -129,9 +129,9 @@ const char * Shell_getResourcePath() {
 	return "";
 }
 
-const char * Shell_getSupportPath() {
+const char * Shell_getSupportPath(const char * subdirectory) {
 	if (StubShellCallback_getSupportPath != NULL) {
-		return StubShellCallback_getSupportPath(StubShell_callbackContext);
+		return StubShellCallback_getSupportPath(StubShell_callbackContext, subdirectory);
 	}
 	return "";
 }
