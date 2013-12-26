@@ -1,4 +1,4 @@
-1.0.0:
+1.0.0 (2013-12-25)
  * Changed project structure to standard stem library rather than naked source files
  * SUITE_FILE_LIST macro obsoleted, replaced by link-time UnitTest_suiteNameList symbol
  * Fixed printf format specifiers for 64-bit integers on Linux
