@@ -20,8 +20,11 @@
   Alex Diener adiener@sacredsoftware.net
 */
 
-#ifndef __DESERIALIZATION_CONTEXT_H__
-#define __DESERIALIZATION_CONTEXT_H__
+#ifndef __DeserializationContext_H__
+#define __DeserializationContext_H__
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef struct DeserializationContext DeserializationContext;
 
@@ -96,7 +99,10 @@ typedef struct DeserializationContext DeserializationContext;
 
 stemobject_struct_definition(DeserializationContext)
 
-void DeserializationContext_init(DeserializationContext * self);
+bool DeserializationContext_init(DeserializationContext * self);
 void DeserializationContext_dispose(DeserializationContext * self);
 
+#ifdef __cplusplus
+}
+#endif
 #endif

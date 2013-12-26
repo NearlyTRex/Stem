@@ -20,8 +20,11 @@
   Alex Diener adiener@sacredsoftware.net
 */
 
-#ifndef __SERIALIZATION_H__
-#define __SERIALIZATION_H__
+#ifndef __SerializationContext_H__
+#define __SerializationContext_H__
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include "serialization/SerializationShared.h"
 #include "stemobject/StemObject.h"
@@ -74,7 +77,10 @@ typedef struct SerializationContext SerializationContext;
 
 stemobject_struct_definition(SerializationContext)
 
-void SerializationContext_init(SerializationContext * self);
+bool SerializationContext_init(SerializationContext * self);
 void SerializationContext_dispose(SerializationContext * self);
 
+#ifdef __cplusplus
+}
+#endif
 #endif

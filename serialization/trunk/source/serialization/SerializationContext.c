@@ -25,7 +25,7 @@
 
 #define SUPERCLASS StemObject
 
-void SerializationContext_init(SerializationContext * self) {
+bool SerializationContext_init(SerializationContext * self) {
 	call_super(init, self);
 	
 	self->jmpBuf = NULL;
@@ -56,6 +56,7 @@ void SerializationContext_init(SerializationContext * self) {
 	self->writeBitfield16 = NULL;
 	self->writeBitfield32 = NULL;
 	self->writeBitfield64 = NULL;
+	return true;
 }
 
 void SerializationContext_dispose(SerializationContext * self) {

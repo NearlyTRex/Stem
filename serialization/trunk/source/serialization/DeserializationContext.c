@@ -25,7 +25,7 @@
 
 #define SUPERCLASS StemObject
 
-void DeserializationContext_init(DeserializationContext * self) {
+bool DeserializationContext_init(DeserializationContext * self) {
 	call_super(init, self);
 	
 	self->jmpBuf = NULL;
@@ -58,6 +58,7 @@ void DeserializationContext_init(DeserializationContext * self) {
 	self->readBitfield64 = NULL;
 	self->readNextDictionaryKey = NULL;
 	self->hasDictionaryKey = NULL;
+	return true;
 }
 
 void DeserializationContext_dispose(DeserializationContext * self) {

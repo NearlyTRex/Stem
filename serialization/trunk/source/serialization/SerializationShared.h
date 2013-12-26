@@ -20,8 +20,11 @@
   Alex Diener adiener@sacredsoftware.net
 */
 
-#ifndef __SERIALIZATION_SHARED_H__
-#define __SERIALIZATION_SHARED_H__
+#ifndef __SerializationShared_H__
+#define __SerializationShared_H__
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define enumKV(value) #value, value
 
@@ -93,4 +96,7 @@
    by extensions. This function can only define the ones contained within this header. */
 const char * Serialization_errorString(int status);
 
+#ifdef __cplusplus
+}
+#endif
 #endif
