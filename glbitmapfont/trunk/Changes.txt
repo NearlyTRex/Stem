@@ -1,12 +1,15 @@
-1.0.3
+1.0.3 (2012-12-25)
  * Added 64-bit Windows and Linux support
  * Updated for stemobject 3.1.0
 
-1.0.2
+1.0.2 (2012-02-12)
  * Updated for stemobject 3.0.0 and serialization 1.2.2
 
-1.0.1
+1.0.1 (2011-01-16)
  * Added format_version field
  * Test harness can now load arbitrary font.json file from command line
  * Updated for stemobject 2.0.0
  * Synchronized with template_stemlib Stable_2011-01-13
+
+1.0.0 (2010-07-16)
+ * Initial version
