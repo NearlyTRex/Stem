@@ -1,4 +1,4 @@
-#include "unittest/framework/TestSuite.h"
+#include "unittest/TestSuite.h"
 #include "pngimageio/PNGImageIO.h"
 #include "utilities/IOUtilities.h"
 #include <stdio.h>
