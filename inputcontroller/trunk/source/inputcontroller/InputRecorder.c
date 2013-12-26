@@ -37,10 +37,10 @@ InputRecorder * InputRecorder_createWithMemwriteOutput(InputController * inputCo
 }
 
 static void writeData(InputRecorder * self, unsigned int size, const void * data) {
-	if (self->outputFile == NULL) {
-		memwrite(&self->memwriteContext, size, data);
-	} else {
+	if (self->outputFile != NULL) {
 		fwrite(data, 1, size, self->outputFile);
+	} else if (self->memwriteContext.data != NULL || self->memwriteContext.realloc) {
+		memwrite(&self->memwriteContext, size, data);
 	}
 }
 
@@ -105,20 +105,28 @@ static void writeHeader(InputRecorder * self, const void * replayStartupData, ui
 	}
 }
 
-void InputRecorder_initWithFileOutput(InputRecorder * self, InputController * inputController, const void * replayStartupData, uint32_t replayStartupDataSize, const char * filePath) {
+bool InputRecorder_initWithFileOutput(InputRecorder * self, InputController * inputController, const void * replayStartupData, uint32_t replayStartupDataSize, const char * filePath) {
 	call_super(init, self);
 	sharedInit(self, inputController);
+	self->memwriteContext.data = NULL;
+	self->memwriteContext.realloc = false;
 	self->outputFile = fopen(filePath, "wb");
+	if (self->outputFile == NULL) {
+		self->dispose(self);
+		return false;
+	}
 	setvbuf(self->outputFile, NULL, _IONBF, 0);
 	writeHeader(self, replayStartupData, replayStartupDataSize);
+	return true;
 }
 
-void InputRecorder_initWithMemwriteOutput(InputRecorder * self, InputController * inputController, const void * replayStartupData, uint32_t replayStartupDataSize) {
+bool InputRecorder_initWithMemwriteOutput(InputRecorder * self, InputController * inputController, const void * replayStartupData, uint32_t replayStartupDataSize) {
 	call_super(init, self);
 	sharedInit(self, inputController);
 	self->outputFile = NULL;
 	self->memwriteContext = memwriteContextInit(NULL, 0, 0, true);
 	writeHeader(self, replayStartupData, replayStartupDataSize);
+	return true;
 }
 
 void InputRecorder_dispose(InputRecorder * self) {

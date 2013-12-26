@@ -94,7 +94,7 @@ struct InputMap_gamepadMap {
 stemobject_struct_definition(InputMap)
 
 InputMap * InputMap_create();
-void InputMap_init(InputMap * self);
+bool InputMap_init(InputMap * self);
 void InputMap_dispose(InputMap * self);
 
 InputMap * InputMap_deserialize(compat_type(DeserializationContext *) deserializationContext);

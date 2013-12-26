@@ -1,5 +1,5 @@
-#include "unittest/framework/TestSuite.h"
-#include "unittest/framework/printfFormats.h"
+#include "unittest/TestSuite.h"
+#include "unittest/printfFormats.h"
 #include "utilities/IOUtilities.h"
 #include "inputcontroller/InputSession.h"
 #include <stdbool.h>

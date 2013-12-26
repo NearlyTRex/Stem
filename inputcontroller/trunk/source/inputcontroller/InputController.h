@@ -65,8 +65,8 @@ stemobject_struct_definition(InputController)
 // Additional arguments: List of all valid action IDs
 InputController * InputController_create(InputMap * inputMap, ...) __attribute__((sentinel));
 InputController * InputController_vcreate(InputMap * inputMap, va_list args);
-void InputController_init(InputController * self, InputMap * inputMap, ...) __attribute__((sentinel));
-void InputController_vinit(InputController * self, InputMap * inputMap, va_list args);
+bool InputController_init(InputController * self, InputMap * inputMap, ...) __attribute__((sentinel));
+bool InputController_vinit(InputController * self, InputMap * inputMap, va_list args);
 void InputController_dispose(InputController * self);
 
 bool InputController_keyDown(InputController * self, unsigned int keyCode);

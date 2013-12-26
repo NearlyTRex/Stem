@@ -28,7 +28,7 @@ InputMap * InputMap_create() {
 	stemobject_create_implementation(InputMap, init)
 }
 
-void InputMap_init(InputMap * self) {
+bool InputMap_init(InputMap * self) {
 	call_super(init, self);
 	self->dispose = InputMap_dispose;
 	self->isKeyBound = InputMap_isKeyBound;
@@ -50,6 +50,7 @@ void InputMap_init(InputMap * self) {
 	self->keyModifierBindings = NULL;
 	self->gamepadMapCount = 0;
 	self->gamepadMaps = NULL;
+	return true;
 }
 
 void InputMap_dispose(InputMap * self) {

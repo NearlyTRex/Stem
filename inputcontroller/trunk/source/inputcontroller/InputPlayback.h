@@ -53,7 +53,7 @@ typedef struct InputPlayback InputPlayback;
 stemobject_struct_definition(InputPlayback)
 
 InputPlayback * InputPlayback_create(InputController * inputController, InputSession * inputSession);
-void InputPlayback_init(InputPlayback * self, InputController * inputController, InputSession * inputSession);
+bool InputPlayback_init(InputPlayback * self, InputController * inputController, InputSession * inputSession);
 void InputPlayback_dispose(InputPlayback * self);
 void InputPlayback_step(InputPlayback * self);
 void InputPlayback_rewind(InputPlayback * self);

@@ -40,15 +40,17 @@ InputController * InputController_vcreate(InputMap * inputMap, va_list args) {
 	stemobject_create_implementation(InputController, vinit, inputMap, args)
 }
 
-void InputController_init(InputController * self, InputMap * inputMap, ...) {
+bool InputController_init(InputController * self, InputMap * inputMap, ...) {
 	va_list args;
+	bool success;
 	
 	va_start(args, inputMap);
-	InputController_vinit(self, inputMap, args);
+	success = InputController_vinit(self, inputMap, args);
 	va_end(args);
+	return success;
 }
 
-void InputController_vinit(InputController * self, InputMap * inputMap, va_list args) {
+bool InputController_vinit(InputController * self, InputMap * inputMap, va_list args) {
 	va_list argsCopy;
 	
 	call_super(init, self);
@@ -83,6 +85,7 @@ void InputController_vinit(InputController * self, InputMap * inputMap, va_list 
 			self->actions[actionIndex].triggered = false;
 		}
 	}
+	return true;
 }
 
 void InputController_dispose(InputController * self) {

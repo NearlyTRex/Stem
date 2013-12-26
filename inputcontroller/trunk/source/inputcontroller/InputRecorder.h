@@ -49,8 +49,8 @@ stemobject_struct_definition(InputRecorder)
 
 InputRecorder * InputRecorder_createWithFileOutput(InputController * inputController, const void * replayStartupData, uint32_t replayStartupDataSize, const char * filePath);
 InputRecorder * InputRecorder_createWithMemwriteOutput(InputController * inputController, const void * replayStartupData, uint32_t replayStartupDataSize);
-void InputRecorder_initWithFileOutput(InputRecorder * self, InputController * inputController, const void * replayStartupData, uint32_t replayStartupDataSize, const char * filePath);
-void InputRecorder_initWithMemwriteOutput(InputRecorder * self, InputController * inputController, const void * replayStartupData, uint32_t replayStartupDataSize);
+bool InputRecorder_initWithFileOutput(InputRecorder * self, InputController * inputController, const void * replayStartupData, uint32_t replayStartupDataSize, const char * filePath);
+bool InputRecorder_initWithMemwriteOutput(InputRecorder * self, InputController * inputController, const void * replayStartupData, uint32_t replayStartupDataSize);
 void InputRecorder_dispose(InputRecorder * self);
 void InputRecorder_nextFrame(InputRecorder * self);
 

@@ -29,7 +29,7 @@ InputPlayback * InputPlayback_create(InputController * inputController, InputSes
 	stemobject_create_implementation(InputPlayback, init, inputController, inputSession)
 }
 
-void InputPlayback_init(InputPlayback * self, InputController * inputController, InputSession * inputSession) {
+bool InputPlayback_init(InputPlayback * self, InputController * inputController, InputSession * inputSession) {
 	call_super(init, self);
 	self->dispose = InputPlayback_dispose;
 	self->step = InputPlayback_step;
@@ -45,6 +45,7 @@ void InputPlayback_init(InputPlayback * self, InputController * inputController,
 		self->actionsTriggered = calloc(sizeof(bool), inputSession->actionCount);
 	}
 	self->eventIndex = 0;
+	return true;
 }
 
 void InputPlayback_dispose(InputPlayback * self) {

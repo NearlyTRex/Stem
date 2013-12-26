@@ -1,4 +1,4 @@
-#include "unittest/framework/TestSuite.h"
+#include "unittest/TestSuite.h"
 #include "inputcontroller/InputController.h"
 
 static void verifyInit(InputController * inputController, InputMap * inputMap, unsigned int lineNumber, ...) {
