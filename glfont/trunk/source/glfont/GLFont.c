@@ -25,12 +25,13 @@
 
 #define SUPERCLASS StemObject
 
-void GLFont_init(GLFont * self) {
+bool GLFont_init(GLFont * self) {
 	call_super(init, self);
 	self->dispose = GLFont_dispose;
 	self->measureString = NULL;
 	self->indexAtWidth = NULL;
 	self->drawString = NULL;
+	return true;
 }
 
 void GLFont_dispose(GLFont * self) {

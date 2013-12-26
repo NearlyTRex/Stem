@@ -20,8 +20,11 @@
   Alex Diener adiener@sacredsoftware.net
 */
 
-#ifndef __GL_FONT_H__
-#define __GL_FONT_H__
+#ifndef __GLFont_H__
+#define __GLFont_H__
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include "stemobject/StemObject.h"
 #include <stdlib.h>
@@ -45,7 +48,10 @@ typedef struct GLFont GLFont;
 
 stemobject_struct_definition(GLFont)
 
-void GLFont_init(GLFont * self);
+bool GLFont_init(GLFont * self);
 void GLFont_dispose(GLFont * self);
 
+#ifdef __cplusplus
+}
+#endif
 #endif
