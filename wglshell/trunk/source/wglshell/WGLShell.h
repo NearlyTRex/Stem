@@ -46,15 +46,15 @@ struct WGLShellConfiguration {
 
 // http://msdn.microsoft.com/en-us/library/ms648391(v=VS.85).aspx
 enum WGLShellCursor {
-	WGLShellCursor_appStarting, // IDC_APPSTARTING
-	WGLShellCursor_help,        // IDC_HELP
-	WGLShellCursor_no,          // IDC_NO
-	WGLShellCursor_sizeAll,     // IDC_SIZEALL
-	WGLShellCursor_sizeNESW,    // IDC_SIZENESW
-	WGLShellCursor_sizeNS,      // IDC_SIZENS
-	WGLShellCursor_sizeNWSE,    // IDC_SIZENWSE
-	WGLShellCursor_sizeWE,      // IDC_SIZEWE
-	WGLShellCursor_upArrow     // IDC_UPARROW
+	WGLShellCursor_appStarting = 100, // IDC_APPSTARTING
+	WGLShellCursor_help,              // IDC_HELP
+	WGLShellCursor_no,                // IDC_NO
+	WGLShellCursor_sizeAll,           // IDC_SIZEALL
+	WGLShellCursor_sizeNESW,          // IDC_SIZENESW
+	WGLShellCursor_sizeNS,            // IDC_SIZENS
+	WGLShellCursor_sizeNWSE,          // IDC_SIZENWSE
+	WGLShellCursor_sizeWE,            // IDC_SIZEWE
+	WGLShellCursor_upArrow            // IDC_UPARROW
 };
 
 #ifdef __cplusplus

@@ -29,8 +29,10 @@
 #include "shell/Target.h"
 #include "wglshell/WGLShell.h"
 #include "wglshell/WGLTarget.h"
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <direct.h>
 #include <windows.h>
 #include <PowrProf.h>
 
@@ -124,7 +126,7 @@ const char * Shell_getSupportPath(const char * subdirectory) {
 	} else {
 		snprintf(supportPath, PATH_MAX, "%s/%s", getenv("APPDATA"), subdirectory);
 	}
-	mkdir(supportPath);
+	_mkdir(supportPath);
 	return supportPath;
 }
 
@@ -158,7 +160,11 @@ void Shell_hideCursorUntilMouseMoves() {
 	}
 }
 
-void Shell_setCursor(enum WGLShellCursor value) {
+#ifndef GCL_HCURSOR
+#define GCL_HCURSOR -12
+#endif
+
+void Shell_setCursor(int value) {
 	HCURSOR cursor = NULL;
 	
 	switch (value) {
@@ -206,7 +212,7 @@ void Shell_setCursor(enum WGLShellCursor value) {
 			break;
 	}
 	if (cursor != NULL) {
-		SetClassLong(window, GCL_HCURSOR, (long) cursor);
+		SetClassLongPtr(window, GCL_HCURSOR, (LONG_PTR) cursor);
 		SetCursor(cursor);
 	}
 }
