@@ -1,8 +1,5 @@
-1.6.1
- * Update API for shell 1.1.0 (adds Shell_getSupportPath)
-
 1.6.0
- * Update API for shell 1.0.0 (adds threads)
+ * Update API for shell 1.1.0 (adds threads, Shell_getSupportPath)
  * Fixed unresponsiveness of mouse delta mode on Mac OS X
 
 1.5.0

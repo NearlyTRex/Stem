@@ -152,7 +152,8 @@ void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned int mo
 		printf("Shell_getResourcePath(): %s\n", Shell_getResourcePath());
 		
 	} else if (keyCode == KEYBOARD_Y) {
-		printf("Shell_getSupportPath(): %s\n", Shell_getSupportPath());
+		printf("Shell_getSupportPath(NULL): %s\n", Shell_getSupportPath(NULL));
+		printf("Shell_getSupportPath(\"glutshell\"): %s\n", Shell_getSupportPath("glutshell"));
 		
 	} else if (keyCode == KEYBOARD_D) {
 		Shell_redisplay();

@@ -144,18 +144,26 @@ const char * Shell_getResourcePath() {
 #endif
 }
 
-const char * Shell_getSupportPath() {
+const char * Shell_getSupportPath(const char * subdirectory) {
 	static char supportPath[PATH_MAX];
 	
+	if (subdirectory == NULL) {
 #if defined(__APPLE__)
-	snprintf(supportPath, PATH_MAX, "%s/Library/Application Support", getenv("HOME"));
+		snprintf(supportPath, PATH_MAX, "%s/Library/Application Support", getenv("HOME"));
 #elif defined(WIN32)
-	strncpy(supportPath, getenv("APPDATA"), PATH_MAX);
+		strncpy(supportPath, getenv("APPDATA"), PATH_MAX);
 #elif defined(__linux)
-	snprintf(supportPath, PATH_MAX, "%s/.stem_data", getenv("HOME"), fileName);
-#else
-#error Unsupported platform
+		strncpy(supportPath, getenv("HOME"), PATH_MAX);
 #endif
+	} else {
+#if defined(__APPLE__)
+		snprintf(supportPath, PATH_MAX, "%s/Library/Application Support/%s", getenv("HOME"), subdirectory);
+#elif defined(WIN32)
+		snprintf(supportPath, PATH_MAX, "%s/%s", getenv("APPDATA"), subdirectory);
+#elif defined(__linux)
+		snprintf(supportPath, PATH_MAX, "%s/.%s", getenv("HOME"), subdirectory);
+#endif
+	}
 	mkdir(supportPath
 #ifndef WIN32
 	, 0777
