@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2011 Alex Diener
+  Copyright (c) 2013 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -20,11 +20,17 @@
   Alex Diener adiener@sacredsoftware.net
 */
 
-#ifndef __WGLTARGET_H__
-#define __WGLTARGET_H__
+#ifndef __WGLTarget_H__
+#define __WGLTarget_H__
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include "wglshell/WGLShell.h"
 
 void WGLTarget_configure(void * instance, void * prevInstance, char * commandLine, int command, struct WGLShellConfiguration * configuration);
 
+#ifdef __cplusplus
+}
+#endif
 #endif

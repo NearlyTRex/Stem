@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2011 Alex Diener
+  Copyright (c) 2013 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -20,8 +20,11 @@
   Alex Diener adiener@sacredsoftware.net
 */
 
-#ifndef __WGLSHELL_H__
-#define __WGLSHELL_H__
+#ifndef __WGLShell_H__
+#define __WGLShell_H__
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include <stdbool.h>
 
@@ -43,30 +46,18 @@ struct WGLShellConfiguration {
 
 // http://msdn.microsoft.com/en-us/library/ms648391(v=VS.85).aspx
 enum WGLShellCursor {
-	WGLShellCursor_arrow,       // IDC_ARROW
 	WGLShellCursor_appStarting, // IDC_APPSTARTING
-	WGLShellCursor_crosshair,   // IDC_CROSS
-	WGLShellCursor_hand,        // IDC_HAND
 	WGLShellCursor_help,        // IDC_HELP
-	WGLShellCursor_iBeam,       // IDC_IBEAM
 	WGLShellCursor_no,          // IDC_NO
 	WGLShellCursor_sizeAll,     // IDC_SIZEALL
 	WGLShellCursor_sizeNESW,    // IDC_SIZENESW
 	WGLShellCursor_sizeNS,      // IDC_SIZENS
 	WGLShellCursor_sizeNWSE,    // IDC_SIZENWSE
 	WGLShellCursor_sizeWE,      // IDC_SIZEWE
-	WGLShellCursor_upArrow,     // IDC_UPARROW
-	WGLShellCursor_wait         // IDC_WAIT
+	WGLShellCursor_upArrow     // IDC_UPARROW
 };
 
-/** Shows the cursor if visible is set to true. Hides the cursor if visible is set to false. Has no effect if
-    the cursor already has the specified visibility. */
-void WGLShell_setCursorVisible(bool visible);
-
-/** Hides the cursor until the mouse moves, at which point it will be shown again. */
-void WGLShell_hideCursorUntilMouseMoves();
-
-/** Sets the window's cursor to the specified value. */
-void WGLShell_setCursor(enum WGLShellCursor value);
-
+#ifdef __cplusplus
+}
+#endif
 #endif

@@ -1,13 +1,23 @@
 #include "shell/Shell.h"
+#include "wglshell/WGLShell.h"
 #include "wglshell/WGLTarget.h"
 
 #include <limits.h>
 #include <stdio.h>
 #include <unistd.h>
+#include "glgraphics/GLGraphics.h"
 #include "shell/ShellBatteryInfo.h"
 #include "shell/ShellKeyCodes.h"
+#include "shell/ShellThreads.h"
+#include "shell/Target.h"
 
 #include <GL/gl.h>
+
+#include <windows.h>
+#define msleep(ms) Sleep(ms)
+
+static unsigned int timer1ID = UINT_MAX, timer2ID = UINT_MAX;
+static bool deltaMode;
 
 void WGLTarget_configure(void * instance, void * prevInstance, char * commandLine, int command, struct WGLShellConfiguration * configuration) {
 	char workingDir[PATH_MAX];
@@ -34,22 +44,104 @@ void WGLTarget_configure(void * instance, void * prevInstance, char * commandLin
 
 void Target_init() {
 	printf("Target_init()\n");
+	printf("GLGraphics_getOpenGLAPIVersion(): %d\n", GLGraphics_getOpenGLAPIVersion());
 	Shell_mainLoop();
 }
 
-void Target_draw() {
+bool Target_draw() {
 	printf("Target_draw()\n");
 	glClearColor(0.0f, 0.25f, 0.5f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
+	return true;
+}
+
+static void timerCallback(unsigned int timerID, void * context) {
+	printf("timerCallback(timerID, \"%s\")\n", (char *) context);
+	if (timerID == timer2ID) {
+		timer2ID = UINT_MAX;
+	}
+}
+
+static int threadFunc1(void * context) {
+	printf("Secondary thread 1 %p begin\n", Shell_getCurrentThread());
+	Shell_lockMutex(context);
+	msleep(1000);
+	Shell_unlockMutex(context);
+	printf("Secondary thread 1 %p end\n", Shell_getCurrentThread());
+	return 0;
+}
+
+static int threadFunc2(void * context) {
+	printf("Secondary thread 2 %p begin\n", Shell_getCurrentThread());
+	msleep(1000);
+	Shell_postSemaphore(context);
+	printf("Secondary thread 2 %p end\n", Shell_getCurrentThread());
+	return 0;
+}
+
+static int threadFunc3(void * context) {
+	printf("Secondary thread 3 %p begin\n", Shell_getCurrentThread());
+	msleep(1000);
+	printf("Secondary thread 3 %p exit\n", Shell_getCurrentThread());
+	Shell_exitThread(2);
+	printf("Secondary thread 3 %p end (bad!)\n", Shell_getCurrentThread());
+	return 0;
 }
 
 void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned int modifierFlags) {
 	printf("Target_keyDown(%u, %u, 0x%X)\n", charCode, keyCode, modifierFlags);
-	if (keyCode == KEYBOARD_T) {
+	if (keyCode == KEYBOARD_Q) {
+		ShellThread thread;
+		ShellMutex mutex;
+		ShellSemaphore semaphore;
+		bool success;
+		int status;
+		
+		printf("Current thread: %p\n\n", Shell_getCurrentThread());
+		
+		mutex = Shell_createMutex();
+		printf("Created mutex %p\n", mutex);
+		success = Shell_tryLockMutex(mutex);
+		printf("Lock acquired: %s (expected true)\n", success ? "true" : "false");
+		success = Shell_tryLockMutex(mutex);
+		printf("Lock acquired: %s (expected true)\n\n", success ? "true" : "false");
+		Shell_unlockMutex(mutex);
+		Shell_unlockMutex(mutex);
+		
+		thread = Shell_createThread(threadFunc1, mutex);
+		Shell_detachThread(thread);
+		printf("Created thread %p at %f\n", thread, Shell_getCurrentTime());
+		msleep(500);
+		Shell_lockMutex(mutex);
+		printf("Acquired lock at %f\n\n", Shell_getCurrentTime());
+		Shell_unlockMutex(mutex);
+		
+		semaphore = Shell_createSemaphore(0);
+		printf("Try wait semaphore: %s (expected false)\n", Shell_tryWaitSemaphore(semaphore) ? "true" : "false");
+		thread = Shell_createThread(threadFunc2, semaphore);
+		Shell_detachThread(thread);
+		printf("Created thread %p at %f\n", thread, Shell_getCurrentTime());
+		printf("Try wait semaphore: %s (expected false)\n", Shell_tryWaitSemaphore(semaphore) ? "true" : "false");
+		Shell_waitSemaphore(semaphore);
+		printf("Acquired semaphore at %f\n\n", Shell_getCurrentTime());
+		
+		thread = Shell_createThread(threadFunc3, mutex);
+		printf("Created thread %p at %f\n", thread, Shell_getCurrentTime());
+		status = Shell_joinThread(thread);
+		printf("Joined thread at %f, with status %d\n\n", Shell_getCurrentTime(), status);
+		
+		Shell_disposeMutex(mutex);
+		Shell_disposeSemaphore(semaphore);
+		
+	} else if (keyCode == KEYBOARD_T) {
 		printf("Shell_getCurrentTime(): %f\n", Shell_getCurrentTime());
 		
 	} else if (keyCode == KEYBOARD_R) {
 		printf("Shell_getResourcePath(): %s\n", Shell_getResourcePath());
+		
+	} else if (keyCode == KEYBOARD_Y) {
+		printf("Shell_getSupportPath(NULL): %s\n", Shell_getSupportPath(NULL));
+		printf("Shell_getSupportPath(\"glutshell\"): %s\n", Shell_getSupportPath("glutshell"));
 		
 	} else if (keyCode == KEYBOARD_D) {
 		Shell_redisplay();
@@ -73,56 +165,81 @@ void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned int mo
 		Shell_getMainScreenSize(&width, &height);
 		printf("Shell_getMainScreenSize(%u, %u)\n", width, height);
 		
+	} else if (keyCode == KEYBOARD_COMMA) {
+		if (timer1ID == UINT_MAX) {
+			timer1ID = Shell_setTimer(1.0, true, timerCallback, "Timer 1 context");
+			printf("Shell_setTimer(1.0, true, %p, \"Timer 1 context\"): %u\n", timerCallback, timer1ID);
+		} else {
+			printf("Shell_cancelTimer(%u)\n", timer1ID);
+			Shell_cancelTimer(timer1ID);
+			timer1ID = UINT_MAX;
+		}
+		
+	} else if (keyCode == KEYBOARD_PERIOD) {
+		if (timer2ID == UINT_MAX) {
+			timer2ID = Shell_setTimer(2.0, false, timerCallback, "Timer 2 context");
+			printf("Shell_setTimer(2.0, false, %p, \"Timer 2 context\"): %u\n", timerCallback, timer2ID);
+		} else {
+			printf("Shell_cancelTimer(%u)\n", timer2ID);
+			Shell_cancelTimer(timer2ID);
+			timer2ID = UINT_MAX;
+		}
+		
+	} else if (keyCode == KEYBOARD_SEMICOLON) {
+		deltaMode = !deltaMode;
+		Shell_setMouseDeltaMode(deltaMode);
+		printf("Shell_setMouseDeltaMode(%s)\n", deltaMode ? "true" : "false");
+		
 	} else if (keyCode == KEYBOARD_H) {
-		WGLShell_setCursorVisible(false);
+		Shell_setCursorVisible(false);
 		
 	} else if (keyCode == KEYBOARD_S) {
-		WGLShell_setCursorVisible(true);
+		Shell_setCursorVisible(true);
 		
 	} else if (keyCode == KEYBOARD_M) {
-		WGLShell_hideCursorUntilMouseMoves();
+		Shell_hideCursorUntilMouseMoves();
 		
 	} else if (keyCode == KEYBOARD_0 && !(modifierFlags & MODIFIER_SHIFT_BIT)) {
-		WGLShell_setCursor(WGLShellCursor_arrow);
+		Shell_setCursor(ShellCursor_arrow);
 		
 	} else if (keyCode == KEYBOARD_1 && !(modifierFlags & MODIFIER_SHIFT_BIT)) {
-		WGLShell_setCursor(WGLShellCursor_appStarting);
+		Shell_setCursor(ShellCursor_iBeam);
 		
 	} else if (keyCode == KEYBOARD_2 && !(modifierFlags & MODIFIER_SHIFT_BIT)) {
-		WGLShell_setCursor(WGLShellCursor_crosshair);
+		Shell_setCursor(ShellCursor_crosshair);
 		
 	} else if (keyCode == KEYBOARD_3 && !(modifierFlags & MODIFIER_SHIFT_BIT)) {
-		WGLShell_setCursor(WGLShellCursor_hand);
+		Shell_setCursor(ShellCursor_hand);
 		
 	} else if (keyCode == KEYBOARD_4 && !(modifierFlags & MODIFIER_SHIFT_BIT)) {
-		WGLShell_setCursor(WGLShellCursor_help);
+		Shell_setCursor(ShellCursor_wait);
 		
 	} else if (keyCode == KEYBOARD_5 && !(modifierFlags & MODIFIER_SHIFT_BIT)) {
-		WGLShell_setCursor(WGLShellCursor_iBeam);
+		Shell_setCursor(WGLShellCursor_appStarting);
 		
 	} else if (keyCode == KEYBOARD_6 && !(modifierFlags & MODIFIER_SHIFT_BIT)) {
-		WGLShell_setCursor(WGLShellCursor_no);
+		Shell_setCursor(WGLShellCursor_no);
 		
 	} else if (keyCode == KEYBOARD_7 && !(modifierFlags & MODIFIER_SHIFT_BIT)) {
-		WGLShell_setCursor(WGLShellCursor_sizeAll);
+		Shell_setCursor(WGLShellCursor_sizeAll);
 		
 	} else if (keyCode == KEYBOARD_8 && !(modifierFlags & MODIFIER_SHIFT_BIT)) {
-		WGLShell_setCursor(WGLShellCursor_sizeNESW);
+		Shell_setCursor(WGLShellCursor_sizeNESW);
 		
 	} else if (keyCode == KEYBOARD_9 && !(modifierFlags & MODIFIER_SHIFT_BIT)) {
-		WGLShell_setCursor(WGLShellCursor_sizeNS);
+		Shell_setCursor(WGLShellCursor_sizeNS);
 		
 	} else if (keyCode == KEYBOARD_1 && (modifierFlags & MODIFIER_SHIFT_BIT)) {
-		WGLShell_setCursor(WGLShellCursor_sizeNWSE);
+		Shell_setCursor(WGLShellCursor_sizeNWSE);
 		
 	} else if (keyCode == KEYBOARD_2 && (modifierFlags & MODIFIER_SHIFT_BIT)) {
-		WGLShell_setCursor(WGLShellCursor_sizeWE);
+		Shell_setCursor(WGLShellCursor_sizeWE);
 		
 	} else if (keyCode == KEYBOARD_3 && (modifierFlags & MODIFIER_SHIFT_BIT)) {
-		WGLShell_setCursor(WGLShellCursor_upArrow);
+		Shell_setCursor(WGLShellCursor_upArrow);
 		
 	} else if (keyCode == KEYBOARD_4 && (modifierFlags & MODIFIER_SHIFT_BIT)) {
-		WGLShell_setCursor(WGLShellCursor_wait);
+		Shell_setCursor(WGLShellCursor_help);
 	}
 }
 

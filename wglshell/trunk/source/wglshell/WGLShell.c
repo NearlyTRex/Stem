@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2011 Alex Diener
+  Copyright (c) 2013 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -25,6 +25,7 @@
 #include "shell/Shell.h"
 #include "shell/ShellBatteryInfo.h"
 #include "shell/ShellKeyCodes.h"
+#include "shell/ShellThreads.h"
 #include "shell/Target.h"
 #include "wglshell/WGLShell.h"
 #include "wglshell/WGLTarget.h"
@@ -32,7 +33,6 @@
 #include <stdlib.h>
 #include <windows.h>
 #include <PowrProf.h>
-#include <GL/wglew.h> // TODO: Remove when new glgraphics
 
 static HWND window;
 static unsigned int buttonMask;
@@ -40,6 +40,11 @@ static unsigned int modifierFlags;
 static bool isFullScreen;
 static bool cursorHiddenByHide;
 static bool cursorHiddenUntilMouseMoves;
+
+struct threadFuncInvocation {
+	int (* threadFunction)(void * context);
+	void * context;
+};
 
 void Shell_mainLoop() {
 	MSG message;
@@ -111,6 +116,104 @@ const char * Shell_getResourcePath() {
 	return "Resources";
 }
 
+const char * Shell_getSupportPath(const char * subdirectory) {
+	static char supportPath[PATH_MAX];
+	
+	if (subdirectory == NULL) {
+		strncpy(supportPath, getenv("APPDATA"), PATH_MAX);
+	} else {
+		snprintf(supportPath, PATH_MAX, "%s/%s", getenv("APPDATA"), subdirectory);
+	}
+	mkdir(supportPath);
+	return supportPath;
+}
+
+void Shell_getMainScreenSize(unsigned int * outWidth, unsigned int * outHeight) {
+	if (outWidth != NULL) {
+		*outWidth = GetSystemMetrics(SM_CXSCREEN);
+	}
+	if (outHeight != NULL) {
+		*outHeight = GetSystemMetrics(SM_CYSCREEN);
+	}
+}
+
+void Shell_setCursorVisible(bool visible) {
+	if (visible) {
+		if (cursorHiddenByHide) {
+			cursorHiddenByHide = false;
+			ShowCursor(true);
+		}
+	} else {
+		if (!cursorHiddenByHide) {
+			cursorHiddenByHide = true;
+			ShowCursor(false);
+		}
+	}
+}
+
+void Shell_hideCursorUntilMouseMoves() {
+	if (!cursorHiddenUntilMouseMoves) {
+		cursorHiddenUntilMouseMoves = true;
+		ShowCursor(false);
+	}
+}
+
+void Shell_setCursor(enum WGLShellCursor value) {
+	HCURSOR cursor = NULL;
+	
+	switch (value) {
+		case ShellCursor_arrow:
+			cursor = LoadCursor(NULL, IDC_ARROW);
+			break;
+		case ShellCursor_iBeam:
+			cursor = LoadCursor(NULL, IDC_IBEAM);
+			break;
+		case ShellCursor_crosshair:
+			cursor = LoadCursor(NULL, IDC_CROSS);
+			break;
+		case ShellCursor_hand:
+			cursor = LoadCursor(NULL, IDC_HAND);
+			break;
+		case ShellCursor_wait:
+			cursor = LoadCursor(NULL, IDC_WAIT);
+			break;
+		case WGLShellCursor_appStarting:
+			cursor = LoadCursor(NULL, IDC_APPSTARTING);
+			break;
+		case WGLShellCursor_no:
+			cursor = LoadCursor(NULL, IDC_NO);
+			break;
+		case WGLShellCursor_sizeAll:
+			cursor = LoadCursor(NULL, IDC_SIZEALL);
+			break;
+		case WGLShellCursor_sizeNESW:
+			cursor = LoadCursor(NULL, IDC_SIZENESW);
+			break;
+		case WGLShellCursor_sizeNS:
+			cursor = LoadCursor(NULL, IDC_SIZENS);
+			break;
+		case WGLShellCursor_sizeNWSE:
+			cursor = LoadCursor(NULL, IDC_SIZENWSE);
+			break;
+		case WGLShellCursor_sizeWE:
+			cursor = LoadCursor(NULL, IDC_SIZEWE);
+			break;
+		case WGLShellCursor_upArrow:
+			cursor = LoadCursor(NULL, IDC_UPARROW);
+			break;
+		case WGLShellCursor_help:
+			cursor = LoadCursor(NULL, IDC_HELP);
+			break;
+	}
+	if (cursor != NULL) {
+		SetClassLong(window, GCL_HCURSOR, (long) cursor);
+		SetCursor(cursor);
+	}
+}
+
+void Shell_setMouseDeltaMode(bool deltaMode) {
+}
+
 enum ShellBatteryState Shell_getBatteryState() {
 	SYSTEM_POWER_STATUS powerStatus;
 	SYSTEM_POWER_CAPABILITIES powerCapabilities;
@@ -144,87 +247,97 @@ float Shell_getBatteryLevel() {
 	return -1.0f;
 }
 
-void Shell_getMainScreenSize(unsigned int * outWidth, unsigned int * outHeight) {
-	if (outWidth != NULL) {
-		*outWidth = GetSystemMetrics(SM_CXSCREEN);
-	}
-	if (outHeight != NULL) {
-		*outHeight = GetSystemMetrics(SM_CYSCREEN);
-	}
-}
-
-void WGLShell_setCursorVisible(bool visible) {
-	if (visible) {
-		if (cursorHiddenByHide) {
-			cursorHiddenByHide = false;
-			ShowCursor(true);
-		}
-	} else {
-		if (!cursorHiddenByHide) {
-			cursorHiddenByHide = true;
-			ShowCursor(false);
-		}
-	}
-}
-
-void WGLShell_hideCursorUntilMouseMoves() {
-	if (!cursorHiddenUntilMouseMoves) {
-		cursorHiddenUntilMouseMoves = true;
-		ShowCursor(false);
-	}
-}
-
-void WGLShell_setCursor(enum WGLShellCursor value) {
-	HCURSOR cursor = NULL;
+static DWORD WINAPI callThreadFunc(LPVOID context) {
+	struct threadFuncInvocation * invocation = context;
+	int (* threadFunction)(void * context);
+	void * threadContext;
 	
-	switch (value) {
-		case WGLShellCursor_arrow:
-			cursor = LoadCursor(NULL, IDC_ARROW);
-			break;
-		case WGLShellCursor_appStarting:
-			cursor = LoadCursor(NULL, IDC_APPSTARTING);
-			break;
-		case WGLShellCursor_crosshair:
-			cursor = LoadCursor(NULL, IDC_CROSS);
-			break;
-		case WGLShellCursor_hand:
-			cursor = LoadCursor(NULL, IDC_HAND);
-			break;
-		case WGLShellCursor_help:
-			cursor = LoadCursor(NULL, IDC_HELP);
-			break;
-		case WGLShellCursor_iBeam:
-			cursor = LoadCursor(NULL, IDC_IBEAM);
-			break;
-		case WGLShellCursor_no:
-			cursor = LoadCursor(NULL, IDC_NO);
-			break;
-		case WGLShellCursor_sizeAll:
-			cursor = LoadCursor(NULL, IDC_SIZEALL);
-			break;
-		case WGLShellCursor_sizeNESW:
-			cursor = LoadCursor(NULL, IDC_SIZENESW);
-			break;
-		case WGLShellCursor_sizeNS:
-			cursor = LoadCursor(NULL, IDC_SIZENS);
-			break;
-		case WGLShellCursor_sizeNWSE:
-			cursor = LoadCursor(NULL, IDC_SIZENWSE);
-			break;
-		case WGLShellCursor_sizeWE:
-			cursor = LoadCursor(NULL, IDC_SIZEWE);
-			break;
-		case WGLShellCursor_upArrow:
-			cursor = LoadCursor(NULL, IDC_UPARROW);
-			break;
-		case WGLShellCursor_wait:
-			cursor = LoadCursor(NULL, IDC_WAIT);
-			break;
+	threadFunction  = invocation->threadFunction;
+	threadContext = invocation->context;
+	free(invocation);
+	return (DWORD) threadFunction(threadContext);
+}
+
+ShellThread Shell_createThread(int (* threadFunction)(void * context), void * context) {
+	HANDLE thread;
+	struct threadFuncInvocation * invocation;
+	
+	invocation = malloc(sizeof(struct threadFuncInvocation));
+	invocation->threadFunction = threadFunction;
+	invocation->context = context;
+	thread = CreateThread(NULL, 0, callThreadFunc, invocation, 0, NULL);
+	return thread;
+}
+
+void Shell_detachThread(ShellThread thread) {
+	CloseHandle(thread);
+}
+
+int Shell_joinThread(ShellThread thread) {
+	DWORD status;
+	DWORD returnValue = -1;
+	
+	status = WaitForSingleObject(thread, INFINITE);
+	if (status != WAIT_FAILED) {
+		GetExitCodeThread(thread, &returnValue);
+		return returnValue;
 	}
-	if (cursor != NULL) {
-		SetClassLong(window, GCL_HCURSOR, (long) cursor);
-		SetCursor(cursor);
+	return status;
+}
+
+void Shell_exitThread(int statusCode) {
+	ExitThread(statusCode);
+}
+
+ShellThread Shell_getCurrentThread() {
+	HANDLE duplicate = NULL;
+	
+	if (DuplicateHandle(GetCurrentProcess(), GetCurrentThread(), GetCurrentProcess(), &duplicate, 0, true, DUPLICATE_SAME_ACCESS)) {
+		CloseHandle(&duplicate);
 	}
+	return duplicate;
+}
+
+ShellMutex Shell_createMutex() {
+	return CreateMutex(NULL, false, NULL);
+}
+
+void Shell_disposeMutex(ShellMutex mutex) {
+	CloseHandle(mutex);
+}
+
+void Shell_lockMutex(ShellMutex mutex) {
+	WaitForSingleObject(mutex, INFINITE);
+}
+
+bool Shell_tryLockMutex(ShellMutex mutex) {
+	return WaitForSingleObject(mutex, 0) != WAIT_FAILED;
+}
+
+void Shell_unlockMutex(ShellMutex mutex) {
+	ReleaseMutex(mutex);
+}
+
+#define SEMAPHORE_MAX 32767
+
+ShellSemaphore Shell_createSemaphore(unsigned int value) {
+	return CreateSemaphore(NULL, value > SEMAPHORE_MAX ? SEMAPHORE_MAX : value, SEMAPHORE_MAX, NULL);
+}
+
+void Shell_disposeSemaphore(ShellSemaphore semaphore) {
+	CloseHandle(semaphore);
+}
+
+void Shell_postSemaphore(ShellSemaphore semaphore) {
+	ReleaseSemaphore(semaphore, 1, NULL);
+}
+
+void Shell_waitSemaphore(ShellSemaphore semaphore) {
+	WaitForSingleObject(semaphore, INFINITE);
+}
+
+bool Shell_tryWaitSemaphore(ShellSemaphore semaphore) {
+	return WaitForSingleObject(semaphore, 0) != WAIT_TIMEOUT;
 }
 
 static unsigned int windowsVKToShellKeyCode(UINT vk) {
@@ -627,7 +740,7 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prevInstance, PSTR commandLine,
 	result = RegisterClassEx(&windowClass);
 	if (result == 0) {
 		fprintf(stderr, "RegisterClassEx failed! GetLastError(): %ld\n", GetLastError());
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 	
 	window = CreateWindow("wglshell",
@@ -643,7 +756,7 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prevInstance, PSTR commandLine,
 	                      NULL);
 	if (window == NULL) {
 		fprintf(stderr, "CreateWindow failed! GetLastError(): %ld\n", GetLastError());
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 	
 	pixelFormat.nSize = sizeof(PIXELFORMATDESCRIPTOR);
@@ -679,23 +792,23 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prevInstance, PSTR commandLine,
 	displayContext = GetDC(window);
 	if (displayContext == NULL) {
 		fprintf(stderr, "GetDC failed! GetLastError(): %ld\n", GetLastError());
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 	
 	format = ChoosePixelFormat(displayContext, &pixelFormat);
 	if (format == 0) {
 		fprintf(stderr, "ChoosePixelFormat failed! GetLastError(): %ld\n", GetLastError());
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 	if (!SetPixelFormat(displayContext, format, &pixelFormat)) {
 		fprintf(stderr, "SetPixelFormat failed! GetLastError(): %ld\n", GetLastError());
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 	
 	glContext = wglCreateContext(displayContext);
 	if (glContext == NULL) {
 		fprintf(stderr, "wglCreateContext failed! GetLastError(): %ld\n", GetLastError());
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 	
 	wglMakeCurrent(displayContext, glContext);
@@ -714,5 +827,5 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prevInstance, PSTR commandLine,
 	Target_resized(configuration.windowWidth, configuration.windowHeight);
 	Target_init();
 	
-	return 0;
+	return EXIT_SUCCESS;
 }
