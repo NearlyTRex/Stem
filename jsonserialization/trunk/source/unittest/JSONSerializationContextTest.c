@@ -232,10 +232,10 @@ static void testNumberValues() {
 	TestCase_assert(node->subitems[5].value.number == UINT32_MAX, "Expected %d but got %g", UINT32_MAX, node->subitems[5].value.number);
 	TestCase_assert(node->subitems[6].type == JSON_TYPE_NUMBER, "Expected %d but got %d", JSON_TYPE_NUMBER, node->subitems[6].type);
 	TestCase_assert(node->subitems[6].key == NULL, "Expected NULL but got %p", node->subitems[6].key);
-	TestCase_assert(node->subitems[6].value.number == -(1ll << DBL_MANT_DIG), "Expected " INT64_FORMAT " but got %g", -(1ll << DBL_MANT_DIG), node->subitems[6].value.number);
+	TestCase_assert(node->subitems[6].value.number == -(1ll << DBL_MANT_DIG), "Expected " LONG_LONG_FORMAT " but got %g", -(1ll << DBL_MANT_DIG), node->subitems[6].value.number);
 	TestCase_assert(node->subitems[7].type == JSON_TYPE_NUMBER, "Expected %d but got %d", JSON_TYPE_NUMBER, node->subitems[7].type);
 	TestCase_assert(node->subitems[7].key == NULL, "Expected NULL but got %p", node->subitems[7].key);
-	TestCase_assert(node->subitems[7].value.number == 1ull << DBL_MANT_DIG, "Expected " UINT64_FORMAT " but got %g", 1ull << DBL_MANT_DIG, node->subitems[7].value.number);
+	TestCase_assert(node->subitems[7].value.number == 1ull << DBL_MANT_DIG, "Expected " ULONG_LONG_FORMAT " but got %g", 1ull << DBL_MANT_DIG, node->subitems[7].value.number);
 	TestCase_assert(node->subitems[8].type == JSON_TYPE_NUMBER, "Expected %d but got %d", JSON_TYPE_NUMBER, node->subitems[8].type);
 	TestCase_assert(node->subitems[8].key == NULL, "Expected NULL but got %p", node->subitems[8].key);
 	TestCase_assert(node->subitems[8].value.number == FLT_MAX, "Expected %f but got %f", FLT_MAX, node->subitems[8].value.number);
@@ -272,10 +272,10 @@ static void testLargeIntegerRepresentability() {
 	TestCase_assert(node->subitems != NULL, "Expected non-NULL but got NULL");
 	TestCase_assert(node->subitems[0].type == JSON_TYPE_NUMBER, "Expected %d but got %d", JSON_TYPE_NUMBER, node->subitems[0].type);
 	TestCase_assert(node->subitems[0].key == NULL, "Expected NULL but got %p", node->subitems[0].key);
-	TestCase_assert(node->subitems[0].value.number == -(1ll << DBL_MANT_DIG), "Expected " INT64_FORMAT " but got %g", -(1ll << DBL_MANT_DIG), node->subitems[0].value.number);
+	TestCase_assert(node->subitems[0].value.number == -(1ll << DBL_MANT_DIG), "Expected " LONG_LONG_FORMAT " but got %g", -(1ll << DBL_MANT_DIG), node->subitems[0].value.number);
 	TestCase_assert(node->subitems[1].type == JSON_TYPE_NUMBER, "Expected %d but got %d", JSON_TYPE_NUMBER, node->subitems[1].type);
 	TestCase_assert(node->subitems[1].key == NULL, "Expected NULL but got %p", node->subitems[1].key);
-	TestCase_assert(node->subitems[1].value.number == 1ull << DBL_MANT_DIG, "Expected " UINT64_FORMAT " but got %g", 1ull << DBL_MANT_DIG, node->subitems[1].value.number);
+	TestCase_assert(node->subitems[1].value.number == 1ull << DBL_MANT_DIG, "Expected " ULONG_LONG_FORMAT " but got %g", 1ull << DBL_MANT_DIG, node->subitems[1].value.number);
 	TestCase_assert(node->subitems[2].type == JSON_TYPE_STRING, "Expected %d but got %d", JSON_TYPE_STRING, node->subitems[2].type);
 	TestCase_assert(node->subitems[2].key == NULL, "Expected NULL but got %p", node->subitems[2].key);
 	TestCase_assert(node->subitems[2].stringLength == 20, "Expected 20 but got " SIZE_T_FORMAT, node->subitems[2].stringLength);
@@ -286,10 +286,10 @@ static void testLargeIntegerRepresentability() {
 	TestCase_assert(!strcmp(node->subitems[3].value.string, "18446744073709551615"), "Expected \"18446744073709551615\" but got \"%s\"", node->subitems[3].value.string);
 	TestCase_assert(node->subitems[4].type == JSON_TYPE_NUMBER, "Expected %d but got %d", JSON_TYPE_NUMBER, node->subitems[4].type);
 	TestCase_assert(node->subitems[4].key == NULL, "Expected NULL but got %p", node->subitems[4].key);
-	TestCase_assert(node->subitems[4].value.number == -(1ll << (DBL_MANT_DIG + 1)), "Expected " INT64_FORMAT " but got %g", -(1ll << (DBL_MANT_DIG + 1)), node->subitems[4].value.number);
+	TestCase_assert(node->subitems[4].value.number == -(1ll << (DBL_MANT_DIG + 1)), "Expected " LONG_LONG_FORMAT " but got %g", -(1ll << (DBL_MANT_DIG + 1)), node->subitems[4].value.number);
 	TestCase_assert(node->subitems[5].type == JSON_TYPE_NUMBER, "Expected %d but got %d", JSON_TYPE_NUMBER, node->subitems[5].type);
 	TestCase_assert(node->subitems[5].key == NULL, "Expected NULL but got %p", node->subitems[5].key);
-	TestCase_assert(node->subitems[5].value.number == 1ull << (DBL_MANT_DIG + 1), "Expected " UINT64_FORMAT " but got %g", 1ull << (DBL_MANT_DIG + 1), node->subitems[5].value.number);
+	TestCase_assert(node->subitems[5].value.number == 1ull << (DBL_MANT_DIG + 1), "Expected " ULONG_LONG_FORMAT " but got %g", 1ull << (DBL_MANT_DIG + 1), node->subitems[5].value.number);
 	TestCase_assert(node->subitems[6].type == JSON_TYPE_STRING, "Expected %d but got %d", JSON_TYPE_STRING, node->subitems[6].type);
 	TestCase_assert(node->subitems[6].key == NULL, "Expected NULL but got %p", node->subitems[6].key);
 	TestCase_assert(node->subitems[6].stringLength == 17, "Expected 17 but got " SIZE_T_FORMAT, node->subitems[6].stringLength);
