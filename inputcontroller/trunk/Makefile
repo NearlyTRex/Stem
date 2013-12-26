@@ -168,7 +168,7 @@ LINK_ORDER = \
 PROJECT_LIBRARY_DEPENDENCIES_unittest = library
 PROJECT_LIBRARY_DEPENDENCIES_testharness = library
 STEM_LIBRARY_DEPENDENCIES = \
-	gamepad/1.3.0 \
+	gamepad/1.3.1 \
 	serialization/1.3.0 \
 	stemobject/3.1.0 \
 	utilities/1.7.1
