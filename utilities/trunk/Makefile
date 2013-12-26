@@ -170,7 +170,7 @@ STEM_LIBRARY_DEPENDENCIES_unittest = \
 	stubshell/1.3.1 \
 	unittest/1.0.0
 STEM_LIBRARY_DEPENDENCIES_testharness = \
-	stubshell/1.3.0
+	stubshell/1.3.1
 STEM_SOURCE_DEPENDENCIES = 
 THIRDPARTY_LIBRARY_DEPENDENCIES = 
 
