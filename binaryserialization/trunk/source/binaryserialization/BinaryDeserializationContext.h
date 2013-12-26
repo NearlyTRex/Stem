@@ -20,8 +20,11 @@
   Alex Diener adiener@sacredsoftware.net
 */
 
-#ifndef __BINARY_DESERIALIZATION_CONTEXT_H__
-#define __BINARY_DESERIALIZATION_CONTEXT_H__
+#ifndef __BinaryDeserializationContext_H__
+#define __BinaryDeserializationContext_H__
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef struct BinaryDeserializationContext BinaryDeserializationContext;
 
@@ -52,8 +55,8 @@ stemobject_struct_definition(BinaryDeserializationContext)
 
 BinaryDeserializationContext * BinaryDeserializationContext_createWithFile(const char * filePath);
 BinaryDeserializationContext * BinaryDeserializationContext_createWithBytes(const void * bytes, size_t length);
-void BinaryDeserializationContext_initWithFile(BinaryDeserializationContext * self, const char * filePath);
-void BinaryDeserializationContext_initWithBytes(BinaryDeserializationContext * self, const void * bytes, size_t length);
+bool BinaryDeserializationContext_initWithFile(BinaryDeserializationContext * self, const char * filePath);
+bool BinaryDeserializationContext_initWithBytes(BinaryDeserializationContext * self, const void * bytes, size_t length);
 void BinaryDeserializationContext_dispose(BinaryDeserializationContext * self);
 
 void BinaryDeserializationContext_beginStructure(BinaryDeserializationContext * self, const char * key);
@@ -82,4 +85,7 @@ uint64_t BinaryDeserializationContext_readBitfield64(BinaryDeserializationContex
 const char * BinaryDeserializationContext_readNextDictionaryKey(BinaryDeserializationContext * self);
 bool BinaryDeserializationContext_hasDictionaryKey(BinaryDeserializationContext * self, const char * key);
 
+#ifdef __cplusplus
+}
+#endif
 #endif

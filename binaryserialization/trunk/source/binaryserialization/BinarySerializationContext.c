@@ -30,7 +30,7 @@ BinarySerializationContext * BinarySerializationContext_create(bool bigEndian) {
 	stemobject_create_implementation(BinarySerializationContext, init, bigEndian)
 }
 
-void BinarySerializationContext_init(BinarySerializationContext * self, bool bigEndian) {
+bool BinarySerializationContext_init(BinarySerializationContext * self, bool bigEndian) {
 	call_super(init, self);
 	
 	self->jmpBuf = NULL;
@@ -71,6 +71,7 @@ void BinarySerializationContext_init(BinarySerializationContext * self, bool big
 	self->writeBitfield64 = BinarySerializationContext_writeBitfield64;
 	self->writeToBytes = BinarySerializationContext_writeToBytes;
 	self->writeToFile = BinarySerializationContext_writeToFile;
+	return true;
 }
 
 void BinarySerializationContext_dispose(BinarySerializationContext * self) {

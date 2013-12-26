@@ -20,8 +20,11 @@
   Alex Diener adiener@sacredsoftware.net
 */
 
-#ifndef __BINARY_SERIALIZATION_SHARED_H__
-#define __BINARY_SERIALIZATION_SHARED_H__
+#ifndef __BinarySerializationShared_H__
+#define __BinarySerializationShared_H__
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 // Data ended prematurely
 #define BINARY_SERIALIZATION_ERROR_UNEXPECTED_EOF 200
@@ -49,4 +52,7 @@ enum BinarySerializationContainerType {
 
 const char * BinarySerialization_errorString(int status);
 
+#ifdef __cplusplus
+}
+#endif
 #endif

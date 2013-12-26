@@ -148,12 +148,13 @@ static void sharedInit(BinaryDeserializationContext * self) {
 	self->hasDictionaryKey = BinaryDeserializationContext_hasDictionaryKey;
 }
 
-void BinaryDeserializationContext_initWithFile(BinaryDeserializationContext * self, const char * filePath) {
+bool BinaryDeserializationContext_initWithFile(BinaryDeserializationContext * self, const char * filePath) {
 	self->bytes = readFileSimple(filePath, &self->length);
 	sharedInit(self);
+	return true;
 }
 
-void BinaryDeserializationContext_initWithBytes(BinaryDeserializationContext * self, const void * bytes, size_t length) {
+bool BinaryDeserializationContext_initWithBytes(BinaryDeserializationContext * self, const void * bytes, size_t length) {
 	void * bytesMutable;
 	
 	bytesMutable = malloc(length);
@@ -161,6 +162,7 @@ void BinaryDeserializationContext_initWithBytes(BinaryDeserializationContext * s
 	self->bytes = bytesMutable;
 	self->length = length;
 	sharedInit(self);
+	return true;
 }
 
 void BinaryDeserializationContext_dispose(BinaryDeserializationContext * self) {

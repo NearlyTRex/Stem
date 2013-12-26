@@ -20,8 +20,11 @@
   Alex Diener adiener@sacredsoftware.net
 */
 
-#ifndef __BINARY_SERIALIZATION_CONTEXT_H__
-#define __BINARY_SERIALIZATION_CONTEXT_H__
+#ifndef __BinarySerializationContext_H__
+#define __BinarySerializationContext_H__
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include "serialization/SerializationContext.h"
 #include "binaryserialization/BinarySerializationShared.h"
@@ -54,7 +57,7 @@ struct BinarySerializationContext_containerNode {
 stemobject_struct_definition(BinarySerializationContext)
 
 BinarySerializationContext * BinarySerializationContext_create(bool bigEndian);
-void BinarySerializationContext_init(BinarySerializationContext * self, bool bigEndian);
+bool BinarySerializationContext_init(BinarySerializationContext * self, bool bigEndian);
 void BinarySerializationContext_dispose(BinarySerializationContext * self);
 
 // Returned object owned by caller; free when done
@@ -86,4 +89,7 @@ void BinarySerializationContext_writeBitfield16(BinarySerializationContext * sel
 void BinarySerializationContext_writeBitfield32(BinarySerializationContext * self, const char * key, uint32_t value, ...) __attribute__((sentinel));
 void BinarySerializationContext_writeBitfield64(BinarySerializationContext * self, const char * key, uint64_t value, ...) __attribute__((sentinel));
 
+#ifdef __cplusplus
+}
+#endif
 #endif

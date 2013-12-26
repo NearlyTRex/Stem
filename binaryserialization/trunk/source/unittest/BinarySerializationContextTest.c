@@ -1,15 +1,10 @@
-#include "unittest/framework/TestSuite.h"
+#include "unittest/TestSuite.h"
+#include "unittest/printfFormats.h"
 #include "binaryserialization/BinarySerializationContext.h"
 #include "utilities/IOUtilities.h"
 #include <stdio.h>
 #include <float.h>
 #include <unistd.h>
-
-#if defined(WIN32)
-#define SIZE_T_FORMAT "%Iu"
-#else
-#define SIZE_T_FORMAT "%zu"
-#endif
 
 static void testInit() {
 	BinarySerializationContext context, * contextPtr;
