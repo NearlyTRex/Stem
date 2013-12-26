@@ -181,8 +181,8 @@ PROJECT_LIBRARY_DEPENDENCIES_testharness = library
 STEM_LIBRARY_DEPENDENCIES = \
 	3dmath/1.4.0 \
 	serialization/1.3.0 \
-	stemobject/3.0.2 \
-	shell/1.0.0
+	stemobject/3.1.0 \
+	shell/1.1.0
 STEM_LIBRARY_DEPENDENCIES_library = \
 	glgraphics/1.2.0
 STEM_LIBRARY_DEPENDENCIES_unittest = \
@@ -193,7 +193,7 @@ STEM_LIBRARY_DEPENDENCIES_testharness = \
 	bitmapimage/1.3.1 \
 	jsonio/1.2.4 \
 	jsonserialization/1.0.5 \
-	utilities/1.7.0
+	utilities/1.7.1
 STEM_SOURCE_DEPENDENCIES = 
 THIRDPARTY_LIBRARY_DEPENDENCIES_library = libpng/1.4.1/libpng.a
 THIRDPARTY_LIBRARY_DEPENDENCIES_unittest = 
