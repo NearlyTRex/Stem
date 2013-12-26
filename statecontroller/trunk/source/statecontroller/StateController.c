@@ -29,7 +29,7 @@ StateController * StateController_create() {
 	stemobject_create_implementation(StateController, init)
 }
 
-void StateController_init(StateController * self) {
+bool StateController_init(StateController * self) {
 	call_super(init, self);
 	self->dispose = StateController_dispose;
 	self->addState = StateController_addState;
@@ -43,6 +43,7 @@ void StateController_init(StateController * self) {
 	self->validStates = NULL;
 	self->transitionCount = 0;
 	self->transitions = NULL;
+	return true;
 }
 
 void StateController_dispose(StateController * self) {

@@ -39,7 +39,7 @@ typedef struct State State;
 
 stemobject_struct_definition(State)
 
-void State_init(State * self);
+bool State_init(State * self);
 void State_dispose(State * self);
 
 void State_activate(State * self);

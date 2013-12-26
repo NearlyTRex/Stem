@@ -54,7 +54,7 @@ struct StateController_transition {
 stemobject_struct_definition(StateController)
 
 StateController * StateController_create();
-void StateController_init(StateController * self);
+bool StateController_init(StateController * self);
 void StateController_dispose(StateController * self);
 
 void StateController_addState(StateController * self, compat_type(State *) state);

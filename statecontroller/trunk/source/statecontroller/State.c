@@ -24,13 +24,14 @@
 
 #define SUPERCLASS StemObject
 
-void State_init(State * self) {
+bool State_init(State * self) {
 	call_super(init, self);
 	self->dispose = State_dispose;
 	self->activate = State_activate;
 	self->deactivate = State_deactivate;
 	self->draw = State_draw;
 	self->stateController = NULL;
+	return true;
 }
 
 void State_dispose(State * self) {

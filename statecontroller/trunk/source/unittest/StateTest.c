@@ -1,11 +1,13 @@
-#include "unittest/framework/TestSuite.h"
+#include "unittest/TestSuite.h"
 #include "statecontroller/State.h"
 
 static void testInit() {
 	State state;
+	bool success;
 	
 	memset(&state, 0xFF, sizeof(state));
-	State_init(&state);
+	success = State_init(&state);
+	TestCase_assert(success, "Expected true but got false");
 	TestCase_assert(state.dispose == State_dispose, "Expected %p but got %p", State_dispose, state.dispose);
 	TestCase_assert(state.activate == State_activate, "Expected %p but got %p", State_activate, state.activate);
 	TestCase_assert(state.deactivate == State_deactivate, "Expected %p but got %p", State_deactivate, state.deactivate);

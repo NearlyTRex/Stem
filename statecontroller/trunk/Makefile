@@ -38,7 +38,6 @@ LIBRARY_TARGETS = library
 EXECUTABLE_TARGETS = unittest
 APPLICATION_TARGETS = 
 TARGETS = ${LIBRARY_TARGETS} ${EXECUTABLE_TARGETS} ${APPLICATION_TARGETS}
-CONFIGURATIONS = debug profile release
 PLATFORMS = ${filter ${TARGET_PLATFORMS_${HOST_PLATFORM}},macosx iphonesimulator iphoneos linux32 linux64 win32 win64}
 ANALYZERS = splint clang
 
@@ -53,9 +52,6 @@ CONFIGURATIONS_unittest = debug
 PLATFORMS_library = ${filter ${PLATFORMS},macosx iphonesimulator iphoneos linux32 linux64 win32 win64}
 PLATFORMS_unittest = ${filter ${PLATFORMS},macosx iphonesimulator linux32 linux64 win32 win64}
 
-#Per-target compile/link settings
-CCFLAGS_unittest = -I test_source -include build/intermediate/TestList.h
-
 #Per-target analyzer settings
 CLANGFLAGS_unittest = ${CCFLAGS_unittest}
 SPLINTFLAGS_unittest = ${CCFLAGS_unittest}
@@ -66,7 +62,6 @@ CCFLAGS_profile = -g -O3
 CCFLAGS_release = -O3
 
 #Per-platform compile/link settings
-CC_macosx_ppc = /usr/bin/gcc-4.2 -arch ppc
 CC_macosx_i386 = /usr/bin/clang -arch i386
 CC_macosx_x86_64 = /usr/bin/clang -arch x86_64
 AR_macosx = /usr/bin/ar
@@ -156,6 +151,7 @@ LINKFLAGS = ${FRAMEWORK_LINKFLAGS} ${LIBRARY_LINKFLAGS} ${OTHER_LINKFLAGS}
 
 LINK_ORDER = \
 	library \
+	unittest \
 	utilities \
 	stemobject
 
@@ -163,8 +159,9 @@ LINK_ORDER = \
 
 PROJECT_LIBRARY_DEPENDENCIES_unittest = library
 STEM_LIBRARY_DEPENDENCIES = \
-	utilities/1.7.0 \
-	stemobject/3.0.2
+	utilities/1.7.1 \
+	stemobject/3.1.0
+STEM_LIBRARY_DEPENDENCIES_unittest = unittest/1.0.0
 STEM_SOURCE_DEPENDENCIES = 
 THIRDPARTY_LIBRARY_DEPENDENCIES = 
 
@@ -175,13 +172,12 @@ SOURCES_library = \
 	source/${PROJECT_NAME}/StateController.c
 
 SOURCES_unittest = \
-	test_source/unittest/framework/unittest_main.c \
-	test_source/unittest/framework/TestList.c \
+	build/intermediate/TestList.c \
 	${SOURCES_unittest_suites}
 
 SOURCES_unittest_suites = \
-	test_source/unittest/suites/StateControllerTest.c \
-	test_source/unittest/suites/StateTest.c
+	source/unittest/StateControllerTest.c \
+	source/unittest/StateTest.c
 
 #Include files to be distributed with library
 
@@ -207,14 +203,13 @@ ANALYZER_EXCLUDE_SOURCES_clang =
 ANALYZER_EXCLUDE_SOURCES_splint = ${SOURCES_unittest}
 
 #Additional target build prerequisites
+PREREQS_unittest = 
 
-PREREQS_unittest = build/intermediate/TestList.h
+#TestList.c is automatically generated from ${SOURCES_unittest_suites}. It is used by the unit test framework to determine which tests to run.
+build/intermediate/TestList.c: build/intermediate/TestSuites.txt | build/intermediate
+	echo 'const char * UnitTest_suiteNameList[] = {${foreach file,${SOURCES_unittest_suites},"${basename ${notdir ${file}}}",} (void *) 0};' > $@
 
-#TestList.h is automatically generated from ${SOURCES_unittest_suites}. It is used by the unit test framework to determine which tests to run.
-build/intermediate/TestList.h: build/intermediate/TestSuites.txt | build/intermediate
-	echo '#define SUITE_FILE_LIST ${foreach file,${SOURCES_unittest_suites},"${basename ${notdir ${file}}}",} NULL' > $@
-
-#TestSuites.txt tracks the state of ${SOURCES_unittest_suites} so that TestList.h can be updated if and only if ${SOURCES_unittest_suites} has changed. .PHONY is abused slightly to cause the target to be conditionally remade.
+#TestSuites.txt tracks the state of ${SOURCES_unittest_suites} so that TestList.c can be updated if and only if ${SOURCES_unittest_suites} has changed. .PHONY is abused slightly to cause the target to be conditionally remade.
 ifneq (${shell echo "${SOURCES_unittest_suites}" | cmp - build/intermediate/TestSuites.txt 2>&1},)
 .PHONY: build/intermediate/TestSuites.txt
 endif
@@ -283,9 +278,9 @@ endef
 
 define dependency_template #(target, configuration, platform, arch, source_file)
 build/intermediate/$1-$2-$3-$4/${notdir ${basename $5}}.d: $5 ${PREREQS_$1} | build/intermediate/$1-$2-$3-$4
-	${CC_$3_$4} ${CCFLAGS} ${CCFLAGS_$1} ${CCFLAGS_$2} ${CCFLAGS_$3} ${call include_ccflags_template,$1,$3} ${call define_ccflags_template,$1,$2,$3,$4} -MM -o $$@.temp $5
-	sed 's,\(${notdir ${basename $5}}\)\.o[ :]*,$${basename $$@}.o $${basename $$@}.d: ,g' < $$@.temp > $$@
-	rm $$@.temp
+	@${CC_$3_$4} ${CCFLAGS} ${CCFLAGS_$1} ${CCFLAGS_$2} ${CCFLAGS_$3} ${call include_ccflags_template,$1,$3} ${call define_ccflags_template,$1,$2,$3,$4} -MM -o $$@.temp $5
+	@sed 's,\(${notdir ${basename $5}}\)\.o[ :]*,$${basename $$@}.o $${basename $$@}.d: ,g' < $$@.temp > $$@
+	@rm $$@.temp
 endef
 
 #Produces dependency build targets for all source files in each configuration/platform/arch
@@ -453,10 +448,11 @@ ${foreach target,${LIBRARY_TARGETS}, \
 }
 
 define copy_target_resources #(target, platform, resources_dir)
+	${if ${strip ${RESOURCES_$1} ${RESOURCES_$1_$2}},mkdir -p $3,}
 	${foreach resource,${RESOURCES_$1} ${RESOURCES_$1_$2}, \
 		cp -r ${resource} $3${newline_and_tab} \
 	}
-	find $3 -name .svn -or -name .DS_Store -print0 | xargs -0 rm -rf
+	find $3 -name .svn -print0 -or -name .DS_Store -print0 | xargs -0 rm -rf
 endef
 
 define assemble_executable_macosx #(target, configuration, platform)
@@ -529,28 +525,24 @@ endef
 
 define assemble_application_linux32 #(target, configuration)
 build/$1/$2-linux32/${TARGET_NAME_$1}: ${THIN_BINARIES_$1_$2_linux32} ${RESOURCES_$1} ${RESOURCES_$1_linux32} | build/$1/$2-linux32
-	mkdir -p build/$1/$2-linux32/Resources
 	${call copy_target_resources,$1,linux32,build/$1/$2-linux32/Resources}
 	cp ${THIN_BINARIES_$1_$2_linux32} $$@
 endef
 
 define assemble_application_linux64 #(target, configuration)
 build/$1/$2-linux64/${TARGET_NAME_$1}: ${THIN_BINARIES_$1_$2_linux64} ${RESOURCES_$1} ${RESOURCES_$1_linux64} | build/$1/$2-linux64
-	mkdir -p build/$1/$2-linux64/Resources
 	${call copy_target_resources,$1,linux64,build/$1/$2-linux64/Resources}
 	cp ${THIN_BINARIES_$1_$2_linux64} $$@
 endef
 
 define assemble_application_win32 #(target, configuration)
 build/$1/$2-win32/${TARGET_NAME_$1}.exe: ${THIN_BINARIES_$1_$2_win32} ${RESOURCES_$1} ${RESOURCES_$1_win32} | build/$1/$2-win32
-	mkdir -p build/$1/$2-win32/Resources
 	${call copy_target_resources,$1,win32,build/$1/$2-win32/Resources}
 	cp ${THIN_BINARIES_$1_$2_win32} $$@
 endef
 
 define assemble_application_win64 #(target, configuration)
 build/$1/$2-win64/${TARGET_NAME_$1}.exe: ${THIN_BINARIES_$1_$2_win64} ${RESOURCES_$1} ${RESOURCES_$1_win64} | build/$1/$2-win64
-	mkdir -p build/$1/$2-win64/Resources
 	${call copy_target_resources,$1,win64,build/$1/$2-win64/Resources}
 	cp ${THIN_BINARIES_$1_$2_win64} $$@
 endef
@@ -761,7 +753,7 @@ RESOURCE_RULES_PLIST = /Developer/Platforms/MacOSX.platform/ResourceRules.plist
 define codesign_target_iphoneos_template #(target)
 .PHONY: codesign_$1_iphoneos
 codesign_$1_iphoneos: $1
-	sed -e "s/\$$$${PRODUCT_NAME}/${TARGET_NAME_$1}/g" test_resources/Entitlements.plist > build/intermediate/Entitlements.plist
+	sed -e "s/\$$$${PRODUCT_NAME}/${TARGET_NAME_$1}/g" resources/Entitlements.plist > build/intermediate/Entitlements.plist
 	${call add_blob_header,build/intermediate/Entitlements.plist,build/intermediate/Entitlements.xcent}
 	export CODESIGN_ALLOCATE=/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/codesign_allocate
 	${foreach configuration,${CONFIGURATIONS_$1},\
