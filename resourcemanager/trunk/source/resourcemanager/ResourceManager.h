@@ -69,7 +69,7 @@ struct ResourceManager_resource {
 stemobject_struct_definition(ResourceManager)
 
 ResourceManager * ResourceManager_create();
-void ResourceManager_init(ResourceManager * self);
+bool ResourceManager_init(ResourceManager * self);
 void ResourceManager_dispose(ResourceManager * self);
 
 void ResourceManager_addTypeHandler(ResourceManager * self,

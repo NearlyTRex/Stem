@@ -1,11 +1,23 @@
-#include "unittest/framework/TestSuite.h"
+#include "unittest/TestSuite.h"
 #include "resourcemanager/ResourceManager.h"
 
 static void testInit() {
 	ResourceManager resourceManager, * resourceManagerPtr;
+	bool success;
 	
 	memset(&resourceManager, 0x00, sizeof(resourceManager));
-	ResourceManager_init(&resourceManager);
+	success = ResourceManager_init(&resourceManager);
+	TestCase_assert(success, "Expected true but got false");
+	TestCase_assert(resourceManager.dispose == ResourceManager_dispose, "Expected %p but got %p", ResourceManager_dispose, resourceManager.dispose);
+	TestCase_assert(resourceManager.addTypeHandler == ResourceManager_addTypeHandler, "Expected %p but got %p", ResourceManager_addTypeHandler, resourceManager.addTypeHandler);
+	TestCase_assert(resourceManager.addResource == ResourceManager_addResource, "Expected %p but got %p", ResourceManager_addResource, resourceManager.addResource);
+	TestCase_assert(resourceManager.referenceResource == ResourceManager_referenceResource, "Expected %p but got %p", ResourceManager_referenceResource, resourceManager.referenceResource);
+	TestCase_assert(resourceManager.releaseResource == ResourceManager_releaseResource, "Expected %p but got %p", ResourceManager_releaseResource, resourceManager.releaseResource);
+	resourceManager.dispose(&resourceManager);
+	
+	memset(&resourceManager, 0xFF, sizeof(resourceManager));
+	success = ResourceManager_init(&resourceManager);
+	TestCase_assert(success, "Expected true but got false");
 	TestCase_assert(resourceManager.dispose == ResourceManager_dispose, "Expected %p but got %p", ResourceManager_dispose, resourceManager.dispose);
 	TestCase_assert(resourceManager.addTypeHandler == ResourceManager_addTypeHandler, "Expected %p but got %p", ResourceManager_addTypeHandler, resourceManager.addTypeHandler);
 	TestCase_assert(resourceManager.addResource == ResourceManager_addResource, "Expected %p but got %p", ResourceManager_addResource, resourceManager.addResource);

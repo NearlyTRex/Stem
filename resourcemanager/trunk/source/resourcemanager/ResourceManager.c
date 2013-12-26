@@ -30,7 +30,7 @@ ResourceManager * ResourceManager_create() {
 	stemobject_create_implementation(ResourceManager, init)
 }
 
-void ResourceManager_init(ResourceManager * self) {
+bool ResourceManager_init(ResourceManager * self) {
 	call_super(init, self);
 	
 	self->typeHandlerCount = 0;
@@ -43,6 +43,7 @@ void ResourceManager_init(ResourceManager * self) {
 	self->addResource = ResourceManager_addResource;
 	self->referenceResource = ResourceManager_referenceResource;
 	self->releaseResource = ResourceManager_releaseResource;
+	return true;
 }
 
 void ResourceManager_dispose(ResourceManager * self) {
