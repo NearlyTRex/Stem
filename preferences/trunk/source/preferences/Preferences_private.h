@@ -20,8 +20,11 @@
   Alex Diener adiener@sacredsoftware.net
 */
 
-#ifndef __PREFERENCES_PRIVATE_H__
-#define __PREFERENCES_PRIVATE_H__
+#ifndef __PreferencesPrivate_H__
+#define __PreferencesPrivate_H__
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include "preferences/Preferences.h"
 
@@ -35,4 +38,7 @@ void Preferences_getFilePathPrivate(const char * fileName, char * outFilePath);
 void Preferences_loadPrivate(Preferences * self);
 void Preferences_savePrivate(Preferences * self);
 
+#ifdef __cplusplus
+}
+#endif
 #endif

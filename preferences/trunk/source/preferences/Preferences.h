@@ -20,8 +20,11 @@
   Alex Diener adiener@sacredsoftware.net
 */
 
-#ifndef __PREFERENCES_H__
-#define __PREFERENCES_H__
+#ifndef __Preferences_H__
+#define __Preferences_H__
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef struct Preferences Preferences;
 
@@ -118,7 +121,7 @@ stemobject_struct_definition(Preferences)
 void Preferences_getFilePath(const char * fileName, char * outPath);
 
 Preferences * Preferences_create(const char * identifier);
-void Preferences_init(Preferences * self, const char * identifier);
+bool Preferences_init(Preferences * self, const char * identifier);
 void Preferences_dispose(Preferences * self);
 
 void Preferences_addInteger(Preferences * self, const char * name, int defaultValue);
@@ -144,4 +147,7 @@ void Preferences_save(Preferences * self);
 void Preferences_loadDefaultValues(Preferences * self);
 void Preferences_loadDefaultValue(Preferences * self, const char * name);
 
+#ifdef __cplusplus
+}
+#endif
 #endif

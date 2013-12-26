@@ -1,12 +1,7 @@
-#include "unittest/framework/TestSuite.h"
+#include "unittest/TestSuite.h"
+#include "unittest/printfFormats.h"
 #include "preferences/Preferences.h"
 #include "preferences/Preferences_private.h"
-
-#if defined(WIN32)
-#define SIZE_T_FORMAT "%Iu"
-#else
-#define SIZE_T_FORMAT "%zu"
-#endif
 
 static unsigned int loadCalls;
 static unsigned int saveCalls;

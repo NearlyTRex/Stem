@@ -34,7 +34,7 @@ Preferences * Preferences_create(const char * identifier) {
 	stemobject_create_implementation(Preferences, init, identifier)
 }
 
-void Preferences_init(Preferences * self, const char * identifier) {
+bool Preferences_init(Preferences * self, const char * identifier) {
 	char * newIdentifier;
 	
 	call_super(init, self);
@@ -66,6 +66,7 @@ void Preferences_init(Preferences * self, const char * identifier) {
 	self->save = Preferences_save;
 	self->loadDefaultValues = Preferences_loadDefaultValues;
 	self->loadDefaultValue = Preferences_loadDefaultValue;
+	return true;
 }
 
 void Preferences_dispose(Preferences * self) {
