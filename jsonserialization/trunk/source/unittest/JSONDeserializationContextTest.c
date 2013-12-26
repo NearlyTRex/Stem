@@ -1,4 +1,5 @@
-#include "unittest/framework/TestSuite.h"
+#include "unittest/TestSuite.h"
+#include "unittest/printfFormats.h"
 #include "jsonio/JSONParser.h"
 #include "jsonserialization/JSONDeserializationContext.h"
 #include "utilities/IOUtilities.h"
@@ -7,11 +8,6 @@
 #include <unistd.h>
 
 #define stringAndLength(str) str, strlen(str)
-#if defined(WIN32)
-#define SIZE_T_FORMAT "%Iu"
-#else
-#define SIZE_T_FORMAT "%zu"
-#endif
 
 static void testInit() {
 	JSONDeserializationContext context, * contextPtr;
@@ -259,16 +255,8 @@ static void testInit() {
 #define printfSpecifier_uint16_t "%u"
 #define printfSpecifier_int32_t "%d"
 #define printfSpecifier_uint32_t "%u"
-#if defined(WIN32)
-#define printfSpecifier_int64_t "%I64d"
-#define printfSpecifier_uint64_t "%I64u"
-#elif defined(linux) && defined(_LP64)
-#define printfSpecifier_int64_t "%ld"
-#define printfSpecifier_uint64_t "%lu"
-#else
-#define printfSpecifier_int64_t "%lld"
-#define printfSpecifier_uint64_t "%llu"
-#endif
+#define printfSpecifier_int64_t INT64_FORMAT
+#define printfSpecifier_uint64_t UINT64_FORMAT
 #define printfSpecifier_float "%f"
 #define printfSpecifier_double "%f"
 #define printfSpecifier_bool "%d"

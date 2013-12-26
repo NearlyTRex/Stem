@@ -20,8 +20,11 @@
   Alex Diener adiener@sacredsoftware.net
 */
 
-#ifndef __JSON_DESERIALIZATION_CONTEXT_H__
-#define __JSON_DESERIALIZATION_CONTEXT_H__
+#ifndef __JSONDeserializationContext_H__
+#define __JSONDeserializationContext_H__
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include "serialization/DeserializationContext.h"
 #include "jsonio/JSONIO.h"
@@ -52,9 +55,9 @@ stemobject_struct_definition(JSONDeserializationContext)
 JSONDeserializationContext * JSONDeserializationContext_createWithFile(const char * filePath);
 JSONDeserializationContext * JSONDeserializationContext_createWithString(const char * string, size_t length);
 JSONDeserializationContext * JSONDeserializationContext_createWithJSONNode(struct JSONNode * node);
-void JSONDeserializationContext_initWithFile(JSONDeserializationContext * self, const char * filePath);
-void JSONDeserializationContext_initWithString(JSONDeserializationContext * self, const char * string, size_t length);
-void JSONDeserializationContext_initWithJSONNode(JSONDeserializationContext * self, struct JSONNode * node);
+bool JSONDeserializationContext_initWithFile(JSONDeserializationContext * self, const char * filePath);
+bool JSONDeserializationContext_initWithString(JSONDeserializationContext * self, const char * string, size_t length);
+bool JSONDeserializationContext_initWithJSONNode(JSONDeserializationContext * self, struct JSONNode * node);
 void JSONDeserializationContext_dispose(JSONDeserializationContext * self);
 
 void JSONDeserializationContext_beginStructure(JSONDeserializationContext * self, const char * key);
@@ -83,4 +86,7 @@ uint64_t JSONDeserializationContext_readBitfield64(JSONDeserializationContext * 
 const char * JSONDeserializationContext_readNextDictionaryKey(JSONDeserializationContext * self);
 bool JSONDeserializationContext_hasDictionaryKey(JSONDeserializationContext * self, const char * key);
 
+#ifdef __cplusplus
+}
+#endif
 #endif

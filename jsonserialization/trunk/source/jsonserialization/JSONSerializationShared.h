@@ -20,8 +20,11 @@
   Alex Diener adiener@sacredsoftware.net
 */
 
-#ifndef __JSON_SERIALIZATION_SHARED_H__
-#define __JSON_SERIALIZATION_SHARED_H__
+#ifndef __JSONSerializationShared_H__
+#define __JSONSerializationShared_H__
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 // The structure key being written was already used in the same structure
 #define JSON_SERIALIZATION_ERROR_DUPLICATE_STRUCTURE_KEY 101
@@ -46,4 +49,7 @@ enum JSONSerializationContainerType {
 
 const char * JSONSerialization_errorString(int status);
 
+#ifdef __cplusplus
+}
+#endif
 #endif

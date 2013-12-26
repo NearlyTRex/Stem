@@ -77,23 +77,25 @@ static void JSONDeserializationContext_init(JSONDeserializationContext * self) {
 	self->finished = false;
 }
 
-void JSONDeserializationContext_initWithFile(JSONDeserializationContext * self, const char * filePath) {
+bool JSONDeserializationContext_initWithFile(JSONDeserializationContext * self, const char * filePath) {
 	JSONDeserializationContext_init(self);
 	self->rootNode = JSONParser_loadFile(filePath, NULL);
 	if (self->rootNode == NULL) {
 		self->status = JSON_SERIALIZATION_ERROR_INVALID_JSON;
 	}
+	return true;
 }
 
-void JSONDeserializationContext_initWithString(JSONDeserializationContext * self, const char * string, size_t length) {
+bool JSONDeserializationContext_initWithString(JSONDeserializationContext * self, const char * string, size_t length) {
 	JSONDeserializationContext_init(self);
 	self->rootNode = JSONParser_loadString(string, length, NULL);
 	if (self->rootNode == NULL) {
 		self->status = JSON_SERIALIZATION_ERROR_INVALID_JSON;
 	}
+	return true;
 }
 
-void JSONDeserializationContext_initWithJSONNode(JSONDeserializationContext * self, struct JSONNode * node) {
+bool JSONDeserializationContext_initWithJSONNode(JSONDeserializationContext * self, struct JSONNode * node) {
 	JSONDeserializationContext_init(self);
 	if (node == NULL) {
 		self->rootNode = NULL;
@@ -101,6 +103,7 @@ void JSONDeserializationContext_initWithJSONNode(JSONDeserializationContext * se
 	} else {
 		self->rootNode = JSONNode_copy(node);
 	}
+	return true;
 }
 
 void JSONDeserializationContext_dispose(JSONDeserializationContext * self) {

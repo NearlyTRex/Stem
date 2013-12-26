@@ -20,8 +20,11 @@
   Alex Diener adiener@sacredsoftware.net
 */
 
-#ifndef __JSON_SERIALIZATION_CONTEXT_H__
-#define __JSON_SERIALIZATION_CONTEXT_H__
+#ifndef __JSONSerializationContext_H__
+#define __JSONSerializationContext_H__
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include "serialization/SerializationContext.h"
 #include "jsonio/JSONEmitter.h"
@@ -53,7 +56,7 @@ struct JSONSerializationContext_nodeStackItem {
 stemobject_struct_definition(JSONSerializationContext)
 
 JSONSerializationContext * JSONSerializationContext_create();
-void JSONSerializationContext_init(JSONSerializationContext * self);
+bool JSONSerializationContext_init(JSONSerializationContext * self);
 void JSONSerializationContext_dispose(JSONSerializationContext * self);
 
 // Returned object owned by caller; free when done
@@ -86,4 +89,7 @@ void JSONSerializationContext_writeBitfield16(JSONSerializationContext * self, c
 void JSONSerializationContext_writeBitfield32(JSONSerializationContext * self, const char * key, uint32_t value, ...) __attribute__((sentinel));
 void JSONSerializationContext_writeBitfield64(JSONSerializationContext * self, const char * key, uint64_t value, ...) __attribute__((sentinel));
 
+#ifdef __cplusplus
+}
+#endif
 #endif

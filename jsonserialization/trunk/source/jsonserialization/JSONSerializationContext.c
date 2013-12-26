@@ -67,7 +67,7 @@ JSONSerializationContext * JSONSerializationContext_create() {
 	stemobject_create_implementation(JSONSerializationContext, init)
 }
 
-void JSONSerializationContext_init(JSONSerializationContext * self) {
+bool JSONSerializationContext_init(JSONSerializationContext * self) {
 	call_super(init, self);
 	self->dispose = JSONSerializationContext_dispose;
 	self->errorString = JSONSerialization_errorString;
@@ -104,6 +104,7 @@ void JSONSerializationContext_init(JSONSerializationContext * self) {
 	self->nodeStackAllocatedSize = 0;
 	self->nodeStackCurrentDepth = 0;
 	self->rootNodeOwnedBySelf = true;
+	return true;
 }
 
 void JSONSerializationContext_dispose(JSONSerializationContext * self) {
