@@ -1,4 +1,4 @@
-1.0.0 (2013-12-25):
+1.0.0 (2013-12-25)
  * Began tracking template_stemlib changes
  * Updated structure: test_source/unittest/suites -> source/unittest, test_source/testharness -> source/testharness, test_resources -> resources
  * Switched from UnitTestFramework Stable_2013-12-23 to libstem_unittest 1.0.0
