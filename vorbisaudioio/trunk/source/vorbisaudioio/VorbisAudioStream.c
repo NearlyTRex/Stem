@@ -38,6 +38,7 @@ static void sharedInit(VorbisAudioStream * self) {
 	call_super(init, self);
 	
 	self->dataOwned = false;
+	self->fileOwned = false;
 	self->currentSection = 0;
 	
 	self->dispose = VorbisAudioStream_dispose;
@@ -45,33 +46,40 @@ static void sharedInit(VorbisAudioStream * self) {
 	self->seek = VorbisAudioStream_seek;
 }
 
-static void sharedGetInfo(VorbisAudioStream * self) {
+static bool sharedGetInfo(VorbisAudioStream * self) {
 	vorbis_info * info;
 	
 	info = ov_info(&self->vorbisFile, -1);
 	if (info == NULL) {
 		fprintf(stderr, "Error: ov_info returned NULL\n");
-		return;
+		return false;
 	}
 	self->bytesPerSample = 2;
 	self->channelCount = info->channels;
 	self->sampleRate = info->rate;
 	self->sampleCount = ov_pcm_total(&self->vorbisFile, -1);
+	return true;
 }
 
-void VorbisAudioStream_initWithFile(VorbisAudioStream * self, const char * filePath) {
+bool VorbisAudioStream_initWithFile(VorbisAudioStream * self, const char * filePath) {
 	int status;
 	
 	sharedInit(self);
 	status = ov_fopen(filePath, &self->vorbisFile);
 	if (status != 0) {
 		fprintf(stderr, "Error: ov_fopen returned %d\n", status);
-		return;
+		self->dispose(self);
+		return false;
 	}
-	sharedGetInfo(self);
+	self->fileOwned = true;
+	if (!sharedGetInfo(self)) {
+		self->dispose(self);
+		return false;
+	}
+	return true;
 }
 
-void VorbisAudioStream_initWithData(VorbisAudioStream * self, void * data, size_t length, bool takeOwnership) {
+bool VorbisAudioStream_initWithData(VorbisAudioStream * self, void * data, size_t length, bool takeOwnership) {
 	ov_callbacks callbacks;
 	int status;
 	
@@ -87,14 +95,21 @@ void VorbisAudioStream_initWithData(VorbisAudioStream * self, void * data, size_
 	status = ov_open_callbacks(&self->readContext, &self->vorbisFile, NULL, 0, callbacks);
 	if (status != 0) {
 		fprintf(stderr, "Error: ov_open_callbacks returned %d\n", status);
-		return;
+		self->dispose(self);
+		return false;
 	}
-	sharedGetInfo(self);
+	self->fileOwned = true;
+	if (!sharedGetInfo(self)) {
+		self->dispose(self);
+		return false;
+	}
+	return true;
 }
 
 void VorbisAudioStream_dispose(VorbisAudioStream * self) {
-	
-	ov_clear(&self->vorbisFile);
+	if (self->fileOwned) {
+		ov_clear(&self->vorbisFile);
+	}
 	if (self->dataOwned) {
 		free((void *) self->readContext.data);
 	}

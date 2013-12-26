@@ -20,8 +20,11 @@
   Alex Diener adiener@sacredsoftware.net
 */
 
-#ifndef __VORBIS_AUDIO_IO_H__
-#define __VORBIS_AUDIO_IO_H__
+#ifndef __VorbisAudioIO_H__
+#define __VorbisAudioIO_H__
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include "pcmaudio/PCMAudio.h"
 #include <stdbool.h>
@@ -30,6 +33,7 @@
 PCMAudio * VorbisAudioIO_loadOggVorbisFile(const char * filePath);
 PCMAudio * VorbisAudioIO_loadOggVorbisData(const void * data, size_t length);
 
-// TODO: Streaming
-
+#ifdef __cplusplus
+}
+#endif
 #endif

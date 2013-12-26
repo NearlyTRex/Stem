@@ -20,8 +20,11 @@
   Alex Diener adiener@sacredsoftware.net
 */
 
-#ifndef __VORBIS_AUDIO_STREAM_H__
-#define __VORBIS_AUDIO_STREAM_H__
+#ifndef __VorbisAudioStream_H__
+#define __VorbisAudioStream_H__
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef struct VorbisAudioStream VorbisAudioStream;
 
@@ -36,6 +39,7 @@ typedef struct VorbisAudioStream VorbisAudioStream;
 	\
 	struct memreadContext readContext; \
 	bool dataOwned; \
+	bool fileOwned; \
 	OggVorbis_File vorbisFile; \
 	int currentSection;
 
@@ -43,11 +47,14 @@ stemobject_struct_definition(VorbisAudioStream)
 
 VorbisAudioStream * VorbisAudioStream_createWithFile(const char * filePath);
 VorbisAudioStream * VorbisAudioStream_createWithData(void * data, size_t length, bool takeOwnership);
-void VorbisAudioStream_initWithFile(VorbisAudioStream * self, const char * filePath);
-void VorbisAudioStream_initWithData(VorbisAudioStream * self, void * data, size_t length, bool takeOwnership);
+bool VorbisAudioStream_initWithFile(VorbisAudioStream * self, const char * filePath);
+bool VorbisAudioStream_initWithData(VorbisAudioStream * self, void * data, size_t length, bool takeOwnership);
 
 void VorbisAudioStream_dispose(VorbisAudioStream * self);
 size_t VorbisAudioStream_read(VorbisAudioStream * self, size_t length, void * buffer, bool loop);
 void VorbisAudioStream_seek(VorbisAudioStream * self, long offset, int whence);
 
+#ifdef __cplusplus
+}
+#endif
 #endif

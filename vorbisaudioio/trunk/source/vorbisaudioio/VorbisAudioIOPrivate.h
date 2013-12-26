@@ -20,8 +20,11 @@
   Alex Diener adiener@sacredsoftware.net
 */
 
-#ifndef __VORBIS_AUDIO_IO_PRIVATE_H__
-#define __VORBIS_AUDIO_IO_PRIVATE_H__
+#ifndef __VorbisAudioIOPrivate_H__
+#define __VorbisAudioIOPrivate_H__
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include "vorbis/codec.h"
 #include "vorbis/vorbisfile.h"
@@ -36,4 +39,7 @@ size_t VorbisAudioIO_memreadFunc(void * outData, size_t size, size_t nmemb, void
 int VorbisAudioIO_memseekFunc(void * inData, ogg_int64_t offset, int whence);
 long VorbisAudioIO_memtellFunc(void * inData);
 
+#ifdef __cplusplus
+}
+#endif
 #endif
