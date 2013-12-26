@@ -164,10 +164,10 @@ LINK_ORDER = \
 PROJECT_LIBRARY_DEPENDENCIES_unittest = library
 PROJECT_LIBRARY_DEPENDENCIES_testharness = library
 STEM_LIBRARY_DEPENDENCIES = \
-	shell/1.0.0 \
-	stemobject/3.0.2
+	shell/1.1.0 \
+	stemobject/3.1.0
 STEM_LIBRARY_DEPENDENCIES_unittest = \
-	stubshell/1.3.0 \
+	stubshell/1.3.1 \
 	unittest/1.0.0
 STEM_LIBRARY_DEPENDENCIES_testharness = \
 	stubshell/1.3.0
