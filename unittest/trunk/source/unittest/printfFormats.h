@@ -28,6 +28,9 @@
 #define INT64_FORMAT "%I64d"
 #define UINT64_FORMAT "%I64u"
 #define XINT64_FORMAT "%I64X"
+#define LONG_LONG_FORMAT "%I64d"
+#define ULONG_LONG_FORMAT "%I64u"
+#define XLONG_LONG_FORMAT "%I64X"
 #else
 #define SIZE_T_FORMAT "%zu"
 #if defined(linux) && defined(_LP64)
@@ -39,6 +42,9 @@
 #define UINT64_FORMAT "%llu"
 #define XINT64_FORMAT "%llX"
 #endif
+#define LONG_LONG_FORMAT "%lld"
+#define ULONG_LONG_FORMAT "%llu"
+#define XLONG_LONG_FORMAT "%llX"
 #endif
 
 #endif
