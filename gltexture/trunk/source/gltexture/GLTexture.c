@@ -38,7 +38,7 @@ GLTexture * GLTexture_create(GLenum bitmapDataFormat,
 	stemobject_create_implementation(GLTexture, init, bitmapDataFormat, bitmapDataType, minFilter, magFilter, wrapS, wrapT, autoBlendMode, autoMipmap, anisotropicFilter)
 }
 
-void GLTexture_init(GLTexture * self,
+bool GLTexture_init(GLTexture * self,
                     GLenum bitmapDataFormat,
                     GLenum bitmapDataType,
                     GLenum minFilter,
@@ -68,6 +68,7 @@ void GLTexture_init(GLTexture * self,
 	self->updateTexParams = GLTexture_updateTexParams;
 	self->activate = GLTexture_activate;
 	self->deactivate = GLTexture_deactivate;
+	return true;
 }
 
 void GLTexture_dispose(GLTexture * self) {

@@ -1,10 +1,11 @@
 #include "gltexture/GLTexture.h"
-#include "unittest/framework/TestSuite.h"
-#include "unittest/framework/TestDeserializationContext.h"
-#include "unittest/framework/TestSerializationContext.h"
+#include "unittest/TestSuite.h"
+#include "unittest/TestDeserializationContext.h"
+#include "unittest/TestSerializationContext.h"
 
 static void testInit() {
 	GLTexture * texturePtr, texture;
+	bool success;
 	
 	texturePtr = GLTexture_create(GL_RGBA, GL_UNSIGNED_BYTE, GL_NEAREST, GL_LINEAR, GL_REPEAT, GL_CLAMP_TO_EDGE, AUTO_BLEND_MODE_NONE, false, false);
 	TestCase_assert(texturePtr != NULL, "GLTexture_create unexpectedly returned NULL");
@@ -48,7 +49,8 @@ static void testInit() {
 	TestCase_assert(texturePtr->deactivate != NULL, "Method unexpectedly NULL");
 	texturePtr->dispose(texturePtr);
 	
-	GLTexture_init(&texture, GL_RGBA, GL_UNSIGNED_BYTE, GL_NEAREST, GL_LINEAR, GL_REPEAT, GL_CLAMP_TO_EDGE, AUTO_BLEND_MODE_NONE, false, false);
+	success = GLTexture_init(&texture, GL_RGBA, GL_UNSIGNED_BYTE, GL_NEAREST, GL_LINEAR, GL_REPEAT, GL_CLAMP_TO_EDGE, AUTO_BLEND_MODE_NONE, false, false);
+	TestCase_assert(success, "Expected true but got false");
 	TestCase_assert(texture.imageName == NULL, "Expected NULL but got %p", texture.imageName);
 	if (texturePtr == NULL) { return; } // To shut up false positive clang warning
 	TestCase_assert(texture.textureName == 0, "Expected 0 but got %u", texture.textureName);
@@ -68,7 +70,8 @@ static void testInit() {
 	TestCase_assert(texture.deactivate != NULL, "Method unexpectedly NULL");
 	texture.dispose(&texture);
 	
-	GLTexture_init(&texture, GL_RGB, GL_UNSIGNED_SHORT_4_4_4_4, GL_NEAREST_MIPMAP_NEAREST, GL_NEAREST, GL_CLAMP_TO_EDGE, GL_REPEAT, AUTO_BLEND_MODE_TRANSPARENT_NONPREMULTIPLIED, true, true);
+	success = GLTexture_init(&texture, GL_RGB, GL_UNSIGNED_SHORT_4_4_4_4, GL_NEAREST_MIPMAP_NEAREST, GL_NEAREST, GL_CLAMP_TO_EDGE, GL_REPEAT, AUTO_BLEND_MODE_TRANSPARENT_NONPREMULTIPLIED, true, true);
+	TestCase_assert(success, "Expected true but got false");
 	TestCase_assert(texture.imageName == NULL, "Expected NULL but got %p", texture.imageName);
 	if (texturePtr == NULL) { return; } // To shut up false positive clang warning
 	TestCase_assert(texture.textureName == 0, "Expected 0 but got %u", texture.textureName);

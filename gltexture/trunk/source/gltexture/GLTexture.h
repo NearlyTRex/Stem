@@ -20,8 +20,11 @@
   Alex Diener adiener@sacredsoftware.net
 */
 
-#ifndef __GL_TEXTURE_H__
-#define __GL_TEXTURE_H__
+#ifndef __GLTexture_H__
+#define __GLTexture_H__
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include "stemobject/StemObject.h"
 #include "glgraphics/GLIncludes.h"
@@ -75,7 +78,7 @@ GLTexture * GLTexture_create(GLenum bitmapDataFormat,
                              enum GLTextureAutoBlendMode autoBlendMode,
                              bool autoMipmap,
                              bool anisotropicFilter);
-void GLTexture_init(GLTexture * self,
+bool GLTexture_init(GLTexture * self,
                     GLenum bitmapDataFormat,
                     GLenum bitmapDataType,
                     GLenum minFilter,
@@ -99,4 +102,7 @@ void GLTexture_updateTexParams(GLTexture * self);
 void GLTexture_activate(GLTexture * self);
 void GLTexture_deactivate(GLTexture * self);
 
+#ifdef __cplusplus
+}
+#endif
 #endif
