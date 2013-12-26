@@ -1,0 +1,14 @@
+1.0.3 (2013-12-25)
+ * Updated for stemobject 3.1.0
+ * Added 64-bit Windows and Linux support
+
+1.0.2 (2012-02-11)
+ * Updated for stemobject 3.0.0
+
+1.0.1 (2011-10-14)
+ * Fixed a small memory leak
+ * Fixed a crash that would happen when a type handler returned NULL
+ * ResourceManager's typeHandlerCount and resourceCount fields changed from unsigned int to size_t
+
+1.0.0 (2010-12-05)
+ * Initial version
