@@ -39,15 +39,17 @@ GLSLShader * GLSLShader_vcreate(const char * vshaderSource, size_t vshaderLength
 	stemobject_create_implementation(GLSLShader, vinit, vshaderSource, vshaderLength, fshaderSource, fshaderLength, args)
 }
 
-void GLSLShader_init(GLSLShader * self, const char * vshaderSource, size_t vshaderLength, const char * fshaderSource, size_t fshaderLength, ...) {
+bool GLSLShader_init(GLSLShader * self, const char * vshaderSource, size_t vshaderLength, const char * fshaderSource, size_t fshaderLength, ...) {
 	va_list args;
+	bool success;
 	
 	va_start(args, fshaderLength);
-	GLSLShader_vinit(self, vshaderSource, vshaderLength, fshaderSource, fshaderLength, args);
+	success = GLSLShader_vinit(self, vshaderSource, vshaderLength, fshaderSource, fshaderLength, args);
 	va_end(args);
+	return success;
 }
 
-void GLSLShader_vinit(GLSLShader * self, const char * vshaderSource, size_t vshaderLength, const char * fshaderSource, size_t fshaderLength, va_list args) {
+bool GLSLShader_vinit(GLSLShader * self, const char * vshaderSource, size_t vshaderLength, const char * fshaderSource, size_t fshaderLength, va_list args) {
 	GLint shaderLength;
 	GLuint vertexShader, fragmentShader;
 	const char * attribName;
@@ -120,6 +122,7 @@ void GLSLShader_vinit(GLSLShader * self, const char * vshaderSource, size_t vsha
 	
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);
+	return true;
 }
 
 void GLSLShader_dispose(GLSLShader * self) {

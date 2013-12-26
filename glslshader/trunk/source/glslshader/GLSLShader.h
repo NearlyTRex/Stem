@@ -45,8 +45,8 @@ stemobject_struct_definition(GLSLShader)
 // Additional args are pairs of attribute names (const char *) and locations (GLuint) to bind to, terminated by NULL
 GLSLShader * GLSLShader_create(const char * vshaderSource, size_t vshaderLength, const char * fshaderSource, size_t fshaderLength, ...) __attribute__((sentinel));
 GLSLShader * GLSLShader_vcreate(const char * vshaderSource, size_t vshaderLength, const char * fshaderSource, size_t fshaderLength, va_list args);
-void GLSLShader_init(GLSLShader * self, const char * vshaderSource, size_t vshaderLength, const char * fshaderSource, size_t fshaderLength, ...) __attribute__((sentinel));
-void GLSLShader_vinit(GLSLShader * self, const char * vshaderSource, size_t vshaderLength, const char * fshaderSource, size_t fshaderLength, va_list args);
+bool GLSLShader_init(GLSLShader * self, const char * vshaderSource, size_t vshaderLength, const char * fshaderSource, size_t fshaderLength, ...) __attribute__((sentinel));
+bool GLSLShader_vinit(GLSLShader * self, const char * vshaderSource, size_t vshaderLength, const char * fshaderSource, size_t fshaderLength, va_list args);
 
 void GLSLShader_dispose(GLSLShader * self);
 GLint GLSLShader_getUniformLocation(GLSLShader * self, const char * uniformName);
