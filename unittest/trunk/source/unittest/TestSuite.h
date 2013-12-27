@@ -30,14 +30,6 @@ extern "C" {
 #include <stdlib.h>
 #include <string.h>
 
-#ifndef SIZE_T_FORMAT
-#if defined(WIN32)
-#define SIZE_T_FORMAT "%Iu"
-#else
-#define SIZE_T_FORMAT "%zu"
-#endif
-#endif
-
 typedef struct TestSuite TestSuite;
 
 extern void (* g_unitTestFailureCallback)(const char * file, const char * function, int line, const char * format, ...) __attribute__((__noreturn__)) __attribute__((format(printf, 4, 5)));

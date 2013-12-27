@@ -1,7 +1,6 @@
 1.1.0 (DATE)
  * TestSerializationContext and TestDeserializationContext have been moved from unittest to serialization to resolve circular dependency
  * printfFormats.h has been moved from unittest to utilities
- * Added LONG_LONG_FORMAT, ULONG_LONG_FORMAT, and XLONG_LONG_FORMAT to printfFormats.h, since long long is semantically different from int64_t on 64-bit Linux
 
 1.0.0 (2013-12-25)
  * Changed project structure to standard stem library rather than naked source files
