@@ -62,7 +62,7 @@ SPLINT_macosx = /usr/local/bin/splint
 CLANG_macosx = /usr/bin/clang
 SDKROOT_macosx = /Developer/SDKs/MacOSX10.6.sdk
 ARCHS_macosx = i386 x86_64
-CCFLAGS_macosx = -isysroot ${SDKROOT_macosx} -mmacosx-version-min=10.6 -Wno-deprecated-declarations
+CCFLAGS_macosx = -isysroot ${SDKROOT_macosx} -mmacosx-version-min=10.6 -Wno-deprecated-declarations -Wno-int-to-void-pointer-cast
 LINKFLAGS_macosx = -isysroot ${SDKROOT_macosx} -mmacosx-version-min=10.6 -framework OpenGL -framework GLUT -framework CoreFoundation -framework ApplicationServices
 
 CC_linux32_i386 = /usr/bin/gcc
@@ -111,7 +111,7 @@ EXECUTABLE_SUFFIX_win64 = .exe
 
 #General compile/link settings
 DEFINE_CCFLAGS = -DVERSION_MAJOR=${VERSION_MAJOR}u -DVERSION_MINOR=${VERSION_MINOR}u -DVERSION_TWEAK=${VERSION_TWEAK}u
-WARNING_CCFLAGS = -Wall -Wextra -Wno-unused-parameter -Werror -Wno-int-to-void-pointer-cast
+WARNING_CCFLAGS = -Wall -Wextra -Wno-unused-parameter -Werror
 OTHER_CCFLAGS = -std=gnu99
 CCFLAGS = ${DEFINE_CCFLAGS} ${WARNING_CCFLAGS} ${OTHER_CCFLAGS}
 

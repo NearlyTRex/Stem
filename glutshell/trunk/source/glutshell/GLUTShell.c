@@ -105,7 +105,9 @@ static void setVSync(bool sync) {
 	GLint VBL = sync;
 	CGLSetParameter(CGLGetCurrentContext(), kCGLCPSwapInterval, &VBL);
 #elif defined(WIN32)
+	const char * WINAPI (* wglGetExtensionsStringEXT)(void) = (const char * WINAPI (*)(void)) wglGetProcAddress("wglGetExtensionsStringEXT");
 	if (strstr((char *) glGetString(GL_EXTENSIONS), "WGL_EXT_swap_control") && strstr(wglGetExtensionsStringEXT(), "WGL_EXT_swap_control")) {
+		BOOL WINAPI (* wglSwapIntervalEXT)(int interval) = (BOOL WINAPI (*)(int)) wglGetProcAddress("wglSwapIntervalEXT");
 		wglSwapIntervalEXT(1);
 	}
 #elif defined(__linux)
