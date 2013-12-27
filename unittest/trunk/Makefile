@@ -136,25 +136,19 @@ LINK_ORDER = library
 #Dependencies (can optionally be per-target or per-target-per-platform)
 
 PROJECT_LIBRARY_DEPENDENCIES = 
-STEM_LIBRARY_DEPENDENCIES = \
-	serialization/1.3.0 \
-	stemobject/3.0.2
+STEM_LIBRARY_DEPENDENCIES = 
 STEM_SOURCE_DEPENDENCIES = 
 THIRDPARTY_LIBRARY_DEPENDENCIES = 
 
 #Per-target source file lists
 
 SOURCES_library = \
-	source/${PROJECT_NAME}/TestDeserializationContext.c \
-	source/${PROJECT_NAME}/TestSerializationContext.c \
 	source/${PROJECT_NAME}/unittest_main.c
 
 #Include files to be distributed with library
 
 INCLUDES = \
 	source/${PROJECT_NAME}/printfFormats.h \
-	source/${PROJECT_NAME}/TestDeserializationContext.h \
-	source/${PROJECT_NAME}/TestSerializationContext.h \
 	source/${PROJECT_NAME}/TestSuite.h
 
 #General analyzer settings

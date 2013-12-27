@@ -1,4 +1,5 @@
-1.0.1 (DATE)
+1.1.0 (DATE)
+ * TestSerializationContext and TestDeserializationContext have been moved from unittest to serialization to resolve circular dependency
  * Added LONG_LONG_FORMAT, ULONG_LONG_FORMAT, and XLONG_LONG_FORMAT to printfFormats.h, since long long is semantically different from int64_t on 64-bit Linux
 
 1.0.0 (2013-12-25)
