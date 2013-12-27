@@ -1,3 +1,7 @@
+1.7.2 (DATE)
+ * Moved printfFormats.h from unittest
+ * Added LONG_LONG_FORMAT, ULONG_LONG_FORMAT, and XLONG_LONG_FORMAT to printfFormats.h, since long long is semantically different from int64_t on 64-bit Linux
+
 1.7.1 (2013-12-25)
  * Added endian swap functions to IOUtilities
  * Updated for stemobject 3.1.0

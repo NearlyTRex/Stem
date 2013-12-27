@@ -168,7 +168,7 @@ STEM_LIBRARY_DEPENDENCIES = \
 	stemobject/3.1.0
 STEM_LIBRARY_DEPENDENCIES_unittest = \
 	stubshell/1.3.1 \
-	unittest/1.0.0
+	unittest/1.1.0
 STEM_LIBRARY_DEPENDENCIES_testharness = \
 	stubshell/1.3.1
 STEM_SOURCE_DEPENDENCIES = 
@@ -213,6 +213,7 @@ INCLUDES = \
 	source/${PROJECT_NAME}/FixedIntervalRunLoop.h \
 	source/${PROJECT_NAME}/HashTable.h \
 	source/${PROJECT_NAME}/IOUtilities.h \
+	source/${PROJECT_NAME}/printfFormats.h \
 	source/${PROJECT_NAME}/Ranrot.h \
 	source/${PROJECT_NAME}/UTFUtilities.h
 
