@@ -148,7 +148,6 @@ SOURCES_library = \
 #Include files to be distributed with library
 
 INCLUDES = \
-	source/${PROJECT_NAME}/printfFormats.h \
 	source/${PROJECT_NAME}/TestSuite.h
 
 #General analyzer settings
