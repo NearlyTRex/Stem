@@ -1,3 +1,7 @@
+1.7.0 (2013-12-27)
+ * vsync is now enabled by default on all platforms (disabled in window mode on Linux)
+ * Added GLUTShell_setVSync()
+
 1.6.0 (2013-12-25)
  * Update API for shell 1.1.0 (adds threads, Shell_getSupportPath)
  * Fixed unresponsiveness of mouse delta mode on Mac OS X

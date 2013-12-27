@@ -41,6 +41,13 @@
 #include <GL/glut.h>
 #endif
 
+#if defined(WIN32)
+#include <GL/wglew.h>
+#elif defined(__linux)
+#include <GL/glx.h>
+#include <GL/glxext.h>
+#endif
+
 #if defined(__APPLE__)
 #include <mach/mach.h>
 #include <mach/mach_time.h>
@@ -64,9 +71,18 @@ struct GLUTShellTimer {
 	void * context;
 };
 
+#if defined(__linux)
+#define VSYNC_DEFAULT_WINDOW false
+#define VSYNC_DEFAULT_FULLSCREEN true
+#else
+#define VSYNC_DEFAULT_WINDOW true
+#define VSYNC_DEFAULT_FULLSCREEN true
+#endif
+
 static unsigned int buttonMask = 0;
 static unsigned int modifierMask = 0;
 static bool inFullScreenMode = false;
+static bool vsyncWindow = VSYNC_DEFAULT_WINDOW, vsyncFullscreen = VSYNC_DEFAULT_FULLSCREEN;
 static struct GLUTShellConfiguration configuration;
 static unsigned int nextTimerID;
 static size_t timerCount;
@@ -84,17 +100,39 @@ bool Shell_isFullScreen() {
 	return inFullScreenMode;
 }
 
+static void setVSync(bool sync) {
+#if defined(__APPLE__)
+	GLint VBL = sync;
+	CGLSetParameter(CGLGetCurrentContext(), kCGLCPSwapInterval, &VBL);
+#elif defined(WIN32)
+	if (strstr((char *) glGetString(GL_EXTENSIONS), "WGL_EXT_swap_control") && strstr(wglGetExtensionsStringEXT(), "WGL_EXT_swap_control")) {
+		wglSwapIntervalEXT(1);
+	}
+#elif defined(__linux)
+	const char * extensions = glXQueryExtensionsString(glXGetCurrentDisplay(), 0);
+	if (strstr(extensions, "GLX_EXT_swap_control")) {
+		PFNGLXSWAPINTERVALEXTPROC glXSwapIntervalEXT = (PFNGLXSWAPINTERVALEXTPROC) glXGetProcAddress((const GLubyte *) "glXSwapIntervalEXT");
+		glXSwapIntervalEXT(glXGetCurrentDisplay(), glXGetCurrentDrawable(), sync);
+	} else if (strstr(extensions, "GLX_SGI_swap_control")) {
+		PFNGLXSWAPINTERVALSGIPROC glxSwapIntervalSGI = (PFNGLXSWAPINTERVALSGIPROC) glXGetProcAddress((const GLubyte *) "glXSwapIntervalSGI");
+		glxSwapIntervalSGI(sync);
+	}
+#endif
+}
+
 bool Shell_setFullScreen(bool fullScreen) {
 	if (fullScreen && !inFullScreenMode) {
 		inFullScreenMode = true;
 		configuration.windowX = glutGet(GLUT_WINDOW_X);
 		configuration.windowY = glutGet(GLUT_WINDOW_Y);
 		glutFullScreen();
+		setVSync(vsyncFullscreen);
 		
 	} else if (!fullScreen && inFullScreenMode) {
 		glutPositionWindow(configuration.windowX, configuration.windowY);
 		glutReshapeWindow(configuration.windowWidth, configuration.windowHeight);
 		inFullScreenMode = false;
+		setVSync(vsyncWindow);
 	}
 	
 	return true;
@@ -365,6 +403,21 @@ void Shell_setMouseDeltaMode(bool deltaMode) {
 		warpPointerAndIgnoreEvent(restoreMouseX, restoreMouseY);
 		mouseDeltaMode = false;
 		Shell_setCursor(lastUnhiddenCursor);
+	}
+}
+
+void GLUTShell_setVSync(bool sync, bool fullscreen) {
+	if (fullscreen) {
+		vsyncFullscreen = sync;
+		if (inFullScreenMode) {
+			setVSync(sync);
+		}
+		
+	} else {
+		vsyncWindow = sync;
+		if (!inFullScreenMode) {
+			setVSync(sync);
+		}
 	}
 }
 
@@ -731,9 +784,6 @@ static void motionFunc(int x, int y) {
 
 int main(int argc, char ** argv) {
 	unsigned int displayMode;
-#ifdef __APPLE__
-	GLint VBL = 1;
-#endif
 	char workingDir[PATH_MAX];
 	
 	getcwd(workingDir, PATH_MAX);
@@ -786,10 +836,10 @@ int main(int argc, char ** argv) {
 	glutPassiveMotionFunc(motionFunc);
 	
 #ifdef __APPLE__
-	CGLSetParameter(CGLGetCurrentContext(), kCGLCPSwapInterval, &VBL);
 	CGSetLocalEventsSuppressionInterval(0.0); // Without this, mouse delta mode only sends events every 0.25 seconds on 10.8
 #endif
 	
+	setVSync(vsyncWindow);
 	GLGraphics_init(GL_API_VERSION_DESKTOP_1);
 	
 	Target_init(argc, argv);

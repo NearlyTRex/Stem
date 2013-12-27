@@ -43,4 +43,8 @@ enum GLUTShellCursor {
 	GLUTShellCursor_fullCrosshair
 };
 
+// Enables/disables vsync for the display mode specified by fullscreen.
+// Defaults: Enabled for both on Mac OS X and Windows; enabled only for fullscreen on Linux.
+void GLUTShell_setVSync(bool sync, bool fullscreen);
+
 #endif
