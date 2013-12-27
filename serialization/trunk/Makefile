@@ -152,13 +152,17 @@ LINKFLAGS = ${FRAMEWORK_LINKFLAGS} ${LIBRARY_LINKFLAGS} ${OTHER_LINKFLAGS}
 LINK_ORDER = \
 	library \
 	unittest \
+	utilities \
 	stemobject
 
 #Dependencies (can optionally be per-target or per-target-per-platform)
 
 PROJECT_LIBRARY_DEPENDENCIES_unittest = library
-STEM_LIBRARY_DEPENDENCIES = stemobject/3.1.0
-STEM_LIBRARY_DEPENDENCIES_unittest = unittest/1.0.0
+STEM_LIBRARY_DEPENDENCIES = \
+	stemobject/3.1.0 \
+	utilities/1.7.2
+STEM_LIBRARY_DEPENDENCIES_unittest = \
+	unittest/1.1.0
 STEM_SOURCE_DEPENDENCIES = 
 THIRDPARTY_LIBRARY_DEPENDENCIES = 
 
@@ -167,7 +171,9 @@ THIRDPARTY_LIBRARY_DEPENDENCIES =
 SOURCES_library = \
 	source/${PROJECT_NAME}/DeserializationContext.c \
 	source/${PROJECT_NAME}/SerializationContext.c \
-	source/${PROJECT_NAME}/SerializationShared.c
+	source/${PROJECT_NAME}/SerializationShared.c \
+	source/${PROJECT_NAME}/TestDeserializationContext.c \
+	source/${PROJECT_NAME}/TestSerializationContext.c
 
 SOURCES_unittest = \
 	build/intermediate/TestList.c \
@@ -182,7 +188,9 @@ SOURCES_unittest_suites = \
 INCLUDES = \
 	source/${PROJECT_NAME}/DeserializationContext.h \
 	source/${PROJECT_NAME}/SerializationContext.h \
-	source/${PROJECT_NAME}/SerializationShared.h
+	source/${PROJECT_NAME}/SerializationShared.h \
+	source/${PROJECT_NAME}/TestDeserializationContext.h \
+	source/${PROJECT_NAME}/TestSerializationContext.h
 
 #Target resources
 
