@@ -18,9 +18,14 @@
 
 static unsigned int timer1ID = UINT_MAX, timer2ID = UINT_MAX;
 static bool deltaMode;
+static bool syncFullscreen = true, syncWindow = true;
 
 void WGLTarget_configure(void * instance, void * prevInstance, char * commandLine, int command, struct WGLShellConfiguration * configuration) {
 	char workingDir[PATH_MAX];
+	
+#ifdef STEM_ARCH_x86_64
+	WGLShell_redirectStdoutToFile("stdout.txt");
+#endif
 	
 	printf("WGLTarget_configure(%p, %p, \"%s\", %d, %p)", instance, prevInstance, commandLine, command, configuration);
 	
@@ -164,6 +169,20 @@ void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned int mo
 		
 		Shell_getMainScreenSize(&width, &height);
 		printf("Shell_getMainScreenSize(%u, %u)\n", width, height);
+		
+	} else if (keyCode == KEYBOARD_V) {
+		bool sync, fullscreen;
+		
+		fullscreen = Shell_isFullScreen();
+		if (fullscreen) {
+			syncFullscreen = !syncFullscreen;
+			sync = syncFullscreen;
+		} else {
+			syncWindow = !syncWindow;
+			sync = syncWindow;
+		}
+		WGLShell_setVSync(sync, fullscreen);
+		printf("WGLShell_setVSync(%s, %s)\n", sync ? "true" : "false", fullscreen ? "true" : "false");
 		
 	} else if (keyCode == KEYBOARD_COMMA) {
 		if (timer1ID == UINT_MAX) {

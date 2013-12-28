@@ -77,7 +77,7 @@ SPLINT_win64 = ${SPLINT_WIN_PATH}
 CLANG_win64 = ${CLANG_WIN_PATH}
 ARCHS_win64 = x86_64
 CCFLAGS_win64 = -DGLEW_STATIC
-LINKFLAGS_win64 = -lfreeglut64_static -lopengl32 -lglu32 -lwinmm -lgdi32 -lpowrprof
+LINKFLAGS_win64 = -lfreeglut64_static -lopengl32 -lglu32 -lwinmm -lgdi32 -lpowrprof -mwindows
 EXECUTABLE_SUFFIX_win64 = .exe
 
 #General compile/link settings

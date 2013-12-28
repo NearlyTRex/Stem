@@ -34,7 +34,25 @@
 #include <stdlib.h>
 #include <direct.h>
 #include <windows.h>
+#include <windowsx.h>
 #include <PowrProf.h>
+
+struct WGLShellTimer {
+	double interval;
+	double nextFireTime;
+	bool repeat;
+	unsigned int id;
+	void (* callback)(unsigned int timerID, void * context);
+	void * context;
+};
+
+struct threadFuncInvocation {
+	int (* threadFunction)(void * context);
+	void * context;
+};
+
+#define VSYNC_DEFAULT_WINDOW true
+#define VSYNC_DEFAULT_FULLSCREEN true
 
 static HWND window;
 static unsigned int buttonMask;
@@ -42,16 +60,46 @@ static unsigned int modifierFlags;
 static bool isFullScreen;
 static bool cursorHiddenByHide;
 static bool cursorHiddenUntilMouseMoves;
-
-struct threadFuncInvocation {
-	int (* threadFunction)(void * context);
-	void * context;
-};
+static bool mouseDeltaMode;
+static int restoreMouseX, restoreMouseY;
+static int lastMouseX, lastMouseY;
+static int ignoreX = INT_MAX, ignoreY = INT_MAX;
+static bool vsyncWindow = VSYNC_DEFAULT_WINDOW, vsyncFullscreen = VSYNC_DEFAULT_FULLSCREEN;
+static unsigned int nextTimerID;
+static size_t timerCount;
+static struct WGLShellTimer * timers;
 
 void Shell_mainLoop() {
 	MSG message;
 	
-	while (GetMessage(&message, NULL, 0, 0)) {
+	for (;;) {
+		if (timerCount == 0) {
+			if (!GetMessage(&message, NULL, 0, 0)) {
+				break;
+			}
+		} else {
+			unsigned int timerIndex, timerIndex2;
+			double currentTime;
+			
+			currentTime = Shell_getCurrentTime();
+			for (timerIndex = 0; timerIndex < timerCount; timerIndex++) {
+				if (currentTime >= timers[timerIndex].nextFireTime) {
+					timers[timerIndex].callback(timers[timerIndex].id, timers[timerIndex].context);
+					if (timers[timerIndex].repeat) {
+						timers[timerIndex].nextFireTime += timers[timerIndex].interval;
+					} else {
+						timerCount--;
+						for (timerIndex2 = timerIndex; timerIndex2 < timerCount; timerIndex2++) {
+							timers[timerIndex2] = timers[timerIndex2 + 1];
+						}
+						timerIndex--;
+					}
+				}
+			}
+			if (!PeekMessage(&message, NULL, 0, 0, PM_REMOVE)) {
+				continue;
+			}
+		}
 		TranslateMessage(&message);
 		DispatchMessage(&message);
 	}
@@ -65,6 +113,14 @@ bool Shell_isFullScreen() {
 	return isFullScreen;
 }
 
+static void setVSync(bool sync) {
+	const char * WINAPI (* wglGetExtensionsStringEXT)(void) = (const char * WINAPI (*)(void)) wglGetProcAddress("wglGetExtensionsStringEXT");
+	if (strstr((char *) glGetString(GL_EXTENSIONS), "WGL_EXT_swap_control") && strstr(wglGetExtensionsStringEXT(), "WGL_EXT_swap_control")) {
+		BOOL WINAPI (* wglSwapIntervalEXT)(int interval) = (BOOL WINAPI (*)(int)) wglGetProcAddress("wglSwapIntervalEXT");
+		wglSwapIntervalEXT(1);
+	}
+}
+
 #ifndef MONITOR_DEFAULTTONEAREST
 #define MONITOR_DEFAULTTONEAREST 2
 #endif
@@ -74,12 +130,13 @@ bool Shell_setFullScreen(bool fullScreen) {
 	static RECT oldWindowRect;
 	static DWORD oldWindowStyle;
 	
-	if (isFullScreen) {
+	if (!fullScreen && isFullScreen) {
 		SetWindowLong(window, GWL_STYLE, oldWindowStyle);
-		SetWindowPos(window, HWND_TOP, oldWindowRect.left, oldWindowRect.top, oldWindowRect.right, oldWindowRect.bottom, SWP_NOZORDER | SWP_FRAMECHANGED);
+		SetWindowPos(window, HWND_TOP, oldWindowRect.left, oldWindowRect.top, oldWindowRect.right - oldWindowRect.left, oldWindowRect.bottom - oldWindowRect.top, SWP_NOZORDER | SWP_FRAMECHANGED);
 		isFullScreen = false;
+		setVSync(vsyncWindow);
 		
-	} else {
+	} else if (fullScreen && !isFullScreen) {
 		DWORD windowStyle;
 		HMONITOR monitor;
 		MONITORINFO monitorInfo;
@@ -97,6 +154,7 @@ bool Shell_setFullScreen(bool fullScreen) {
 		screenRect = monitorInfo.rcMonitor;
 		SetWindowPos(window, HWND_TOP, screenRect.left, screenRect.top, screenRect.right - screenRect.left, screenRect.bottom - screenRect.top, SWP_NOZORDER | SWP_FRAMECHANGED);
 		isFullScreen = true;
+		setVSync(vsyncFullscreen);
 	}
 	
 	return true;
@@ -140,23 +198,40 @@ void Shell_getMainScreenSize(unsigned int * outWidth, unsigned int * outHeight) 
 }
 
 unsigned int Shell_setTimer(double interval, bool repeat, void (* callback)(unsigned int timerID, void * context), void * context) {
-	return 0;
+	timers = realloc(timers, sizeof(struct WGLShellTimer) * (timerCount + 1));
+	timers[timerCount].interval = interval;
+	timers[timerCount].nextFireTime = Shell_getCurrentTime() + interval;
+	timers[timerCount].repeat = repeat;
+	timers[timerCount].id = nextTimerID++;
+	timers[timerCount].callback = callback;
+	timers[timerCount].context = context;
+	PostMessage(window, WM_USER, 0, 0); // Wake up run loop in case it's blocked on GetMessage
+	return timers[timerCount++].id;
 }
 
 void Shell_cancelTimer(unsigned int timerID) {
+	unsigned int timerIndex;
+	
+	for (timerIndex = 0; timerIndex < timerCount; timerIndex++) {
+		if (timers[timerIndex].id == timerID) {
+			timerCount--;
+			for (; timerIndex < timerCount; timerIndex++) {
+				timers[timerIndex] = timers[timerIndex + 1];
+			}
+			break;
+		}
+	}
 }
 
 void Shell_setCursorVisible(bool visible) {
-	if (visible) {
-		if (cursorHiddenByHide) {
-			cursorHiddenByHide = false;
+	if (visible && cursorHiddenByHide) {
+		cursorHiddenByHide = false;
+		if (!mouseDeltaMode) {
 			ShowCursor(true);
 		}
-	} else {
-		if (!cursorHiddenByHide) {
-			cursorHiddenByHide = true;
-			ShowCursor(false);
-		}
+	} else if (!visible && !cursorHiddenByHide) {
+		cursorHiddenByHide = true;
+		ShowCursor(false);
 	}
 }
 
@@ -224,7 +299,53 @@ void Shell_setCursor(int value) {
 	}
 }
 
+static int getWindowOffsetX() {
+	POINT point = {0, 0};
+	ClientToScreen(window, &point);
+	return point.x;
+}
+
+static int getWindowOffsetY() {
+	POINT point = {0, 0};
+	ClientToScreen(window, &point);
+	return point.y;
+}
+
+static void warpPointerAndIgnoreEvent(int x, int y) {
+	ignoreX = x;
+	ignoreY = y;
+	lastMouseX = x;
+	lastMouseY = y;
+	SetCursorPos(x + getWindowOffsetX(), y +  + getWindowOffsetY());
+}
+
+static int getWindowCenterX() {
+	RECT rect;
+	GetClientRect(window, &rect);
+	return (rect.right - rect.left) / 2;
+}
+
+static int getWindowCenterY() {
+	RECT rect;
+	GetClientRect(window, &rect);
+	return (rect.bottom - rect.top) / 2;
+}
+
 void Shell_setMouseDeltaMode(bool deltaMode) {
+	if (!mouseDeltaMode && deltaMode) {
+		restoreMouseX = lastMouseX;
+		restoreMouseY = lastMouseY;
+		warpPointerAndIgnoreEvent(getWindowCenterX(), getWindowCenterY());
+		ShowCursor(false);
+		mouseDeltaMode = true;
+		
+	} else if (mouseDeltaMode && !deltaMode) {
+		warpPointerAndIgnoreEvent(restoreMouseX, restoreMouseY);
+		mouseDeltaMode = false;
+		if (!cursorHiddenByHide && !cursorHiddenUntilMouseMoves) {
+			ShowCursor(true);
+		}
+	}
 }
 
 enum ShellBatteryState Shell_getBatteryState() {
@@ -351,6 +472,25 @@ void Shell_waitSemaphore(ShellSemaphore semaphore) {
 
 bool Shell_tryWaitSemaphore(ShellSemaphore semaphore) {
 	return WaitForSingleObject(semaphore, 0) != WAIT_TIMEOUT;
+}
+
+void WGLShell_setVSync(bool sync, bool fullscreen) {
+	if (fullscreen) {
+		vsyncFullscreen = sync;
+		if (isFullScreen) {
+			setVSync(sync);
+		}
+		
+	} else {
+		vsyncWindow = sync;
+		if (!isFullScreen) {
+			setVSync(sync);
+		}
+	}
+}
+
+void WGLShell_redirectStdoutToFile(const char * path) {
+	freopen(path, "a", stdout);
 }
 
 static unsigned int windowsVKToShellKeyCode(UINT vk) {
@@ -577,46 +717,70 @@ static LRESULT CALLBACK windowProc(HWND window, UINT message, WPARAM wParam, LPA
 		
 		case WM_LBUTTONDOWN:
 			buttonMask |= 1 << 0;
-			Target_mouseDown(0, LOWORD(lParam), HIWORD(lParam));
+			Target_mouseDown(0, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
 			return 0;
 			
 		case WM_LBUTTONUP:
 			buttonMask &= ~(1 << 0);
-			Target_mouseUp(0, LOWORD(lParam), HIWORD(lParam));
+			Target_mouseUp(0, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
 			return 0;
 			
 		case WM_RBUTTONDOWN:
 			buttonMask |= 1 << 1;
-			Target_mouseDown(1, LOWORD(lParam), HIWORD(lParam));
+			Target_mouseDown(1, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
 			return 0;
 			
 		case WM_RBUTTONUP:
 			buttonMask &= ~(1 << 1);
-			Target_mouseUp(1, LOWORD(lParam), HIWORD(lParam));
+			Target_mouseUp(1, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
 			return 0;
 			
 		case WM_MBUTTONDOWN:
 			buttonMask |= 1 << 2;
-			Target_mouseDown(2, LOWORD(lParam), HIWORD(lParam));
+			Target_mouseDown(2, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
 			return 0;
 			
 		case WM_MBUTTONUP:
 			buttonMask &= ~(1 << 2);
-			Target_mouseUp(2, LOWORD(lParam), HIWORD(lParam));
+			Target_mouseUp(2, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
 			return 0;
 			
-		case WM_MOUSEMOVE:
+		case WM_MOUSEMOVE: {
+			int x, y, reportedX, reportedY;
+			
+			x = GET_X_LPARAM(lParam);
+			y = GET_Y_LPARAM(lParam);
+			if ((x == lastMouseX && y == lastMouseY) || (x == ignoreX && y == ignoreY)) {
+				return 0;
+			}
+			
 			if (cursorHiddenUntilMouseMoves) {
 				cursorHiddenUntilMouseMoves = false;
-				ShowCursor(true);
+				if (!mouseDeltaMode) {
+					ShowCursor(true);
+				}
 			}
-			if (buttonMask != 0) {
-				Target_mouseDragged(buttonMask, LOWORD(lParam), HIWORD(lParam));
+			if (mouseDeltaMode) {
+				reportedX = x - lastMouseX;
+				reportedY = y - lastMouseY;
 			} else {
-				Target_mouseMoved(LOWORD(lParam), HIWORD(lParam));
+				reportedX = x;
+				reportedY = y;
+			}
+			lastMouseX = x;
+			lastMouseY = y;
+			if (buttonMask != 0) {
+				Target_mouseDragged(buttonMask, reportedX, reportedY);
+			} else {
+				Target_mouseMoved(reportedX, reportedY);
+			}
+			ignoreX = ignoreY = INT_MAX;
+			if (mouseDeltaMode) {
+				warpPointerAndIgnoreEvent(getWindowCenterX(), getWindowCenterY());
 			}
 			return 0;
-			
+		}
+		
 		case WM_KEYDOWN:
 		case WM_SYSKEYDOWN: {
 			MSG msg;
@@ -709,6 +873,9 @@ static LRESULT CALLBACK windowProc(HWND window, UINT message, WPARAM wParam, LPA
 			
 		case WM_DESTROY:
 			PostQuitMessage(0);
+			return 0;
+			
+		case WM_USER:
 			return 0;
 	}
 	return DefWindowProc(window, message, wParam, lParam);
@@ -836,6 +1003,7 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prevInstance, PSTR commandLine,
 		wglSwapIntervalEXT(1);
 	}
 	
+	setVSync(vsyncWindow);
 	ShowWindow(window, command);
 	Target_resized(configuration.windowWidth, configuration.windowHeight);
 	Target_init();
