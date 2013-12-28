@@ -1,7 +1,7 @@
 #include "jsonio/JSONEmitter.h"
 #include "unittest/TestSuite.h"
-#include "unittest/printfFormats.h"
 #include "utilities/IOUtilities.h"
+#include "utilities/printfFormats.h"
 #include <unistd.h>
 
 #define writeNodeToTemporaryFile(node, outString, outLength, format, outError) { \

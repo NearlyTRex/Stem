@@ -1,8 +1,8 @@
-#include "jsonio/JSONIO.h"
-#include "unittest/TestSuite.h"
-#include "unittest/printfFormats.h"
-#include "jsonio/JSONParser.h"
 #include "jsonio/JSONEmitter.h"
+#include "jsonio/JSONIO.h"
+#include "jsonio/JSONParser.h"
+#include "unittest/TestSuite.h"
+#include "utilities/printfFormats.h"
 
 #define stringAndLength(str) str, strlen(str)
 
