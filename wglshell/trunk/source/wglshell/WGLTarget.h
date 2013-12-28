@@ -28,7 +28,7 @@ extern "C" {
 
 #include "wglshell/WGLShell.h"
 
-void WGLTarget_configure(void * instance, void * prevInstance, char * commandLine, int command, struct WGLShellConfiguration * configuration);
+void WGLTarget_configure(void * instance, void * prevInstance, char * commandLine, int command, int argc, const char ** argv, struct WGLShellConfiguration * configuration);
 
 #ifdef __cplusplus
 }

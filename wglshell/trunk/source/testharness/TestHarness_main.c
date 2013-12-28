@@ -20,14 +20,18 @@ static unsigned int timer1ID = UINT_MAX, timer2ID = UINT_MAX;
 static bool deltaMode;
 static bool syncFullscreen = true, syncWindow = true;
 
-void WGLTarget_configure(void * instance, void * prevInstance, char * commandLine, int command, struct WGLShellConfiguration * configuration) {
+void WGLTarget_configure(void * instance, void * prevInstance, char * commandLine, int command, int argc, const char ** argv, struct WGLShellConfiguration * configuration) {
 	char workingDir[PATH_MAX];
+	int argIndex;
 	
 #ifdef STEM_ARCH_x86_64
 	WGLShell_redirectStdoutToFile("stdout.txt");
 #endif
 	
-	printf("WGLTarget_configure(%p, %p, \"%s\", %d, %p)", instance, prevInstance, commandLine, command, configuration);
+	printf("WGLTarget_configure(%p, %p, \"%s\", %d, %d, %p, %p)\n", instance, prevInstance, commandLine, command, argc, argv, configuration);
+	for (argIndex = 0; argIndex < argc; argIndex++) {
+		printf("argv[%d]: \"%s\"\n", argIndex, argv[argIndex]);
+	}
 	
 	printf("configuration->windowX: %d\n", configuration->windowX);
 	printf("configuration->windowY: %d\n", configuration->windowY);

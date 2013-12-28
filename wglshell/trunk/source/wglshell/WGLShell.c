@@ -35,6 +35,7 @@
 #include <direct.h>
 #include <windows.h>
 #include <windowsx.h>
+#include <shellapi.h>
 #include <PowrProf.h>
 
 struct WGLShellTimer {
@@ -890,6 +891,11 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prevInstance, PSTR commandLine,
 	PIXELFORMATDESCRIPTOR pixelFormat;
 	int format;
 	const unsigned char * glExtensions;
+	int argc, argIndex;
+	LPWSTR * argvW;
+	const char ** argv;
+	char * arg;
+	size_t lengthUTF8;
 	
 	configuration.windowX = 10;
 	configuration.windowY = 10;
@@ -903,7 +909,16 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prevInstance, PSTR commandLine,
 	configuration.displayMode.depthBits = 0;
 	configuration.displayMode.stencilBits = 0;
 	
-	WGLTarget_configure(instance, prevInstance, commandLine, command, &configuration);
+	argvW = CommandLineToArgvW(GetCommandLineW(), &argc);
+	argv = malloc(sizeof(const char *) * argc);
+	for (argIndex = 0; argIndex < argc; argIndex++) {
+		lengthUTF8 = WideCharToMultiByte(CP_UTF8, 0, argvW[argIndex], -1, NULL, 0, NULL, NULL);
+		arg = malloc(lengthUTF8 + 1);
+		WideCharToMultiByte(CP_UTF8, 0, argvW[argIndex], -1, arg, lengthUTF8 + 1, NULL, NULL);
+		argv[argIndex] = arg;
+	}
+	LocalFree(argvW);
+	WGLTarget_configure(instance, prevInstance, commandLine, command, argc, argv, &configuration);
 	
 	windowClass.cbSize = sizeof(WNDCLASSEX);
 	windowClass.style = CS_OWNDC | CS_HREDRAW | CS_VREDRAW;
