@@ -1,8 +1,8 @@
 #include "glbitmapfont/GLBitmapFont.h"
+#include "serialization/TestDeserializationContext.h"
+#include "serialization/TestSerializationContext.h"
 #include "unittest/TestSuite.h"
-#include "unittest/printfFormats.h"
-#include "unittest/TestDeserializationContext.h"
-#include "unittest/TestSerializationContext.h"
+#include "utilities/printfFormats.h"
 #include <math.h>
 
 static void testInit() {

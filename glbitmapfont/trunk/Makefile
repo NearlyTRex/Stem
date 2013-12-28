@@ -187,22 +187,24 @@ STEM_LIBRARY_DEPENDENCIES_library = \
 STEM_LIBRARY_DEPENDENCIES = \
 	glfont/1.0.3 \
 	gltexture/1.0.4 \
-	serialization/1.3.0 \
+	serialization/1.4.0 \
 	stemobject/3.1.0
 STEM_LIBRARY_DEPENDENCIES_convertfontunits = \
 	jsonserialization/1.0.5 \
 	jsonio/1.2.4 \
-	utilities/1.7.1 \
+	utilities/1.7.2 \
 	stubshell/1.3.1
 STEM_LIBRARY_DEPENDENCIES_testharness = \
 	pngimageio/1.1.4 \
 	bitmapimage/1.3.1 \
 	jsonserialization/1.0.5 \
 	jsonio/1.2.4 \
-	utilities/1.7.1 \
+	utilities/1.7.2 \
 	3dmath/1.4.0 \
 	shell/1.1.0
-STEM_LIBRARY_DEPENDENCIES_unittest = unittest/1.0.0
+STEM_LIBRARY_DEPENDENCIES_unittest = \
+	utilities/1.7.2 \
+	unittest/1.1.0
 STEM_SOURCE_DEPENDENCIES = 
 THIRDPARTY_LIBRARY_DEPENDENCIES = 
 THIRDPARTY_LIBRARY_DEPENDENCIES_testharness = libpng/1.4.1/libpng.a
