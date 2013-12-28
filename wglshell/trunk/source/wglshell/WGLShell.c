@@ -108,6 +108,9 @@ void Shell_mainLoop() {
 			RedrawWindow(window, NULL, NULL, RDW_NOERASE | RDW_INTERNALPAINT | RDW_INVALIDATE | RDW_UPDATENOW);
 		}
 		
+		// SwapBuffers for some reason doesn't appear to actually swap until the next GL call.
+		// wglMakeCurrent isn't otherwise necessary here, but it forces a swap, which avoids a
+		// potential delay later down the line at the next run loop iteration.
 		wglMakeCurrent(displayContext, glContext);
 		if (timerCount == 0 && !redisplayNeeded) {
 			MsgWaitForMultipleObjects(0, NULL, FALSE, INFINITE, QS_ALLINPUT);
