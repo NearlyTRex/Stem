@@ -1,7 +1,7 @@
-#include "unittest/TestSuite.h"
-#include "unittest/printfFormats.h"
 #include "preferences/Preferences.h"
 #include "preferences/Preferences_private.h"
+#include "unittest/TestSuite.h"
+#include "utilities/printfFormats.h"
 
 static unsigned int loadCalls;
 static unsigned int saveCalls;
