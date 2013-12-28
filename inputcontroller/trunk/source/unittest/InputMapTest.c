@@ -1,7 +1,7 @@
 #include <string.h>
+#include "serialization/TestDeserializationContext.h"
+#include "serialization/TestSerializationContext.h"
 #include "unittest/TestSuite.h"
-#include "unittest/TestDeserializationContext.h"
-#include "unittest/TestSerializationContext.h"
 #include "inputcontroller/InputMap.h"
 
 static void verifyInit(InputMap * inputMap, int callingLine) {

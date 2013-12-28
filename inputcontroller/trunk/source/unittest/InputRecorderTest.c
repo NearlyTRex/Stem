@@ -1,8 +1,8 @@
-#include "unittest/TestSuite.h"
-#include "unittest/printfFormats.h"
-#include <stdbool.h>
-#include "utilities/IOUtilities.h"
 #include "inputcontroller/InputRecorder.h"
+#include "unittest/TestSuite.h"
+#include "utilities/IOUtilities.h"
+#include "utilities/printfFormats.h"
+#include <stdbool.h>
 #include <unistd.h>
 
 static void verifyInit(InputRecorder * inputRecorder, InputController * inputController, bool fileOutput, unsigned int lineNumber) {

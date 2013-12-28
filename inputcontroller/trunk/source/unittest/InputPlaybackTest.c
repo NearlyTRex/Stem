@@ -1,7 +1,7 @@
 #include "unittest/TestSuite.h"
-#include "unittest/printfFormats.h"
 #include "inputcontroller/InputPlayback.h"
 #include "utilities/IOUtilities.h"
+#include "utilities/printfFormats.h"
 
 static void verifyInit(InputPlayback * playback, InputController * controller, InputSession * session, unsigned int lineNumber) {
 	TestCase_assert(playback != NULL, "Expected non-NULL but got NULL (%u)", lineNumber);

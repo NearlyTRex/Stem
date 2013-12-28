@@ -169,12 +169,12 @@ PROJECT_LIBRARY_DEPENDENCIES_unittest = library
 PROJECT_LIBRARY_DEPENDENCIES_testharness = library
 STEM_LIBRARY_DEPENDENCIES = \
 	gamepad/1.3.1 \
-	serialization/1.3.0 \
+	serialization/1.4.0 \
 	stemobject/3.1.0 \
-	utilities/1.7.1
+	utilities/1.7.2
 STEM_LIBRARY_DEPENDENCIES_unittest = \
 	stubshell/1.3.1 \
-	unittest/1.0.0
+	unittest/1.1.0
 STEM_SOURCE_DEPENDENCIES = 
 THIRDPARTY_LIBRARY_DEPENDENCIES = 
 
