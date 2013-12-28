@@ -109,6 +109,10 @@ extern bool mainLoopCalled;
 	[view toggleFullScreen];
 }
 
+- (void) setVSync: (BOOL) sync forFullscreen: (BOOL) fullscreen {
+	[view setVSync: sync forFullscreen: fullscreen];
+}
+
 - (BOOL) applicationShouldTerminateAfterLastWindowClosed: (NSApplication *) application {
   return YES;
 }

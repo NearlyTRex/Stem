@@ -38,5 +38,6 @@ extern bool g_mouseDeltaMode;
 - (void) redisplayPosted;
 - (bool) isFullScreen;
 - (void) toggleFullScreen;
+- (void) setVSync: (BOOL) sync forFullscreen: (BOOL) fullscreen;
 
 @end

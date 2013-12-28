@@ -20,8 +20,11 @@
   Alex Diener adiener@sacredsoftware.net
 */
 
-#ifndef __NSOPENGL_TARGET_H__
-#define __NSOPENGL_TARGET_H__
+#ifndef __NSOpenGLTarget_H__
+#define __NSOpenGLTarget_H__
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include "nsopenglshell/NSOpenGLShell.h"
 
@@ -30,4 +33,7 @@
     for details. */
 void NSOpenGLTarget_configure(int argc, const char ** argv, struct NSOpenGLShellConfiguration * configuration);
 
+#ifdef __cplusplus
+}
+#endif
 #endif

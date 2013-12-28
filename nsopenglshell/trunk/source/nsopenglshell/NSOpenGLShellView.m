@@ -36,10 +36,14 @@
 
 @implementation NSOpenGLShellView
 
+- (void) setVSync: (BOOL) sync {
+	GLint syncGL = sync;
+	[[self openGLContext] setValues: &syncGL forParameter: NSOpenGLCPSwapInterval];
+}
+
 - (id) initWithFrame: (NSRect) frame configuration: (struct NSOpenGLShellConfiguration) configuration {
 	NSOpenGLPixelFormat * pixelFormat;
 	NSOpenGLPixelFormatAttribute attributes[13];
-	GLint sync = 1;
 	unsigned int numAttributes = 0;
 	
 	if (configuration.displayMode.doubleBuffer) {
@@ -77,7 +81,9 @@
 			GLGraphics_init(GL_API_VERSION_DESKTOP_2);
 		}
 		
-		[[self openGLContext] setValues: &sync forParameter: NSOpenGLCPSwapInterval];
+		vsyncWindow = VSYNC_DEFAULT_WINDOW;
+		vsyncFullscreen = VSYNC_DEFAULT_FULLSCREEN;
+		[self setVSync: vsyncWindow];
 		
 		animationTimer = nil;
 	}
@@ -90,15 +96,30 @@
 	[super dealloc];
 }
 
-#define FADE_INTERVAL 0.25
-
 - (void) toggleFullScreen {
 	if ([self isInFullScreenMode]) {
 		[self exitFullScreenModeWithOptions: nil];
+		[self setVSync: vsyncWindow];
 	} else {
 		[self enterFullScreenMode: [[self window] screen] withOptions: nil];
+		[self setVSync: vsyncFullscreen];
 	}
 	[[self window] makeFirstResponder: self];
+}
+
+- (void) setVSync: (BOOL) sync forFullscreen: (BOOL) fullscreen {
+	if (fullscreen) {
+		vsyncFullscreen = sync;
+		if ([self isInFullScreenMode]) {
+			[self setVSync: sync];
+		}
+		
+	} else {
+		vsyncWindow = sync;
+		if (![self isInFullScreenMode]) {
+			[self setVSync: sync];
+		}
+	}
 }
 
 - (void) mouseMoved: (NSEvent *) event {

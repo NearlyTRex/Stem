@@ -436,3 +436,7 @@ void Shell_waitSemaphore(ShellSemaphore semaphore) {
 bool Shell_tryWaitSemaphore(ShellSemaphore semaphore) {
 	return !sem_trywait((sem_t *) semaphore);
 }
+
+void NSOpenGLShell_setVSync(bool sync, bool fullscreen) {
+	[(NSOpenGLShellApplication *) [NSApplication sharedApplication] setVSync: sync forFullscreen: fullscreen];
+}

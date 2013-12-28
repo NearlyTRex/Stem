@@ -24,13 +24,17 @@
 #include <OpenGL/gl.h>
 #include "nsopenglshell/NSOpenGLShell.h"
 
+#define VSYNC_DEFAULT_WINDOW YES
+#define VSYNC_DEFAULT_FULLSCREEN YES
+
 @interface NSOpenGLShellView : NSOpenGLView {
 	BOOL animating;
 	BOOL initCalled;
 	BOOL redisplayWasPosted;
 	NSTimer * animationTimer;
 	int buttonMask;
-	
+	BOOL vsyncWindow;
+	BOOL vsyncFullscreen;
 	int lastWidth;
 	int lastHeight;
 }
@@ -40,5 +44,6 @@
 - (void) redisplayPosted;
 - (void) toggleFullScreen;
 - (void) startAnimation;
+- (void) setVSync: (BOOL) sync forFullscreen: (BOOL) fullscreen;
 
 @end

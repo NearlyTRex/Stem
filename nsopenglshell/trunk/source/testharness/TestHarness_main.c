@@ -1,4 +1,5 @@
 #include "shell/Shell.h"
+#include "nsopenglshell/NSOpenGLShell.h"
 #include "nsopenglshell/NSOpenGLTarget.h"
 
 #include <limits.h>
@@ -14,8 +15,12 @@
 
 #define msleep(ms) usleep((ms) * 1000)
 
+#define VSYNC_DEFAULT_WINDOW true
+#define VSYNC_DEFAULT_FULLSCREEN true
+
 static unsigned int timer1ID = UINT_MAX, timer2ID = UINT_MAX;
 static bool deltaMode;
+static bool syncFullscreen = VSYNC_DEFAULT_FULLSCREEN, syncWindow = VSYNC_DEFAULT_WINDOW;
 
 void NSOpenGLTarget_configure(int argc, const char ** argv, struct NSOpenGLShellConfiguration * configuration) {
 	int argIndex;
@@ -171,6 +176,20 @@ void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned int mo
 		
 		Shell_getMainScreenSize(&width, &height);
 		printf("Shell_getMainScreenSize(%u, %u)\n", width, height);
+		
+	} else if (keyCode == KEYBOARD_V) {
+		bool sync, fullscreen;
+		
+		fullscreen = Shell_isFullScreen();
+		if (fullscreen) {
+			syncFullscreen = !syncFullscreen;
+			sync = syncFullscreen;
+		} else {
+			syncWindow = !syncWindow;
+			sync = syncWindow;
+		}
+		NSOpenGLShell_setVSync(sync, fullscreen);
+		printf("GLUTShell_setVSync(%s, %s)\n", sync ? "true" : "false", fullscreen ? "true" : "false");
 		
 	} else if (keyCode == KEYBOARD_COMMA) {
 		if (timer1ID == UINT_MAX) {

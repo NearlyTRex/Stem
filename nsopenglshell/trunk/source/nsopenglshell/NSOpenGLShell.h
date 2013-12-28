@@ -20,8 +20,11 @@
   Alex Diener adiener@sacredsoftware.net
 */
 
-#ifndef __NSOPENGLSHELL_H__
-#define __NSOPENGLSHELL_H__
+#ifndef __NSOpenGLShell_H__
+#define __NSOpenGLShell_H__
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include <stdbool.h>
 
@@ -63,4 +66,11 @@ enum NSOpenGLShellCursor {
 	NSOpenGLShellCursor_operationNotAllowed
 };
 
+// Enables/disables vsync for the display mode specified by fullscreen.
+// Defaults: Enabled for both windowed and fullscreen mode.
+void NSOpenGLShell_setVSync(bool sync, bool fullscreen);
+
+#ifdef __cplusplus
+}
+#endif
 #endif
