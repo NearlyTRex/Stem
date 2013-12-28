@@ -69,45 +69,54 @@ static bool vsyncWindow = VSYNC_DEFAULT_WINDOW, vsyncFullscreen = VSYNC_DEFAULT_
 static unsigned int nextTimerID;
 static size_t timerCount;
 static struct WGLShellTimer * timers;
+static bool redisplayNeeded;
+static HDC displayContext;
+static HGLRC glContext;
 
 void Shell_mainLoop() {
 	MSG message;
+	unsigned int timerIndex, timerIndex2;
+	double currentTime;
 	
 	for (;;) {
-		if (timerCount == 0) {
+		while (PeekMessage(&message, NULL, 0, 0, PM_NOREMOVE)) {
 			if (!GetMessage(&message, NULL, 0, 0)) {
-				break;
+				return;
 			}
-		} else {
-			unsigned int timerIndex, timerIndex2;
-			double currentTime;
-			
-			currentTime = Shell_getCurrentTime();
-			for (timerIndex = 0; timerIndex < timerCount; timerIndex++) {
-				if (currentTime >= timers[timerIndex].nextFireTime) {
-					timers[timerIndex].callback(timers[timerIndex].id, timers[timerIndex].context);
-					if (timers[timerIndex].repeat) {
-						timers[timerIndex].nextFireTime += timers[timerIndex].interval;
-					} else {
-						timerCount--;
-						for (timerIndex2 = timerIndex; timerIndex2 < timerCount; timerIndex2++) {
-							timers[timerIndex2] = timers[timerIndex2 + 1];
-						}
-						timerIndex--;
+			TranslateMessage(&message);
+			DispatchMessage(&message);
+		}
+		
+		currentTime = Shell_getCurrentTime();
+		for (timerIndex = 0; timerIndex < timerCount; timerIndex++) {
+			if (currentTime >= timers[timerIndex].nextFireTime) {
+				timers[timerIndex].callback(timers[timerIndex].id, timers[timerIndex].context);
+				if (timers[timerIndex].repeat) {
+					timers[timerIndex].nextFireTime += timers[timerIndex].interval;
+				} else {
+					timerCount--;
+					for (timerIndex2 = timerIndex; timerIndex2 < timerCount; timerIndex2++) {
+						timers[timerIndex2] = timers[timerIndex2 + 1];
 					}
+					timerIndex--;
 				}
 			}
-			if (!PeekMessage(&message, NULL, 0, 0, PM_REMOVE)) {
-				continue;
-			}
 		}
-		TranslateMessage(&message);
-		DispatchMessage(&message);
+		
+		if (redisplayNeeded) {
+			redisplayNeeded = false;
+			RedrawWindow(window, NULL, NULL, RDW_NOERASE | RDW_INTERNALPAINT | RDW_INVALIDATE | RDW_UPDATENOW);
+		}
+		
+		wglMakeCurrent(displayContext, glContext);
+		if (timerCount == 0 && !redisplayNeeded) {
+			MsgWaitForMultipleObjects(0, NULL, FALSE, INFINITE, QS_ALLINPUT);
+		}
 	}
 }
 
 void Shell_redisplay() {
-	InvalidateRect(window, NULL, false);
+	redisplayNeeded = true;
 }
 
 bool Shell_isFullScreen() {
@@ -702,17 +711,19 @@ static LRESULT CALLBACK windowProc(HWND window, UINT message, WPARAM wParam, LPA
 				fprintf(stderr, "GL error: 0x%X\n", error);
 			}
 #endif
-			SwapBuffers(wglGetCurrentDC());
+			SwapBuffers(displayContext);
 			return 0;
 		}
 		
-		case WM_SIZING: {
+		case WM_SIZING:
+		case WM_SIZE: {
 			RECT rect;
 			
-			rect = *(RECT *) lParam;
+			//rect = *(RECT *) lParam;
+			GetClientRect(window, &rect);
 			glViewport(0, 0, rect.right - rect.left, rect.bottom - rect.top);
 			Target_resized(rect.right - rect.left, rect.bottom - rect.top);
-			InvalidateRect(window, NULL, false);
+			redisplayNeeded = true;
 			return 0;
 		}
 		
@@ -792,6 +803,7 @@ static LRESULT CALLBACK windowProc(HWND window, UINT message, WPARAM wParam, LPA
 			if (capsLock && !(modifierFlags & MODIFIER_CAPS_LOCK_BIT)) {
 				modifierFlags |= MODIFIER_CAPS_LOCK_BIT;
 				Target_keyModifiersChanged(modifierFlags);
+				
 			} else if (!capsLock && (modifierFlags & MODIFIER_CAPS_LOCK_BIT)) {
 				modifierFlags &= ~MODIFIER_CAPS_LOCK_BIT;
 				Target_keyModifiersChanged(modifierFlags);
@@ -834,6 +846,7 @@ static LRESULT CALLBACK windowProc(HWND window, UINT message, WPARAM wParam, LPA
 			if (capsLock && !(modifierFlags & MODIFIER_CAPS_LOCK_BIT)) {
 				modifierFlags |= MODIFIER_CAPS_LOCK_BIT;
 				Target_keyModifiersChanged(modifierFlags);
+				
 			} else if (!capsLock && (modifierFlags & MODIFIER_CAPS_LOCK_BIT)) {
 				modifierFlags &= ~MODIFIER_CAPS_LOCK_BIT;
 				Target_keyModifiersChanged(modifierFlags);
@@ -886,8 +899,6 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prevInstance, PSTR commandLine,
 	WNDCLASSEX windowClass;
 	ATOM result;
 	struct WGLShellConfiguration configuration;
-	HDC displayContext;
-	HGLRC glContext;
 	PIXELFORMATDESCRIPTOR pixelFormat;
 	int format;
 	const unsigned char * glExtensions;
@@ -896,9 +907,10 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prevInstance, PSTR commandLine,
 	const char ** argv;
 	char * arg;
 	size_t lengthUTF8;
+	RECT windowRect;
 	
-	configuration.windowX = 10;
-	configuration.windowY = 10;
+	configuration.windowX = 20;
+	configuration.windowY = 50;
 	configuration.windowWidth = 800;
 	configuration.windowHeight = 600;
 	configuration.windowTitle = "Change configuration->windowTitle in WGLTarget_configure()";
@@ -938,13 +950,19 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prevInstance, PSTR commandLine,
 		exit(EXIT_FAILURE);
 	}
 	
+	windowRect.left = configuration.windowX;
+	windowRect.top = configuration.windowY;
+	windowRect.right = windowRect.left + configuration.windowWidth;
+	windowRect.bottom = windowRect.top + configuration.windowHeight;
+	AdjustWindowRect(&windowRect, WS_CAPTION | WS_MAXIMIZEBOX | WS_MINIMIZEBOX | WS_SIZEBOX | WS_OVERLAPPEDWINDOW, false);
+	
 	window = CreateWindow("wglshell",
 	                      configuration.windowTitle,
 	                      WS_CAPTION | WS_MAXIMIZEBOX | WS_MINIMIZEBOX | WS_SIZEBOX | WS_OVERLAPPEDWINDOW,
-	                      configuration.windowX,
-	                      configuration.windowY,
-	                      configuration.windowWidth,
-	                      configuration.windowHeight,
+	                      windowRect.left,
+	                      windowRect.top,
+	                      windowRect.right - windowRect.left,
+	                      windowRect.bottom - windowRect.top,
 	                      NULL,
 	                      NULL,
 	                      instance,
@@ -961,7 +979,7 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prevInstance, PSTR commandLine,
 		pixelFormat.dwFlags |= PFD_DOUBLEBUFFER;
 	}
 	pixelFormat.iPixelType = PFD_TYPE_RGBA;
-	pixelFormat.cAlphaBits = configuration.displayMode.colorBits;
+	pixelFormat.cColorBits = configuration.displayMode.colorBits;
 	pixelFormat.cRedBits = 0;
 	pixelFormat.cRedShift = 0;
 	pixelFormat.cGreenBits = 0;
@@ -978,7 +996,7 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prevInstance, PSTR commandLine,
 	pixelFormat.cDepthBits = configuration.displayMode.depthBits;
 	pixelFormat.cStencilBits = configuration.displayMode.stencilBits;
 	pixelFormat.cAuxBuffers = 0;
-	pixelFormat.iLayerType = 0;
+	pixelFormat.iLayerType = PFD_MAIN_PLANE;
 	pixelFormat.bReserved = 0;
 	pixelFormat.dwLayerMask = 0;
 	pixelFormat.dwVisibleMask = 0;
