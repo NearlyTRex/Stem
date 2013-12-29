@@ -156,21 +156,17 @@ LINKFLAGS = ${FRAMEWORK_LINKFLAGS} ${LIBRARY_LINKFLAGS} ${OTHER_LINKFLAGS}
 LINK_ORDER = \
 	library \
 	unittest \
-	stemobject \
-	stubshell
+	stemobject
 
 #Dependencies (can optionally be per-target or per-target-per-platform)
 
 PROJECT_LIBRARY_DEPENDENCIES_unittest = library
 PROJECT_LIBRARY_DEPENDENCIES_testharness = library
 STEM_LIBRARY_DEPENDENCIES = \
-	shell/1.1.0 \
 	stemobject/3.1.0
 STEM_LIBRARY_DEPENDENCIES_unittest = \
-	stubshell/1.3.1 \
 	unittest/1.1.0
-STEM_LIBRARY_DEPENDENCIES_testharness = \
-	stubshell/1.3.1
+STEM_LIBRARY_DEPENDENCIES_testharness = 
 STEM_SOURCE_DEPENDENCIES = 
 THIRDPARTY_LIBRARY_DEPENDENCIES = 
 

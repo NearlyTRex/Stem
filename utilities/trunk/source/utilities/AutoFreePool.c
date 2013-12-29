@@ -25,7 +25,6 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "shell/ShellThreads.h"
 
 struct AutoFreePool_callback {
 	void (* callback)(void * context);
@@ -46,21 +45,28 @@ struct AutoFreePool {
 
 static struct AutoFreePool poolStack[MAX_POOL_STACK_DEPTH];
 static int poolStackDepth = -1;
-static ShellMutex mutex;
+static MUTEX_TYPE mutex;
+static void (* lockMutex)(MUTEX_TYPE);
+static void (* unlockMutex)(MUTEX_TYPE);
 
-void AutoFreePool_initMutex() {
+void AutoFreePool_initMutex(MUTEX_TYPE (* createMutexFunc)(void), void (* lockMutexFunc)(MUTEX_TYPE), void (* unlockMutexFunc)(MUTEX_TYPE)) {
 	if (mutex == NULL) {
-		mutex = Shell_createMutex();
+		mutex = createMutexFunc();
+		lockMutex = lockMutexFunc;
+		unlockMutex = unlockMutexFunc;
 	}
 }
 
 void AutoFreePool_push() {
-	AutoFreePool_initMutex();
-	Shell_lockMutex(mutex);
+	if (mutex != NULL) {
+		lockMutex(mutex);
+	}
 	
 	if (poolStackDepth >= MAX_POOL_STACK_DEPTH - 1) {
 		fprintf(stderr, "Warning: AutoFreePool maximum stack depth (%d) exceeded; couldn't push another pool as requested\n", MAX_POOL_STACK_DEPTH);
-		Shell_unlockMutex(mutex);
+		if (mutex != NULL) {
+			unlockMutex(mutex);
+		}
 		return;
 	}
 	
@@ -68,16 +74,21 @@ void AutoFreePool_push() {
 	poolStack[poolStackDepth].addresses = NULL;
 	poolStack[poolStackDepth].callbacks = NULL;
 	
-	Shell_unlockMutex(mutex);
+	if (mutex != NULL) {
+		unlockMutex(mutex);
+	}
 }
 
 void AutoFreePool_pop() {
-	AutoFreePool_initMutex();
-	Shell_lockMutex(mutex);
+	if (mutex != NULL) {
+		lockMutex(mutex);
+	}
 	
 	if (poolStackDepth < 0) {
 		fprintf(stderr, "Warning: AutoFreePool stack underflow; you've popped more times than you've pushed\n");
-		Shell_unlockMutex(mutex);
+		if (mutex != NULL) {
+			unlockMutex(mutex);
+		}
 		return;
 	}
 	
@@ -85,17 +96,24 @@ void AutoFreePool_pop() {
 	free(poolStack[poolStackDepth].addresses);
 	free(poolStack[poolStackDepth].callbacks);
 	poolStackDepth--;
-	Shell_unlockMutex(mutex);
+	if (mutex != NULL) {
+		unlockMutex(mutex);
+	}
 }
 
 void * AutoFreePool_add(void * address) {
-	AutoFreePool_initMutex();
-	Shell_lockMutex(mutex);
+	if (mutex != NULL) {
+		lockMutex(mutex);
+	}
 	
 	if (poolStackDepth == -1) {
-		Shell_unlockMutex(mutex);
+		if (mutex != NULL) {
+			unlockMutex(mutex);
+		}
 		AutoFreePool_push();
-		Shell_lockMutex(mutex);
+		if (mutex != NULL) {
+			lockMutex(mutex);
+		}
 	}
 	
 	if (poolStack[poolStackDepth].addresses == NULL) {
@@ -109,19 +127,26 @@ void * AutoFreePool_add(void * address) {
 	}
 	
 	poolStack[poolStackDepth].addresses[poolStack[poolStackDepth].numberOfAddresses++] = address;
-	Shell_unlockMutex(mutex);
+	if (mutex != NULL) {
+		unlockMutex(mutex);
+	}
 	
 	return address;
 }
 
 void AutoFreePool_addCallback(void (* callback)(void * context), void * context) {
-	AutoFreePool_initMutex();
-	Shell_lockMutex(mutex);
+	if (mutex != NULL) {
+		lockMutex(mutex);
+	}
 	
 	if (poolStackDepth == -1) {
-		Shell_unlockMutex(mutex);
+		if (mutex != NULL) {
+			unlockMutex(mutex);
+		}
 		AutoFreePool_push();
-		Shell_lockMutex(mutex);
+		if (mutex != NULL) {
+			lockMutex(mutex);
+		}
 	}
 	
 	if (poolStack[poolStackDepth].callbacks == NULL) {
@@ -137,15 +162,20 @@ void AutoFreePool_addCallback(void (* callback)(void * context), void * context)
 	poolStack[poolStackDepth].callbacks[poolStack[poolStackDepth].numberOfCallbacks].callback = callback;
 	poolStack[poolStackDepth].callbacks[poolStack[poolStackDepth].numberOfCallbacks].context = context;
 	poolStack[poolStackDepth].numberOfCallbacks++;
-	Shell_unlockMutex(mutex);
+	if (mutex != NULL) {
+		unlockMutex(mutex);
+	}
 }
 
 void AutoFreePool_empty() {
-	AutoFreePool_initMutex();
-	Shell_lockMutex(mutex);
+	if (mutex != NULL) {
+		lockMutex(mutex);
+	}
 	
 	if (poolStackDepth == -1) {
-		Shell_unlockMutex(mutex);
+		if (mutex != NULL) {
+			unlockMutex(mutex);
+		}
 		return;
 	}
 	
@@ -166,5 +196,7 @@ void AutoFreePool_empty() {
 		}
 		poolStack[poolStackDepth].numberOfCallbacks = 0;
 	}
-	Shell_unlockMutex(mutex);
+	if (mutex != NULL) {
+		unlockMutex(mutex);
+	}
 }

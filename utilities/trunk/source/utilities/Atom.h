@@ -27,6 +27,18 @@ typedef const char * Atom;
 
 #define ATOM(string) Atom_fromString(string)
 
+#ifndef MUTEX_TYPE
+#ifdef __SHELL_THREADS_H__
+#define MUTEX_TYPE ShellMutex;
+#else
+#define MUTEX_TYPE void *
+#endif
+#endif
+
+// If you want to safely use Atom in a multithreaded environment, ensure that
+// Atom_initMutex() is called before any other Atom function
+void Atom_initMutex(MUTEX_TYPE (* createMutexFunc)(void), void (* lockMutexFunc)(MUTEX_TYPE), void (* unlockMutexFunc)(MUTEX_TYPE));
+
 Atom Atom_fromString(const char * string);
 
 #endif

@@ -1,3 +1,6 @@
+1.8.0
+ * utilities no longer depends on shell. ShellMutex usage in Atom and AutoFreePool has been replaced by callbacks which are signature-compatible with ShelMutex if ShellThreads.h is included before Atom.h and AutoFreePool.h.
+
 1.7.2 (2013-12-27)
  * Moved printfFormats.h from unittest
  * Added LONG_LONG_FORMAT, ULONG_LONG_FORMAT, and XLONG_LONG_FORMAT to printfFormats.h, since long long is semantically different from int64_t on 64-bit Linux

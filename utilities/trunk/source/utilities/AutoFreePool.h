@@ -23,9 +23,17 @@
 #ifndef __AUTO_FREE_POOL_H__
 #define __AUTO_FREE_POOL_H__
 
+#ifndef MUTEX_TYPE
+#ifdef __SHELL_THREADS_H__
+#define MUTEX_TYPE ShellMutex;
+#else
+#define MUTEX_TYPE void *
+#endif
+#endif
+
 // If you want to safely use AutoFreePool in a multithreaded environment, ensure that
 // AutoFreePool_initMutex() is called before any other AutoFreePool function
-void AutoFreePool_initMutex();
+void AutoFreePool_initMutex(MUTEX_TYPE (* createMutexFunc)(void), void (* lockMutexFunc)(MUTEX_TYPE), void (* unlockMutexFunc)(MUTEX_TYPE));
 
 void AutoFreePool_push();
 void AutoFreePool_pop();

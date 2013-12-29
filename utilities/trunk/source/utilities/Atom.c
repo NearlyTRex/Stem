@@ -23,7 +23,6 @@
 #include "utilities/Atom.h"
 #include "utilities/lookup3.h"
 
-#include "shell/ShellThreads.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
@@ -42,7 +41,17 @@ struct AtomBucket {
 };
 
 static struct AtomBucket atomBuckets[ATOM_HASH_TABLE_SIZE];
-static ShellMutex mutex;
+static MUTEX_TYPE mutex;
+static void (* lockMutex)(MUTEX_TYPE);
+static void (* unlockMutex)(MUTEX_TYPE);
+
+void Atom_initMutex(MUTEX_TYPE (* createMutexFunc)(void), void (* lockMutexFunc)(MUTEX_TYPE), void (* unlockMutexFunc)(MUTEX_TYPE)) {
+	if (mutex == NULL) {
+		mutex = createMutexFunc();
+		lockMutex = lockMutexFunc;
+		unlockMutex = unlockMutexFunc;
+	}
+}
 
 Atom Atom_fromString(const char * string) {
 	unsigned int bucketIndex, entryIndex;
@@ -58,14 +67,15 @@ Atom Atom_fromString(const char * string) {
 	hash = hashlittle(string, length, 0);
 	bucketIndex = hash % ATOM_HASH_TABLE_SIZE;
 	
-	if (mutex == NULL) {
-		mutex = Shell_createMutex();
+	if (mutex != NULL) {
+		lockMutex(mutex);
 	}
-	Shell_lockMutex(mutex);
 	
 	for (entryIndex = 0; entryIndex < atomBuckets[bucketIndex].count; entryIndex++) {
 		if (atomBuckets[bucketIndex].entries[entryIndex].hash == hash && !strcmp(atomBuckets[bucketIndex].entries[entryIndex].atom, string)) {
-			Shell_unlockMutex(mutex);
+			if (mutex != NULL) {
+				unlockMutex(mutex);
+			}
 			return atomBuckets[bucketIndex].entries[entryIndex].atom;
 		}
 	}
@@ -84,6 +94,8 @@ Atom Atom_fromString(const char * string) {
 	atomBuckets[bucketIndex].entries[atomBuckets[bucketIndex].count].hash = hash;
 	atomBuckets[bucketIndex].count++;
 	
-	Shell_unlockMutex(mutex);
+	if (mutex != NULL) {
+		unlockMutex(mutex);
+	}
 	return newAtom;
 }

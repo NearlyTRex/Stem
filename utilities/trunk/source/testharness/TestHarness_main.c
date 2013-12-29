@@ -2,13 +2,49 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
-#include "shell/Shell.h"
 #include "utilities/Atom.h"
 #include "utilities/IOUtilities.h"
 #include "utilities/Ranrot.h"
 
+#if defined(__APPLE__)
+#include <mach/mach.h>
+#include <mach/mach_time.h>
+#elif defined(__linux)
+#include <time.h>
+#elif defined(WIN32)
+#include <windows.h>
+#endif
+
 static void printUsage() {
 	fprintf(stderr, "Must specify -random, -tempfile, -readstdin, or -atomprofile as argv[1]\n");
+}
+
+static double getCurrentTime() {
+#if defined(__APPLE__)
+	static mach_timebase_info_data_t timebaseInfo;
+	
+	if (timebaseInfo.denom == 0) {
+		mach_timebase_info(&timebaseInfo);
+	}
+	return mach_absolute_time() * (double) timebaseInfo.numer / timebaseInfo.denom * 0.000000001;
+	
+#elif defined(WIN32)
+	static LARGE_INTEGER frequency;
+	LARGE_INTEGER currentTime;
+	
+	if (frequency.QuadPart == 0) {
+		QueryPerformanceFrequency(&frequency);
+	}
+	QueryPerformanceCounter(&currentTime);
+	
+	return (double) currentTime.QuadPart / frequency.QuadPart;
+	
+#elif defined(__linux)
+	struct timespec currentTime;
+	
+	clock_gettime(CLOCK_MONOTONIC, &currentTime);
+	return currentTime.tv_sec + currentTime.tv_nsec * 0.000000001;
+#endif
 }
 
 int main(int argc, char ** argv) {
@@ -136,12 +172,12 @@ int main(int argc, char ** argv) {
 			strings[stringIndex][charIndex] = 0;
 		}
 		stringIndex = 0;
-		currentTime = Shell_getCurrentTime();
+		currentTime = getCurrentTime();
 		for (iteration = 0; iteration < iterationCount; iteration++) {
 			Atom_fromString(strings[stringIndex]);
 			stringIndex = (stringIndex + 1) % stringCount;
 		}
-		printf("Time taken: %f seconds\n", Shell_getCurrentTime() - currentTime);
+		printf("Time taken: %f seconds\n", getCurrentTime() - currentTime);
 		
 	} else {
 		printUsage();
