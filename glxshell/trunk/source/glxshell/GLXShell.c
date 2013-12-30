@@ -42,6 +42,7 @@
 #include <GL/glu.h>
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
+#include <X11/cursorfont.h>
 
 struct GLXShellTimer {
 	double interval;
@@ -79,6 +80,52 @@ static size_t timerCount;
 static struct GLXShellTimer * timers;
 static int lastWidth, lastHeight;
 static bool backgrounded;
+
+static bool cursorHiddenByHide;
+static bool showCursorOnNextMouseMove;
+static int lastUnhiddenCursor = ShellCursor_arrow;
+static bool mouseDeltaMode;
+static int restoreMouseX, restoreMouseY;
+static int lastMouseX, lastMouseY;
+static int ignoreX = INT_MAX, ignoreY = INT_MAX;
+
+static void setEmptyCursor() {
+	static Cursor emptyCursor = None;
+	
+	if (emptyCursor == None) {
+		char emptyBits[32];
+		XColor color;
+		Pixmap pixmap;
+		
+		memset(emptyBits, 0, sizeof(emptyBits));
+		memset(&color, 0, sizeof(color));
+		pixmap = XCreateBitmapFromData(display, window, emptyBits, 16, 16);
+		if (pixmap != None) {
+			emptyCursor = XCreatePixmapCursor(display, pixmap, pixmap, &color, &color, 0, 0);
+			XFreePixmap(display, pixmap);
+		}
+	}
+	XDefineCursor(display, window, emptyCursor);
+}
+
+static void setShellCursor(enum ShellCursor cursor) {
+	static struct {unsigned int name; Cursor cursor;} cursors[] = {
+		{XC_top_left_arrow, None}, // ShellCursor_arrow
+		{XC_xterm,          None}, // ShellCursor_iBeam
+		{XC_crosshair,      None}, // ShellCursor_crosshair
+		{XC_hand1,          None}, // ShellCursor_hand
+		{XC_watch,          None}  // ShellCursor_wait
+	};
+	
+	if ((unsigned int) cursor > ShellCursor_wait) {
+		return;
+	}
+	
+	if (cursors[cursor].cursor == None) {
+		cursors[cursor].cursor = XCreateFontCursor(display, cursors[cursor].name);
+	}
+	XDefineCursor(display, window, cursors[cursor].cursor);
+}
 
 static unsigned int xkeyCodeToShellKeyCode(unsigned int keyCode) {
 	switch (keyCode) {
@@ -429,6 +476,9 @@ void Shell_mainLoop() {
 					if (event.xbutton.x == lastMouseX && event.xbutton.y == lastMouseY) {
 						break;
 					}
+					if (showCursorOnNextMouseMove) {
+						setShellCursor(lastUnhiddenCursor);
+					}
 					if (buttonMask != 0) {
 						Target_mouseDragged(buttonMask, event.xbutton.x, event.xbutton.y);
 					} else {
@@ -634,30 +684,22 @@ void Shell_cancelTimer(unsigned int timerID) {
 	}
 }
 
-static bool cursorHiddenByHide;
-static bool showCursorOnNextMouseMove;
-static int lastUnhiddenCursor = ShellCursor_arrow;
-static bool mouseDeltaMode;
-static int restoreMouseX, restoreMouseY;
-static int lastMouseX, lastMouseY;
-static int ignoreX = INT_MAX, ignoreY = INT_MAX;
-
 void Shell_setCursorVisible(bool visible) {
 	if (visible && cursorHiddenByHide) {
 		cursorHiddenByHide = false;
 		if (!mouseDeltaMode) {
-			//Shell_setCursor(lastUnhiddenCursor);
+			setShellCursor(lastUnhiddenCursor);
 		}
 	} else if (!visible && !cursorHiddenByHide) {
 		cursorHiddenByHide = true;
-		//glutSetCursor(GLUT_CURSOR_NONE);
+		setEmptyCursor();
 	}
 }
 
 void Shell_hideCursorUntilMouseMoves() {
 	if (!cursorHiddenByHide) {
 		showCursorOnNextMouseMove = true;
-		//glutSetCursor(GLUT_CURSOR_NONE);
+		setEmptyCursor();
 	}
 }
 
@@ -666,23 +708,7 @@ void Shell_setCursor(int cursor) {
 	if (cursorHiddenByHide || mouseDeltaMode) {
 		return;
 	}
-	switch (cursor) {
-		case ShellCursor_arrow:
-			//glutSetCursor(GLUT_CURSOR_LEFT_ARROW);
-			break;
-		case ShellCursor_iBeam:
-			//glutSetCursor(GLUT_CURSOR_TEXT);
-			break;
-		case ShellCursor_crosshair:
-			//glutSetCursor(GLUT_CURSOR_CROSSHAIR);
-			break;
-		case ShellCursor_hand:
-			//glutSetCursor(GLUT_CURSOR_INFO);
-			break;
-		case ShellCursor_wait:
-			//glutSetCursor(GLUT_CURSOR_WAIT);
-			break;
-	}
+	setShellCursor(cursor);
 }
 
 static void warpPointerAndIgnoreEvent(int x, int y) {
