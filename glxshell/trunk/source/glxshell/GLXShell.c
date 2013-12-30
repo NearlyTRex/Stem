@@ -64,6 +64,7 @@ static Display * display;
 static int screen;
 static GLXContext context;
 static Window window;
+static Window rootWindow;
 static Atom deleteWindowAtom;
 
 static bool redisplayNeeded;
@@ -78,24 +79,6 @@ static size_t timerCount;
 static struct GLXShellTimer * timers;
 static int lastWidth, lastHeight;
 static bool backgrounded;
-
-static void redraw() {
-#ifdef DEBUG
-	GLenum error;
-#endif
-	
-	if (Target_draw()) {
-		glXSwapBuffers(display, window);
-	}
-	
-#ifdef DEBUG
-	error = glGetError();
-	while (error != GL_NO_ERROR) {
-		fprintf(stderr, "GL error: %s\n", gluErrorString(error));
-		error = glGetError();
-	}
-#endif
-}
 
 static unsigned int xkeyCodeToShellKeyCode(unsigned int keyCode) {
 	switch (keyCode) {
@@ -345,13 +328,14 @@ void Shell_mainLoop() {
 			
 			switch (event.type) {
 				case Expose:
+					redisplayNeeded = true;
 				case ConfigureNotify:
 					XGetWindowAttributes(display, window, &windowAttributes);
 					if (windowAttributes.width != lastWidth || windowAttributes.height != lastHeight) {
 						lastWidth = windowAttributes.width;
 						lastHeight = windowAttributes.height;
 						Target_resized(windowAttributes.width, windowAttributes.height);
-						redraw();
+						redisplayNeeded = true;
 					}
 					break;
 					
@@ -497,8 +481,22 @@ void Shell_mainLoop() {
 		}
 		
 		if (redisplayNeeded) {
+#ifdef DEBUG
+			GLenum error;
+#endif
+			
 			redisplayNeeded = false;
-			redraw();
+			if (Target_draw()) {
+				glXSwapBuffers(display, window);
+			}
+			
+#ifdef DEBUG
+			error = glGetError();
+			while (error != GL_NO_ERROR) {
+				fprintf(stderr, "GL error: %s\n", gluErrorString(error));
+				error = glGetError();
+			}
+#endif
 		}
 		
 		if (timerCount == 0 && !redisplayNeeded && !XPending(display)) {
@@ -535,8 +533,40 @@ static void setVSync(bool sync) {
 	}
 }
 
+#define _NET_WM_STATE_TOGGLE 2
+bool toggleFullScreenEWMH() {
+	XEvent event;
+	
+	event.type = ClientMessage;
+	event.xclient.window = window;
+	event.xclient.message_type = XInternAtom(display, "_NET_WM_STATE", False); // TODO: Cache atom?
+	event.xclient.format = 32;
+	event.xclient.data.l[0] = _NET_WM_STATE_TOGGLE;
+	event.xclient.data.l[1] = XInternAtom(display, "_NET_WM_STATE_FULLSCREEN", False); // TODO: Cache atom?
+	event.xclient.data.l[2] = 0;
+	event.xclient.data.l[3] = 1;
+	event.xclient.data.l[4] = 0;
+	
+	return !!XSendEvent(display, rootWindow, 0, SubstructureRedirectMask | SubstructureNotifyMask, &event);
+}
+
 bool Shell_setFullScreen(bool fullScreen) {
-	return false;
+	if (fullScreen && !inFullScreenMode) {
+		if (!toggleFullScreenEWMH()) {
+			return false;
+		}
+		setVSync(vsyncFullscreen);
+		inFullScreenMode = true;
+		
+	} else if (!fullScreen && inFullScreenMode) {
+		if (!toggleFullScreenEWMH()) {
+			return false;
+		}
+		inFullScreenMode = false;
+		setVSync(vsyncWindow);
+	}
+	
+	return true;
 }
 
 double Shell_getCurrentTime() {
@@ -802,10 +832,9 @@ bool Shell_tryWaitSemaphore(ShellSemaphore semaphore) {
 }
 
 int main(int argc, char ** argv) {
-	Window rootWindow;
 	XVisualInfo * visualInfo = NULL;
 	XSetWindowAttributes windowAttributes;
-	int attributes[5];
+	int attributes[7];
 	unsigned int attributeCount = 0;
 	Colormap colormap;
 	
@@ -829,6 +858,8 @@ int main(int argc, char ** argv) {
 	configuration.displayMode.stencilBuffer = false;
 	configuration.displayMode.stencilSize = 0;
 	configuration.displayMode.multisample = false;
+	configuration.displayMode.sampleBuffers = 1;
+	configuration.displayMode.samples = 4;
 	
 	GLXTarget_configure(argc, (const char **) argv, &configuration);
 	
@@ -839,6 +870,12 @@ int main(int argc, char ** argv) {
 	if (configuration.displayMode.depthBuffer) {
 		attributes[attributeCount++] = GLX_DEPTH_SIZE;
 		attributes[attributeCount++] = configuration.displayMode.depthSize;
+	}
+	if (configuration.displayMode.multisample) {
+		attributes[attributeCount++] = GLX_SAMPLE_BUFFERS;
+		attributes[attributeCount++] = configuration.displayMode.sampleBuffers;
+		attributes[attributeCount++] = GLX_SAMPLES;
+		attributes[attributeCount++] = configuration.displayMode.samples;
 	}
 	attributes[attributeCount++] = None;
 	

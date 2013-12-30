@@ -41,6 +41,8 @@ struct GLXShellConfiguration {
 		bool stencilBuffer;
 		unsigned int stencilSize;
 		bool multisample;
+		unsigned int sampleBuffers;
+		unsigned int samples;
 	} displayMode;
 };
 
