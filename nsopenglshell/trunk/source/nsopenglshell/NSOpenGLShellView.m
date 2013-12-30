@@ -403,7 +403,38 @@ static unsigned int NSEventKeyModifiersToShellKeyModifiers(NSUInteger modifiers)
 }
 
 - (void) flagsChanged: (NSEvent *) event {
-	Target_keyModifiersChanged(NSEventKeyModifiersToShellKeyModifiers([event modifierFlags]));
+	unsigned int newModifierMask;
+	
+	newModifierMask = NSEventKeyModifiersToShellKeyModifiers([event modifierFlags]);
+	if (newModifierMask != modifierMask) {
+		if ((newModifierMask & MODIFIER_SHIFT_BIT) && !(modifierMask & MODIFIER_SHIFT_BIT)) {
+			Target_keyDown(0, KEYBOARD_LEFT_SHIFT, modifierMask);
+		} else if (!(newModifierMask & MODIFIER_SHIFT_BIT) && (modifierMask & MODIFIER_SHIFT_BIT)) {
+			Target_keyUp(KEYBOARD_LEFT_SHIFT, modifierMask);
+		}
+		if ((newModifierMask & MODIFIER_CONTROL_BIT) && !(modifierMask & MODIFIER_CONTROL_BIT)) {
+			Target_keyDown(0, KEYBOARD_LEFT_CONTROL, modifierMask);
+		} else if (!(newModifierMask & MODIFIER_CONTROL_BIT) && (modifierMask & MODIFIER_CONTROL_BIT)) {
+			Target_keyUp(KEYBOARD_LEFT_CONTROL, modifierMask);
+		}
+		if ((newModifierMask & MODIFIER_ALT_BIT) && !(modifierMask & MODIFIER_ALT_BIT)) {
+			Target_keyDown(0, KEYBOARD_LEFT_ALT, modifierMask);
+		} else if (!(newModifierMask & MODIFIER_ALT_BIT) && (modifierMask & MODIFIER_ALT_BIT)) {
+			Target_keyUp(KEYBOARD_LEFT_ALT, modifierMask);
+		}
+		if ((newModifierMask & MODIFIER_COMMAND_BIT) && !(modifierMask & MODIFIER_COMMAND_BIT)) {
+			Target_keyDown(0, KEYBOARD_LEFT_GUI, modifierMask);
+		} else if (!(newModifierMask & MODIFIER_COMMAND_BIT) && (modifierMask & MODIFIER_COMMAND_BIT)) {
+			Target_keyUp(KEYBOARD_LEFT_GUI, modifierMask);
+		}
+		if ((newModifierMask & MODIFIER_CAPS_LOCK_BIT) && !(modifierMask & MODIFIER_CAPS_LOCK_BIT)) {
+			Target_keyDown(0, KEYBOARD_CAPS_LOCK, modifierMask);
+		} else if (!(newModifierMask & MODIFIER_CAPS_LOCK_BIT) && (modifierMask & MODIFIER_CAPS_LOCK_BIT)) {
+			Target_keyUp(KEYBOARD_CAPS_LOCK, modifierMask);
+		}
+		modifierMask = newModifierMask;
+		Target_keyModifiersChanged(modifierMask);
+	}
 }
 
 - (BOOL) acceptsFirstResponder {

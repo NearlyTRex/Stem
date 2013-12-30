@@ -37,6 +37,7 @@
 	BOOL vsyncFullscreen;
 	int lastWidth;
 	int lastHeight;
+	unsigned int modifierMask;
 }
 
 - (id) initWithFrame: (NSRect) frame configuration: (struct NSOpenGLShellConfiguration) configuration;
