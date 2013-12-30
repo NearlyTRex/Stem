@@ -19,6 +19,7 @@
 static unsigned int timer1ID = UINT_MAX, timer2ID = UINT_MAX;
 static bool deltaMode;
 static bool syncFullscreen = true, syncWindow = true;
+static bool printMouseMoved = true;
 
 void WGLTarget_configure(void * instance, void * prevInstance, char * commandLine, int command, int argc, const char ** argv, struct WGLShellConfiguration * configuration) {
 	char workingDir[PATH_MAX];
@@ -222,6 +223,10 @@ void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned int mo
 	} else if (keyCode == KEYBOARD_M) {
 		Shell_hideCursorUntilMouseMoves();
 		
+	} else if (keyCode == KEYBOARD_N) {
+		printMouseMoved = !printMouseMoved;
+		printf("Mouse move messages %s\n", printMouseMoved ? "enabled" : "disabled");
+		
 	} else if (keyCode == KEYBOARD_0 && !(modifierFlags & MODIFIER_SHIFT_BIT)) {
 		Shell_setCursor(ShellCursor_arrow);
 		
@@ -283,7 +288,9 @@ void Target_mouseUp(unsigned int buttonNumber, float x, float y) {
 }
 
 void Target_mouseMoved(float x, float y) {
-	printf("Target_mouseMoved(%f, %f)\n", x, y);
+	if (printMouseMoved) {
+		printf("Target_mouseMoved(%f, %f)\n", x, y);
+	}
 }
 
 void Target_mouseDragged(unsigned int buttonMask, float x, float y) {

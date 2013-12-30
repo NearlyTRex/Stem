@@ -312,24 +312,15 @@ void Shell_setCursor(int value) {
 	}
 }
 
-static int getWindowOffsetX() {
-	POINT point = {0, 0};
-	ClientToScreen(window, &point);
-	return point.x;
-}
-
-static int getWindowOffsetY() {
-	POINT point = {0, 0};
-	ClientToScreen(window, &point);
-	return point.y;
-}
-
 static void warpPointerAndIgnoreEvent(int x, int y) {
+	POINT point = {x, y};
+	
 	ignoreX = x;
 	ignoreY = y;
 	lastMouseX = x;
 	lastMouseY = y;
-	SetCursorPos(x + getWindowOffsetX(), y +  + getWindowOffsetY());
+	ClientToScreen(window, &point);
+	SetCursorPos(point.x, point.y);
 }
 
 static int getWindowCenterX() {
@@ -654,6 +645,8 @@ static unsigned int windowsVKToShellKeyCode(UINT vk) {
 			return KEYBOARD_SPACEBAR;
 		case 234:
 			return KEYBOARD_RIGHT_GUI;
+		case 249:
+			return KEYBOARD_MENU;
 		case 45:
 			return KEYBOARD_INSERT;
 		case 36:
@@ -682,6 +675,10 @@ static unsigned int windowsVKToShellKeyCode(UINT vk) {
 			return KEYPAD_HYPHEN;
 		case 107:
 			return KEYPAD_PLUS;
+#ifdef DEBUG
+		default:
+			fprintf(stderr, "Warning: Unknown key code %u\n", vk);
+#endif
 	}
 	return 0;
 }
@@ -816,6 +813,9 @@ static LRESULT CALLBACK windowProc(HWND window, UINT message, WPARAM wParam, LPA
 				charCode = msg.wParam;
 			}
 			keyCode = lParamToShellKeyCode(lParam);
+			if (keyCode != 0) {
+				Target_keyDown(charCode, keyCode, modifierFlags);
+			}
 			if (keyCode == KEYBOARD_LEFT_SHIFT || keyCode == KEYBOARD_RIGHT_SHIFT) {
 				if (!(modifierFlags & MODIFIER_SHIFT_BIT)) {
 					modifierFlags |= MODIFIER_SHIFT_BIT;
@@ -833,9 +833,6 @@ static LRESULT CALLBACK windowProc(HWND window, UINT message, WPARAM wParam, LPA
 					modifierFlags |= MODIFIER_ALT_BIT;
 					Target_keyModifiersChanged(modifierFlags);
 				}
-				
-			} else if (keyCode != KEYBOARD_CAPS_LOCK && keyCode != KEYBOARD_LEFT_GUI && keyCode != KEYBOARD_RIGHT_GUI) {
-				Target_keyDown(charCode, keyCode, modifierFlags);
 			}
 			return 0;
 		}
@@ -856,6 +853,9 @@ static LRESULT CALLBACK windowProc(HWND window, UINT message, WPARAM wParam, LPA
 			}
 			
 			keyCode = lParamToShellKeyCode(lParam);
+			if (keyCode != 0) {
+				Target_keyUp(keyCode, modifierFlags);
+			}
 			if (keyCode == KEYBOARD_LEFT_SHIFT || keyCode == KEYBOARD_RIGHT_SHIFT) {
 				if (modifierFlags & MODIFIER_SHIFT_BIT) {
 					modifierFlags &= ~MODIFIER_SHIFT_BIT;
@@ -873,9 +873,6 @@ static LRESULT CALLBACK windowProc(HWND window, UINT message, WPARAM wParam, LPA
 					modifierFlags &= ~MODIFIER_ALT_BIT;
 					Target_keyModifiersChanged(modifierFlags);
 				}
-				
-			} else if (keyCode != KEYBOARD_CAPS_LOCK && keyCode != KEYBOARD_LEFT_GUI && keyCode != KEYBOARD_RIGHT_GUI) {
-				Target_keyUp(keyCode, modifierFlags);
 			}
 			return 0;
 		}
