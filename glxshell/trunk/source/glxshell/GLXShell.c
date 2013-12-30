@@ -42,8 +42,6 @@
 #include <GL/glu.h>
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
-//#include <X11/keysym.h>
-//#include <X11/extensions/XInput.h>
 
 struct GLXShellTimer {
 	double interval;
@@ -67,15 +65,17 @@ static int screen;
 static GLXContext context;
 static Window window;
 static Atom deleteWindowAtom;
+
+static bool redisplayNeeded;
 static unsigned int buttonMask = 0;
 static unsigned int modifierMask = 0;
 static int lastMouseX, lastMouseY;
 static bool inFullScreenMode = false;
 static bool vsyncWindow = VSYNC_DEFAULT_WINDOW, vsyncFullscreen = VSYNC_DEFAULT_FULLSCREEN;
 static struct GLXShellConfiguration configuration;
-//static unsigned int nextTimerID;
-//static size_t timerCount;
-//static struct GLXShellTimer * timers;
+static unsigned int nextTimerID;
+static size_t timerCount;
+static struct GLXShellTimer * timers;
 static int lastWidth, lastHeight;
 static bool backgrounded;
 
@@ -336,149 +336,188 @@ void Shell_mainLoop() {
 	KeySym keySym;
 	unsigned int modifiers;
 	char keys[32];
+	unsigned int timerIndex, timerIndex2;
+	double currentTime;
 	
 	for (;;) {
-		XNextEvent(display, &event);
+		while (XPending(display)) {
+			XNextEvent(display, &event);
+			
+			switch (event.type) {
+				case Expose:
+				case ConfigureNotify:
+					XGetWindowAttributes(display, window, &windowAttributes);
+					if (windowAttributes.width != lastWidth || windowAttributes.height != lastHeight) {
+						lastWidth = windowAttributes.width;
+						lastHeight = windowAttributes.height;
+						Target_resized(windowAttributes.width, windowAttributes.height);
+						redraw();
+					}
+					break;
+					
+				case KeyPress:
+					if (!XLookupString(&event.xkey, &charCode, 1, &keySym, NULL)) {
+						charCode = 0;
+					}
+					keyCode = xkeyCodeToShellKeyCode(event.xkey.keycode);
+					modifiers = xkeyStateToShellModifiers(event.xkey.state);
+					switch (keyCode) {
+						case KEYBOARD_CAPS_LOCK:
+							modifiers |= MODIFIER_CAPS_LOCK_BIT;
+							break;
+							
+						case KEYBOARD_LEFT_SHIFT:
+						case KEYBOARD_RIGHT_SHIFT:
+							modifiers |= MODIFIER_SHIFT_BIT;
+							break;
+							
+						case KEYBOARD_LEFT_CONTROL:
+						case KEYBOARD_RIGHT_CONTROL:
+							modifiers |= MODIFIER_CONTROL_BIT;
+							break;
+							
+						case KEYBOARD_LEFT_ALT:
+						case KEYBOARD_RIGHT_ALT:
+							modifiers |= MODIFIER_ALT_BIT;
+							break;
+					}
+					if (keyCode != 0) {
+						Target_keyDown(charCode, keyCode, modifiers);
+					}
+					if (modifierMask != modifiers) {
+						modifierMask = modifiers;
+						Target_keyModifiersChanged(modifierMask);
+					}
+					break;
+					
+				case KeyRelease:
+					if (event.xkey.keycode > 255) {
+						break;
+					}
+					XQueryKeymap(display, keys);
+					if (keys[event.xkey.keycode >> 3] & 1 << (event.xkey.keycode % 8)) {
+						// Xlib sends key ups for key repeats; this one is a repeat, so skip it
+						break;
+					}
+					
+					keyCode = xkeyCodeToShellKeyCode(event.xkey.keycode);
+					modifiers = xkeyStateToShellModifiers(event.xkey.state);
+					switch (keyCode) {
+						case KEYBOARD_CAPS_LOCK:
+							modifiers &= ~MODIFIER_CAPS_LOCK_BIT;
+							break;
+							
+						case KEYBOARD_LEFT_SHIFT:
+						case KEYBOARD_RIGHT_SHIFT:
+							modifiers &= ~MODIFIER_SHIFT_BIT;
+							break;
+							
+						case KEYBOARD_LEFT_CONTROL:
+						case KEYBOARD_RIGHT_CONTROL:
+							modifiers &= ~MODIFIER_CONTROL_BIT;
+							break;
+							
+						case KEYBOARD_LEFT_ALT:
+						case KEYBOARD_RIGHT_ALT:
+							modifiers &= ~MODIFIER_ALT_BIT;
+							break;
+					}
+					if (keyCode != 0) {
+						Target_keyUp(keyCode, modifiers);
+					}
+					if (modifierMask != modifiers) {
+						modifierMask = modifiers;
+						Target_keyModifiersChanged(modifierMask);
+					}
+					break;
+					
+				case ButtonPress:
+					buttonMask |= 1 << (event.xbutton.button - 1);
+					Target_mouseDown(event.xbutton.button - 1, event.xbutton.x, event.xbutton.y);
+					break;
+					
+				case ButtonRelease:
+					buttonMask &= ~(1 << (event.xbutton.button - 1));
+					Target_mouseUp(event.xbutton.button - 1, event.xbutton.x, event.xbutton.y);
+					break;
+					
+				case MotionNotify:
+					if (event.xbutton.x == lastMouseX && event.xbutton.y == lastMouseY) {
+						break;
+					}
+					if (buttonMask != 0) {
+						Target_mouseDragged(buttonMask, event.xbutton.x, event.xbutton.y);
+					} else {
+						Target_mouseMoved(event.xbutton.x, event.xbutton.y);
+					}
+					lastMouseX = event.xbutton.x;
+					lastMouseY = event.xbutton.y;
+					break;
+					
+				case FocusIn:
+					if (backgrounded) {
+						backgrounded = false;
+						Target_foregrounded();
+					}
+					break;
+					
+				case FocusOut:
+					if (event.xfocus.mode == NotifyNormal || event.xfocus.detail == NotifyAncestor) {
+						backgrounded = true;
+						Target_backgrounded();
+					}
+					break;
+					
+				case ClientMessage:
+					if ((Atom) event.xclient.data.l[0] == deleteWindowAtom) {
+						glXMakeCurrent(display, None, NULL);
+						glXDestroyContext(display, context);
+						XDestroyWindow(display, window);
+						XCloseDisplay(display);
+						exit(EXIT_SUCCESS);
+					}
+					break;
+			}
+		}
 		
-		switch (event.type) {
-			case Expose:
-			case ConfigureNotify:
-				XGetWindowAttributes(display, window, &windowAttributes);
-				if (windowAttributes.width != lastWidth || windowAttributes.height != lastHeight) {
-					lastWidth = windowAttributes.width;
-					lastHeight = windowAttributes.height;
-					Target_resized(windowAttributes.width, windowAttributes.height);
-					redraw();
-				}
-				break;
-				
-			case KeyPress:
-				if (!XLookupString(&event.xkey, &charCode, 1, &keySym, NULL)) {
-					charCode = 0;
-				}
-				keyCode = xkeyCodeToShellKeyCode(event.xkey.keycode);
-				modifiers = xkeyStateToShellModifiers(event.xkey.state);
-				switch (keyCode) {
-					case KEYBOARD_CAPS_LOCK:
-						modifiers |= MODIFIER_CAPS_LOCK_BIT;
-						break;
-						
-					case KEYBOARD_LEFT_SHIFT:
-					case KEYBOARD_RIGHT_SHIFT:
-						modifiers |= MODIFIER_SHIFT_BIT;
-						break;
-						
-					case KEYBOARD_LEFT_CONTROL:
-					case KEYBOARD_RIGHT_CONTROL:
-						modifiers |= MODIFIER_CONTROL_BIT;
-						break;
-						
-					case KEYBOARD_LEFT_ALT:
-					case KEYBOARD_RIGHT_ALT:
-						modifiers |= MODIFIER_ALT_BIT;
-						break;
-				}
-				if (keyCode != 0) {
-					Target_keyDown(charCode, keyCode, modifiers);
-				}
-				if (modifierMask != modifiers) {
-					modifierMask = modifiers;
-					Target_keyModifiersChanged(modifierMask);
-				}
-				break;
-				
-			case KeyRelease:
-				if (event.xkey.keycode > 255) {
-					break;
-				}
-				XQueryKeymap(display, keys);
-				if (keys[event.xkey.keycode >> 3] & 1 << (event.xkey.keycode % 8)) {
-					// Xlib sends key ups for key repeats; this one is a repeat, so skip it
-					break;
-				}
-				
-				keyCode = xkeyCodeToShellKeyCode(event.xkey.keycode);
-				modifiers = xkeyStateToShellModifiers(event.xkey.state);
-				switch (keyCode) {
-					case KEYBOARD_CAPS_LOCK:
-						modifiers &= ~MODIFIER_CAPS_LOCK_BIT;
-						break;
-						
-					case KEYBOARD_LEFT_SHIFT:
-					case KEYBOARD_RIGHT_SHIFT:
-						modifiers &= ~MODIFIER_SHIFT_BIT;
-						break;
-						
-					case KEYBOARD_LEFT_CONTROL:
-					case KEYBOARD_RIGHT_CONTROL:
-						modifiers &= ~MODIFIER_CONTROL_BIT;
-						break;
-						
-					case KEYBOARD_LEFT_ALT:
-					case KEYBOARD_RIGHT_ALT:
-						modifiers &= ~MODIFIER_ALT_BIT;
-						break;
-				}
-				if (keyCode != 0) {
-					Target_keyUp(keyCode, modifiers);
-				}
-				if (modifierMask != modifiers) {
-					modifierMask = modifiers;
-					Target_keyModifiersChanged(modifierMask);
-				}
-				break;
-				
-			case ButtonPress:
-				buttonMask |= 1 << (event.xbutton.button - 1);
-				Target_mouseDown(event.xbutton.button - 1, event.xbutton.x, event.xbutton.y);
-				break;
-				
-			case ButtonRelease:
-				buttonMask &= ~(1 << (event.xbutton.button - 1));
-				Target_mouseUp(event.xbutton.button - 1, event.xbutton.x, event.xbutton.y);
-				break;
-				
-			case MotionNotify:
-				if (event.xbutton.x == lastMouseX && event.xbutton.y == lastMouseY) {
-					break;
-				}
-				if (buttonMask != 0) {
-					Target_mouseDragged(buttonMask, event.xbutton.x, event.xbutton.y);
+		currentTime = Shell_getCurrentTime();
+		for (timerIndex = 0; timerIndex < timerCount; timerIndex++) {
+			if (currentTime >= timers[timerIndex].nextFireTime) {
+				timers[timerIndex].callback(timers[timerIndex].id, timers[timerIndex].context);
+				if (timers[timerIndex].repeat) {
+					timers[timerIndex].nextFireTime += timers[timerIndex].interval;
 				} else {
-					Target_mouseMoved(event.xbutton.x, event.xbutton.y);
+					timerCount--;
+					for (timerIndex2 = timerIndex; timerIndex2 < timerCount; timerIndex2++) {
+						timers[timerIndex2] = timers[timerIndex2 + 1];
+					}
+					timerIndex--;
 				}
-				lastMouseX = event.xbutton.x;
-				lastMouseY = event.xbutton.y;
-				break;
-				
-			case FocusIn:
-				if (backgrounded) {
-					backgrounded = false;
-					Target_foregrounded();
-				}
-				break;
-				
-			case FocusOut:
-				if (event.xfocus.mode == NotifyNormal || event.xfocus.detail == NotifyAncestor) {
-					backgrounded = true;
-					Target_backgrounded();
-				}
-				break;
-				
-			case ClientMessage:
-				if ((Atom) event.xclient.data.l[0] == deleteWindowAtom) {
-					glXMakeCurrent(display, None, NULL);
-					glXDestroyContext(display, context);
-					XDestroyWindow(display, window);
-					XCloseDisplay(display);
-					exit(EXIT_SUCCESS);
-				}
-				break;
+			}
+		}
+		
+		if (redisplayNeeded) {
+			redisplayNeeded = false;
+			redraw();
+		}
+		
+		if (timerCount == 0 && !redisplayNeeded && !XPending(display)) {
+			fd_set fdset;
+			int socket;
+			struct timeval wait;
+			
+			socket = ConnectionNumber(display);
+			FD_ZERO(&fdset);
+			FD_SET(socket, &fdset);
+			wait.tv_sec = INT_MAX;
+			wait.tv_usec = 0;
+			select(socket + 1, &fdset, NULL, NULL, &wait);
 		}
 	}
 }
 
 void Shell_redisplay() {
+	redisplayNeeded = true;
 }
 
 bool Shell_isFullScreen() {
@@ -541,10 +580,28 @@ void Shell_getMainScreenSize(unsigned int * outWidth, unsigned int * outHeight) 
 }
 
 unsigned int Shell_setTimer(double interval, bool repeat, void (* callback)(unsigned int timerID, void * context), void * context) {
-	return 0;
+	timers = realloc(timers, sizeof(struct GLXShellTimer) * (timerCount + 1));
+	timers[timerCount].interval = interval;
+	timers[timerCount].nextFireTime = Shell_getCurrentTime() + interval;
+	timers[timerCount].repeat = repeat;
+	timers[timerCount].id = nextTimerID++;
+	timers[timerCount].callback = callback;
+	timers[timerCount].context = context;
+	return timers[timerCount++].id;
 }
 
 void Shell_cancelTimer(unsigned int timerID) {
+	unsigned int timerIndex;
+	
+	for (timerIndex = 0; timerIndex < timerCount; timerIndex++) {
+		if (timers[timerIndex].id == timerID) {
+			timerCount--;
+			for (; timerIndex < timerCount; timerIndex++) {
+				timers[timerIndex] = timers[timerIndex + 1];
+			}
+			break;
+		}
+	}
 }
 
 static bool cursorHiddenByHide;
@@ -751,7 +808,6 @@ int main(int argc, char ** argv) {
 	int attributes[5];
 	unsigned int attributeCount = 0;
 	Colormap colormap;
-	//XSizeHints sizeHints;
 	
 	display = XOpenDisplay(NULL);
 	if (display == NULL) {
@@ -802,6 +858,9 @@ int main(int argc, char ** argv) {
 	                              ButtonMotionMask |
 	                              FocusChangeMask |
 	                              StructureNotifyMask;
+	windowAttributes.background_pixmap = None;
+	windowAttributes.background_pixel = 0;
+	windowAttributes.border_pixel = 0;
 	
 	window = XCreateWindow(display,
 	                       rootWindow,
@@ -813,22 +872,16 @@ int main(int argc, char ** argv) {
 	                       visualInfo->depth,
 	                       InputOutput,
 	                       visualInfo->visual,
-	                       CWColormap | CWEventMask,
+	                       CWColormap | CWEventMask | CWBackPixmap | CWBorderPixel,
 	                       &windowAttributes);
 	
 	deleteWindowAtom = XInternAtom(display, "WM_DELETE_WINDOW", False);
 	XSetWMProtocols(display, window, &deleteWindowAtom, 1);
 	XStoreName(display, window, configuration.windowTitle);
-	/*
-	sizeHints.flags = USPosition | USSize;
-	sizeHints.x = configuration.windowX;
-	sizeHints.y = configuration.windowY;
-	sizeHints.width = configuration.windowWidth;
-	sizeHints.height = configuration.windowHeight;
-	XSetSizeHints(display, window, &sizeHints, XInternAtom(display, "WM_SIZE_HINTS", False));
-	*/
 	
 	XMapWindow(display, window);
+	XMoveWindow(display, window, configuration.windowX, configuration.windowY);
+	
 	context = glXCreateContext(display, visualInfo, NULL, GL_TRUE);
 	glXMakeCurrent(display, window, context);
 	
