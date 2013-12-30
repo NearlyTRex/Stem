@@ -20,6 +20,7 @@
 static unsigned int timer1ID = UINT_MAX, timer2ID = UINT_MAX;
 static bool deltaMode;
 static bool syncFullscreen = VSYNC_DEFAULT_FULLSCREEN, syncWindow = VSYNC_DEFAULT_WINDOW;
+static bool printMouseMoved = true;
 
 void GLXTarget_configure(int argc, const char ** argv, struct GLXShellConfiguration * configuration) {
 	int argIndex;
@@ -38,8 +39,9 @@ void GLXTarget_configure(int argc, const char ** argv, struct GLXShellConfigurat
 	printf("configuration->windowTitle: %s\n", configuration->windowTitle);
 	printf("configuration->displayMode.doubleBuffer: %s\n", configuration->displayMode.doubleBuffer ? "true" : "false");
 	printf("configuration->displayMode.depthBuffer: %s\n", configuration->displayMode.depthBuffer ? "true" : "false");
+	printf("configuration->displayMode.depthSize: %u\n", configuration->displayMode.depthSize);
 	printf("configuration->displayMode.stencilBuffer: %s\n", configuration->displayMode.stencilBuffer ? "true" : "false");
-	printf("configuration->displayMode.accumBuffer: %s\n", configuration->displayMode.accumBuffer ? "true" : "false");
+	printf("configuration->displayMode.stencilSize: %u\n", configuration->displayMode.stencilSize);
 	printf("configuration->displayMode.multisample: %s\n", configuration->displayMode.multisample ? "true" : "false");
 	
 	configuration->windowTitle = "GLXShell Test Harness";
@@ -219,6 +221,10 @@ void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned int mo
 	} else if (keyCode == KEYBOARD_M) {
 		Shell_hideCursorUntilMouseMoves();
 		
+	} else if (keyCode == KEYBOARD_N) {
+		printMouseMoved = !printMouseMoved;
+		printf("Mouse move messages %s\n", printMouseMoved ? "enabled" : "disabled");
+		
 	} else if (keyCode == KEYBOARD_0 && !(modifierFlags & MODIFIER_SHIFT_BIT)) {
 		Shell_setCursor(ShellCursor_arrow);
 		
@@ -253,7 +259,9 @@ void Target_mouseUp(unsigned int buttonNumber, float x, float y) {
 }
 
 void Target_mouseMoved(float x, float y) {
-	printf("Target_mouseMoved(%f, %f)\n", x, y);
+	if (printMouseMoved) {
+		printf("Target_mouseMoved(%f, %f)\n", x, y);
+	}
 }
 
 void Target_mouseDragged(unsigned int buttonMask, float x, float y) {

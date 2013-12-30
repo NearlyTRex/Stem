@@ -37,8 +37,9 @@ struct GLXShellConfiguration {
 	struct {
 		bool doubleBuffer;
 		bool depthBuffer;
+		unsigned int depthSize;
 		bool stencilBuffer;
-		bool accumBuffer;
+		unsigned int stencilSize;
 		bool multisample;
 	} displayMode;
 };

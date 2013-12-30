@@ -26,9 +26,8 @@
 #include "shell/ShellBatteryInfo.h"
 #include "shell/ShellKeyCodes.h"
 #include "shell/ShellThreads.h"
+#include "shell/Shell.h"
 #include "shell/Target.h"
-#include <GL/glx.h>
-#include <GL/glxext.h>
 #include <time.h>
 #include <pthread.h>
 #include <semaphore.h>
@@ -38,6 +37,13 @@
 #include <unistd.h>
 #include <limits.h>
 #include <sys/stat.h>
+#include <GL/glx.h>
+#include <GL/glxext.h>
+#include <GL/glu.h>
+#include <X11/Xlib.h>
+#include <X11/Xatom.h>
+//#include <X11/keysym.h>
+//#include <X11/extensions/XInput.h>
 
 struct GLXShellTimer {
 	double interval;
@@ -56,16 +62,420 @@ struct GLXShellTimer {
 #define VSYNC_DEFAULT_FULLSCREEN true
 #endif
 
+static Display * display;
+static int screen;
+static GLXContext context;
+static Window window;
+static Atom deleteWindowAtom;
 static unsigned int buttonMask = 0;
 static unsigned int modifierMask = 0;
+static int lastMouseX, lastMouseY;
 static bool inFullScreenMode = false;
 static bool vsyncWindow = VSYNC_DEFAULT_WINDOW, vsyncFullscreen = VSYNC_DEFAULT_FULLSCREEN;
 static struct GLXShellConfiguration configuration;
-static unsigned int nextTimerID;
-static size_t timerCount;
-static struct GLXShellTimer * timers;
+//static unsigned int nextTimerID;
+//static size_t timerCount;
+//static struct GLXShellTimer * timers;
+static int lastWidth, lastHeight;
+static bool backgrounded;
+
+static void redraw() {
+#ifdef DEBUG
+	GLenum error;
+#endif
+	
+	if (Target_draw()) {
+		glXSwapBuffers(display, window);
+	}
+	
+#ifdef DEBUG
+	error = glGetError();
+	while (error != GL_NO_ERROR) {
+		fprintf(stderr, "GL error: %s\n", gluErrorString(error));
+		error = glGetError();
+	}
+#endif
+}
+
+static unsigned int xkeyCodeToShellKeyCode(unsigned int keyCode) {
+	switch (keyCode) {
+		case 9:
+			return KEYBOARD_ESCAPE;
+		case 67:
+			return KEYBOARD_F1;
+		case 68:
+			return KEYBOARD_F2;
+		case 69:
+			return KEYBOARD_F3;
+		case 70:
+			return KEYBOARD_F4;
+		case 71:
+			return KEYBOARD_F5;
+		case 72:
+			return KEYBOARD_F6;
+		case 73:
+			return KEYBOARD_F7;
+		case 74:
+			return KEYBOARD_F8;
+		case 75:
+			return KEYBOARD_F9;
+		case 76:
+			return KEYBOARD_F10;
+		case 95:
+			return KEYBOARD_F11;
+		case 96:
+			return KEYBOARD_F12;
+		case 107:
+			return KEYBOARD_PRINT_SCREEN;
+		case 78:
+			return KEYBOARD_SCROLL_LOCK;
+		case 127:
+			return KEYBOARD_PAUSE;
+		case 49:
+			return KEYBOARD_GRAVE_ACCENT_AND_TILDE;
+		case 10:
+			return KEYBOARD_1;
+		case 11:
+			return KEYBOARD_2;
+		case 12:
+			return KEYBOARD_3;
+		case 13:
+			return KEYBOARD_4;
+		case 14:
+			return KEYBOARD_5;
+		case 15:
+			return KEYBOARD_6;
+		case 16:
+			return KEYBOARD_7;
+		case 17:
+			return KEYBOARD_8;
+		case 18:
+			return KEYBOARD_9;
+		case 19:
+			return KEYBOARD_0;
+		case 20:
+			return KEYBOARD_HYPHEN;
+		case 21:
+			return KEYBOARD_EQUAL_SIGN;
+		case 22:
+			return KEYBOARD_DELETE_OR_BACKSPACE;
+		case 23:
+			return KEYBOARD_TAB;
+		case 24:
+			return KEYBOARD_Q;
+		case 25:
+			return KEYBOARD_W;
+		case 26:
+			return KEYBOARD_E;
+		case 27:
+			return KEYBOARD_R;
+		case 28:
+			return KEYBOARD_T;
+		case 29:
+			return KEYBOARD_Y;
+		case 30:
+			return KEYBOARD_U;
+		case 31:
+			return KEYBOARD_I;
+		case 32:
+			return KEYBOARD_O;
+		case 33:
+			return KEYBOARD_P;
+		case 34:
+			return KEYBOARD_OPEN_BRACKET;
+		case 35:
+			return KEYBOARD_CLOSE_BRACKET;
+		case 51:
+			return KEYBOARD_BACKSLASH;
+		case 66:
+			return KEYBOARD_CAPS_LOCK;
+		case 38:
+			return KEYBOARD_A;
+		case 39:
+			return KEYBOARD_S;
+		case 40:
+			return KEYBOARD_D;
+		case 41:
+			return KEYBOARD_F;
+		case 42:
+			return KEYBOARD_G;
+		case 43:
+			return KEYBOARD_H;
+		case 44:
+			return KEYBOARD_J;
+		case 45:
+			return KEYBOARD_K;
+		case 46:
+			return KEYBOARD_L;
+		case 47:
+			return KEYBOARD_SEMICOLON;
+		case 48:
+			return KEYBOARD_QUOTE;
+		case 36:
+			return KEYBOARD_RETURN_OR_ENTER;
+		case 50:
+			return KEYBOARD_LEFT_SHIFT;
+		case 52:
+			return KEYBOARD_Z;
+		case 53:
+			return KEYBOARD_X;
+		case 54:
+			return KEYBOARD_C;
+		case 55:
+			return KEYBOARD_V;
+		case 56:
+			return KEYBOARD_B;
+		case 57:
+			return KEYBOARD_N;
+		case 58:
+			return KEYBOARD_M;
+		case 59:
+			return KEYBOARD_COMMA;
+		case 60:
+			return KEYBOARD_PERIOD;
+		case 61:
+			return KEYBOARD_SLASH;
+		case 62:
+			return KEYBOARD_RIGHT_SHIFT;
+		case 37:
+			return KEYBOARD_LEFT_CONTROL;
+		case 133:
+			return KEYBOARD_LEFT_GUI;
+		case 64:
+			return KEYBOARD_LEFT_ALT;
+		case 65:
+			return KEYBOARD_SPACEBAR;
+		case 108:
+			return KEYBOARD_RIGHT_ALT;
+		case 134:
+			return KEYBOARD_RIGHT_GUI;
+		case 135:
+			return KEYBOARD_MENU;
+		case 105:
+			return KEYBOARD_RIGHT_CONTROL;
+		case 113:
+			return KEYBOARD_LEFT_ARROW;
+		case 114:
+			return KEYBOARD_RIGHT_ARROW;
+		case 111:
+			return KEYBOARD_UP_ARROW;
+		case 116:
+			return KEYBOARD_DOWN_ARROW;
+		case 118:
+			return KEYBOARD_INSERT;
+		case 110:
+			return KEYBOARD_HOME;
+		case 112:
+			return KEYBOARD_PAGE_UP;
+		case 119:
+			return KEYBOARD_DELETE_FORWARD;
+		case 115:
+			return KEYBOARD_END;
+		case 117:
+			return KEYBOARD_PAGE_DOWN;
+		case 77:
+			return KEYPAD_NUM_LOCK;
+		case 125:
+			return KEYPAD_EQUAL_SIGN;
+		case 106:
+			return KEYPAD_SLASH;
+		case 63:
+			return KEYPAD_ASTERISK;
+		case 82:
+			return KEYPAD_HYPHEN;
+		case 79:
+			return KEYPAD_7;
+		case 80:
+			return KEYPAD_8;
+		case 81:
+			return KEYPAD_9;
+		case 86:
+			return KEYPAD_PLUS;
+		case 83:
+			return KEYPAD_4;
+		case 84:
+			return KEYPAD_5;
+		case 85:
+			return KEYPAD_6;
+		case 90:
+			return KEYPAD_0;
+		case 91:
+			return KEYPAD_PERIOD;
+		case 104:
+			return KEYPAD_ENTER;
+#ifdef DEBUG
+		default:
+			fprintf(stderr, "Warning: Unknown key code %u\n", keyCode);
+#endif
+	}
+	return 0;
+}
+
+static unsigned int xkeyStateToShellModifiers(unsigned int xkeyState) {
+	unsigned int state = 0;
+	if (xkeyState & ShiftMask) {
+		state |= MODIFIER_SHIFT_BIT;
+	}
+	if (xkeyState & ControlMask) {
+		state |= MODIFIER_CONTROL_BIT;
+	}
+	if (xkeyState & LockMask) {
+		state |= MODIFIER_CAPS_LOCK_BIT;
+	}
+	if (xkeyState & Mod1Mask) {
+		state |= MODIFIER_ALT_BIT;
+	}
+	return state;
+}
 
 void Shell_mainLoop() {
+	XEvent event;
+	XWindowAttributes windowAttributes;
+	char charCode;
+	unsigned int keyCode;
+	KeySym keySym;
+	unsigned int modifiers;
+	char keys[32];
+	
+	for (;;) {
+		XNextEvent(display, &event);
+		
+		switch (event.type) {
+			case Expose:
+			case ConfigureNotify:
+				XGetWindowAttributes(display, window, &windowAttributes);
+				if (windowAttributes.width != lastWidth || windowAttributes.height != lastHeight) {
+					lastWidth = windowAttributes.width;
+					lastHeight = windowAttributes.height;
+					Target_resized(windowAttributes.width, windowAttributes.height);
+					redraw();
+				}
+				break;
+				
+			case KeyPress:
+				if (!XLookupString(&event.xkey, &charCode, 1, &keySym, NULL)) {
+					charCode = 0;
+				}
+				keyCode = xkeyCodeToShellKeyCode(event.xkey.keycode);
+				modifiers = xkeyStateToShellModifiers(event.xkey.state);
+				switch (keyCode) {
+					case KEYBOARD_CAPS_LOCK:
+						modifiers |= MODIFIER_CAPS_LOCK_BIT;
+						break;
+						
+					case KEYBOARD_LEFT_SHIFT:
+					case KEYBOARD_RIGHT_SHIFT:
+						modifiers |= MODIFIER_SHIFT_BIT;
+						break;
+						
+					case KEYBOARD_LEFT_CONTROL:
+					case KEYBOARD_RIGHT_CONTROL:
+						modifiers |= MODIFIER_CONTROL_BIT;
+						break;
+						
+					case KEYBOARD_LEFT_ALT:
+					case KEYBOARD_RIGHT_ALT:
+						modifiers |= MODIFIER_ALT_BIT;
+						break;
+				}
+				if (keyCode != 0) {
+					Target_keyDown(charCode, keyCode, modifiers);
+				}
+				if (modifierMask != modifiers) {
+					modifierMask = modifiers;
+					Target_keyModifiersChanged(modifierMask);
+				}
+				break;
+				
+			case KeyRelease:
+				if (event.xkey.keycode > 255) {
+					break;
+				}
+				XQueryKeymap(display, keys);
+				if (keys[event.xkey.keycode >> 3] & 1 << (event.xkey.keycode % 8)) {
+					// Xlib sends key ups for key repeats; this one is a repeat, so skip it
+					break;
+				}
+				
+				keyCode = xkeyCodeToShellKeyCode(event.xkey.keycode);
+				modifiers = xkeyStateToShellModifiers(event.xkey.state);
+				switch (keyCode) {
+					case KEYBOARD_CAPS_LOCK:
+						modifiers &= ~MODIFIER_CAPS_LOCK_BIT;
+						break;
+						
+					case KEYBOARD_LEFT_SHIFT:
+					case KEYBOARD_RIGHT_SHIFT:
+						modifiers &= ~MODIFIER_SHIFT_BIT;
+						break;
+						
+					case KEYBOARD_LEFT_CONTROL:
+					case KEYBOARD_RIGHT_CONTROL:
+						modifiers &= ~MODIFIER_CONTROL_BIT;
+						break;
+						
+					case KEYBOARD_LEFT_ALT:
+					case KEYBOARD_RIGHT_ALT:
+						modifiers &= ~MODIFIER_ALT_BIT;
+						break;
+				}
+				if (keyCode != 0) {
+					Target_keyUp(keyCode, modifiers);
+				}
+				if (modifierMask != modifiers) {
+					modifierMask = modifiers;
+					Target_keyModifiersChanged(modifierMask);
+				}
+				break;
+				
+			case ButtonPress:
+				buttonMask |= 1 << (event.xbutton.button - 1);
+				Target_mouseDown(event.xbutton.button - 1, event.xbutton.x, event.xbutton.y);
+				break;
+				
+			case ButtonRelease:
+				buttonMask &= ~(1 << (event.xbutton.button - 1));
+				Target_mouseUp(event.xbutton.button - 1, event.xbutton.x, event.xbutton.y);
+				break;
+				
+			case MotionNotify:
+				if (event.xbutton.x == lastMouseX && event.xbutton.y == lastMouseY) {
+					break;
+				}
+				if (buttonMask != 0) {
+					Target_mouseDragged(buttonMask, event.xbutton.x, event.xbutton.y);
+				} else {
+					Target_mouseMoved(event.xbutton.x, event.xbutton.y);
+				}
+				lastMouseX = event.xbutton.x;
+				lastMouseY = event.xbutton.y;
+				break;
+				
+			case FocusIn:
+				if (backgrounded) {
+					backgrounded = false;
+					Target_foregrounded();
+				}
+				break;
+				
+			case FocusOut:
+				if (event.xfocus.mode == NotifyNormal || event.xfocus.detail == NotifyAncestor) {
+					backgrounded = true;
+					Target_backgrounded();
+				}
+				break;
+				
+			case ClientMessage:
+				if ((Atom) event.xclient.data.l[0] == deleteWindowAtom) {
+					glXMakeCurrent(display, None, NULL);
+					glXDestroyContext(display, context);
+					XDestroyWindow(display, window);
+					XCloseDisplay(display);
+					exit(EXIT_SUCCESS);
+				}
+				break;
+		}
+	}
 }
 
 void Shell_redisplay() {
@@ -122,6 +532,12 @@ float Shell_getBatteryLevel() {
 }
 
 void Shell_getMainScreenSize(unsigned int * outWidth, unsigned int * outHeight) {
+	if (outWidth != NULL) {
+		*outWidth = DisplayWidth(display, screen);
+	}
+	if (outHeight != NULL) {
+		*outHeight = DisplayHeight(display, screen);
+	}
 }
 
 unsigned int Shell_setTimer(double interval, bool repeat, void (* callback)(unsigned int timerID, void * context), void * context) {
@@ -194,7 +610,7 @@ void Shell_setMouseDeltaMode(bool deltaMode) {
 	if (!mouseDeltaMode && deltaMode) {
 		restoreMouseX = lastMouseX;
 		restoreMouseY = lastMouseY;
-		warpPointerAndIgnoreEvent(glutGet(GLUT_WINDOW_WIDTH) / 2, glutGet(GLUT_WINDOW_HEIGHT) / 2);
+		//warpPointerAndIgnoreEvent(glutGet(GLUT_WINDOW_WIDTH) / 2, glutGet(GLUT_WINDOW_HEIGHT) / 2);
 		//glutSetCursor(GLUT_CURSOR_NONE);
 		mouseDeltaMode = true;
 		
@@ -218,34 +634,6 @@ void GLXShell_setVSync(bool sync, bool fullscreen) {
 			setVSync(sync);
 		}
 	}
-}
-
-static void displayFunc() {
-#ifdef DEBUG
-	GLenum error;
-#endif
-	
-	if (Target_draw()) {
-		//glutSwapBuffers();
-	}
-	
-#ifdef DEBUG
-	error = glGetError();
-	while (error != GL_NO_ERROR) {
-		fprintf(stderr, "GL error: %s\n", gluErrorString(error));
-		error = glGetError();
-	}
-#endif
-}
-
-static void reshapeFunc(int newWidth, int newHeight) {
-	if (!inFullScreenMode) {
-		configuration.windowWidth = newWidth;
-		configuration.windowHeight = newHeight;
-	}
-	
-	Target_resized(newWidth, newHeight);
-	//displayFunc();
 }
 
 #ifndef SEM_VALUE_MAX
@@ -357,49 +745,92 @@ bool Shell_tryWaitSemaphore(ShellSemaphore semaphore) {
 }
 
 int main(int argc, char ** argv) {
-	unsigned int displayMode;
-	char workingDir[PATH_MAX];
+	Window rootWindow;
+	XVisualInfo * visualInfo = NULL;
+	XSetWindowAttributes windowAttributes;
+	int attributes[5];
+	unsigned int attributeCount = 0;
+	Colormap colormap;
+	//XSizeHints sizeHints;
 	
-	getcwd(workingDir, PATH_MAX);
-	//glutInit(&argc, argv);
-	chdir(workingDir);
+	display = XOpenDisplay(NULL);
+	if (display == NULL) {
+		fprintf(stderr, "XOpenDisplay failed\n");
+		return EXIT_FAILURE;
+	}
 	
-	configuration.windowX = 2;
-	configuration.windowY = 28;
+	screen = DefaultScreen(display);
+	rootWindow = RootWindow(display, screen);
+	
+	configuration.windowX = 50;
+	configuration.windowY = 80;
 	configuration.windowWidth = 800;
 	configuration.windowHeight = 600;
 	configuration.windowTitle = "GLXShell";
 	configuration.displayMode.doubleBuffer = true;
 	configuration.displayMode.depthBuffer = false;
+	configuration.displayMode.depthSize = 24;
 	configuration.displayMode.stencilBuffer = false;
-	configuration.displayMode.accumBuffer = false;
+	configuration.displayMode.stencilSize = 0;
 	configuration.displayMode.multisample = false;
 	
 	GLXTarget_configure(argc, (const char **) argv, &configuration);
 	
-	/*
-	displayMode = GLUT_RGBA;
+	attributes[attributeCount++] = GLX_RGBA;
 	if (configuration.displayMode.doubleBuffer) {
-		displayMode |= GLUT_DOUBLE;
+		attributes[attributeCount++] = GLX_DOUBLEBUFFER;
 	}
 	if (configuration.displayMode.depthBuffer) {
-		displayMode |= GLUT_DEPTH;
+		attributes[attributeCount++] = GLX_DEPTH_SIZE;
+		attributes[attributeCount++] = configuration.displayMode.depthSize;
 	}
-	if (configuration.displayMode.stencilBuffer) {
-		displayMode |= GLUT_STENCIL;
-	}
-	if (configuration.displayMode.accumBuffer) {
-		displayMode |= GLUT_ACCUM;
-	}
-	if (configuration.displayMode.multisample) {
-		displayMode |= GLUT_MULTISAMPLE;
-	}
+	attributes[attributeCount++] = None;
 	
-	glutInitDisplayMode(displayMode);
-	glutInitWindowPosition(configuration.windowX, configuration.windowY);
-	glutInitWindowSize(configuration.windowWidth, configuration.windowHeight);
-	glutCreateWindow(configuration.windowTitle);
+	visualInfo = glXChooseVisual(display, 0, attributes);
+	if (visualInfo == NULL) {
+		fprintf(stderr, "Requested pixel format unavailable\n");
+		return EXIT_FAILURE;
+	}
+	colormap = XCreateColormap(display, rootWindow, visualInfo->visual, AllocNone);
+	windowAttributes.colormap = colormap;
+	windowAttributes.event_mask = ExposureMask |
+	                              KeyPressMask |
+	                              KeyReleaseMask |
+	                              ButtonPressMask |
+	                              ButtonReleaseMask |
+	                              PointerMotionMask |
+	                              ButtonMotionMask |
+	                              FocusChangeMask |
+	                              StructureNotifyMask;
+	
+	window = XCreateWindow(display,
+	                       rootWindow,
+	                       configuration.windowX,
+	                       configuration.windowY,
+	                       configuration.windowWidth,
+	                       configuration.windowHeight,
+	                       0,
+	                       visualInfo->depth,
+	                       InputOutput,
+	                       visualInfo->visual,
+	                       CWColormap | CWEventMask,
+	                       &windowAttributes);
+	
+	deleteWindowAtom = XInternAtom(display, "WM_DELETE_WINDOW", False);
+	XSetWMProtocols(display, window, &deleteWindowAtom, 1);
+	XStoreName(display, window, configuration.windowTitle);
+	/*
+	sizeHints.flags = USPosition | USSize;
+	sizeHints.x = configuration.windowX;
+	sizeHints.y = configuration.windowY;
+	sizeHints.width = configuration.windowWidth;
+	sizeHints.height = configuration.windowHeight;
+	XSetSizeHints(display, window, &sizeHints, XInternAtom(display, "WM_SIZE_HINTS", False));
 	*/
+	
+	XMapWindow(display, window);
+	context = glXCreateContext(display, visualInfo, NULL, GL_TRUE);
+	glXMakeCurrent(display, window, context);
 	
 	setVSync(vsyncWindow);
 	GLGraphics_init(GL_API_VERSION_DESKTOP_1);
