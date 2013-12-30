@@ -20,8 +20,11 @@
   Alex Diener adiener@sacredsoftware.net
 */
 
-#ifndef __GLUT_TARGET_H__
-#define __GLUT_TARGET_H__
+#ifndef __GLUTTarget_H__
+#define __GLUTTarget_H__
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include <stdbool.h>
 
@@ -42,4 +45,7 @@ struct GLUTShellConfiguration {
 
 void GLUTTarget_configure(int argc, const char ** argv, struct GLUTShellConfiguration * configuration);
 
+#ifdef __cplusplus
+}
+#endif
 #endif

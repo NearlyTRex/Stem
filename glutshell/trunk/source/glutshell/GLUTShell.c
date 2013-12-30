@@ -629,25 +629,38 @@ static unsigned int glutModifiersToShellModifiers(unsigned int glutModifiers) {
 	return result;
 }
 
-static void keyDownFunc(unsigned char charCode, int x, int y) {
+static void checkModifierKeys() {
 	unsigned int newModifierMask;
 	
 	newModifierMask = glutModifiersToShellModifiers(glutGetModifiers());
 	if (newModifierMask != modifierMask) {
+		if ((newModifierMask & MODIFIER_SHIFT_BIT) && !(modifierMask & MODIFIER_SHIFT_BIT)) {
+			Target_keyDown(0, KEYBOARD_LEFT_SHIFT, modifierMask);
+		} else if (!(newModifierMask & MODIFIER_SHIFT_BIT) && (modifierMask & MODIFIER_SHIFT_BIT)) {
+			Target_keyUp(KEYBOARD_LEFT_SHIFT, modifierMask);
+		}
+		if ((newModifierMask & MODIFIER_CONTROL_BIT) && !(modifierMask & MODIFIER_CONTROL_BIT)) {
+			Target_keyDown(0, KEYBOARD_LEFT_CONTROL, modifierMask);
+		} else if (!(newModifierMask & MODIFIER_CONTROL_BIT) && (modifierMask & MODIFIER_CONTROL_BIT)) {
+			Target_keyUp(KEYBOARD_LEFT_CONTROL, modifierMask);
+		}
+		if ((newModifierMask & MODIFIER_ALT_BIT) && !(modifierMask & MODIFIER_ALT_BIT)) {
+			Target_keyDown(0, KEYBOARD_LEFT_ALT, modifierMask);
+		} else if (!(newModifierMask & MODIFIER_ALT_BIT) && (modifierMask & MODIFIER_ALT_BIT)) {
+			Target_keyUp(KEYBOARD_LEFT_ALT, modifierMask);
+		}
 		modifierMask = newModifierMask;
 		Target_keyModifiersChanged(modifierMask);
 	}
+}
+
+static void keyDownFunc(unsigned char charCode, int x, int y) {
+	checkModifierKeys();
 	Target_keyDown(charCode, glutCharCodeToShellKeyCode(charCode), modifierMask);
 }
 
 static void keyUpFunc(unsigned char charCode, int x, int y) {
-	unsigned int newModifierMask;
-	
-	newModifierMask = glutModifiersToShellModifiers(glutGetModifiers());
-	if (newModifierMask != modifierMask) {
-		modifierMask = newModifierMask;
-		Target_keyModifiersChanged(modifierMask);
-	}
+	checkModifierKeys();
 	Target_keyUp(glutCharCodeToShellKeyCode(charCode), modifierMask);
 }
 
@@ -702,13 +715,8 @@ static int glutSpecialToShellKeyCode(int key) {
 
 static void specialDownFunc(int key, int x, int y) {
 	int keyCode;
-	unsigned int newModifierMask;
 	
-	newModifierMask = glutModifiersToShellModifiers(glutGetModifiers());
-	if (newModifierMask != modifierMask) {
-		modifierMask = newModifierMask;
-		Target_keyModifiersChanged(modifierMask);
-	}
+	checkModifierKeys();
 	
 	keyCode = glutSpecialToShellKeyCode(key);
 	if (keyCode != -1) {
@@ -718,13 +726,8 @@ static void specialDownFunc(int key, int x, int y) {
 
 static void specialUpFunc(int key, int x, int y) {
 	int keyCode;
-	unsigned int newModifierMask;
 	
-	newModifierMask = glutModifiersToShellModifiers(glutGetModifiers());
-	if (newModifierMask != modifierMask) {
-		modifierMask = newModifierMask;
-		Target_keyModifiersChanged(modifierMask);
-	}
+	checkModifierKeys();
 	
 	keyCode = glutSpecialToShellKeyCode(key);
 	if (keyCode != -1) {
@@ -734,13 +737,8 @@ static void specialUpFunc(int key, int x, int y) {
 
 static void mouseFunc(int button, int state, int x, int y) {
 	int buttonNum;
-	unsigned int newModifierMask;
 	
-	newModifierMask = glutModifiersToShellModifiers(glutGetModifiers());
-	if (newModifierMask != modifierMask) {
-		modifierMask = newModifierMask;
-		Target_keyModifiersChanged(modifierMask);
-	}
+	checkModifierKeys();
 	
 	buttonNum = (button == GLUT_LEFT_BUTTON ? 0 : (button == GLUT_RIGHT_BUTTON ? 1 : 2));
 	
