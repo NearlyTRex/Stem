@@ -127,6 +127,14 @@ static void setShellCursor(enum ShellCursor cursor) {
 	XDefineCursor(display, window, cursors[cursor].cursor);
 }
 
+static void warpPointerAndIgnoreEvent(int x, int y) {
+	ignoreX = x;
+	ignoreY = y;
+	lastMouseX = x;
+	lastMouseY = y;
+	XWarpPointer(display, None, window, 0, 0, 0, 0, x, y);
+}
+
 static unsigned int xkeyCodeToShellKeyCode(unsigned int keyCode) {
 	switch (keyCode) {
 		case 9:
@@ -368,6 +376,7 @@ void Shell_mainLoop() {
 	char keys[32];
 	unsigned int timerIndex, timerIndex2;
 	double currentTime;
+	int reportedX, reportedY;
 	
 	for (;;) {
 		while (XPending(display)) {
@@ -473,19 +482,32 @@ void Shell_mainLoop() {
 					break;
 					
 				case MotionNotify:
-					if (event.xbutton.x == lastMouseX && event.xbutton.y == lastMouseY) {
+					if ((event.xbutton.x == lastMouseX && event.xbutton.y == lastMouseY) ||
+					    (event.xbutton.x == ignoreX    && event.xbutton.y == ignoreY)) {
 						break;
 					}
 					if (showCursorOnNextMouseMove) {
 						setShellCursor(lastUnhiddenCursor);
 					}
-					if (buttonMask != 0) {
-						Target_mouseDragged(buttonMask, event.xbutton.x, event.xbutton.y);
+					if (mouseDeltaMode) {
+						reportedX = event.xbutton.x - lastMouseX;
+						reportedY = event.xbutton.y - lastMouseY;
 					} else {
-						Target_mouseMoved(event.xbutton.x, event.xbutton.y);
+						reportedX = event.xbutton.x;
+						reportedY = event.xbutton.y;
 					}
 					lastMouseX = event.xbutton.x;
 					lastMouseY = event.xbutton.y;
+					ignoreX = ignoreY = INT_MAX;
+					if (buttonMask != 0) {
+						Target_mouseDragged(buttonMask, reportedX, reportedY);
+					} else {
+						Target_mouseMoved(reportedX, reportedY);
+					}
+					if (mouseDeltaMode) {
+						XGetWindowAttributes(display, window, &windowAttributes);
+						warpPointerAndIgnoreEvent(windowAttributes.width / 2, windowAttributes.height / 2);
+					}
 					break;
 					
 				case FocusIn:
@@ -711,26 +733,21 @@ void Shell_setCursor(int cursor) {
 	setShellCursor(cursor);
 }
 
-static void warpPointerAndIgnoreEvent(int x, int y) {
-	ignoreX = x;
-	ignoreY = y;
-	lastMouseX = x;
-	lastMouseY = y;
-	//glutWarpPointer(x, y);
-}
-
 void Shell_setMouseDeltaMode(bool deltaMode) {
 	if (!mouseDeltaMode && deltaMode) {
+		XWindowAttributes windowAttributes;
+		
 		restoreMouseX = lastMouseX;
 		restoreMouseY = lastMouseY;
-		//warpPointerAndIgnoreEvent(glutGet(GLUT_WINDOW_WIDTH) / 2, glutGet(GLUT_WINDOW_HEIGHT) / 2);
-		//glutSetCursor(GLUT_CURSOR_NONE);
+		XGetWindowAttributes(display, window, &windowAttributes);
+		warpPointerAndIgnoreEvent(windowAttributes.width / 2, windowAttributes.height / 2);
+		setEmptyCursor();
 		mouseDeltaMode = true;
 		
 	} else if (mouseDeltaMode && !deltaMode) {
 		warpPointerAndIgnoreEvent(restoreMouseX, restoreMouseY);
 		mouseDeltaMode = false;
-		//Shell_setCursor(lastUnhiddenCursor);
+		setShellCursor(lastUnhiddenCursor);
 	}
 }
 
