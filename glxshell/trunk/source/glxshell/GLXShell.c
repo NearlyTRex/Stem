@@ -37,6 +37,10 @@
 #include <unistd.h>
 #include <limits.h>
 #include <sys/stat.h>
+#include <sys/types.h>
+#include <dirent.h>
+#include <errno.h>
+#include <ctype.h>
 #include <GL/glx.h>
 #include <GL/glxext.h>
 #include <GL/glu.h>
@@ -511,14 +515,14 @@ void Shell_mainLoop() {
 					break;
 					
 				case FocusIn:
-					if (backgrounded) {
+					if (backgrounded && (event.xfocus.mode != NotifyGrab || event.xfocus.detail != NotifyPointer)) {
 						backgrounded = false;
 						Target_foregrounded();
 					}
 					break;
 					
 				case FocusOut:
-					if (event.xfocus.mode == NotifyNormal || event.xfocus.detail == NotifyAncestor) {
+					if (event.xfocus.mode != NotifyGrab && event.xfocus.mode != NotifyUngrab) {
 						backgrounded = true;
 						Target_backgrounded();
 					}
@@ -664,12 +668,211 @@ const char * Shell_getSupportPath(const char * subdirectory) {
 	return supportPath;
 }
 
+struct batteryInfo {
+	enum ShellBatteryState state;
+	float level;
+};
+
+static bool readNextKeyValuePair(size_t * ioPosition, const char * contents, size_t length, char * outKey, size_t keySize, char * outValue, size_t valueSize) {
+	size_t charIndex, lastCharIndex, tokenLength;
+	
+	lastCharIndex = *ioPosition;
+	while (lastCharIndex < length && isspace(contents[lastCharIndex])) {
+		lastCharIndex++;
+	}
+	if (lastCharIndex >= length) {
+		return false;
+	}
+	charIndex = lastCharIndex;
+	while (charIndex < length && contents[charIndex] != ':') {
+		charIndex++;
+	}
+	if (charIndex >= length) {
+		return false;
+	}
+	tokenLength = charIndex - lastCharIndex;
+	if (tokenLength > keySize) {
+		tokenLength = keySize - 1;
+	}
+	memcpy(outKey, contents + lastCharIndex, tokenLength);
+	outKey[tokenLength] = '\x00';
+	
+	lastCharIndex = charIndex + 1;
+	while (lastCharIndex < length && isspace(contents[lastCharIndex])) {
+		lastCharIndex++;
+	}
+	if (lastCharIndex >= length) {
+		return false;
+	}
+	charIndex = lastCharIndex;
+	while (charIndex < length && contents[charIndex] != '\n') {
+		charIndex++;
+	}
+	if (charIndex >= length) {
+		return false;
+	}
+	tokenLength = charIndex - lastCharIndex;
+	if (tokenLength > valueSize) {
+		tokenLength = valueSize - 1;
+	}
+	memcpy(outValue, contents + lastCharIndex, tokenLength);
+	outValue[tokenLength] = '\x00';
+	
+	*ioPosition = charIndex + 1;
+	return true;
+}
+
+static char * readVirtualFile(const char * path, size_t * outLength) {
+	FILE * file;
+	int byte;
+	size_t allocatedSize = 16;
+	char * data;
+	size_t length = 0;
+	
+	file = fopen(path, "rb");
+	if (file == NULL) {
+		return NULL;
+	}
+	data = malloc(allocatedSize);
+	for (;;) {
+		byte = fgetc(file);
+		if (feof(file)) {
+			break;
+		}
+		if (length >= allocatedSize) {
+			allocatedSize *= 2;
+			data = realloc(data, allocatedSize);
+		}
+		data[length++] = byte;
+	}
+	fclose(file);
+	
+	*outLength = length;
+	return data;
+}
+
+#define KEY_SIZE 24
+#define VALUE_SIZE 16
+
+static struct batteryInfo getBatteryInfo() {
+	struct batteryInfo info = {ShellBatteryState_unknown, -1.0f};
+	DIR * dir;
+	struct dirent * dirent;
+	char path[PATH_MAX];
+	unsigned int batteryNumber;
+	size_t length, position;
+	char * contents;
+	char key[KEY_SIZE], value[VALUE_SIZE];
+	bool present = true;
+	unsigned int lastFullCapacity_mWh = 0;
+	unsigned int remainingCapacity_mWh = 0;
+	
+	dir = opendir("/proc/acpi");
+	if (dir == NULL) {
+		return info;
+	}
+	closedir(dir);
+	
+	dir = opendir("/proc/acpi/battery");
+	if (dir == NULL) {
+		info.state = ShellBatteryState_notBatteryPowered;
+		return info;
+	}
+	
+	while ((dirent = readdir(dir)) != NULL) {
+		if (sscanf(dirent->d_name, "BAT%u", &batteryNumber)) {
+			snprintf(path, PATH_MAX, "/proc/acpi/battery/BAT%u/info", batteryNumber);
+			contents = readVirtualFile(path, &length);
+			if (contents == NULL) {
+				continue;
+			}
+			
+			position = 0;
+			for (;;) {
+				if (!readNextKeyValuePair(&position, contents, length, key, KEY_SIZE, value, VALUE_SIZE)) {
+					break;
+				}
+				if (!strcmp(key, "present")) {
+					if (!strcmp(value, "no")) {
+						present = false;
+						break;
+					}
+					
+				} else if (!strcmp(key, "last full capacity")) {
+					sscanf(value, "%u mWh", &lastFullCapacity_mWh);
+				}
+			}
+			free(contents);
+			
+			if (!present) {
+				info.state = ShellBatteryState_batteryMissing;
+				break;
+			}
+			
+			snprintf(path, PATH_MAX, "/proc/acpi/battery/BAT%u/state", batteryNumber);
+			contents = readVirtualFile(path, &length);
+			if (contents == NULL) {
+				continue;
+			}
+			
+			position = 0;
+			for (;;) {
+				if (!readNextKeyValuePair(&position, contents, length, key, KEY_SIZE, value, VALUE_SIZE)) {
+					break;
+				}
+				if (!strcmp(key, "present")) {
+					if (!strcmp(value, "no")) {
+						present = false;
+						break;
+					}
+					
+				} else if (!strcmp(key, "remaining capacity")) {
+					sscanf(value, "%u mWh", &remainingCapacity_mWh);
+					
+				} else if (!strcmp(key, "charging state")) {
+					if (!strcmp(value, "discharging")) {
+						info.state = ShellBatteryState_unplugged;
+						
+					} else if (!strcmp(value, "charging")) {
+						info.state = ShellBatteryState_charging;
+						
+					} else if (!strcmp(value, "charged")) {
+						info.state = ShellBatteryState_full;
+						
+					} else {
+						info.state = ShellBatteryState_unknown;
+					}
+				}
+			}
+			free(contents);
+			
+			if (!present) {
+				info.state = ShellBatteryState_batteryMissing;
+				break;
+			}
+			
+			if (lastFullCapacity_mWh > 0) {
+				if (remainingCapacity_mWh >= lastFullCapacity_mWh) {
+					info.level = 1.0f;
+				} else {
+					info.level = remainingCapacity_mWh / (float) lastFullCapacity_mWh;
+				}
+			}
+			
+			// Only support for one battery
+			break;
+		}
+	}
+	closedir(dir);
+	return info;
+}
+
 enum ShellBatteryState Shell_getBatteryState() {
-	return ShellBatteryState_unknown;
+	return getBatteryInfo().state;
 }
 
 float Shell_getBatteryLevel() {
-	return -1.0f;
+	return getBatteryInfo().level;
 }
 
 void Shell_getMainScreenSize(unsigned int * outWidth, unsigned int * outHeight) {

@@ -74,7 +74,7 @@ LINKFLAGS_linux64 = -m64 -lrt -lGLU -lGL -lm
 
 #General compile/link settings
 DEFINE_CCFLAGS = -DVERSION_MAJOR=${VERSION_MAJOR}u -DVERSION_MINOR=${VERSION_MINOR}u -DVERSION_TWEAK=${VERSION_TWEAK}u
-WARNING_CCFLAGS = -Wall -Wextra -Wno-unused-parameter -Wno-int-to-pointer-cast -Wno-pointer-to-int-cast -Werror
+WARNING_CCFLAGS = -Wall -Wextra -Wno-unused-parameter -Wno-unused-result -Wno-int-to-pointer-cast -Wno-pointer-to-int-cast -Werror
 OTHER_CCFLAGS = -std=gnu99
 CCFLAGS = ${DEFINE_CCFLAGS} ${WARNING_CCFLAGS} ${OTHER_CCFLAGS}
 
