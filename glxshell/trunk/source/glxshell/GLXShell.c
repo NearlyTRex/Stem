@@ -1077,11 +1077,31 @@ bool Shell_tryWaitSemaphore(ShellSemaphore semaphore) {
 	return !sem_trywait((sem_t *) semaphore);
 }
 
+unsigned int getGLXAttributes(struct GLXShellConfiguration configuration, int * outAttributes) {
+	unsigned int attributeCount = 0;
+	
+	outAttributes[attributeCount++] = GLX_RGBA;
+	if (configuration.displayMode.doubleBuffer) {
+		outAttributes[attributeCount++] = GLX_DOUBLEBUFFER;
+	}
+	if (configuration.displayMode.depthBuffer) {
+		outAttributes[attributeCount++] = GLX_DEPTH_SIZE;
+		outAttributes[attributeCount++] = configuration.displayMode.depthSize;
+	}
+	if (configuration.displayMode.multisample) {
+		outAttributes[attributeCount++] = GLX_SAMPLE_BUFFERS;
+		outAttributes[attributeCount++] = configuration.displayMode.sampleBuffers;
+		outAttributes[attributeCount++] = GLX_SAMPLES;
+		outAttributes[attributeCount++] = configuration.displayMode.samples;
+	}
+	outAttributes[attributeCount++] = None;
+	return attributeCount;
+}
+
 int main(int argc, char ** argv) {
 	XVisualInfo * visualInfo = NULL;
 	XSetWindowAttributes windowAttributes;
 	int attributes[7];
-	unsigned int attributeCount = 0;
 	Colormap colormap;
 	
 	display = XOpenDisplay(NULL);
@@ -1109,23 +1129,14 @@ int main(int argc, char ** argv) {
 	
 	GLXTarget_configure(argc, (const char **) argv, &configuration);
 	
-	attributes[attributeCount++] = GLX_RGBA;
-	if (configuration.displayMode.doubleBuffer) {
-		attributes[attributeCount++] = GLX_DOUBLEBUFFER;
-	}
-	if (configuration.displayMode.depthBuffer) {
-		attributes[attributeCount++] = GLX_DEPTH_SIZE;
-		attributes[attributeCount++] = configuration.displayMode.depthSize;
-	}
-	if (configuration.displayMode.multisample) {
-		attributes[attributeCount++] = GLX_SAMPLE_BUFFERS;
-		attributes[attributeCount++] = configuration.displayMode.sampleBuffers;
-		attributes[attributeCount++] = GLX_SAMPLES;
-		attributes[attributeCount++] = configuration.displayMode.samples;
-	}
-	attributes[attributeCount++] = None;
-	
+	getGLXAttributes(configuration, attributes);
 	visualInfo = glXChooseVisual(display, 0, attributes);
+	if (visualInfo == NULL && configuration.displayMode.multisample) {
+		fprintf(stderr, "Requested pixel format unavailable; trying fallback non-multisampled format\n");
+		configuration.displayMode.multisample = false;
+		getGLXAttributes(configuration, attributes);
+		visualInfo = glXChooseVisual(display, 0, attributes);
+	}
 	if (visualInfo == NULL) {
 		fprintf(stderr, "Requested pixel format unavailable\n");
 		return EXIT_FAILURE;

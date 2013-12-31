@@ -1,2 +1,5 @@
+1.0.1 (2013-12-31)
+ * If a pixel format with multisampling is requested and multisampling is unavailable, glxshell will attempt to fall back to a non-multisampling pixel format before failing
+
 1.0.0 (2013-12-31)
  * Initial version
