@@ -39,8 +39,15 @@ struct WGLShellConfiguration {
 		bool doubleBuffer;
 		int colorBits;
 		int alphaBits;
+		bool depthBuffer;
 		int depthBits;
+		bool stencilBuffer;
 		int stencilBits;
+		bool accumBuffer;
+		int accumBits;
+		bool multisample;
+		unsigned int sampleBuffers;
+		unsigned int samples;
 	} displayMode;
 };
 

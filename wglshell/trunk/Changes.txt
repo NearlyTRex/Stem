@@ -1,5 +1,7 @@
 1.1.0
+ * Added multisampling and accumulation buffer options to WGLShellConfiguration
  * Modifier keys now produce Target_keyDown() and Target_keyUp() events
+ * Eliminated redundant Target_resized() events
 
 1.0.0 (2013-12-28)
  * Initial version

@@ -72,6 +72,8 @@ static struct WGLShellTimer * timers;
 static bool redisplayNeeded;
 static HDC displayContext;
 static HGLRC glContext;
+static bool windowShown = false;
+static int lastWidth, lastHeight;
 
 void Shell_mainLoop() {
 	MSG message;
@@ -719,11 +721,14 @@ static LRESULT CALLBACK windowProc(HWND window, UINT message, WPARAM wParam, LPA
 		case WM_SIZE: {
 			RECT rect;
 			
-			//rect = *(RECT *) lParam;
 			GetClientRect(window, &rect);
-			glViewport(0, 0, rect.right - rect.left, rect.bottom - rect.top);
-			Target_resized(rect.right - rect.left, rect.bottom - rect.top);
-			redisplayNeeded = true;
+			if ((int) (rect.right - rect.left) != lastWidth && (int) (rect.bottom - rect.top) != lastHeight) {
+				lastWidth = rect.right - rect.left;
+				lastHeight = rect.bottom - rect.top;
+				glViewport(0, 0, lastWidth, lastHeight);
+				Target_resized(lastWidth, lastHeight);
+				redisplayNeeded = true;
+			}
 			return 0;
 		}
 		
@@ -886,7 +891,9 @@ static LRESULT CALLBACK windowProc(HWND window, UINT message, WPARAM wParam, LPA
 			break;
 			
 		case WM_DESTROY:
-			PostQuitMessage(0);
+			if (windowShown) {
+				PostQuitMessage(0);
+			}
 			return 0;
 			
 		case WM_USER:
@@ -895,11 +902,47 @@ static LRESULT CALLBACK windowProc(HWND window, UINT message, WPARAM wParam, LPA
 	return DefWindowProc(window, message, wParam, lParam);
 }
 
+static HWND createShellWindow(const char * windowTitle, RECT windowRect, HINSTANCE instance) {
+	HWND window = CreateWindow("wglshell",
+	                           windowTitle,
+	                           WS_CAPTION | WS_MAXIMIZEBOX | WS_MINIMIZEBOX | WS_SIZEBOX | WS_OVERLAPPEDWINDOW,
+	                           windowRect.left,
+	                           windowRect.top,
+	                           windowRect.right - windowRect.left,
+	                           windowRect.bottom - windowRect.top,
+	                           NULL,
+	                           NULL,
+	                           instance,
+	                           NULL);
+	if (window == NULL) {
+		fprintf(stderr, "CreateWindow failed! GetLastError(): %ld\n", GetLastError());
+		exit(EXIT_FAILURE);
+	}
+	return window;
+}
+
 int WINAPI WinMain(HINSTANCE instance, HINSTANCE prevInstance, PSTR commandLine, int command) {
+	struct WGLShellConfiguration configuration;
 	WNDCLASSEX windowClass;
 	ATOM result;
-	struct WGLShellConfiguration configuration;
-	PIXELFORMATDESCRIPTOR pixelFormat;
+	PIXELFORMATDESCRIPTOR pixelFormat = {
+		sizeof(PIXELFORMATDESCRIPTOR),           // nSize
+		1,                                       // nVersion
+		PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL, // dwFlags
+		PFD_TYPE_RGBA,                           // iPixelType
+		32,                                      // cColorBits
+		0, 0, 0, 0, 0, 0,                        // c(Red|Green|Blue)(Shift|Bits)
+		0,                                       // cAlphaBits
+		0,                                       // cAlphaShift
+		0,                                       // cAccumBits
+		0, 0, 0, 0,                              // cAccum(Red|Green|Blue|Alpha)Bits
+		24,                                      // cDepthBits
+		8,                                       // cStencilBits
+		0,                                       // cAuxBuffers
+		PFD_MAIN_PLANE,                          // iLayerType
+		0,                                       // bReserved
+		0, 0, 0                                  // dw(Layer|Visible|Damage)Mask
+	};
 	int format;
 	const unsigned char * glExtensions;
 	int argc, argIndex;
@@ -918,8 +961,15 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prevInstance, PSTR commandLine,
 	configuration.displayMode.doubleBuffer = true;
 	configuration.displayMode.colorBits = 24;
 	configuration.displayMode.alphaBits = 8;
-	configuration.displayMode.depthBits = 0;
-	configuration.displayMode.stencilBits = 0;
+	configuration.displayMode.depthBuffer = false;
+	configuration.displayMode.depthBits = 24;
+	configuration.displayMode.stencilBuffer = false;
+	configuration.displayMode.stencilBits = 8;
+	configuration.displayMode.accumBuffer = false;
+	configuration.displayMode.accumBits = 32;
+	configuration.displayMode.multisample = false;
+	configuration.displayMode.sampleBuffers = 1;
+	configuration.displayMode.samples = 4;
 	
 	argvW = CommandLineToArgvW(GetCommandLineW(), &argc);
 	argv = malloc(sizeof(const char *) * argc);
@@ -956,58 +1006,17 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prevInstance, PSTR commandLine,
 	windowRect.bottom = windowRect.top + configuration.windowHeight;
 	AdjustWindowRect(&windowRect, WS_CAPTION | WS_MAXIMIZEBOX | WS_MINIMIZEBOX | WS_SIZEBOX | WS_OVERLAPPEDWINDOW, false);
 	
-	window = CreateWindow("wglshell",
-	                      configuration.windowTitle,
-	                      WS_CAPTION | WS_MAXIMIZEBOX | WS_MINIMIZEBOX | WS_SIZEBOX | WS_OVERLAPPEDWINDOW,
-	                      windowRect.left,
-	                      windowRect.top,
-	                      windowRect.right - windowRect.left,
-	                      windowRect.bottom - windowRect.top,
-	                      NULL,
-	                      NULL,
-	                      instance,
-	                      NULL);
-	if (window == NULL) {
-		fprintf(stderr, "CreateWindow failed! GetLastError(): %ld\n", GetLastError());
-		exit(EXIT_FAILURE);
-	}
+	window = createShellWindow(configuration.windowTitle, windowRect, instance);
 	
-	pixelFormat.nSize = sizeof(PIXELFORMATDESCRIPTOR);
-	pixelFormat.nVersion = 1;
-	pixelFormat.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL;
 	if (configuration.displayMode.doubleBuffer) {
 		pixelFormat.dwFlags |= PFD_DOUBLEBUFFER;
 	}
-	pixelFormat.iPixelType = PFD_TYPE_RGBA;
 	pixelFormat.cColorBits = configuration.displayMode.colorBits;
-	pixelFormat.cRedBits = 0;
-	pixelFormat.cRedShift = 0;
-	pixelFormat.cGreenBits = 0;
-	pixelFormat.cGreenShift = 0;
-	pixelFormat.cBlueBits = 0;
-	pixelFormat.cBlueShift = 0;
 	pixelFormat.cAlphaBits = configuration.displayMode.alphaBits;
-	pixelFormat.cAlphaShift = 0;
-	pixelFormat.cAccumBits = 0;
-	pixelFormat.cAccumRedBits = 0;
-	pixelFormat.cAccumGreenBits = 0;
-	pixelFormat.cAccumBlueBits = 0;
-	pixelFormat.cAccumAlphaBits = 0;
 	pixelFormat.cDepthBits = configuration.displayMode.depthBits;
 	pixelFormat.cStencilBits = configuration.displayMode.stencilBits;
-	pixelFormat.cAuxBuffers = 0;
-	pixelFormat.iLayerType = PFD_MAIN_PLANE;
-	pixelFormat.bReserved = 0;
-	pixelFormat.dwLayerMask = 0;
-	pixelFormat.dwVisibleMask = 0;
-	pixelFormat.dwDamageMask = 0;
 	
 	displayContext = GetDC(window);
-	if (displayContext == NULL) {
-		fprintf(stderr, "GetDC failed! GetLastError(): %ld\n", GetLastError());
-		exit(EXIT_FAILURE);
-	}
-	
 	format = ChoosePixelFormat(displayContext, &pixelFormat);
 	if (format == 0) {
 		fprintf(stderr, "ChoosePixelFormat failed! GetLastError(): %ld\n", GetLastError());
@@ -1017,14 +1026,79 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prevInstance, PSTR commandLine,
 		fprintf(stderr, "SetPixelFormat failed! GetLastError(): %ld\n", GetLastError());
 		exit(EXIT_FAILURE);
 	}
-	
 	glContext = wglCreateContext(displayContext);
 	if (glContext == NULL) {
 		fprintf(stderr, "wglCreateContext failed! GetLastError(): %ld\n", GetLastError());
 		exit(EXIT_FAILURE);
 	}
-	
 	wglMakeCurrent(displayContext, glContext);
+	
+	const char * WINAPI (* wglGetExtensionsStringEXT)(void) = (const char * WINAPI (*)(void)) wglGetProcAddress("wglGetExtensionsStringEXT");
+	if (strstr(wglGetExtensionsStringEXT(), "WGL_ARB_pixel_format")) {
+		int attributes[21];
+		unsigned int attributeCount = 0;
+		UINT formatCount;
+		PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB;
+		
+		attributes[attributeCount++] = WGL_DRAW_TO_WINDOW_ARB;
+		attributes[attributeCount++] = GL_TRUE;
+		attributes[attributeCount++] = WGL_SUPPORT_OPENGL_ARB;
+		attributes[attributeCount++] = GL_TRUE;
+		if (configuration.displayMode.doubleBuffer) {
+			attributes[attributeCount++] = WGL_DOUBLE_BUFFER_ARB;
+			attributes[attributeCount++] = GL_TRUE;
+		}
+		attributes[attributeCount++] = WGL_PIXEL_TYPE_ARB;
+		attributes[attributeCount++] = WGL_TYPE_RGBA_ARB;
+		attributes[attributeCount++] = WGL_COLOR_BITS_ARB;
+		attributes[attributeCount++] = configuration.displayMode.colorBits;
+		if (configuration.displayMode.depthBuffer) {
+			attributes[attributeCount++] = WGL_DEPTH_BITS_ARB;
+			attributes[attributeCount++] = configuration.displayMode.depthBits;
+		}
+		if (configuration.displayMode.stencilBuffer) {
+			attributes[attributeCount++] = WGL_STENCIL_BITS_ARB;
+			attributes[attributeCount++] = configuration.displayMode.stencilBits;
+		}
+		if (configuration.displayMode.accumBuffer) {
+			attributes[attributeCount++] = WGL_ACCUM_BITS_ARB;
+			attributes[attributeCount++] = configuration.displayMode.accumBits;
+		}
+		if (configuration.displayMode.multisample) {
+			attributes[attributeCount++] = WGL_SAMPLE_BUFFERS_ARB;
+			attributes[attributeCount++] = configuration.displayMode.sampleBuffers;
+			attributes[attributeCount++] = WGL_SAMPLES_ARB;
+			attributes[attributeCount++] = configuration.displayMode.samples;
+		}
+		attributes[attributeCount++] = 0;
+		
+		wglChoosePixelFormatARB = (PFNWGLCHOOSEPIXELFORMATARBPROC) wglGetProcAddress("wglChoosePixelFormatARB");
+		if (wglChoosePixelFormatARB != NULL && wglChoosePixelFormatARB(displayContext, attributes, NULL, 1, &format, &formatCount) && formatCount > 0) {
+			wglMakeCurrent(NULL, NULL);
+			wglDeleteContext(glContext);
+			ReleaseDC(window, displayContext);
+			DestroyWindow(window);
+			window = createShellWindow(configuration.windowTitle, windowRect, instance);
+			displayContext = GetDC(window);
+			if (displayContext == NULL) {
+				fprintf(stderr, "GetDC failed! GetLastError(): %ld\n", GetLastError());
+				exit(EXIT_FAILURE);
+			}
+			
+			if (!SetPixelFormat(displayContext, format, &pixelFormat)) {
+				fprintf(stderr, "SetPixelFormat failed! GetLastError(): %ld\n", GetLastError());
+				exit(EXIT_FAILURE);
+			}
+			
+			glContext = wglCreateContext(displayContext);
+			if (glContext == NULL) {
+				fprintf(stderr, "wglCreateContext failed! GetLastError(): %ld\n", GetLastError());
+				exit(EXIT_FAILURE);
+			}
+			
+			wglMakeCurrent(displayContext, glContext);
+		}
+	}
 	
 	glExtensions = glGetString(GL_EXTENSIONS);
 	if (strstr((char *) glExtensions, "GL_ARB_shader_objects") || strstr((char *) glGetString(GL_RENDERER), "GMA")) {
@@ -1038,7 +1112,12 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prevInstance, PSTR commandLine,
 	
 	setVSync(vsyncWindow);
 	ShowWindow(window, command);
-	Target_resized(configuration.windowWidth, configuration.windowHeight);
+	windowShown = true;
+	if ((int) configuration.windowWidth != lastWidth && (int) configuration.windowHeight != lastHeight) {
+		lastWidth = configuration.windowWidth;
+		lastHeight = configuration.windowHeight;
+		Target_resized(configuration.windowWidth, configuration.windowHeight);
+	}
 	Target_init();
 	
 	return EXIT_SUCCESS;
