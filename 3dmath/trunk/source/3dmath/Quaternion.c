@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2013 Alex Diener
+  Copyright (c) 2014 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -25,9 +25,6 @@
 #include <math.h>
 #include <stdlib.h>
 
-#include "3dmath/Matrix.h"
-#include "3dmath/Vector.h"
-
 void Quaternion_loadIdentity(Quaternion * quaternion) {
 	quaternion->x = 0.0f;
 	quaternion->y = 0.0f;
@@ -35,22 +32,12 @@ void Quaternion_loadIdentity(Quaternion * quaternion) {
 	quaternion->w = 1.0f;
 }
 
-Quaternion Quaternion_init(float x, float y, float z, float w) {
-	Quaternion quaternion;
-	
-	quaternion.x = x;
-	quaternion.y = y;
-	quaternion.z = z;
-	quaternion.w = w;
-	return quaternion;
-}
-
-Quaternion Quaternion_fromAxisAngle(Vector3 axis, float radians) {
+Quaternion Quaternion_fromAxisAngle(Vector3f axis, float radians) {
 	Quaternion quaternion;
 	float sinAngle;
 	
 	radians *= 0.5f;
-	if (!Vector3_normalize(&axis)) {
+	if (!Vector3f_normalize(&axis)) {
 		quaternion.x = NAN;
 		quaternion.y = NAN;
 		quaternion.z = NAN;
@@ -66,7 +53,7 @@ Quaternion Quaternion_fromAxisAngle(Vector3 axis, float radians) {
 	return quaternion;
 }
 
-void Quaternion_toAxisAngle(Quaternion quaternion, Vector3 * outAxis, float * outRadians) {
+void Quaternion_toAxisAngle(Quaternion quaternion, Vector3f * outAxis, float * outRadians) {
 	float sinAngle;
 	
 	Quaternion_normalize(&quaternion);
@@ -172,14 +159,14 @@ Quaternion Quaternion_slerp(Quaternion left, Quaternion right, float value) {
 	return result;
 }
 
-void Quaternion_rotate(Quaternion * quaternion, Vector3 axis, float radians) {
+void Quaternion_rotate(Quaternion * quaternion, Vector3f axis, float radians) {
 	Quaternion rotationQuaternion;
 	
 	rotationQuaternion = Quaternion_fromAxisAngle(axis, radians);
 	Quaternion_multiply(quaternion, rotationQuaternion);
 }
 
-Quaternion Quaternion_rotated(Quaternion quaternion, Vector3 axis, float radians) {
+Quaternion Quaternion_rotated(Quaternion quaternion, Vector3f axis, float radians) {
 	Quaternion_rotate(&quaternion, axis, radians);
 	return quaternion;
 }
@@ -202,18 +189,18 @@ Quaternion Quaternion_inverted(Quaternion quaternion) {
 	return quaternion;
 }
 
-Vector3 Quaternion_multiplyVector3(Quaternion quaternion, Vector3 vector) {
+Vector3f Quaternion_multiplyVector3f(Quaternion quaternion, Vector3f vector) {
 	Quaternion vectorQuaternion, inverseQuaternion, result;
 	
-	vectorQuaternion = Quaternion_init(vector.x, vector.y, vector.z, 0.0f);
+	vectorQuaternion = QUATERNION(vector.x, vector.y, vector.z, 0.0f);
 	inverseQuaternion = Quaternion_inverted(quaternion);
 	result = Quaternion_multiplied(quaternion, Quaternion_multiplied(vectorQuaternion, inverseQuaternion));
-	return Vector3_init(result.x, result.y, result.z);
+	return VECTOR3f(result.x, result.y, result.z);
 }
 
-Vector4 Quaternion_multiplyVector4(Quaternion quaternion, Vector4 vector) {
-	Vector3 vector3;
+Vector4f Quaternion_multiplyVector4f(Quaternion quaternion, Vector4f vector) {
+	Vector3f vector3;
 	
-	vector3 = Quaternion_multiplyVector3(quaternion, Vector3_init(vector.x, vector.y, vector.z));
-	return Vector4_init(vector3.x, vector3.y, vector3.z, vector.w);
+	vector3 = Quaternion_multiplyVector3f(quaternion, VECTOR3f(vector.x, vector.y, vector.z));
+	return VECTOR4f(vector3.x, vector3.y, vector3.z, vector.w);
 }

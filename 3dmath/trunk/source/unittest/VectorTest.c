@@ -1,5 +1,5 @@
 #include "unittest/TestSuite.h"
-#include "3dmath/Vector.h"
+#include "3dmath/Vector_legacy.h"
 #include <math.h>
 #include <string.h>
 

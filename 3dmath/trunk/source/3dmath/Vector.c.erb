@@ -1,0 +1,194 @@
+<%
+axis_count = ENV["axis_count"].to_i
+numeric_type = ENV["numeric_type"]
+axis_names = ["x", "y", "z", "w"]
+const_zero = {
+	"float" => "0.0f",
+	"double" => "0.0",
+	"fixed16_16" => "0x0",
+	"int" => "0"
+}
+const_one = {
+	"float" => "1.0f",
+	"double" => "1.0",
+	"fixed16_16" => "0x10000",
+	"int" => "1"
+}
+const_two = {
+	"float" => "2.0f",
+	"double" => "2.0",
+	"fixed16_16" => "0x20000",
+	"int" => "2"
+}
+numeric_type_suffixes = {
+	"float" => "f",
+	"double" => "d",
+	"fixed16_16" => "x",
+	"int" => "i"
+}
+sqrt_functions = {
+	"float" => "sqrtf",
+	"double" => "sqrt",
+	"fixed16_16" => "fixed16_16_sqrt"
+}
+sin_functions = {
+	"float" => "sinf",
+	"double" => "sin"
+}
+cos_functions = {
+	"float" => "cosf",
+	"double" => "cos"
+}
+class_name = "Vector#{axis_count}#{numeric_type_suffixes[numeric_type]}"
+class_name_upper = "VECTOR#{axis_count}#{numeric_type_suffixes[numeric_type]}"
+c0 = const_zero[numeric_type]
+c1 = const_one[numeric_type]
+c2 = const_two[numeric_type]
+
+if numeric_type == "fixed16_16"
+	def multiply(lhs, rhs)
+		return "fixed16_16_multiply(#{lhs}, #{rhs})"
+	end
+	
+	def divide(lhs, rhs)
+		return "fixed16_16_divide(#{lhs}, #{rhs})"
+	end
+else
+	def multiply(lhs, rhs)
+		return "#{lhs} * #{rhs}"
+	end
+	
+	def divide(lhs, rhs)
+		return "#{lhs} / #{rhs}"
+	end
+end
+-%>
+/*
+  Copyright (c) 2014 Alex Diener
+  
+  This software is provided 'as-is', without any express or implied
+  warranty. In no event will the authors be held liable for any damages
+  arising from the use of this software.
+  
+  Permission is granted to anyone to use this software for any purpose,
+  including commercial applications, and to alter it and redistribute it
+  freely, subject to the following restrictions:
+  
+  1. The origin of this software must not be misrepresented; you must not
+     claim that you wrote the original software. If you use this software
+     in a product, an acknowledgment in the product documentation would be
+     appreciated but is not required.
+  2. Altered source versions must be plainly marked as such, and must not be
+     misrepresented as being the original software.
+  3. This notice may not be removed or altered from any source distribution.
+  
+  Alex Diener adiener@sacredsoftware.net
+*/
+
+#include "3dmath/<%= class_name %>.h"
+#include <math.h>
+<% if numeric_type != "int" -%>
+
+bool <%= class_name %>_normalize(<%= class_name %> * vector) {
+	<%= numeric_type %> magnitude;
+	
+	magnitude = <%= sqrt_functions[numeric_type] %>(<%= multiply("vector->x", "vector->x") %><% 1.upto(axis_count - 1) do |axis| %> + <%= multiply("vector->#{axis_names[axis]}", "vector->#{axis_names[axis]}") %><% end %>);
+	if (magnitude > <%= c0 %>) {
+<% 0.upto(axis_count - 1) do |axis| -%>
+		vector-><%= axis_names[axis] %> = <%= divide("vector->#{axis_names[axis]}", "magnitude") %>;
+<% end -%>
+		return true;
+	}
+	return false;
+}
+
+<%= class_name %> <%= class_name %>_normalized(<%= class_name %> vector) {
+	<%= class_name %>_normalize(&vector);
+	return vector;
+}
+
+bool <%= class_name %>_scaleTo(<%= class_name %> * vector, <%= numeric_type %> magnitude) {
+	if (<%= class_name %>_normalize(vector)) {
+		*vector = <%= class_name %>_multiplyScalar(*vector, magnitude);
+		return true;
+	}
+	return false;
+}
+
+<%= class_name %> <%= class_name %>_scaledTo(<%= class_name %> vector, <%= numeric_type %> magnitude) {
+	<%= class_name %>_scaleTo(&vector, magnitude);
+	return vector;
+}
+
+<%= numeric_type %> <%= class_name %>_magnitude(<%= class_name %> vector) {
+	return <%= sqrt_functions[numeric_type] %>(<%= multiply("vector.x", "vector.x") %><% 1.upto(axis_count - 1) do |axis| %> + <%= multiply("vector.#{axis_names[axis]}", "vector.#{axis_names[axis]}") %><% end %>);
+}
+
+<%= numeric_type %> <%= class_name %>_magnitudeSquared(<%= class_name %> vector) {
+	return vector.x * vector.x<% 1.upto(axis_count - 1) do |axis| %> + vector.<%= axis_names[axis] %> * vector.<%= axis_names[axis] %><% end %>;
+}
+<% end -%>
+
+<%= class_name %> <%= class_name %>_add(<%= class_name %> vector1, <%= class_name %> vector2) {
+	return <%= class_name_upper %>(vector1.x + vector2.x<% 1.upto(axis_count - 1) do |axis| %>, vector1.<%= axis_names[axis] %> + vector2.<%= axis_names[axis] %><% end %>);
+}
+
+<%= class_name %> <%= class_name %>_subtract(<%= class_name %> vector1, <%= class_name %> vector2) {
+	return <%= class_name_upper %>(vector1.x - vector2.x<% 1.upto(axis_count - 1) do |axis| %>, vector1.<%= axis_names[axis] %> - vector2.<%= axis_names[axis] %><% end %>);
+}
+
+<%= class_name %> <%= class_name %>_multiplyScalar(<%= class_name %> vector, <%= numeric_type %> scalar) {
+	return <%= class_name_upper %>(<%= multiply("vector.x", "scalar") %><% 1.upto(axis_count - 1) do |axis| %>, <%= multiply("vector.#{axis_names[axis]}", "scalar") %><% end %>);
+}
+
+<%= class_name %> <%= class_name %>_divideScalar(<%= class_name %> vector, <%= numeric_type %> scalar) {
+	return <%= class_name_upper %>(<%= divide("vector.x", "scalar") %><% 1.upto(axis_count - 1) do |axis| %>, <%= divide("vector.#{axis_names[axis]}", "scalar") %><% end %>);
+}
+<% if numeric_type != "int" -%>
+
+<%= class_name %> <%= class_name %>_interpolate(<%= class_name %> left, <%= class_name %> right, <%= numeric_type %> value) {
+	return <%= class_name_upper %>(<%= multiply("left.x", "(#{c1} - value)") %> + <%= multiply("right.x", "value") %><% 1.upto(axis_count - 1) do |axis| %>,
+	       <% class_name_upper.length.times do %> <% end %> <%= multiply("left.#{axis_names[axis]}", "(#{c1} - value)") %> + <%= multiply("right.#{axis_names[axis]}", "value") %><% end %>);
+}
+
+<%= class_name %> <%= class_name %>_reflect(<%= class_name %> vector, <%= class_name %> normal) {
+	<%= class_name %> result;
+	<%= numeric_type %> dot;
+	
+	dot = <%= class_name %>_dot(vector, normal);
+	result.x = <%= c2 %> * <%= multiply("dot", "normal.x") %> - vector.x;
+<% 1.upto(axis_count - 1) do |axis| -%>
+	result.<%= axis_names[axis] %> = <%= c2 %> * <%= multiply("dot", "normal.#{axis_names[axis]}") %> - vector.<%= axis_names[axis] %>;
+<% end -%>
+	return result;
+}
+
+<% if axis_count == 2 && numeric_type != "fixed16_16" -%>
+<%= class_name %> <%= class_name %>_rotate(<%= class_name %> vector, <%= numeric_type %> radians) {
+	<%= class_name %> result;
+	
+	result.x = vector.x * <%= cos_functions[numeric_type] %>(radians) + vector.y * -<%= sin_functions[numeric_type] %>(radians);
+	result.y = vector.x * <%= sin_functions[numeric_type] %>(radians) + vector.y *  <%= cos_functions[numeric_type] %>(radians);
+	return result;
+}
+<% end -%>
+
+<%= numeric_type %> <%= class_name %>_dot(<%= class_name %> vector1, <%= class_name %> vector2) {
+	return <%= multiply("vector1.x", "vector2.x") %><% 1.upto(axis_count - 1) do |axis| %> + <%= multiply("vector1.#{axis_names[axis]}", "vector2.#{axis_names[axis]}") %><% end %>;
+}
+
+<% if axis_count == 2 -%>
+<%= numeric_type %> <%= class_name %>_cross(<%= class_name %> vector1, <%= class_name %> vector2) {
+	return <%= multiply("vector1.x", "vector2.y") %> - <%= multiply("vector1.y", "vector2.x") %>;
+}
+<% elsif axis_count == 3 -%>
+<%= class_name %> <%= class_name %>_cross(<%= class_name %> vector1, <%= class_name %> vector2) {
+	<%= class_name %> result;
+	
+	result.x = <%= multiply("vector1.y", "vector2.z") %> - <%= multiply("vector1.z", "vector2.y") %>;
+	result.y = <%= multiply("vector1.z", "vector2.x") %> - <%= multiply("vector1.x", "vector2.z") %>;
+	result.z = <%= multiply("vector1.x", "vector2.y") %> - <%= multiply("vector1.y", "vector2.x") %>;
+	return result;
+}
+<% end -%>
+<% end -%>

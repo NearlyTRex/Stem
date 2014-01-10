@@ -163,17 +163,27 @@ THIRDPARTY_LIBRARY_DEPENDENCIES =
 #Per-target source file lists
 
 SOURCES_library = \
-	source/${PROJECT_NAME}/Frustum.c \
 	source/${PROJECT_NAME}/Matrix.c \
 	source/${PROJECT_NAME}/Quaternion.c \
-	source/${PROJECT_NAME}/Vector.c
+	build/intermediate/generated/3dmath/Vector2f.c \
+	build/intermediate/generated/3dmath/Vector3f.c \
+	build/intermediate/generated/3dmath/Vector4f.c \
+	build/intermediate/generated/3dmath/Vector2d.c \
+	build/intermediate/generated/3dmath/Vector3d.c \
+	build/intermediate/generated/3dmath/Vector4d.c \
+	build/intermediate/generated/3dmath/Vector2i.c \
+	build/intermediate/generated/3dmath/Vector3i.c \
+	build/intermediate/generated/3dmath/Vector4i.c \
+	build/intermediate/generated/3dmath/Vector2x.c \
+	build/intermediate/generated/3dmath/Vector3x.c \
+	build/intermediate/generated/3dmath/Vector4x.c
 
 SOURCES_unittest = \
 	build/intermediate/TestList.c \
 	${SOURCES_unittest_suites}
 
 SOURCES_unittest_suites = \
-	source/unittest/FrustumTest.c \
+	source/unittest/FixedPointTest.c \
 	source/unittest/MatrixTest.c \
 	source/unittest/QuaternionTest.c \
 	source/unittest/VectorTest.c
@@ -181,10 +191,22 @@ SOURCES_unittest_suites = \
 #Include files to be distributed with library
 
 INCLUDES = \
-	source/${PROJECT_NAME}/Frustum.h \
+	source/${PROJECT_NAME}/FixedPoint.h \
 	source/${PROJECT_NAME}/Matrix.h \
 	source/${PROJECT_NAME}/Quaternion.h \
-	source/${PROJECT_NAME}/Vector.h
+	source/${PROJECT_NAME}/Vector_legacy.h \
+	build/intermediate/generated/3dmath/Vector2f.h \
+	build/intermediate/generated/3dmath/Vector3f.h \
+	build/intermediate/generated/3dmath/Vector4f.h \
+	build/intermediate/generated/3dmath/Vector2d.h \
+	build/intermediate/generated/3dmath/Vector3d.h \
+	build/intermediate/generated/3dmath/Vector4d.h \
+	build/intermediate/generated/3dmath/Vector2i.h \
+	build/intermediate/generated/3dmath/Vector3i.h \
+	build/intermediate/generated/3dmath/Vector4i.h \
+	build/intermediate/generated/3dmath/Vector2x.h \
+	build/intermediate/generated/3dmath/Vector3x.h \
+	build/intermediate/generated/3dmath/Vector4x.h
 
 #Target resources
 
@@ -214,6 +236,37 @@ ifneq (${shell echo "${SOURCES_unittest_suites}" | cmp - build/intermediate/Test
 endif
 build/intermediate/TestSuites.txt: | build/intermediate
 	echo "${SOURCES_unittest_suites}" > $@
+
+TYPE_SUFFIX_float = f
+TYPE_SUFFIX_double = d
+TYPE_SUFFIX_int = i
+TYPE_SUFFIX_fixed16_16 = x
+
+GENERATED_SOURCES = ${foreach axis_count,2 3 4, \
+	${foreach type_suffix,f d i x, \
+		build/intermediate/generated/3dmath/Vector${axis_count}${type_suffix}.h \
+		build/intermediate/generated/3dmath/Vector${axis_count}${type_suffix}.c \
+	} \
+}
+
+PREREQS_library = ${GENERATED_SOURCES}
+PREREQS_unittest = ${GENERATED_SOURCES}
+
+build/intermediate/generated/3dmath:
+	mkdir -p $@
+
+define generated_vector_template #(axis_count, numeric_type)
+build/intermediate/generated/3dmath/Vector${axis_count}${TYPE_SUFFIX_${numeric_type}}.h: source/${PROJECT_NAME}/Vector.h.erb | build/intermediate/generated/3dmath
+	axis_count=${axis_count} numeric_type=${numeric_type} erb -T - $$^ > $$@
+build/intermediate/generated/3dmath/Vector${axis_count}${TYPE_SUFFIX_${numeric_type}}.c: source/${PROJECT_NAME}/Vector.c.erb | build/intermediate/generated/3dmath
+	axis_count=${axis_count} numeric_type=${numeric_type} erb -T - $$^ > $$@
+endef
+
+${foreach axis_count,2 3 4, \
+	${foreach numeric_type,float double int fixed16_16, \
+		${eval ${call generated_vector_template,${axis_count},${numeric_type}}} \
+	} \
+}
 
 
 
@@ -266,6 +319,7 @@ ${eval ${call create_directory_target_template,build/intermediate}}
 
 define include_ccflags_template #(target, platform)
 -I source \
+-I build/intermediate/generated \
 ${foreach stem_dependency,${STEM_LIBRARY_DEPENDENCIES} ${STEM_LIBRARY_DEPENDENCIES_$1} ${STEM_LIBRARY_DEPENDENCIES_$2} ${STEM_LIBRARY_DEPENDENCIES_$1_$2},-I ${STEM_SHARED_DIR}/${stem_dependency}/include} \
 ${foreach thirdparty_dependency,${THIRDPARTY_LIBRARY_DEPENDENCIES} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$2} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1_$2},-I ${STEM_SHARED_DIR}/${dir ${thirdparty_dependency}}include} \
 ${foreach source_dependency,${STEM_SOURCE_DEPENDENCIES} ${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$2} ${STEM_SOURCE_DEPENDENCIES_$1_$2},-I dep/${word 1,${subst /, ,${source_dependency}}}/source}
@@ -278,7 +332,7 @@ endef
 define dependency_template #(target, configuration, platform, arch, source_file)
 build/intermediate/$1-$2-$3-$4/${notdir ${basename $5}}.d: $5 ${PREREQS_$1} | build/intermediate/$1-$2-$3-$4
 	@${CC_$3_$4} ${CCFLAGS} ${CCFLAGS_$1} ${CCFLAGS_$2} ${CCFLAGS_$3} ${call include_ccflags_template,$1,$3} ${call define_ccflags_template,$1,$2,$3,$4} -MM -o $$@.temp $5
-	@sed 's,\(${notdir ${basename $5}}\)\.o[ :]*,$${basename $$@}.o $${basename $$@}.d: ,g' < $$@.temp > $$@
+	@sed 's,\(${notdir ${basename $5}}\)\.o[ :]*,$${basename $$@}.o $${basename $$@}.d: ,g; s,source/${PROJECT_NAME}/Vector\(\\d\),build/intermediate/generated/${PROJECT_NAME}/Vector\\1,g' < $$@.temp > $$@
 	@rm $$@.temp
 endef
 

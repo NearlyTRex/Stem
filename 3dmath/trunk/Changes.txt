@@ -1,3 +1,12 @@
+2.0.0 (2014-01-10)
+ * Added FixedPoint
+ * Vector2, Vector3, and Vector4 now come in f (float), d (double), i (int), and x (16.16 fixed-point) variants
+ * Legacy code can #include "3dmath/Vector_legacy.h" for macros that make existing references to Vector2, Vector3, and Vector4 behave as Vector2f, Vector3f, and Vector4f, respectively
+ * Replaced Vector*_init() functions with VECTOR*(x, y[, z[, w]]) macros (type suffix is lower case)
+ * Replaced Quaternion_init() function with QUATERNION(x, y, z, w) macro
+ * Replaced Matrix_init() function with MATRIX(...) macro
+ * Removed unfinished and unused Frustum
+
 1.4.0 (2013-07-08)
  * Vector*_normalize() now returns a success boolean. Zero-magnitude vectors now return false and remain unaltered.
  * Added Matrix_interpolate() and Matrix_interpolated()

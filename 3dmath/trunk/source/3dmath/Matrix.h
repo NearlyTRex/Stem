@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2013 Alex Diener
+  Copyright (c) 2014 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -20,8 +20,11 @@
   Alex Diener adiener@sacredsoftware.net
 */
 
-#ifndef __MATRIX_H__
-#define __MATRIX_H__
+#ifndef __Matrix_H__
+#define __Matrix_H__
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef struct Matrix Matrix;
 
@@ -29,7 +32,9 @@ struct Matrix {
 	float m[16];
 };
 
-#include "3dmath/Vector.h"
+#include "3dmath/Vector2f.h"
+#include "3dmath/Vector3f.h"
+#include "3dmath/Vector4f.h"
 
 #define MATRIX_IDENTITY ((Matrix) {{1.0f, 0.0f, 0.0f, 0.0f, \
                                     0.0f, 1.0f, 0.0f, 0.0f, \
@@ -38,11 +43,19 @@ struct Matrix {
 
 void Matrix_loadIdentity(Matrix * matrix1);
 
+#define MATRIX(m0, m4, m8,  m12, \
+               m1, m5, m9,  m13, \
+               m2, m6, m10, m14, \
+               m3, m7, m11, m15) \
+        ((Matrix) {{m0,  m1,  m2,  m3, \
+                    m4,  m5,  m6,  m7, \
+                    m8,  m9,  m10, m11, \
+                    m12, m13, m14, m15}})
 Matrix Matrix_init(float m0, float m4, float m8,  float m12,
                    float m1, float m5, float m9,  float m13,
                    float m2, float m6, float m10, float m14,
                    float m3, float m7, float m11, float m15);
-Matrix Matrix_fromDirectionVectors(Vector3 right, Vector3 up, Vector3 front);
+Matrix Matrix_fromDirectionVectors(Vector3f right, Vector3f up, Vector3f front);
 
 void Matrix_multiply(Matrix * matrix1, Matrix matrix2);
 Matrix Matrix_multiplied(Matrix matrix1, Matrix matrix2);
@@ -53,8 +66,8 @@ Matrix Matrix_translated(Matrix matrix1, float x, float y, float z);
 void Matrix_scale(Matrix * matrix, float x, float y, float z);
 Matrix Matrix_scaled(Matrix matrix, float x, float y, float z);
 
-void Matrix_rotate(Matrix * matrix, struct Vector3 axis, float angle);
-Matrix Matrix_rotated(Matrix matrix, struct Vector3 axis, float angle);
+void Matrix_rotate(Matrix * matrix, struct Vector3f axis, float angle);
+Matrix Matrix_rotated(Matrix matrix, struct Vector3f axis, float angle);
 
 void Matrix_shearX(Matrix * matrix, float y, float z);
 Matrix Matrix_shearedX(Matrix matrix, float y, float z);
@@ -82,10 +95,13 @@ Matrix Matrix_inverted(Matrix matrix);
 void Matrix_interpolate(Matrix * left, Matrix right, float value);
 Matrix Matrix_interpolated(Matrix left, Matrix right, float value);
 
-Vector2 Matrix_multiplyVector2(Matrix matrix, Vector2 vector);
-Vector3 Matrix_multiplyVector3(Matrix matrix, Vector3 vector);
-Vector4 Matrix_multiplyVector4(Matrix matrix, Vector4 vector);
+Vector2f Matrix_multiplyVector2f(Matrix matrix, Vector2f vector);
+Vector3f Matrix_multiplyVector3f(Matrix matrix, Vector3f vector);
+Vector4f Matrix_multiplyVector4f(Matrix matrix, Vector4f vector);
 
-Vector3 Matrix_multiplyVector3_rotationOnly(Matrix matrix, Vector3 vector);
+Vector3f Matrix_multiplyVector3f_rotationOnly(Matrix matrix, Vector3f vector);
 
+#ifdef __cplusplus
+}
+#endif
 #endif

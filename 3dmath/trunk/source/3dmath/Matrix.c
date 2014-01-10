@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2013 Alex Diener
+  Copyright (c) 2014 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -21,11 +21,8 @@
 */
 
 #include "3dmath/Matrix.h"
-
-#include <math.h>
-
 #include "3dmath/Quaternion.h"
-#include "3dmath/Vector.h"
+#include <math.h>
 
 void Matrix_loadIdentity(Matrix * matrix) {
 	matrix->m[0] = 1.0f;
@@ -71,7 +68,7 @@ Matrix Matrix_init(float m0, float m4, float m8,  float m12,
 	return matrix;
 }
 
-Matrix Matrix_fromDirectionVectors(Vector3 right, Vector3 up, Vector3 front) {
+Matrix Matrix_fromDirectionVectors(Vector3f right, Vector3f up, Vector3f front) {
 	Matrix matrix;
 	
 	Matrix_loadIdentity(&matrix);
@@ -147,7 +144,7 @@ Matrix Matrix_scaled(Matrix matrix, float x, float y, float z) {
 	return matrix;
 }
 
-void Matrix_rotate(Matrix * matrix, Vector3 axis, float angle) {
+void Matrix_rotate(Matrix * matrix, Vector3f axis, float angle) {
 	Matrix rotationMatrix;
 	Quaternion quaternion;
 	
@@ -156,7 +153,7 @@ void Matrix_rotate(Matrix * matrix, Vector3 axis, float angle) {
 	Matrix_multiply(matrix, rotationMatrix);
 }
 
-Matrix Matrix_rotated(Matrix matrix, Vector3 axis, float angle) {
+Matrix Matrix_rotated(Matrix matrix, Vector3f axis, float angle) {
 	Matrix_rotate(&matrix, axis, angle);
 	return matrix;
 }
@@ -329,16 +326,16 @@ Matrix Matrix_interpolated(Matrix left, Matrix right, float value) {
 	return left;
 }
 
-Vector2 Matrix_multiplyVector2(Matrix matrix, Vector2 vector) {
-	Vector2 result;
+Vector2f Matrix_multiplyVector2f(Matrix matrix, Vector2f vector) {
+	Vector2f result;
 	
 	result.x = matrix.m[0] * vector.x + matrix.m[4] * vector.y + matrix.m[12];
 	result.y = matrix.m[1] * vector.x + matrix.m[5] * vector.y + matrix.m[13];
 	return result;
 }
 
-Vector3 Matrix_multiplyVector3(Matrix matrix, Vector3 vector) {
-	Vector3 result;
+Vector3f Matrix_multiplyVector3f(Matrix matrix, Vector3f vector) {
+	Vector3f result;
 	
 	result.x = matrix.m[0] * vector.x + matrix.m[4] * vector.y + matrix.m[8]  * vector.z + matrix.m[12];
 	result.y = matrix.m[1] * vector.x + matrix.m[5] * vector.y + matrix.m[9]  * vector.z + matrix.m[13];
@@ -346,8 +343,8 @@ Vector3 Matrix_multiplyVector3(Matrix matrix, Vector3 vector) {
 	return result;
 }
 
-Vector4 Matrix_multiplyVector4(Matrix matrix, Vector4 vector) {
-	Vector4 result;
+Vector4f Matrix_multiplyVector4f(Matrix matrix, Vector4f vector) {
+	Vector4f result;
 	
 	result.x = matrix.m[0] * vector.x + matrix.m[4] * vector.y + matrix.m[8]  * vector.z + matrix.m[12] * vector.w;
 	result.y = matrix.m[1] * vector.x + matrix.m[5] * vector.y + matrix.m[9]  * vector.z + matrix.m[13] * vector.w;
@@ -356,8 +353,8 @@ Vector4 Matrix_multiplyVector4(Matrix matrix, Vector4 vector) {
 	return result;
 }
 
-Vector3 Matrix_multiplyVector3_rotationOnly(Matrix matrix, Vector3 vector) {
-	Vector3 result;
+Vector3f Matrix_multiplyVector3f_rotationOnly(Matrix matrix, Vector3f vector) {
+	Vector3f result;
 	
 	result.x = matrix.m[0] * vector.x + matrix.m[4] * vector.y + matrix.m[8]  * vector.z;
 	result.y = matrix.m[1] * vector.x + matrix.m[5] * vector.y + matrix.m[9]  * vector.z;
