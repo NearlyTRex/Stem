@@ -1,5 +1,6 @@
 1.4.0
  * Modifier keys now produce Target_keyDown() and Target_keyUp() events
+ * Full screen mode no longer blacks out screens other than the one containing the main window
 
 1.3.1 (2013-12-27)
  * Added NSOpenGLShell_setVSync
