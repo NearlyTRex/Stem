@@ -1,4 +1,4 @@
-1.4.0
+1.4.0 (2014-01-10)
  * Modifier keys now produce Target_keyDown() and Target_keyUp() events
  * Full screen mode no longer blacks out screens other than the one containing the main window
 
