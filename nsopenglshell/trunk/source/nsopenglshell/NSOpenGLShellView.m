@@ -101,7 +101,7 @@
 		[self exitFullScreenModeWithOptions: nil];
 		[self setVSync: vsyncWindow];
 	} else {
-		[self enterFullScreenMode: [[self window] screen] withOptions: nil];
+		[self enterFullScreenMode: [[self window] screen] withOptions: [NSDictionary dictionaryWithObjectsAndKeys: [NSNumber numberWithBool: NO], NSFullScreenModeAllScreens, nil]];
 		[self setVSync: vsyncFullscreen];
 	}
 	[[self window] makeFirstResponder: self];
