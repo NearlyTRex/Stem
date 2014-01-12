@@ -1,3 +1,7 @@
+1.0.1
+ * Makefile no longer attempts to delete .svn dirs from nonexistent Resources directories
+ * Added support for spaces in human-readable application target names
+
 1.0.0 (2013-12-25)
  * Began tracking template_stemlib changes
  * Updated structure: test_source/unittest/suites -> source/unittest, test_source/testharness -> source/testharness, test_resources -> resources

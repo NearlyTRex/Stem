@@ -44,7 +44,7 @@ ANALYZERS = splint clang
 TARGET_NAME_library = libstem_${PROJECT_NAME}
 TARGET_NAME_unittest = ${PROJECT_NAME}_unittest
 TARGET_NAME_testharness = ${PROJECT_NAME}_testharness
-HUMAN_READABLE_TARGET_NAME_testharness = StemTemplate
+HUMAN_READABLE_TARGET_NAME_testharness = Stem\ Template
 
 #Per-target configurations
 CONFIGURATIONS_library = debug profile release
@@ -453,7 +453,7 @@ define copy_target_resources #(target, platform, resources_dir)
 	${foreach resource,${RESOURCES_$1} ${RESOURCES_$1_$2}, \
 		cp -r ${resource} $3${newline_and_tab} \
 	}
-	find $3 -name .svn -print0 -or -name .DS_Store -print0 | xargs -0 rm -rf
+	${if ${strip ${RESOURCES_$1} ${RESOURCES_$1_$2}},find $3 -name .svn -print0 -or -name .DS_Store -print0 | xargs -0 rm -rf}
 endef
 
 define assemble_executable_macosx #(target, configuration, platform)
@@ -511,45 +511,45 @@ define create_app_bundle #(target, platform, executable_dir, plist_dir, resource
 endef
 
 define assemble_application_macosx #(target, configuration)
-build/$1/$2-macosx/${TARGET_NAME_$1}.app/Contents/MacOS/${TARGET_NAME_$1}: ${THIN_BINARIES_$1_$2_macosx} ${RESOURCES_$1} ${RESOURCES_$1_macosx} | build/$1/$2-macosx
-	${call create_app_bundle,$1,macosx,$${dir $$@},build/$1/$2-macosx/${TARGET_NAME_$1}.app/Contents,build/$1/$2-macosx/${TARGET_NAME_$1}.app/Contents/Resources}
-	lipo -create -output $$@ ${THIN_BINARIES_$1_$2_macosx}
+build/$1/$2-macosx/$${HUMAN_READABLE_TARGET_NAME_$1}.app/Contents/MacOS/${TARGET_NAME_$1}: ${THIN_BINARIES_$1_$2_macosx} ${RESOURCES_$1} ${RESOURCES_$1_macosx} | build/$1/$2-macosx
+	${call create_app_bundle,$1,macosx,build/$1/$2-macosx/$${HUMAN_READABLE_TARGET_NAME_$1}.app/Contents/MacOS,build/$1/$2-macosx/$${HUMAN_READABLE_TARGET_NAME_$1}.app/Contents,build/$1/$2-macosx/$${HUMAN_READABLE_TARGET_NAME_$1}.app/Contents/Resources}
+	lipo -create -output "$$@" ${THIN_BINARIES_$1_$2_macosx}
 endef
 
 define assemble_application_iphonesimulator #(target, configuration)
 build/$1/$2-iphonesimulator/${TARGET_NAME_$1}.app/${TARGET_NAME_$1}: ${THIN_BINARIES_$1_$2_iphonesimulator} ${RESOURCES_$1} ${RESOURCES_$1_iphonesimulator} | build/$1/$2-iphonesimulator
-	${call create_app_bundle,$1,iphonesimulator,$${dir $$@},$${dir $$@},$${dir $$@}}
-	lipo -create -output $$@ ${THIN_BINARIES_$1_$2_iphonesimulator}
+	${call create_app_bundle,$1,iphonesimulator,build/$1/$2-iphonesimulator/${TARGET_NAME_$1}.app,build/$1/$2-iphonesimulator/${TARGET_NAME_$1}.app,build/$1/$2-iphonesimulator/${TARGET_NAME_$1}.app}
+	lipo -create -output "$$@" ${THIN_BINARIES_$1_$2_iphonesimulator}
 endef
 
 define assemble_application_iphoneos #(target, configuration)
 build/$1/$2-iphoneos/${TARGET_NAME_$1}.app/${TARGET_NAME_$1}: ${THIN_BINARIES_$1_$2_iphoneos} ${RESOURCES_$1} ${RESOURCES_$1_iphoneos} | build/$1/$2-iphoneos
-	${call create_app_bundle,$1,iphoneos,$${dir $$@},$${dir $$@},$${dir $$@}}
-	lipo -create -output $$@ ${THIN_BINARIES_$1_$2_iphoneos}
+	${call create_app_bundle,$1,iphoneos,build/$1/$2-iphoneos/${TARGET_NAME_$1}.app,build/$1/$2-iphoneos/${TARGET_NAME_$1}.app,build/$1/$2-iphoneos/${TARGET_NAME_$1}.app}
+	lipo -create -output "$$@" ${THIN_BINARIES_$1_$2_iphoneos}
 endef
 
 define assemble_application_linux32 #(target, configuration)
 build/$1/$2-linux32/${TARGET_NAME_$1}: ${THIN_BINARIES_$1_$2_linux32} ${RESOURCES_$1} ${RESOURCES_$1_linux32} | build/$1/$2-linux32
 	${call copy_target_resources,$1,linux32,build/$1/$2-linux32/Resources}
-	cp ${THIN_BINARIES_$1_$2_linux32} $$@
+	cp ${THIN_BINARIES_$1_$2_linux32} "$$@"
 endef
 
 define assemble_application_linux64 #(target, configuration)
 build/$1/$2-linux64/${TARGET_NAME_$1}: ${THIN_BINARIES_$1_$2_linux64} ${RESOURCES_$1} ${RESOURCES_$1_linux64} | build/$1/$2-linux64
 	${call copy_target_resources,$1,linux64,build/$1/$2-linux64/Resources}
-	cp ${THIN_BINARIES_$1_$2_linux64} $$@
+	cp ${THIN_BINARIES_$1_$2_linux64} "$$@"
 endef
 
 define assemble_application_win32 #(target, configuration)
 build/$1/$2-win32/${TARGET_NAME_$1}.exe: ${THIN_BINARIES_$1_$2_win32} ${RESOURCES_$1} ${RESOURCES_$1_win32} | build/$1/$2-win32
 	${call copy_target_resources,$1,win32,build/$1/$2-win32/Resources}
-	cp ${THIN_BINARIES_$1_$2_win32} $$@
+	cp ${THIN_BINARIES_$1_$2_win32} "$$@"
 endef
 
 define assemble_application_win64 #(target, configuration)
 build/$1/$2-win64/${TARGET_NAME_$1}.exe: ${THIN_BINARIES_$1_$2_win64} ${RESOURCES_$1} ${RESOURCES_$1_win64} | build/$1/$2-win64
 	${call copy_target_resources,$1,win64,build/$1/$2-win64/Resources}
-	cp ${THIN_BINARIES_$1_$2_win64} $$@
+	cp ${THIN_BINARIES_$1_$2_win64} "$$@"
 endef
 
 #Produces final application build targets
@@ -574,7 +574,7 @@ ${STEM_SOURCE_DEPENDENCIES} ${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDE
 endef
 
 define application_file_template_macosx #(target)
-${TARGET_NAME_$1}.app/Contents/MacOS/${TARGET_NAME_$1}
+$${HUMAN_READABLE_TARGET_NAME_$1}.app/Contents/MacOS/${TARGET_NAME_$1}
 endef
 
 define application_file_template_iphonesimulator #(target)
