@@ -19,4 +19,17 @@ static void testAtomFromString() {
 	TestCase_assert(atom3 == NULL, "Expected NULL but got %p", atom3);
 }
 
-TEST_SUITE(AtomTest, testAtomFromString)
+static Atom staticAtom = "I'm a static atom";
+
+static void testRegisterStaticAtom() {
+	Atom result;
+	
+	Atom_registerStaticAddress(staticAtom);
+	result = Atom_fromString("I'm a static atom");
+	TestCase_assert(!strcmp(result, staticAtom), "Atom \"%s\" didn't match expected string \"%s\"", result, staticAtom);
+	TestCase_assert(result == staticAtom, "Pointers to the same atom differ: %p != %p", result, staticAtom);
+}
+
+TEST_SUITE(AtomTest,
+           testAtomFromString,
+           testRegisterStaticAtom)

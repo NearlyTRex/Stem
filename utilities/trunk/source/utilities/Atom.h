@@ -35,10 +35,27 @@ typedef const char * Atom;
 #endif
 #endif
 
-// If you want to safely use Atom in a multithreaded environment, ensure that
-// Atom_initMutex() is called before any other Atom function
+// If you want to safely use Atom in a multithreaded environment, call Atom_initMutex()
+// prior to calling any Atom functions from a secondary thread
 void Atom_initMutex(MUTEX_TYPE (* createMutexFunc)(void), void (* lockMutexFunc)(MUTEX_TYPE), void (* unlockMutexFunc)(MUTEX_TYPE));
 
+// Returns a unique pointer for each string value, which may or may not be equal to the
+// argument. If the string has not previously been seen by Atom_fromString() or
+// Atom_registerStaticAddress(), a new entry is added to the global Atom table for it.
+// New entries will not return a value equal to the argument.
 Atom Atom_fromString(const char * string);
+
+// Adds staticAtom to the global Atom table as the authoritative address of its string
+// value. The purpose of this function is to allow the use of known pointer values
+// without having to look them up each time with Atom_fromString(). It's recommended
+// to use a function marked with __attribute__((constructor)) to call this at the
+// earliest possible time in your program's execution.
+// 
+// Note that it is an error to call Atom_registerStaticAddress with a string value that
+// already exists in the global Atom table. If this happens, the duplicate string value
+// will be printed to stderr, and Atom_registerStaticAddress calls abort().
+// 
+// This function is not thread safe. Call it before spawning any secondary threads.
+void Atom_registerStaticAddress(const char * staticAtom);
 
 #endif

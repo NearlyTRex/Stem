@@ -23,6 +23,7 @@
 #include "utilities/Atom.h"
 #include "utilities/lookup3.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
@@ -98,4 +99,32 @@ Atom Atom_fromString(const char * string) {
 		unlockMutex(mutex);
 	}
 	return newAtom;
+}
+
+void Atom_registerStaticAddress(const char * staticAtom) {
+	unsigned int bucketIndex, entryIndex;
+	uint32_t hash;
+	
+	hash = hashlittle(staticAtom, strlen(staticAtom), 0);
+	bucketIndex = hash % ATOM_HASH_TABLE_SIZE;
+	
+	for (entryIndex = 0; entryIndex < atomBuckets[bucketIndex].count; entryIndex++) {
+		if (atomBuckets[bucketIndex].entries[entryIndex].hash == hash && !strcmp(atomBuckets[bucketIndex].entries[entryIndex].atom, staticAtom)) {
+			fprintf(stderr, "ERROR: Atom_registerStaticAddress called with string \"%s\" at address %p, which is already registered at address %p\n", staticAtom, staticAtom, atomBuckets[bucketIndex].entries[entryIndex].atom);
+			abort();
+		}
+	}
+	
+	if (atomBuckets[bucketIndex].count >= atomBuckets[bucketIndex].allocatedSize) {
+		if (atomBuckets[bucketIndex].allocatedSize == 0) {
+			atomBuckets[bucketIndex].allocatedSize = 1;
+		} else {
+			atomBuckets[bucketIndex].allocatedSize *= 2;
+		}
+		atomBuckets[bucketIndex].entries = realloc(atomBuckets[bucketIndex].entries, sizeof(struct AtomEntry) * atomBuckets[bucketIndex].allocatedSize);
+	}
+	
+	atomBuckets[bucketIndex].entries[atomBuckets[bucketIndex].count].atom = staticAtom;
+	atomBuckets[bucketIndex].entries[atomBuckets[bucketIndex].count].hash = hash;
+	atomBuckets[bucketIndex].count++;
 }
