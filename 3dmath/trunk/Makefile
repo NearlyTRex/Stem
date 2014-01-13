@@ -163,6 +163,7 @@ THIRDPARTY_LIBRARY_DEPENDENCIES =
 #Per-target source file lists
 
 SOURCES_library = \
+	source/${PROJECT_NAME}/FixedPoint.c \
 	source/${PROJECT_NAME}/Matrix.c \
 	source/${PROJECT_NAME}/Quaternion.c \
 	build/intermediate/generated/3dmath/Vector2f.c \
