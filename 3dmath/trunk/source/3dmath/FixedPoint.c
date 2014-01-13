@@ -56,7 +56,7 @@ static fixed16_16 lookUpSinValue(unsigned int index) {
 
 static fixed16_16 fixed16_16_sinInternal(fixed16_16 radians, bool isCos) {
 #if USE_SIN_LOOKUP_TABLE
-	fixed16_16 scaleRatio, interpolationRatio, scaledRadians;
+	fixed16_16 ratio, scaledRadians;
 	unsigned int indexLow, indexHigh;
 	fixed16_16 valueLow, valueHigh;
 	
@@ -68,17 +68,16 @@ static fixed16_16 fixed16_16_sinInternal(fixed16_16 radians, bool isCos) {
 		radians += X_2_PI;
 	}
 	
-	scaleRatio = xdiv(X_2_PI, SIN_LOOKUP_COUNT * 4 << 16);
 	scaledRadians = (int64_t) radians * (SIN_LOOKUP_COUNT * 4 << 16) / X_2_PI;
 	indexLow = floorx(scaledRadians) >> 16;
 	indexHigh = ceilx(scaledRadians) >> 16;
 	valueLow = lookUpSinValue(indexLow);
 	valueHigh = lookUpSinValue(indexHigh);
-	interpolationRatio = scaledRadians & 0xFFFF;
+	ratio = scaledRadians & 0xFFFF;
 	if (indexLow % (SIN_LOOKUP_COUNT * 2) >= SIN_LOOKUP_COUNT) {
-		interpolationRatio = 0x10000 - interpolationRatio;
+		ratio = 0x10000 - ratio;
 	}
-	return valueLow + xmul(valueHigh - valueLow, interpolationRatio);
+	return valueLow + xmul(valueHigh - valueLow, ratio);
 	
 #else
 	// See http://http.developer.nvidia.com/Cg/sin.html
