@@ -33,8 +33,112 @@
 #include "3dmath/FixedPoint_sinLookup.h"
 #endif
 
+fixed16_16 fixed16_16_exp(fixed16_16 x) {
+	// Adapted from https://code.google.com/p/libfixmath/
+	if (x == 0) {
+		return 0x10000;
+	}
+	if (x == 0x10000) {
+		return X_E;
+	}
+	if (x >= 0xA65AF) {
+		return FIXED_16_16_MAX;
+	}
+	if (x <= -0xBC893) {
+		return 0;
+	}
+	
+	/* The algorithm is based on the power series for exp(x):
+	 * http://en.wikipedia.org/wiki/Exponential_function#Formal_definition
+	 * 
+	 * From term n, we get term n+1 by multiplying with x/n.
+	 * When the sum term drops to zero, we can stop summing.
+	 */
+	
+	// The power-series converges much faster on positive values
+	// and exp(-x) = 1/exp(x).
+	bool neg = x < 0;
+	if (neg) {
+		x = -x;
+	}
+	
+	fixed16_16 result = x + 0x10000;
+	fixed16_16 term = x;
+	
+	int iteration;
+	for (iteration = 2; iteration < 30; iteration++) {
+		term = xmul(term, xdiv(x, iteration << 16));
+		result += term;
+		
+		if (term < 500 && (iteration > 15 || term < 20)) {
+			break;
+		}
+	}
+	
+	if (neg) {
+		result = xdiv(0x10000, result);
+	}
+	
+	return result;
+}
+
+fixed16_16 fixed16_16_log(fixed16_16 x) {
+	// Adapted from https://code.google.com/p/libfixmath/
+	fixed16_16 guess = 0x20000;
+	fixed16_16 delta;
+	int scaling = 0;
+	int count = 0;
+	
+	if (x < 0) {
+		return FIXED_16_16_NAN;
+	}
+	if (x == 0) {
+		return FIXED_16_16_NINF;
+	}
+	if (x == 0x10000) {
+		return 0x0;
+	}
+	if (x == FIXED_16_16_INF) {
+		return FIXED_16_16_INF;
+	}
+	
+	// Bring the value to the most accurate range (1 < x < 100)
+	const fixed16_16 e_to_fourth = 0x369920;
+	while (x > 0x640000) {
+		x = xdiv(x, e_to_fourth);
+		scaling += 4;
+	}
+	
+	while (x < 0x10000) {
+		x = xmul(x, e_to_fourth);
+		scaling -= 4;
+	}
+	
+	do {
+		// Solving e(x) = y using Newton's method
+		// f(x) = e(x) - y
+		// f'(x) = e(x)
+		fixed16_16 e = xexp(guess);
+		delta = xdiv(x - e, e);
+		
+		// It's unlikely that logarithm is very large, so avoid overshooting.
+		if (delta > 0x30000) {
+			delta = 0x30000;
+		}
+		guess += delta;
+	} while (count++ < 10 && (delta > 1 || delta < -1));
+	
+	return guess + (scaling << 16);
+}
+
 fixed16_16 fixed16_16_pow(fixed16_16 x, fixed16_16 y) {
-	return 0;
+	if (x == 0x10000) {
+		return 0x10000;
+	}
+	if (y == 0x10000) {
+		return x;
+	}
+	return fixed16_16_exp(xmul(y, fixed16_16_log(x)));
 }
 
 #if USE_SIN_LOOKUP_TABLE
@@ -61,16 +165,16 @@ static fixed16_16 fixed16_16_sinInternal(fixed16_16 radians, bool isCos) {
 	fixed16_16 valueLow, valueHigh;
 	
 	if (isCos) {
-		radians += X_PI - X_HALF_PI;
+		radians += X_PI - X_PI_2;
 	}
-	radians %= X_2_PI;
+	radians %= X_PI * 2;
 	if (radians < 0) {
-		radians += X_2_PI;
+		radians += X_PI * 2;
 	}
 	
-	scaledRadians = (int64_t) radians * (SIN_LOOKUP_COUNT * 4 << 16) / X_2_PI;
-	indexLow = floorx(scaledRadians) >> 16;
-	indexHigh = ceilx(scaledRadians) >> 16;
+	scaledRadians = (int64_t) radians * (SIN_LOOKUP_COUNT * 4 << 16) / (X_PI * 2);
+	indexLow = xfloor(scaledRadians) >> 16;
+	indexHigh = xceil(scaledRadians) >> 16;
 	valueLow = lookUpSinValue(indexLow);
 	valueHigh = lookUpSinValue(indexHigh);
 	ratio = scaledRadians & 0xFFFF;
@@ -91,7 +195,7 @@ static fixed16_16 fixed16_16_sinInternal(fixed16_16 radians, bool isCos) {
 	Vector3x r2 = VECTOR3x_ZERO;
 	
 	r1.x = xmul(c1.w, radians) - (isCos ? 0 : c1.x);
-	r1.y = r1.x - floorx(r1.x);
+	r1.y = r1.x - xfloor(r1.x);
 	r2.x = r1.y < c1.x ? 0x10000 : 0x0;
 	r2.y = r1.y >= c1.y ? 0x10000 : 0x0;
 	r2.z = r1.y >= c1.z ? 0x10000 : 0x0;
@@ -118,7 +222,7 @@ fixed16_16 fixed16_16_cos(fixed16_16 radians) {
 }
 
 fixed16_16 fixed16_16_tan(fixed16_16 radians) {
-	return xdiv(sinx(radians), cosx(radians));
+	return xdiv(xsin(radians), xcos(radians));
 }
 
 fixed16_16 fixed16_16_asin(fixed16_16 y) {
@@ -138,7 +242,7 @@ fixed16_16 fixed16_16_asin(fixed16_16 y) {
 	result -= 0x364D;
 	result = xmul(result, y);
 	result += 0x1921B;
-	result = X_HALF_PI - xmul(sqrtx(0x10000 - y), result);
+	result = X_PI_2 - xmul(xsqrt(0x10000 - y), result);
 	return result - xmul(negate, result);
 }
 
@@ -159,13 +263,13 @@ fixed16_16 fixed16_16_acos(fixed16_16 x) {
 	result -= 0x364D;
 	result = xmul(result, x);
 	result += 0x1921B;
-	result = xmul(result, sqrtx(0x10000 - x));
+	result = xmul(result, xsqrt(0x10000 - x));
 	result -= xmul(negate, result);
-	return xmul(negate, X_HALF_PI) + result;
+	return xmul(negate, X_PI_2) + result;
 }
 
 fixed16_16 fixed16_16_atan(fixed16_16 y) {
-	return fixed16_16_atan2(y, 0x10000);
+	return xatan2(y, 0x10000);
 }
 
 fixed16_16 fixed16_16_atan2(fixed16_16 y, fixed16_16 x) {
@@ -189,7 +293,7 @@ fixed16_16 fixed16_16_atan2(fixed16_16 y, fixed16_16 x) {
 	t3 = xmul(t3, t0);
 	
 	if (xabs(y) > xabs(x)) {
-		t3 = X_HALF_PI - t3;
+		t3 = X_PI_2 - t3;
 	}
 	if (x < 0) {
 		t3 = X_PI - t3;
