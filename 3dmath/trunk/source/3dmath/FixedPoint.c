@@ -67,7 +67,7 @@ fixed16_16 fixed16_16_exp(fixed16_16 x) {
 	
 	int iteration;
 	for (iteration = 2; iteration < 30; iteration++) {
-		term = xmul(term, xdiv(x, iteration << 16));
+		term = xmul(term, x / iteration);
 		result += term;
 		
 		if (term < 500 && (iteration > 15 || term < 20)) {
@@ -76,10 +76,10 @@ fixed16_16 fixed16_16_exp(fixed16_16 x) {
 	}
 	
 	if (neg) {
-		result = xdiv(0x10000, result);
+		result = 0x100000000ll / result;
 	}
 	
-	return result;
+	return (fixed16_16) result;
 }
 
 fixed16_16 fixed16_16_log(fixed16_16 x) {

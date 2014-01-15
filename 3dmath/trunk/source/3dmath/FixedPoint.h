@@ -20,8 +20,8 @@
   Alex Diener adiener@sacredsoftware.net
 */
 
-#ifndef __FixedPointMath_H__
-#define __FixedPointMath_H__
+#ifndef __FixedPoint_H__
+#define __FixedPoint_H__
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -101,7 +101,8 @@ static inline fixed16_16 fixed16_16_abs(fixed16_16 x) {
 }
 
 static inline fixed16_16 fixed16_16_sqrt(fixed16_16 x) {
-	fixed16_16 estimate = 0x10000, lastEstimate = -1;
+	int64_t estimate = 0x10000, lastEstimate = -1;
+	int64_t x64;
 	
 	if (x < 0) {
 		return FIXED_16_16_NAN;
@@ -109,11 +110,12 @@ static inline fixed16_16 fixed16_16_sqrt(fixed16_16 x) {
 	if (x == 0) {
 		return 0;
 	}
+	x64 = x;
 	while (estimate != lastEstimate) {
 		lastEstimate = estimate;
-		estimate = fixed16_16_divide(fixed16_16_divide(x, estimate) + estimate, 0x20000);
+		estimate = (((x64 << 16) / estimate) + estimate) / 2;
 	}
-	return estimate;
+	return (fixed16_16) estimate;
 }
 
 static inline fixed16_16 fixed16_16_floor(fixed16_16 x) {
