@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2013 Alex Diener
+  Copyright (c) 2014 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -142,6 +142,10 @@ const char * Shell_getSupportPath(const char * subdirectory) {
 	mkdir(supportPath, 0777);
 	
 	return supportPath;
+}
+
+void Shell_openURL(const char * url) {
+	[[UIApplication sharedApplication] openURL: [NSURL URLWithString: [NSString stringWithUTF8String: url]]];
 }
 
 enum ShellBatteryState Shell_getBatteryState() {

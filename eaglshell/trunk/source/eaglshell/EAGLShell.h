@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2013 Alex Diener
+  Copyright (c) 2014 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -20,8 +20,11 @@
   Alex Diener adiener@sacredsoftware.net
 */
 
-#ifndef __EAGLSHELL_H__
-#define __EAGLSHELL_H__
+#ifndef __EAGLShell_H__
+#define __EAGLShell_H__
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include <stdbool.h>
 
@@ -116,4 +119,7 @@ void EAGLShell_setAccelerometerInterval(double interval);
     change will persist until the application is terminated. Primarily for debugging. */
 void EAGLShell_redirectStdoutToFile();
 
+#ifdef __cplusplus
+}
+#endif
 #endif

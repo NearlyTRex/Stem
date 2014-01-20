@@ -1,3 +1,7 @@
+2.5.2 (2014-01-20)
+ * Updated API for shell 1.2.0 (adds Shell_openURL)
+ * Added C++ header guards
+
 2.5.1 (2013-12-25)
  * Updated API for shell 1.1.0 (adds Shell_getSupportPath)
 

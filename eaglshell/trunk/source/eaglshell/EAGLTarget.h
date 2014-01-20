@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2013 Alex Diener
+  Copyright (c) 2014 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -20,8 +20,11 @@
   Alex Diener adiener@sacredsoftware.net
 */
 
-#ifndef __EAGL_TARGET_H__
-#define __EAGL_TARGET_H__
+#ifndef __EAGLTarget_H__
+#define __EAGLTarget_H__
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include "eaglshell/EAGLShell.h"
 
@@ -48,4 +51,7 @@ void EAGLTarget_touchesCancelled(unsigned int buttonMask);
     call EAGLShell_setAccelerometerInterval() with a positive number for the interval. */
 void EAGLTarget_accelerometer(double x, double y, double z);
 
+#ifdef __cplusplus
+}
+#endif
 #endif
