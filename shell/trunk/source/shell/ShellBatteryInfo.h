@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2013 Alex Diener
+  Copyright (c) 2014 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -20,8 +20,11 @@
   Alex Diener adiener@sacredsoftware.net
 */
 
-#ifndef __SHELL_BATTERY_INFO_H__
-#define __SHELL_BATTERY_INFO_H__
+#ifndef __ShellBatteryInfo_H__
+#define __ShellBatteryInfo_H__
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 enum ShellBatteryState {
 	ShellBatteryState_unknown,          // Battery state could not be determined
@@ -42,4 +45,7 @@ enum ShellBatteryState Shell_getBatteryState();
     -1 will generally be returned. */
 float Shell_getBatteryLevel();
 
+#ifdef __cplusplus
+}
+#endif
 #endif

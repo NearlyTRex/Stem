@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2013 Alex Diener
+  Copyright (c) 2014 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -20,8 +20,11 @@
   Alex Diener adiener@sacredsoftware.net
 */
 
-#ifndef __TARGET_H__
-#define __TARGET_H__
+#ifndef __Target_H__
+#define __Target_H__
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /** Main entry point. Called when the shell's bootstrapping has finished. You should call
     Shell_mainLoop from this function if you want to continue execution. If you do not, the program
@@ -87,4 +90,7 @@ void Target_backgrounded();
     and some shells may not be able to report it at all. */
 void Target_foregrounded();
 
+#ifdef __cplusplus
+}
+#endif
 #endif

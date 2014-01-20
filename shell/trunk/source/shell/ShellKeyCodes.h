@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2013 Alex Diener
+  Copyright (c) 2014 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -22,8 +22,11 @@
 
 // Adapted from GameShell (http://onesadcookie.com/svn/GameShell/Source/Common/GSKeyCodesInternal.h). Thanks Keith!
 
-#ifndef __SHELL_KEY_CODES_H__
-#define __SHELL_KEY_CODES_H__
+#ifndef __ShellKeyCodes_H__
+#define __ShellKeyCodes_H__
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define KEYBOARD_A                      0x04
 #define KEYBOARD_B                      0x05
@@ -201,4 +204,7 @@
 #define MODIFIER_COMMAND_BIT 0x08
 #define MODIFIER_CAPS_LOCK_BIT 0x10
 
+#ifdef __cplusplus
+}
+#endif
 #endif

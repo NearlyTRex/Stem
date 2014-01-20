@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2013 Alex Diener
+  Copyright (c) 2014 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -20,8 +20,11 @@
   Alex Diener adiener@sacredsoftware.net
 */
 
-#ifndef __SHELL_THREADS_H__
-#define __SHELL_THREADS_H__
+#ifndef __ShellThreads_H__
+#define __ShellThreads_H__
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include <stdbool.h>
 
@@ -91,4 +94,7 @@ void Shell_waitSemaphore(ShellSemaphore semaphore);
     if it would be necessary to block. */
 bool Shell_tryWaitSemaphore(ShellSemaphore semaphore);
 
+#ifdef __cplusplus
+}
+#endif
 #endif

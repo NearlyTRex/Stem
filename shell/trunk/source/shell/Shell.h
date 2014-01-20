@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2013 Alex Diener
+  Copyright (c) 2014 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -20,8 +20,11 @@
   Alex Diener adiener@sacredsoftware.net
 */
 
-#ifndef __SHELL_H__
-#define __SHELL_H__
+#ifndef __Shell_H__
+#define __Shell_H__
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include <stdbool.h>
 
@@ -98,4 +101,10 @@ void Shell_setCursor(int cursor);
     False by default. */
 void Shell_setMouseDeltaMode(bool deltaMode);
 
+/** Opens the specified URL string in the user's default web browser. */
+void Shell_openURL(const char * url);
+
+#ifdef __cplusplus
+}
+#endif
 #endif
