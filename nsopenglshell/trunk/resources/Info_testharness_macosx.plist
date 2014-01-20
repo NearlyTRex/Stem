@@ -26,5 +26,7 @@ http://sacredsoftware.net/</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>Copyright © ${COPYRIGHT_YEAR} Alex Diener
 http://sacredsoftware.net/</string>
+	<key>NSPrincipalClass</key>
+	<string>NSOpenGLShellApplication</string>
 </dict>
 </plist>

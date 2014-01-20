@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2013 Alex Diener
+  Copyright (c) 2014 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -29,6 +29,11 @@
 #include "shell/Shell.h"
 #include "shell/ShellKeyCodes.h"
 #include <OpenGL/glu.h>
+
+@interface NSView ()
+- (void)setWantsBestResolutionOpenGLSurface:(BOOL)flag;
+- (NSRect)convertRectToBacking:(NSRect)aRect;
+@end
 
 @interface NSOpenGLShellView ()
 - (void) stopAnimation;
@@ -71,11 +76,14 @@
 	attributes[numAttributes] = 0;
 	pixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes: attributes];
 	if ((self = [super initWithFrame: frame pixelFormat: pixelFormat]) != nil) {
-		const unsigned char * glExtensions;
+		const char * glExtensions;
 		
+		if ([self respondsToSelector: @selector(setWantsBestResolutionOpenGLSurface:)]) {
+			[self setWantsBestResolutionOpenGLSurface: YES];
+		}
 		[[self openGLContext] makeCurrentContext];
-		glExtensions = glGetString(GL_EXTENSIONS);
-		if (!gluCheckExtension((unsigned char *) "GL_ARB_shader_objects", glExtensions) || strstr("GMA", (char *) glGetString(GL_RENDERER))) {
+		glExtensions = (const char *) glGetString(GL_EXTENSIONS);
+		if (!strstr("GL_ARB_shader_objects", glExtensions) || strstr("GMA", (char *) glGetString(GL_RENDERER))) {
 			GLGraphics_init(GL_API_VERSION_DESKTOP_1);
 		} else {
 			GLGraphics_init(GL_API_VERSION_DESKTOP_2);
@@ -506,6 +514,9 @@ static unsigned int NSEventKeyModifiersToShellKeyModifiers(NSUInteger modifiers)
 	NSRect bounds;
 	
 	bounds = [self bounds];
+	if ([self respondsToSelector: @selector(convertRectToBacking:)]) {
+		bounds = [self convertRectToBacking: bounds];
+	}
 	if (bounds.size.width != lastWidth || bounds.size.height != lastHeight) {
 		lastWidth = bounds.size.width;
 		lastHeight = bounds.size.height;
