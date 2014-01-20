@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2013 Alex Diener
+  Copyright (c) 2014 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -406,6 +406,9 @@ void Shell_setMouseDeltaMode(bool deltaMode) {
 		mouseDeltaMode = false;
 		Shell_setCursor(lastUnhiddenCursor);
 	}
+}
+
+void Shell_openURL(const char * url) {
 }
 
 void GLUTShell_setVSync(bool sync, bool fullscreen) {

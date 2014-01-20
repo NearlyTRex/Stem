@@ -1,5 +1,6 @@
 1.8.0
  * Modifier keys now produce Target_keyDown() and Target_keyUp() events (though with the same limitations as before; only detected on other keypresses or mouse movement)
+ * Updated for shell 1.2.0 (adds Shell_openURL, but this function is unimplemented in glutshell)
 
 1.7.0 (2013-12-27)
  * vsync is now enabled by default on all platforms (disabled in window mode on Linux)
