@@ -130,6 +130,10 @@ const char * Shell_getSupportPath(const char * subdirectory) {
 	return supportPath;
 }
 
+void Shell_openURL(const char * url) {
+	[[NSWorkspace sharedWorkspace] openURL: [NSURL URLWithString: [NSString stringWithUTF8String: url]]];
+}
+
 enum ShellBatteryState Shell_getBatteryState() {
 	CFTypeRef info;
 	CFArrayRef list;
