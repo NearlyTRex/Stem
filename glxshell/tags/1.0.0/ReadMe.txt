@@ -1,0 +1,1 @@
+GLXShell is an implementation of a stem shell for Linux using glX. It is a feature complete, production-ready shell (or will be when it's done, at least!)
