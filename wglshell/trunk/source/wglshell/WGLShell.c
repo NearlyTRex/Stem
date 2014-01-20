@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2013 Alex Diener
+  Copyright (c) 2014 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -352,6 +352,10 @@ void Shell_setMouseDeltaMode(bool deltaMode) {
 			ShowCursor(true);
 		}
 	}
+}
+
+void Shell_openURL(const char * url) {
+	ShellExecute(NULL, "open", url, NULL, NULL, SW_SHOWNORMAL);
 }
 
 enum ShellBatteryState Shell_getBatteryState() {

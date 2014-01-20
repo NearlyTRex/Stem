@@ -153,6 +153,9 @@ void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned int mo
 		printf("Shell_getSupportPath(NULL): %s\n", Shell_getSupportPath(NULL));
 		printf("Shell_getSupportPath(\"glutshell\"): %s\n", Shell_getSupportPath("glutshell"));
 		
+	} else if (keyCode == KEYBOARD_U) {
+		Shell_openURL("http://ludobloom.com/");
+		
 	} else if (keyCode == KEYBOARD_D) {
 		Shell_redisplay();
 		

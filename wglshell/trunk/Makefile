@@ -101,10 +101,10 @@ LINK_ORDER = \
 PROJECT_LIBRARY_DEPENDENCIES_testharness = library
 STEM_LIBRARY_DEPENDENCIES_library = \
 	glgraphics/1.2.0 \
-	shell/1.1.0
+	shell/1.2.0
 STEM_LIBRARY_DEPENDENCIES_testharness = \
 	glgraphics/1.2.0 \
-	shell/1.1.0
+	shell/1.2.0
 STEM_SOURCE_DEPENDENCIES_library = 
 STEM_SOURCE_DEPENDENCIES_testharness = 
 THIRDPARTY_LIBRARY_DEPENDENCIES = glew/1.5.4/libglew.a
