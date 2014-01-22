@@ -204,7 +204,6 @@ INCLUDES = \
 	source/${PROJECT_NAME}/FixedPoint.h \
 	source/${PROJECT_NAME}/Matrix.h \
 	source/${PROJECT_NAME}/Quaternion.h \
-	source/${PROJECT_NAME}/Vector_legacy.h \
 	build/intermediate/generated/3dmath/Vector2f.h \
 	build/intermediate/generated/3dmath/Vector3f.h \
 	build/intermediate/generated/3dmath/Vector4f.h \

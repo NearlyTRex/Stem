@@ -105,7 +105,8 @@ bool <%= class_name %>_scaleTo(<%= class_name %> * vector, <%= numeric_type %> m
 <%= class_name %> <%= class_name %>_interpolate(<%= class_name %> left, <%= class_name %> right, <%= numeric_type %> value);
 
 <%= class_name %> <%= class_name %>_reflect(<%= class_name %> vector, <%= class_name %> normal);
-<% if axis_count == 2 && numeric_type != "fixed16_16" -%>
+<%= class_name %> <%= class_name %>_project(<%= class_name %> vector, <%= class_name %> normal);
+<% if axis_count == 2 -%>
 <%= class_name %> <%= class_name %>_rotate(<%= class_name %> vector, <%= numeric_type %> radians);
 <% end -%>
 

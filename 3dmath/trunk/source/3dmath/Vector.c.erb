@@ -29,15 +29,17 @@ numeric_type_suffixes = {
 sqrt_functions = {
 	"float" => "sqrtf",
 	"double" => "sqrt",
-	"fixed16_16" => "fixed16_16_sqrt"
+	"fixed16_16" => "xsqrt"
 }
 sin_functions = {
 	"float" => "sinf",
-	"double" => "sin"
+	"double" => "sin",
+	"fixed16_16" => "xsin"
 }
 cos_functions = {
 	"float" => "cosf",
-	"double" => "cos"
+	"double" => "cos",
+	"fixed16_16" => "xcos"
 }
 class_name = "Vector#{axis_count}#{numeric_type_suffixes[numeric_type]}"
 class_name_upper = "VECTOR#{axis_count}#{numeric_type_suffixes[numeric_type]}"
@@ -47,11 +49,11 @@ c2 = const_two[numeric_type]
 
 if numeric_type == "fixed16_16"
 	def multiply(lhs, rhs)
-		return "fixed16_16_multiply(#{lhs}, #{rhs})"
+		return "xmul(#{lhs}, #{rhs})"
 	end
 	
 	def divide(lhs, rhs)
-		return "fixed16_16_divide(#{lhs}, #{rhs})"
+		return "xdiv(#{lhs}, #{rhs})"
 	end
 else
 	def multiply(lhs, rhs)
@@ -156,19 +158,30 @@ bool <%= class_name %>_scaleTo(<%= class_name %> * vector, <%= numeric_type %> m
 	<%= numeric_type %> dot;
 	
 	dot = <%= class_name %>_dot(vector, normal);
-	result.x = <%= c2 %> * <%= multiply("dot", "normal.x") %> - vector.x;
+	result.x = vector.x - <%= c2 %> * <%= multiply("dot", "normal.x") %>;
 <% 1.upto(axis_count - 1) do |axis| -%>
-	result.<%= axis_names[axis] %> = <%= c2 %> * <%= multiply("dot", "normal.#{axis_names[axis]}") %> - vector.<%= axis_names[axis] %>;
+	result.<%= axis_names[axis] %> = vector.<%= axis_names[axis] %> - <%= c2 %> * <%= multiply("dot", "normal.#{axis_names[axis]}") %>;
 <% end -%>
 	return result;
 }
 
-<% if axis_count == 2 && numeric_type != "fixed16_16" -%>
+<%= class_name %> <%= class_name %>_project(<%= class_name %> vector, <%= class_name %> normal) {
+	<%= numeric_type %> dot;
+	
+	dot = <%= class_name %>_dot(vector, normal);
+	vector.x -= <%= multiply("normal.x", "dot") %>;
+<% 1.upto(axis_count - 1) do |axis| -%>
+	vector.<%= axis_names[axis] %> -= <%= multiply("normal.#{axis_names[axis]}", "dot") %>;
+<% end -%>
+	return vector;
+}
+<% if axis_count == 2 -%>
+
 <%= class_name %> <%= class_name %>_rotate(<%= class_name %> vector, <%= numeric_type %> radians) {
 	<%= class_name %> result;
 	
-	result.x = vector.x * <%= cos_functions[numeric_type] %>(radians) + vector.y * -<%= sin_functions[numeric_type] %>(radians);
-	result.y = vector.x * <%= sin_functions[numeric_type] %>(radians) + vector.y *  <%= cos_functions[numeric_type] %>(radians);
+	result.x = <%= multiply("vector.x", "#{cos_functions[numeric_type]}(radians)") %> + <%= multiply("vector.y", "-#{sin_functions[numeric_type]}(radians)") %>;
+	result.y = <%= multiply("vector.x", "#{sin_functions[numeric_type]}(radians)") %> + <%= multiply("vector.y", " #{cos_functions[numeric_type]}(radians)") %>;
 	return result;
 }
 <% end -%>

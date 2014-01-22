@@ -1,3 +1,9 @@
+2.1.0 (2014-01-22)
+ * Added Vector*_project()
+ * Added Vector2x_rotate()
+ * Vector*_reflect() is now implemented correctly to return reflection rather than negated reflection
+ * Removed Vector_legacy.h
+
 2.0.0 (2014-01-10)
  * Added FixedPoint
  * Vector2, Vector3, and Vector4 now come in f (float), d (double), i (int), and x (16.16 fixed-point) variants
