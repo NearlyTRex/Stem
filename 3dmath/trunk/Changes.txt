@@ -1,5 +1,6 @@
 2.1.0 (2014-01-22)
  * Added Vector*_project()
+ * Added Vector*_distance() and Vector*_distanceSquared() (2.0.0 had prototypes for them but implementations were missing)
  * Added Vector2x_rotate()
  * Vector*_reflect() is now implemented correctly to return reflection rather than negated reflection
  * Removed Vector_legacy.h

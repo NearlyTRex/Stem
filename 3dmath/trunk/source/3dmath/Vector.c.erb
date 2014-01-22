@@ -109,6 +109,22 @@ bool <%= class_name %>_normalize(<%= class_name %> * vector) {
 	return vector;
 }
 
+<%= numeric_type %> <%= class_name %>_magnitude(<%= class_name %> vector) {
+	return <%= sqrt_functions[numeric_type] %>(<%= multiply("vector.x", "vector.x") %><% 1.upto(axis_count - 1) do |axis| %> + <%= multiply("vector.#{axis_names[axis]}", "vector.#{axis_names[axis]}") %><% end %>);
+}
+
+<%= numeric_type %> <%= class_name %>_magnitudeSquared(<%= class_name %> vector) {
+	return vector.x * vector.x<% 1.upto(axis_count - 1) do |axis| %> + vector.<%= axis_names[axis] %> * vector.<%= axis_names[axis] %><% end %>;
+}
+
+<%= numeric_type %> <%= class_name %>_distance(<%= class_name %> vector1, <%= class_name %> vector2) {
+	return <%= class_name %>_magnitude(<%= class_name %>_subtract(vector1, vector2));
+}
+
+<%= numeric_type %> <%= class_name %>_distanceSquared(<%= class_name %> vector1, <%= class_name %> vector2) {
+	return <%= class_name %>_magnitudeSquared(<%= class_name %>_subtract(vector1, vector2));
+}
+
 bool <%= class_name %>_scaleTo(<%= class_name %> * vector, <%= numeric_type %> magnitude) {
 	if (<%= class_name %>_normalize(vector)) {
 		*vector = <%= class_name %>_multiplyScalar(*vector, magnitude);
@@ -120,14 +136,6 @@ bool <%= class_name %>_scaleTo(<%= class_name %> * vector, <%= numeric_type %> m
 <%= class_name %> <%= class_name %>_scaledTo(<%= class_name %> vector, <%= numeric_type %> magnitude) {
 	<%= class_name %>_scaleTo(&vector, magnitude);
 	return vector;
-}
-
-<%= numeric_type %> <%= class_name %>_magnitude(<%= class_name %> vector) {
-	return <%= sqrt_functions[numeric_type] %>(<%= multiply("vector.x", "vector.x") %><% 1.upto(axis_count - 1) do |axis| %> + <%= multiply("vector.#{axis_names[axis]}", "vector.#{axis_names[axis]}") %><% end %>);
-}
-
-<%= numeric_type %> <%= class_name %>_magnitudeSquared(<%= class_name %> vector) {
-	return vector.x * vector.x<% 1.upto(axis_count - 1) do |axis| %> + vector.<%= axis_names[axis] %> * vector.<%= axis_names[axis] %><% end %>;
 }
 <% end -%>
 

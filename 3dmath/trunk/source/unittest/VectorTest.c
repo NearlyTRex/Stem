@@ -196,6 +196,40 @@ static void testMagnitude() {
 	TestCase_assert(fabs(magnitude - 8.0f) < EPSILON, "Expected 8.0 but got %f", magnitude);
 }
 
+static void testDistance() {
+	float distance;
+	
+	distance = Vector2f_distance(VECTOR2f(1.0f, 0.0f), VECTOR2f(0.0f, 0.0f));
+	TestCase_assert(fabs(distance - 1.0f) < EPSILON, "Expected 1.0 but got %f", distance);
+	distance = Vector2f_distance(VECTOR2f(0.0f, 1.0f), VECTOR2f(-1.0f, 2.0f));
+	TestCase_assert(fabs(distance - 1.4142135623731f) < EPSILON, "Expected 1.4142135623731 but got %f", distance);
+	
+	distance = Vector3f_distance(VECTOR3f(0.0f, 1.0f, 0.0f), VECTOR3f(0.0f, 0.0f, 0.0f));
+	TestCase_assert(fabs(distance - 1.0f) < EPSILON, "Expected 1.0 but got %f", distance);
+	distance = Vector3f_distance(VECTOR3f(0.0f, 0.0f, 1.0f), VECTOR3f(0.0f, -1.0f, 2.0f));
+	TestCase_assert(fabs(distance - 1.4142135623731f) < EPSILON, "Expected 1.4142135623731 but got %f", distance);
+	
+	distance = Vector4f_distance(VECTOR4f(0.0f, 0.0f, 1.0f, 0.0f), VECTOR4f(0.0f, 0.0f, 0.0f, 0.0f));
+	TestCase_assert(fabs(distance - 1.0f) < EPSILON, "Expected 1.0 but got %f", distance);
+	distance = Vector4f_distance(VECTOR4f(0.0f, 0.0f, 0.0f, 1.0f), VECTOR4f(0.0f, 0.0f, -1.0f, 2.0f));
+	TestCase_assert(fabs(distance - 1.4142135623731f) < EPSILON, "Expected 1.4142135623731 but got %f", distance);
+	
+	distance = Vector2f_distanceSquared(VECTOR2f(1.0f, 0.0f), VECTOR2f(0.0f, 0.0f));
+	TestCase_assert(fabs(distance - 1.0f) < EPSILON, "Expected 1.0 but got %f", distance);
+	distance = Vector2f_distanceSquared(VECTOR2f(0.0f, 1.0f), VECTOR2f(-1.0f, 2.0f));
+	TestCase_assert(fabs(distance - 2.0f) < EPSILON, "Expected 2.0 but got %f", distance);
+	
+	distance = Vector3f_distanceSquared(VECTOR3f(0.0f, 1.0f, 0.0f), VECTOR3f(0.0f, 0.0f, 0.0f));
+	TestCase_assert(fabs(distance - 1.0f) < EPSILON, "Expected 1.0 but got %f", distance);
+	distance = Vector3f_distanceSquared(VECTOR3f(0.0f, 0.0f, 1.0f), VECTOR3f(0.0f, -1.0f, 2.0f));
+	TestCase_assert(fabs(distance - 2.0f) < EPSILON, "Expected 2.0 but got %f", distance);
+	
+	distance = Vector4f_distanceSquared(VECTOR4f(0.0f, 0.0f, 1.0f, 0.0f), VECTOR4f(0.0f, 0.0f, 0.0f, 0.0f));
+	TestCase_assert(fabs(distance - 1.0f) < EPSILON, "Expected 1.0 but got %f", distance);
+	distance = Vector4f_distanceSquared(VECTOR4f(0.0f, 0.0f, 0.0f, 1.0f), VECTOR4f(0.0f, 0.0f, -1.0f, 2.0f));
+	TestCase_assert(fabs(distance - 2.0f) < EPSILON, "Expected 2.0 but got %f", distance);
+}
+
 static void testArithmetic() {
 	Vector2f vector2;
 	Vector3f vector3;
@@ -370,6 +404,7 @@ TEST_SUITE(VectorTest,
            testPrefabs,
            testNormalize,
            testMagnitude,
+           testDistance,
            testArithmetic,
            testInterpolate,
            testReflect,
