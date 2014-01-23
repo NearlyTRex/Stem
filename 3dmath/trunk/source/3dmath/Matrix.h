@@ -51,10 +51,6 @@ void Matrix_loadIdentity(Matrix * matrix1);
                     m4,  m5,  m6,  m7, \
                     m8,  m9,  m10, m11, \
                     m12, m13, m14, m15}})
-Matrix Matrix_init(float m0, float m4, float m8,  float m12,
-                   float m1, float m5, float m9,  float m13,
-                   float m2, float m6, float m10, float m14,
-                   float m3, float m7, float m11, float m15);
 Matrix Matrix_fromDirectionVectors(Vector3f right, Vector3f up, Vector3f front);
 
 void Matrix_multiply(Matrix * matrix1, Matrix matrix2);

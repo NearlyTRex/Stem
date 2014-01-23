@@ -170,10 +170,10 @@ static bool QuaternionTests_matrixCompare(Matrix matrix, float m0, float m1, flo
 static void testToMatrix() {
 	Matrix matrix;
 	
-	TestCase_assert(!QuaternionTests_matrixCompare(Matrix_init(0.0f, 1.0f, 1.0f, 1.0f,
-	                                                           1.0f, 0.0f, 1.0f, 1.0f,
-	                                                           1.0f, 1.0f, 0.0f, 1.0f,
-	                                                           1.0f, 1.0f, 1.0f, 0.0f),
+	TestCase_assert(!QuaternionTests_matrixCompare(MATRIX(0.0f, 1.0f, 1.0f, 1.0f,
+	                                                      1.0f, 0.0f, 1.0f, 1.0f,
+	                                                      1.0f, 1.0f, 0.0f, 1.0f,
+	                                                      1.0f, 1.0f, 1.0f, 0.0f),
 	                                               1.0f, 0.0f, 0.0f, 0.0f,
 	                                               0.0f, 1.0f, 0.0f, 0.0f,
 	                                               0.0f, 0.0f, 1.0f, 0.0f,

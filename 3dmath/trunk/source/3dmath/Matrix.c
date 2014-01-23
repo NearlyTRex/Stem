@@ -43,31 +43,6 @@ void Matrix_loadIdentity(Matrix * matrix) {
 	matrix->m[15] = 1.0f;
 }
 
-Matrix Matrix_init(float m0, float m4, float m8,  float m12,
-                   float m1, float m5, float m9,  float m13,
-                   float m2, float m6, float m10, float m14,
-                   float m3, float m7, float m11, float m15) {
-	Matrix matrix;
-	
-	matrix.m[0]  = m0;
-	matrix.m[1]  = m1;
-	matrix.m[2]  = m2;
-	matrix.m[3]  = m3;
-	matrix.m[4]  = m4;
-	matrix.m[5]  = m5;
-	matrix.m[6]  = m6;
-	matrix.m[7]  = m7;
-	matrix.m[8]  = m8;
-	matrix.m[9]  = m9;
-	matrix.m[10] = m10;
-	matrix.m[11] = m11;
-	matrix.m[12] = m12;
-	matrix.m[13] = m13;
-	matrix.m[14] = m14;
-	matrix.m[15] = m15;
-	return matrix;
-}
-
 Matrix Matrix_fromDirectionVectors(Vector3f right, Vector3f up, Vector3f front) {
 	Matrix matrix;
 	
@@ -246,10 +221,10 @@ Matrix Matrix_ortho(Matrix matrix, float left, float right, float bottom, float 
 }
 
 void Matrix_transpose(Matrix * matrix) {
-	*matrix = Matrix_init(matrix->m[0],  matrix->m[1],  matrix->m[2],  matrix->m[3],
-	                      matrix->m[4],  matrix->m[5],  matrix->m[6],  matrix->m[7],
-	                      matrix->m[8],  matrix->m[9],  matrix->m[10], matrix->m[11],
-	                      matrix->m[12], matrix->m[13], matrix->m[14], matrix->m[15]);
+	*matrix = MATRIX(matrix->m[0],  matrix->m[1],  matrix->m[2],  matrix->m[3],
+	                 matrix->m[4],  matrix->m[5],  matrix->m[6],  matrix->m[7],
+	                 matrix->m[8],  matrix->m[9],  matrix->m[10], matrix->m[11],
+	                 matrix->m[12], matrix->m[13], matrix->m[14], matrix->m[15]);
 }
 
 Matrix Matrix_transposed(Matrix matrix) {
