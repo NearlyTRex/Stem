@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2013 Alex Diener
+  Copyright (c) 2014 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -17,11 +17,14 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
   
-  Alex Diener adiener@sacredsoftware.net
+  Alex Diener alex@ludobloom.com
 */
 
-#ifndef __GL_GRAPHICS_H__
-#define __GL_GRAPHICS_H__
+#ifndef __GLGraphics_H__
+#define __GLGraphics_H__
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 enum GLAPIVersion {
 	GL_API_VERSION_DESKTOP_1,
@@ -34,4 +37,7 @@ enum GLAPIVersion {
 void GLGraphics_init(enum GLAPIVersion apiVersion);
 enum GLAPIVersion GLGraphics_getOpenGLAPIVersion();
 
+#ifdef __cplusplus
+}
+#endif
 #endif

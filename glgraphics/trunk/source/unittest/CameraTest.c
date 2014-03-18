@@ -67,8 +67,8 @@ void testGetMatrix() {
 	                                0.0f, 0.0f, 1.0f, 0.0f,
 	                                0.0f, 0.0f, 0.0f, 1.0f, 0.00001f);
 	
-	camera.orientation = Quaternion_fromAxisAngle(Vector3_init(0.0f, 1.0f, 0.0f), M_PI);
-	camera.position = Vector3_init(1.0f, -1.0f, 2.0f);
+	camera.orientation = Quaternion_fromAxisAngle(VECTOR3f(0.0f, 1.0f, 0.0f), M_PI);
+	camera.position = VECTOR3f(1.0f, -1.0f, 2.0f);
 	matrix = camera.getMatrix(&camera);
 	assertMatrixApproximate(matrix, -1.0f, 0.0f,  0.0f, 1.0f,
 	                                 0.0f, 1.0f,  0.0f, 1.0f,

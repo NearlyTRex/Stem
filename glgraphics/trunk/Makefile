@@ -170,17 +170,17 @@ LINK_ORDER = \
 
 PROJECT_LIBRARY_DEPENDENCIES_unittest = library_noglew
 STEM_LIBRARY_DEPENDENCIES_library = \
-	3dmath/1.4.0 \
-	utilities/1.7.0 \
-	stemobject/3.0.2
+	3dmath/2.1.0 \
+	utilities/1.8.0 \
+	stemobject/3.1.0
 STEM_LIBRARY_DEPENDENCIES_library_noglew = \
-	3dmath/1.4.0 \
-	utilities/1.7.0 \
-	stemobject/3.0.2
+	3dmath/2.1.0 \
+	utilities/1.8.0 \
+	stemobject/3.1.0
 STEM_LIBRARY_DEPENDENCIES_unittest = \
-	3dmath/1.4.0 \
-	stemobject/3.0.2 \
-	unittest/1.0.0
+	3dmath/2.1.0 \
+	stemobject/3.1.0 \
+	unittest/1.1.0
 
 PROJECT_LIBRARY_DEPENDENCIES_unittest_macosx = library_noglew
 PROJECT_LIBRARY_DEPENDENCIES_unittest_iphonesimulator = library_noglew
