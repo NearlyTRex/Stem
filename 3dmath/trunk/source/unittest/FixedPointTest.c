@@ -58,6 +58,19 @@ static void testFixedToDouble() {
 static void testMultiply() {
 	fixed16_16 result;
 	
+	result = fixed16_16_multiply(0x1, 0x8000);
+	TestCase_assert(result == 0x1, "Expected 0x1 but got 0x%X", result);
+	result = fixed16_16_multiply(0x2, 0x8000);
+	TestCase_assert(result == 0x1, "Expected 0x1 but got 0x%X", result);
+	result = fixed16_16_multiply(0x3, 0x8000);
+	TestCase_assert(result == 0x2, "Expected 0x2 but got 0x%X", result);
+	result = fixed16_16_multiply((fixed16_16) 0xFFFFFFFF, 0x8000);
+	TestCase_assert(result == (fixed16_16) 0xFFFFFFFF, "Expected 0xFFFFFFFF but got 0x%X", result);
+	result = fixed16_16_multiply((fixed16_16) 0xFFFFFFFE, 0x8000);
+	TestCase_assert(result == (fixed16_16) 0xFFFFFFFF, "Expected 0xFFFFFFFF but got 0x%X", result);
+	result = fixed16_16_multiply((fixed16_16) 0xFFFFFFFD, 0x8000);
+	TestCase_assert(result == (fixed16_16) 0xFFFFFFFE, "Expected 0xFFFFFFFE but got 0x%X", result);
+	
 	result = fixed16_16_multiply(0x10000, 0x10000);
 	TestCase_assert(result == 0x10000, "Expected 0x10000 but got 0x%X", result);
 	result = fixed16_16_multiply(0x20000, 0x4000);
@@ -65,22 +78,39 @@ static void testMultiply() {
 	result = fixed16_16_multiply(0x0FFFFFFF, 0x00100000);
 	TestCase_assert(result == (fixed16_16) 0xFFFFFFF0, "Expected 0xFFFFFFF0 but got 0x%X", result);
 	result = fixed16_16_multiply((fixed16_16) 0xFFFFFFF0, 0x00000100);
-	TestCase_assert(result == (fixed16_16) 0xFFFFFFFF, "Expected 0xFFFFFFFF but got 0x%X", result);
+	TestCase_assert(result == (fixed16_16) 0x0, "Expected 0x0 but got 0x%X", result);
+	result = fixed16_16_multiply((fixed16_16) 0xFFFFFFFD, 0x8000);
+	TestCase_assert(result == (fixed16_16) 0xFFFFFFFE, "Expected 0xFFFFFFFE but got 0x%X", result);
 }
 
 static void testDivide() {
 	fixed16_16 result;
+	
+	result = fixed16_16_divide(0x1, 0x20000);
+	TestCase_assert(result == 0x1, "Expected 0x1 but got 0x%X", result);
+	result = fixed16_16_divide(0x2, 0x20000);
+	TestCase_assert(result == 0x1, "Expected 0x1 but got 0x%X", result);
+	result = fixed16_16_divide(0x3, 0x20000);
+	TestCase_assert(result == 0x2, "Expected 0x2 but got 0x%X", result);
+	result = fixed16_16_divide((fixed16_16) 0xFFFFFFFF, 0x20000);
+	TestCase_assert(result == (fixed16_16) 0xFFFFFFFF, "Expected 0xFFFFFFFF but got 0x%X", result);
+	result = fixed16_16_divide((fixed16_16) 0xFFFFFFFE, 0x20000);
+	TestCase_assert(result == (fixed16_16) 0xFFFFFFFF, "Expected 0xFFFFFFFF but got 0x%X", result);
+	result = fixed16_16_divide((fixed16_16) 0xFFFFFFFD, 0x20000);
+	TestCase_assert(result == (fixed16_16) 0xFFFFFFFE, "Expected 0xFFFFFFFE but got 0x%X", result);
 	
 	result = fixed16_16_divide(0x10000, 0x10000);
 	TestCase_assert(result == 0x10000, "Expected 0x10000 but got 0x%X", result);
 	result = fixed16_16_divide(0x20000, 0x4000);
 	TestCase_assert(result == 0x80000, "Expected 0x8000 but got 0x%X", result);
 	result = fixed16_16_divide(FIXED_16_16_MAX, 0x00100000);
-	TestCase_assert(result == 0x07FFFFFF, "Expected 0x07FFFFFF but got 0x%X", result);
+	TestCase_assert(result == 0x08000000, "Expected 0x08000000 but got 0x%X", result);
 	result = fixed16_16_divide((fixed16_16) 0xFFFFFFF0, 0x00100000);
 	TestCase_assert(result == (fixed16_16) 0xFFFFFFFF, "Expected 0xFFFFFFFF but got 0x%X", result);
 	result = fixed16_16_divide(0x00010000, 0x0);
 	TestCase_assert(result == FIXED_16_16_INF, "Expected 0x%X but got 0x%X", FIXED_16_16_INF, result);
+	result = fixed16_16_divide((fixed16_16) 0xFFFFFFFD, 0x20000);
+	TestCase_assert(result == (fixed16_16) 0xFFFFFFFE, "Expected 0xFFFFFFFE but got 0x%X", result);
 }
 
 static void testRound() {
@@ -166,15 +196,15 @@ static void testExp() {
 	result = fixed16_16_exp(0x0);
 	TestCase_assert(result == 0x10000, "Expected 0x10000 but got 0x%X", result);
 	result = fixed16_16_exp(0x8000);
-	TestCase_assert(result == 0x1A60F, "Expected 0x1A60F but got 0x%X", result);
+	TestCase_assert(result == 0x1A611, "Expected 0x1A611 but got 0x%X", result);
 	result = fixed16_16_exp(0x10000);
 	TestCase_assert(result == X_E, "Expected 0x%X but got 0x%X", X_E, result);
 	result = fixed16_16_exp((fixed16_16) 0xFFFF0000);
-	TestCase_assert(result == 0x5E2E, "Expected 0x5E2E but got 0x%X", result);
+	TestCase_assert(result == 0x5E2D, "Expected 0x5E2D but got 0x%X", result);
 	result = fixed16_16_exp(0x20000);
-	TestCase_assert(result == 0x7638D, "Expected 0x7638D but got 0x%X", result);
+	TestCase_assert(result == 0x76391, "Expected 0x76391 but got 0x%X", result);
 	result = fixed16_16_exp(0xA0000);
-	TestCase_assert(result == 0x5609CBA2, "Expected 0x5609CBA2 but got 0x%X", result);
+	TestCase_assert(result == 0x5609CBD0, "Expected 0x5609CBD0 but got 0x%X", result);
 	result = fixed16_16_exp(0xB0000);
 	TestCase_assert(result == FIXED_16_16_MAX, "Expected 0x%X but got 0x%X", FIXED_16_16_MAX, result);
 }
@@ -183,13 +213,13 @@ static void testLog() {
 	fixed16_16 result;
 	
 	result = fixed16_16_log(0x8000);
-	TestCase_assert(result == (fixed16_16) 0xFFFF4E8F, "Expected 0xFFFF4E8F but got 0x%X", result);
+	TestCase_assert(result == (fixed16_16) 0xFFFF4E90, "Expected 0xFFFF4E90 but got 0x%X", result);
 	result = fixed16_16_log(0x10000);
 	TestCase_assert(result == 0x0, "Expected 0x0 but got 0x%X", result);
 	result = fixed16_16_log(0x20000);
-	TestCase_assert(result == 0xB174, "Expected 0xB174 but got 0x%X", result);
+	TestCase_assert(result == 0xB173, "Expected 0xB173 but got 0x%X", result);
 	result = fixed16_16_log(0xA0000);
-	TestCase_assert(result == 0x24D78, "Expected 0x24D78 but got 0x%X", result);
+	TestCase_assert(result == 0x24D77, "Expected 0x24D77 but got 0x%X", result);
 	result = fixed16_16_log(0x0);
 	TestCase_assert(result == FIXED_16_16_NINF, "Expected 0x%X but got 0x%X", FIXED_16_16_NINF, result);
 	result = fixed16_16_log((fixed16_16) 0xFFFF0000);
@@ -208,13 +238,13 @@ static void testPow() {
 	result = fixed16_16_pow(0x10000, 0x18000);
 	TestCase_assert(result == 0x10000, "Expected 0x10000 but got 0x%X", result);
 	result = fixed16_16_pow(0x20000, 0x30000);
-	TestCase_assert(result == 0x80027, "Expected 0x80027 but got 0x%X", result);
+	TestCase_assert(result == 0x80010, "Expected 0x80010 but got 0x%X", result);
 	result = fixed16_16_pow(0x30000, 0x40000);
-	TestCase_assert(result == 0x510177, "Expected 0x510177 but got 0x%X", result);
+	TestCase_assert(result == 0x510018, "Expected 0x510018 but got 0x%X", result);
 	result = fixed16_16_pow(0x18000, 0x18000);
-	TestCase_assert(result == 0x1D64E, "Expected 0x1D64E but got 0x%X", result);
+	TestCase_assert(result == 0x1D64F, "Expected 0x1D64F but got 0x%X", result);
 	result = fixed16_16_pow(0x8000, 0x8000);
-	TestCase_assert(result == 0xB506, "Expected 0xB506 but got 0x%X", result);
+	TestCase_assert(result == 0xB505, "Expected 0xB505 but got 0x%X", result);
 }
 
 #ifndef USE_SIN_LOOKUP_TABLE
@@ -236,9 +266,9 @@ static void testSin() {
 	result = fixed16_16_sin(X_PI_2 + X_PI_4);
 	TestCase_assert(result == 0xB504, "Expected 0xB504 but got 0x%X", result);
 	result = fixed16_16_sin(X_PI + X_PI_4);
-	TestCase_assert(result == (fixed16_16) 0xFFFF4AFB, "Expected 0xFFFF4AFB but got 0x%X", result);
+	TestCase_assert(result == (fixed16_16) 0xFFFF4AFC, "Expected 0xFFFF4AFC but got 0x%X", result);
 	result = fixed16_16_sin(X_PI + X_PI_2 + X_PI_4);
-	TestCase_assert(result == (fixed16_16) 0xFFFF4AFB, "Expected 0xFFFF4AFB but got 0x%X", result);
+	TestCase_assert(result == (fixed16_16) 0xFFFF4AFC, "Expected 0xFFFF4AFC but got 0x%X", result);
 	result = fixed16_16_sin(X_PI + X_PI_2);
 	TestCase_assert(result == (fixed16_16) 0xFFFF0000, "Expected 0xFFFF0000 but got 0x%X", result);
 	result = fixed16_16_sin(X_PI * 4);
@@ -274,7 +304,7 @@ static void testCos() {
 	result = fixed16_16_cos(X_PI);
 	TestCase_assert(result == (fixed16_16) 0xFFFF0000, "Expected 0xFFFF0000 but got 0x%X", result);
 	result = fixed16_16_cos(X_PI_4);
-	TestCase_assert(result == 0xB504, "Expected 0xB504 but got 0x%X", result);
+	TestCase_assert(result == 0xB505, "Expected 0xB505 but got 0x%X", result);
 	result = fixed16_16_cos(X_PI + X_PI_2);
 	TestCase_assert(result == 0x0, "Expected 0x0 but got 0x%X", result);
 	result = fixed16_16_cos(X_PI * 4);
@@ -306,11 +336,11 @@ static void testTan() {
 	result = fixed16_16_tan(0x0);
 	TestCase_assert(result == 0x0, "Expected 0x0 but got 0x%X", result);
 	result = fixed16_16_tan(X_PI / 4);
-	TestCase_assert(result == 0x10000, "Expected 0x10000 but got 0x%X", result);
+	TestCase_assert(result == 0xFFFF, "Expected 0xFFFF but got 0x%X", result);
 	result = fixed16_16_tan(X_PI / 3);
-	TestCase_assert(result == 0x1BB96, "Expected 0x1BB96 but got 0x%X", result);
+	TestCase_assert(result == 0x1BB99, "Expected 0x1BB99 but got 0x%X", result);
 	result = fixed16_16_tan(X_PI * 3 / 4);
-	TestCase_assert(result == (fixed16_16) 0xFFFF0003, "Expected 0xFFFF0003 but got 0x%X", result);
+	TestCase_assert(result == (fixed16_16) 0xFFFF0000, "Expected 0xFFFF0000 but got 0x%X", result);
 	result = fixed16_16_tan(X_PI * 4);
 	TestCase_assert(result == 0x0, "Expected 0x0 but got 0x%X", result);
 	result = fixed16_16_tan(X_PI * -4);
@@ -340,10 +370,10 @@ static void testAsin() {
 	TestCase_assert(result == X_PI_2, "Expected 0x%X but got 0x%X", X_PI_2, result);
 	result = fixed16_16_asin((fixed16_16) 0xFFFF0000);
 	TestCase_assert(result == (fixed16_16) 0xFFFE6DE1, "Expected 0x%X but got 0x%X", 0xFFFE6DE1, result);
-	result = fixed16_16_asin(0xB504);
-	TestCase_assert(result == X_PI_4, "Expected 0x%X but got 0x%X", X_PI_4, result);
+	result = fixed16_16_asin(0xB505);
+	TestCase_assert(result == 0xC910, "Expected 0xC910 but got 0x%X", result);
 	result = fixed16_16_asin(0x61F8);
-	TestCase_assert(result == 0x648C, "Expected 0x%X but got 0x%X", 0x648C, result);
+	TestCase_assert(result == 0x648B, "Expected 0x648B but got 0x%X", result);
 	result = fixed16_16_asin(0x20000);
 	TestCase_assert(result == FIXED_16_16_NAN, "Expected 0x%X but got 0x%X", FIXED_16_16_NAN, result);
 	result = fixed16_16_asin((fixed16_16) 0xFFFE0000);
@@ -359,10 +389,10 @@ static void testAcos() {
 	TestCase_assert(result == 0x1921B, "Expected 0x1921B but got 0x%X", result);
 	result = fixed16_16_acos((fixed16_16) 0xFFFF0000);
 	TestCase_assert(result == 0x3243E, "Expected 0x3243E but got 0x%X", result);
-	result = fixed16_16_acos(0xB504);
-	TestCase_assert(result == 0xC910, "Expected 0xC910 but got 0x%X", result);
+	result = fixed16_16_acos(0xB505);
+	TestCase_assert(result == 0xC90F, "Expected 0xC90F but got 0x%X", result);
 	result = fixed16_16_acos(0xEC83);
-	TestCase_assert(result == 0x6489, "Expected 0x6489 but got 0x%X", result);
+	TestCase_assert(result == 0x648A, "Expected 0x648A but got 0x%X", result);
 	result = fixed16_16_acos(0x20000);
 	TestCase_assert(result == FIXED_16_16_NAN, "Expected 0x%X but got 0x%X", FIXED_16_16_NAN, result);
 	result = fixed16_16_acos((fixed16_16) 0xFFFE0000);
@@ -377,7 +407,7 @@ static void testAtan() {
 	result = fixed16_16_atan(0x10000);
 	TestCase_assert(result == 0xC910, "Expected 0xC910 but got 0x%X", result);
 	result = fixed16_16_atan(0x1BB67);
-	TestCase_assert(result == X_PI / 3, "Expected 0x%X but got 0x%X", X_PI / 3, result);
+	TestCase_assert(result == 0x10C14, "Expected 0x10C14 but got 0x%X", result);
 	result = fixed16_16_atan((fixed16_16) 0xFFFF0000);
 	TestCase_assert(result == (fixed16_16) 0xFFFF36F0, "Expected 0xFFFF36F0 but got 0x%X", result);
 }

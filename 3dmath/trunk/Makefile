@@ -64,8 +64,6 @@ CCFLAGS_debug = -g -DDEBUG
 CCFLAGS_profile = -g -O3
 CCFLAGS_release = -O3
 
-CCFLAGS_testharness = -Wno-unused-but-set-variable
-
 #Per-platform compile/link settings
 CC_macosx_i386 = /usr/bin/clang -arch i386
 CC_macosx_x86_64 = /usr/bin/clang -arch x86_64
@@ -105,7 +103,7 @@ RANLIB_linux32 = /usr/bin/ranlib
 SPLINT_linux32 = /usr/local/bin/splint
 CLANG_linux32 = /usr/local/bin/clang
 ARCHS_linux32 = i386
-CCFLAGS_linux32 = -m32
+CCFLAGS_linux32 = -m32 -Wno-unused-but-set-variable
 LINKFLAGS_linux32 = -m32 -lm -lrt -ldl -Wl,-E
 
 CC_linux64_x86_64 = /usr/bin/gcc
@@ -114,7 +112,7 @@ RANLIB_linux64 = /usr/bin/ranlib
 SPLINT_linux64 = /usr/local/bin/splint
 CLANG_linux64 = /usr/local/bin/clang
 ARCHS_linux64 = x86_64
-CCFLAGS_linux64 = -m64
+CCFLAGS_linux64 = -m64 -Wno-unused-but-set-variable
 LINKFLAGS_linux64 = -m64 -lm -lrt -ldl -Wl,-E
 
 MINGW_W32_PATH ?= C:/MinGW

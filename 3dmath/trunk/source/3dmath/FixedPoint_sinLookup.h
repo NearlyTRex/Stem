@@ -17,7 +17,7 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
   
-  Alex Diener adiener@sacredsoftware.net
+  Alex Diener alex@ludobloom.com
 */
 
 // This file was generated with Ruby 2.0.0 at 2014-01-13 04:02:38 -0500 on universal.x86_64-darwin13.

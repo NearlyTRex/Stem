@@ -17,7 +17,7 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
   
-  Alex Diener adiener@sacredsoftware.net
+  Alex Diener alex@ludobloom.com
 */
 
 #ifndef __FixedPoint_H__
@@ -82,14 +82,22 @@ static inline double fixed16_16ToDouble(fixed16_16 x) {
 }
 
 static inline fixed16_16 fixed16_16_multiply(fixed16_16 lhs, fixed16_16 rhs) {
-	return (fixed16_16) ((int64_t) lhs * (int64_t) rhs >> 16);
+	int64_t product = (int64_t) lhs * (int64_t) rhs;
+	if (product < 0) {
+		return -((-product >> 16) + ((-product >> 15) % 2));
+	}
+	return (product >> 16) + ((product >> 15) % 2);
 }
 
 static inline fixed16_16 fixed16_16_divide(fixed16_16 lhs, fixed16_16 rhs) {
+	int64_t lhs64, rhs64;
+	
 	if (rhs == 0) {
 		return FIXED_16_16_INF;
 	}
-	return (fixed16_16) (((int64_t) lhs << 16) / (int64_t) rhs);
+	lhs64 = (int64_t) lhs << 16;
+	rhs64 = rhs;
+	return (fixed16_16) (lhs64 / rhs64 + (((lhs64 << 1) / rhs64) % 2));
 }
 
 static inline fixed16_16 fixed16_16_round(fixed16_16 x) {
