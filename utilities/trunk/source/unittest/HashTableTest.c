@@ -7,8 +7,16 @@ static void testCreate() {
 	HashTable * hashTable;
 	size_t count;
 	
-	hashTable = hashCreate();
+	hashTable = hashCreate(0);
 	TestCase_assert(hashTable != NULL, "Expected non-NULL but got NULL");
+	TestCase_assert(hashTable->structMaxSize == 0, "Expected 0 but got " SIZE_T_FORMAT, hashTable->structMaxSize);
+	count = hashGetCount(hashTable);
+	TestCase_assert(count == 0, "Expected 0 but got %u\n", (unsigned int) count);
+	hashDispose(hashTable);
+	
+	hashTable = hashCreate(10);
+	TestCase_assert(hashTable != NULL, "Expected non-NULL but got NULL");
+	TestCase_assert(hashTable->structMaxSize == 10, "Expected 10 but got " SIZE_T_FORMAT, hashTable->structMaxSize);
 	count = hashGetCount(hashTable);
 	TestCase_assert(count == 0, "Expected 0 but got %u\n", (unsigned int) count);
 	hashDispose(hashTable);
@@ -40,13 +48,13 @@ static void testAccessors() {
 	char blob0[1] = {'\x00'}, blob1234[4] = {'\x01', '\x02', '\x03', '\x04'};
 	HashTable * tableA, * tableB;
 	
-	hashTable = hashCreate();
+	hashTable = hashCreate(0);
 	TestCase_assert(hashTable != NULL, "Expected non-NULL but got NULL");
 	
 	ptrZero = NULL;
 	ptrNegativeOne = (void *) -1;
-	tableA = hashCreate();
-	tableB = hashCreate();
+	tableA = hashCreate(0);
+	tableB = hashCreate(0);
 	hashSetBoolean(tableB, "a", true);
 	
 	// Verify table empty
@@ -679,10 +687,21 @@ static void testCopy() {
 	HashTable * subtable, * subtableCopy;
 	size_t length, lengthCopy;
 	
-	hashTable = hashCreate();
+	hashTable = hashCreate(11);
+	copy = hashCopy(hashTable);
+	TestCase_assert(copy != NULL, "Expected non-NULL but got NULL");
+	TestCase_assert(copy != hashTable, "Expected pointers to differ, but they didn't");
+	TestCase_assert(copy->structMaxSize == 11, "Expected 11 but got " SIZE_T_FORMAT, copy->structMaxSize);
+	count = hashGetCount(hashTable);
+	countCopy = hashGetCount(copy);
+	TestCase_assert(count == countCopy, "Expected %u but got %u", (unsigned int) count, (unsigned int) countCopy);
+	hashDispose(hashTable);
+	hashDispose(copy);
+	
+	hashTable = hashCreate(1);
 	hashSetString(hashTable, "a", "hello", HASH_USE_STRLEN);
 	hashSetBlob(hashTable, "b", "foo", 3);
-	subtable = hashCreate();
+	subtable = hashCreate(0);
 	hashSetString(subtable, "c", "foo", HASH_USE_STRLEN);
 	hashSetPointer(subtable, "d", (void *) 0x1234);
 	hashSetHashTable(hashTable, "c", subtable);
@@ -691,6 +710,7 @@ static void testCopy() {
 	copy = hashCopy(hashTable);
 	TestCase_assert(copy != NULL, "Expected non-NULL but got NULL");
 	TestCase_assert(copy != hashTable, "Expected pointers to differ, but they didn't");
+	TestCase_assert(copy->structMaxSize == 1, "Expected 1 but got " SIZE_T_FORMAT, copy->structMaxSize);
 	
 	count = hashGetCount(hashTable);
 	countCopy = hashGetCount(copy);
@@ -737,7 +757,7 @@ static void testReplaceValues() {
 	int32_t int32;
 	const char * string;
 	
-	hash = hashCreate();
+	hash = hashCreate(0);
 	hashSetInt32(hash, "a", 1);
 	hashSetInt32(hash, "b", 2);
 	count = hashGetCount(hash);
@@ -776,7 +796,7 @@ static void testDeleteValues() {
 	const char ** keys;
 	bool found;
 	
-	hash = hashCreate();
+	hash = hashCreate(0);
 	hashSetInt32(hash, "a", 1);
 	hashSetInt32(hash, "b", 2);
 	hashSetInt32(hash, "c", 3);
@@ -817,7 +837,7 @@ static void testGetKeys() {
 	const char ** keys;
 	size_t count;
 	
-	hashTable = hashCreate();
+	hashTable = hashCreate(0);
 	hashSetBoolean(hashTable, "a", false);
 	count = 0;
 	keys = hashGetKeys(hashTable, &count);
@@ -829,7 +849,7 @@ static void testGetKeys() {
 	hashDispose(hashTable);
 	free(keys);
 	
-	hashTable = hashCreate();
+	hashTable = hashCreate(0);
 	hashSetBoolean(hashTable, "bar", true);
 	hashSetInt32(hashTable, "foo", 1);
 	count = 0;
@@ -843,10 +863,84 @@ static void testGetKeys() {
 	free(keys);
 }
 
+struct smallTestStruct {
+	char value;
+};
+
+struct largeTestStruct {
+	uint64_t values[4];
+};
+
+static void testStructValues() {
+	HashTable * hashTable;
+	size_t count;
+	struct smallTestStruct smallValue, * smallValuePtr;
+	struct largeTestStruct largeValue, * largeValuePtr;
+	
+	hashTable = hashCreate(sizeof(struct smallTestStruct));
+	hashSetStruct(hashTable, "a", struct smallTestStruct, (struct smallTestStruct) {0});
+	hashSetStruct(hashTable, "b", struct smallTestStruct, (struct smallTestStruct) {1});
+	smallValue.value = 2;
+	hashSetStructPtr(hashTable, "c", sizeof(smallValue), &smallValue);
+	smallValue.value = 3;
+	hashSetStructPtr(hashTable, "d", sizeof(smallValue), &smallValue);
+	count = hashGetCount(hashTable);
+	TestCase_assert(count == 4, "Expected 4 but got %u", (unsigned int) count);
+	
+	smallValue = hashGetStruct(hashTable, "a", struct smallTestStruct);
+	TestCase_assert(smallValue.value == 0, "Expected 0 but got %d", smallValue.value);
+	smallValuePtr = hashGetStructPtr(hashTable, "b");
+	TestCase_assert(smallValuePtr->value == 1, "Expected 1 but got %d", smallValuePtr->value);
+	smallValue = hashGetStruct(hashTable, "c", struct smallTestStruct);
+	TestCase_assert(smallValue.value == 2, "Expected 2 but got %d", smallValue.value);
+	smallValuePtr = hashGetStructPtr(hashTable, "d");
+	TestCase_assert(smallValuePtr->value == 3, "Expected 3 but got %d", smallValuePtr->value);
+	hashDispose(hashTable);
+	
+	hashTable = hashCreate(sizeof(struct largeTestStruct));
+	hashSetStruct(hashTable, "a", struct largeTestStruct, ((struct largeTestStruct) {{0, 1, 2, 3}}));
+	hashSetStruct(hashTable, "b", struct largeTestStruct, ((struct largeTestStruct) {{4, 5, 6, 7}}));
+	largeValue.values[0] = 8;
+	largeValue.values[1] = 9;
+	largeValue.values[2] = 10;
+	largeValue.values[3] = 11;
+	hashSetStructPtr(hashTable, "c", sizeof(largeValue), &largeValue);
+	largeValue.values[0] = 12;
+	largeValue.values[1] = 13;
+	largeValue.values[2] = 14;
+	largeValue.values[3] = 15;
+	hashSetStructPtr(hashTable, "d", sizeof(largeValue), &largeValue);
+	count = hashGetCount(hashTable);
+	TestCase_assert(count == 4, "Expected 4 but got %u", (unsigned int) count);
+	
+	largeValue = hashGetStruct(hashTable, "a", struct largeTestStruct);
+	TestCase_assert(largeValue.values[0] == 0, "Expected 0 but got " UINT64_FORMAT, largeValue.values[0]);
+	TestCase_assert(largeValue.values[1] == 1, "Expected 1 but got " UINT64_FORMAT, largeValue.values[1]);
+	TestCase_assert(largeValue.values[2] == 2, "Expected 2 but got " UINT64_FORMAT, largeValue.values[2]);
+	TestCase_assert(largeValue.values[3] == 3, "Expected 3 but got " UINT64_FORMAT, largeValue.values[3]);
+	largeValuePtr = hashGetStructPtr(hashTable, "b");
+	TestCase_assert(largeValuePtr->values[0] == 4, "Expected 4 but got " UINT64_FORMAT, largeValuePtr->values[0]);
+	TestCase_assert(largeValuePtr->values[1] == 5, "Expected 5 but got " UINT64_FORMAT, largeValuePtr->values[1]);
+	TestCase_assert(largeValuePtr->values[2] == 6, "Expected 6 but got " UINT64_FORMAT, largeValuePtr->values[2]);
+	TestCase_assert(largeValuePtr->values[3] == 7, "Expected 7 but got " UINT64_FORMAT, largeValuePtr->values[3]);
+	largeValue = hashGetStruct(hashTable, "c", struct largeTestStruct);
+	TestCase_assert(largeValue.values[0] == 8, "Expected 8 but got " UINT64_FORMAT, largeValue.values[0]);
+	TestCase_assert(largeValue.values[1] == 9, "Expected 9 but got " UINT64_FORMAT, largeValue.values[1]);
+	TestCase_assert(largeValue.values[2] == 10, "Expected 10 but got " UINT64_FORMAT, largeValue.values[2]);
+	TestCase_assert(largeValue.values[3] == 11, "Expected 11 but got " UINT64_FORMAT, largeValue.values[3]);
+	largeValuePtr = hashGetStructPtr(hashTable, "d");
+	TestCase_assert(largeValuePtr->values[0] == 12, "Expected 12 but got " UINT64_FORMAT, largeValuePtr->values[0]);
+	TestCase_assert(largeValuePtr->values[1] == 13, "Expected 13 but got " UINT64_FORMAT, largeValuePtr->values[1]);
+	TestCase_assert(largeValuePtr->values[2] == 14, "Expected 14 but got " UINT64_FORMAT, largeValuePtr->values[2]);
+	TestCase_assert(largeValuePtr->values[3] == 15, "Expected 15 but got " UINT64_FORMAT, largeValuePtr->values[3]);
+	hashDispose(hashTable);
+}
+
 TEST_SUITE(HashTableTest,
            testCreate,
            testAccessors,
            testCopy,
            testReplaceValues,
            testDeleteValues,
-           testGetKeys)
+           testGetKeys,
+           testStructValues)

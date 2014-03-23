@@ -1,6 +1,8 @@
-1.8.0
+1.8.0 (2014-03-22)
  * utilities no longer depends on shell. ShellMutex usage in Atom and AutoFreePool has been replaced by callbacks which are signature-compatible with ShelMutex if ShellThreads.h is included before Atom.h and AutoFreePool.h.
  * Added Atom_registerStaticAddress()
+ * HashTable can now set and retrieve raw structs
+ * Improved HashTable efficiency, based on st.c
 
 1.7.2 (2013-12-27)
  * Moved printfFormats.h from unittest

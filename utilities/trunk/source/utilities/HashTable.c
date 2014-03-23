@@ -23,41 +23,168 @@
 #include "utilities/HashTable.h"
 #include "utilities/lookup3.h"
 #include <string.h>
+#include <stddef.h>
 #include <stdio.h>
 
-#define DEFAULT_BUCKET_COUNT 128
+#define MAX_DENSITY 5
+#define MIN_SIZE 8
 
-HashTable * hashCreate() {
+static const size_t primes[] = {
+	8 + 3,
+	16 + 3,
+	32 + 5,
+	64 + 3,
+	128 + 3,
+	256 + 27,
+	512 + 9,
+	1024 + 9,
+	2048 + 5,
+	4096 + 3,
+	8192 + 27,
+	16384 + 43,
+	32768 + 3,
+	65536 + 45,
+	131072 + 29,
+	262144 + 3,
+	524288 + 21,
+	1048576 + 7,
+	2097152 + 17,
+	4194304 + 15,
+	8388608 + 9,
+	16777216 + 43,
+	33554432 + 35,
+	67108864 + 15,
+	134217728 + 29,
+	268435456 + 3,
+	536870912 + 11,
+	1073741824 + 85,
+	0
+};
+
+static size_t nextPrimeSize(unsigned int value) {
+	unsigned int primeIndex, newValue;
+	
+	newValue = MIN_SIZE;
+	for (primeIndex = 0; primeIndex < sizeof(primes) / sizeof(primes[0]); primeIndex++) {
+		if (newValue > value) {
+			return primes[primeIndex];
+		}
+		newValue <<= 1;
+	}
+	fprintf(stderr, "Warning: Hash table grew too large; ran out of precomputed primes! size = %u\n", value);
+	return value;
+}
+
+HashTable * hashCreate(size_t structMaxSize) {
 	HashTable * hash;
 	
 	hash = malloc(sizeof(HashTable));
+	hash->structMaxSize = structMaxSize;
+	if (structMaxSize <= sizeof(union HashTableEntryValue)) {
+		hash->entrySize = sizeof(struct HashTableEntry);
+	} else {
+		hash->entrySize = sizeof(struct HashTableEntry) - sizeof(union HashTableEntryValue) + structMaxSize;
+	}
+	if (structMaxSize > 0) {
+		hash->notFoundStructPtr = calloc(1, structMaxSize);
+	} else {
+		hash->notFoundStructPtr = NULL;
+	}
 	hash->keyCount = 0;
-	hash->bucketCount = DEFAULT_BUCKET_COUNT;
+	hash->bucketCount = nextPrimeSize(0);
 	hash->buckets = calloc(sizeof(struct HashTableBucket), hash->bucketCount);
 	return hash;
 }
 
-static void hashSet(HashTable * hash, struct HashTableEntry entry) {
+static struct HashTableEntry * rehashGetEntry(struct HashTableBucket * buckets, size_t entrySize, size_t bucketIndex, size_t entryIndex) {
+	return buckets[bucketIndex].entries + entryIndex * entrySize;
+}
+
+static void rehashNewEntrySlot(HashTable * hash, const char * key, struct HashTableBucket * buckets, size_t bucketCount, size_t * outBucketIndex, size_t * outEntryIndex) {
 	size_t bucketIndex, entryIndex;
+	unsigned int hashValue;
 	
-	bucketIndex = hashlittle(entry.key, strlen(entry.key), 0) % hash->bucketCount;
+	hashValue = hashlittle(key, strlen(key), 0);
+	bucketIndex = hashValue % bucketCount;
+	for (entryIndex = 0; entryIndex < buckets[bucketIndex].count; entryIndex++) {
+		if (!strcmp(rehashGetEntry(buckets, hash->entrySize, bucketIndex, entryIndex)->key, key)) {
+			break;
+		}
+	}
+	if (entryIndex >= buckets[bucketIndex].count) {
+		if (buckets[bucketIndex].allocatedCount == 0) {
+			buckets[bucketIndex].allocatedCount = 1;
+		} else {
+			buckets[bucketIndex].allocatedCount *= 2;
+		}
+		buckets[bucketIndex].entries = realloc(buckets[bucketIndex].entries, hash->entrySize * buckets[bucketIndex].allocatedCount);
+		buckets[bucketIndex].count++;
+	}
+	*outBucketIndex = bucketIndex;
+	*outEntryIndex = entryIndex;
+}
+
+static void rehash(HashTable * hash) {
+	struct HashTableEntry * entryOld, * entryNew;
+	size_t newBucketCount, bucketIndex, entryIndex, bucketIndexNew = 0, entryIndexNew = 0;
+	struct HashTableBucket * newBuckets;
+	
+	newBucketCount = nextPrimeSize(hash->bucketCount + 1);
+	newBuckets = calloc(sizeof(struct HashTableBucket), newBucketCount);
+	
+	for (bucketIndex = 0; bucketIndex < hash->bucketCount; bucketIndex++) {
+		for (entryIndex = 0; entryIndex < hash->buckets[bucketIndex].count; entryIndex++) {
+			entryOld = rehashGetEntry(hash->buckets, hash->structMaxSize, bucketIndex, entryIndex);
+			rehashNewEntrySlot(hash, entryOld->key, newBuckets, newBucketCount, &bucketIndexNew, &entryIndexNew);
+			entryNew = rehashGetEntry(newBuckets, hash->entrySize, bucketIndexNew, entryIndexNew);
+			memcpy(entryNew, entryOld, hash->entrySize);
+		}
+		free(hash->buckets[bucketIndex].entries);
+	}
+	free(hash->buckets);
+	hash->bucketCount = newBucketCount;
+	hash->buckets = newBuckets;
+}
+
+static struct HashTableEntry * getEntry(HashTable * hash, size_t bucketIndex, size_t entryIndex) {
+	return hash->buckets[bucketIndex].entries + entryIndex * hash->entrySize;
+}
+
+static void newEntrySlot(HashTable * hash, const char * key, size_t * outBucketIndex, size_t * outEntryIndex) {
+	size_t bucketIndex, entryIndex;
+	unsigned int hashValue;
+	
+	hashValue = hashlittle(key, strlen(key), 0);
+	bucketIndex = hashValue % hash->bucketCount;
 	for (entryIndex = 0; entryIndex < hash->buckets[bucketIndex].count; entryIndex++) {
-		if (!strcmp(hash->buckets[bucketIndex].entries[entryIndex].key, entry.key)) {
+		if (!strcmp(getEntry(hash, bucketIndex, entryIndex)->key, key)) {
 			break;
 		}
 	}
 	if (entryIndex >= hash->buckets[bucketIndex].count) {
+    if (hash->keyCount / hash->bucketCount > MAX_DENSITY) {
+			rehash(hash);
+			bucketIndex = hashValue % hash->bucketCount;
+    }
 		if (hash->buckets[bucketIndex].allocatedCount == 0) {
 			hash->buckets[bucketIndex].allocatedCount = 1;
 		} else {
 			hash->buckets[bucketIndex].allocatedCount *= 2;
 		}
-		hash->buckets[bucketIndex].entries = realloc(hash->buckets[bucketIndex].entries, sizeof(struct HashTableEntry) * hash->buckets[bucketIndex].allocatedCount);
+		hash->buckets[bucketIndex].entries = realloc(hash->buckets[bucketIndex].entries, hash->entrySize * hash->buckets[bucketIndex].allocatedCount);
 		hash->buckets[bucketIndex].count++;
 		hash->keyCount++;
 	}
+	*outBucketIndex = bucketIndex;
+	*outEntryIndex = entryIndex;
+}
+
+static void hashSet(HashTable * hash, struct HashTableEntry entry) {
+	size_t bucketIndex = 0, entryIndex = 0;
+	
+	newEntrySlot(hash, entry.key, &bucketIndex, &entryIndex);
 	entry.key = strdup(entry.key);
-	hash->buckets[bucketIndex].entries[entryIndex] = entry;
+	*getEntry(hash, bucketIndex, entryIndex) = entry;
 }
 
 HashTable * hashCopy(HashTable * hash) {
@@ -66,7 +193,7 @@ HashTable * hashCopy(HashTable * hash) {
 	struct HashTableEntry * entry;
 	const char ** keys;
 	
-	copy = hashCreate();
+	copy = hashCreate(hash->structMaxSize);
 	keys = hashGetKeys(hash, &count);
 	for (keyIndex = 0; keyIndex < count; keyIndex++) {
 		entry = hashLookup(hash, keys[keyIndex]);
@@ -91,24 +218,24 @@ HashTable * hashCopy(HashTable * hash) {
 	return copy;
 }
 
-static void disposeEntry(struct HashTableEntry entry) {
-	switch (entry.type) {
+static void disposeEntry(struct HashTableEntry * entry) {
+	switch (entry->type) {
 		case HASH_TYPE_STRING:
-			free(entry.value.string.bytes);
+			free(entry->value.string.bytes);
 			break;
 			
 		case HASH_TYPE_BLOB:
-			free(entry.value.blob.bytes);
+			free(entry->value.blob.bytes);
 			break;
 			
 		case HASH_TYPE_HASH:
-			hashDispose(entry.value.hashTable);
+			hashDispose(entry->value.hashTable);
 			break;
 			
 		default:
 			break;
 	}
-	free((char *) entry.key);
+	free((char *) entry->key);
 }
 
 void hashDispose(HashTable * hash) {
@@ -116,11 +243,12 @@ void hashDispose(HashTable * hash) {
 	
 	for (bucketIndex = 0; bucketIndex < hash->bucketCount; bucketIndex++) {
 		for (entryIndex = 0; entryIndex < hash->buckets[bucketIndex].count; entryIndex++) {
-			disposeEntry(hash->buckets[bucketIndex].entries[entryIndex]);
+			disposeEntry(getEntry(hash, bucketIndex, entryIndex));
 		}
 		free(hash->buckets[bucketIndex].entries);
 	}
 	free(hash->buckets);
+	free(hash->notFoundStructPtr);
 	free(hash);
 }
 
@@ -133,11 +261,11 @@ bool hashDelete(HashTable * hash, const char * key) {
 	
 	bucketIndex = hashlittle(key, strlen(key), 0) % hash->bucketCount;
 	for (entryIndex = 0; entryIndex < hash->buckets[bucketIndex].count; entryIndex++) {
-		if (!strcmp(key, hash->buckets[bucketIndex].entries[entryIndex].key)) {
-			disposeEntry(hash->buckets[bucketIndex].entries[entryIndex]);
+		if (!strcmp(key, getEntry(hash, bucketIndex, entryIndex)->key)) {
+			disposeEntry(getEntry(hash, bucketIndex, entryIndex));
 			hash->buckets[bucketIndex].count--;
 			for (; entryIndex < hash->buckets[bucketIndex].count; entryIndex++) {
-				hash->buckets[bucketIndex].entries[entryIndex] = hash->buckets[bucketIndex].entries[entryIndex + 1];
+				*getEntry(hash, bucketIndex, entryIndex) = *getEntry(hash, bucketIndex, entryIndex + 1);
 			}
 			hash->keyCount--;
 			return true;
@@ -148,11 +276,13 @@ bool hashDelete(HashTable * hash, const char * key) {
 
 struct HashTableEntry * hashLookup(HashTable * hash, const char * key) {
 	size_t bucketIndex, entryIndex;
+	struct HashTableEntry * entry;
 	
 	bucketIndex = hashlittle(key, strlen(key), 0) % hash->bucketCount;
 	for (entryIndex = 0; entryIndex < hash->buckets[bucketIndex].count; entryIndex++) {
-		if (!strcmp(key, hash->buckets[bucketIndex].entries[entryIndex].key)) {
-			return &hash->buckets[bucketIndex].entries[entryIndex];
+		entry = getEntry(hash, bucketIndex, entryIndex);
+		if (!strcmp(key, entry->key)) {
+			return entry;
 		}
 	}
 	return NULL;
@@ -173,7 +303,7 @@ const char ** hashGetKeys(HashTable * hash, size_t * outCount) {
 				fprintf(stderr, "Internal error: Hash table's key count is less than its actual number of keys!\n");
 				return NULL;
 			}
-			keys[keyIndex++] = hash->buckets[bucketIndex].entries[entryIndex].key;
+			keys[keyIndex++] = getEntry(hash, bucketIndex, entryIndex)->key;
 		}
 	}
 	if (keyIndex < hash->keyCount) {
@@ -232,6 +362,17 @@ void hashSetDouble(HashTable * hash, const char * key, double value) {
 
 void hashSetPointer(HashTable * hash, const char * key, const void * value) {
 	hashSet(hash, (struct HashTableEntry) {key, HASH_TYPE_POINTER, {.pointer = value}});
+}
+
+void hashSetStructPtr(HashTable * hash, const char * key, size_t size, void * value) {
+	size_t bucketIndex = 0, entryIndex = 0;
+	struct HashTableEntry * entry;
+	
+	newEntrySlot(hash, key, &bucketIndex, &entryIndex);
+	entry = (struct HashTableEntry *) (hash->buckets[bucketIndex].entries + entryIndex * hash->entrySize);
+	entry->key = strdup(key);
+	entry->type = HASH_TYPE_STRUCT;
+	memcpy(((void *) entry) + offsetof(struct HashTableEntry, value), value, size);
 }
 
 void hashSetString(HashTable * hash, const char * key, const char * value, size_t length) {
@@ -320,6 +461,16 @@ double hashGetDouble(HashTable * hash, const char * key) {
 
 const void * hashGetPointer(HashTable * hash, const char * key) {
 	hashGetPrimitive(hash, key, HASH_TYPE_POINTER, pointer, NULL)
+}
+
+void * hashGetStructPtr(HashTable * hash, const char * key) {
+	struct HashTableEntry * entry;
+	
+	entry = hashLookup(hash, key);
+	if (entry == NULL || entry->type != HASH_TYPE_STRUCT) {
+		return hash->notFoundStructPtr;
+	}
+	return ((void *) entry) + offsetof(struct HashTableEntry, value);
 }
 
 const char * hashGetString(HashTable * hash, const char * key, size_t * outLength) {
