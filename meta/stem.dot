@@ -6,18 +6,15 @@ digraph stem {
 	"3dmath" -> glgraphics;
 	preferences;
 	serialization -> {binaryserialization; glfont; gltexture; inputcontroller; jsonserialization}
-	shell -> {eaglshell; glutshell; nsopenglshell; stubshell; utilities};
-	shell -> {glxshell; wglshell} [style=dotted];
+	shell -> {eaglshell; glutshell; nsopenglshell; stubshell; wglshell; glxshell};
 	stemobject -> {bitmapimage; glgraphics; inputcontroller; pcmaudio; resourcemanager; serialization; utilities};
-	UnitTestFramework -> template_stemlib;
+	unittest -> template_stemlib;
+	gamepad;
 	
 	bitmapimage -> pngimageio;
-	eaglshell -> gltexture [style=dashed];
-	glgraphics -> {eaglshell; gltexture; glutshell; glslshader};
-	glutshell -> gltexture [style=dashed];
-	pcmaudio -> {vorbisaudioio};
-	pngimageio -> gltexture [style=dashed];
-	utilities -> {gamepad; jsonio; pngimageio; preferences; statecontroller; binaryserialization; glslshader; vorbisaudioio; inputcontroller};
+	glgraphics -> {eaglshell; gltexture; glutshell; glslshader; nsopenglshell};
+	pcmaudio -> vorbisaudioio;
+	utilities -> {jsonio; pngimageio; preferences; statecontroller; binaryserialization; glslshader; vorbisaudioio; inputcontroller; serialization};
 	
 	gamepad -> inputcontroller;
 	gltexture -> glbitmapfont;
@@ -47,7 +44,4 @@ digraph stem {
 	
 	pcmaudio [group="audio"];
 	vorbisaudioio [group="audio"];
-	
-	glxshell [style=dotted];
-	wglshell [style=dotted];
 }
