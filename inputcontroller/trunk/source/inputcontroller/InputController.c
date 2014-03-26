@@ -63,6 +63,7 @@ bool InputController_vinit(InputController * self, InputMap * inputMap, va_list 
 	self->gamepadAxisMoved = InputController_gamepadAxisMoved;
 	self->triggerAction = InputController_triggerAction;
 	self->releaseAction = InputController_releaseAction;
+	self->reset = InputController_reset;
 	
 	self->eventDispatcher = EventDispatcher_create(self);
 	self->inputMap = inputMap;
@@ -255,4 +256,13 @@ bool InputController_releaseAction(InputController * self, Atom actionID) {
 		}
 	}
 	return false;
+}
+
+void InputController_reset(InputController * self) {
+	unsigned int actionIndex;
+	
+	for (actionIndex = 0; actionIndex < self->actionCount; actionIndex++) {
+		self->actions[actionIndex].triggered = false;
+	}
+	self->lastModifiers = 0x0;
 }

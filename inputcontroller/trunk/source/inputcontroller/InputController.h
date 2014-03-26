@@ -58,7 +58,8 @@ struct InputController_action {
 	bool (* gamepadButtonUp)(self_type * self, int vendorID, int productID, unsigned int buttonID); \
 	bool (* gamepadAxisMoved)(self_type * self, int vendorID, int productID, unsigned int axisID, float value, float lastValue); \
 	bool (* triggerAction)(self_type * self, Atom actionID); \
-	bool (* releaseAction)(self_type * self, Atom actionID);
+	bool (* releaseAction)(self_type * self, Atom actionID); \
+	void (* reset)(self_type * self);
 
 stemobject_struct_definition(InputController)
 
@@ -77,6 +78,7 @@ bool InputController_gamepadButtonUp(InputController * self, int vendorID, int p
 bool InputController_gamepadAxisMoved(InputController * self, int vendorID, int productID, unsigned int axisID, float value, float lastValue);
 bool InputController_triggerAction(InputController * self, Atom actionID);
 bool InputController_releaseAction(InputController * self, Atom actionID);
+void InputController_reset(InputController * self);
 
 #ifdef __cplusplus
 }

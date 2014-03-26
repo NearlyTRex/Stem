@@ -22,6 +22,7 @@
 
 #include "inputcontroller/InputPlayback.h"
 #include <stdlib.h>
+#include <string.h>
 
 #define SUPERCLASS StemObject
 
@@ -77,4 +78,5 @@ void InputPlayback_rewind(InputPlayback * self) {
 	self->frameIndex = 0;
 	self->lastFrameIndex = 0;
 	self->eventIndex = 0;
+	memset(self->actionsTriggered, 0x00, sizeof(bool) * self->inputSession->actionCount);
 }
