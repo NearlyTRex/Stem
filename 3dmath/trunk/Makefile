@@ -125,7 +125,7 @@ RANLIB_win32 = ${MINGW_W32_PATH}/bin/ranlib.exe
 SPLINT_win32 = ${SPLINT_WIN_PATH}
 CLANG_win32 = ${CLANG_WIN_PATH}
 ARCHS_win32 = i386
-CCFLAGS_win32 = 
+CCFLAGS_win32 = -Wno-unused-but-set-variable
 LINKFLAGS_win32 = 
 EXECUTABLE_SUFFIX_win32 = .exe
 
@@ -137,7 +137,7 @@ RANLIB_win64 = ${MINGW_W64_PATH}/bin/x86_64-w64-mingw32-ranlib.exe
 SPLINT_win64 = ${SPLINT_WIN_PATH}
 CLANG_win64 = ${CLANG_WIN_PATH}
 ARCHS_win64 = x86_64
-CCFLAGS_win64 = 
+CCFLAGS_win64 = -Wno-unused-but-set-variable
 LINKFLAGS_win64 = 
 EXECUTABLE_SUFFIX_win64 = .exe
 
