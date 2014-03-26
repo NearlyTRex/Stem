@@ -1,0 +1,6 @@
+1.0.1 (2014-02-06)
+ * Fixed a bug in InputPlayback_rewind that caused subsequent input events to be inverted if rewound while an action was triggered
+ * Added InputController_reset()
+
+1.0.0 (2013-12-25)
+ * Initial version
