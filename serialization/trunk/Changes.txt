@@ -1,3 +1,6 @@
+1.4.1 (2014-03-26)
+ * Added TestSerializationContext_rewind() and TestDeserializationContext_rewind()
+
 1.4.0 (2013-12-27)
  * Moved TestSerializationContext and TestDeserializationContext from unittest
 

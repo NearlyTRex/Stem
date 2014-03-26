@@ -72,6 +72,7 @@ bool TestDeserializationContext_init(TestDeserializationContext * self, jmp_buf 
 	self->expectCall = TestDeserializationContext_expectCall;
 	self->failNthCall = TestDeserializationContext_failNthCall;
 	self->finish = TestDeserializationContext_finish;
+	self->rewind = TestDeserializationContext_rewind;
 	return true;
 }
 
@@ -479,4 +480,9 @@ void TestDeserializationContext_finish(TestDeserializationContext * self) {
 		snprintf(self->error, DESERIALIZATION_ERROR_MAX, "%d expected call%s still left in queue at end (next expected call is %s)", self->numExpectedCalls - self->nextExpectedCallIndex, self->numExpectedCalls - self->nextExpectedCallIndex == 1 ? "" : "s", functionNameForPtr(self, self->expectedCalls[self->nextExpectedCallIndex].functionPtr));
 		longjmp(*self->sequenceBreakJmpEnv, 4);
 	}
+}
+
+void TestDeserializationContext_rewind(TestDeserializationContext * self) {
+	self->nextExpectedCallIndex = 0;
+	self->error[0] = '\x00';
 }

@@ -71,6 +71,7 @@ bool TestSerializationContext_init(TestSerializationContext * self, jmp_buf * se
 	self->expectCall = TestSerializationContext_expectCall;
 	self->failNthCall = TestSerializationContext_failNthCall;
 	self->finish = TestSerializationContext_finish;
+	self->rewind = TestSerializationContext_rewind;
 	return true;
 }
 
@@ -553,4 +554,9 @@ void TestSerializationContext_finish(TestSerializationContext * self) {
 		snprintf(self->error, SERIALIZATION_ERROR_MAX, "%d expected call%s still left in queue at end (next expected call is %s)", self->numExpectedCalls - self->nextExpectedCallIndex, self->numExpectedCalls - self->nextExpectedCallIndex == 1 ? "" : "s", functionNameForPtr(self, self->expectedCalls[self->nextExpectedCallIndex].functionPtr));
 		longjmp(*self->sequenceBreakJmpEnv, 4);
 	}
+}
+
+void TestSerializationContext_rewind(TestSerializationContext * self) {
+	self->nextExpectedCallIndex = 0;
+	self->error[0] = '\x00';
 }

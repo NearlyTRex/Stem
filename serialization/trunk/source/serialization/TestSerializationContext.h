@@ -71,7 +71,8 @@ struct TestSerializationContext_expectedCall {
 	\
 	void (* expectCall)(self_type * self, void * functionPtr, ...); \
 	void (* failNthCall)(self_type * self, unsigned int callIndex, int status); \
-	void (* finish)(self_type * self);
+	void (* finish)(self_type * self); \
+	void (* rewind)(self_type * self);
 
 stemobject_struct_definition(TestSerializationContext)
 
@@ -107,6 +108,7 @@ void TestSerializationContext_writeBitfield64(TestSerializationContext * self, c
 void TestSerializationContext_expectCall(TestSerializationContext * self, void * functionPtr, ...);
 void TestSerializationContext_failNthCall(TestSerializationContext * self, unsigned int callIndex, int status);
 void TestSerializationContext_finish(TestSerializationContext * self);
+void TestSerializationContext_rewind(TestSerializationContext * self);
 
 #ifdef __cplusplus
 }

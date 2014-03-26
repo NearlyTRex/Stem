@@ -72,7 +72,8 @@ struct TestDeserializationContext_expectedCall {
 	\
 	void (* expectCall)(self_type * self, void * functionPtr, ...); \
 	void (* failNthCall)(self_type * self, unsigned int callIndex, int status); \
-	void (* finish)(self_type * self);
+	void (* finish)(self_type * self); \
+	void (* rewind)(self_type * self);
 
 stemobject_struct_definition(TestDeserializationContext)
 
@@ -110,6 +111,7 @@ bool         TestDeserializationContext_hasDictionaryKey(TestDeserializationCont
 void TestDeserializationContext_expectCall(TestDeserializationContext * self, void * functionPtr, ...);
 void TestDeserializationContext_failNthCall(TestDeserializationContext * self, unsigned int callIndex, int status);
 void TestDeserializationContext_finish(TestDeserializationContext * self);
+void TestDeserializationContext_rewind(TestDeserializationContext * self);
 
 #ifdef __cplusplus
 }
