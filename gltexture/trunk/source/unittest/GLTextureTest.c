@@ -1,7 +1,7 @@
 #include "gltexture/GLTexture.h"
+#include "serialization/TestDeserializationContext.h"
+#include "serialization/TestSerializationContext.h"
 #include "unittest/TestSuite.h"
-#include "unittest/TestDeserializationContext.h"
-#include "unittest/TestSerializationContext.h"
 
 static void testInit() {
 	GLTexture * texturePtr, texture;

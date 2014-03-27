@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2013 Alex Diener
+  Copyright (c) 2014 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -17,7 +17,7 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
   
-  Alex Diener adiener@sacredsoftware.net
+  Alex Diener alex@ludobloom.com
 */
 
 #include "gltexture/GLTexture.h"
@@ -82,17 +82,7 @@ void GLTexture_dispose(GLTexture * self) {
 }
 
 GLTexture * GLTexture_deserialize(compat_type(DeserializationContext *) deserializationContext) {
-	DeserializationContext * context = deserializationContext;
-	GLTexture * self;
-	
-	self = malloc(sizeof(GLTexture));
-	if (!GLTexture_loadSerializedData(self, context)) {
-		free(self);
-		return NULL;
-	}
-	self->protected_ivar(allocated) = true;
-	
-	return self;
+	stemobject_deserialize_implementation(GLTexture, deserializationContext, loadSerializedData)
 }
 
 bool GLTexture_loadSerializedData(GLTexture * self, compat_type(DeserializationContext *) deserializationContext) {

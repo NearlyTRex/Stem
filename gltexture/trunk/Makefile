@@ -179,21 +179,21 @@ LINK_ORDER = \
 PROJECT_LIBRARY_DEPENDENCIES_unittest = library
 PROJECT_LIBRARY_DEPENDENCIES_testharness = library
 STEM_LIBRARY_DEPENDENCIES = \
-	3dmath/1.4.0 \
-	serialization/1.3.0 \
+	serialization/1.4.1 \
 	stemobject/3.1.0 \
-	shell/1.1.0
+	shell/1.2.0 \
+	utilities/1.8.0
 STEM_LIBRARY_DEPENDENCIES_library = \
-	glgraphics/1.2.0
+	glgraphics/1.2.1
 STEM_LIBRARY_DEPENDENCIES_unittest = \
-	glgraphics/1.2.0_noglew \
-	unittest/1.0.0
+	glgraphics/1.2.1_noglew \
+	unittest/1.1.0
 STEM_LIBRARY_DEPENDENCIES_testharness = \
-	pngimageio/1.1.4 \
+	3dmath/2.1.0 \
 	bitmapimage/1.3.1 \
 	jsonio/1.2.4 \
 	jsonserialization/1.0.5 \
-	utilities/1.7.1
+	pngimageio/1.1.4
 STEM_SOURCE_DEPENDENCIES = 
 THIRDPARTY_LIBRARY_DEPENDENCIES_library = libpng/1.4.1/libpng.a
 THIRDPARTY_LIBRARY_DEPENDENCIES_unittest = 
@@ -219,13 +219,15 @@ THIRDPARTY_LIBRARY_DEPENDENCIES_testharness_linux64 = glew/1.5.4/libglew.a
 #Per-target source file lists
 
 SOURCES_library = \
-	source/${PROJECT_NAME}/GLTexture.c
+	source/${PROJECT_NAME}/GLTexture.c \
+	source/${PROJECT_NAME}/GLTextureAtlas.c
 
 SOURCES_unittest = \
 	build/intermediate/TestList.c \
 	${SOURCES_unittest_suites}
 
 SOURCES_unittest_suites = \
+	source/unittest/GLTextureAtlasTest.c \
 	source/unittest/GLTextureTest.c
 
 SOURCES_testharness = \
