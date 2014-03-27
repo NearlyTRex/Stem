@@ -559,4 +559,5 @@ void TestSerializationContext_finish(TestSerializationContext * self) {
 void TestSerializationContext_rewind(TestSerializationContext * self) {
 	self->nextExpectedCallIndex = 0;
 	self->error[0] = '\x00';
+	self->status = SERIALIZATION_ERROR_OK;
 }

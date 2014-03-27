@@ -485,4 +485,5 @@ void TestDeserializationContext_finish(TestDeserializationContext * self) {
 void TestDeserializationContext_rewind(TestDeserializationContext * self) {
 	self->nextExpectedCallIndex = 0;
 	self->error[0] = '\x00';
+	self->status = SERIALIZATION_ERROR_OK;
 }
