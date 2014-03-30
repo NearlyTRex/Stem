@@ -236,7 +236,8 @@ SOURCES_testharness = \
 #Include files to be distributed with library
 
 INCLUDES = \
-	source/${PROJECT_NAME}/GLTexture.h
+	source/${PROJECT_NAME}/GLTexture.h \
+	source/${PROJECT_NAME}/GLTextureAtlas.h
 
 #Target resources
 
