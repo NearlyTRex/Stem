@@ -22,6 +22,7 @@
 
 #include "utilities/HashTable.h"
 #include "utilities/lookup3.h"
+#include "utilities/printfFormats.h"
 #include <string.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -134,7 +135,7 @@ static void rehash(HashTable * hash) {
 	
 	for (bucketIndex = 0; bucketIndex < hash->bucketCount; bucketIndex++) {
 		for (entryIndex = 0; entryIndex < hash->buckets[bucketIndex].count; entryIndex++) {
-			entryOld = rehashGetEntry(hash->buckets, hash->structMaxSize, bucketIndex, entryIndex);
+			entryOld = rehashGetEntry(hash->buckets, hash->entrySize, bucketIndex, entryIndex);
 			rehashNewEntrySlot(hash, entryOld->key, newBuckets, newBucketCount, &bucketIndexNew, &entryIndexNew);
 			entryNew = rehashGetEntry(newBuckets, hash->entrySize, bucketIndexNew, entryIndexNew);
 			memcpy(entryNew, entryOld, hash->entrySize);
@@ -165,6 +166,11 @@ static void newEntrySlot(HashTable * hash, const char * key, size_t * outBucketI
     if (hash->keyCount / hash->bucketCount > MAX_DENSITY) {
 			rehash(hash);
 			bucketIndex = hashValue % hash->bucketCount;
+			for (entryIndex = 0; entryIndex < hash->buckets[bucketIndex].count; entryIndex++) {
+				if (!strcmp(getEntry(hash, bucketIndex, entryIndex)->key, key)) {
+					break;
+				}
+			}
     }
 		if (hash->buckets[bucketIndex].allocatedCount == 0) {
 			hash->buckets[bucketIndex].allocatedCount = 1;
@@ -304,6 +310,10 @@ const char ** hashGetKeys(HashTable * hash, size_t * outCount) {
 				return NULL;
 			}
 			keys[keyIndex++] = getEntry(hash, bucketIndex, entryIndex)->key;
+			if (keys[keyIndex - 1] == NULL) {
+				fprintf(stderr, "Internal error: Key " SIZE_T_FORMAT " is NULL!\n", keyIndex - 1);
+				return NULL;
+			}
 		}
 	}
 	if (keyIndex < hash->keyCount) {
