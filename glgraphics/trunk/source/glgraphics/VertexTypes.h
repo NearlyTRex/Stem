@@ -28,15 +28,6 @@ extern "C" {
 
 #include "glgraphics/GLIncludes.h"
 
-enum VertexType {
-	VERTEX_P2F,
-	VERTEX_P2F_T2F,
-	VERTEX_P3F,
-	VERTEX_P3F_T2F,
-	VERTEX_P3F_N3F,
-	VERTEX_P3F_T2F_N3F
-};
-
 // Vertices can be interchangeably represented as arrays of multiples of the appropriate
 // number of floats for the type, or as one of the structures defined below.
 
