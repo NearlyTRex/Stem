@@ -1,3 +1,6 @@
+1.2.2 (2014-04-13)
+ * Added VertexTypes.h
+
 1.2.1 (2014-03-16)
  * Updated for 3dmath 2.1.0
 

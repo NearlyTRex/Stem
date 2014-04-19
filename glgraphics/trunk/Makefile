@@ -220,7 +220,8 @@ INCLUDES = \
 	source/${PROJECT_NAME}/Camera.h \
 	source/${PROJECT_NAME}/GLGraphics.h \
 	source/${PROJECT_NAME}/GLIncludes.h \
-	source/${PROJECT_NAME}/GLUtilities.h
+	source/${PROJECT_NAME}/GLUtilities.h \
+	source/${PROJECT_NAME}/VertexTypes.h
 
 #Target resources
 
