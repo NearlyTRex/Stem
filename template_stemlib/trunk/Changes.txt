@@ -1,3 +1,7 @@
+1.1.0 (2014-05-23)
+ * Added support for modern Xcode/iOS SDK versions
+ * Removed obsolete source dependency mechanism
+
 1.0.1
  * Makefile no longer attempts to delete .svn dirs from nonexistent Resources directories
  * Added support for spaces in human-readable application target names
