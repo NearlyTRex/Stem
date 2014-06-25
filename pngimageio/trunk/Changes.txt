@@ -1,3 +1,6 @@
+1.2.0 (2014-06-25)
+ * Updated for libpng 1.6.12
+
 1.1.4 (2013-12-25)
  * Added 64-bit Windows and Linux support
 

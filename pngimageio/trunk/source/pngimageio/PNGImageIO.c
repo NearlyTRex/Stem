@@ -56,6 +56,7 @@ BitmapImage * PNGImageIO_loadPNGData(const void * data, size_t length, int pixel
 	unsigned int rowIndex;
 	enum BitmapPixelFormat chosenPixelFormat = BITMAP_PIXEL_FORMAT_RGBA_8888;
 	BitmapImage * image;
+	//int intent;
 	
 	readContext = memreadContextInit(data, length);
 	if (!memread(&readContext, PNG_HEADER_SIZE, headerBytes) || png_sig_cmp(headerBytes, 0, PNG_HEADER_SIZE)) {
@@ -95,6 +96,8 @@ BitmapImage * PNGImageIO_loadPNGData(const void * data, size_t length, int pixel
 		png_set_strip_16(pngReadStruct);
 	}
 	
+	png_set_gamma(pngReadStruct, PNG_GAMMA_LINEAR, PNG_GAMMA_LINEAR);
+	
 	switch (pixelFormat) {
 		case PNG_PIXEL_FORMAT_AUTOMATIC:
 			switch (colorType) {
@@ -121,10 +124,10 @@ BitmapImage * PNGImageIO_loadPNGData(const void * data, size_t length, int pixel
 			if (!(colorType & PNG_COLOR_MASK_ALPHA)) {
 				png_set_add_alpha(pngReadStruct, 0xFF, PNG_FILLER_AFTER);
 			}
-			png_read_update_info(pngReadStruct, pngInfoStruct);
 			if (!(colorType & PNG_COLOR_MASK_COLOR)) {
 				png_set_gray_to_rgb(pngReadStruct);
 			}
+			png_read_update_info(pngReadStruct, pngInfoStruct);
 			chosenPixelFormat = BITMAP_PIXEL_FORMAT_RGBA_8888;
 			break;
 			
@@ -132,10 +135,10 @@ BitmapImage * PNGImageIO_loadPNGData(const void * data, size_t length, int pixel
 			if (colorType & PNG_COLOR_MASK_ALPHA) {
 				png_set_strip_alpha(pngReadStruct);
 			}
-			png_read_update_info(pngReadStruct, pngInfoStruct);
 			if (!(colorType & PNG_COLOR_MASK_COLOR)) {
 				png_set_gray_to_rgb(pngReadStruct);
 			}
+			png_read_update_info(pngReadStruct, pngInfoStruct);
 			chosenPixelFormat = BITMAP_PIXEL_FORMAT_RGB_888;
 			break;
 			
@@ -143,10 +146,10 @@ BitmapImage * PNGImageIO_loadPNGData(const void * data, size_t length, int pixel
 			if (!(colorType & PNG_COLOR_MASK_ALPHA)) {
 				png_set_add_alpha(pngReadStruct, 0xFF, PNG_FILLER_AFTER);
 			}
-			png_read_update_info(pngReadStruct, pngInfoStruct);
 			if (colorType & PNG_COLOR_MASK_COLOR) {
 				png_set_rgb_to_gray(pngReadStruct, 1, (float) 0x55 / 0xFF, (float) 0x55 / 0xFF);
 			}
+			png_read_update_info(pngReadStruct, pngInfoStruct);
 			chosenPixelFormat = BITMAP_PIXEL_FORMAT_GRAYALPHA_88;
 			break;
 			
@@ -154,10 +157,10 @@ BitmapImage * PNGImageIO_loadPNGData(const void * data, size_t length, int pixel
 			if (colorType & PNG_COLOR_MASK_ALPHA) {
 				png_set_strip_alpha(pngReadStruct);
 			}
-			png_read_update_info(pngReadStruct, pngInfoStruct);
 			if (colorType & PNG_COLOR_MASK_COLOR) {
 				png_set_rgb_to_gray(pngReadStruct, 1, (float) 0x55 / 0xFF, (float) 0x55 / 0xFF);
 			}
+			png_read_update_info(pngReadStruct, pngInfoStruct);
 			chosenPixelFormat = BITMAP_PIXEL_FORMAT_GRAY_8;
 			break;
 	}
