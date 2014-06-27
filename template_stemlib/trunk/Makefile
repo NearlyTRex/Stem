@@ -75,6 +75,7 @@ CCFLAGS_macosx += -isysroot ${SDKROOT_macosx} -mmacosx-version-min=${MACOSX_VERS
 LINKFLAGS_macosx += -isysroot ${SDKROOT_macosx} -mmacosx-version-min=${MACOSX_VERSION_MIN}
 
 SDKROOT_iphonesimulator ?= /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator7.1.sdk
+SDKROOT_iphonesimulator_unittest ?= ${SDKROOT_iphonesimulator}
 IPHONEOS_TARGET_MIN ?= 7.1
 CC_iphonesimulator_i386 ?= ${shell xcrun --sdk ${SDKROOT_iphonesimulator} --find cc} -arch i386
 AR_iphonesimulator ?= ${shell xcrun --sdk ${SDKROOT_iphonesimulator} --find ar}
@@ -339,7 +340,7 @@ ${foreach target,${LIBRARY_TARGETS}, \
 
 define executable_template #(target, configuration, platform, arch, output_file, dependent_libraries)
 build/intermediate/$1-$2-$3-$4/$5: ${call arch_object_list_template,$1,$2,$3,$4} $6
-	${CC_$3_$4} -o $$@ $$^ ${LINKFLAGS} ${LINKFLAGS_$3}
+	${CC_$3_$4} -o $$@ $$^ ${LINKFLAGS} ${LINKFLAGS_$3} ${LINKFLAGS_$1_$3}
 endef
 
 define library_dependency_template #(target, configuration, platform)
@@ -607,7 +608,7 @@ run_unittests_macosx: unittest
 
 .PHONY: run_unittests_iphonesimulator
 run_unittests_iphonesimulator: unittest
-	DYLD_ROOT_PATH=${SDKROOT_iphonesimulator} \
+	DYLD_ROOT_PATH=${SDKROOT_iphonesimulator_unittest} \
 	./build/unittest/debug-iphonesimulator/${TARGET_NAME_unittest} "${CURDIR}/build/unittest/debug-iphonesimulator"
 
 .PHONY: run_unittests_linux32
