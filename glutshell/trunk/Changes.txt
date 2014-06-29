@@ -1,10 +1,9 @@
-1.8.0
+1.7.0 (2014-06-29)
  * Modifier keys now produce Target_keyDown() and Target_keyUp() events (though with the same limitations as before; only detected on other keypresses or mouse movement)
  * Updated for shell 1.2.0 (adds Shell_openURL, but this function is unimplemented in glutshell)
-
-1.7.0 (2013-12-27)
  * vsync is now enabled by default on all platforms (disabled in window mode on Linux)
  * Added GLUTShell_setVSync()
+ * Added support for modern Xcode versions
 
 1.6.0 (2013-12-25)
  * Update API for shell 1.1.0 (adds threads, Shell_getSupportPath)

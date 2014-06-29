@@ -54,59 +54,60 @@ CCFLAGS_profile = -g -O3
 CCFLAGS_release = -O3
 
 #Per-platform compile/link settings
-CC_macosx_i386 = /usr/bin/clang -arch i386
-CC_macosx_x86_64 = /usr/bin/clang -arch x86_64
-AR_macosx = /usr/bin/ar
-RANLIB_macosx = /usr/bin/ranlib
-SPLINT_macosx = /usr/local/bin/splint
-CLANG_macosx = /usr/bin/clang
-SDKROOT_macosx = /Developer/SDKs/MacOSX10.6.sdk
-ARCHS_macosx = i386 x86_64
-CCFLAGS_macosx = -isysroot ${SDKROOT_macosx} -mmacosx-version-min=10.6 -Wno-deprecated-declarations -Wno-int-to-void-pointer-cast
-LINKFLAGS_macosx = -isysroot ${SDKROOT_macosx} -mmacosx-version-min=10.6 -framework OpenGL -framework GLUT -framework CoreFoundation -framework ApplicationServices
+SDKROOT_macosx ?= /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk
+MACOSX_VERSION_MIN ?= 10.6
+CC_macosx_i386 ?= ${shell xcrun --sdk ${SDKROOT_macosx} --find cc} -arch i386
+CC_macosx_x86_64 ?= ${shell xcrun --sdk ${SDKROOT_macosx} --find cc} -arch x86_64
+AR_macosx ?= ${shell xcrun --sdk ${SDKROOT_macosx} --find ar}
+RANLIB_macosx ?= ${shell xcrun --sdk ${SDKROOT_macosx} --find ranlib}
+SPLINT_macosx ?= /usr/local/bin/splint
+CLANG_macosx ?= ${shell xcrun --sdk ${SDKROOT_macosx} --find clang}
+ARCHS_macosx ?= i386 x86_64
+CCFLAGS_macosx += -isysroot ${SDKROOT_macosx} -mmacosx-version-min=${MACOSX_VERSION_MIN} -Wno-deprecated-declarations -Wno-int-to-void-pointer-cast
+LINKFLAGS_macosx += -isysroot ${SDKROOT_macosx} -mmacosx-version-min=${MACOSX_VERSION_MIN} -framework OpenGL -framework GLUT -framework CoreFoundation -framework ApplicationServices
 
-CC_linux32_i386 = /usr/bin/gcc
-AR_linux32 = /usr/bin/ar
-RANLIB_linux32 = /usr/bin/ranlib
-SPLINT_linux32 = /usr/local/bin/splint
-CLANG_linux32 = /usr/local/bin/clang
-ARCHS_linux32 = i386
-CCFLAGS_linux32 = -m32 -Wno-int-to-pointer-cast -Wno-pointer-to-int-cast -Wno-unused-result
-LINKFLAGS_linux32 = -m32 -lrt -lglut -lGLU -lGL -lm
+CC_linux32_i386 ?= /usr/bin/gcc
+AR_linux32 ?= /usr/bin/ar
+RANLIB_linux32 ?= /usr/bin/ranlib
+SPLINT_linux32 ?= /usr/local/bin/splint
+CLANG_linux32 ?= /usr/local/bin/clang
+ARCHS_linux32 ?= i386
+CCFLAGS_linux32 += -m32 -Wno-int-to-pointer-cast -Wno-pointer-to-int-cast -Wno-unused-result
+LINKFLAGS_linux32 += -m32 -lrt -lglut -lGLU -lGL -lm
 
-CC_linux64_x86_64 = /usr/bin/gcc
-AR_linux64 = /usr/bin/ar
-RANLIB_linux64 = /usr/bin/ranlib
-SPLINT_linux64 = /usr/local/bin/splint
-CLANG_linux64 = /usr/local/bin/clang
-ARCHS_linux64 = x86_64
-CCFLAGS_linux64 = -m64 -Wno-int-to-pointer-cast -Wno-pointer-to-int-cast -Wno-unused-result
-LINKFLAGS_linux64 = -m64 -lrt -lglut -lGLU -lGL -lm
+CC_linux64_x86_64 ?= /usr/bin/gcc
+AR_linux64 ?= /usr/bin/ar
+RANLIB_linux64 ?= /usr/bin/ranlib
+SPLINT_linux64 ?= /usr/local/bin/splint
+CLANG_linux64 ?= /usr/local/bin/clang
+ARCHS_linux64 ?= x86_64
+CCFLAGS_linux64 += -m64 -Wno-int-to-pointer-cast -Wno-pointer-to-int-cast -Wno-unused-result
+LINKFLAGS_linux64 += -m64 -lrt -lglut -lGLU -lGL -lm
 
 MINGW_W32_PATH ?= C:/MinGW
 MINGW_W32_VERSION ?= 4.6.2
 SPLINT_WIN_PATH ?= C:/splint-3.1.1/bin/splint.exe
 CLANG_WIN_PATH ?= C:/llvm/bin/clang.exe
-CC_win32_i386 = ${MINGW_W32_PATH}/bin/gcc.exe
-AR_win32 = ${MINGW_W32_PATH}/bin/ar.exe
-RANLIB_win32 = ${MINGW_W32_PATH}/bin/ranlib.exe
-SPLINT_win32 = ${SPLINT_WIN_PATH}
-CLANG_win32 = ${CLANG_WIN_PATH}
-ARCHS_win32 = i386
-CCFLAGS_win32 = -DFREEGLUT_STATIC
-LINKFLAGS_win32 = -lfreeglut32_static -lopengl32 -lglu32 -lwinmm -lgdi32
+CC_win32_i386 ?= ${MINGW_W32_PATH}/bin/gcc.exe
+AR_win32 ?= ${MINGW_W32_PATH}/bin/ar.exe
+RANLIB_win32 ?= ${MINGW_W32_PATH}/bin/ranlib.exe
+SPLINT_win32 ?= ${SPLINT_WIN_PATH}
+CLANG_win32 ?= ${CLANG_WIN_PATH}
+ARCHS_win32 ?= i386
+CCFLAGS_win32 += -DFREEGLUT_STATIC
+LINKFLAGS_win32 += -lfreeglut32_static -lopengl32 -lglu32 -lwinmm -lgdi32
 EXECUTABLE_SUFFIX_win32 = .exe
 
 MINGW_W64_PATH ?= C:/MinGW-w64
 MINGW_W64_VERSION ?= 4.7.0
-CC_win64_x86_64 = ${MINGW_W64_PATH}/bin/x86_64-w64-mingw32-gcc.exe
-AR_win64 = ${MINGW_W64_PATH}/bin/x86_64-w64-mingw32-ar.exe
-RANLIB_win64 = ${MINGW_W64_PATH}/bin/x86_64-w64-mingw32-ranlib.exe
-SPLINT_win64 = ${SPLINT_WIN_PATH}
-CLANG_win64 = ${CLANG_WIN_PATH}
-ARCHS_win64 = x86_64
-CCFLAGS_win64 = -DFREEGLUT_STATIC
-LINKFLAGS_win64 = -lfreeglut64_static -lopengl32 -lglu32 -lwinmm -lgdi32
+CC_win64_x86_64 ?= ${MINGW_W64_PATH}/bin/x86_64-w64-mingw32-gcc.exe
+AR_win64 ?= ${MINGW_W64_PATH}/bin/x86_64-w64-mingw32-ar.exe
+RANLIB_win64 ?= ${MINGW_W64_PATH}/bin/x86_64-w64-mingw32-ranlib.exe
+SPLINT_win64 ?= ${SPLINT_WIN_PATH}
+CLANG_win64 ?= ${CLANG_WIN_PATH}
+ARCHS_win64 ?= x86_64
+CCFLAGS_win64 += -DFREEGLUT_STATIC
+LINKFLAGS_win64 += -lfreeglut64_static -lopengl32 -lglu32 -lwinmm -lgdi32
 EXECUTABLE_SUFFIX_win64 = .exe
 
 #General compile/link settings
@@ -129,13 +130,11 @@ LINK_ORDER = \
 
 PROJECT_LIBRARY_DEPENDENCIES_testharness = library
 STEM_LIBRARY_DEPENDENCIES_library = \
-	glgraphics/1.2.0 \
+	glgraphics/1.2.2 \
 	shell/1.2.0
 STEM_LIBRARY_DEPENDENCIES_testharness = \
-	glgraphics/1.2.0 \
+	glgraphics/1.2.2 \
 	shell/1.2.0
-STEM_SOURCE_DEPENDENCIES_library = 
-STEM_SOURCE_DEPENDENCIES_testharness = 
 THIRDPARTY_LIBRARY_DEPENDENCIES = glew/1.5.4/libglew.a
 
 #Per-target source file lists
@@ -231,8 +230,7 @@ ${eval ${call create_directory_target_template,build/intermediate}}
 define include_ccflags_template #(target, platform)
 -I source \
 ${foreach stem_dependency,${STEM_LIBRARY_DEPENDENCIES} ${STEM_LIBRARY_DEPENDENCIES_$1} ${STEM_LIBRARY_DEPENDENCIES_$2} ${STEM_LIBRARY_DEPENDENCIES_$1_$2},-I ${STEM_SHARED_DIR}/${stem_dependency}/include} \
-${foreach thirdparty_dependency,${THIRDPARTY_LIBRARY_DEPENDENCIES} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$2} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1_$2},-I ${STEM_SHARED_DIR}/${dir ${thirdparty_dependency}}include} \
-${foreach source_dependency,${STEM_SOURCE_DEPENDENCIES} ${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$2} ${STEM_SOURCE_DEPENDENCIES_$1_$2},-I dep/${word 1,${subst /, ,${source_dependency}}}/source}
+${foreach thirdparty_dependency,${THIRDPARTY_LIBRARY_DEPENDENCIES} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$2} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1_$2},-I ${STEM_SHARED_DIR}/${dir ${thirdparty_dependency}}include}
 endef
 
 define define_ccflags_template #(target, configuration, platform, arch)
@@ -316,9 +314,6 @@ define library_dependency_template #(target, configuration, platform)
 		${foreach library,${filter ${link_library}%,${STEM_LIBRARY_DEPENDENCIES} ${STEM_LIBRARY_DEPENDENCIES_$1} ${STEM_LIBRARY_DEPENDENCIES_$3} ${STEM_LIBRARY_DEPENDENCIES_$1_$3}}, \
 			${STEM_SHARED_DIR}/${library}/library/$2-$3/libstem_${word 1,${subst /, ,${library}}}.a \
 		} \
-		${foreach library,${filter ${link_library}%,${STEM_SOURCE_DEPENDENCIES} ${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$3} ${STEM_SOURCE_DEPENDENCIES_$1_$3}}, \
-			dep/${word 1,${subst /, ,${library}}}/build/${word 2,${subst /, ,${library}}}/$2-$3/${word 3,${subst /, ,${library}}} \
-		} \
 		${foreach library,${filter ${link_library}%,${THIRDPARTY_LIBRARY_DEPENDENCIES} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$3} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1_$3}}, \
 			${STEM_SHARED_DIR}/${dir ${library}}library/$3/${notdir ${library}} \
 		} \
@@ -334,19 +329,6 @@ ${foreach target,${EXECUTABLE_TARGETS} ${APPLICATION_TARGETS}, \
 			} \
 		} \
 	} \
-}
-
-
-
-define dependency_submake_template #(dependency)
-.PHONY: $1
-$1:
-	${MAKE} -C dep/${word 1,${subst /, ,$1}}
-endef
-
-#Invokes make for each source dependency
-${foreach dependency,${sort ${foreach target,${TARGETS},${foreach platform,${PLATFORMS_${target}},${STEM_SOURCE_DEPENDENCIES} ${STEM_SOURCE_DEPENDENCIES_${target}} ${STEM_SOURCE_DEPENDENCIES_${platform}} ${STEM_SOURCE_DEPENDENCIES_${target}_${platform}}}}}, \
-	${eval ${call dependency_submake_template,${dependency}}} \
 }
 
 
@@ -463,33 +445,33 @@ define create_app_bundle #(target, platform, executable_dir, plist_dir, resource
 endef
 
 define assemble_application_macosx #(target, configuration)
-build/$1/$2-macosx/${TARGET_NAME_$1}.app/Contents/MacOS/${TARGET_NAME_$1}: ${THIN_BINARIES_$1_$2_macosx} ${RESOURCES_$1} ${RESOURCES_$1_macosx} | build/$1/$2-macosx
-	${call create_app_bundle,$1,macosx,$${dir $$@},build/$1/$2-macosx/${TARGET_NAME_$1}.app/Contents,build/$1/$2-macosx/${TARGET_NAME_$1}.app/Contents/Resources}
-	lipo -create -output $$@ ${THIN_BINARIES_$1_$2_macosx}
+build/$1/$2-macosx/$${HUMAN_READABLE_TARGET_NAME_$1}.app/Contents/MacOS/${TARGET_NAME_$1}: ${THIN_BINARIES_$1_$2_macosx} ${RESOURCES_$1} ${RESOURCES_$1_macosx} | build/$1/$2-macosx
+	${call create_app_bundle,$1,macosx,build/$1/$2-macosx/$${HUMAN_READABLE_TARGET_NAME_$1}.app/Contents/MacOS,build/$1/$2-macosx/$${HUMAN_READABLE_TARGET_NAME_$1}.app/Contents,build/$1/$2-macosx/$${HUMAN_READABLE_TARGET_NAME_$1}.app/Contents/Resources}
+	lipo -create -output "$$@" ${THIN_BINARIES_$1_$2_macosx}
 endef
 
 define assemble_application_linux32 #(target, configuration)
 build/$1/$2-linux32/${TARGET_NAME_$1}: ${THIN_BINARIES_$1_$2_linux32} ${RESOURCES_$1} ${RESOURCES_$1_linux32} | build/$1/$2-linux32
 	${call copy_target_resources,$1,linux32,build/$1/$2-linux32/Resources}
-	cp ${THIN_BINARIES_$1_$2_linux32} $$@
+	cp ${THIN_BINARIES_$1_$2_linux32} "$$@"
 endef
 
 define assemble_application_linux64 #(target, configuration)
 build/$1/$2-linux64/${TARGET_NAME_$1}: ${THIN_BINARIES_$1_$2_linux64} ${RESOURCES_$1} ${RESOURCES_$1_linux64} | build/$1/$2-linux64
 	${call copy_target_resources,$1,linux64,build/$1/$2-linux64/Resources}
-	cp ${THIN_BINARIES_$1_$2_linux64} $$@
+	cp ${THIN_BINARIES_$1_$2_linux64} "$$@"
 endef
 
 define assemble_application_win32 #(target, configuration)
 build/$1/$2-win32/${TARGET_NAME_$1}.exe: ${THIN_BINARIES_$1_$2_win32} ${RESOURCES_$1} ${RESOURCES_$1_win32} | build/$1/$2-win32
 	${call copy_target_resources,$1,win32,build/$1/$2-win32/Resources}
-	cp ${THIN_BINARIES_$1_$2_win32} $$@
+	cp ${THIN_BINARIES_$1_$2_win32} "$$@"
 endef
 
 define assemble_application_win64 #(target, configuration)
 build/$1/$2-win64/${TARGET_NAME_$1}.exe: ${THIN_BINARIES_$1_$2_win64} ${RESOURCES_$1} ${RESOURCES_$1_win64} | build/$1/$2-win64
 	${call copy_target_resources,$1,win64,build/$1/$2-win64/Resources}
-	cp ${THIN_BINARIES_$1_$2_win64} $$@
+	cp ${THIN_BINARIES_$1_$2_win64} "$$@"
 endef
 
 #Produces final application build targets
@@ -502,19 +484,19 @@ ${foreach target,${APPLICATION_TARGETS}, \
 }
 
 define library_dependency_template #(target, configuration, platform)
-${STEM_SOURCE_DEPENDENCIES} ${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$1_$3} build/$1/$2-$3/${TARGET_NAME_$1}.a
+build/$1/$2-$3/${TARGET_NAME_$1}.a
 endef
 
 define executable_dependency_template #(target, configuration, platform)
-${STEM_SOURCE_DEPENDENCIES} ${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$1_$3} build/$1/$2-$3/${TARGET_NAME_$1}${EXECUTABLE_SUFFIX_$3}
+build/$1/$2-$3/${TARGET_NAME_$1}${EXECUTABLE_SUFFIX_$3}
 endef
 
 define application_dependency_template #(target, configuration, platform)
-${STEM_SOURCE_DEPENDENCIES} ${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$1_$3} build/$1/$2-$3/${call application_file_template_$3,$1}
+build/$1/$2-$3/${call application_file_template_$3,$1}
 endef
 
 define application_file_template_macosx #(target)
-${TARGET_NAME_$1}.app/Contents/MacOS/${TARGET_NAME_$1}
+$${HUMAN_READABLE_TARGET_NAME_$1}.app/Contents/MacOS/${TARGET_NAME_$1}
 endef
 
 define application_file_template_iphonesimulator #(target)
@@ -626,9 +608,6 @@ include: ${INCLUDES} | ${foreach include_file,${INCLUDES},build/include/${notdir
 .PHONY: clean
 clean:
 	rm -rf build
-	${foreach dependency,${sort ${foreach target,${TARGETS},${foreach platform,${PLATFORMS_${target}},${STEM_SOURCE_DEPENDENCIES} ${STEM_SOURCE_DEPENDENCIES_${target}} ${STEM_SOURCE_DEPENDENCIES_${platform}} ${STEM_SOURCE_DEPENDENCIES_${target}_${platform}}}}}, \
-		${MAKE} -C dep/${word 1,${subst /, ,${dependency}}} clean${newline_and_tab} \
-	}
 
 INSTALL_DIR = ${STEM_SHARED_DIR}/${PROJECT_NAME}/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_TWEAK}
 
