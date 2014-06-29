@@ -1,0 +1,1 @@
+PNGImageIO provides basic support for reading and writing PNG image data to/from BitmapImage objects via libpng.
