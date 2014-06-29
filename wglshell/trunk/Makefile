@@ -58,26 +58,26 @@ MINGW_W32_PATH ?= C:/MinGW
 MINGW_W32_VERSION ?= 4.6.2
 SPLINT_WIN_PATH ?= C:/splint-3.1.1/bin/splint.exe
 CLANG_WIN_PATH ?= C:/llvm/bin/clang.exe
-CC_win32_i386 = ${MINGW_W32_PATH}/bin/gcc.exe
-AR_win32 = ${MINGW_W32_PATH}/bin/ar.exe
-RANLIB_win32 = ${MINGW_W32_PATH}/bin/ranlib.exe
-SPLINT_win32 = ${SPLINT_WIN_PATH}
-CLANG_win32 = ${CLANG_WIN_PATH}
-ARCHS_win32 = i386
-CCFLAGS_win32 = -DGLEW_STATIC
-LINKFLAGS_win32 = -lfreeglut32_static -lopengl32 -lglu32 -lwinmm -lgdi32 -lpowrprof
+CC_win32_i386 ?= ${MINGW_W32_PATH}/bin/gcc.exe
+AR_win32 ?= ${MINGW_W32_PATH}/bin/ar.exe
+RANLIB_win32 ?= ${MINGW_W32_PATH}/bin/ranlib.exe
+SPLINT_win32 ?= ${SPLINT_WIN_PATH}
+CLANG_win32 ?= ${CLANG_WIN_PATH}
+ARCHS_win32 ?= i386
+CCFLAGS_win32 += -DGLEW_STATIC
+LINKFLAGS_win32 += -lfreeglut32_static -lopengl32 -lglu32 -lwinmm -lgdi32 -lpowrprof
 EXECUTABLE_SUFFIX_win32 = .exe
 
 MINGW_W64_PATH ?= C:/MinGW-w64
 MINGW_W64_VERSION ?= 4.7.0
-CC_win64_x86_64 = ${MINGW_W64_PATH}/bin/x86_64-w64-mingw32-gcc.exe
-AR_win64 = ${MINGW_W64_PATH}/bin/x86_64-w64-mingw32-ar.exe
-RANLIB_win64 = ${MINGW_W64_PATH}/bin/x86_64-w64-mingw32-ranlib.exe
-SPLINT_win64 = ${SPLINT_WIN_PATH}
-CLANG_win64 = ${CLANG_WIN_PATH}
-ARCHS_win64 = x86_64
-CCFLAGS_win64 = -DGLEW_STATIC
-LINKFLAGS_win64 = -lfreeglut64_static -lopengl32 -lglu32 -lwinmm -lgdi32 -lpowrprof -mwindows
+CC_win64_x86_64 ?= ${MINGW_W64_PATH}/bin/x86_64-w64-mingw32-gcc.exe
+AR_win64 ?= ${MINGW_W64_PATH}/bin/x86_64-w64-mingw32-ar.exe
+RANLIB_win64 ?= ${MINGW_W64_PATH}/bin/x86_64-w64-mingw32-ranlib.exe
+SPLINT_win64 ?= ${SPLINT_WIN_PATH}
+CLANG_win64 ?= ${CLANG_WIN_PATH}
+ARCHS_win64 ?= x86_64
+CCFLAGS_win64 += -DGLEW_STATIC
+LINKFLAGS_win64 += -lfreeglut64_static -lopengl32 -lglu32 -lwinmm -lgdi32 -lpowrprof -mwindows
 EXECUTABLE_SUFFIX_win64 = .exe
 
 #General compile/link settings
@@ -100,13 +100,11 @@ LINK_ORDER = \
 
 PROJECT_LIBRARY_DEPENDENCIES_testharness = library
 STEM_LIBRARY_DEPENDENCIES_library = \
-	glgraphics/1.2.0 \
+	glgraphics/1.2.2 \
 	shell/1.2.0
 STEM_LIBRARY_DEPENDENCIES_testharness = \
-	glgraphics/1.2.0 \
+	glgraphics/1.2.2 \
 	shell/1.2.0
-STEM_SOURCE_DEPENDENCIES_library = 
-STEM_SOURCE_DEPENDENCIES_testharness = 
 THIRDPARTY_LIBRARY_DEPENDENCIES = glew/1.5.4/libglew.a
 
 #Per-target source file lists
@@ -192,8 +190,7 @@ ${eval ${call create_directory_target_template,build/intermediate}}
 define include_ccflags_template #(target, platform)
 -I source \
 ${foreach stem_dependency,${STEM_LIBRARY_DEPENDENCIES} ${STEM_LIBRARY_DEPENDENCIES_$1} ${STEM_LIBRARY_DEPENDENCIES_$2} ${STEM_LIBRARY_DEPENDENCIES_$1_$2},-I ${STEM_SHARED_DIR}/${stem_dependency}/include} \
-${foreach thirdparty_dependency,${THIRDPARTY_LIBRARY_DEPENDENCIES} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$2} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1_$2},-I ${STEM_SHARED_DIR}/${dir ${thirdparty_dependency}}include} \
-${foreach source_dependency,${STEM_SOURCE_DEPENDENCIES} ${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$2} ${STEM_SOURCE_DEPENDENCIES_$1_$2},-I dep/${word 1,${subst /, ,${source_dependency}}}/source}
+${foreach thirdparty_dependency,${THIRDPARTY_LIBRARY_DEPENDENCIES} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$2} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1_$2},-I ${STEM_SHARED_DIR}/${dir ${thirdparty_dependency}}include}
 endef
 
 define define_ccflags_template #(target, configuration, platform, arch)
@@ -266,7 +263,7 @@ ${foreach target,${LIBRARY_TARGETS}, \
 
 define executable_template #(target, configuration, platform, arch, output_file, dependent_libraries)
 build/intermediate/$1-$2-$3-$4/$5: ${call arch_object_list_template,$1,$2,$3,$4} $6
-	${CC_$3_$4} -o $$@ $$^ ${LINKFLAGS} ${LINKFLAGS_$3}
+	${CC_$3_$4} -o $$@ $$^ ${LINKFLAGS} ${LINKFLAGS_$3} ${LINKFLAGS_$1_$3}
 endef
 
 define library_dependency_template #(target, configuration, platform)
@@ -276,9 +273,6 @@ define library_dependency_template #(target, configuration, platform)
 		} \
 		${foreach library,${filter ${link_library}%,${STEM_LIBRARY_DEPENDENCIES} ${STEM_LIBRARY_DEPENDENCIES_$1} ${STEM_LIBRARY_DEPENDENCIES_$3} ${STEM_LIBRARY_DEPENDENCIES_$1_$3}}, \
 			${STEM_SHARED_DIR}/${library}/library/$2-$3/libstem_${word 1,${subst /, ,${library}}}.a \
-		} \
-		${foreach library,${filter ${link_library}%,${STEM_SOURCE_DEPENDENCIES} ${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$3} ${STEM_SOURCE_DEPENDENCIES_$1_$3}}, \
-			dep/${word 1,${subst /, ,${library}}}/build/${word 2,${subst /, ,${library}}}/$2-$3/${word 3,${subst /, ,${library}}} \
 		} \
 		${foreach library,${filter ${link_library}%,${THIRDPARTY_LIBRARY_DEPENDENCIES} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$3} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1_$3}}, \
 			${STEM_SHARED_DIR}/${dir ${library}}library/$3/${notdir ${library}} \
@@ -295,19 +289,6 @@ ${foreach target,${EXECUTABLE_TARGETS} ${APPLICATION_TARGETS}, \
 			} \
 		} \
 	} \
-}
-
-
-
-define dependency_submake_template #(dependency)
-.PHONY: $1
-$1:
-	${MAKE} -C dep/${word 1,${subst /, ,$1}}
-endef
-
-#Invokes make for each source dependency
-${foreach dependency,${sort ${foreach target,${TARGETS},${foreach platform,${PLATFORMS_${target}},${STEM_SOURCE_DEPENDENCIES} ${STEM_SOURCE_DEPENDENCIES_${target}} ${STEM_SOURCE_DEPENDENCIES_${platform}} ${STEM_SOURCE_DEPENDENCIES_${target}_${platform}}}}}, \
-	${eval ${call dependency_submake_template,${dependency}}} \
 }
 
 
@@ -387,13 +368,13 @@ ${foreach target,${EXECUTABLE_TARGETS}, \
 define assemble_application_win32 #(target, configuration)
 build/$1/$2-win32/${TARGET_NAME_$1}.exe: ${THIN_BINARIES_$1_$2_win32} ${RESOURCES_$1} ${RESOURCES_$1_win32} | build/$1/$2-win32
 	${call copy_target_resources,$1,win32,build/$1/$2-win32/Resources}
-	cp ${THIN_BINARIES_$1_$2_win32} $$@
+	cp ${THIN_BINARIES_$1_$2_win32} "$$@"
 endef
 
 define assemble_application_win64 #(target, configuration)
 build/$1/$2-win64/${TARGET_NAME_$1}.exe: ${THIN_BINARIES_$1_$2_win64} ${RESOURCES_$1} ${RESOURCES_$1_win64} | build/$1/$2-win64
 	${call copy_target_resources,$1,win64,build/$1/$2-win64/Resources}
-	cp ${THIN_BINARIES_$1_$2_win64} $$@
+	cp ${THIN_BINARIES_$1_$2_win64} "$$@"
 endef
 
 #Produces final application build targets
@@ -406,15 +387,15 @@ ${foreach target,${APPLICATION_TARGETS}, \
 }
 
 define library_dependency_template #(target, configuration, platform)
-${STEM_SOURCE_DEPENDENCIES} ${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$1_$3} build/$1/$2-$3/${TARGET_NAME_$1}.a
+build/$1/$2-$3/${TARGET_NAME_$1}.a
 endef
 
 define executable_dependency_template #(target, configuration, platform)
-${STEM_SOURCE_DEPENDENCIES} ${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$1_$3} build/$1/$2-$3/${TARGET_NAME_$1}${EXECUTABLE_SUFFIX_$3}
+build/$1/$2-$3/${TARGET_NAME_$1}${EXECUTABLE_SUFFIX_$3}
 endef
 
 define application_dependency_template #(target, configuration, platform)
-${STEM_SOURCE_DEPENDENCIES} ${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$1_$3} build/$1/$2-$3/${call application_file_template_$3,$1}
+build/$1/$2-$3/${call application_file_template_$3,$1}
 endef
 
 define application_file_template_win32 #(target)
@@ -510,9 +491,6 @@ include: ${INCLUDES} | ${foreach include_file,${INCLUDES},build/include/${notdir
 .PHONY: clean
 clean:
 	rm -rf build
-	${foreach dependency,${sort ${foreach target,${TARGETS},${foreach platform,${PLATFORMS_${target}},${STEM_SOURCE_DEPENDENCIES} ${STEM_SOURCE_DEPENDENCIES_${target}} ${STEM_SOURCE_DEPENDENCIES_${platform}} ${STEM_SOURCE_DEPENDENCIES_${target}_${platform}}}}}, \
-		${MAKE} -C dep/${word 1,${subst /, ,${dependency}}} clean${newline_and_tab} \
-	}
 
 INSTALL_DIR = ${STEM_SHARED_DIR}/${PROJECT_NAME}/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_TWEAK}
 
