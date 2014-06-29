@@ -1,5 +1,6 @@
-1.2.2 (2014-04-13)
+1.2.2 (2014-06-29)
  * Added VertexTypes.h
+ * Added support for modern Xcode/iOS SDK versions
 
 1.2.1 (2014-03-16)
  * Updated for 3dmath 2.1.0
