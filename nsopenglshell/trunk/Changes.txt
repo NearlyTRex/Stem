@@ -1,3 +1,6 @@
+1.4.1 (2014-06-29)
+ * Added support for modern Xcode versions
+
 1.4.0 (2014-01-19)
  * Modifier keys now produce Target_keyDown() and Target_keyUp() events
  * Full screen mode no longer blacks out screens other than the one containing the main window

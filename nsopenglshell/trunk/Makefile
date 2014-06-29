@@ -54,16 +54,17 @@ CCFLAGS_profile = -g -O3
 CCFLAGS_release = -O3
 
 #Per-platform compile/link settings
-CC_macosx_i386 = /usr/bin/clang -arch i386
-CC_macosx_x86_64 = /usr/bin/clang -arch x86_64
-AR_macosx = /usr/bin/ar
-RANLIB_macosx = /usr/bin/ranlib
-SPLINT_macosx = /usr/local/bin/splint
-CLANG_macosx = /usr/bin/clang
-SDKROOT_macosx = /Developer/SDKs/MacOSX10.6.sdk
-ARCHS_macosx = i386 x86_64
-CCFLAGS_macosx = -isysroot ${SDKROOT_macosx} -mmacosx-version-min=10.6
-LINKFLAGS_macosx = -isysroot ${SDKROOT_macosx} -mmacosx-version-min=10.6 -framework Cocoa -framework OpenGL -framework IOKit
+SDKROOT_macosx ?= /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk
+MACOSX_VERSION_MIN ?= 10.6
+CC_macosx_i386 ?= ${shell xcrun --sdk ${SDKROOT_macosx} --find cc} -arch i386
+CC_macosx_x86_64 ?= ${shell xcrun --sdk ${SDKROOT_macosx} --find cc} -arch x86_64
+AR_macosx ?= ${shell xcrun --sdk ${SDKROOT_macosx} --find ar}
+RANLIB_macosx ?= ${shell xcrun --sdk ${SDKROOT_macosx} --find ranlib}
+SPLINT_macosx ?= /usr/local/bin/splint
+CLANG_macosx ?= ${shell xcrun --sdk ${SDKROOT_macosx} --find clang}
+ARCHS_macosx ?= i386 x86_64
+CCFLAGS_macosx += -isysroot ${SDKROOT_macosx} -mmacosx-version-min=${MACOSX_VERSION_MIN}
+LINKFLAGS_macosx += -isysroot ${SDKROOT_macosx} -mmacosx-version-min=${MACOSX_VERSION_MIN} -framework Cocoa -framework OpenGL -framework IOKit
 
 #General compile/link settings
 DEFINE_CCFLAGS = -DVERSION_MAJOR=${VERSION_MAJOR}u -DVERSION_MINOR=${VERSION_MINOR}u -DVERSION_TWEAK=${VERSION_TWEAK}u
@@ -84,9 +85,8 @@ LINK_ORDER = \
 
 PROJECT_LIBRARY_DEPENDENCIES_testharness = library
 STEM_LIBRARY_DEPENDENCIES = \
-	glgraphics/1.2.0_noglew \
+	glgraphics/1.2.2_noglew \
 	shell/1.2.0
-STEM_SOURCE_DEPENDENCIES = 
 THIRDPARTY_LIBRARY_DEPENDENCIES = 
 
 #Per-target source file lists
@@ -173,8 +173,7 @@ ${eval ${call create_directory_target_template,build/intermediate}}
 define include_ccflags_template #(target, platform)
 -I source \
 ${foreach stem_dependency,${STEM_LIBRARY_DEPENDENCIES} ${STEM_LIBRARY_DEPENDENCIES_$1} ${STEM_LIBRARY_DEPENDENCIES_$2} ${STEM_LIBRARY_DEPENDENCIES_$1_$2},-I ${STEM_SHARED_DIR}/${stem_dependency}/include} \
-${foreach thirdparty_dependency,${THIRDPARTY_LIBRARY_DEPENDENCIES} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$2} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1_$2},-I ${STEM_SHARED_DIR}/${dir ${thirdparty_dependency}}include} \
-${foreach source_dependency,${STEM_SOURCE_DEPENDENCIES} ${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$2} ${STEM_SOURCE_DEPENDENCIES_$1_$2},-I dep/${word 1,${subst /, ,${source_dependency}}}/source}
+${foreach thirdparty_dependency,${THIRDPARTY_LIBRARY_DEPENDENCIES} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$2} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1_$2},-I ${STEM_SHARED_DIR}/${dir ${thirdparty_dependency}}include}
 endef
 
 define define_ccflags_template #(target, configuration, platform, arch)
@@ -258,9 +257,6 @@ define library_dependency_template #(target, configuration, platform)
 		${foreach library,${filter ${link_library}%,${STEM_LIBRARY_DEPENDENCIES} ${STEM_LIBRARY_DEPENDENCIES_$1} ${STEM_LIBRARY_DEPENDENCIES_$3} ${STEM_LIBRARY_DEPENDENCIES_$1_$3}}, \
 			${STEM_SHARED_DIR}/${library}/library/$2-$3/libstem_${word 1,${subst /, ,${library}}}.a \
 		} \
-		${foreach library,${filter ${link_library}%,${STEM_SOURCE_DEPENDENCIES} ${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$3} ${STEM_SOURCE_DEPENDENCIES_$1_$3}}, \
-			dep/${word 1,${subst /, ,${library}}}/build/${word 2,${subst /, ,${library}}}/$2-$3/${word 3,${subst /, ,${library}}} \
-		} \
 		${foreach library,${filter ${link_library}%,${THIRDPARTY_LIBRARY_DEPENDENCIES} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$3} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1_$3}}, \
 			${STEM_SHARED_DIR}/${dir ${library}}library/$3/${notdir ${library}} \
 		} \
@@ -276,19 +272,6 @@ ${foreach target,${EXECUTABLE_TARGETS} ${APPLICATION_TARGETS}, \
 			} \
 		} \
 	} \
-}
-
-
-
-define dependency_submake_template #(dependency)
-.PHONY: $1
-$1:
-	${MAKE} -C dep/${word 1,${subst /, ,$1}}
-endef
-
-#Invokes make for each source dependency
-${foreach dependency,${sort ${foreach target,${TARGETS},${foreach platform,${PLATFORMS_${target}},${STEM_SOURCE_DEPENDENCIES} ${STEM_SOURCE_DEPENDENCIES_${target}} ${STEM_SOURCE_DEPENDENCIES_${platform}} ${STEM_SOURCE_DEPENDENCIES_${target}_${platform}}}}}, \
-	${eval ${call dependency_submake_template,${dependency}}} \
 }
 
 
@@ -383,9 +366,9 @@ define create_app_bundle #(target, platform, executable_dir, plist_dir, resource
 endef
 
 define assemble_application_macosx #(target, configuration)
-build/$1/$2-macosx/${TARGET_NAME_$1}.app/Contents/MacOS/${TARGET_NAME_$1}: ${THIN_BINARIES_$1_$2_macosx} ${RESOURCES_$1} ${RESOURCES_$1_macosx} | build/$1/$2-macosx
-	${call create_app_bundle,$1,macosx,$${dir $$@},build/$1/$2-macosx/${TARGET_NAME_$1}.app/Contents,build/$1/$2-macosx/${TARGET_NAME_$1}.app/Contents/Resources}
-	lipo -create -output $$@ ${THIN_BINARIES_$1_$2_macosx}
+build/$1/$2-macosx/$${HUMAN_READABLE_TARGET_NAME_$1}.app/Contents/MacOS/${TARGET_NAME_$1}: ${THIN_BINARIES_$1_$2_macosx} ${RESOURCES_$1} ${RESOURCES_$1_macosx} | build/$1/$2-macosx
+	${call create_app_bundle,$1,macosx,build/$1/$2-macosx/$${HUMAN_READABLE_TARGET_NAME_$1}.app/Contents/MacOS,build/$1/$2-macosx/$${HUMAN_READABLE_TARGET_NAME_$1}.app/Contents,build/$1/$2-macosx/$${HUMAN_READABLE_TARGET_NAME_$1}.app/Contents/Resources}
+	lipo -create -output "$$@" ${THIN_BINARIES_$1_$2_macosx}
 endef
 
 #Produces final application build targets
@@ -398,19 +381,19 @@ ${foreach target,${APPLICATION_TARGETS}, \
 }
 
 define library_dependency_template #(target, configuration, platform)
-${STEM_SOURCE_DEPENDENCIES} ${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$1_$3} build/$1/$2-$3/${TARGET_NAME_$1}.a
+build/$1/$2-$3/${TARGET_NAME_$1}.a
 endef
 
 define executable_dependency_template #(target, configuration, platform)
-${STEM_SOURCE_DEPENDENCIES} ${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$1_$3} build/$1/$2-$3/${TARGET_NAME_$1}${EXECUTABLE_SUFFIX_$3}
+build/$1/$2-$3/${TARGET_NAME_$1}${EXECUTABLE_SUFFIX_$3}
 endef
 
 define application_dependency_template #(target, configuration, platform)
-${STEM_SOURCE_DEPENDENCIES} ${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$1_$3} build/$1/$2-$3/${call application_file_template_$3,$1}
+build/$1/$2-$3/${call application_file_template_$3,$1}
 endef
 
 define application_file_template_macosx #(target)
-${TARGET_NAME_$1}.app/Contents/MacOS/${TARGET_NAME_$1}
+$${HUMAN_READABLE_TARGET_NAME_$1}.app/Contents/MacOS/${TARGET_NAME_$1}
 endef
 
 define target_template #(target, target_type)
@@ -498,9 +481,6 @@ include: ${INCLUDES} | ${foreach include_file,${INCLUDES},build/include/${notdir
 .PHONY: clean
 clean:
 	rm -rf build
-	${foreach dependency,${sort ${foreach target,${TARGETS},${foreach platform,${PLATFORMS_${target}},${STEM_SOURCE_DEPENDENCIES} ${STEM_SOURCE_DEPENDENCIES_${target}} ${STEM_SOURCE_DEPENDENCIES_${platform}} ${STEM_SOURCE_DEPENDENCIES_${target}_${platform}}}}}, \
-		${MAKE} -C dep/${word 1,${subst /, ,${dependency}}} clean${newline_and_tab} \
-	}
 
 INSTALL_DIR = ${STEM_SHARED_DIR}/${PROJECT_NAME}/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_TWEAK}
 
