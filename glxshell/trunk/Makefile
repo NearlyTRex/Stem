@@ -54,23 +54,23 @@ CCFLAGS_profile = -g -O3
 CCFLAGS_release = -O3
 
 #Per-platform compile/link settings
-CC_linux32_i386 = /usr/bin/gcc
-AR_linux32 = /usr/bin/ar
-RANLIB_linux32 = /usr/bin/ranlib
-SPLINT_linux32 = /usr/local/bin/splint
-CLANG_linux32 = /usr/local/bin/clang
-ARCHS_linux32 = i386
-CCFLAGS_linux32 = -m32
-LINKFLAGS_linux32 = -m32 -lrt -lGLU -lGL -lm
+CC_linux32_i386 ?= /usr/bin/gcc
+AR_linux32 ?= /usr/bin/ar
+RANLIB_linux32 ?= /usr/bin/ranlib
+SPLINT_linux32 ?= /usr/local/bin/splint
+CLANG_linux32 ?= /usr/local/bin/clang
+ARCHS_linux32 ?= i386
+CCFLAGS_linux32 += -m32
+LINKFLAGS_linux32 += -m32 -lrt -lGLU -lGL -lm
 
-CC_linux64_x86_64 = /usr/bin/gcc
-AR_linux64 = /usr/bin/ar
-RANLIB_linux64 = /usr/bin/ranlib
-SPLINT_linux64 = /usr/local/bin/splint
-CLANG_linux64 = /usr/local/bin/clang
-ARCHS_linux64 = x86_64
-CCFLAGS_linux64 = -m64
-LINKFLAGS_linux64 = -m64 -lrt -lGLU -lGL -lm
+CC_linux64_x86_64 ?= /usr/bin/gcc
+AR_linux64 ?= /usr/bin/ar
+RANLIB_linux64 ?= /usr/bin/ranlib
+SPLINT_linux64 ?= /usr/local/bin/splint
+CLANG_linux64 ?= /usr/local/bin/clang
+ARCHS_linux64 ?= x86_64
+CCFLAGS_linux64 += -m64
+LINKFLAGS_linux64 += -m64 -lrt -lGLU -lGL -lm
 
 #General compile/link settings
 DEFINE_CCFLAGS = -DVERSION_MAJOR=${VERSION_MAJOR}u -DVERSION_MINOR=${VERSION_MINOR}u -DVERSION_TWEAK=${VERSION_TWEAK}u
@@ -97,8 +97,6 @@ STEM_LIBRARY_DEPENDENCIES_library = \
 STEM_LIBRARY_DEPENDENCIES_testharness = \
 	glgraphics/1.2.0 \
 	shell/1.2.0
-STEM_SOURCE_DEPENDENCIES_library = 
-STEM_SOURCE_DEPENDENCIES_testharness = 
 THIRDPARTY_LIBRARY_DEPENDENCIES = glew/1.5.4/libglew.a
 
 #Per-target source file lists
@@ -186,8 +184,7 @@ ${eval ${call create_directory_target_template,build/intermediate}}
 define include_ccflags_template #(target, platform)
 -I source \
 ${foreach stem_dependency,${STEM_LIBRARY_DEPENDENCIES} ${STEM_LIBRARY_DEPENDENCIES_$1} ${STEM_LIBRARY_DEPENDENCIES_$2} ${STEM_LIBRARY_DEPENDENCIES_$1_$2},-I ${STEM_SHARED_DIR}/${stem_dependency}/include} \
-${foreach thirdparty_dependency,${THIRDPARTY_LIBRARY_DEPENDENCIES} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$2} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1_$2},-I ${STEM_SHARED_DIR}/${dir ${thirdparty_dependency}}include} \
-${foreach source_dependency,${STEM_SOURCE_DEPENDENCIES} ${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$2} ${STEM_SOURCE_DEPENDENCIES_$1_$2},-I dep/${word 1,${subst /, ,${source_dependency}}}/source}
+${foreach thirdparty_dependency,${THIRDPARTY_LIBRARY_DEPENDENCIES} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$2} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1_$2},-I ${STEM_SHARED_DIR}/${dir ${thirdparty_dependency}}include}
 endef
 
 define define_ccflags_template #(target, configuration, platform, arch)
@@ -260,7 +257,7 @@ ${foreach target,${LIBRARY_TARGETS}, \
 
 define executable_template #(target, configuration, platform, arch, output_file, dependent_libraries)
 build/intermediate/$1-$2-$3-$4/$5: ${call arch_object_list_template,$1,$2,$3,$4} $6
-	${CC_$3_$4} -o $$@ $$^ ${LINKFLAGS} ${LINKFLAGS_$3}
+	${CC_$3_$4} -o $$@ $$^ ${LINKFLAGS} ${LINKFLAGS_$3} ${LINKFLAGS_$1_$3}
 endef
 
 define library_dependency_template #(target, configuration, platform)
@@ -270,9 +267,6 @@ define library_dependency_template #(target, configuration, platform)
 		} \
 		${foreach library,${filter ${link_library}%,${STEM_LIBRARY_DEPENDENCIES} ${STEM_LIBRARY_DEPENDENCIES_$1} ${STEM_LIBRARY_DEPENDENCIES_$3} ${STEM_LIBRARY_DEPENDENCIES_$1_$3}}, \
 			${STEM_SHARED_DIR}/${library}/library/$2-$3/libstem_${word 1,${subst /, ,${library}}}.a \
-		} \
-		${foreach library,${filter ${link_library}%,${STEM_SOURCE_DEPENDENCIES} ${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$3} ${STEM_SOURCE_DEPENDENCIES_$1_$3}}, \
-			dep/${word 1,${subst /, ,${library}}}/build/${word 2,${subst /, ,${library}}}/$2-$3/${word 3,${subst /, ,${library}}} \
 		} \
 		${foreach library,${filter ${link_library}%,${THIRDPARTY_LIBRARY_DEPENDENCIES} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$3} ${THIRDPARTY_LIBRARY_DEPENDENCIES_$1_$3}}, \
 			${STEM_SHARED_DIR}/${dir ${library}}library/$3/${notdir ${library}} \
@@ -289,19 +283,6 @@ ${foreach target,${EXECUTABLE_TARGETS} ${APPLICATION_TARGETS}, \
 			} \
 		} \
 	} \
-}
-
-
-
-define dependency_submake_template #(dependency)
-.PHONY: $1
-$1:
-	${MAKE} -C dep/${word 1,${subst /, ,$1}}
-endef
-
-#Invokes make for each source dependency
-${foreach dependency,${sort ${foreach target,${TARGETS},${foreach platform,${PLATFORMS_${target}},${STEM_SOURCE_DEPENDENCIES} ${STEM_SOURCE_DEPENDENCIES_${target}} ${STEM_SOURCE_DEPENDENCIES_${platform}} ${STEM_SOURCE_DEPENDENCIES_${target}_${platform}}}}}, \
-	${eval ${call dependency_submake_template,${dependency}}} \
 }
 
 
@@ -403,13 +384,13 @@ ${foreach target,${EXECUTABLE_TARGETS}, \
 define assemble_application_linux32 #(target, configuration)
 build/$1/$2-linux32/${TARGET_NAME_$1}: ${THIN_BINARIES_$1_$2_linux32} ${RESOURCES_$1} ${RESOURCES_$1_linux32} | build/$1/$2-linux32
 	${call copy_target_resources,$1,linux32,build/$1/$2-linux32/Resources}
-	cp ${THIN_BINARIES_$1_$2_linux32} $$@
+	cp ${THIN_BINARIES_$1_$2_linux32} "$$@"
 endef
 
 define assemble_application_linux64 #(target, configuration)
 build/$1/$2-linux64/${TARGET_NAME_$1}: ${THIN_BINARIES_$1_$2_linux64} ${RESOURCES_$1} ${RESOURCES_$1_linux64} | build/$1/$2-linux64
 	${call copy_target_resources,$1,linux64,build/$1/$2-linux64/Resources}
-	cp ${THIN_BINARIES_$1_$2_linux64} $$@
+	cp ${THIN_BINARIES_$1_$2_linux64} "$$@"
 endef
 
 #Produces final application build targets
@@ -422,15 +403,15 @@ ${foreach target,${APPLICATION_TARGETS}, \
 }
 
 define library_dependency_template #(target, configuration, platform)
-${STEM_SOURCE_DEPENDENCIES} ${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$1_$3} build/$1/$2-$3/${TARGET_NAME_$1}.a
+build/$1/$2-$3/${TARGET_NAME_$1}.a
 endef
 
 define executable_dependency_template #(target, configuration, platform)
-${STEM_SOURCE_DEPENDENCIES} ${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$1_$3} build/$1/$2-$3/${TARGET_NAME_$1}${EXECUTABLE_SUFFIX_$3}
+build/$1/$2-$3/${TARGET_NAME_$1}${EXECUTABLE_SUFFIX_$3}
 endef
 
 define application_dependency_template #(target, configuration, platform)
-${STEM_SOURCE_DEPENDENCIES} ${STEM_SOURCE_DEPENDENCIES_$1} ${STEM_SOURCE_DEPENDENCIES_$1_$3} build/$1/$2-$3/${call application_file_template_$3,$1}
+build/$1/$2-$3/${call application_file_template_$3,$1}
 endef
 
 define application_file_template_linux32 #(target)
@@ -526,9 +507,6 @@ include: ${INCLUDES} | ${foreach include_file,${INCLUDES},build/include/${notdir
 .PHONY: clean
 clean:
 	rm -rf build
-	${foreach dependency,${sort ${foreach target,${TARGETS},${foreach platform,${PLATFORMS_${target}},${STEM_SOURCE_DEPENDENCIES} ${STEM_SOURCE_DEPENDENCIES_${target}} ${STEM_SOURCE_DEPENDENCIES_${platform}} ${STEM_SOURCE_DEPENDENCIES_${target}_${platform}}}}}, \
-		${MAKE} -C dep/${word 1,${subst /, ,${dependency}}} clean${newline_and_tab} \
-	}
 
 INSTALL_DIR = ${STEM_SHARED_DIR}/${PROJECT_NAME}/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_TWEAK}
 
