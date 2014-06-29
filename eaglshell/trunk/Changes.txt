@@ -1,5 +1,6 @@
-2.5.2 (2014-01-20)
+2.5.2 (2014-06-29)
  * Updated API for shell 1.2.0 (adds Shell_openURL)
+ * Added support for modern Xcode/iOS SDK versions
  * Added C++ header guards
 
 2.5.1 (2013-12-25)

@@ -234,7 +234,7 @@ static void * callThreadFunc(void * context) {
 	threadFunction  = invocation->threadFunction;
 	threadContext = invocation->context;
 	free(invocation);
-	return (void *) threadFunction(threadContext);
+	return (void *) (ptrdiff_t) threadFunction(threadContext);
 }
 
 ShellThread Shell_createThread(int (* threadFunction)(void * context), void * context) {
@@ -264,7 +264,7 @@ int Shell_joinThread(ShellThread thread) {
 }
 
 void Shell_exitThread(int statusCode) {
-	pthread_exit((void *) statusCode);
+	pthread_exit((void *) (ptrdiff_t) statusCode);
 }
 
 ShellThread Shell_getCurrentThread() {
