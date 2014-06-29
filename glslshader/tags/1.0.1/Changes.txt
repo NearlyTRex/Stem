@@ -1,0 +1,5 @@
+1.0.1 (2014-06-29)
+ * Added support for modern Xcode/iOS SDK versions
+
+1.0.0 (2013-12-25)
+ * Initial version
