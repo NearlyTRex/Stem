@@ -1,4 +1,4 @@
-1.1.0 (2014-05-23)
+1.1.0 (2014-06-29)
  * Added support for modern Xcode/iOS SDK versions
  * Removed obsolete source dependency mechanism
 
