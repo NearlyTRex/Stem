@@ -1,0 +1,45 @@
+<%
+#erb -T - source/generate_sin_lookup.erb > source/3dmath/FixedPoint_sinLookup.h
+
+value_count = 4096
+pi_range = Math::PI / 2
+
+def fixed_abs(x)
+	if x < 0
+		x += 0x100000000
+	end
+	return x
+end
+-%>
+/*
+  Copyright (c) 2014 Alex Diener
+  
+  This software is provided 'as-is', without any express or implied
+  warranty. In no event will the authors be held liable for any damages
+  arising from the use of this software.
+  
+  Permission is granted to anyone to use this software for any purpose,
+  including commercial applications, and to alter it and redistribute it
+  freely, subject to the following restrictions:
+  
+  1. The origin of this software must not be misrepresented; you must not
+     claim that you wrote the original software. If you use this software
+     in a product, an acknowledgment in the product documentation would be
+     appreciated but is not required.
+  2. Altered source versions must be plainly marked as such, and must not be
+     misrepresented as being the original software.
+  3. This notice may not be removed or altered from any source distribution.
+  
+  Alex Diener alex@ludobloom.com
+*/
+
+// This file was generated with Ruby <%= RUBY_VERSION %> at <%= Time.now %> on <%= RUBY_PLATFORM %>.
+
+#include "3dmath/FixedPoint.h"
+
+#define SIN_LOOKUP_COUNT <%= value_count %>
+
+static fixed16_16 fixed16_16_sinLookup[SIN_LOOKUP_COUNT] = {
+	0x00000000<% 1.upto(value_count - 1) do |value| %>,
+	0x<%= fixed_abs((Math.sin(value * pi_range / value_count) * 0x10000).round).to_s(16).upcase.rjust(8, "0") %><% end %>
+};
