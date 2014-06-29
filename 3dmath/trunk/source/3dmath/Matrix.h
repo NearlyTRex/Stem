@@ -62,8 +62,8 @@ Matrix Matrix_translated(Matrix matrix1, float x, float y, float z);
 void Matrix_scale(Matrix * matrix, float x, float y, float z);
 Matrix Matrix_scaled(Matrix matrix, float x, float y, float z);
 
-void Matrix_rotate(Matrix * matrix, struct Vector3f axis, float angle);
-Matrix Matrix_rotated(Matrix matrix, struct Vector3f axis, float angle);
+void Matrix_rotate(Matrix * matrix, struct Vector3f axis, float radians);
+Matrix Matrix_rotated(Matrix matrix, struct Vector3f axis, float radians);
 
 void Matrix_shearX(Matrix * matrix, float y, float z);
 Matrix Matrix_shearedX(Matrix matrix, float y, float z);

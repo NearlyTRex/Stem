@@ -1,3 +1,7 @@
+2.1.1 (2014-06-29)
+ * Added support for modern Xcode/iOS SDK versions
+ * Renamed Matrix_rotate() "angle" parameter to "radians" for clarity
+
 2.1.0 (2014-01-22)
  * Added Vector*_project()
  * Added Vector*_distance() and Vector*_distanceSquared() (2.0.0 had prototypes for them but implementations were missing)

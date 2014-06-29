@@ -119,17 +119,17 @@ Matrix Matrix_scaled(Matrix matrix, float x, float y, float z) {
 	return matrix;
 }
 
-void Matrix_rotate(Matrix * matrix, Vector3f axis, float angle) {
+void Matrix_rotate(Matrix * matrix, Vector3f axis, float radians) {
 	Matrix rotationMatrix;
 	Quaternion quaternion;
 	
-	quaternion = Quaternion_fromAxisAngle(axis, angle);
+	quaternion = Quaternion_fromAxisAngle(axis, radians);
 	rotationMatrix = Quaternion_toMatrix(quaternion);
 	Matrix_multiply(matrix, rotationMatrix);
 }
 
-Matrix Matrix_rotated(Matrix matrix, Vector3f axis, float angle) {
-	Matrix_rotate(&matrix, axis, angle);
+Matrix Matrix_rotated(Matrix matrix, Vector3f axis, float radians) {
+	Matrix_rotate(&matrix, axis, radians);
 	return matrix;
 }
 
