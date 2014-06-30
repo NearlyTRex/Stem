@@ -37,8 +37,6 @@ typedef struct GLTextureAtlas GLTextureAtlas;
 #include <math.h>
 
 #define GLTEXTUREATLAS_SERIALIZATION_FORMAT_VERSION 1
-#define GLTEXTUREATLAS_WIDTH_AUTO NAN
-#define GLTEXTUREATLAS_HEIGHT_AUTO NAN
 
 struct GLTextureAtlas_entry {
 	float left;
