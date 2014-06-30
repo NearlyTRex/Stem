@@ -28,13 +28,17 @@ extern "C" {
 
 typedef struct GLTextureAtlas GLTextureAtlas;
 
+#include "glgraphics/VertexTypes.h"
 #include "gltexture/GLTexture.h"
 #include "serialization/DeserializationContext.h"
 #include "serialization/SerializationContext.h"
 #include "stemobject/StemObject.h"
 #include "utilities/HashTable.h"
+#include <math.h>
 
 #define GLTEXTUREATLAS_SERIALIZATION_FORMAT_VERSION 1
+#define GLTEXTUREATLAS_WIDTH_AUTO NAN
+#define GLTEXTUREATLAS_HEIGHT_AUTO NAN
 
 struct GLTextureAtlas_entry {
 	float left;
@@ -54,7 +58,9 @@ struct GLTextureAtlas_entry {
 	bool (* hasKey)(self_type * self, const char * key); \
 	void (* setEntry)(self_type * self, const char * key, struct GLTextureAtlas_entry entry); \
 	void (* removeEntry)(self_type * self, const char * key); \
-	struct GLTextureAtlas_entry (* lookup)(self_type * self, const char * key);
+	struct GLTextureAtlas_entry (* lookup)(self_type * self, const char * key); \
+	unsigned int (* getVertices)(self_type * self, const char * key, float offsetX, float offsetY, float relativeOriginX, float relativeOriginY, float width, float height, struct vertex_p2f_t2f * outVertices); \
+	unsigned int (* getIndexes)(self_type * self, void * outIndexes, GLenum indexType, unsigned int indexOffset);
 
 stemobject_struct_definition(GLTextureAtlas)
 
@@ -72,6 +78,9 @@ void GLTextureAtlas_setEntry(GLTextureAtlas * self, const char * key, struct GLT
 void GLTextureAtlas_removeEntry(GLTextureAtlas * self, const char * key);
 // lookup returns {0.0f, 0.0f, 0.0f, 0.0f} for nonexistent keys
 struct GLTextureAtlas_entry GLTextureAtlas_lookup(GLTextureAtlas * self, const char * key);
+
+unsigned int GLTextureAtlas_getVertices(GLTextureAtlas * self, const char * key, float offsetX, float offsetY, float relativeOriginX, float relativeOriginY, float width, float height, struct vertex_p2f_t2f * outVertices);
+unsigned int GLTextureAtlas_getIndexes(GLTextureAtlas * self, void * outIndexes, GLenum indexType, unsigned int indexOffset);
 
 #ifdef __cplusplus
 }

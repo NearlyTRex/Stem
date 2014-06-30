@@ -1,8 +1,10 @@
-GLTexture provides support for uploading and binding OpenGL textures. Image loading and GL rendering are not provided; you must use other stem libraries or your own code.
+GLTexture provides support for uploading and binding OpenGL textures, as well as for managing texture atlases. Image loading is not provided; use pngimageio or your own code.
 
 A GLTexture object can be created directly, or loaded from a serialized representation using the serialization interface. After initial creation, you must upload an image with GLTexture_setImage(). You can then use GLTexture_activate to bind the texture, and GLTexture_deactivate to unbind it.
 
 For performance and/or fine-grained control over texturing, you may not want to use activate() and deactivate(). They're provided only for convenience, and have some properties that may be undesirable in large applications; for example, if autoBlendMode is set to anything other than AUTO_BLEND_MODE_NONE, GL_BLEND will be enabled and/or disabled every time a texture is activated or deactivated. Accessing the textureName directly to bind it yourself is perfectly normal usage of the GLTexture API.
+
+GLTextureAtlas data can be generated using the texturepacker tool. After deserializing a GLTextureAtlas, use the lookup() method to get the bounds of a particular entry, or the getVertices() and getIndexes() methods to retrieve GL data suitable for drawing.
 
 GLTexture serialization schema:
 structure "gltexture" {

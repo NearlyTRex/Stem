@@ -37,6 +37,8 @@ static void sharedInit(GLTextureAtlas * self) {
 	self->setEntry = GLTextureAtlas_setEntry;
 	self->removeEntry = GLTextureAtlas_removeEntry;
 	self->lookup = GLTextureAtlas_lookup;
+	self->getVertices = GLTextureAtlas_getVertices;
+	self->getIndexes = GLTextureAtlas_getIndexes;
 }
 
 GLTextureAtlas * GLTextureAtlas_create() {
@@ -118,7 +120,7 @@ void GLTextureAtlas_serialize(GLTextureAtlas * self, compat_type(SerializationCo
 	
 	context->beginStructure(context, "gltextureatlas");
 	context->writeUInt16(context, "format_version", GLTEXTUREATLAS_SERIALIZATION_FORMAT_VERSION);
-	context->writeString(context, "texture_name", self->textureName);
+	context->writeString(context, "texture_name", self->textureName == NULL ? "" : self->textureName);
 	context->beginDictionary(context, "entries");
 	keys = hashGetKeys(self->private_ivar(hashTable), &keyCount);
 	for (keyIndex = 0; keyIndex < keyCount; keyIndex++) {
@@ -152,4 +154,71 @@ void GLTextureAtlas_removeEntry(GLTextureAtlas * self, const char * key) {
 
 struct GLTextureAtlas_entry GLTextureAtlas_lookup(GLTextureAtlas * self, const char * key) {
 	return hashGetStruct(self->private_ivar(hashTable), key, struct GLTextureAtlas_entry);
+}
+
+unsigned int GLTextureAtlas_getVertices(GLTextureAtlas * self, const char * key, float offsetX, float offsetY, float relativeOriginX, float relativeOriginY, float width, float height, struct vertex_p2f_t2f * outVertices) {
+	if (outVertices != NULL) {
+		struct GLTextureAtlas_entry entry;
+		
+		outVertices[0].position[0] =
+		outVertices[3].position[0] = offsetX - width * relativeOriginX;
+		outVertices[0].position[1] =
+		outVertices[1].position[1] = offsetY - height * relativeOriginY;
+		outVertices[1].position[0] =
+		outVertices[2].position[0] = offsetX + width * (1.0f - relativeOriginX);
+		outVertices[2].position[1] =
+		outVertices[3].position[1] = offsetY + height * (1.0f - relativeOriginY);
+		
+		entry = self->lookup(self, key);
+		outVertices[0].texCoords[0] = entry.left;
+		outVertices[0].texCoords[1] = entry.bottom;
+		outVertices[1].texCoords[0] = entry.right;
+		outVertices[1].texCoords[1] = entry.bottom;
+		outVertices[2].texCoords[0] = entry.right;
+		outVertices[2].texCoords[1] = entry.top;
+		outVertices[3].texCoords[0] = entry.left;
+		outVertices[3].texCoords[1] = entry.top;
+	}
+	return 4;
+}
+
+unsigned int GLTextureAtlas_getIndexes(GLTextureAtlas * self, void * outIndexes, GLenum indexType, unsigned int indexOffset) {
+	if (outIndexes != NULL) {
+		switch (indexType) {
+			case GL_UNSIGNED_BYTE: {
+				GLubyte * indexesByte = outIndexes;
+				
+				indexesByte[0] = indexOffset;
+				indexesByte[1] = indexOffset + 1;
+				indexesByte[2] = indexOffset + 2;
+				indexesByte[3] = indexOffset + 2;
+				indexesByte[4] = indexOffset + 3;
+				indexesByte[5] = indexOffset;
+				break;
+			}
+			case GL_UNSIGNED_SHORT: {
+				GLushort * indexesShort = outIndexes;
+				
+				indexesShort[0] = indexOffset;
+				indexesShort[1] = indexOffset + 1;
+				indexesShort[2] = indexOffset + 2;
+				indexesShort[3] = indexOffset + 2;
+				indexesShort[4] = indexOffset + 3;
+				indexesShort[5] = indexOffset;
+				break;
+			}
+			case GL_UNSIGNED_INT: {
+				GLuint * indexesUint = outIndexes;
+				
+				indexesUint[0] = indexOffset;
+				indexesUint[1] = indexOffset + 1;
+				indexesUint[2] = indexOffset + 2;
+				indexesUint[3] = indexOffset + 2;
+				indexesUint[4] = indexOffset + 3;
+				indexesUint[5] = indexOffset;
+				break;
+			}
+		}
+	}
+	return 6;
 }
