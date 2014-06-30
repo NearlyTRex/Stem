@@ -1,0 +1,38 @@
+1.1.0 (2014-06-29)
+ * Added GLTextureAtlas
+ * Added support for modern Xcode/iOS SDK versions
+
+1.0.4 (2013-12-25)
+ * Added 64-bit Windows and Linux support
+ * Updated for stemobject 3.1.0
+
+1.0.3 (2012-02-12)
+ * Updated for stemobject 3.0.0 and serialization 1.2.2
+ * Deserialization now fails if the format version is greater than GLTEXTURE_SERIALIZATION_FORMAT_VERSION
+ * GL_TEXTURE_2D is no longer enabled or disabled for OpenGL ES2
+
+1.0.2 (2011-01-16)
+ * Added format_version field
+ * Test harness can now load arbitrary texture.json file from command line
+ * Synchronized with template_stemlib Stable_2011-01-13
+
+1.0.1 (2010-10-09)
+ * Synchronized with latest template_stemlib
+ * Updated for stemobject 2.0.0
+
+1.0.0 (2010-06-04)
+ * Updated dependencies:
+  * 3dmath 0.2.0 -> 1.0.0
+  * bitmapimage 1.1.1 -> 1.2.0
+  * eaglshell 2.0.0 -> 2.1.0
+  * glgraphics 0.3.0 -> 1.0.0
+  * glutshell 1.1.0 -> 1.2.0
+  * pngimageio 1.0.0 -> 1.1.0
+  * serialization 0.1.0 -> 1.0.0
+  * stemobject 1.0.0 -> 1.1.0
+  * utilities 1.1.0 -> 1.3.0
+ * Refreshed makefile from template_stemlib 2010-06-02
+ * Fixed a memory bug in GLTexture deserialization
+
+0.0.0 (2010-05-22)
+ * Initial version
