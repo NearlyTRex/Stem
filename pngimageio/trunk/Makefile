@@ -655,20 +655,22 @@ run_unittests_win32: unittest
 run_unittests_win64: unittest
 	./build/unittest/debug-win64/${TARGET_NAME_unittest}.exe "${CURDIR}/build/unittest/debug-win64"
 
+PNGSUITE_PLATFORM = ${firstword ${TARGET_PLATFORMS_${HOST_PLATFORM}}}
+
 .PHONY: test_pngsuite
 test_pngsuite: testharness
 	mkdir -p build/pngsuite
 	${foreach file,${PNGSUITE_FILES}, \
-		build/testharness/debug-${HOST_PLATFORM}/${TARGET_NAME_testharness}${EXECUTABLE_SUFFIX_${HOST_PLATFORM}} ${file} -itype png -otype png -o build/pngsuite/${basename ${notdir ${file}}}_auto.png${newline_and_tab} \
-		build/testharness/debug-${HOST_PLATFORM}/${TARGET_NAME_testharness}${EXECUTABLE_SUFFIX_${HOST_PLATFORM}} ${file} -itype png -otype png -iformat rgba -o build/pngsuite/${basename ${notdir ${file}}}_rgba.png${newline_and_tab} \
-		build/testharness/debug-${HOST_PLATFORM}/${TARGET_NAME_testharness}${EXECUTABLE_SUFFIX_${HOST_PLATFORM}} ${file} -itype png -otype png -iformat rgb -o build/pngsuite/${basename ${notdir ${file}}}_rgb.png${newline_and_tab} \
-		build/testharness/debug-${HOST_PLATFORM}/${TARGET_NAME_testharness}${EXECUTABLE_SUFFIX_${HOST_PLATFORM}} ${file} -itype png -otype png -iformat grayalpha -o build/pngsuite/${basename ${notdir ${file}}}_grayalpha.png${newline_and_tab} \
-		build/testharness/debug-${HOST_PLATFORM}/${TARGET_NAME_testharness}${EXECUTABLE_SUFFIX_${HOST_PLATFORM}} ${file} -itype png -otype png -iformat gray -o build/pngsuite/${basename ${notdir ${file}}}_gray.png${newline_and_tab} \
-		build/testharness/debug-${HOST_PLATFORM}/${TARGET_NAME_testharness}${EXECUTABLE_SUFFIX_${HOST_PLATFORM}} ${file} -itype png -otype png -iflip -o build/pngsuite/${basename ${notdir ${file}}}-flip_auto.png${newline_and_tab} \
-		build/testharness/debug-${HOST_PLATFORM}/${TARGET_NAME_testharness}${EXECUTABLE_SUFFIX_${HOST_PLATFORM}} ${file} -itype png -otype png -iflip -iformat rgba -o build/pngsuite/${basename ${notdir ${file}}}-flip_rgba.png${newline_and_tab} \
-		build/testharness/debug-${HOST_PLATFORM}/${TARGET_NAME_testharness}${EXECUTABLE_SUFFIX_${HOST_PLATFORM}} ${file} -itype png -otype png -iflip -iformat rgb -o build/pngsuite/${basename ${notdir ${file}}}-flip_rgb.png${newline_and_tab} \
-		build/testharness/debug-${HOST_PLATFORM}/${TARGET_NAME_testharness}${EXECUTABLE_SUFFIX_${HOST_PLATFORM}} ${file} -itype png -otype png -iflip -iformat grayalpha -o build/pngsuite/${basename ${notdir ${file}}}-flip_grayalpha.png${newline_and_tab} \
-		build/testharness/debug-${HOST_PLATFORM}/${TARGET_NAME_testharness}${EXECUTABLE_SUFFIX_${HOST_PLATFORM}} ${file} -itype png -otype png -iflip -iformat gray -o build/pngsuite/${basename ${notdir ${file}}}-flip_gray.png${newline_and_tab} \
+		build/testharness/debug-${PNGSUITE_PLATFORM}/${TARGET_NAME_testharness}${EXECUTABLE_SUFFIX_${HOST_PLATFORM}} ${file} -itype png -otype png -iformat rgba -o build/pngsuite/${basename ${notdir ${file}}}_rgba.png${newline_and_tab} \
+		build/testharness/debug-${PNGSUITE_PLATFORM}/${TARGET_NAME_testharness}${EXECUTABLE_SUFFIX_${HOST_PLATFORM}} ${file} -itype png -otype png -o build/pngsuite/${basename ${notdir ${file}}}_auto.png${newline_and_tab} \
+		build/testharness/debug-${PNGSUITE_PLATFORM}/${TARGET_NAME_testharness}${EXECUTABLE_SUFFIX_${HOST_PLATFORM}} ${file} -itype png -otype png -iformat rgb -o build/pngsuite/${basename ${notdir ${file}}}_rgb.png${newline_and_tab} \
+		build/testharness/debug-${PNGSUITE_PLATFORM}/${TARGET_NAME_testharness}${EXECUTABLE_SUFFIX_${HOST_PLATFORM}} ${file} -itype png -otype png -iformat grayalpha -o build/pngsuite/${basename ${notdir ${file}}}_grayalpha.png${newline_and_tab} \
+		build/testharness/debug-${PNGSUITE_PLATFORM}/${TARGET_NAME_testharness}${EXECUTABLE_SUFFIX_${HOST_PLATFORM}} ${file} -itype png -otype png -iformat gray -o build/pngsuite/${basename ${notdir ${file}}}_gray.png${newline_and_tab} \
+		build/testharness/debug-${PNGSUITE_PLATFORM}/${TARGET_NAME_testharness}${EXECUTABLE_SUFFIX_${HOST_PLATFORM}} ${file} -itype png -otype png -iflip -o build/pngsuite/${basename ${notdir ${file}}}-flip_auto.png${newline_and_tab} \
+		build/testharness/debug-${PNGSUITE_PLATFORM}/${TARGET_NAME_testharness}${EXECUTABLE_SUFFIX_${HOST_PLATFORM}} ${file} -itype png -otype png -iflip -iformat rgba -o build/pngsuite/${basename ${notdir ${file}}}-flip_rgba.png${newline_and_tab} \
+		build/testharness/debug-${PNGSUITE_PLATFORM}/${TARGET_NAME_testharness}${EXECUTABLE_SUFFIX_${HOST_PLATFORM}} ${file} -itype png -otype png -iflip -iformat rgb -o build/pngsuite/${basename ${notdir ${file}}}-flip_rgb.png${newline_and_tab} \
+		build/testharness/debug-${PNGSUITE_PLATFORM}/${TARGET_NAME_testharness}${EXECUTABLE_SUFFIX_${HOST_PLATFORM}} ${file} -itype png -otype png -iflip -iformat grayalpha -o build/pngsuite/${basename ${notdir ${file}}}-flip_grayalpha.png${newline_and_tab} \
+		build/testharness/debug-${PNGSUITE_PLATFORM}/${TARGET_NAME_testharness}${EXECUTABLE_SUFFIX_${HOST_PLATFORM}} ${file} -itype png -otype png -iflip -iformat gray -o build/pngsuite/${basename ${notdir ${file}}}-flip_gray.png${newline_and_tab} \
 	}
 
 define analyze_file_template_clang #(target, platform, file)
