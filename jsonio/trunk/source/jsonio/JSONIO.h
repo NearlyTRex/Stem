@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2013 Alex Diener
+  Copyright (c) 2014 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -17,7 +17,7 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
   
-  Alex Diener adiener@sacredsoftware.net
+  Alex Diener alex@ludobloom.com
 */
 
 #ifndef __JSON_IO_H__
@@ -41,6 +41,7 @@ enum JSONType {
 #define SIZE_T_MAX ((size_t) SIZE_MAX)
 #endif
 #define JSON_SUBITEM_NOT_FOUND SIZE_T_MAX
+#define JSON_USE_STRLEN SIZE_T_MAX
 
 struct JSONNode {
 	// Defined for all nodes
@@ -80,6 +81,7 @@ char * escapeJSONString(const char * string, size_t length, size_t * outLength);
 char * unescapeJSONString(const char * string, size_t length, size_t * outLength);
 
 // Returns JSON_SUBITEM_NOT_FOUND if no subitem with the specified key exists in objectNode, or if objectNode is not of JSON_TYPE_OBJECT
+// If key is null-terminated, you can pass JSON_USE_STRLEN for keyLength to measure it with strlen
 size_t JSONNode_subitemIndexForKey(struct JSONNode * objectNode, const char * key, size_t keyLength);
 
 /* Frees node, its contents, and all subitems. */

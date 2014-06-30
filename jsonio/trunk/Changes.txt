@@ -1,3 +1,8 @@
+1.2.5 (2014-06-29)
+ * Added JSON_USE_STRLEN constant for JSONNode_subitemIndexForKey
+ * Added lineIndex and lineCharIndex to struct JSONParseError
+ * Added support for modern Xcode/iOS SDK versions
+
 1.2.4 (2013-12-25)
  * Added 64-bit Windows and Linux support
 

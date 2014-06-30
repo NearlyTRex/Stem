@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2013 Alex Diener
+  Copyright (c) 2014 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -17,7 +17,7 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
   
-  Alex Diener adiener@sacredsoftware.net
+  Alex Diener alex@ludobloom.com
 */
 
 #include "jsonio/JSONIO.h"
@@ -250,6 +250,9 @@ size_t JSONNode_subitemIndexForKey(struct JSONNode * objectNode, const char * ke
 	if (objectNode->type == JSON_TYPE_OBJECT) {
 		size_t subitemIndex;
 		
+		if (keyLength == JSON_USE_STRLEN) {
+			keyLength = strlen(key);
+		}
 		for (subitemIndex = 0; subitemIndex < objectNode->value.count; subitemIndex++) {
 			if (objectNode->subitems[subitemIndex].keyLength == keyLength && !memcmp(objectNode->subitems[subitemIndex].key, key, keyLength)) {
 				return subitemIndex;

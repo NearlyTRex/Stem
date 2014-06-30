@@ -845,12 +845,14 @@ static void testWhitespaceTolerance() {
 
 static void testErrorReporting() {
 	struct JSONNode * node;
-	struct JSONParseError error, errorPrototype = {SIZE_T_MAX, -1, NULL};
+	struct JSONParseError error, errorPrototype = {SIZE_T_MAX, UINT_MAX, UINT_MAX, -1, NULL};
 	
 	error = errorPrototype;
 	node = JSONParser_loadString(stringAndLength(""), &error);
 	TestCase_assert(node == NULL, "Expected NULL but got %p", node);
 	TestCase_assert(error.charIndex == 0, "Expected 0 but got " SIZE_T_FORMAT, error.charIndex);
+	TestCase_assert(error.lineIndex == 0, "Expected 0 but got %u", error.lineIndex);
+	TestCase_assert(error.lineCharIndex == 0, "Expected 0 but got %u", error.lineCharIndex);
 	TestCase_assert(error.code == JSONParseError_rootNodeNotFound, "Expected %d but got %d", JSONParseError_rootNodeNotFound, error.code);
 	TestCase_assert(error.description != NULL, "Expected non-NULL but got NULL");
 	
@@ -858,6 +860,8 @@ static void testErrorReporting() {
 	node = JSONParser_loadString(stringAndLength("  null"), &error);
 	TestCase_assert(node == NULL, "Expected NULL but got %p", node);
 	TestCase_assert(error.charIndex == 2, "Expected 2 but got " SIZE_T_FORMAT, error.charIndex);
+	TestCase_assert(error.lineIndex == 0, "Expected 0 but got %u", error.lineIndex);
+	TestCase_assert(error.lineCharIndex == 2, "Expected 2 but got %u", error.lineCharIndex);
 	TestCase_assert(error.code == JSONParseError_rootNodeNotFound, "Expected %d but got %d", JSONParseError_rootNodeNotFound, error.code);
 	TestCase_assert(error.description != NULL, "Expected non-NULL but got NULL");
 	
@@ -865,13 +869,17 @@ static void testErrorReporting() {
 	node = JSONParser_loadString(stringAndLength("{1}"), &error);
 	TestCase_assert(node == NULL, "Expected NULL but got %p", node);
 	TestCase_assert(error.charIndex == 1, "Expected 1 but got " SIZE_T_FORMAT, error.charIndex);
+	TestCase_assert(error.lineIndex == 0, "Expected 0 but got %u", error.lineIndex);
+	TestCase_assert(error.lineCharIndex == 1, "Expected 1 but got %u", error.lineCharIndex);
 	TestCase_assert(error.code == JSONParseError_objectKeyNotFound, "Expected %d but got %d", JSONParseError_objectKeyNotFound, error.code);
 	TestCase_assert(error.description != NULL, "Expected non-NULL but got NULL");
 	
 	error = errorPrototype;
-	node = JSONParser_loadString(stringAndLength("{\"\": 0, 1}"), &error);
+	node = JSONParser_loadString(stringAndLength("{\"\": 0,\n1}"), &error);
 	TestCase_assert(node == NULL, "Expected NULL but got %p", node);
 	TestCase_assert(error.charIndex == 8, "Expected 8 but got " SIZE_T_FORMAT, error.charIndex);
+	TestCase_assert(error.lineIndex == 1, "Expected 1 but got %u", error.lineIndex);
+	TestCase_assert(error.lineCharIndex == 0, "Expected 0 but got %u", error.lineCharIndex);
 	TestCase_assert(error.code == JSONParseError_objectKeyNotFound, "Expected %d but got %d", JSONParseError_objectKeyNotFound, error.code);
 	TestCase_assert(error.description != NULL, "Expected non-NULL but got NULL");
 	
@@ -879,13 +887,17 @@ static void testErrorReporting() {
 	node = JSONParser_loadString(stringAndLength("[\"\\u\"]"), &error);
 	TestCase_assert(node == NULL, "Expected NULL but got %p", node);
 	TestCase_assert(error.charIndex == 1, "Expected 1 but got " SIZE_T_FORMAT, error.charIndex);
+	TestCase_assert(error.lineIndex == 0, "Expected 0 but got %u", error.lineIndex);
+	TestCase_assert(error.lineCharIndex == 1, "Expected 1 but got %u", error.lineCharIndex);
 	TestCase_assert(error.code == JSONParseError_malformedString, "Expected %d but got %d", JSONParseError_malformedString, error.code);
 	TestCase_assert(error.description != NULL, "Expected non-NULL but got NULL");
 	
 	error = errorPrototype;
-	node = JSONParser_loadString(stringAndLength("{\"foo\": 0, \"hello \\uD800\": 1}"), &error);
+	node = JSONParser_loadString(stringAndLength("{\"foo\":\n0,\n\"hello \\uD800\": 1}"), &error);
 	TestCase_assert(node == NULL, "Expected NULL but got %p", node);
 	TestCase_assert(error.charIndex == 11, "Expected 11 but got " SIZE_T_FORMAT, error.charIndex);
+	TestCase_assert(error.lineIndex == 2, "Expected 2 but got %u", error.lineIndex);
+	TestCase_assert(error.lineCharIndex == 0, "Expected 0 but got %u", error.lineCharIndex);
 	TestCase_assert(error.code == JSONParseError_malformedString, "Expected %d but got %d", JSONParseError_malformedString, error.code);
 	TestCase_assert(error.description != NULL, "Expected non-NULL but got NULL");
 	
@@ -893,6 +905,8 @@ static void testErrorReporting() {
 	node = JSONParser_loadString(stringAndLength("{\"bar\"}"), &error);
 	TestCase_assert(node == NULL, "Expected NULL but got %p", node);
 	TestCase_assert(error.charIndex == 6, "Expected 6 but got " SIZE_T_FORMAT, error.charIndex);
+	TestCase_assert(error.lineIndex == 0, "Expected 0 but got %u", error.lineIndex);
+	TestCase_assert(error.lineCharIndex == 6, "Expected 6 but got %u", error.lineCharIndex);
 	TestCase_assert(error.code == JSONParseError_keyNotFollowedByColon, "Expected %d but got %d", JSONParseError_keyNotFollowedByColon, error.code);
 	TestCase_assert(error.description != NULL, "Expected non-NULL but got NULL");
 	
@@ -900,6 +914,8 @@ static void testErrorReporting() {
 	node = JSONParser_loadString(stringAndLength("{\"\": 0, \"\"}"), &error);
 	TestCase_assert(node == NULL, "Expected NULL but got %p", node);
 	TestCase_assert(error.charIndex == 10, "Expected 10 but got " SIZE_T_FORMAT, error.charIndex);
+	TestCase_assert(error.lineIndex == 0, "Expected 0 but got %u", error.lineIndex);
+	TestCase_assert(error.lineCharIndex == 10, "Expected 10 but got %u", error.lineCharIndex);
 	TestCase_assert(error.code == JSONParseError_keyNotFollowedByColon, "Expected %d but got %d", JSONParseError_keyNotFollowedByColon, error.code);
 	TestCase_assert(error.description != NULL, "Expected non-NULL but got NULL");
 	
@@ -907,6 +923,8 @@ static void testErrorReporting() {
 	node = JSONParser_loadString(stringAndLength("{"), &error);
 	TestCase_assert(node == NULL, "Expected NULL but got %p", node);
 	TestCase_assert(error.charIndex == 1, "Expected 1 but got " SIZE_T_FORMAT, error.charIndex);
+	TestCase_assert(error.lineIndex == 0, "Expected 0 but got %u", error.lineIndex);
+	TestCase_assert(error.lineCharIndex == 1, "Expected 1 but got %u", error.lineCharIndex);
 	TestCase_assert(error.code == JSONParseError_unexpectedEOF, "Expected %d but got %d", JSONParseError_unexpectedEOF, error.code);
 	TestCase_assert(error.description != NULL, "Expected non-NULL but got NULL");
 	
@@ -914,6 +932,8 @@ static void testErrorReporting() {
 	node = JSONParser_loadString(stringAndLength("["), &error);
 	TestCase_assert(node == NULL, "Expected NULL but got %p", node);
 	TestCase_assert(error.charIndex == 1, "Expected 1 but got " SIZE_T_FORMAT, error.charIndex);
+	TestCase_assert(error.lineIndex == 0, "Expected 0 but got %u", error.lineIndex);
+	TestCase_assert(error.lineCharIndex == 1, "Expected 1 but got %u", error.lineCharIndex);
 	TestCase_assert(error.code == JSONParseError_unexpectedEOF, "Expected %d but got %d", JSONParseError_unexpectedEOF, error.code);
 	TestCase_assert(error.description != NULL, "Expected non-NULL but got NULL");
 	
@@ -921,6 +941,8 @@ static void testErrorReporting() {
 	node = JSONParser_loadString(stringAndLength("[1, 2"), &error);
 	TestCase_assert(node == NULL, "Expected NULL but got %p", node);
 	TestCase_assert(error.charIndex == 5, "Expected 5 but got " SIZE_T_FORMAT, error.charIndex);
+	TestCase_assert(error.lineIndex == 0, "Expected 0 but got %u", error.lineIndex);
+	TestCase_assert(error.lineCharIndex == 5, "Expected 5 but got %u", error.lineCharIndex);
 	TestCase_assert(error.code == JSONParseError_unexpectedEOF, "Expected %d but got %d", JSONParseError_unexpectedEOF, error.code);
 	TestCase_assert(error.description != NULL, "Expected non-NULL but got NULL");
 	
@@ -928,6 +950,8 @@ static void testErrorReporting() {
 	node = JSONParser_loadString(stringAndLength("[a]"), &error);
 	TestCase_assert(node == NULL, "Expected NULL but got %p", node);
 	TestCase_assert(error.charIndex == 1, "Expected 1 but got " SIZE_T_FORMAT, error.charIndex);
+	TestCase_assert(error.lineIndex == 0, "Expected 0 but got %u", error.lineIndex);
+	TestCase_assert(error.lineCharIndex == 1, "Expected 1 but got %u", error.lineCharIndex);
 	TestCase_assert(error.code == JSONParseError_unexpectedToken, "Expected %d but got %d", JSONParseError_unexpectedToken, error.code);
 	TestCase_assert(error.description != NULL, "Expected non-NULL but got NULL");
 	
@@ -935,6 +959,8 @@ static void testErrorReporting() {
 	node = JSONParser_loadString(stringAndLength("[]a"), &error);
 	TestCase_assert(node == NULL, "Expected NULL but got %p", node);
 	TestCase_assert(error.charIndex == 2, "Expected 2 but got " SIZE_T_FORMAT, error.charIndex);
+	TestCase_assert(error.lineIndex == 0, "Expected 0 but got %u", error.lineIndex);
+	TestCase_assert(error.lineCharIndex == 2, "Expected 2 but got %u", error.lineCharIndex);
 	TestCase_assert(error.code == JSONParseError_unexpectedToken, "Expected %d but got %d", JSONParseError_unexpectedToken, error.code);
 	TestCase_assert(error.description != NULL, "Expected non-NULL but got NULL");
 	
@@ -948,6 +974,8 @@ static void testErrorReporting() {
 	node = JSONParser_loadString(stringAndLength("[, 0]"), &error);
 	TestCase_assert(node == NULL, "Expected NULL but got %p", node);
 	TestCase_assert(error.charIndex == 1, "Expected 1 but got " SIZE_T_FORMAT, error.charIndex);
+	TestCase_assert(error.lineIndex == 0, "Expected 0 but got %u", error.lineIndex);
+	TestCase_assert(error.lineCharIndex == 1, "Expected 1 but got %u", error.lineCharIndex);
 	TestCase_assert(error.code == JSONParseError_unexpectedToken, "Expected %d but got %d", JSONParseError_unexpectedToken, error.code);
 	TestCase_assert(error.description != NULL, "Expected non-NULL but got NULL");
 	
@@ -955,6 +983,8 @@ static void testErrorReporting() {
 	node = JSONParser_loadString(stringAndLength("{ , \"a\": 0}"), &error);
 	TestCase_assert(node == NULL, "Expected NULL but got %p", node);
 	TestCase_assert(error.charIndex == 2, "Expected 2 but got " SIZE_T_FORMAT, error.charIndex);
+	TestCase_assert(error.lineIndex == 0, "Expected 0 but got %u", error.lineIndex);
+	TestCase_assert(error.lineCharIndex == 2, "Expected 2 but got %u", error.lineCharIndex);
 	TestCase_assert(error.code == JSONParseError_unexpectedToken, "Expected %d but got %d", JSONParseError_unexpectedToken, error.code);
 	TestCase_assert(error.description != NULL, "Expected non-NULL but got NULL");
 	
@@ -962,6 +992,8 @@ static void testErrorReporting() {
 	node = JSONParser_loadString(stringAndLength("[1 2]"), &error);
 	TestCase_assert(node == NULL, "Expected NULL but got %p", node);
 	TestCase_assert(error.charIndex == 3, "Expected 3 but got " SIZE_T_FORMAT, error.charIndex);
+	TestCase_assert(error.lineIndex == 0, "Expected 0 but got %u", error.lineIndex);
+	TestCase_assert(error.lineCharIndex == 3, "Expected 3 but got %u", error.lineCharIndex);
 	TestCase_assert(error.code == JSONParseError_unexpectedToken, "Expected %d but got %d", JSONParseError_unexpectedToken, error.code);
 	TestCase_assert(error.description != NULL, "Expected non-NULL but got NULL");
 	
@@ -969,6 +1001,8 @@ static void testErrorReporting() {
 	node = JSONParser_loadString(stringAndLength("{\"a\": 0 \"b\": 1}"), &error);
 	TestCase_assert(node == NULL, "Expected NULL but got %p", node);
 	TestCase_assert(error.charIndex == 8, "Expected 8 but got " SIZE_T_FORMAT, error.charIndex);
+	TestCase_assert(error.lineIndex == 0, "Expected 0 but got %u", error.lineIndex);
+	TestCase_assert(error.lineCharIndex == 8, "Expected 8 but got %u", error.lineCharIndex);
 	TestCase_assert(error.code == JSONParseError_unexpectedToken, "Expected %d but got %d", JSONParseError_unexpectedToken, error.code);
 	TestCase_assert(error.description != NULL, "Expected non-NULL but got NULL");
 }

@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2013 Alex Diener
+  Copyright (c) 2014 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -17,7 +17,7 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
   
-  Alex Diener adiener@sacredsoftware.net
+  Alex Diener alex@ludobloom.com
 */
 
 #ifndef __JSON_PARSER_H__
@@ -37,6 +37,8 @@ enum JSONParseErrorCode {
 
 struct JSONParseError {
 	size_t charIndex;
+	unsigned int lineIndex;
+	unsigned int lineCharIndex;
 	enum JSONParseErrorCode code;
 	const char * description;
 };

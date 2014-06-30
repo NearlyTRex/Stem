@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2013 Alex Diener
+  Copyright (c) 2014 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -17,7 +17,7 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
   
-  Alex Diener adiener@sacredsoftware.net
+  Alex Diener alex@ludobloom.com
 */
 
 #include "jsonio/JSONParser.h"
@@ -283,6 +283,25 @@ static enum JSONToken nextJSONToken(const char * string, size_t length, size_t *
 	return JSON_TOKEN_INVALID;
 }
 
+static void getLineCharIndex(struct JSONParseError * ioError, const char * string, size_t length) {
+	unsigned int lineIndex = 0;
+	size_t lineFirstCharIndex = 0;
+	size_t charIndex;
+	
+	for (charIndex = 0; charIndex < length; charIndex++) {
+		if (string[charIndex] == '\n') {
+			if (lineFirstCharIndex <= ioError->charIndex && charIndex >= ioError->charIndex) {
+				break;
+			}
+			lineIndex++;
+			lineFirstCharIndex = charIndex + 1;
+		}
+	}
+	
+	ioError->lineIndex = lineIndex;
+	ioError->lineCharIndex = ioError->charIndex - lineFirstCharIndex;
+}
+
 struct JSONNode * JSONParser_loadString(const char * string, size_t length, struct JSONParseError * outError) {
 	struct JSONNode * rootNode, * containerNode, node;
 	struct JSONNode nodePrototype;
@@ -307,6 +326,7 @@ struct JSONNode * JSONParser_loadString(const char * string, size_t length, stru
 		JSONNode_dispose(rootNode);
 		if (outError != NULL) {
 			outError->charIndex = charIndex - tokenLength;
+			getLineCharIndex(outError, string, length);
 			outError->code = JSONParseError_rootNodeNotFound;
 			outError->description = "Didn't find \"[\" or \"{\" at beginning of document";
 		}
@@ -338,6 +358,7 @@ struct JSONNode * JSONParser_loadString(const char * string, size_t length, stru
 				free(nodeStack);
 				if (outError != NULL) {
 					outError->charIndex = charIndex - tokenLength;
+					getLineCharIndex(outError, string, length);
 					if (token == JSON_TOKEN_EOF) {
 						outError->code = JSONParseError_unexpectedEOF;
 						outError->description = "Unexpected end of file when seeking comma";
@@ -355,6 +376,7 @@ struct JSONNode * JSONParser_loadString(const char * string, size_t length, stru
 			free(nodeStack);
 			if (outError != NULL) {
 				outError->charIndex = charIndex - tokenLength;
+				getLineCharIndex(outError, string, length);
 				outError->code = JSONParseError_unexpectedToken;
 				if (containerNode->type == JSON_TYPE_OBJECT) {
 					outError->description = "Unexpected comma when seeking key";
@@ -373,6 +395,7 @@ struct JSONNode * JSONParser_loadString(const char * string, size_t length, stru
 				free(nodeStack);
 				if (outError != NULL) {
 					outError->charIndex = charIndex - tokenLength;
+					getLineCharIndex(outError, string, length);
 					if (charIndex >= length) {
 						outError->code = JSONParseError_unexpectedEOF;
 						outError->description = "Unexpected end of file when seeking object key";
@@ -390,6 +413,7 @@ struct JSONNode * JSONParser_loadString(const char * string, size_t length, stru
 				free(nodeStack);
 				if (outError != NULL) {
 					outError->charIndex = charIndex - tokenLength;
+					getLineCharIndex(outError, string, length);
 					outError->code = JSONParseError_malformedString;
 					outError->description = "Couldn't unescape key string";
 				}
@@ -403,6 +427,7 @@ struct JSONNode * JSONParser_loadString(const char * string, size_t length, stru
 				free(nodeStack);
 				if (outError != NULL) {
 					outError->charIndex = charIndex - tokenLength;
+					getLineCharIndex(outError, string, length);
 					outError->code = JSONParseError_keyNotFollowedByColon;
 					outError->description = "Object key not followed by colon";
 				}
@@ -457,6 +482,7 @@ struct JSONNode * JSONParser_loadString(const char * string, size_t length, stru
 				free(nodeStack);
 				if (outError != NULL) {
 					outError->charIndex = charIndex - tokenLength;
+					getLineCharIndex(outError, string, length);
 					outError->code = JSONParseError_malformedString;
 					outError->description = "Couldn't unescape value string";
 				}
@@ -485,6 +511,7 @@ struct JSONNode * JSONParser_loadString(const char * string, size_t length, stru
 			free(nodeStack);
 			if (outError != NULL) {
 				outError->charIndex = charIndex - tokenLength;
+				getLineCharIndex(outError, string, length);
 				if (charIndex >= length) {
 					outError->code = JSONParseError_unexpectedEOF;
 					outError->description = "Unexpected end of file when seeking value";
@@ -505,6 +532,7 @@ struct JSONNode * JSONParser_loadString(const char * string, size_t length, stru
 		JSONNode_dispose(rootNode);
 		if (outError != NULL) {
 			outError->charIndex = charIndex;
+			getLineCharIndex(outError, string, length);
 			outError->code = JSONParseError_unexpectedToken;
 			outError->description = "Extra data after expected end of file";
 		}
