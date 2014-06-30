@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2013 Alex Diener
+  Copyright (c) 2014 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -17,7 +17,7 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
   
-  Alex Diener adiener@sacredsoftware.net
+  Alex Diener alex@ludobloom.com
 */
 
 #include "serialization/SerializationShared.h"
@@ -28,7 +28,7 @@ const char * Serialization_errorString(int status) {
 			return "No error";
 			
 		case SERIALIZATION_ERROR_INVALID_OPERATION:
-			return "General incorrect API usage";
+			return "Incorrect API usage";
 			
 		case SERIALIZATION_ERROR_KEY_NOT_FOUND:
 			return "The requested key is not present in the current dictionary or structure";
