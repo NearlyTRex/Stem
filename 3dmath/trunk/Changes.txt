@@ -1,3 +1,6 @@
+2.1.2 (2014-10-02)
+ * Added xtof, ftox, xtod, and dtox macros (aliases of fixed16_16ToFloat, floatToFixed16_16, fixed16_16ToDouble, and doubleToFixed16_16, respectively)
+
 2.1.1 (2014-06-29)
  * Added support for modern Xcode/iOS SDK versions
  * Renamed Matrix_rotate() "angle" parameter to "radians" for clarity

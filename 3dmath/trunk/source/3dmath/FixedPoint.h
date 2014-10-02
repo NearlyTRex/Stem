@@ -45,6 +45,10 @@ typedef int32_t fixed16_16;
 #define X_SQRT2   0x16A0A
 #define X_SQRT1_2 0x0B505
 
+#define xtof(x)      fixed16_16ToFloat(x)
+#define ftox(x)      floatToFixed16_16(x)
+#define xtod(x)      fixed16_16ToDouble(x)
+#define dtox(x)      doubleToFixed16_16(x)
 #define xmul(x, y)   fixed16_16_multiply(x, y)
 #define xdiv(x, y)   fixed16_16_divide(x, y)
 #define xround(x)    fixed16_16_round(x)
