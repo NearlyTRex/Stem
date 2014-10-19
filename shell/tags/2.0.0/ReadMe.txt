@@ -1,0 +1,1 @@
+shell provides an abstract, platform-independent interface for platform-specific functions. On its own, this library does nothing (and produces no linkable code when built, only header files); it simply defines the API which is implemented by platform-specific shell libraries.
