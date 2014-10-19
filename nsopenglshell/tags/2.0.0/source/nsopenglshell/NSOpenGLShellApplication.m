@@ -1,0 +1,128 @@
+/*
+  Copyright (c) 2014 Alex Diener
+  
+  This software is provided 'as-is', without any express or implied
+  warranty. In no event will the authors be held liable for any damages
+  arising from the use of this software.
+  
+  Permission is granted to anyone to use this software for any purpose,
+  including commercial applications, and to alter it and redistribute it
+  freely, subject to the following restrictions:
+  
+  1. The origin of this software must not be misrepresented; you must not
+     claim that you wrote the original software. If you use this software
+     in a product, an acknowledgment in the product documentation would be
+     appreciated but is not required.
+  2. Altered source versions must be plainly marked as such, and must not be
+     misrepresented as being the original software.
+  3. This notice may not be removed or altered from any source distribution.
+  
+  Alex Diener alex@ludobloom.com
+*/
+
+#import "nsopenglshell/NSOpenGLShellApplication.h"
+#include "nsopenglshell/NSOpenGLShellCallbacks.h"
+#import "nsopenglshell/NSOpenGLShellView.h"
+#include "nsopenglshell/NSOpenGLTarget.h"
+#include "shell/ShellCallbacks.h"
+
+int g_argc = 0;
+const char ** g_argv = NULL;
+struct NSOpenGLShellConfiguration g_configuration;
+bool g_mouseDeltaMode = false;
+
+extern bool mainLoopCalled;
+
+@implementation NSOpenGLShellApplication
+
+- (void) applicationDidFinishLaunching: (NSNotification *) notification {
+	window = [[NSWindow alloc] initWithContentRect: NSMakeRect(g_configuration.windowX, [[NSScreen mainScreen] frame].size.height - g_configuration.windowY, g_configuration.windowWidth, g_configuration.windowHeight)
+	                                     styleMask: NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask | NSResizableWindowMask
+	                                       backing: NSBackingStoreBuffered
+	                                         defer: NO];
+	[window setDelegate: self];
+	[window setTitle: [NSString stringWithUTF8String: g_configuration.windowTitle]];
+	[window setAcceptsMouseMovedEvents: YES];
+	view = [[NSOpenGLShellView alloc] initWithFrame: NSMakeRect(0, 0, g_configuration.windowWidth, g_configuration.windowHeight) configuration: g_configuration];
+	
+	if (view == nil) {
+		exit(EXIT_FAILURE);
+	}
+	
+	[window setContentView: view];
+	[window setInitialFirstResponder: view];
+	
+	if (resizeCallback != NULL) {
+		resizeCallback([view bounds].size.width, [view bounds].size.height);
+	}
+	Target_init();
+	[view initCalled];
+	[view displayIfNeeded];
+	
+	[window orderFront: nil];
+	[[view window] makeKeyAndOrderFront: nil];
+	
+	if (!mainLoopCalled) {
+		exit(EXIT_SUCCESS);
+	}
+	
+	[view startAnimation];
+}
+
+- (void) applicationWillResignActive: (NSNotification *) notification {
+	if (![window isMiniaturized] && backgroundedCallback != NULL) {
+		backgroundedCallback();
+	}
+}
+
+- (void) applicationDidBecomeActive: (NSNotification *) notification {
+	if (![window isMiniaturized] && foregroundedCallback != NULL) {
+		foregroundedCallback();
+	}
+}
+
+- (void) dealloc {
+	[view release];
+	[window release];
+	[super dealloc];
+}
+
+- (void) sendEvent: (NSEvent *) event {
+	if ([event type] == NSKeyUp && ([event modifierFlags] & NSCommandKeyMask)) {
+		[[self keyWindow] sendEvent: event];
+	} else {
+		[super sendEvent: event];
+	}
+}
+
+- (void) hide: (id) sender {
+	if (![view isInFullScreenMode]) {
+		[super hide: sender];
+	}
+}
+
+- (NSWindow *) window {
+	return window;
+}
+
+- (NSOpenGLShellView *) view {
+	return view;
+}
+
+- (BOOL) applicationShouldTerminateAfterLastWindowClosed: (NSApplication *) application {
+  return YES;
+}
+
+- (void) windowWillMiniaturize: (NSNotification *) notification {
+	if ([self isActive] && backgroundedCallback != NULL) {
+		backgroundedCallback();
+	}
+}
+
+- (void) windowDidDeminiaturize: (NSNotification *) notification {
+	if ([self isActive] && foregroundedCallback != NULL) {
+		foregroundedCallback();
+	}
+}
+
+@end
