@@ -17,7 +17,7 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
   
-  Alex Diener adiener@sacredsoftware.net
+  Alex Diener alex@ludobloom.com
 */
 
 #import <Cocoa/Cocoa.h>
@@ -35,9 +35,7 @@ extern bool g_mouseDeltaMode;
 	NSOpenGLShellView * view;
 }
 
-- (void) redisplayPosted;
-- (bool) isFullScreen;
-- (void) toggleFullScreen;
-- (void) setVSync: (BOOL) sync forFullscreen: (BOOL) fullscreen;
+- (NSWindow *) window;
+- (NSOpenGLShellView *) view;
 
 @end

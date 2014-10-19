@@ -17,7 +17,7 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
   
-  Alex Diener adiener@sacredsoftware.net
+  Alex Diener alex@ludobloom.com
 */
 
 #ifndef __NSOpenGLShell_H__
@@ -27,26 +27,6 @@ extern "C" {
 #endif
 
 #include <stdbool.h>
-
-struct NSOpenGLShellConfiguration {
-	int windowX;
-	int windowY;
-	int windowWidth;
-	int windowHeight;
-	char * windowTitle;
-	struct {
-		bool doubleBuffer;          // NSOpenGLPFADoubleBuffer
-		bool depthBuffer;           // NSOpenGLPFADepthSize > 0
-		unsigned int depthBits;     // NSOpenGLPFADepthSize value
-		bool stencilBuffer;         // NSOpenGLPFAStencilSize > 0
-		unsigned int stencilBits;   // NSOpenGLPFAStencilSize value
-		bool accumBuffer;           // NSOpenGLPFAAccumSize > 0
-		unsigned int accumBits;     // NSOpenGLPFAAccumSize value
-		bool multisample;           // NSOpenGLPFAMultisample
-		unsigned int sampleBuffers; // NSOpenGLPFASampleBuffers
-		unsigned int samples;       // NSOpenGLPFASamples
-	} displayMode;
-};
 
 // NSOpenGLShellCursor_<name> == [NSCursor <name>Cursor]
 enum NSOpenGLShellCursor {

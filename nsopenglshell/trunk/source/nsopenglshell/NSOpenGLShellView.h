@@ -17,12 +17,12 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
   
-  Alex Diener adiener@sacredsoftware.net
+  Alex Diener alex@ludobloom.com
 */
 
 #import <Cocoa/Cocoa.h>
 #include <OpenGL/gl.h>
-#include "nsopenglshell/NSOpenGLShell.h"
+#include "nsopenglshell/NSOpenGLTarget.h"
 
 #define VSYNC_DEFAULT_WINDOW YES
 #define VSYNC_DEFAULT_FULLSCREEN YES
@@ -38,12 +38,15 @@
 	int lastWidth;
 	int lastHeight;
 	unsigned int modifierMask;
+	CGFloat coalescedScrollDeltaX;
+	CGFloat coalescedScrollDeltaY;
 }
 
 - (id) initWithFrame: (NSRect) frame configuration: (struct NSOpenGLShellConfiguration) configuration;
 - (void) initCalled;
 - (void) redisplayPosted;
-- (void) toggleFullScreen;
+- (bool) enterFullScreen: (NSScreen *) screen;
+- (void) exitFullScreen;
 - (void) startAnimation;
 - (void) setVSync: (BOOL) sync forFullscreen: (BOOL) fullscreen;
 

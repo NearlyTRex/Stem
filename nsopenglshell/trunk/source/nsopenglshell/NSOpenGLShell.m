@@ -17,7 +17,7 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
   
-  Alex Diener adiener@sacredsoftware.net
+  Alex Diener alex@ludobloom.com
 */
 
 #include "nsopenglshell/NSOpenGLShell.h"
@@ -32,8 +32,10 @@
 #include <sys/stat.h>
 
 #import "nsopenglshell/NSOpenGLShellApplication.h"
+#import "nsopenglshell/NSOpenGLShellView.h"
 #include "shell/Shell.h"
 #include "shell/ShellBatteryInfo.h"
+#include "shell/ShellCallbacks.h"
 #include "shell/ShellThreads.h"
 
 @interface NSOpenGLShellTimerTarget : NSObject {
@@ -79,18 +81,22 @@ void Shell_mainLoop() {
 }
 
 void Shell_redisplay() {
-	[(NSOpenGLShellApplication *) [NSApplication sharedApplication] redisplayPosted];
+	[[(NSOpenGLShellApplication *) [NSApplication sharedApplication] view] redisplayPosted];
 }
 
 bool Shell_isFullScreen() {
-	return [(NSOpenGLShellApplication *) [NSApplication sharedApplication] isFullScreen];
+	return [[(NSOpenGLShellApplication *) [NSApplication sharedApplication] view] isInFullScreenMode];
 }
 
-bool Shell_setFullScreen(bool fullScreen) {
-	if (fullScreen != Shell_isFullScreen()) {
-		[(NSOpenGLShellApplication *) [NSApplication sharedApplication] toggleFullScreen];
+bool Shell_enterFullScreen(unsigned int displayIndex) {
+	if (displayIndex >= [[NSScreen screens] count]) {
+		displayIndex = Shell_getDisplayIndexFromWindow();
 	}
-	return true;
+	return [[(NSOpenGLShellApplication *) [NSApplication sharedApplication] view] enterFullScreen: [[NSScreen screens] objectAtIndex: displayIndex]];
+}
+
+void Shell_exitFullScreen() {
+	[[(NSOpenGLShellApplication *) [NSApplication sharedApplication] view] exitFullScreen];
 }
 
 double Shell_getCurrentTime() {
@@ -196,15 +202,40 @@ float Shell_getBatteryLevel() {
 	return batteryLevel;
 }
 
-void Shell_getMainScreenSize(unsigned int * outWidth, unsigned int * outHeight) {
-	NSRect bounds;
+unsigned int Shell_getDisplayCount() {
+	return [[NSScreen screens] count];
+}
+
+unsigned int Shell_getDisplayIndexFromWindow() {
+	NSScreen * screen = [[(NSOpenGLShellApplication *) [NSApplication sharedApplication] window] screen];
+	NSUInteger screenIndex = [[NSScreen screens] indexOfObject: screen];
 	
-	bounds = [[NSScreen mainScreen] frame];
-	if (outWidth != NULL) {
-		*outWidth = bounds.size.width;
+	if (screenIndex == NSNotFound) {
+		NSUInteger screenIndex = [[NSScreen screens] indexOfObject: [NSScreen mainScreen]];
+		if (screenIndex == NSNotFound) {
+			return 0;
+		}
 	}
-	if (outHeight != NULL) {
-		*outHeight = bounds.size.height;
+	return screenIndex;
+}
+
+void Shell_getDisplayBounds(unsigned int displayIndex, int * outOffsetX, int * outOffsetY, unsigned int * outWidth, unsigned int * outHeight) {
+	NSArray * screens = [NSScreen screens];
+	
+	if (displayIndex < [screens count]) {
+		NSRect bounds = [[screens objectAtIndex: displayIndex] frame];
+		if (outOffsetX != NULL) {
+			*outOffsetX = bounds.origin.x;
+		}
+		if (outOffsetY != NULL) {
+			*outOffsetY = bounds.origin.y;
+		}
+		if (outWidth != NULL) {
+			*outWidth = bounds.size.width;
+		}
+		if (outHeight != NULL) {
+			*outHeight = bounds.size.height;
+		}
 	}
 }
 
@@ -442,5 +473,5 @@ bool Shell_tryWaitSemaphore(ShellSemaphore semaphore) {
 }
 
 void NSOpenGLShell_setVSync(bool sync, bool fullscreen) {
-	[(NSOpenGLShellApplication *) [NSApplication sharedApplication] setVSync: sync forFullscreen: fullscreen];
+	[[(NSOpenGLShellApplication *) [NSApplication sharedApplication] view] setVSync: sync forFullscreen: fullscreen];
 }

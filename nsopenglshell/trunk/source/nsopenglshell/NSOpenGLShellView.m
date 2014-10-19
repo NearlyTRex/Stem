@@ -17,15 +17,13 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
   
-  Alex Diener adiener@sacredsoftware.net
+  Alex Diener alex@ludobloom.com
 */
 
 #import "nsopenglshell/NSOpenGLShellView.h"
+#include "nsopenglshell/NSOpenGLShellCallbacks.h"
 #import "nsopenglshell/NSOpenGLShellApplication.h"
-#include "nsopenglshell/NSOpenGLShell.h"
 #include "glgraphics/GLGraphics.h"
-#include "nsopenglshell/NSOpenGLTarget.h"
-#include "shell/Target.h"
 #include "shell/Shell.h"
 #include "shell/ShellKeyCodes.h"
 #include <OpenGL/glu.h>
@@ -94,6 +92,8 @@
 		[self setVSync: vsyncWindow];
 		
 		animationTimer = nil;
+		
+		[[NSNotificationCenter defaultCenter] addObserver: self selector: @selector(frameDidChange:) name: NSViewFrameDidChangeNotification object: nil];
 	}
 	[pixelFormat release];
 	return self;
@@ -101,18 +101,29 @@
 
 - (void) dealloc {
 	[self stopAnimation];
+	[[NSNotificationCenter defaultCenter] removeObserver: self];
 	[super dealloc];
 }
 
-- (void) toggleFullScreen {
-	if ([self isInFullScreenMode]) {
-		[self exitFullScreenModeWithOptions: nil];
-		[self setVSync: vsyncWindow];
-	} else {
-		[self enterFullScreenMode: [[self window] screen] withOptions: [NSDictionary dictionaryWithObjectsAndKeys: [NSNumber numberWithBool: NO], NSFullScreenModeAllScreens, nil]];
-		[self setVSync: vsyncFullscreen];
+- (bool) enterFullScreen: (NSScreen *) screen {
+	BOOL success = YES;
+	
+	if (![self isInFullScreenMode]) {
+		success = [self enterFullScreenMode: screen withOptions: [NSDictionary dictionaryWithObjectsAndKeys: [NSNumber numberWithBool: NO], NSFullScreenModeAllScreens, nil]];
+		if (success) {
+			[self setVSync: vsyncFullscreen];
+		}
+		[[self window] makeFirstResponder: self];
 	}
-	[[self window] makeFirstResponder: self];
+	return success;
+}
+
+- (void) exitFullScreen {
+	if ([self isInFullScreenMode]) {
+		[self exitFullScreenModeWithOptions: [NSDictionary dictionaryWithObjectsAndKeys: [NSNumber numberWithBool: NO], NSFullScreenModeAllScreens, nil]];
+		[self setVSync: vsyncWindow];
+		[[self window] makeFirstResponder: self];
+	}
 }
 
 - (void) setVSync: (BOOL) sync forFullscreen: (BOOL) fullscreen {
@@ -131,29 +142,37 @@
 }
 
 - (void) mouseMoved: (NSEvent *) event {
-	if (g_mouseDeltaMode) {
-		Target_mouseMoved([event deltaX], -[event deltaY]);
-	} else {
-		Target_mouseMoved([event locationInWindow].x, [self frame].size.height - [event locationInWindow].y);
+	if (mouseMovedCallback != NULL) {
+		if (g_mouseDeltaMode) {
+			mouseMovedCallback([event deltaX], -[event deltaY]);
+		} else {
+			mouseMovedCallback([event locationInWindow].x, [self frame].size.height - [event locationInWindow].y);
+		}
 	}
 }
 
 - (void) mouseDown: (NSEvent *) event {
 	buttonMask |= 1 << [event buttonNumber];
-	Target_mouseDown([event buttonNumber], [event locationInWindow].x, [self frame].size.height - [event locationInWindow].y);
+	if (mouseDownCallback != NULL) {
+		mouseDownCallback([event buttonNumber], [event locationInWindow].x, [self frame].size.height - [event locationInWindow].y);
+	}
 }
 
 - (void) mouseDragged: (NSEvent *) event {
-	if (g_mouseDeltaMode) {
-		Target_mouseDragged(buttonMask, [event deltaX], -[event deltaY]);
-	} else {
-		Target_mouseDragged(buttonMask, [event locationInWindow].x, [self frame].size.height - [event locationInWindow].y);
+	if (mouseDraggedCallback != NULL) {
+		if (g_mouseDeltaMode) {
+			mouseDraggedCallback(buttonMask, [event deltaX], -[event deltaY]);
+		} else {
+			mouseDraggedCallback(buttonMask, [event locationInWindow].x, [self frame].size.height - [event locationInWindow].y);
+		}
 	}
 }
 
 - (void) mouseUp: (NSEvent *) event {
 	buttonMask &= ~(1 << [event buttonNumber]);
-	Target_mouseUp([event buttonNumber], [event locationInWindow].x, [self frame].size.height - [event locationInWindow].y);
+	if (mouseUpCallback != NULL) {
+		mouseUpCallback([event buttonNumber], [event locationInWindow].x, [self frame].size.height - [event locationInWindow].y);
+	}
 }
 
 - (void) rightMouseDown: (NSEvent *) event {
@@ -178,6 +197,56 @@
 
 - (void) otherMouseUp: (NSEvent *) event {
 	[self mouseUp: event];
+}
+
+#define COLUMN_WIDTH 20
+#define ROW_HEIGHT 20
+
+- (void) scrollWheel: (NSEvent *) event {
+	int deltaX = 0, deltaY = 0;
+	
+	if ([event phase] == NSEventPhaseNone && [event momentumPhase] == NSEventPhaseNone) {
+		if ([event scrollingDeltaX] > 0) {
+			deltaX = -1;
+		} else if ([event scrollingDeltaX] < 0) {
+			deltaX = 1;
+		}
+		if ([event scrollingDeltaY] > 0) {
+			deltaY = -1;
+		} else if ([event scrollingDeltaY] < 0) {
+			deltaY = 1;
+		}
+		
+	} else {
+		if ([event phase] == NSEventPhaseBegan || [event phase] == NSEventPhaseEnded) {
+			coalescedScrollDeltaX = coalescedScrollDeltaY = 0.0;
+		}
+		
+		if ([event phase] >= NSEventPhaseBegan && [event phase] <= NSEventPhaseEnded && [event momentumPhase] == NSEventPhaseNone) {
+			CGFloat fdeltaX = [event scrollingDeltaX];
+			CGFloat fdeltaY = [event scrollingDeltaY];
+			if (![event hasPreciseScrollingDeltas]) {
+				fdeltaX *= COLUMN_WIDTH;
+				fdeltaY *= ROW_HEIGHT;
+			}
+			coalescedScrollDeltaX -= fdeltaX;
+			coalescedScrollDeltaY -= fdeltaY;
+			
+			deltaX = coalescedScrollDeltaX / ROW_HEIGHT;
+			if (deltaX != 0) {
+				coalescedScrollDeltaX = coalescedScrollDeltaX - deltaX * COLUMN_WIDTH;
+			}
+			
+			deltaY = coalescedScrollDeltaY / ROW_HEIGHT;
+			if (deltaY != 0) {
+				coalescedScrollDeltaY = coalescedScrollDeltaY - deltaY * ROW_HEIGHT;
+			}
+		}
+	}
+	
+	if (scrollWheelCallback != NULL && (deltaX != 0 || deltaY != 0)) {
+		scrollWheelCallback(deltaX, deltaY);
+	}
 }
 
 static unsigned int NSEventKeyCodeToShellKeyCode(unsigned short keyCode) {
@@ -400,14 +469,18 @@ static unsigned int NSEventKeyModifiersToShellKeyModifiers(NSUInteger modifiers)
 }
 
 - (void) keyDown: (NSEvent *) event {
-	NSString * characters;
-	
-	characters = [event characters];
-	Target_keyDown([characters length] > 0 ? [characters characterAtIndex: 0] : 0, NSEventKeyCodeToShellKeyCode([event keyCode]), NSEventKeyModifiersToShellKeyModifiers([event modifierFlags]));
+	if (keyDownCallback != NULL) {
+		NSString * characters;
+		
+		characters = [event characters];
+		keyDownCallback([characters length] > 0 ? [characters characterAtIndex: 0] : 0, NSEventKeyCodeToShellKeyCode([event keyCode]), NSEventKeyModifiersToShellKeyModifiers([event modifierFlags]));
+	}
 }
 
 - (void) keyUp: (NSEvent *) event {
-	Target_keyUp(NSEventKeyCodeToShellKeyCode([event keyCode]), NSEventKeyModifiersToShellKeyModifiers([event modifierFlags]));
+	if (keyUpCallback != NULL) {
+		keyUpCallback(NSEventKeyCodeToShellKeyCode([event keyCode]), NSEventKeyModifiersToShellKeyModifiers([event modifierFlags]));
+	}
 }
 
 - (void) flagsChanged: (NSEvent *) event {
@@ -416,32 +489,59 @@ static unsigned int NSEventKeyModifiersToShellKeyModifiers(NSUInteger modifiers)
 	newModifierMask = NSEventKeyModifiersToShellKeyModifiers([event modifierFlags]);
 	if (newModifierMask != modifierMask) {
 		if ((newModifierMask & MODIFIER_SHIFT_BIT) && !(modifierMask & MODIFIER_SHIFT_BIT)) {
-			Target_keyDown(0, KEYBOARD_LEFT_SHIFT, modifierMask);
+			if (keyDownCallback != NULL) {
+				keyDownCallback(0, KEYBOARD_LEFT_SHIFT, modifierMask);
+			}
 		} else if (!(newModifierMask & MODIFIER_SHIFT_BIT) && (modifierMask & MODIFIER_SHIFT_BIT)) {
-			Target_keyUp(KEYBOARD_LEFT_SHIFT, modifierMask);
+			if (keyUpCallback != NULL) {
+				keyUpCallback(KEYBOARD_LEFT_SHIFT, modifierMask);
+			}
 		}
+		
 		if ((newModifierMask & MODIFIER_CONTROL_BIT) && !(modifierMask & MODIFIER_CONTROL_BIT)) {
-			Target_keyDown(0, KEYBOARD_LEFT_CONTROL, modifierMask);
+			if (keyDownCallback != NULL) {
+				keyDownCallback(0, KEYBOARD_LEFT_CONTROL, modifierMask);
+			}
 		} else if (!(newModifierMask & MODIFIER_CONTROL_BIT) && (modifierMask & MODIFIER_CONTROL_BIT)) {
-			Target_keyUp(KEYBOARD_LEFT_CONTROL, modifierMask);
+			if (keyUpCallback != NULL) {
+				keyUpCallback(KEYBOARD_LEFT_CONTROL, modifierMask);
+			}
 		}
+		
 		if ((newModifierMask & MODIFIER_ALT_BIT) && !(modifierMask & MODIFIER_ALT_BIT)) {
-			Target_keyDown(0, KEYBOARD_LEFT_ALT, modifierMask);
+			if (keyDownCallback != NULL) {
+				keyDownCallback(0, KEYBOARD_LEFT_ALT, modifierMask);
+			}
 		} else if (!(newModifierMask & MODIFIER_ALT_BIT) && (modifierMask & MODIFIER_ALT_BIT)) {
-			Target_keyUp(KEYBOARD_LEFT_ALT, modifierMask);
+			if (keyUpCallback != NULL) {
+				keyUpCallback(KEYBOARD_LEFT_ALT, modifierMask);
+			}
 		}
+		
 		if ((newModifierMask & MODIFIER_COMMAND_BIT) && !(modifierMask & MODIFIER_COMMAND_BIT)) {
-			Target_keyDown(0, KEYBOARD_LEFT_GUI, modifierMask);
+			if (keyDownCallback != NULL) {
+				keyDownCallback(0, KEYBOARD_LEFT_GUI, modifierMask);
+			}
 		} else if (!(newModifierMask & MODIFIER_COMMAND_BIT) && (modifierMask & MODIFIER_COMMAND_BIT)) {
-			Target_keyUp(KEYBOARD_LEFT_GUI, modifierMask);
+			if (keyUpCallback != NULL) {
+				keyUpCallback(KEYBOARD_LEFT_GUI, modifierMask);
+			}
 		}
+		
 		if ((newModifierMask & MODIFIER_CAPS_LOCK_BIT) && !(modifierMask & MODIFIER_CAPS_LOCK_BIT)) {
-			Target_keyDown(0, KEYBOARD_CAPS_LOCK, modifierMask);
+			if (keyDownCallback != NULL) {
+				keyDownCallback(0, KEYBOARD_CAPS_LOCK, modifierMask);
+			}
 		} else if (!(newModifierMask & MODIFIER_CAPS_LOCK_BIT) && (modifierMask & MODIFIER_CAPS_LOCK_BIT)) {
-			Target_keyUp(KEYBOARD_CAPS_LOCK, modifierMask);
+			if (keyUpCallback != NULL) {
+				keyUpCallback(KEYBOARD_CAPS_LOCK, modifierMask);
+			}
 		}
+		
 		modifierMask = newModifierMask;
-		Target_keyModifiersChanged(modifierMask);
+		if (keyModifiersChangedCallback != NULL) {
+			keyModifiersChangedCallback(modifierMask);
+		}
 	}
 }
 
@@ -488,7 +588,7 @@ static unsigned int NSEventKeyModifiersToShellKeyModifiers(NSUInteger modifiers)
 	
 	[[self openGLContext] makeCurrentContext];
 	
-	if (Target_draw()) {
+	if (drawCallback != NULL && drawCallback()) {
 		[[self openGLContext] flushBuffer];
 	}
 	
@@ -521,8 +621,14 @@ static unsigned int NSEventKeyModifiersToShellKeyModifiers(NSUInteger modifiers)
 		lastWidth = bounds.size.width;
 		lastHeight = bounds.size.height;
 		glViewport(0, 0, lastWidth, lastHeight);
-		Target_resized(lastWidth, lastHeight);
+		if (resizeCallback != NULL) {
+			resizeCallback(lastWidth, lastHeight);
+		}
 	}
+}
+
+- (void) frameDidChange: (NSNotification *) notification {
+	[[self openGLContext] update];
 }
 
 - (BOOL) isFlipped {

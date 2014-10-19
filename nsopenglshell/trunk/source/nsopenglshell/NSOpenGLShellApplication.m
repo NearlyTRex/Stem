@@ -17,12 +17,14 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
   
-  Alex Diener adiener@sacredsoftware.net
+  Alex Diener alex@ludobloom.com
 */
 
 #import "nsopenglshell/NSOpenGLShellApplication.h"
+#include "nsopenglshell/NSOpenGLShellCallbacks.h"
 #import "nsopenglshell/NSOpenGLShellView.h"
-#include "shell/Target.h"
+#include "nsopenglshell/NSOpenGLTarget.h"
+#include "shell/ShellCallbacks.h"
 
 int g_argc = 0;
 const char ** g_argv = NULL;
@@ -50,7 +52,9 @@ extern bool mainLoopCalled;
 	[window setContentView: view];
 	[window setInitialFirstResponder: view];
 	
-	Target_resized([view bounds].size.width, [view bounds].size.height);
+	if (resizeCallback != NULL) {
+		resizeCallback([view bounds].size.width, [view bounds].size.height);
+	}
 	Target_init();
 	[view initCalled];
 	[view displayIfNeeded];
@@ -66,14 +70,14 @@ extern bool mainLoopCalled;
 }
 
 - (void) applicationWillResignActive: (NSNotification *) notification {
-	if (![window isMiniaturized]) {
-		Target_backgrounded();
+	if (![window isMiniaturized] && backgroundedCallback != NULL) {
+		backgroundedCallback();
 	}
 }
 
 - (void) applicationDidBecomeActive: (NSNotification *) notification {
-	if (![window isMiniaturized]) {
-		Target_foregrounded();
+	if (![window isMiniaturized] && foregroundedCallback != NULL) {
+		foregroundedCallback();
 	}
 }
 
@@ -97,20 +101,12 @@ extern bool mainLoopCalled;
 	}
 }
 
-- (void) redisplayPosted {
-	[view redisplayPosted];
+- (NSWindow *) window {
+	return window;
 }
 
-- (bool) isFullScreen {
-	return [view isInFullScreenMode];
-}
-
-- (void) toggleFullScreen {
-	[view toggleFullScreen];
-}
-
-- (void) setVSync: (BOOL) sync forFullscreen: (BOOL) fullscreen {
-	[view setVSync: sync forFullscreen: fullscreen];
+- (NSOpenGLShellView *) view {
+	return view;
 }
 
 - (BOOL) applicationShouldTerminateAfterLastWindowClosed: (NSApplication *) application {
@@ -118,14 +114,14 @@ extern bool mainLoopCalled;
 }
 
 - (void) windowWillMiniaturize: (NSNotification *) notification {
-	if ([self isActive]) {
-		Target_backgrounded();
+	if ([self isActive] && backgroundedCallback != NULL) {
+		backgroundedCallback();
 	}
 }
 
 - (void) windowDidDeminiaturize: (NSNotification *) notification {
-	if ([self isActive]) {
-		Target_foregrounded();
+	if ([self isActive] && foregroundedCallback != NULL) {
+		foregroundedCallback();
 	}
 }
 

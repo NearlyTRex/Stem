@@ -86,7 +86,7 @@ LINK_ORDER = \
 PROJECT_LIBRARY_DEPENDENCIES_testharness = library
 STEM_LIBRARY_DEPENDENCIES = \
 	glgraphics/1.2.2_noglew \
-	shell/1.2.0
+	shell/2.0.0
 THIRDPARTY_LIBRARY_DEPENDENCIES = 
 
 #Per-target source file lists
@@ -95,6 +95,7 @@ SOURCES_library = \
 	source/${PROJECT_NAME}/main.m \
 	source/${PROJECT_NAME}/NSOpenGLShell.m \
 	source/${PROJECT_NAME}/NSOpenGLShellApplication.m \
+	source/${PROJECT_NAME}/NSOpenGLShellCallbacks.m \
 	source/${PROJECT_NAME}/NSOpenGLShellView.m
 
 SOURCES_testharness = \
