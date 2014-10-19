@@ -30,9 +30,9 @@ PROJECT_NAME = shell
 INCLUDES = \
 	source/${PROJECT_NAME}/Shell.h \
 	source/${PROJECT_NAME}/ShellBatteryInfo.h \
+	source/${PROJECT_NAME}/ShellCallbacks.h \
 	source/${PROJECT_NAME}/ShellKeyCodes.h \
-	source/${PROJECT_NAME}/ShellThreads.h \
-	source/${PROJECT_NAME}/Target.h
+	source/${PROJECT_NAME}/ShellThreads.h
 
 define create_directory_target_template #(dir)
 .LOW_RESOLUTION_TIME: $1

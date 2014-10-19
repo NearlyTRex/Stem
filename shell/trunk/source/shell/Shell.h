@@ -17,7 +17,7 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
   
-  Alex Diener adiener@sacredsoftware.net
+  Alex Diener alex@ludobloom.com
 */
 
 #ifndef __Shell_H__
@@ -45,14 +45,6 @@ void Shell_mainLoop();
 /** Queues a call to Target_draw() on the next vertical blank. */
 void Shell_redisplay();
 
-/** Returns true if the shell is running in full screen mode, or false if not. */
-bool Shell_isFullScreen();
-
-/** Attempts to set the requested screen mode, if different from the current screen mode. The return
-    value indicates success; in some situations, it may not be possible to change to the requested
-    screen mode, in which case Shell_setFullScreen returns false. */
-bool Shell_setFullScreen(bool fullScreen);
-
 /** Returns the current time in seconds as a high-resolution monotonically increasing value.
     The starting time is unspecified and not meaningful; this function is intended only for
     measuring intervals. */
@@ -71,9 +63,28 @@ const char * Shell_getResourcePath();
     returned path may be a visible location like the user's home directory. */
 const char * Shell_getSupportPath(const char * subdirectory);
 
-/** Returns the width and height of the main screen in outWidth and outHeight. If you're only
-    interested in size on one axis, you can safely pass NULL for the other one. */
-void Shell_getMainScreenSize(unsigned int * outWidth, unsigned int * outHeight);
+/** Returns the number of logical displays currently attached. */
+unsigned int Shell_getDisplayCount();
+
+/** Returns the index of the display containing the largest portion of the main window. */
+unsigned int Shell_getDisplayIndexFromWindow();
+
+/** Returns the offset and dimensions of the specified display. Pass NULL for any out parameters
+    you don't need returned. If displayIndex is greater than or equal to the return value of
+    Shell_getDisplayCount(), the out parameters will not be modified. Display index 0 is the
+    main display. */
+void Shell_getDisplayBounds(unsigned int displayIndex, int * outOffsetX, int * outOffsetY, unsigned int * outWidth, unsigned int * outHeight);
+
+/** Attempts to enter full screen mode on the specified display. Returns true if successful.
+    Unless the user has otherwise selected a specific display, it is recommended to pass the
+    return value of Shell_getDisplayIndexFromWindow() as displayIndex. */
+bool Shell_enterFullScreen(unsigned int displayIndex);
+
+/** Exits full screen mode. No effect if Shell_enterFullScreen has not been successfully called. */
+void Shell_exitFullScreen();
+
+/** Returns true if the shell is currently running in full screen mode. */
+bool Shell_isFullScreen();
 
 /** Sets up a periodic callback. Timer resolution is not in any way guaranteed and may vary
     by operating system and runtime conditions. The return value of this function can be
