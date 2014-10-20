@@ -15,7 +15,6 @@
 
 static unsigned int callbackCalls;
 static void * lastContext;
-static bool lastFullScreen;
 static double lastInterval;
 static bool lastRepeat;
 static void (* lastTimerCallback)(unsigned int timerID, void * timerContext);
@@ -23,10 +22,15 @@ static void * lastPtrArg;
 static unsigned int lastTimerID;
 static bool lastBoolArg;
 static int lastIntArg;
+static int lastUIntArg;
 static ShellThread lastShellThreadArg;
 static ShellMutex lastShellMutexArg;
 static int (* lastThreadCallback)(void * threadContext);
-static const char * lastSubdirectory;
+static const char * lastConstCharPtrArg;
+static int * lastOffsetXPtrArg;
+static int * lastOffsetYPtrArg;
+static unsigned int * lastWidthPtrArg;
+static unsigned int * lastHeightPtrArg;
 
 static bool boolReturnValue;
 static double doubleReturnValue;
@@ -48,10 +52,10 @@ static bool boolReturnTestCallback(void * context) {
 	return boolReturnValue;
 }
 
-static bool setFullScreenTestCallback(void * context, bool fullScreen) {
+static bool enterFullScreenTestCallback(void * context, unsigned int uintArg) {
 	callbackCalls++;
 	lastContext = context;
-	lastFullScreen = fullScreen;
+	lastUIntArg = uintArg;
 	return boolReturnValue;
 }
 
@@ -59,6 +63,12 @@ static double doubleReturnTestCallback(void * context) {
 	callbackCalls++;
 	lastContext = context;
 	return doubleReturnValue;
+}
+
+static unsigned int uintReturnTestCallback(void * context) {
+	callbackCalls++;
+	lastContext = context;
+	return uintReturnValue;
 }
 
 static const char * constCharPtrReturnTestCallback(void * context) {
@@ -70,7 +80,7 @@ static const char * constCharPtrReturnTestCallback(void * context) {
 static const char * getSupportPathTestCallback(void * context, const char * subdirectory) {
 	callbackCalls++;
 	lastContext = context;
-	lastSubdirectory = subdirectory;
+	lastConstCharPtrArg = subdirectory;
 	return constCharPtrReturnValue;
 }
 
@@ -112,6 +122,22 @@ static void intArgTestCallback(void * context, int intArg) {
 	callbackCalls++;
 	lastContext = context;
 	lastIntArg = intArg;
+}
+
+static void constCharPtrArgTestCallback(void * context, const char * constCharPtrArg) {
+	callbackCalls++;
+	lastContext = context;
+	lastConstCharPtrArg = constCharPtrArg;
+}
+
+static void getDisplayBoundsTestCallback(void * context, unsigned int displayIndex, int * outOffsetX, int * outOffsetY, unsigned int * outWidth, unsigned int * outHeight) {
+	callbackCalls++;
+	lastUIntArg = displayIndex;
+	lastOffsetXPtrArg = outOffsetX;
+	lastOffsetYPtrArg = outOffsetY;
+	lastWidthPtrArg = outWidth;
+	lastHeightPtrArg = outHeight;
+	lastContext = context;
 }
 
 static ShellThread createThreadTestCallback(void * context, int (* callback)(void * threadContext), void * threadContext) {
@@ -202,32 +228,6 @@ static void testIsFullScreen() {
 	TestCase_assert(lastContext == (void *) 0x4, "Expected 0x4 but got %p", lastContext);
 }
 
-static void testSetFullScreen() {
-	bool result;
-	
-	callbackCalls = 0;
-	lastContext = NULL;
-	result = Shell_setFullScreen(true);
-	TestCase_assert(result, "Expected true but got false");
-	
-	StubShellCallback_setFullScreen = setFullScreenTestCallback;
-	StubShell_callbackContext = (void *) 0x5;
-	boolReturnValue = true;
-	result = Shell_setFullScreen(true);
-	TestCase_assert(result, "Expected true but got false");
-	TestCase_assert(lastFullScreen, "Expected true but got false");
-	TestCase_assert(callbackCalls == 1, "Expected 1 but got %d", callbackCalls);
-	TestCase_assert(lastContext == (void *) 0x5, "Expected 0x5 but got %p", lastContext);
-	
-	StubShell_callbackContext = (void *) 0x6;
-	boolReturnValue = false;
-	result = Shell_setFullScreen(false);
-	TestCase_assert(!result, "Expected false but got true");
-	TestCase_assert(!lastFullScreen, "Expected false but got true");
-	TestCase_assert(callbackCalls == 2, "Expected 2 but got %d", callbackCalls);
-	TestCase_assert(lastContext == (void *) 0x6, "Expected 0x6 but got %p", lastContext);
-}
-
 #define MAX_DEVIATION_SECONDS 0.25
 
 static void testGetCurrentTime() {
@@ -294,7 +294,7 @@ static void testGetSupportPath() {
 	
 	callbackCalls = 0;
 	lastContext = NULL;
-	lastSubdirectory = NULL;
+	lastConstCharPtrArg = NULL;
 	result = Shell_getSupportPath(NULL);
 	TestCase_assert(!strcmp("", result), "Expected \"\" but got \"%s\"", result);
 	
@@ -305,7 +305,7 @@ static void testGetSupportPath() {
 	TestCase_assert(!strcmp("foo", result), "Expected \"foo\" but got \"%s\"", result);
 	TestCase_assert(callbackCalls == 1, "Expected 1 but got %d", callbackCalls);
 	TestCase_assert(lastContext == (void *) 0x9, "Expected 0x9 but got %p", lastContext);
-	TestCase_assert(!strcmp("bar", lastSubdirectory), "Expected \"bar\" but got \"%s\"", lastSubdirectory);
+	TestCase_assert(!strcmp("bar", lastConstCharPtrArg), "Expected \"bar\" but got \"%s\"", lastConstCharPtrArg);
 	
 	StubShell_callbackContext = (void *) 0xA;
 	constCharPtrReturnValue = "bar";
@@ -313,7 +313,7 @@ static void testGetSupportPath() {
 	TestCase_assert(!strcmp("bar", result), "Expected \"bar\" but got \"%s\"", result);
 	TestCase_assert(callbackCalls == 2, "Expected 2 but got %d", callbackCalls);
 	TestCase_assert(lastContext == (void *) 0xA, "Expected 0xA but got %p", lastContext);
-	TestCase_assert(!strcmp("baz", lastSubdirectory), "Expected \"baz\" but got \"%s\"", lastSubdirectory);
+	TestCase_assert(!strcmp("baz", lastConstCharPtrArg), "Expected \"baz\" but got \"%s\"", lastConstCharPtrArg);
 }
 
 static void testGetBatteryState() {
@@ -676,11 +676,137 @@ static void testUnlockMutex() {
 	TestCase_assert(lastShellMutexArg == (ShellMutex) 0x8, "Expected 0x8 but got %p", lastShellMutexArg);
 }
 
+static void testOpenURL() {
+	callbackCalls = 0;
+	lastContext = NULL;
+	
+	StubShellCallback_openURL = constCharPtrArgTestCallback;
+	StubShell_callbackContext = (void *) 0x2E;
+	Shell_openURL(NULL);
+	TestCase_assert(callbackCalls == 1, "Expected 1 but got %d", callbackCalls);
+	TestCase_assert(lastContext == (void *) 0x2E, "Expected 0x2E but got %p", lastContext);
+	TestCase_assert(lastConstCharPtrArg == NULL, "Expected NULL but got %p", lastConstCharPtrArg);
+	
+	StubShell_callbackContext = (void *) 0x2F;
+	Shell_openURL((const char *) 0x1);
+	TestCase_assert(callbackCalls == 2, "Expected 2 but got %d", callbackCalls);
+	TestCase_assert(lastContext == (void *) 0x2F, "Expected 0x2F but got %p", lastContext);
+	TestCase_assert(lastConstCharPtrArg == (const char *) 0x1, "Expected 0x1 but got %p", lastConstCharPtrArg);
+}
+
+static void testEnterFullScreen() {
+	bool result;
+	
+	callbackCalls = 0;
+	lastContext = NULL;
+	result = Shell_enterFullScreen(0);
+	TestCase_assert(result, "Expected true but got false");
+	
+	StubShellCallback_enterFullScreen = enterFullScreenTestCallback;
+	StubShell_callbackContext = (void *) 0x5;
+	boolReturnValue = true;
+	result = Shell_enterFullScreen(0);
+	TestCase_assert(result, "Expected true but got false");
+	TestCase_assert(lastUIntArg == 0, "Expected 0 but got %u", lastUIntArg);
+	TestCase_assert(callbackCalls == 1, "Expected 1 but got %d", callbackCalls);
+	TestCase_assert(lastContext == (void *) 0x5, "Expected 0x5 but got %p", lastContext);
+	
+	StubShell_callbackContext = (void *) 0x6;
+	boolReturnValue = false;
+	result = Shell_enterFullScreen(1);
+	TestCase_assert(!result, "Expected false but got true");
+	TestCase_assert(lastUIntArg == 1, "Expected 1 but got %u", lastUIntArg);
+	TestCase_assert(callbackCalls == 2, "Expected 2 but got %d", callbackCalls);
+	TestCase_assert(lastContext == (void *) 0x6, "Expected 0x6 but got %p", lastContext);
+}
+
+static void testExitFullScreen() {
+	callbackCalls = 0;
+	lastContext = NULL;
+	StubShellCallback_exitFullScreen = voidTestCallback;
+	StubShell_callbackContext = (void *) 0x30;
+	Shell_exitFullScreen();
+	TestCase_assert(callbackCalls == 1, "Expected 1 but got %d", callbackCalls);
+	TestCase_assert(lastContext == (void *) 0x30, "Expected 0x30 but got %p", lastContext);
+}
+
+static void testGetDisplayCount() {
+	unsigned int result;
+	
+	callbackCalls = 0;
+	lastContext = NULL;
+	result = Shell_getDisplayCount();
+	TestCase_assert(result == 0, "Expected 0 but got %u", result);
+	
+	StubShellCallback_getDisplayCount = uintReturnTestCallback;
+	StubShell_callbackContext = (void *) 0x31;
+	uintReturnValue = 1;
+	result = Shell_getDisplayCount();
+	TestCase_assert(result == 1, "Expected 1 but got %u", result);
+	TestCase_assert(callbackCalls == 1, "Expected 1 but got %d", callbackCalls);
+	TestCase_assert(lastContext == (void *) 0x31, "Expected 0x31 but got %p", lastContext);
+	
+	StubShell_callbackContext = (void *) 0x32;
+	uintReturnValue = 2;
+	result = Shell_getDisplayCount();
+	TestCase_assert(result == 2, "Expected 2 but got %u", result);
+	TestCase_assert(callbackCalls == 2, "Expected 2 but got %d", callbackCalls);
+	TestCase_assert(lastContext == (void *) 0x32, "Expected 0x32 but got %p", lastContext);
+}
+
+static void testGetDisplayIndexFromWindow() {
+	unsigned int result;
+	
+	callbackCalls = 0;
+	lastContext = NULL;
+	result = Shell_getDisplayIndexFromWindow();
+	TestCase_assert(result == 0, "Expected 0 but got %u", result);
+	
+	StubShellCallback_getDisplayIndexFromWindow = uintReturnTestCallback;
+	StubShell_callbackContext = (void *) 0x33;
+	uintReturnValue = 1;
+	result = Shell_getDisplayIndexFromWindow();
+	TestCase_assert(result == 1, "Expected 1 but got %u", result);
+	TestCase_assert(callbackCalls == 1, "Expected 1 but got %d", callbackCalls);
+	TestCase_assert(lastContext == (void *) 0x33, "Expected 0x33 but got %p", lastContext);
+	
+	StubShell_callbackContext = (void *) 0x34;
+	uintReturnValue = 2;
+	result = Shell_getDisplayIndexFromWindow();
+	TestCase_assert(result == 2, "Expected 2 but got %u", result);
+	TestCase_assert(callbackCalls == 2, "Expected 2 but got %d", callbackCalls);
+	TestCase_assert(lastContext == (void *) 0x34, "Expected 0x34 but got %p", lastContext);
+}
+
+static void testGetDisplayBounds() {
+	callbackCalls = 0;
+	lastContext = NULL;
+	StubShellCallback_getDisplayBounds = getDisplayBoundsTestCallback;
+	StubShell_callbackContext = (void *) 0x35;
+	Shell_getDisplayBounds(1, (int *) 0x2, (int *) 0x3, (unsigned int *) 0x4, (unsigned int *) 0x5);
+	TestCase_assert(callbackCalls == 1, "Expected 1 but got %d", callbackCalls);
+	TestCase_assert(lastContext == (void *) 0x35, "Expected 0x35 but got %p", lastContext);
+	TestCase_assert(lastUIntArg == 1, "Expected 1 but got %u", lastUIntArg);
+	TestCase_assert(lastOffsetXPtrArg == (int *) 0x2, "Expected 0x2 but got %p", lastOffsetXPtrArg);
+	TestCase_assert(lastOffsetYPtrArg == (int *) 0x3, "Expected 0x3 but got %p", lastOffsetYPtrArg);
+	TestCase_assert(lastWidthPtrArg == (unsigned int *) 0x4, "Expected 0x4 but got %p", lastWidthPtrArg);
+	TestCase_assert(lastHeightPtrArg == (unsigned int *) 0x5, "Expected 0x5 but got %p", lastHeightPtrArg);
+	
+	StubShell_callbackContext = (void *) 0x36;
+	Shell_getDisplayBounds(6, (int *) 0x7, (int *) 0x8, (unsigned int *) 0x9, (unsigned int *) 0xA);
+	TestCase_assert(callbackCalls == 2, "Expected 2 but got %d", callbackCalls);
+	TestCase_assert(lastContext == (void *) 0x36, "Expected 0x36 but got %p", lastContext);
+	TestCase_assert(lastUIntArg == 6, "Expected 1 but got %u", lastUIntArg);
+	TestCase_assert(lastOffsetXPtrArg == (int *) 0x7, "Expected 0x7 but got %p", lastOffsetXPtrArg);
+	TestCase_assert(lastOffsetYPtrArg == (int *) 0x8, "Expected 0x8 but got %p", lastOffsetYPtrArg);
+	TestCase_assert(lastWidthPtrArg == (unsigned int *) 0x9, "Expected 0x9 but got %p", lastWidthPtrArg);
+	TestCase_assert(lastHeightPtrArg == (unsigned int *) 0xA, "Expected 0xA but got %p", lastHeightPtrArg);
+}
+
 TEST_SUITE(StubShellTest,
            testMainLoop,
            testRedisplay,
            testIsFullScreen,
-           testSetFullScreen,
            testGetCurrentTime,
            testGetResourcePath,
            testGetSupportPath,
@@ -700,4 +826,10 @@ TEST_SUITE(StubShellTest,
            testDisposeMutex,
            testLockMutex,
            testTryLockMutex,
-           testUnlockMutex)
+           testUnlockMutex,
+           testOpenURL,
+           testEnterFullScreen,
+           testExitFullScreen,
+           testGetDisplayCount,
+           testGetDisplayIndexFromWindow,
+           testGetDisplayBounds)

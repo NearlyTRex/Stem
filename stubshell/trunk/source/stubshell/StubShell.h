@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2013 Alex Diener
+  Copyright (c) 2014 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -17,11 +17,14 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
   
-  Alex Diener adiener@sacredsoftware.net
+  Alex Diener alex@ludobloom.com
 */
 
-#ifndef __STUBSHELL_H__
-#define __STUBSHELL_H__
+#ifndef __StubShell_H__
+#define __StubShell_H__
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include "shell/ShellBatteryInfo.h"
 #include "shell/ShellThreads.h"
@@ -35,10 +38,14 @@ extern void * StubShell_callbackContext;
 extern void (* StubShellCallback_mainLoop)(void * context);
 extern void (* StubShellCallback_redisplay)(void * context);
 extern bool (* StubShellCallback_isFullScreen)(void * context);
-extern bool (* StubShellCallback_setFullScreen)(void * context, bool fullScreen);
+extern bool (* StubShellCallback_enterFullScreen)(void * context, unsigned int displayIndex);
+extern void (* StubShellCallback_exitFullScreen)(void * context);
 extern double (* StubShellCallback_getCurrentTime)(void * context);
 extern const char * (* StubShellCallback_getResourcePath)(void * context);
 extern const char * (* StubShellCallback_getSupportPath)(void * context, const char * subdirectory);
+extern unsigned int (* StubShellCallback_getDisplayCount)(void * context);
+extern unsigned int (* StubShellCallback_getDisplayIndexFromWindow)(void * context);
+extern void (* StubShellCallback_getDisplayBounds)(void * context, unsigned int displayIndex, int * outOffsetX, int * outOffsetY, unsigned int * outWidth, unsigned int * outHeight);
 extern enum ShellBatteryState (* StubShellCallback_getBatteryState)(void * context);
 extern float (* StubShellCallback_getBatteryLevel)(void * context);
 extern unsigned int (* StubShellCallback_setTimer)(void * context, double interval, bool repeat, void (* callback)(unsigned int timerID, void * timerContext), void * timerContext);
@@ -47,6 +54,7 @@ extern void (* StubShellCallback_setCursorVisible)(void * context, bool visible)
 extern void (* StubShellCallback_hideCursorUntilMouseMoves)(void * context);
 extern void (* StubShellCallback_setCursor)(void * context, int cursor);
 extern void (* StubShellCallback_setMouseDeltaMode)(void * context, bool deltaMode);
+extern void (* StubShellCallback_openURL)(void * context, const char * url);
 extern ShellThread (* StubShellCallback_createThread)(void * context, int (* threadFunction)(void * context), void * threadContext);
 extern void (* StubShellCallback_exitThread)(void * context, int statusCode);
 extern int (* StubShellCallback_joinThread)(void * context, ShellThread thread);
@@ -57,4 +65,7 @@ extern void (* StubShellCallback_lockMutex)(void * context, ShellMutex mutex);
 extern bool (* StubShellCallback_tryLockMutex)(void * context, ShellMutex mutex);
 extern void (* StubShellCallback_unlockMutex)(void * context, ShellMutex mutex);
 
+#ifdef __cplusplus
+}
+#endif
 #endif

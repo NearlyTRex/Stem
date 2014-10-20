@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2013 Alex Diener
+  Copyright (c) 2014 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -17,7 +17,7 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
   
-  Alex Diener adiener@sacredsoftware.net
+  Alex Diener alex@ludobloom.com
 */
 
 #include "shell/Shell.h"
@@ -39,10 +39,14 @@ void * StubShell_callbackContext = NULL;
 void (* StubShellCallback_mainLoop)(void * context) = NULL;
 void (* StubShellCallback_redisplay)(void * context) = NULL;
 bool (* StubShellCallback_isFullScreen)(void * context) = NULL;
-bool (* StubShellCallback_setFullScreen)(void * context, bool fullScreen) = NULL;
+bool (* StubShellCallback_enterFullScreen)(void * context, unsigned int displayIndex) = NULL;
+void (* StubShellCallback_exitFullScreen)(void * context) = NULL;
 double (* StubShellCallback_getCurrentTime)(void * context) = NULL;
 const char * (* StubShellCallback_getResourcePath)(void * context) = NULL;
 const char * (* StubShellCallback_getSupportPath)(void * context, const char * subdirectory) = NULL;
+unsigned int (* StubShellCallback_getDisplayCount)(void * context) = NULL;
+unsigned int (* StubShellCallback_getDisplayIndexFromWindow)(void * context) = NULL;
+void (* StubShellCallback_getDisplayBounds)(void * context, unsigned int displayIndex, int * outOffsetX, int * outOffsetY, unsigned int * outWidth, unsigned int * outHeight) = NULL;
 enum ShellBatteryState (* StubShellCallback_getBatteryState)(void * context) = NULL;
 float (* StubShellCallback_getBatteryLevel)(void * context) = NULL;
 unsigned int (* StubShellCallback_setTimer)(void * context, double interval, bool repeat, void (* callback)(unsigned int timerID, void * timerContext), void * timerContext) = NULL;
@@ -51,6 +55,7 @@ void (* StubShellCallback_setCursorVisible)(void * context, bool visible) = NULL
 void (* StubShellCallback_hideCursorUntilMouseMoves)(void * context) = NULL;
 void (* StubShellCallback_setCursor)(void * context, int cursor) = NULL;
 void (* StubShellCallback_setMouseDeltaMode)(void * context, bool deltaMode) = NULL;
+void (* StubShellCallback_openURL)(void * context, const char * url) = NULL;
 ShellThread (* StubShellCallback_createThread)(void * context, int (* threadFunction)(void * context), void * threadContext) = NULL;
 void (* StubShellCallback_exitThread)(void * context, int statusCode) = NULL;
 int (* StubShellCallback_joinThread)(void * context, ShellThread thread) = NULL;
@@ -80,11 +85,17 @@ bool Shell_isFullScreen() {
 	return false;
 }
 
-bool Shell_setFullScreen(bool fullScreen) {
-	if (StubShellCallback_setFullScreen != NULL) {
-		return StubShellCallback_setFullScreen(StubShell_callbackContext, fullScreen);
+bool Shell_enterFullScreen(unsigned int displayIndex) {
+	if (StubShellCallback_enterFullScreen != NULL) {
+		return StubShellCallback_enterFullScreen(StubShell_callbackContext, displayIndex);
 	}
 	return true;
+}
+
+void Shell_exitFullScreen() {
+	if (StubShellCallback_exitFullScreen != NULL) {
+		StubShellCallback_exitFullScreen(StubShell_callbackContext);
+	}
 }
 
 #ifndef S_SPLINT_S
@@ -136,6 +147,26 @@ const char * Shell_getSupportPath(const char * subdirectory) {
 	return "";
 }
 
+unsigned int Shell_getDisplayCount() {
+	if (StubShellCallback_getDisplayCount != NULL) {
+		return StubShellCallback_getDisplayCount(StubShell_callbackContext);
+	}
+	return 0;
+}
+
+unsigned int Shell_getDisplayIndexFromWindow() {
+	if (StubShellCallback_getDisplayIndexFromWindow != NULL) {
+		return StubShellCallback_getDisplayIndexFromWindow(StubShell_callbackContext);
+	}
+	return 0;
+}
+
+void Shell_getDisplayBounds(unsigned int displayIndex, int * outOffsetX, int * outOffsetY, unsigned int * outWidth, unsigned int * outHeight) {
+	if (StubShellCallback_getDisplayBounds != NULL) {
+		StubShellCallback_getDisplayBounds(StubShell_callbackContext, displayIndex, outOffsetX, outOffsetY, outWidth, outHeight);
+	}
+}
+
 enum ShellBatteryState Shell_getBatteryState() {
 	if (StubShellCallback_getBatteryState != NULL) {
 		return StubShellCallback_getBatteryState(StubShell_callbackContext);
@@ -184,6 +215,12 @@ void Shell_setCursor(int cursor) {
 void Shell_setMouseDeltaMode(bool deltaMode) {
 	if (StubShellCallback_setMouseDeltaMode != NULL) {
 		StubShellCallback_setMouseDeltaMode(StubShell_callbackContext, deltaMode);
+	}
+}
+
+void Shell_openURL(const char * url) {
+	if (StubShellCallback_openURL != NULL) {
+		StubShellCallback_openURL(StubShell_callbackContext, url);
 	}
 }
 
