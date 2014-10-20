@@ -42,6 +42,7 @@ int main(int argc, const char ** argv) {
 	g_configuration.windowWidth = 800;
 	g_configuration.windowHeight = 600;
 	g_configuration.windowTitle = "Change configuration->windowTitle in NSOpenGLTarget_configure()!";
+	g_configuration.fullScreenMenuItem = false;
 	g_configuration.displayMode.doubleBuffer = true;
 	g_configuration.displayMode.depthBuffer = false;
 	g_configuration.displayMode.depthBits = 32;
@@ -84,7 +85,12 @@ int main(int argc, const char ** argv) {
 	[windowMenu addItemWithTitle: @"Miniaturize" action: @selector(performMiniaturize:) keyEquivalent: @"m"];
 	[windowMenu addItemWithTitle: @"Zoom" action: @selector(performZoom:) keyEquivalent:@""];
 	[windowMenu addItem: [NSMenuItem separatorItem]];
-	[windowMenu addItemWithTitle: @"Bring All to Front" action: @selector(arrangeInFront:) keyEquivalent:@""];
+	//[windowMenu addItemWithTitle: @"Bring All to Front" action: @selector(arrangeInFront:) keyEquivalent:@""];
+	if (g_configuration.fullScreenMenuItem) {
+		NSMenuItem * menuItem = [windowMenu addItemWithTitle: @"Enter Full Screen" action: @selector(toggleFullScreen:) keyEquivalent: @"f"];
+		[menuItem setKeyEquivalentModifierMask: NSControlKeyMask | NSCommandKeyMask];
+		[menuItem setTarget: NSApp];
+	}
 	[NSApp setWindowsMenu: windowMenu];
 	
 	if ([NSApp respondsToSelector: @selector(setAppleMenu:)]) {

@@ -129,7 +129,7 @@ static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned
 	} else if (keyCode == KEYBOARD_D) {
 		Shell_redisplay();
 		
-	} else if (keyCode == KEYBOARD_F) {
+	} else if (keyCode == KEYBOARD_E) {
 		unsigned int displayIndex = Shell_getDisplayIndexFromWindow();
 		printf("Shell_enterFullScreen(%u): %s\n", displayIndex, Shell_enterFullScreen(displayIndex) ? "true" : "false");
 		
@@ -314,6 +314,7 @@ void NSOpenGLTarget_configure(int argc, const char ** argv, struct NSOpenGLShell
 	printf("configuration->windowWidth: %d\n", configuration->windowWidth);
 	printf("configuration->windowHeight: %d\n", configuration->windowHeight);
 	printf("configuration->windowTitle: %s\n", configuration->windowTitle);
+	printf("configuration->fullScreenMenuItem: %s\n", configuration->fullScreenMenuItem ? "true" : "false");
 	printf("configuration->displayMode.doubleBuffer: %s\n", configuration->displayMode.doubleBuffer ? "true" : "false");
 	printf("configuration->displayMode.depthBuffer: %s\n", configuration->displayMode.depthBuffer ? "true" : "false");
 	printf("configuration->displayMode.depthBits: %u\n", configuration->displayMode.depthBits);
@@ -327,6 +328,8 @@ void NSOpenGLTarget_configure(int argc, const char ** argv, struct NSOpenGLShell
 	
 	configuration->windowTitle = "NSOpenGLShell Test Harness";
 	printf("configuration->windowTitle = \"%s\"\n", configuration->windowTitle);
+	configuration->fullScreenMenuItem = true;
+	printf("configuration->fullScreenMenuItem = true\n");
 	
 	printf("getcwd(): %s\n", getcwd(workingDir, PATH_MAX));
 	

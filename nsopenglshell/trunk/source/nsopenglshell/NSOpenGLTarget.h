@@ -34,6 +34,7 @@ struct NSOpenGLShellConfiguration {
 	int windowWidth;
 	int windowHeight;
 	char * windowTitle;
+	bool fullScreenMenuItem; // If set to true, the Window menu will contain an Enter Full Screen item which calls Shell_enterFullScreen when selected. Default is false.
 	struct {
 		bool doubleBuffer;          // NSOpenGLPFADoubleBuffer
 		bool depthBuffer;           // NSOpenGLPFADepthSize > 0

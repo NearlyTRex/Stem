@@ -24,6 +24,7 @@
 #include "nsopenglshell/NSOpenGLShellCallbacks.h"
 #import "nsopenglshell/NSOpenGLShellView.h"
 #include "nsopenglshell/NSOpenGLTarget.h"
+#include "shell/Shell.h"
 #include "shell/ShellCallbacks.h"
 
 int g_argc = 0;
@@ -98,6 +99,14 @@ extern bool mainLoopCalled;
 - (void) hide: (id) sender {
 	if (![view isInFullScreenMode]) {
 		[super hide: sender];
+	}
+}
+
+- (void) toggleFullScreen: (id) sender {
+	if (Shell_isFullScreen()) {
+		Shell_exitFullScreen();
+	} else {
+		Shell_enterFullScreen(Shell_getDisplayIndexFromWindow());
 	}
 }
 
