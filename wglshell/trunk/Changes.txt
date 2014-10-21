@@ -1,3 +1,6 @@
+2.0.0
+ * Updated for shell 2.0.0 (adds multiple display support, scroll wheel events, registered callbacks for input events)
+
 1.1.0
  * Updated for shell 1.2.0 (adds Shell_openURL)
  * Added multisampling and accumulation buffer options to WGLShellConfiguration

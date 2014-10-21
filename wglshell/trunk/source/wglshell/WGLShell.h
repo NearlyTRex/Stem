@@ -17,7 +17,7 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
   
-  Alex Diener adiener@sacredsoftware.net
+  Alex Diener alex@ludobloom.com
 */
 
 #ifndef __WGLShell_H__
@@ -27,29 +27,6 @@ extern "C" {
 #endif
 
 #include <stdbool.h>
-
-struct WGLShellConfiguration {
-	int windowX;
-	int windowY;
-	unsigned int windowWidth;
-	unsigned int windowHeight;
-	char * windowTitle;
-	int iconResource;
-	struct {
-		bool doubleBuffer;
-		int colorBits;
-		int alphaBits;
-		bool depthBuffer;
-		int depthBits;
-		bool stencilBuffer;
-		int stencilBits;
-		bool accumBuffer;
-		int accumBits;
-		bool multisample;
-		unsigned int sampleBuffers;
-		unsigned int samples;
-	} displayMode;
-};
 
 // http://msdn.microsoft.com/en-us/library/ms648391(v=VS.85).aspx
 enum WGLShellCursor {

@@ -17,7 +17,7 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
   
-  Alex Diener adiener@sacredsoftware.net
+  Alex Diener alex@ludobloom.com
 */
 
 #ifndef __WGLTarget_H__
@@ -26,7 +26,30 @@
 extern "C" {
 #endif
 
-#include "wglshell/WGLShell.h"
+#include <stdbool.h>
+
+struct WGLShellConfiguration {
+	int windowX;
+	int windowY;
+	unsigned int windowWidth;
+	unsigned int windowHeight;
+	char * windowTitle;
+	int iconResource;
+	struct {
+		bool doubleBuffer;
+		int colorBits;
+		int alphaBits;
+		bool depthBuffer;
+		int depthBits;
+		bool stencilBuffer;
+		int stencilBits;
+		bool accumBuffer;
+		int accumBits;
+		bool multisample;
+		unsigned int sampleBuffers;
+		unsigned int samples;
+	} displayMode;
+};
 
 void WGLTarget_configure(void * instance, void * prevInstance, char * commandLine, int command, int argc, const char ** argv, struct WGLShellConfiguration * configuration);
 

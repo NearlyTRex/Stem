@@ -99,18 +99,16 @@ LINK_ORDER = \
 #Dependencies (can optionally be per-target or per-target-per-platform)
 
 PROJECT_LIBRARY_DEPENDENCIES_testharness = library
-STEM_LIBRARY_DEPENDENCIES_library = \
+STEM_LIBRARY_DEPENDENCIES = \
 	glgraphics/1.2.2 \
-	shell/1.2.0
-STEM_LIBRARY_DEPENDENCIES_testharness = \
-	glgraphics/1.2.2 \
-	shell/1.2.0
+	shell/2.0.0
 THIRDPARTY_LIBRARY_DEPENDENCIES = glew/1.5.4/libglew.a
 
 #Per-target source file lists
 
 SOURCES_library = \
-	source/wglshell/WGLShell.c
+	source/wglshell/WGLShell.c \
+	source/wglshell/WGLShellCallbacks.c
 
 SOURCES_testharness = \
 	source/testharness/TestHarness_main.c

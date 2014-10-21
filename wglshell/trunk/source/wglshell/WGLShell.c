@@ -17,17 +17,18 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
   
-  Alex Diener adiener@sacredsoftware.net
+  Alex Diener alex@ludobloom.com
 */
 
 #include "glgraphics/GLGraphics.h"
 #include "glgraphics/GLIncludes.h"
 #include "shell/Shell.h"
 #include "shell/ShellBatteryInfo.h"
+#include "shell/ShellCallbacks.h"
 #include "shell/ShellKeyCodes.h"
 #include "shell/ShellThreads.h"
-#include "shell/Target.h"
 #include "wglshell/WGLShell.h"
+#include "wglshell/WGLShellCallbacks.h"
 #include "wglshell/WGLTarget.h"
 #include <limits.h>
 #include <stdio.h>
@@ -74,6 +75,9 @@ static HDC displayContext;
 static HGLRC glContext;
 static bool windowShown = false;
 static int lastWidth, lastHeight;
+static RECT oldWindowRect;
+static DWORD oldWindowStyle;
+static int accumulatedWheelDelta;
 
 void Shell_mainLoop() {
 	MSG message;
@@ -141,38 +145,64 @@ static void setVSync(bool sync) {
 #endif
 WINUSERAPI HMONITOR WINAPI MonitorFromRect(LPCRECT,DWORD);
 
-bool Shell_setFullScreen(bool fullScreen) {
-	static RECT oldWindowRect;
-	static DWORD oldWindowStyle;
+struct monitorEnumProcGetMonitorAtIndexContext {
+	unsigned int targetDisplayIndex;
+	unsigned int displayIndex;
+	HMONITOR hMonitor;
+};
+
+static BOOL CALLBACK monitorEnumProcGetMonitorAtIndex(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMonitor, LPARAM dwData) {
+	struct monitorEnumProcGetMonitorAtIndexContext * context = (struct monitorEnumProcGetMonitorAtIndexContext *) dwData;
 	
-	if (!fullScreen && isFullScreen) {
-		SetWindowLong(window, GWL_STYLE, oldWindowStyle);
-		SetWindowPos(window, HWND_TOP, oldWindowRect.left, oldWindowRect.top, oldWindowRect.right - oldWindowRect.left, oldWindowRect.bottom - oldWindowRect.top, SWP_NOZORDER | SWP_FRAMECHANGED);
-		isFullScreen = false;
-		setVSync(vsyncWindow);
-		
-	} else if (fullScreen && !isFullScreen) {
-		DWORD windowStyle;
-		HMONITOR monitor;
-		MONITORINFO monitorInfo;
-		RECT screenRect;
-		
-		GetWindowRect(window, &oldWindowRect);
-		oldWindowStyle = windowStyle = GetWindowLong(window, GWL_STYLE);
-		
-		windowStyle &= ~WS_OVERLAPPEDWINDOW;
-		windowStyle |= WS_POPUP;
-		SetWindowLong(window, GWL_STYLE, windowStyle);
+	if (context->displayIndex++ == context->targetDisplayIndex) {
+		context->hMonitor = hMonitor;
+	}
+	return true;
+}
+
+bool Shell_enterFullScreen(unsigned int displayIndex) {
+	DWORD windowStyle;
+	HMONITOR monitor = NULL;
+	MONITORINFO monitorInfo;
+	RECT screenRect;
+	struct monitorEnumProcGetMonitorAtIndexContext context = {displayIndex, 0, NULL};
+	
+	if (isFullScreen) {
+		return true;
+	}
+	GetWindowRect(window, &oldWindowRect);
+	if (EnumDisplayMonitors(NULL, NULL, monitorEnumProcGetMonitorAtIndex, (LPARAM) &context)) {
+		monitor = context.hMonitor;
+	} else {
 		monitor = MonitorFromRect(&oldWindowRect, MONITOR_DEFAULTTONEAREST);
-		monitorInfo.cbSize = sizeof(MONITORINFO);
-		GetMonitorInfo(monitor, &monitorInfo);
-		screenRect = monitorInfo.rcMonitor;
-		SetWindowPos(window, HWND_TOP, screenRect.left, screenRect.top, screenRect.right - screenRect.left, screenRect.bottom - screenRect.top, SWP_NOZORDER | SWP_FRAMECHANGED);
-		isFullScreen = true;
-		setVSync(vsyncFullscreen);
+	}
+	if (monitor == NULL) {
+		return false;
 	}
 	
+	monitorInfo.cbSize = sizeof(MONITORINFO);
+	GetMonitorInfo(monitor, &monitorInfo);
+	
+	oldWindowStyle = windowStyle = GetWindowLong(window, GWL_STYLE);
+	windowStyle &= ~WS_OVERLAPPEDWINDOW;
+	windowStyle |= WS_POPUP;
+	SetWindowLong(window, GWL_STYLE, windowStyle);
+	screenRect = monitorInfo.rcMonitor;
+	SetWindowPos(window, HWND_TOP, screenRect.left, screenRect.top, screenRect.right - screenRect.left, screenRect.bottom - screenRect.top, SWP_NOZORDER | SWP_FRAMECHANGED);
+	isFullScreen = true;
+	setVSync(vsyncFullscreen);
+	
 	return true;
+}
+
+void Shell_exitFullScreen() {
+	if (!isFullScreen) {
+		return;
+	}
+	SetWindowLong(window, GWL_STYLE, oldWindowStyle);
+	SetWindowPos(window, HWND_TOP, oldWindowRect.left, oldWindowRect.top, oldWindowRect.right - oldWindowRect.left, oldWindowRect.bottom - oldWindowRect.top, SWP_NOZORDER | SWP_FRAMECHANGED);
+	isFullScreen = false;
+	setVSync(vsyncWindow);
 }
 
 double Shell_getCurrentTime() {
@@ -209,6 +239,81 @@ void Shell_getMainScreenSize(unsigned int * outWidth, unsigned int * outHeight) 
 	}
 	if (outHeight != NULL) {
 		*outHeight = GetSystemMetrics(SM_CYSCREEN);
+	}
+}
+
+unsigned int Shell_getDisplayCount() {
+	return GetSystemMetrics(SM_CMONITORS);
+}
+
+struct monitorEnumProcGetIndexContext {
+	HMONITOR hMonitor;
+	unsigned int displayIndex;
+	bool found;
+};
+
+static BOOL CALLBACK monitorEnumProcGetIndex(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMonitor, LPARAM dwData) {
+	struct monitorEnumProcGetIndexContext * context = (struct monitorEnumProcGetIndexContext *) dwData;
+	
+	if (!context->found) {
+		if (hMonitor == context->hMonitor) {
+			context->found = true;
+		} else {
+			context->displayIndex++;
+		}
+	}
+	return true;
+}
+
+unsigned int Shell_getDisplayIndexFromWindow() {
+	BOOL success;
+	struct monitorEnumProcGetIndexContext context = {NULL, 0, false};
+	RECT windowRect;
+	
+	GetWindowRect(window, &windowRect);
+	context.hMonitor = MonitorFromRect(&windowRect, MONITOR_DEFAULTTONEAREST);
+	success = EnumDisplayMonitors(NULL, NULL, monitorEnumProcGetIndex, (LPARAM) &context);
+	if (success && context.found) {
+		return context.displayIndex;
+	}
+	return 0;
+}
+
+struct monitorEnumProcGetBoundsContext {
+	unsigned int targetDisplayIndex;
+	unsigned int displayIndex;
+	bool found;
+	RECT bounds;
+};
+
+static BOOL CALLBACK monitorEnumProcGetBounds(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMonitor, LPARAM dwData) {
+	struct monitorEnumProcGetBoundsContext * context = (struct monitorEnumProcGetBoundsContext *) dwData;
+	
+	if (context->displayIndex++ == context->targetDisplayIndex) {
+		context->bounds = *lprcMonitor;
+		context->found = true;
+	}
+	return true;
+}
+
+void Shell_getDisplayBounds(unsigned int displayIndex, int * outOffsetX, int * outOffsetY, unsigned int * outWidth, unsigned int * outHeight) {
+	BOOL success;
+	struct monitorEnumProcGetBoundsContext context = {displayIndex, 0, false, {0, 0, 0, 0}};
+	
+	success = EnumDisplayMonitors(NULL, NULL, monitorEnumProcGetBounds, (LPARAM) &context);
+	if (success && context.found) {
+		if (outOffsetX != NULL) {
+			*outOffsetX = context.bounds.left;
+		}
+		if (outOffsetY != NULL) {
+			*outOffsetY = context.bounds.top;
+		}
+		if (outWidth != NULL) {
+			*outWidth = context.bounds.right - context.bounds.left;
+		}
+		if (outHeight != NULL) {
+			*outHeight = context.bounds.bottom - context.bounds.top;
+		}
 	}
 }
 
@@ -710,7 +815,9 @@ static LRESULT CALLBACK windowProc(HWND window, UINT message, WPARAM wParam, LPA
 #endif
 			
 			ValidateRect(window, NULL);
-			Target_draw();
+			if (drawCallback != NULL) {
+				drawCallback();
+			}
 			
 #ifdef DEBUG
 			while ((error = glGetError()) != GL_NO_ERROR) {
@@ -730,7 +837,9 @@ static LRESULT CALLBACK windowProc(HWND window, UINT message, WPARAM wParam, LPA
 				lastWidth = rect.right - rect.left;
 				lastHeight = rect.bottom - rect.top;
 				glViewport(0, 0, lastWidth, lastHeight);
-				Target_resized(lastWidth, lastHeight);
+				if (resizeCallback != NULL) {
+					resizeCallback(lastWidth, lastHeight);
+				}
 				redisplayNeeded = true;
 			}
 			return 0;
@@ -738,32 +847,44 @@ static LRESULT CALLBACK windowProc(HWND window, UINT message, WPARAM wParam, LPA
 		
 		case WM_LBUTTONDOWN:
 			buttonMask |= 1 << 0;
-			Target_mouseDown(0, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+			if (mouseDownCallback != NULL) {
+				mouseDownCallback(0, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+			}
 			return 0;
 			
 		case WM_LBUTTONUP:
 			buttonMask &= ~(1 << 0);
-			Target_mouseUp(0, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+			if (mouseUpCallback != NULL) {
+				mouseUpCallback(0, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+			}
 			return 0;
 			
 		case WM_RBUTTONDOWN:
 			buttonMask |= 1 << 1;
-			Target_mouseDown(1, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+			if (mouseDownCallback != NULL) {
+				mouseDownCallback(1, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+			}
 			return 0;
 			
 		case WM_RBUTTONUP:
 			buttonMask &= ~(1 << 1);
-			Target_mouseUp(1, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+			if (mouseUpCallback != NULL) {
+				mouseUpCallback(1, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+			}
 			return 0;
 			
 		case WM_MBUTTONDOWN:
 			buttonMask |= 1 << 2;
-			Target_mouseDown(2, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+			if (mouseDownCallback != NULL) {
+				mouseDownCallback(2, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+			}
 			return 0;
 			
 		case WM_MBUTTONUP:
 			buttonMask &= ~(1 << 2);
-			Target_mouseUp(2, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+			if (mouseDownCallback != NULL) {
+				mouseUpCallback(2, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+			}
 			return 0;
 			
 		case WM_MOUSEMOVE: {
@@ -791,9 +912,13 @@ static LRESULT CALLBACK windowProc(HWND window, UINT message, WPARAM wParam, LPA
 			lastMouseX = x;
 			lastMouseY = y;
 			if (buttonMask != 0) {
-				Target_mouseDragged(buttonMask, reportedX, reportedY);
+				if (mouseDraggedCallback != NULL) {
+					mouseDraggedCallback(buttonMask, reportedX, reportedY);
+				}
 			} else {
-				Target_mouseMoved(reportedX, reportedY);
+				if (mouseMovedCallback != NULL) {
+					mouseMovedCallback(reportedX, reportedY);
+				}
 			}
 			ignoreX = ignoreY = INT_MAX;
 			if (mouseDeltaMode) {
@@ -802,6 +927,24 @@ static LRESULT CALLBACK windowProc(HWND window, UINT message, WPARAM wParam, LPA
 			return 0;
 		}
 		
+		case WM_MOUSEWHEEL:
+			accumulatedWheelDelta += GET_WHEEL_DELTA_WPARAM(wParam);
+			if (accumulatedWheelDelta / WHEEL_DELTA != 0) {
+				int deltaX = 0;
+				int deltaY = accumulatedWheelDelta / WHEEL_DELTA;
+				accumulatedWheelDelta -= deltaY * WHEEL_DELTA;
+				
+				if (modifierFlags & MODIFIER_SHIFT_BIT) {
+					deltaX = deltaY;
+					deltaY = 0;
+				}
+				
+				if (scrollWheelCallback != NULL) {
+					scrollWheelCallback(-deltaX, -deltaY);
+				}
+			}
+			break;
+			
 		case WM_KEYDOWN:
 		case WM_SYSKEYDOWN: {
 			MSG msg;
@@ -811,36 +954,46 @@ static LRESULT CALLBACK windowProc(HWND window, UINT message, WPARAM wParam, LPA
 			capsLock = GetKeyState(VK_CAPITAL) & 0x01;
 			if (capsLock && !(modifierFlags & MODIFIER_CAPS_LOCK_BIT)) {
 				modifierFlags |= MODIFIER_CAPS_LOCK_BIT;
-				Target_keyModifiersChanged(modifierFlags);
+				if (keyModifiersChangedCallback != NULL) {
+					keyModifiersChangedCallback(modifierFlags);
+				}
 				
 			} else if (!capsLock && (modifierFlags & MODIFIER_CAPS_LOCK_BIT)) {
 				modifierFlags &= ~MODIFIER_CAPS_LOCK_BIT;
-				Target_keyModifiersChanged(modifierFlags);
+				if (keyModifiersChangedCallback != NULL) {
+					keyModifiersChangedCallback(modifierFlags);
+				}
 			}
 			
 			if (PeekMessage(&msg, window, WM_KEYFIRST, WM_KEYLAST, PM_NOREMOVE) && msg.message == WM_CHAR) {
 				charCode = msg.wParam;
 			}
 			keyCode = lParamToShellKeyCode(lParam);
-			if (keyCode != 0) {
-				Target_keyDown(charCode, keyCode, modifierFlags);
+			if (keyCode != 0 && keyDownCallback != NULL) {
+				keyDownCallback(charCode, keyCode, modifierFlags);
 			}
 			if (keyCode == KEYBOARD_LEFT_SHIFT || keyCode == KEYBOARD_RIGHT_SHIFT) {
 				if (!(modifierFlags & MODIFIER_SHIFT_BIT)) {
 					modifierFlags |= MODIFIER_SHIFT_BIT;
-					Target_keyModifiersChanged(modifierFlags);
+					if (keyModifiersChangedCallback != NULL) {
+						keyModifiersChangedCallback(modifierFlags);
+					}
 				}
 				
 			} else if (keyCode == KEYBOARD_LEFT_CONTROL || keyCode == KEYBOARD_RIGHT_CONTROL) {
 				if (!(modifierFlags & MODIFIER_CONTROL_BIT)) {
 					modifierFlags |= MODIFIER_CONTROL_BIT;
-					Target_keyModifiersChanged(modifierFlags);
+					if (keyModifiersChangedCallback != NULL) {
+						keyModifiersChangedCallback(modifierFlags);
+					}
 				}
 				
 			} else if (keyCode == KEYBOARD_LEFT_ALT || keyCode == KEYBOARD_RIGHT_ALT) {
 				if (!(modifierFlags & MODIFIER_ALT_BIT)) {
 					modifierFlags |= MODIFIER_ALT_BIT;
-					Target_keyModifiersChanged(modifierFlags);
+					if (keyModifiersChangedCallback != NULL) {
+						keyModifiersChangedCallback(modifierFlags);
+					}
 				}
 			}
 			return 0;
@@ -854,33 +1007,43 @@ static LRESULT CALLBACK windowProc(HWND window, UINT message, WPARAM wParam, LPA
 			capsLock = GetKeyState(VK_CAPITAL) & 0x01;
 			if (capsLock && !(modifierFlags & MODIFIER_CAPS_LOCK_BIT)) {
 				modifierFlags |= MODIFIER_CAPS_LOCK_BIT;
-				Target_keyModifiersChanged(modifierFlags);
+				if (keyModifiersChangedCallback != NULL) {
+					keyModifiersChangedCallback(modifierFlags);
+				}
 				
 			} else if (!capsLock && (modifierFlags & MODIFIER_CAPS_LOCK_BIT)) {
 				modifierFlags &= ~MODIFIER_CAPS_LOCK_BIT;
-				Target_keyModifiersChanged(modifierFlags);
+				if (keyModifiersChangedCallback != NULL) {
+					keyModifiersChangedCallback(modifierFlags);
+				}
 			}
 			
 			keyCode = lParamToShellKeyCode(lParam);
-			if (keyCode != 0) {
-				Target_keyUp(keyCode, modifierFlags);
+			if (keyCode != 0 && keyUpCallback != NULL) {
+				keyUpCallback(keyCode, modifierFlags);
 			}
 			if (keyCode == KEYBOARD_LEFT_SHIFT || keyCode == KEYBOARD_RIGHT_SHIFT) {
 				if (modifierFlags & MODIFIER_SHIFT_BIT) {
 					modifierFlags &= ~MODIFIER_SHIFT_BIT;
-					Target_keyModifiersChanged(modifierFlags);
+					if (keyModifiersChangedCallback != NULL) {
+						keyModifiersChangedCallback(modifierFlags);
+					}
 				}
 				
 			} else if (keyCode == KEYBOARD_LEFT_CONTROL || keyCode == KEYBOARD_RIGHT_CONTROL) {
 				if (modifierFlags & MODIFIER_CONTROL_BIT) {
 					modifierFlags &= ~MODIFIER_CONTROL_BIT;
-					Target_keyModifiersChanged(modifierFlags);
+					if (keyModifiersChangedCallback != NULL) {
+						keyModifiersChangedCallback(modifierFlags);
+					}
 				}
 				
 			} else if (keyCode == KEYBOARD_LEFT_ALT || keyCode == KEYBOARD_RIGHT_ALT) {
 				if (modifierFlags & MODIFIER_ALT_BIT) {
 					modifierFlags &= ~MODIFIER_ALT_BIT;
-					Target_keyModifiersChanged(modifierFlags);
+					if (keyModifiersChangedCallback != NULL) {
+						keyModifiersChangedCallback(modifierFlags);
+					}
 				}
 			}
 			return 0;
@@ -888,9 +1051,13 @@ static LRESULT CALLBACK windowProc(HWND window, UINT message, WPARAM wParam, LPA
 		
 		case WM_ACTIVATEAPP:
 			if (wParam) {
-				Target_foregrounded();
+				if (foregroundedCallback != NULL) {
+					foregroundedCallback();
+				}
 			} else {
-				Target_backgrounded();
+				if (backgroundedCallback != NULL) {
+					backgroundedCallback();
+				}
 			}
 			break;
 			
@@ -1120,7 +1287,9 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prevInstance, PSTR commandLine,
 	if ((int) configuration.windowWidth != lastWidth && (int) configuration.windowHeight != lastHeight) {
 		lastWidth = configuration.windowWidth;
 		lastHeight = configuration.windowHeight;
-		Target_resized(configuration.windowWidth, configuration.windowHeight);
+		if (resizeCallback != NULL) {
+			resizeCallback(configuration.windowWidth, configuration.windowHeight);
+		}
 	}
 	Target_init();
 	
