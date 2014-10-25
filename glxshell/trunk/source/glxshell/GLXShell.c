@@ -17,17 +17,18 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
   
-  Alex Diener adiener@sacredsoftware.net
+  Alex Diener alex@ludobloom.com
 */
 
 #include "glxshell/GLXShell.h"
+#include "glxshell/GLXShellCallbacks.h"
 #include "glxshell/GLXTarget.h"
 #include "glgraphics/GLGraphics.h"
 #include "shell/ShellBatteryInfo.h"
+#include "shell/ShellCallbacks.h"
 #include "shell/ShellKeyCodes.h"
 #include "shell/ShellThreads.h"
 #include "shell/Shell.h"
-#include "shell/Target.h"
 #include <time.h>
 #include <pthread.h>
 #include <semaphore.h>
@@ -125,7 +126,8 @@ static void setShellCursor(enum ShellCursor cursor) {
 		return;
 	}
 	
-	if (cursors[cursor].cursor == None) {
+	// XC_top_left_arrow doesn't match the default arrow cursor, so use None instead (which is equivalent to calling XUndefineCursor)
+	if (cursors[cursor].cursor == None && cursor != ShellCursor_arrow) {
 		cursors[cursor].cursor = XCreateFontCursor(display, cursors[cursor].name);
 	}
 	XDefineCursor(display, window, cursors[cursor].cursor);
@@ -370,6 +372,9 @@ static unsigned int xkeyStateToShellModifiers(unsigned int xkeyState) {
 	return state;
 }
 
+#define MOUSE_BUTTON_INDEX_SCROLL_WHEEL_UP 3
+#define MOUSE_BUTTON_INDEX_SCROLL_WHEEL_DOWN 4
+
 void Shell_mainLoop() {
 	XEvent event;
 	XWindowAttributes windowAttributes;
@@ -394,7 +399,9 @@ void Shell_mainLoop() {
 					if (windowAttributes.width != lastWidth || windowAttributes.height != lastHeight) {
 						lastWidth = windowAttributes.width;
 						lastHeight = windowAttributes.height;
-						Target_resized(windowAttributes.width, windowAttributes.height);
+						if (resizeCallback != NULL) {
+							resizeCallback(windowAttributes.width, windowAttributes.height);
+						}
 						redisplayNeeded = true;
 					}
 					break;
@@ -426,11 +433,15 @@ void Shell_mainLoop() {
 							break;
 					}
 					if (keyCode != 0) {
-						Target_keyDown(charCode, keyCode, modifiers);
+						if (keyDownCallback != NULL) {
+							keyDownCallback(charCode, keyCode, modifiers);
+						}
 					}
 					if (modifierMask != modifiers) {
 						modifierMask = modifiers;
-						Target_keyModifiersChanged(modifierMask);
+						if (keyModifiersChangedCallback != NULL) {
+							keyModifiersChangedCallback(modifierMask);
+						}
 					}
 					break;
 					
@@ -467,22 +478,45 @@ void Shell_mainLoop() {
 							break;
 					}
 					if (keyCode != 0) {
-						Target_keyUp(keyCode, modifiers);
+						if (keyUpCallback != NULL) {
+							keyUpCallback(keyCode, modifiers);
+						}
 					}
 					if (modifierMask != modifiers) {
 						modifierMask = modifiers;
-						Target_keyModifiersChanged(modifierMask);
+						if (keyModifiersChangedCallback != NULL) {
+							keyModifiersChangedCallback(modifierMask);
+						}
 					}
 					break;
 					
 				case ButtonPress:
-					buttonMask |= 1 << (event.xbutton.button - 1);
-					Target_mouseDown(event.xbutton.button - 1, event.xbutton.x, event.xbutton.y);
+					if (event.xbutton.button - 1 == MOUSE_BUTTON_INDEX_SCROLL_WHEEL_UP) {
+						if (scrollWheelCallback != NULL) {
+							scrollWheelCallback(modifierMask & MODIFIER_SHIFT_BIT ? -1 : 0, modifierMask & MODIFIER_SHIFT_BIT ? 0 : -1);
+						}
+						
+					} else if (event.xbutton.button - 1 == MOUSE_BUTTON_INDEX_SCROLL_WHEEL_DOWN) {
+						if (scrollWheelCallback != NULL) {
+							scrollWheelCallback(modifierMask & MODIFIER_SHIFT_BIT ? 1 : 0, modifierMask & MODIFIER_SHIFT_BIT ? 0 : 1);
+						}
+							
+					} else {
+						buttonMask |= 1 << (event.xbutton.button - 1);
+						if (mouseDownCallback != NULL) {
+							mouseDownCallback(event.xbutton.button - 1, event.xbutton.x, event.xbutton.y);
+						}
+					}
 					break;
 					
 				case ButtonRelease:
-					buttonMask &= ~(1 << (event.xbutton.button - 1));
-					Target_mouseUp(event.xbutton.button - 1, event.xbutton.x, event.xbutton.y);
+					if (event.xbutton.button - 1 != MOUSE_BUTTON_INDEX_SCROLL_WHEEL_UP &&
+					    event.xbutton.button - 1 != MOUSE_BUTTON_INDEX_SCROLL_WHEEL_DOWN) {
+						buttonMask &= ~(1 << (event.xbutton.button - 1));
+						if (mouseUpCallback != NULL) {
+							mouseUpCallback(event.xbutton.button - 1, event.xbutton.x, event.xbutton.y);
+						}
+					}
 					break;
 					
 				case MotionNotify:
@@ -504,9 +538,13 @@ void Shell_mainLoop() {
 					lastMouseY = event.xbutton.y;
 					ignoreX = ignoreY = INT_MAX;
 					if (buttonMask != 0) {
-						Target_mouseDragged(buttonMask, reportedX, reportedY);
+						if (mouseDraggedCallback != NULL) {
+							mouseDraggedCallback(buttonMask, reportedX, reportedY);
+						}
 					} else {
-						Target_mouseMoved(reportedX, reportedY);
+						if (mouseMovedCallback != NULL) {
+							mouseMovedCallback(reportedX, reportedY);
+						}
 					}
 					if (mouseDeltaMode) {
 						XGetWindowAttributes(display, window, &windowAttributes);
@@ -517,14 +555,18 @@ void Shell_mainLoop() {
 				case FocusIn:
 					if (backgrounded && (event.xfocus.mode != NotifyGrab || event.xfocus.detail != NotifyPointer)) {
 						backgrounded = false;
-						Target_foregrounded();
+						if (foregroundedCallback != NULL) {
+							foregroundedCallback();
+						}
 					}
 					break;
 					
 				case FocusOut:
 					if (event.xfocus.mode != NotifyGrab && event.xfocus.mode != NotifyUngrab) {
 						backgrounded = true;
-						Target_backgrounded();
+						if (backgroundedCallback != NULL) {
+							backgroundedCallback();
+						}
 					}
 					break;
 					
@@ -562,7 +604,7 @@ void Shell_mainLoop() {
 #endif
 			
 			redisplayNeeded = false;
-			if (Target_draw()) {
+			if (drawCallback != NULL && drawCallback()) {
 				glXSwapBuffers(display, window);
 			}
 			
@@ -592,6 +634,29 @@ void Shell_mainLoop() {
 
 void Shell_redisplay() {
 	redisplayNeeded = true;
+}
+
+unsigned int Shell_getDisplayCount() {
+	return ScreenCount(display);
+}
+
+unsigned int Shell_getDisplayIndexFromWindow() {
+	return 0;
+}
+
+void Shell_getDisplayBounds(unsigned int displayIndex, int * outOffsetX, int * outOffsetY, unsigned int * outWidth, unsigned int * outHeight) {
+	if (outOffsetX != NULL) {
+		*outOffsetX = 0;
+	}
+	if (outOffsetY != NULL) {
+		*outOffsetY = 0;
+	}
+	if (outWidth != NULL) {
+		*outWidth = DisplayWidth(display, screen);
+	}
+	if (outHeight != NULL) {
+		*outHeight = DisplayHeight(display, screen);
+	}
 }
 
 bool Shell_isFullScreen() {
@@ -626,23 +691,26 @@ bool toggleFullScreenEWMH() {
 	return !!XSendEvent(display, rootWindow, 0, SubstructureRedirectMask | SubstructureNotifyMask, &event);
 }
 
-bool Shell_setFullScreen(bool fullScreen) {
-	if (fullScreen && !inFullScreenMode) {
+bool Shell_enterFullScreen(unsigned int displayIndex) {
+	if (!inFullScreenMode) {
 		if (!toggleFullScreenEWMH()) {
 			return false;
 		}
 		setVSync(vsyncFullscreen);
 		inFullScreenMode = true;
-		
-	} else if (!fullScreen && inFullScreenMode) {
+	}
+	
+	return true;
+}
+
+void Shell_exitFullScreen() {
+	if (inFullScreenMode) {
 		if (!toggleFullScreenEWMH()) {
-			return false;
+			return;
 		}
 		inFullScreenMode = false;
 		setVSync(vsyncWindow);
 	}
-	
-	return true;
 }
 
 double Shell_getCurrentTime() {
@@ -880,15 +948,6 @@ enum ShellBatteryState Shell_getBatteryState() {
 
 float Shell_getBatteryLevel() {
 	return getBatteryInfo().level;
-}
-
-void Shell_getMainScreenSize(unsigned int * outWidth, unsigned int * outHeight) {
-	if (outWidth != NULL) {
-		*outWidth = DisplayWidth(display, screen);
-	}
-	if (outHeight != NULL) {
-		*outHeight = DisplayHeight(display, screen);
-	}
 }
 
 unsigned int Shell_setTimer(double interval, bool repeat, void (* callback)(unsigned int timerID, void * context), void * context) {

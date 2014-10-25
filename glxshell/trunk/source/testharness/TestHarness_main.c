@@ -7,9 +7,9 @@
 #include <unistd.h>
 #include "glgraphics/GLGraphics.h"
 #include "shell/ShellBatteryInfo.h"
+#include "shell/ShellCallbacks.h"
 #include "shell/ShellKeyCodes.h"
 #include "shell/ShellThreads.h"
-#include "shell/Target.h"
 
 #include <GL/gl.h>
 #define msleep(ms) usleep((ms) * 1000)
@@ -22,41 +22,7 @@ static bool deltaMode;
 static bool syncFullscreen = VSYNC_DEFAULT_FULLSCREEN, syncWindow = VSYNC_DEFAULT_WINDOW;
 static bool printMouseMoved = true;
 
-void GLXTarget_configure(int argc, const char ** argv, struct GLXShellConfiguration * configuration) {
-	int argIndex;
-	char workingDir[PATH_MAX];
-	
-	printf("GLXTarget_configure(%d", argc);
-	for (argIndex = 0; argIndex < argc; argIndex++) {
-		printf(", \"%s\"", argv[argIndex]);
-	}
-	printf(", %p)\n", configuration);
-	
-	printf("configuration->windowX: %d\n", configuration->windowX);
-	printf("configuration->windowY: %d\n", configuration->windowY);
-	printf("configuration->windowWidth: %d\n", configuration->windowWidth);
-	printf("configuration->windowHeight: %d\n", configuration->windowHeight);
-	printf("configuration->windowTitle: %s\n", configuration->windowTitle);
-	printf("configuration->displayMode.doubleBuffer: %s\n", configuration->displayMode.doubleBuffer ? "true" : "false");
-	printf("configuration->displayMode.depthBuffer: %s\n", configuration->displayMode.depthBuffer ? "true" : "false");
-	printf("configuration->displayMode.depthSize: %u\n", configuration->displayMode.depthSize);
-	printf("configuration->displayMode.stencilBuffer: %s\n", configuration->displayMode.stencilBuffer ? "true" : "false");
-	printf("configuration->displayMode.stencilSize: %u\n", configuration->displayMode.stencilSize);
-	printf("configuration->displayMode.multisample: %s\n", configuration->displayMode.multisample ? "true" : "false");
-	
-	configuration->windowTitle = "GLXShell Test Harness";
-	printf("configuration->windowTitle = \"%s\"\n", configuration->windowTitle);
-	
-	printf("getcwd(): %s\n", getcwd(workingDir, PATH_MAX));
-}
-
-void Target_init() {
-	printf("Target_init()\n");
-	printf("GLGraphics_getOpenGLAPIVersion(): %d\n", GLGraphics_getOpenGLAPIVersion());
-	Shell_mainLoop();
-}
-
-bool Target_draw() {
+static bool Target_draw() {
 	printf("Target_draw()\n");
 	glClearColor(0.0f, 0.25f, 0.5f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -96,7 +62,7 @@ static int threadFunc3(void * context) {
 	return 0;
 }
 
-void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned int modifierFlags) {
+static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned int modifierFlags) {
 	printf("Target_keyDown(%u, %u, 0x%X)\n", charCode, keyCode, modifierFlags);
 	if (keyCode == KEYBOARD_Q) {
 		ShellThread thread;
@@ -157,11 +123,12 @@ void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned int mo
 	} else if (keyCode == KEYBOARD_D) {
 		Shell_redisplay();
 		
-	} else if (keyCode == KEYBOARD_F) {
-		printf("Shell_setFullScreen(true): %s\n", Shell_setFullScreen(true) ? "true" : "false");
+	} else if (keyCode == KEYBOARD_E) {
+		unsigned int displayIndex = Shell_getDisplayIndexFromWindow();
+		printf("Shell_enterFullScreen(%u): %s\n", displayIndex, Shell_enterFullScreen(displayIndex) ? "true" : "false");
 		
 	} else if (keyCode == KEYBOARD_W) {
-		printf("Shell_setFullScreen(false): %s\n", Shell_setFullScreen(false) ? "true" : "false");
+		Shell_exitFullScreen();
 		
 	} else if (keyCode == KEYBOARD_G) {
 		printf("Shell_isFullScreen(): %s\n", Shell_isFullScreen() ? "true" : "false");
@@ -171,10 +138,17 @@ void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned int mo
 		printf("Shell_getBatteryLevel(): %f\n", Shell_getBatteryLevel());
 		
 	} else if (keyCode == KEYBOARD_X) {
+		int x = 0, y = 0;
 		unsigned int width = 0, height = 0;
+		static unsigned int screenIndex;
 		
-		Shell_getMainScreenSize(&width, &height);
-		printf("Shell_getMainScreenSize(%u, %u)\n", width, height);
+		screenIndex %= Shell_getDisplayCount();
+		Shell_getDisplayBounds(screenIndex, &x, &y, &width, &height);
+		printf("Shell_getDisplayBounds(%u): %d, %d, %u, %u\n", screenIndex, x, y, width, height);
+		screenIndex++;
+		
+	} else if (keyCode == KEYBOARD_C) {
+		printf("Shell_getDisplayCount(): %u\n", Shell_getDisplayCount());
 		
 	} else if (keyCode == KEYBOARD_V) {
 		bool sync, fullscreen;
@@ -228,58 +202,109 @@ void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned int mo
 		printMouseMoved = !printMouseMoved;
 		printf("Mouse move messages %s\n", printMouseMoved ? "enabled" : "disabled");
 		
-	} else if (keyCode == KEYBOARD_0 && !(modifierFlags & MODIFIER_SHIFT_BIT)) {
+	} else if (keyCode == KEYBOARD_0) {
 		Shell_setCursor(ShellCursor_arrow);
 		
-	} else if (keyCode == KEYBOARD_1 && !(modifierFlags & MODIFIER_SHIFT_BIT)) {
+	} else if (keyCode == KEYBOARD_1) {
 		Shell_setCursor(ShellCursor_iBeam);
 		
-	} else if (keyCode == KEYBOARD_2 && !(modifierFlags & MODIFIER_SHIFT_BIT)) {
+	} else if (keyCode == KEYBOARD_2) {
 		Shell_setCursor(ShellCursor_crosshair);
 		
-	} else if (keyCode == KEYBOARD_3 && !(modifierFlags & MODIFIER_SHIFT_BIT)) {
+	} else if (keyCode == KEYBOARD_3) {
 		Shell_setCursor(ShellCursor_hand);
 		
-	} else if (keyCode == KEYBOARD_4 && !(modifierFlags & MODIFIER_SHIFT_BIT)) {
+	} else if (keyCode == KEYBOARD_4) {
 		Shell_setCursor(ShellCursor_wait);
 	}
 }
 
-void Target_keyUp(unsigned int keyCode, unsigned int modifierFlags) {
+static void Target_keyUp(unsigned int keyCode, unsigned int modifierFlags) {
 	printf("Target_keyUp(%u, 0x%X)\n", keyCode, modifierFlags);
 }
 
-void Target_keyModifiersChanged(unsigned int modifierFlags) {
+static void Target_keyModifiersChanged(unsigned int modifierFlags) {
 	printf("Target_keyModifiersChanged(0x%X)\n", modifierFlags);
 }
 
-void Target_mouseDown(unsigned int buttonNumber, float x, float y) {
+static void Target_mouseDown(unsigned int buttonNumber, float x, float y) {
 	printf("Target_mouseDown(%d, %f, %f)\n", buttonNumber, x, y);
 }
 
-void Target_mouseUp(unsigned int buttonNumber, float x, float y) {
+static void Target_mouseUp(unsigned int buttonNumber, float x, float y) {
 	printf("Target_mouseUp(%d, %f, %f)\n", buttonNumber, x, y);
 }
 
-void Target_mouseMoved(float x, float y) {
+static void Target_mouseMoved(float x, float y) {
 	if (printMouseMoved) {
 		printf("Target_mouseMoved(%f, %f)\n", x, y);
 	}
 }
 
-void Target_mouseDragged(unsigned int buttonMask, float x, float y) {
+static void Target_mouseDragged(unsigned int buttonMask, float x, float y) {
 	printf("Target_mouseDragged(0x%X, %f, %f)\n", buttonMask, x, y);
 }
 
-void Target_resized(unsigned int newWidth, unsigned int newHeight) {
+static void Target_scrollWheel(int deltaX, int deltaY) {
+	printf("Target_scrollWheel(%d, %d)\n", deltaX, deltaY);
+}
+
+static void Target_resized(unsigned int newWidth, unsigned int newHeight) {
 	printf("Target_resized(%d, %d)\n", newWidth, newHeight);
 	glViewport(0, 0, newWidth, newHeight);
 }
 
-void Target_backgrounded() {
+static void Target_backgrounded() {
 	printf("Target_backgrounded()\n");
 }
 
-void Target_foregrounded() {
+static void Target_foregrounded() {
 	printf("Target_foregrounded()\n");
+}
+
+void GLXTarget_configure(int argc, const char ** argv, struct GLXShellConfiguration * configuration) {
+	int argIndex;
+	char workingDir[PATH_MAX];
+	
+	printf("GLXTarget_configure(%d", argc);
+	for (argIndex = 0; argIndex < argc; argIndex++) {
+		printf(", \"%s\"", argv[argIndex]);
+	}
+	printf(", %p)\n", configuration);
+	
+	printf("configuration->windowX: %d\n", configuration->windowX);
+	printf("configuration->windowY: %d\n", configuration->windowY);
+	printf("configuration->windowWidth: %d\n", configuration->windowWidth);
+	printf("configuration->windowHeight: %d\n", configuration->windowHeight);
+	printf("configuration->windowTitle: %s\n", configuration->windowTitle);
+	printf("configuration->displayMode.doubleBuffer: %s\n", configuration->displayMode.doubleBuffer ? "true" : "false");
+	printf("configuration->displayMode.depthBuffer: %s\n", configuration->displayMode.depthBuffer ? "true" : "false");
+	printf("configuration->displayMode.depthSize: %u\n", configuration->displayMode.depthSize);
+	printf("configuration->displayMode.stencilBuffer: %s\n", configuration->displayMode.stencilBuffer ? "true" : "false");
+	printf("configuration->displayMode.stencilSize: %u\n", configuration->displayMode.stencilSize);
+	printf("configuration->displayMode.multisample: %s\n", configuration->displayMode.multisample ? "true" : "false");
+	
+	configuration->windowTitle = "GLXShell Test Harness";
+	printf("configuration->windowTitle = \"%s\"\n", configuration->windowTitle);
+	
+	printf("getcwd(): %s\n", getcwd(workingDir, PATH_MAX));
+	
+	Shell_drawFunc(Target_draw);
+	Shell_resizeFunc(Target_resized);
+	Shell_keyDownFunc(Target_keyDown);
+	Shell_keyUpFunc(Target_keyUp);
+	Shell_keyModifiersChangedFunc(Target_keyModifiersChanged);
+	Shell_mouseDownFunc(Target_mouseDown);
+	Shell_mouseUpFunc(Target_mouseUp);
+	Shell_mouseMovedFunc(Target_mouseMoved);
+	Shell_mouseDraggedFunc(Target_mouseDragged);
+	Shell_scrollWheelFunc(Target_scrollWheel);
+	Shell_backgroundedFunc(Target_backgrounded);
+	Shell_foregroundedFunc(Target_foregrounded);
+}
+
+void Target_init() {
+	printf("Target_init()\n");
+	printf("GLGraphics_getOpenGLAPIVersion(): %d\n", GLGraphics_getOpenGLAPIVersion());
+	Shell_mainLoop();
 }

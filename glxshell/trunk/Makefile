@@ -61,7 +61,7 @@ SPLINT_linux32 ?= /usr/local/bin/splint
 CLANG_linux32 ?= /usr/local/bin/clang
 ARCHS_linux32 ?= i386
 CCFLAGS_linux32 += -m32
-LINKFLAGS_linux32 += -m32 -lrt -lGLU -lGL -lm
+LINKFLAGS_linux32 += -m32 -lrt -lpthread -lX11 -lGLU -lGL -lm
 
 CC_linux64_x86_64 ?= /usr/bin/gcc
 AR_linux64 ?= /usr/bin/ar
@@ -70,7 +70,7 @@ SPLINT_linux64 ?= /usr/local/bin/splint
 CLANG_linux64 ?= /usr/local/bin/clang
 ARCHS_linux64 ?= x86_64
 CCFLAGS_linux64 += -m64
-LINKFLAGS_linux64 += -m64 -lrt -lGLU -lGL -lm
+LINKFLAGS_linux64 += -m64 -lrt -lpthread -lX11 -lGLU -lGL -lm
 
 #General compile/link settings
 DEFINE_CCFLAGS = -DVERSION_MAJOR=${VERSION_MAJOR}u -DVERSION_MINOR=${VERSION_MINOR}u -DVERSION_TWEAK=${VERSION_TWEAK}u
@@ -91,18 +91,16 @@ LINK_ORDER = \
 #Dependencies (can optionally be per-target or per-target-per-platform)
 
 PROJECT_LIBRARY_DEPENDENCIES_testharness = library
-STEM_LIBRARY_DEPENDENCIES_library = \
-	glgraphics/1.2.0 \
-	shell/1.2.0
-STEM_LIBRARY_DEPENDENCIES_testharness = \
-	glgraphics/1.2.0 \
-	shell/1.2.0
+STEM_LIBRARY_DEPENDENCIES = \
+	glgraphics/1.2.2 \
+	shell/2.0.0
 THIRDPARTY_LIBRARY_DEPENDENCIES = glew/1.5.4/libglew.a
 
 #Per-target source file lists
 
 SOURCES_library = \
-	source/${PROJECT_NAME}/GLXShell.c
+	source/${PROJECT_NAME}/GLXShell.c \
+	source/${PROJECT_NAME}/GLXShellCallbacks.c
 
 SOURCES_testharness = \
 	source/testharness/TestHarness_main.c
@@ -162,7 +160,9 @@ ${foreach target,${TARGETS}, \
 
 
 define create_directory_target_template #(dir)
+ifneq (${UNAME},Linux)
 .LOW_RESOLUTION_TIME: $1
+endif
 $1:
 	mkdir -p $1
 endef
