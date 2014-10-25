@@ -1,0 +1,6 @@
+2.0.0 (2014-10-24)
+ * Updated for shell 2.0.0 (adds multiple display support, scroll wheel events, registered callbacks for input events)
+ * Shell_setCursor(ShellCursor_arrow) now changes to the default cursor rather than XC_top_left_arrow
+
+1.0.0 (2014-01-20)
+ * Initial version
