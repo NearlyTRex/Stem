@@ -17,11 +17,12 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
   
-  Alex Diener adiener@sacredsoftware.net
+  Alex Diener alex@ludobloom.com
 */
 
 #include "shell/Shell.h"
 #include "glutshell/GLUTShell.h"
+#include "glutshell/GLUTShellCallbacks.h"
 #include "glutshell/GLUTTarget.h"
 
 #include <stdio.h>
@@ -59,8 +60,8 @@
 
 #include "glgraphics/GLGraphics.h"
 #include "shell/ShellBatteryInfo.h"
+#include "shell/ShellCallbacks.h"
 #include "shell/ShellKeyCodes.h"
-#include "shell/Target.h"
 
 struct GLUTShellTimer {
 	double interval;
@@ -122,22 +123,25 @@ static void setVSync(bool sync) {
 #endif
 }
 
-bool Shell_setFullScreen(bool fullScreen) {
-	if (fullScreen && !inFullScreenMode) {
+bool Shell_enterFullScreen(unsigned int displayIndex) {
+	if (!inFullScreenMode) {
 		inFullScreenMode = true;
 		configuration.windowX = glutGet(GLUT_WINDOW_X);
 		configuration.windowY = glutGet(GLUT_WINDOW_Y);
 		glutFullScreen();
 		setVSync(vsyncFullscreen);
-		
-	} else if (!fullScreen && inFullScreenMode) {
+	}
+	
+	return true;
+}
+
+void Shell_exitFullScreen() {
+	if (inFullScreenMode) {
 		glutPositionWindow(configuration.windowX, configuration.windowY);
 		glutReshapeWindow(configuration.windowWidth, configuration.windowHeight);
 		inFullScreenMode = false;
 		setVSync(vsyncWindow);
 	}
-	
-	return true;
 }
 
 double Shell_getCurrentTime() {
@@ -221,7 +225,21 @@ float Shell_getBatteryLevel() {
 	return -1.0f;
 }
 
-void Shell_getMainScreenSize(unsigned int * outWidth, unsigned int * outHeight) {
+unsigned int Shell_getDisplayCount() {
+	return 1;
+}
+
+unsigned int Shell_getDisplayIndexFromWindow() {
+	return 0;
+}
+
+void Shell_getDisplayBounds(unsigned int displayIndex, int * outOffsetX, int * outOffsetY, unsigned int * outWidth, unsigned int * outHeight) {
+	if (outOffsetX != NULL) {
+		*outOffsetX = 0;
+	}
+	if (outOffsetY != NULL) {
+		*outOffsetY = 0;
+	}
 	if (outWidth != NULL) {
 		*outWidth = glutGet(GLUT_SCREEN_WIDTH);
 	}
@@ -431,7 +449,7 @@ static void displayFunc() {
 	GLenum error;
 #endif
 	
-	if (Target_draw()) {
+	if (drawCallback != NULL && drawCallback()) {
 		glutSwapBuffers();
 	}
 	
@@ -450,7 +468,9 @@ static void reshapeFunc(int newWidth, int newHeight) {
 		configuration.windowHeight = newHeight;
 	}
 	
-	Target_resized(newWidth, newHeight);
+	if (resizeCallback != NULL) {
+		resizeCallback(newWidth, newHeight);
+	}
 	
 #ifndef __APPLE__
 	displayFunc();
@@ -638,33 +658,51 @@ static void checkModifierKeys() {
 	newModifierMask = glutModifiersToShellModifiers(glutGetModifiers());
 	if (newModifierMask != modifierMask) {
 		if ((newModifierMask & MODIFIER_SHIFT_BIT) && !(modifierMask & MODIFIER_SHIFT_BIT)) {
-			Target_keyDown(0, KEYBOARD_LEFT_SHIFT, modifierMask);
+			if (keyDownCallback != NULL) {
+				keyDownCallback(0, KEYBOARD_LEFT_SHIFT, modifierMask);
+			}
 		} else if (!(newModifierMask & MODIFIER_SHIFT_BIT) && (modifierMask & MODIFIER_SHIFT_BIT)) {
-			Target_keyUp(KEYBOARD_LEFT_SHIFT, modifierMask);
+			if (keyUpCallback != NULL) {
+				keyUpCallback(KEYBOARD_LEFT_SHIFT, modifierMask);
+			}
 		}
 		if ((newModifierMask & MODIFIER_CONTROL_BIT) && !(modifierMask & MODIFIER_CONTROL_BIT)) {
-			Target_keyDown(0, KEYBOARD_LEFT_CONTROL, modifierMask);
+			if (keyDownCallback != NULL) {
+				keyDownCallback(0, KEYBOARD_LEFT_CONTROL, modifierMask);
+			}
 		} else if (!(newModifierMask & MODIFIER_CONTROL_BIT) && (modifierMask & MODIFIER_CONTROL_BIT)) {
-			Target_keyUp(KEYBOARD_LEFT_CONTROL, modifierMask);
+			if (keyUpCallback != NULL) {
+				keyUpCallback(KEYBOARD_LEFT_CONTROL, modifierMask);
+			}
 		}
 		if ((newModifierMask & MODIFIER_ALT_BIT) && !(modifierMask & MODIFIER_ALT_BIT)) {
-			Target_keyDown(0, KEYBOARD_LEFT_ALT, modifierMask);
+			if (keyDownCallback != NULL) {
+				keyDownCallback(0, KEYBOARD_LEFT_ALT, modifierMask);
+			}
 		} else if (!(newModifierMask & MODIFIER_ALT_BIT) && (modifierMask & MODIFIER_ALT_BIT)) {
-			Target_keyUp(KEYBOARD_LEFT_ALT, modifierMask);
+			if (keyDownCallback != NULL) {
+				keyUpCallback(KEYBOARD_LEFT_ALT, modifierMask);
+			}
 		}
 		modifierMask = newModifierMask;
-		Target_keyModifiersChanged(modifierMask);
+		if (keyModifiersChangedCallback != NULL) {
+			keyModifiersChangedCallback(modifierMask);
+		}
 	}
 }
 
 static void keyDownFunc(unsigned char charCode, int x, int y) {
 	checkModifierKeys();
-	Target_keyDown(charCode, glutCharCodeToShellKeyCode(charCode), modifierMask);
+	if (keyDownCallback != NULL) {
+		keyDownCallback(charCode, glutCharCodeToShellKeyCode(charCode), modifierMask);
+	}
 }
 
 static void keyUpFunc(unsigned char charCode, int x, int y) {
 	checkModifierKeys();
-	Target_keyUp(glutCharCodeToShellKeyCode(charCode), modifierMask);
+	if (keyUpCallback != NULL) {
+		keyUpCallback(glutCharCodeToShellKeyCode(charCode), modifierMask);
+	}
 }
 
 static int glutSpecialToShellKeyCode(int key) {
@@ -722,8 +760,8 @@ static void specialDownFunc(int key, int x, int y) {
 	checkModifierKeys();
 	
 	keyCode = glutSpecialToShellKeyCode(key);
-	if (keyCode != -1) {
-		Target_keyDown(0, keyCode, modifierMask);
+	if (keyCode != -1 && keyDownCallback != NULL) {
+		keyDownCallback(0, keyCode, modifierMask);
 	}
 }
 
@@ -733,8 +771,8 @@ static void specialUpFunc(int key, int x, int y) {
 	checkModifierKeys();
 	
 	keyCode = glutSpecialToShellKeyCode(key);
-	if (keyCode != -1) {
-		Target_keyUp(keyCode, modifierMask);
+	if (keyCode != -1 && keyUpCallback != NULL) {
+		keyUpCallback(keyCode, modifierMask);
 	}
 }
 
@@ -747,10 +785,14 @@ static void mouseFunc(int button, int state, int x, int y) {
 	
 	if (state == GLUT_DOWN) {
 		buttonMask |= 1 << buttonNum;
-		Target_mouseDown(buttonNum, x, y);
+		if (mouseDownCallback != NULL) {
+			mouseDownCallback(buttonNum, x, y);
+		}
 	} else {
 		buttonMask &= ~(1 << buttonNum);
-		Target_mouseUp(buttonNum, x, y);
+		if (mouseUpCallback != NULL) {
+			mouseUpCallback(buttonNum, x, y);
+		}
 	}
 }
 
@@ -775,9 +817,13 @@ static void motionFunc(int x, int y) {
 	lastMouseX = x;
 	lastMouseY = y;
 	if (buttonMask != 0) {
-		Target_mouseDragged(buttonMask, reportedX, reportedY);
+		if (mouseDraggedCallback != NULL) {
+			mouseDraggedCallback(buttonMask, reportedX, reportedY);
+		}
 	} else {
-		Target_mouseMoved(reportedX, reportedY);
+		if (mouseMovedCallback != NULL) {
+			mouseMovedCallback(reportedX, reportedY);
+		}
 	}
 	ignoreX = ignoreY = INT_MAX;
 	if (mouseDeltaMode) {

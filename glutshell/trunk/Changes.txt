@@ -1,3 +1,6 @@
+2.0.0 (2014-11-01)
+ * Updated for shell 2.0.0 (adds multiple display support, scroll wheel events, registered callbacks for input events)
+
 1.7.0 (2014-06-29)
  * Modifier keys now produce Target_keyDown() and Target_keyUp() events (though with the same limitations as before; only detected on other keypresses or mouse movement)
  * Updated for shell 1.2.0 (adds Shell_openURL, but this function is unimplemented in glutshell)

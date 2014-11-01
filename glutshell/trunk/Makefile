@@ -131,16 +131,17 @@ LINK_ORDER = \
 PROJECT_LIBRARY_DEPENDENCIES_testharness = library
 STEM_LIBRARY_DEPENDENCIES_library = \
 	glgraphics/1.2.2 \
-	shell/1.2.0
+	shell/2.0.0
 STEM_LIBRARY_DEPENDENCIES_testharness = \
 	glgraphics/1.2.2 \
-	shell/1.2.0
+	shell/2.0.0
 THIRDPARTY_LIBRARY_DEPENDENCIES = glew/1.5.4/libglew.a
 
 #Per-target source file lists
 
 SOURCES_library = \
-	source/${PROJECT_NAME}/GLUTShell.c
+	source/${PROJECT_NAME}/GLUTShell.c \
+	source/${PROJECT_NAME}/GLUTShellCallbacks.c
 
 SOURCES_library_macosx          = source/${PROJECT_NAME}/GLUTShellThreading_pthread.c
 SOURCES_library_iphoneos        = source/${PROJECT_NAME}/GLUTShellThreading_pthread.c
