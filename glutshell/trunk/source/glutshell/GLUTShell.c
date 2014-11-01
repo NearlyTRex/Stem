@@ -680,7 +680,7 @@ static void checkModifierKeys() {
 				keyDownCallback(0, KEYBOARD_LEFT_ALT, modifierMask);
 			}
 		} else if (!(newModifierMask & MODIFIER_ALT_BIT) && (modifierMask & MODIFIER_ALT_BIT)) {
-			if (keyDownCallback != NULL) {
+			if (keyUpCallback != NULL) {
 				keyUpCallback(KEYBOARD_LEFT_ALT, modifierMask);
 			}
 		}
