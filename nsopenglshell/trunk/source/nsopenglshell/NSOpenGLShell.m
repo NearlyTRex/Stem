@@ -38,6 +38,12 @@
 #include "shell/ShellCallbacks.h"
 #include "shell/ShellThreads.h"
 
+#ifndef USE_NSTIMER
+#define USE_NSTIMER 1
+#endif
+
+#if USE_NSTIMER
+
 @interface NSOpenGLShellTimerTarget : NSObject {
 	unsigned int timerID;
 	bool repeat;
@@ -70,18 +76,95 @@ struct NSOpenGLShellTimer {
 	NSOpenGLShellTimerTarget * timerTarget;
 };
 
+#else
+
+struct NSOpenGLShellTimer {
+	double interval;
+	double nextFireTime;
+	bool repeat;
+	unsigned int id;
+	void (* callback)(unsigned int timerID, void * context);
+	void * context;
+};
+
+#endif
+
 bool mainLoopCalled = false;
 static bool cursorHiddenByHide = false;
 static unsigned int nextTimerID;
 static size_t timerCount;
 static struct NSOpenGLShellTimer * timers;
 
+#if !USE_NSTIMER
+
+static NSOpenGLShellView * view;
+
+static void handleEvent(NSEvent * event) {
+	switch ([event type]) {
+		case NSFlagsChanged:
+			[view flagsChanged: event];
+			break;
+			
+		default:
+			[NSApp sendEvent: event];
+			break;
+	}
+}
+
+void NSOpenGLShell_mainLoop() {
+	NSAutoreleasePool * pool;
+	NSEvent * event;
+	NSDate * expiration;
+	unsigned int timerIndex, timerIndex2;
+	double currentTime;
+	
+	view = [(NSOpenGLShellApplication *) [NSApplication sharedApplication] view];
+	for (;;) {
+		pool = [[NSAutoreleasePool alloc] init];
+		if (timerCount > 0 || [view redisplayWasPosted]) {
+			expiration = nil;
+		} else {
+			expiration = [NSDate distantFuture];
+		}
+//#error This doesn't allow live window resizing! [[NSRunLoop currentRunLoop] currentMode] doesn't work for some reason (returns nil?)
+		event = [NSApp nextEventMatchingMask: NSAnyEventMask untilDate: expiration inMode: NSDefaultRunLoopMode dequeue: YES];
+		while (event != nil) {
+			handleEvent(event);
+			event = [NSApp nextEventMatchingMask: NSAnyEventMask untilDate: nil inMode: NSDefaultRunLoopMode dequeue: YES];
+		}
+		
+		currentTime = Shell_getCurrentTime();
+		for (timerIndex = 0; timerIndex < timerCount; timerIndex++) {
+			if (currentTime >= timers[timerIndex].nextFireTime) {
+				timers[timerIndex].callback(timers[timerIndex].id, timers[timerIndex].context);
+				if (timers[timerIndex].repeat) {
+					timers[timerIndex].nextFireTime += timers[timerIndex].interval;
+				} else {
+					timerCount--;
+					for (timerIndex2 = timerIndex; timerIndex2 < timerCount; timerIndex2++) {
+						timers[timerIndex2] = timers[timerIndex2 + 1];
+					}
+					timerIndex--;
+				}
+			}
+		}
+		
+		if ([view redisplayWasPosted]) {
+			[view draw];
+		}
+		
+		[pool release];
+	}
+}
+
+#endif
+
 void Shell_mainLoop() {
 	mainLoopCalled = true;
 }
 
 void Shell_redisplay() {
-	[[(NSOpenGLShellApplication *) [NSApplication sharedApplication] view] redisplayPosted];
+	[[(NSOpenGLShellApplication *) [NSApplication sharedApplication] view] redisplay];
 }
 
 bool Shell_isFullScreen() {
@@ -211,7 +294,7 @@ unsigned int Shell_getDisplayIndexFromWindow() {
 	NSUInteger screenIndex = [[NSScreen screens] indexOfObject: screen];
 	
 	if (screenIndex == NSNotFound) {
-		NSUInteger screenIndex = [[NSScreen screens] indexOfObject: [NSScreen mainScreen]];
+		screenIndex = [[NSScreen screens] indexOfObject: [NSScreen mainScreen]];
 		if (screenIndex == NSNotFound) {
 			return 0;
 		}
@@ -242,8 +325,16 @@ void Shell_getDisplayBounds(unsigned int displayIndex, int * outOffsetX, int * o
 unsigned int Shell_setTimer(double interval, bool repeat, void (* callback)(unsigned int timerID, void * context), void * context) {
 	timers = realloc(timers, sizeof(struct NSOpenGLShellTimer) * (timerCount + 1));
 	timers[timerCount].id = nextTimerID++;
+#if USE_NSTIMER
 	timers[timerCount].timerTarget = [[NSOpenGLShellTimerTarget alloc] initWithID: timers[timerCount].id repeat: repeat callback: callback context: context];
 	timers[timerCount].timer = [NSTimer scheduledTimerWithTimeInterval: interval target: timers[timerCount].timerTarget selector: @selector(timer:) userInfo: nil repeats: repeat];
+#else
+	timers[timerCount].interval = interval;
+	timers[timerCount].nextFireTime = Shell_getCurrentTime() + interval;
+	timers[timerCount].repeat = repeat;
+	timers[timerCount].callback = callback;
+	timers[timerCount].context = context;
+#endif
 	return timers[timerCount++].id;
 }
 
@@ -252,8 +343,10 @@ void Shell_cancelTimer(unsigned int timerID) {
 	
 	for (timerIndex = 0; timerIndex < timerCount; timerIndex++) {
 		if (timers[timerIndex].id == timerID) {
+#if USE_NSTIMER
 			[timers[timerIndex].timer invalidate];
 			[timers[timerIndex].timerTarget release];
+#endif
 			timerCount--;
 			for (; timerIndex < timerCount; timerIndex++) {
 				timers[timerIndex] = timers[timerIndex + 1];

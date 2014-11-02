@@ -34,13 +34,21 @@ bool g_mouseDeltaMode = false;
 
 extern bool mainLoopCalled;
 
+@interface NSWindowWithSquareCorners : NSWindow
+@end
+@implementation NSWindowWithSquareCorners
+- (BOOL) bottomCornerRounded {
+	return NO;
+}
+@end
+
 @implementation NSOpenGLShellApplication
 
 - (void) applicationDidFinishLaunching: (NSNotification *) notification {
-	window = [[NSWindow alloc] initWithContentRect: NSMakeRect(g_configuration.windowX, [[NSScreen mainScreen] frame].size.height - g_configuration.windowY, g_configuration.windowWidth, g_configuration.windowHeight)
-	                                     styleMask: NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask | NSResizableWindowMask
-	                                       backing: NSBackingStoreBuffered
-	                                         defer: NO];
+	window = [[NSWindowWithSquareCorners alloc] initWithContentRect: NSMakeRect(g_configuration.windowX, [[NSScreen mainScreen] frame].size.height - g_configuration.windowY, g_configuration.windowWidth, g_configuration.windowHeight)
+	                                                      styleMask: NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask | NSResizableWindowMask
+	                                                        backing: NSBackingStoreBuffered
+	                                                          defer: NO];
 	[window setDelegate: self];
 	[window setTitle: [NSString stringWithUTF8String: g_configuration.windowTitle]];
 	[window setAcceptsMouseMovedEvents: YES];
@@ -54,7 +62,13 @@ extern bool mainLoopCalled;
 	[window setInitialFirstResponder: view];
 	
 	if (resizeCallback != NULL) {
-		resizeCallback([view bounds].size.width, [view bounds].size.height);
+		NSRect viewBounds;
+		
+		viewBounds = [view bounds];
+		if ([view respondsToSelector: @selector(convertRectToBacking:)]) {
+			viewBounds = [view convertRectToBacking: viewBounds];
+		}
+		resizeCallback(viewBounds.size.width, viewBounds.size.height);
 	}
 	Target_init();
 	[view initCalled];
@@ -66,8 +80,6 @@ extern bool mainLoopCalled;
 	if (!mainLoopCalled) {
 		exit(EXIT_SUCCESS);
 	}
-	
-	[view startAnimation];
 }
 
 - (void) applicationWillResignActive: (NSNotification *) notification {
@@ -120,6 +132,10 @@ extern bool mainLoopCalled;
 
 - (BOOL) applicationShouldTerminateAfterLastWindowClosed: (NSApplication *) application {
   return YES;
+}
+
+- (void) windowWillClose: (NSNotification *) notification {
+	exit(EXIT_SUCCESS);
 }
 
 - (void) windowWillMiniaturize: (NSNotification *) notification {

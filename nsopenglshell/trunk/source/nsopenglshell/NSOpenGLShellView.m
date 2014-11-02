@@ -33,10 +33,6 @@
 - (NSRect)convertRectToBacking:(NSRect)aRect;
 @end
 
-@interface NSOpenGLShellView ()
-- (void) stopAnimation;
-@end
-
 @implementation NSOpenGLShellView
 
 - (void) setVSync: (BOOL) sync {
@@ -71,6 +67,8 @@
 		attributes[numAttributes++] = NSOpenGLPFASamples;
 		attributes[numAttributes++] = configuration.displayMode.samples;
 	}
+	attributes[numAttributes++] = NSOpenGLPFAAccelerated;
+	attributes[numAttributes++] = NSOpenGLPFANoRecovery;
 	attributes[numAttributes] = 0;
 	pixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes: attributes];
 	if ((self = [super initWithFrame: frame pixelFormat: pixelFormat]) != nil) {
@@ -91,17 +89,17 @@
 		vsyncFullscreen = VSYNC_DEFAULT_FULLSCREEN;
 		[self setVSync: vsyncWindow];
 		
-		animationTimer = nil;
-		
 		[[NSNotificationCenter defaultCenter] addObserver: self selector: @selector(frameDidChange:) name: NSViewFrameDidChangeNotification object: nil];
+		
+		drawTimer = [[NSTimer alloc] initWithFireDate: nil interval: 1.0 / 240.0 target: self selector: @selector(drawTimer:) userInfo: nil repeats: YES];
 	}
 	[pixelFormat release];
 	return self;
 }
 
 - (void) dealloc {
-	[self stopAnimation];
 	[[NSNotificationCenter defaultCenter] removeObserver: self];
+	[drawTimer release];
 	[super dealloc];
 }
 
@@ -553,49 +551,50 @@ static unsigned int NSEventKeyModifiersToShellKeyModifiers(NSUInteger modifiers)
 	initCalled = YES;
 }
 
-- (void) redisplayPosted {
-	if (animating) {
-		redisplayWasPosted = YES;
-	} else {
-		[self startAnimation];
+- (void) redisplay {
+	if (!redisplayWasPosted) {
+		[[NSRunLoop mainRunLoop] addTimer: drawTimer forMode: NSRunLoopCommonModes];
 	}
+	redisplayWasPosted = YES;
 }
 
-- (void) startAnimation {
-	if (!animating) {
-		animationTimer = [NSTimer scheduledTimerWithTimeInterval: 1.0 / 60.0 target: self selector: @selector(drawTimer:) userInfo: nil repeats: YES];
-		animating = YES;
-	}
+- (bool) redisplayWasPosted {
+	return redisplayWasPosted;
 }
 
-- (void) stopAnimation {
-	if (animating) {
-		[animationTimer invalidate];
-		animationTimer = nil;
-		animating = NO;
-	}
+- (void) drawTimer: (NSTimer *) timer {
+	[self draw];
 }
 
 - (void) drawRect: (NSRect) rect {
+	if (!initCalled) {
+		return;
+	}
+	[self draw];
+}
+
+#ifdef DEBUG
+double NSOpenGLShell_lastFlushBufferTime;
+#endif
+
+- (void) draw {
 #ifdef DEBUG
 	GLenum error;
 #endif
 	
-	if (!initCalled) {
-		[self setNeedsDisplay: YES];
-		return;
-	}
+	redisplayWasPosted = NO;
 	
 	[[self openGLContext] makeCurrentContext];
 	
 	if (drawCallback != NULL && drawCallback()) {
+#ifdef DEBUG
+		double flushBufferTime = Shell_getCurrentTime();
+#endif
 		[[self openGLContext] flushBuffer];
+#ifdef DEBUG
+		NSOpenGLShell_lastFlushBufferTime = Shell_getCurrentTime() - flushBufferTime;
+#endif
 	}
-	
-	if (!redisplayWasPosted) {
-		[self stopAnimation];
-	}
-	redisplayWasPosted = NO;
 	
 #ifdef DEBUG
 	error = glGetError();
@@ -604,10 +603,10 @@ static unsigned int NSEventKeyModifiersToShellKeyModifiers(NSUInteger modifiers)
 		error = glGetError();
 	}
 #endif
-}
-
-- (void) drawTimer: (NSTimer *) timer {
-	[self setNeedsDisplay: YES];
+	
+	if (!redisplayWasPosted) {
+		[drawTimer invalidate];
+	}
 }
 
 - (void) reshape {
@@ -632,6 +631,10 @@ static unsigned int NSEventKeyModifiersToShellKeyModifiers(NSUInteger modifiers)
 }
 
 - (BOOL) isFlipped {
+	return YES;
+}
+
+- (BOOL) isOpaque {
 	return YES;
 }
 

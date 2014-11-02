@@ -28,10 +28,8 @@
 #define VSYNC_DEFAULT_FULLSCREEN YES
 
 @interface NSOpenGLShellView : NSOpenGLView {
-	BOOL animating;
 	BOOL initCalled;
 	BOOL redisplayWasPosted;
-	NSTimer * animationTimer;
 	int buttonMask;
 	BOOL vsyncWindow;
 	BOOL vsyncFullscreen;
@@ -40,14 +38,16 @@
 	unsigned int modifierMask;
 	CGFloat coalescedScrollDeltaX;
 	CGFloat coalescedScrollDeltaY;
+	NSTimer * drawTimer;
 }
 
 - (id) initWithFrame: (NSRect) frame configuration: (struct NSOpenGLShellConfiguration) configuration;
 - (void) initCalled;
-- (void) redisplayPosted;
+- (void) redisplay;
+- (bool) redisplayWasPosted;
 - (bool) enterFullScreen: (NSScreen *) screen;
 - (void) exitFullScreen;
-- (void) startAnimation;
 - (void) setVSync: (BOOL) sync forFullscreen: (BOOL) fullscreen;
+- (void) draw;
 
 @end

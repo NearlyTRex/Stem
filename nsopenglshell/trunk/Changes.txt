@@ -1,3 +1,8 @@
+2.1.0 (2014-11-02)
+ * Fixed an oversight that caused the initial call to the Shell_resizeFunc callback (prior to Target_init()) to be passed a size in points instead of pixels
+ * Improved rendering performance and consistency somewhat
+ * Fixed GL errors/incorrect rendering when closing window or quitting from full screen mode
+
 2.0.0 (2014-10-19)
  * Updated for shell 2.0.0 (adds multiple display support, scroll wheel events, registered callbacks for input events)
  * Added configuration option for Enter Full Screen menu item
