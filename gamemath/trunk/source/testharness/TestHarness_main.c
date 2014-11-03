@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include "3dmath/FixedPoint.h"
+#include "gamemath/FixedPoint.h"
 
 #if defined(__APPLE__)
 #include <mach/mach.h>

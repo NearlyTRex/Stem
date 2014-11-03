@@ -1,4 +1,6 @@
-2.1.2 (2014-10-02)
+2.2.0 (2014-11-02)
+ * Renamed project from 3dmath to gamemath to more accurately fit its purpose
+ * Added Interpolation module
  * Added xtof, ftox, xtod, and dtox macros (aliases of fixed16_16ToFloat, floatToFixed16_16, fixed16_16ToDouble, and doubleToFixed16_16, respectively)
 
 2.1.1 (2014-06-29)

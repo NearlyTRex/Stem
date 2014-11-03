@@ -27,7 +27,7 @@ TARGET_PLATFORMS_macosx = macosx iphonesimulator iphoneos
 TARGET_PLATFORMS_linux = linux32 linux64
 TARGET_PLATFORMS_windows = win32 win64
 
-PROJECT_NAME = 3dmath
+PROJECT_NAME = gamemath
 CODESIGN_IDENTITY ?= "iPhone Developer"
 
 LIBRARY_TARGETS = library
@@ -165,20 +165,21 @@ THIRDPARTY_LIBRARY_DEPENDENCIES =
 
 SOURCES_library = \
 	source/${PROJECT_NAME}/FixedPoint.c \
+	source/${PROJECT_NAME}/Interpolation.c \
 	source/${PROJECT_NAME}/Matrix.c \
 	source/${PROJECT_NAME}/Quaternion.c \
-	build/intermediate/generated/3dmath/Vector2f.c \
-	build/intermediate/generated/3dmath/Vector3f.c \
-	build/intermediate/generated/3dmath/Vector4f.c \
-	build/intermediate/generated/3dmath/Vector2d.c \
-	build/intermediate/generated/3dmath/Vector3d.c \
-	build/intermediate/generated/3dmath/Vector4d.c \
-	build/intermediate/generated/3dmath/Vector2i.c \
-	build/intermediate/generated/3dmath/Vector3i.c \
-	build/intermediate/generated/3dmath/Vector4i.c \
-	build/intermediate/generated/3dmath/Vector2x.c \
-	build/intermediate/generated/3dmath/Vector3x.c \
-	build/intermediate/generated/3dmath/Vector4x.c
+	build/intermediate/generated/${PROJECT_NAME}/Vector2f.c \
+	build/intermediate/generated/${PROJECT_NAME}/Vector3f.c \
+	build/intermediate/generated/${PROJECT_NAME}/Vector4f.c \
+	build/intermediate/generated/${PROJECT_NAME}/Vector2d.c \
+	build/intermediate/generated/${PROJECT_NAME}/Vector3d.c \
+	build/intermediate/generated/${PROJECT_NAME}/Vector4d.c \
+	build/intermediate/generated/${PROJECT_NAME}/Vector2i.c \
+	build/intermediate/generated/${PROJECT_NAME}/Vector3i.c \
+	build/intermediate/generated/${PROJECT_NAME}/Vector4i.c \
+	build/intermediate/generated/${PROJECT_NAME}/Vector2x.c \
+	build/intermediate/generated/${PROJECT_NAME}/Vector3x.c \
+	build/intermediate/generated/${PROJECT_NAME}/Vector4x.c
 
 SOURCES_unittest = \
 	build/intermediate/TestList.c \
@@ -186,6 +187,7 @@ SOURCES_unittest = \
 
 SOURCES_unittest_suites = \
 	source/unittest/FixedPointTest.c \
+	source/unittest/InterpolationTest.c \
 	source/unittest/MatrixTest.c \
 	source/unittest/QuaternionTest.c \
 	source/unittest/VectorTest.c
@@ -197,20 +199,21 @@ SOURCES_testharness = \
 
 INCLUDES = \
 	source/${PROJECT_NAME}/FixedPoint.h \
+	source/${PROJECT_NAME}/Interpolation.h \
 	source/${PROJECT_NAME}/Matrix.h \
 	source/${PROJECT_NAME}/Quaternion.h \
-	build/intermediate/generated/3dmath/Vector2f.h \
-	build/intermediate/generated/3dmath/Vector3f.h \
-	build/intermediate/generated/3dmath/Vector4f.h \
-	build/intermediate/generated/3dmath/Vector2d.h \
-	build/intermediate/generated/3dmath/Vector3d.h \
-	build/intermediate/generated/3dmath/Vector4d.h \
-	build/intermediate/generated/3dmath/Vector2i.h \
-	build/intermediate/generated/3dmath/Vector3i.h \
-	build/intermediate/generated/3dmath/Vector4i.h \
-	build/intermediate/generated/3dmath/Vector2x.h \
-	build/intermediate/generated/3dmath/Vector3x.h \
-	build/intermediate/generated/3dmath/Vector4x.h
+	build/intermediate/generated/${PROJECT_NAME}/Vector2f.h \
+	build/intermediate/generated/${PROJECT_NAME}/Vector3f.h \
+	build/intermediate/generated/${PROJECT_NAME}/Vector4f.h \
+	build/intermediate/generated/${PROJECT_NAME}/Vector2d.h \
+	build/intermediate/generated/${PROJECT_NAME}/Vector3d.h \
+	build/intermediate/generated/${PROJECT_NAME}/Vector4d.h \
+	build/intermediate/generated/${PROJECT_NAME}/Vector2i.h \
+	build/intermediate/generated/${PROJECT_NAME}/Vector3i.h \
+	build/intermediate/generated/${PROJECT_NAME}/Vector4i.h \
+	build/intermediate/generated/${PROJECT_NAME}/Vector2x.h \
+	build/intermediate/generated/${PROJECT_NAME}/Vector3x.h \
+	build/intermediate/generated/${PROJECT_NAME}/Vector4x.h
 
 #Target resources
 
@@ -248,21 +251,21 @@ TYPE_SUFFIX_fixed16_16 = x
 
 GENERATED_SOURCES = ${foreach axis_count,2 3 4, \
 	${foreach type_suffix,f d i x, \
-		build/intermediate/generated/3dmath/Vector${axis_count}${type_suffix}.h \
-		build/intermediate/generated/3dmath/Vector${axis_count}${type_suffix}.c \
+		build/intermediate/generated/${PROJECT_NAME}/Vector${axis_count}${type_suffix}.h \
+		build/intermediate/generated/${PROJECT_NAME}/Vector${axis_count}${type_suffix}.c \
 	} \
 }
 
 PREREQS_library = ${GENERATED_SOURCES}
 PREREQS_unittest = ${GENERATED_SOURCES}
 
-build/intermediate/generated/3dmath:
+build/intermediate/generated/${PROJECT_NAME}:
 	mkdir -p $@
 
 define generated_vector_template #(axis_count, numeric_type)
-build/intermediate/generated/3dmath/Vector${axis_count}${TYPE_SUFFIX_${numeric_type}}.h: source/${PROJECT_NAME}/Vector.h.erb | build/intermediate/generated/3dmath
+build/intermediate/generated/${PROJECT_NAME}/Vector${axis_count}${TYPE_SUFFIX_${numeric_type}}.h: source/${PROJECT_NAME}/Vector.h.erb | build/intermediate/generated/${PROJECT_NAME}
 	axis_count=${axis_count} numeric_type=${numeric_type} erb -T - $$^ > $$@
-build/intermediate/generated/3dmath/Vector${axis_count}${TYPE_SUFFIX_${numeric_type}}.c: source/${PROJECT_NAME}/Vector.c.erb | build/intermediate/generated/3dmath
+build/intermediate/generated/${PROJECT_NAME}/Vector${axis_count}${TYPE_SUFFIX_${numeric_type}}.c: source/${PROJECT_NAME}/Vector.c.erb | build/intermediate/generated/${PROJECT_NAME}
 	axis_count=${axis_count} numeric_type=${numeric_type} erb -T - $$^ > $$@
 endef
 

@@ -1,6 +1,6 @@
 #include <math.h>
 #include <stdbool.h>
-#include "3dmath/Quaternion.h"
+#include "gamemath/Quaternion.h"
 #include "unittest/TestSuite.h"
 
 #define TEST_EPSILON 0.00001f

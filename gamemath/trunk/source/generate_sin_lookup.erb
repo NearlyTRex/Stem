@@ -1,5 +1,5 @@
 <%
-#erb -T - source/generate_sin_lookup.erb > source/3dmath/FixedPoint_sinLookup.h
+#erb -T - source/generate_sin_lookup.erb > source/gamemath/FixedPoint_sinLookup.h
 
 value_count = 4096
 pi_range = Math::PI / 2
@@ -35,7 +35,7 @@ end
 
 // This file was generated with Ruby <%= RUBY_VERSION %> at <%= Time.now %> on <%= RUBY_PLATFORM %>.
 
-#include "3dmath/FixedPoint.h"
+#include "gamemath/FixedPoint.h"
 
 #define SIN_LOOKUP_COUNT <%= value_count %>
 

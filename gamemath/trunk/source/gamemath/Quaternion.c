@@ -20,7 +20,7 @@
   Alex Diener alex@ludobloom.com
 */
 
-#include "3dmath/Quaternion.h"
+#include "gamemath/Quaternion.h"
 
 #include <math.h>
 #include <stdlib.h>

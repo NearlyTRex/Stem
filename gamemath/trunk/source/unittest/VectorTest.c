@@ -1,7 +1,7 @@
 #include "unittest/TestSuite.h"
-#include "3dmath/Vector2f.h"
-#include "3dmath/Vector3f.h"
-#include "3dmath/Vector4f.h"
+#include "gamemath/Vector2f.h"
+#include "gamemath/Vector3f.h"
+#include "gamemath/Vector4f.h"
 #include <math.h>
 #include <string.h>
 

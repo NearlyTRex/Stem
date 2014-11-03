@@ -20,17 +20,17 @@
   Alex Diener alex@ludobloom.com
 */
 
-#include "3dmath/FixedPoint.h"
-#include "3dmath/Vector2x.h"
-#include "3dmath/Vector3x.h"
-#include "3dmath/Vector4x.h"
+#include "gamemath/FixedPoint.h"
+#include "gamemath/Vector2x.h"
+#include "gamemath/Vector3x.h"
+#include "gamemath/Vector4x.h"
 
 #ifndef USE_SIN_LOOKUP_TABLE
 #define USE_SIN_LOOKUP_TABLE 1
 #endif
 
 #if USE_SIN_LOOKUP_TABLE
-#include "3dmath/FixedPoint_sinLookup.h"
+#include "gamemath/FixedPoint_sinLookup.h"
 #endif
 
 fixed16_16 fixed16_16_exp(fixed16_16 x) {

@@ -1,5 +1,5 @@
 #include "unittest/TestSuite.h"
-#include "3dmath/Matrix.h"
+#include "gamemath/Matrix.h"
 #include <math.h>
 
 #define assertMatrixExact(matrix, expected0, expected4, expected8,  expected12, \

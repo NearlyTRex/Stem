@@ -35,9 +35,9 @@ struct Quaternion {
 	float w;
 };
 
-#include "3dmath/Matrix.h"
-#include "3dmath/Vector3f.h"
-#include "3dmath/Vector4f.h"
+#include "gamemath/Matrix.h"
+#include "gamemath/Vector3f.h"
+#include "gamemath/Vector4f.h"
 
 #define QUATERNION_IDENTITY ((Quaternion) {0.0f, 0.0f, 0.0f, 1.0f})
 #define QUATERNION(x, y, z, w) ((Quaternion) {x, y, z, w})

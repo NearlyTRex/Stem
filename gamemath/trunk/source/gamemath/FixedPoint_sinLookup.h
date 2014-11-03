@@ -22,7 +22,7 @@
 
 // This file was generated with Ruby 2.0.0 at 2014-01-13 04:02:38 -0500 on universal.x86_64-darwin13.
 
-#include "3dmath/FixedPoint.h"
+#include "gamemath/FixedPoint.h"
 
 #define SIN_LOOKUP_COUNT 4096
 

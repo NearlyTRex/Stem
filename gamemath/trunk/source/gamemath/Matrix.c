@@ -20,8 +20,8 @@
   Alex Diener alex@ludobloom.com
 */
 
-#include "3dmath/Matrix.h"
-#include "3dmath/Quaternion.h"
+#include "gamemath/Matrix.h"
+#include "gamemath/Quaternion.h"
 #include <math.h>
 
 void Matrix_loadIdentity(Matrix * matrix) {

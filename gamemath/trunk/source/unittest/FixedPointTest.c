@@ -1,5 +1,5 @@
 #include "unittest/TestSuite.h"
-#include "3dmath/FixedPoint.h"
+#include "gamemath/FixedPoint.h"
 #include <stdbool.h>
 #include <stdio.h>
 

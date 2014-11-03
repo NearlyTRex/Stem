@@ -32,9 +32,9 @@ struct Matrix {
 	float m[16];
 };
 
-#include "3dmath/Vector2f.h"
-#include "3dmath/Vector3f.h"
-#include "3dmath/Vector4f.h"
+#include "gamemath/Vector2f.h"
+#include "gamemath/Vector3f.h"
+#include "gamemath/Vector4f.h"
 
 #define MATRIX_IDENTITY ((Matrix) {{1.0f, 0.0f, 0.0f, 0.0f, \
                                     0.0f, 1.0f, 0.0f, 0.0f, \
