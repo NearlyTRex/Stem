@@ -1,3 +1,6 @@
+1.1.1 (2014-11-04)
+ * Added GLTextureAtlas_getVerticesWithColor
+
 1.1.0 (2014-06-29)
  * Added GLTextureAtlas
  * Added support for modern Xcode/iOS SDK versions

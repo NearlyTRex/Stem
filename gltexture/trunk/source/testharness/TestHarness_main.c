@@ -1,7 +1,7 @@
 #include "shell/Shell.h"
+#include "shell/ShellCallbacks.h"
 #include "shell/ShellKeyCodes.h"
-#include "shell/Target.h"
-#include "3dmath/Matrix.h"
+#include "gamemath/Matrix.h"
 #include "glgraphics/GLIncludes.h"
 #include "gltexture/GLTexture.h"
 #include "jsonserialization/JSONDeserializationContext.h"
@@ -170,13 +170,6 @@ static void loadTextureImage() {
 	image->dispose(image);
 }
 
-void Target_init() {
-	chdir(Shell_getResourcePath());
-	loadTextureImage();
-	glEnableClientState(GL_VERTEX_ARRAY);
-	Shell_mainLoop();
-}
-
 static void drawControl(float x, float y, float scale, int parameter) {
 	struct vertex_p2f vertices[] = {
 		{{0.5f, 0.0f}},
@@ -212,7 +205,7 @@ static void drawControl(float x, float y, float scale, int parameter) {
 	glDrawArrays(GL_TRIANGLE_FAN, 0, sizeof(vertices) / sizeof(struct vertex_p2f));
 }
 
-bool Target_draw() {
+static bool Target_draw() {
 	float ratio = textureImages[textureIndex].ratio;
 	float minTexCoordX = (ratio > 1.0f ? -0.5f : -0.5f / ratio) * (extendedTexCoords ? 2.0f : 1.0f) + 0.5f;
 	float maxTexCoordX = (ratio > 1.0f ?  0.5f :  0.5f / ratio) * (extendedTexCoords ? 2.0f : 1.0f) + 0.5f;
@@ -292,7 +285,7 @@ bool Target_draw() {
 	return true;
 }
 
-void Target_resized(unsigned int newWidth, unsigned int newHeight) {
+static void Target_resized(unsigned int newWidth, unsigned int newHeight) {
 	glViewport(0, 0, newWidth, newHeight);
 	viewportWidth = newWidth;
 	viewportHeight = newHeight;
@@ -401,7 +394,7 @@ static void updateTextureImage() {
 	Shell_redisplay();
 }
 
-void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned int keyModifiers) {
+static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned int keyModifiers) {
 	if (charCode == '[') {
 		cycleTextures(-1);
 		
@@ -458,13 +451,7 @@ void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned int ke
 	}
 }
 
-void Target_keyUp(unsigned int keyCode, unsigned int keyModifiers) {
-}
-
-void Target_keyModifiersChanged(unsigned int keyModifiers) {
-}
-
-void Target_mouseDown(unsigned int buttonNumber, float x, float y) {
+static void Target_mouseDown(unsigned int buttonNumber, float x, float y) {
 	if (iPhoneMode) {
 		if (x < viewportHeight / 6) {
 			if (y > viewportHeight - viewportHeight / 6 * 1) {
@@ -509,13 +496,11 @@ void Target_mouseDown(unsigned int buttonNumber, float x, float y) {
 	}
 }
 
-void Target_mouseUp(unsigned int buttonNumber, float x, float y) {
-}
-
-void Target_mouseMoved(float x, float y) {
-}
-
-void Target_mouseDragged(unsigned int buttonMask, float x, float y) {
+static void registerShellCallbacks() {
+	Shell_drawFunc(Target_draw);
+	Shell_resizeFunc(Target_resized);
+	Shell_keyDownFunc(Target_keyDown);
+	Shell_mouseDownFunc(Target_mouseDown);
 }
 
 #if defined(STEM_PLATFORM_iphonesimulator) || defined(STEM_PLATFORM_iphoneos)
@@ -523,15 +508,7 @@ void EAGLTarget_configure(int argc, char ** argv, struct EAGLShellConfiguration 
 	iPhoneMode = true;
 	
 	configuration->preferredOpenGLAPIVersion = EAGLShellOpenGLVersion_ES1 /*| EAGLShellOpenGLVersion_ES2*/;
-}
-
-void EAGLTarget_openURL(const char * url) {
-}
-
-void EAGLTarget_touchesCancelled(unsigned int buttonMask) {
-}
-
-void EAGLTarget_accelerometer(double x, double y, double z) {
+	registerShellCallbacks();
 }
 #else
 static void printUsage() {
@@ -563,5 +540,13 @@ void GLUTTarget_configure(int argc, const char ** argv, struct GLUTShellConfigur
 		}
 	}
 	configuration->windowTitle = "GLTexture Test Harness";
+	registerShellCallbacks();
 }
 #endif
+
+void Target_init() {
+	chdir(Shell_getResourcePath());
+	loadTextureImage();
+	glEnableClientState(GL_VERTEX_ARRAY);
+	Shell_mainLoop();
+}

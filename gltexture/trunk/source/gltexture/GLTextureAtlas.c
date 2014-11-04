@@ -38,6 +38,7 @@ static void sharedInit(GLTextureAtlas * self) {
 	self->removeEntry = GLTextureAtlas_removeEntry;
 	self->lookup = GLTextureAtlas_lookup;
 	self->getVertices = GLTextureAtlas_getVertices;
+	self->getVerticesWithColor = GLTextureAtlas_getVerticesWithColor;
 	self->getIndexes = GLTextureAtlas_getIndexes;
 }
 
@@ -156,28 +157,63 @@ struct GLTextureAtlas_entry GLTextureAtlas_lookup(GLTextureAtlas * self, const c
 	return hashGetStruct(self->private_ivar(hashTable), key, struct GLTextureAtlas_entry);
 }
 
+#define getVertices_writePosition() \
+	outVertices[0].position[0] = \
+	outVertices[3].position[0] = offsetX - width * relativeOriginX; \
+	outVertices[0].position[1] = \
+	outVertices[1].position[1] = offsetY - height * relativeOriginY; \
+	outVertices[1].position[0] = \
+	outVertices[2].position[0] = offsetX + width * (1.0f - relativeOriginX); \
+	outVertices[2].position[1] = \
+	outVertices[3].position[1] = offsetY + height * (1.0f - relativeOriginY)
+
+#define getVertices_writeTexCoords() \
+	outVertices[0].texCoords[0] = entry.left; \
+	outVertices[0].texCoords[1] = entry.bottom; \
+	outVertices[1].texCoords[0] = entry.right; \
+	outVertices[1].texCoords[1] = entry.bottom; \
+	outVertices[2].texCoords[0] = entry.right; \
+	outVertices[2].texCoords[1] = entry.top; \
+	outVertices[3].texCoords[0] = entry.left; \
+	outVertices[3].texCoords[1] = entry.top
+
+#define getVertices_writeColor() \
+	outVertices[0].color[0] = \
+	outVertices[1].color[0] = \
+	outVertices[2].color[0] = \
+	outVertices[3].color[0] = red; \
+	outVertices[0].color[1] = \
+	outVertices[1].color[1] = \
+	outVertices[2].color[1] = \
+	outVertices[3].color[1] = green; \
+	outVertices[0].color[2] = \
+	outVertices[1].color[2] = \
+	outVertices[2].color[2] = \
+	outVertices[3].color[2] = blue; \
+	outVertices[0].color[3] = \
+	outVertices[1].color[3] = \
+	outVertices[2].color[3] = \
+	outVertices[3].color[3] = alpha
+
 unsigned int GLTextureAtlas_getVertices(GLTextureAtlas * self, const char * key, float offsetX, float offsetY, float relativeOriginX, float relativeOriginY, float width, float height, struct vertex_p2f_t2f * outVertices) {
 	if (outVertices != NULL) {
 		struct GLTextureAtlas_entry entry;
 		
-		outVertices[0].position[0] =
-		outVertices[3].position[0] = offsetX - width * relativeOriginX;
-		outVertices[0].position[1] =
-		outVertices[1].position[1] = offsetY - height * relativeOriginY;
-		outVertices[1].position[0] =
-		outVertices[2].position[0] = offsetX + width * (1.0f - relativeOriginX);
-		outVertices[2].position[1] =
-		outVertices[3].position[1] = offsetY + height * (1.0f - relativeOriginY);
+		entry = self->lookup(self, key);
+		getVertices_writePosition();
+		getVertices_writeTexCoords();
+	}
+	return 4;
+}
+
+unsigned int GLTextureAtlas_getVerticesWithColor(GLTextureAtlas * self, const char * key, float offsetX, float offsetY, float relativeOriginX, float relativeOriginY, float width, float height, float red, float green, float blue, float alpha, struct vertex_p2f_t2f_c4f * outVertices) {
+	if (outVertices != NULL) {
+		struct GLTextureAtlas_entry entry;
 		
 		entry = self->lookup(self, key);
-		outVertices[0].texCoords[0] = entry.left;
-		outVertices[0].texCoords[1] = entry.bottom;
-		outVertices[1].texCoords[0] = entry.right;
-		outVertices[1].texCoords[1] = entry.bottom;
-		outVertices[2].texCoords[0] = entry.right;
-		outVertices[2].texCoords[1] = entry.top;
-		outVertices[3].texCoords[0] = entry.left;
-		outVertices[3].texCoords[1] = entry.top;
+		getVertices_writePosition();
+		getVertices_writeTexCoords();
+		getVertices_writeColor();
 	}
 	return 4;
 }

@@ -58,6 +58,7 @@ struct GLTextureAtlas_entry {
 	void (* removeEntry)(self_type * self, const char * key); \
 	struct GLTextureAtlas_entry (* lookup)(self_type * self, const char * key); \
 	unsigned int (* getVertices)(self_type * self, const char * key, float offsetX, float offsetY, float relativeOriginX, float relativeOriginY, float width, float height, struct vertex_p2f_t2f * outVertices); \
+	unsigned int (* getVerticesWithColor)(self_type * self, const char * key, float offsetX, float offsetY, float relativeOriginX, float relativeOriginY, float width, float height, float red, float green, float blue, float alpha, struct vertex_p2f_t2f_c4f * outVertices); \
 	unsigned int (* getIndexes)(self_type * self, void * outIndexes, GLenum indexType, unsigned int indexOffset);
 
 stemobject_struct_definition(GLTextureAtlas)
@@ -78,6 +79,7 @@ void GLTextureAtlas_removeEntry(GLTextureAtlas * self, const char * key);
 struct GLTextureAtlas_entry GLTextureAtlas_lookup(GLTextureAtlas * self, const char * key);
 
 unsigned int GLTextureAtlas_getVertices(GLTextureAtlas * self, const char * key, float offsetX, float offsetY, float relativeOriginX, float relativeOriginY, float width, float height, struct vertex_p2f_t2f * outVertices);
+unsigned int GLTextureAtlas_getVerticesWithColor(GLTextureAtlas * self, const char * key, float offsetX, float offsetY, float relativeOriginX, float relativeOriginY, float width, float height, float red, float green, float blue, float alpha, struct vertex_p2f_t2f_c4f * outVertices);
 unsigned int GLTextureAtlas_getIndexes(GLTextureAtlas * self, void * outIndexes, GLenum indexType, unsigned int indexOffset);
 
 #ifdef __cplusplus

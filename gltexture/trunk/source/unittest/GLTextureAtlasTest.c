@@ -18,8 +18,9 @@ static void testInit() {
 	TestCase_assert(atlas.setEntry == GLTextureAtlas_setEntry, "Expected %p but got %p", GLTextureAtlas_setEntry, atlas.setEntry);
 	TestCase_assert(atlas.removeEntry == GLTextureAtlas_removeEntry, "Expected %p but got %p", GLTextureAtlas_removeEntry, atlas.removeEntry);
 	TestCase_assert(atlas.lookup == GLTextureAtlas_lookup, "Expected %p but got %p", GLTextureAtlas_lookup, atlas.lookup);
-	TestCase_assert(atlas.getVertices == GLTextureAtlas_getVertices, "Expected %p but got %p", GLTextureAtlas_getVertices, atlas.lookup);
-	TestCase_assert(atlas.getIndexes == GLTextureAtlas_getIndexes, "Expected %p but got %p", GLTextureAtlas_getIndexes, atlas.lookup);
+	TestCase_assert(atlas.getVertices == GLTextureAtlas_getVertices, "Expected %p but got %p", GLTextureAtlas_getVertices, atlas.getVertices);
+	TestCase_assert(atlas.getVerticesWithColor == GLTextureAtlas_getVerticesWithColor, "Expected %p but got %p", GLTextureAtlas_getVerticesWithColor, atlas.getVerticesWithColor);
+	TestCase_assert(atlas.getIndexes == GLTextureAtlas_getIndexes, "Expected %p but got %p", GLTextureAtlas_getIndexes, atlas.getIndexes);
 	TestCase_assert(atlas.textureName == NULL, "Expected NULL but got %p", atlas.textureName);
 	atlas.dispose(&atlas);
 	
@@ -32,8 +33,9 @@ static void testInit() {
 	TestCase_assert(atlas.setEntry == GLTextureAtlas_setEntry, "Expected %p but got %p", GLTextureAtlas_setEntry, atlas.setEntry);
 	TestCase_assert(atlas.removeEntry == GLTextureAtlas_removeEntry, "Expected %p but got %p", GLTextureAtlas_removeEntry, atlas.removeEntry);
 	TestCase_assert(atlas.lookup == GLTextureAtlas_lookup, "Expected %p but got %p", GLTextureAtlas_lookup, atlas.lookup);
-	TestCase_assert(atlas.getVertices == GLTextureAtlas_getVertices, "Expected %p but got %p", GLTextureAtlas_getVertices, atlas.lookup);
-	TestCase_assert(atlas.getIndexes == GLTextureAtlas_getIndexes, "Expected %p but got %p", GLTextureAtlas_getIndexes, atlas.lookup);
+	TestCase_assert(atlas.getVertices == GLTextureAtlas_getVertices, "Expected %p but got %p", GLTextureAtlas_getVertices, atlas.getVertices);
+	TestCase_assert(atlas.getVerticesWithColor == GLTextureAtlas_getVerticesWithColor, "Expected %p but got %p", GLTextureAtlas_getVerticesWithColor, atlas.getVerticesWithColor);
+	TestCase_assert(atlas.getIndexes == GLTextureAtlas_getIndexes, "Expected %p but got %p", GLTextureAtlas_getIndexes, atlas.getIndexes);
 	TestCase_assert(atlas.textureName == NULL, "Expected NULL but got %p", atlas.textureName);
 	atlas.dispose(&atlas);
 	
@@ -45,8 +47,9 @@ static void testInit() {
 	TestCase_assert(atlasPtr->setEntry == GLTextureAtlas_setEntry, "Expected %p but got %p", GLTextureAtlas_setEntry, atlasPtr->setEntry);
 	TestCase_assert(atlasPtr->removeEntry == GLTextureAtlas_removeEntry, "Expected %p but got %p", GLTextureAtlas_removeEntry, atlasPtr->removeEntry);
 	TestCase_assert(atlasPtr->lookup == GLTextureAtlas_lookup, "Expected %p but got %p", GLTextureAtlas_lookup, atlasPtr->lookup);
-	TestCase_assert(atlasPtr->getVertices == GLTextureAtlas_getVertices, "Expected %p but got %p", GLTextureAtlas_getVertices, atlasPtr->lookup);
-	TestCase_assert(atlasPtr->getIndexes == GLTextureAtlas_getIndexes, "Expected %p but got %p", GLTextureAtlas_getIndexes, atlasPtr->lookup);
+	TestCase_assert(atlasPtr->getVertices == GLTextureAtlas_getVertices, "Expected %p but got %p", GLTextureAtlas_getVertices, atlasPtr->getVertices);
+	TestCase_assert(atlasPtr->getVerticesWithColor == GLTextureAtlas_getVerticesWithColor, "Expected %p but got %p", GLTextureAtlas_getVerticesWithColor, atlasPtr->getVerticesWithColor);
+	TestCase_assert(atlasPtr->getIndexes == GLTextureAtlas_getIndexes, "Expected %p but got %p", GLTextureAtlas_getIndexes, atlasPtr->getIndexes);
 	TestCase_assert(atlasPtr->textureName == NULL, "Expected NULL but got %p", atlasPtr->textureName);
 	atlasPtr->dispose(atlasPtr);
 }
@@ -440,6 +443,128 @@ static void testGetVertices() {
 	TestCase_assert(vertices[3].texCoords[1] == 0.75f, "Expected 0.75 but got %f\n", vertices[3].texCoords[1]);
 }
 
+static void testGetVerticesWithColor() {
+	GLTextureAtlas atlas;
+	unsigned int vertexCount;
+	struct vertex_p2f_t2f_c4f vertices[4];
+	
+	GLTextureAtlas_init(&atlas);
+	atlas.textureName = "bar";
+	atlas.setEntry(&atlas, "a", (struct GLTextureAtlas_entry) {0.0f, 0.25f, 0.5f, 0.75f});
+	atlas.setEntry(&atlas, "b", (struct GLTextureAtlas_entry) {0.125f, 0.375f, 0.625f, 0.875f});
+	
+	vertexCount = atlas.getVerticesWithColor(&atlas, "a", 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, NULL);
+	TestCase_assert(vertexCount == 4, "Expected 4 but get %u", vertexCount);
+	
+	memset(vertices, 0xFF, sizeof(vertices));
+	vertexCount = atlas.getVerticesWithColor(&atlas, "a", 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, vertices);
+	TestCase_assert(vertexCount == 4, "Expected 4 but get %u", vertexCount);
+	TestCase_assert(vertices[0].position[0] == 0.0f, "Expected 0.0 but got %f\n", vertices[0].position[0]);
+	TestCase_assert(vertices[0].position[1] == 0.0f, "Expected 0.0 but got %f\n", vertices[0].position[1]);
+	TestCase_assert(vertices[0].texCoords[0] == 0.0f, "Expected 0.0 but got %f\n", vertices[0].texCoords[0]);
+	TestCase_assert(vertices[0].texCoords[1] == 0.5f, "Expected 0.5 but got %f\n", vertices[0].texCoords[1]);
+	TestCase_assert(vertices[0].color[0] == 0.0f, "Expected 0.0 but got %f\n", vertices[0].color[0]);
+	TestCase_assert(vertices[0].color[1] == 0.0f, "Expected 0.0 but got %f\n", vertices[0].color[1]);
+	TestCase_assert(vertices[0].color[2] == 0.0f, "Expected 0.0 but got %f\n", vertices[0].color[2]);
+	TestCase_assert(vertices[0].color[3] == 0.0f, "Expected 0.0 but got %f\n", vertices[0].color[3]);
+	TestCase_assert(vertices[1].position[0] == 1.0f, "Expected 1.0 but got %f\n", vertices[1].position[0]);
+	TestCase_assert(vertices[1].position[1] == 0.0f, "Expected 0.0 but got %f\n", vertices[1].position[1]);
+	TestCase_assert(vertices[1].texCoords[0] == 0.25f, "Expected 0.25 but got %f\n", vertices[1].texCoords[0]);
+	TestCase_assert(vertices[1].texCoords[1] == 0.5f, "Expected 0.5 but got %f\n", vertices[1].texCoords[1]);
+	TestCase_assert(vertices[1].color[0] == 0.0f, "Expected 0.0 but got %f\n", vertices[1].color[0]);
+	TestCase_assert(vertices[1].color[1] == 0.0f, "Expected 0.0 but got %f\n", vertices[1].color[1]);
+	TestCase_assert(vertices[1].color[2] == 0.0f, "Expected 0.0 but got %f\n", vertices[1].color[2]);
+	TestCase_assert(vertices[0].color[3] == 0.0f, "Expected 0.0 but got %f\n", vertices[1].color[3]);
+	TestCase_assert(vertices[2].position[0] == 1.0f, "Expected 1.0 but got %f\n", vertices[2].position[0]);
+	TestCase_assert(vertices[2].position[1] == 1.0f, "Expected 1.0 but got %f\n", vertices[2].position[1]);
+	TestCase_assert(vertices[2].texCoords[0] == 0.25f, "Expected 0.25 but got %f\n", vertices[2].texCoords[0]);
+	TestCase_assert(vertices[2].texCoords[1] == 0.75f, "Expected 0.75 but got %f\n", vertices[2].texCoords[1]);
+	TestCase_assert(vertices[2].color[0] == 0.0f, "Expected 0.0 but got %f\n", vertices[2].color[0]);
+	TestCase_assert(vertices[2].color[1] == 0.0f, "Expected 0.0 but got %f\n", vertices[2].color[1]);
+	TestCase_assert(vertices[2].color[2] == 0.0f, "Expected 0.0 but got %f\n", vertices[2].color[2]);
+	TestCase_assert(vertices[2].color[3] == 0.0f, "Expected 0.0 but got %f\n", vertices[2].color[3]);
+	TestCase_assert(vertices[3].position[0] == 0.0f, "Expected 0.0 but got %f\n", vertices[3].position[0]);
+	TestCase_assert(vertices[3].position[1] == 1.0f, "Expected 1.0 but got %f\n", vertices[3].position[1]);
+	TestCase_assert(vertices[3].texCoords[0] == 0.0f, "Expected 0.0 but got %f\n", vertices[3].texCoords[0]);
+	TestCase_assert(vertices[3].texCoords[1] == 0.75f, "Expected 0.75 but got %f\n", vertices[3].texCoords[1]);
+	TestCase_assert(vertices[3].color[0] == 0.0f, "Expected 0.0 but got %f\n", vertices[3].color[0]);
+	TestCase_assert(vertices[3].color[1] == 0.0f, "Expected 0.0 but got %f\n", vertices[3].color[1]);
+	TestCase_assert(vertices[3].color[2] == 0.0f, "Expected 0.0 but got %f\n", vertices[3].color[2]);
+	TestCase_assert(vertices[3].color[3] == 0.0f, "Expected 0.0 but got %f\n", vertices[3].color[3]);
+	
+	memset(vertices, 0xFF, sizeof(vertices));
+	vertexCount = atlas.getVerticesWithColor(&atlas, "b", 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.25f, 0.5f, 0.75f, 1.0f, vertices);
+	TestCase_assert(vertexCount == 4, "Expected 4 but get %u", vertexCount);
+	TestCase_assert(vertices[0].position[0] == 0.0f, "Expected 0.0 but got %f\n", vertices[0].position[0]);
+	TestCase_assert(vertices[0].position[1] == 0.0f, "Expected 0.0 but got %f\n", vertices[0].position[1]);
+	TestCase_assert(vertices[0].texCoords[0] == 0.125f, "Expected 0.125 but got %f\n", vertices[0].texCoords[0]);
+	TestCase_assert(vertices[0].texCoords[1] == 0.625f, "Expected 0.625 but got %f\n", vertices[0].texCoords[1]);
+	TestCase_assert(vertices[0].color[0] == 0.25f, "Expected 0.25 but got %f\n", vertices[0].color[0]);
+	TestCase_assert(vertices[0].color[1] == 0.5f, "Expected 0.5 but got %f\n", vertices[0].color[1]);
+	TestCase_assert(vertices[0].color[2] == 0.75f, "Expected 0.75 but got %f\n", vertices[0].color[2]);
+	TestCase_assert(vertices[0].color[3] == 1.0f, "Expected 1.0 but got %f\n", vertices[0].color[3]);
+	TestCase_assert(vertices[1].position[0] == 1.0f, "Expected 1.0 but got %f\n", vertices[1].position[0]);
+	TestCase_assert(vertices[1].position[1] == 0.0f, "Expected 0.0 but got %f\n", vertices[1].position[1]);
+	TestCase_assert(vertices[1].texCoords[0] == 0.375f, "Expected 0.375 but got %f\n", vertices[1].texCoords[0]);
+	TestCase_assert(vertices[1].texCoords[1] == 0.625f, "Expected 0.625 but got %f\n", vertices[1].texCoords[1]);
+	TestCase_assert(vertices[1].color[0] == 0.25f, "Expected 0.25 but got %f\n", vertices[1].color[0]);
+	TestCase_assert(vertices[1].color[1] == 0.5f, "Expected 0.5 but got %f\n", vertices[1].color[1]);
+	TestCase_assert(vertices[1].color[2] == 0.75f, "Expected 0.75 but got %f\n", vertices[1].color[2]);
+	TestCase_assert(vertices[1].color[3] == 1.0f, "Expected 1.0 but got %f\n", vertices[1].color[3]);
+	TestCase_assert(vertices[2].position[0] == 1.0f, "Expected 1.0 but got %f\n", vertices[2].position[0]);
+	TestCase_assert(vertices[2].position[1] == 1.0f, "Expected 1.0 but got %f\n", vertices[2].position[1]);
+	TestCase_assert(vertices[2].texCoords[0] == 0.375f, "Expected 0.375 but got %f\n", vertices[2].texCoords[0]);
+	TestCase_assert(vertices[2].texCoords[1] == 0.875f, "Expected 0.875 but got %f\n", vertices[2].texCoords[1]);
+	TestCase_assert(vertices[2].color[0] == 0.25f, "Expected 0.25 but got %f\n", vertices[2].color[0]);
+	TestCase_assert(vertices[2].color[1] == 0.5f, "Expected 0.5 but got %f\n", vertices[2].color[1]);
+	TestCase_assert(vertices[2].color[2] == 0.75f, "Expected 0.75 but got %f\n", vertices[2].color[2]);
+	TestCase_assert(vertices[2].color[3] == 1.0f, "Expected 1.0 but got %f\n", vertices[2].color[3]);
+	TestCase_assert(vertices[3].position[0] == 0.0f, "Expected 0.0 but got %f\n", vertices[3].position[0]);
+	TestCase_assert(vertices[3].position[1] == 1.0f, "Expected 1.0 but got %f\n", vertices[3].position[1]);
+	TestCase_assert(vertices[3].texCoords[0] == 0.125f, "Expected 0.125 but got %f\n", vertices[3].texCoords[0]);
+	TestCase_assert(vertices[3].texCoords[1] == 0.875f, "Expected 0.875 but got %f\n", vertices[3].texCoords[1]);
+	TestCase_assert(vertices[3].color[0] == 0.25f, "Expected 0.25 but got %f\n", vertices[3].color[0]);
+	TestCase_assert(vertices[3].color[1] == 0.5f, "Expected 0.5 but got %f\n", vertices[3].color[1]);
+	TestCase_assert(vertices[3].color[2] == 0.75f, "Expected 0.75 but got %f\n", vertices[3].color[2]);
+	TestCase_assert(vertices[3].color[3] == 1.0f, "Expected 1.0 but got %f\n", vertices[3].color[3]);
+	
+	memset(vertices, 0xFF, sizeof(vertices));
+	vertexCount = atlas.getVerticesWithColor(&atlas, "a", 6.0f, -3.0f, 0.5f, 1.0f, 2.0f, 1.5f, 0.25f, 0.5f, 0.75f, 1.0f, vertices);
+	TestCase_assert(vertexCount == 4, "Expected 4 but get %u", vertexCount);
+	TestCase_assert(vertices[0].position[0] == 5.0f, "Expected 5.0 but got %f\n", vertices[0].position[0]);
+	TestCase_assert(vertices[0].position[1] == -4.5f, "Expected -4.5 but got %f\n", vertices[0].position[1]);
+	TestCase_assert(vertices[0].texCoords[0] == 0.0f, "Expected 0.0 but got %f\n", vertices[0].texCoords[0]);
+	TestCase_assert(vertices[0].texCoords[1] == 0.5f, "Expected 0.5 but got %f\n", vertices[0].texCoords[1]);
+	TestCase_assert(vertices[0].color[0] == 0.25f, "Expected 0.25 but got %f\n", vertices[0].color[0]);
+	TestCase_assert(vertices[0].color[1] == 0.5f, "Expected 0.5 but got %f\n", vertices[0].color[1]);
+	TestCase_assert(vertices[0].color[2] == 0.75f, "Expected 0.75 but got %f\n", vertices[0].color[2]);
+	TestCase_assert(vertices[0].color[3] == 1.0f, "Expected 1.0 but got %f\n", vertices[0].color[3]);
+	TestCase_assert(vertices[1].position[0] == 7.0f, "Expected 7.0 but got %f\n", vertices[1].position[0]);
+	TestCase_assert(vertices[1].position[1] == -4.5f, "Expected -4.5 but got %f\n", vertices[1].position[1]);
+	TestCase_assert(vertices[1].texCoords[0] == 0.25f, "Expected 0.25 but got %f\n", vertices[1].texCoords[0]);
+	TestCase_assert(vertices[1].texCoords[1] == 0.5f, "Expected 0.5 but got %f\n", vertices[1].texCoords[1]);
+	TestCase_assert(vertices[1].color[0] == 0.25f, "Expected 0.25 but got %f\n", vertices[1].color[0]);
+	TestCase_assert(vertices[1].color[1] == 0.5f, "Expected 0.5 but got %f\n", vertices[1].color[1]);
+	TestCase_assert(vertices[1].color[2] == 0.75f, "Expected 0.75 but got %f\n", vertices[1].color[2]);
+	TestCase_assert(vertices[1].color[3] == 1.0f, "Expected 1.0 but got %f\n", vertices[1].color[3]);
+	TestCase_assert(vertices[2].position[0] == 7.0f, "Expected 7.0 but got %f\n", vertices[2].position[0]);
+	TestCase_assert(vertices[2].position[1] == -3.0f, "Expected -3.0 but got %f\n", vertices[2].position[1]);
+	TestCase_assert(vertices[2].texCoords[0] == 0.25f, "Expected 0.25 but got %f\n", vertices[2].texCoords[0]);
+	TestCase_assert(vertices[2].texCoords[1] == 0.75f, "Expected 0.75 but got %f\n", vertices[2].texCoords[1]);
+	TestCase_assert(vertices[2].color[0] == 0.25f, "Expected 0.25 but got %f\n", vertices[2].color[0]);
+	TestCase_assert(vertices[2].color[1] == 0.5f, "Expected 0.5 but got %f\n", vertices[2].color[1]);
+	TestCase_assert(vertices[2].color[2] == 0.75f, "Expected 0.75 but got %f\n", vertices[2].color[2]);
+	TestCase_assert(vertices[2].color[3] == 1.0f, "Expected 1.0 but got %f\n", vertices[2].color[3]);
+	TestCase_assert(vertices[3].position[0] == 5.0f, "Expected 5.0 but got %f\n", vertices[3].position[0]);
+	TestCase_assert(vertices[3].position[1] == -3.0f, "Expected -3.0 but got %f\n", vertices[3].position[1]);
+	TestCase_assert(vertices[3].texCoords[0] == 0.0f, "Expected 0.0 but got %f\n", vertices[3].texCoords[0]);
+	TestCase_assert(vertices[3].texCoords[1] == 0.75f, "Expected 0.75 but got %f\n", vertices[3].texCoords[1]);
+	TestCase_assert(vertices[3].color[0] == 0.25f, "Expected 0.25 but got %f\n", vertices[3].color[0]);
+	TestCase_assert(vertices[3].color[1] == 0.5f, "Expected 0.5 but got %f\n", vertices[3].color[1]);
+	TestCase_assert(vertices[3].color[2] == 0.75f, "Expected 0.75 but got %f\n", vertices[3].color[2]);
+	TestCase_assert(vertices[3].color[3] == 1.0f, "Expected 1.0 but got %f\n", vertices[3].color[3]);
+}
+
 static void testGetIndexes() {
 	GLTextureAtlas atlas;
 	unsigned int indexCount;
@@ -518,5 +643,6 @@ TEST_SUITE(GLTextureAtlasTest,
            testDeserialization,
            testSerialization,
            testGetVertices,
+           testGetVerticesWithColor,
            testGetIndexes,
            testFormatVersionVerification)

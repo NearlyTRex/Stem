@@ -49,7 +49,7 @@ CONFIGURATIONS_testharness = debug profile release
 
 #Per-target platforms
 PLATFORMS_library = ${filter ${PLATFORMS},macosx iphonesimulator iphoneos linux32 linux64 win32 win64}
-PLATFORMS_unittest = ${filter ${PLATFORMS},macosx iphonesimulator linux32 linux64 win32 win64}
+PLATFORMS_unittest = ${filter ${PLATFORMS},macosx linux32 linux64 win32 win64} #HACK: iphonesimulator omitted until a better way is found to run iPhone unit tests
 PLATFORMS_testharness = ${filter ${PLATFORMS},macosx iphonesimulator iphoneos linux32 linux64 win32 win64}
 
 #Per-target compile/link settings
@@ -158,7 +158,7 @@ LINKFLAGS = ${FRAMEWORK_LINKFLAGS} ${LIBRARY_LINKFLAGS} ${OTHER_LINKFLAGS}
 LINK_ORDER = \
 	library \
 	unittest \
-	3dmath \
+	gamemath \
 	pngimageio \
 	bitmapimage \
 	jsonserialization \
@@ -179,30 +179,30 @@ PROJECT_LIBRARY_DEPENDENCIES_unittest = library
 PROJECT_LIBRARY_DEPENDENCIES_testharness = library
 STEM_LIBRARY_DEPENDENCIES = \
 	serialization/1.4.1 \
-	stemobject/3.1.0 \
-	shell/1.2.0 \
-	utilities/1.8.0
+	stemobject/3.1.1 \
+	shell/2.0.0 \
+	utilities/1.8.1
 STEM_LIBRARY_DEPENDENCIES_library = \
-	glgraphics/1.2.2
+	glgraphics/1.3.0
 STEM_LIBRARY_DEPENDENCIES_unittest = \
-	glgraphics/1.2.2_noglew \
-	unittest/1.1.0
+	glgraphics/1.3.0_noglew \
+	unittest/1.1.1
 STEM_LIBRARY_DEPENDENCIES_testharness = \
-	3dmath/2.1.0 \
-	bitmapimage/1.3.1 \
-	jsonio/1.2.4 \
+	gamemath/2.2.0 \
+	bitmapimage/1.3.2 \
+	jsonio/1.2.5 \
 	jsonserialization/1.0.6 \
 	pngimageio/1.2.0
 THIRDPARTY_LIBRARY_DEPENDENCIES_library = libpng/1.6.12/libpng.a
 THIRDPARTY_LIBRARY_DEPENDENCIES_unittest = 
 THIRDPARTY_LIBRARY_DEPENDENCIES_testharness = libpng/1.6.12/libpng.a
-STEM_LIBRARY_DEPENDENCIES_testharness_macosx = glutshell/1.8.0 glgraphics/1.2.2
-STEM_LIBRARY_DEPENDENCIES_testharness_win32 = glutshell/1.8.0 glgraphics/1.2.2
-STEM_LIBRARY_DEPENDENCIES_testharness_win64 = glutshell/1.8.0 glgraphics/1.2.2
-STEM_LIBRARY_DEPENDENCIES_testharness_linux32 = glutshell/1.8.0 glgraphics/1.2.2
-STEM_LIBRARY_DEPENDENCIES_testharness_linux64 = glutshell/1.8.0 glgraphics/1.2.2
-STEM_LIBRARY_DEPENDENCIES_testharness_iphonesimulator = eaglshell/2.5.2 glgraphics/1.2.2_noglew
-STEM_LIBRARY_DEPENDENCIES_testharness_iphoneos = eaglshell/2.5.2 glgraphics/1.2.2_noglew
+STEM_LIBRARY_DEPENDENCIES_testharness_macosx = glutshell/2.0.0 glgraphics/1.3.0
+STEM_LIBRARY_DEPENDENCIES_testharness_win32 = glutshell/2.0.0 glgraphics/1.3.0
+STEM_LIBRARY_DEPENDENCIES_testharness_win64 = glutshell/2.0.0 glgraphics/1.3.0
+STEM_LIBRARY_DEPENDENCIES_testharness_linux32 = glutshell/2.0.0 glgraphics/1.3.0
+STEM_LIBRARY_DEPENDENCIES_testharness_linux64 = glutshell/2.0.0 glgraphics/1.3.0
+STEM_LIBRARY_DEPENDENCIES_testharness_iphonesimulator = eaglshell/3.0.0 glgraphics/1.3.0_noglew
+STEM_LIBRARY_DEPENDENCIES_testharness_iphoneos = eaglshell/3.0.0 glgraphics/1.3.0_noglew
 THIRDPARTY_LIBRARY_DEPENDENCIES_library_macosx = glew/1.5.4/libglew.a
 THIRDPARTY_LIBRARY_DEPENDENCIES_library_win32 = glew/1.5.4/libglew.a
 THIRDPARTY_LIBRARY_DEPENDENCIES_library_win64 = glew/1.5.4/libglew.a
@@ -307,7 +307,9 @@ ${foreach target,${TARGETS}, \
 
 
 define create_directory_target_template #(dir)
+ifneq (${UNAME},Linux)
 .LOW_RESOLUTION_TIME: $1
+endif
 $1:
 	mkdir -p $1
 endef
@@ -758,27 +760,12 @@ include: ${INCLUDES} | ${foreach include_file,${INCLUDES},build/include/${notdir
 clean:
 	rm -rf build
 
-TARGET_SUFFIX_ipad = _ipad
-IPHONESIMULATOR_SDK_VERSION ?= 7.1
-IPHONESIMULATOR_APPLICATIONS_DIR_iphone ?= ${HOME}/Library/Application Support/iPhone Simulator/${IPHONESIMULATOR_SDK_VERSION}/Applications
-IPHONESIMULATOR_APPLICATIONS_DIR_ipad ?= ${HOME}/Library/Application Support/iPhone Simulator/${IPHONESIMULATOR_SDK_VERSION}/Applications
-SIMULATE_DEVICE_iphone = iPhone
-SIMULATE_DEVICE_ipad = iPad
-IPHONE_SIMULATOR_PATH ?= /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Applications/iPhone\ Simulator.app
+IOS_SIM ?= ios-sim
 
-define install_target_iphonesimulator_template #(target, simulate_device)
-.PHONY: install_$1_iphonesimulator${TARGET_SUFFIX_$2}
-install_$1_iphonesimulator${TARGET_SUFFIX_$2}: $1
-	killall "iPhone Simulator"; true
-	rm -rf "${IPHONESIMULATOR_APPLICATIONS_DIR_$2}/${TARGET_NAME_$1}"
-	mkdir -p "${IPHONESIMULATOR_APPLICATIONS_DIR_$2}/${TARGET_NAME_$1}/Documents"
-	mkdir -p "${IPHONESIMULATOR_APPLICATIONS_DIR_$2}/${TARGET_NAME_$1}/Library/Preferences"
-	mkdir -p "${IPHONESIMULATOR_APPLICATIONS_DIR_$2}/${TARGET_NAME_$1}/tmp"
-	cp -r "build/$1/debug-iphonesimulator/${TARGET_NAME_$1}.app" "${IPHONESIMULATOR_APPLICATIONS_DIR_$2}/${TARGET_NAME_$1}"
-	defaults write com.apple.iphonesimulator SimulateDevice -string "${SIMULATE_DEVICE_$2}"
-	defaults write com.apple.iphonesimulator SimulateSDKRoot -string "${SDKROOT_iphonesimulator}"
-	defaults write com.apple.iphonesimulator currentSDKRoot -string "${SDKROOT_iphonesimulator}"
-	open "${IPHONE_SIMULATOR_PATH}"
+define launch_target_iphonesimulator_template #(target)
+.PHONY: launch_$1_iphonesimulator
+launch_$1_iphonesimulator: $1
+	${IOS_SIM} launch "build/$1/debug-iphonesimulator/${TARGET_NAME_$1}.app" ${IOS_SIM_ARGS}
 endef
 
 define add_blob_header #(source_file, target_file)
@@ -800,8 +787,7 @@ codesign_$1_iphoneos: $1
 endef
 
 ${foreach target,${APPLICATION_TARGETS}, \
-	${eval ${call install_target_iphonesimulator_template,${target},iphone}} \
-	${eval ${call install_target_iphonesimulator_template,${target},ipad}} \
+	${eval ${call launch_target_iphonesimulator_template,${target}}} \
 	${eval ${call codesign_target_iphoneos_template,${target}}} \
 }
 
