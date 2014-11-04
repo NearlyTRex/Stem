@@ -159,22 +159,14 @@ LINK_ORDER = \
 	library \
 	library_noglew \
 	unittest \
-	3dmath \
-	stemobject \
 	glew
 
 #Dependencies (can optionally be per-target or per-target-per-platform)
 
 PROJECT_LIBRARY_DEPENDENCIES_unittest = library_noglew
-STEM_LIBRARY_DEPENDENCIES_library = \
-	3dmath/2.1.0 \
-	stemobject/3.1.0
-STEM_LIBRARY_DEPENDENCIES_library_noglew = \
-	3dmath/2.1.0 \
-	stemobject/3.1.0
+STEM_LIBRARY_DEPENDENCIES_library = 
+STEM_LIBRARY_DEPENDENCIES_library_noglew = 
 STEM_LIBRARY_DEPENDENCIES_unittest = \
-	3dmath/2.1.0 \
-	stemobject/3.1.0 \
 	unittest/1.1.0
 
 PROJECT_LIBRARY_DEPENDENCIES_unittest_macosx = library_noglew
