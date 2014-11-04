@@ -42,6 +42,17 @@ struct vertex_p2f_t2f {
 	GLfloat texCoords[2];
 };
 
+struct vertex_p2f_c4f {
+	GLfloat position[2];
+	GLfloat color[4];
+};
+
+struct vertex_p2f_t2f_c4f {
+	GLfloat position[2];
+	GLfloat texCoords[2];
+	GLfloat color[4];
+};
+
 struct vertex_p3f {
 	GLfloat position[3];
 };
@@ -51,15 +62,39 @@ struct vertex_p3f_t2f {
 	GLfloat texCoords[2];
 };
 
+struct vertex_p3f_c4f {
+	GLfloat position[3];
+	GLfloat color[4];
+};
+
+struct vertex_p3f_t2f_c4f {
+	GLfloat position[3];
+	GLfloat texCoords[2];
+	GLfloat color[4];
+};
+
 struct vertex_p3f_n3f {
 	GLfloat position[3];
 	GLfloat normal[3];
+};
+
+struct vertex_p3f_n3f_c4f {
+	GLfloat position[3];
+	GLfloat normal[3];
+	GLfloat color[4];
 };
 
 struct vertex_p3f_t2f_n3f {
 	GLfloat position[3];
 	GLfloat texCoords[2];
 	GLfloat normal[3];
+};
+
+struct vertex_p3f_t2f_n3f_c4f {
+	GLfloat position[3];
+	GLfloat texCoords[2];
+	GLfloat normal[3];
+	GLfloat color[4];
 };
 
 #pragma pack(pop)

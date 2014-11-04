@@ -191,12 +191,10 @@ THIRDPARTY_LIBRARY_DEPENDENCIES_library_linux64 = glew/1.5.4/libglew.a
 #Per-target source file lists
 
 SOURCES_library = \
-	source/${PROJECT_NAME}/Camera.c \
 	source/${PROJECT_NAME}/GLGraphics.c \
 	source/${PROJECT_NAME}/GLUtilities.c
 
 SOURCES_library_noglew = \
-	source/${PROJECT_NAME}/Camera.c \
 	source/${PROJECT_NAME}/GLGraphics.c \
 	source/${PROJECT_NAME}/GLUtilities.c
 
@@ -205,14 +203,12 @@ SOURCES_unittest = \
 	${SOURCES_unittest_suites}
 
 SOURCES_unittest_suites = \
-	source/unittest/CameraTest.c \
 	source/unittest/GLGraphicsTest.c \
 	source/unittest/GLUtilitiesTest.c
 
 #Include files to be distributed with library
 
 INCLUDES = \
-	source/${PROJECT_NAME}/Camera.h \
 	source/${PROJECT_NAME}/GLGraphics.h \
 	source/${PROJECT_NAME}/GLIncludes.h \
 	source/${PROJECT_NAME}/GLUtilities.h \
