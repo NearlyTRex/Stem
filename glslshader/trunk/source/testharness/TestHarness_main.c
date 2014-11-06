@@ -1,5 +1,5 @@
 #include "shell/Shell.h"
-#include "shell/Target.h"
+#include "shell/ShellCallbacks.h"
 #include "glgraphics/GLGraphics.h"
 #include "glslshader/GLSLShader.h"
 #include "utilities/IOUtilities.h"
@@ -21,6 +21,35 @@ struct vertex_p2f_c4f {
 	GLfloat position[2];
 	GLfloat color[4];
 };
+
+static bool Target_draw() {
+	glClear(GL_COLOR_BUFFER_BIT);
+	
+	shader1->activate(shader1);
+	glUniform4f(shader1->getUniformLocation(shader1, "colorUniform"), 1.0f, 1.0f, 1.0f, 1.0f);
+	glDisableVertexAttribArray(1);
+	glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_SHORT, NULL);
+	shader1->deactivate(shader1);
+	
+	shader2->activate(shader2);
+	glEnableVertexAttribArray(1);
+	glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_SHORT, NULL);
+	shader2->deactivate(shader2);
+	
+	return true;
+}
+
+#if TARGET_OPENGL_ES
+void EAGLTarget_configure(int argc, char ** argv, struct EAGLShellConfiguration * configuration) {
+	configuration->preferredOpenGLAPIVersion = EAGLShellOpenGLVersion_ES2;
+	Shell_drawFunc(Target_draw);
+}
+#else
+void GLUTTarget_configure(int argc, const char ** argv, struct GLUTShellConfiguration * configuration) {
+	configuration->windowTitle = "GLSLShader Test Harness";
+	Shell_drawFunc(Target_draw);
+}
+#endif
 
 void Target_init() {
 	char * vshaderSource, * fshaderSource;
@@ -71,63 +100,3 @@ void Target_init() {
 	
 	Shell_mainLoop();
 }
-
-bool Target_draw() {
-	glClear(GL_COLOR_BUFFER_BIT);
-	
-	shader1->activate(shader1);
-	glUniform4f(shader1->getUniformLocation(shader1, "colorUniform"), 1.0f, 1.0f, 1.0f, 1.0f);
-	glDisableVertexAttribArray(1);
-	glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_SHORT, NULL);
-	shader1->deactivate(shader1);
-	
-	shader2->activate(shader2);
-	glEnableVertexAttribArray(1);
-	glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_SHORT, NULL);
-	shader2->deactivate(shader2);
-	
-	return true;
-}
-
-void Target_resized(unsigned int newWidth, unsigned int newHeight) {
-}
-
-void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned int modifierFlags) {
-}
-
-void Target_keyUp(unsigned int charCode, unsigned int modifierFlags) {
-}
-
-void Target_keyModifiersChanged(unsigned int modifierFlags) {
-}
-
-void Target_mouseDown(unsigned int buttonNumber, float x, float y) {
-}
-
-void Target_mouseUp(unsigned int buttonNumber, float x, float y) {
-}
-
-void Target_mouseMoved(float x, float y) {
-}
-
-void Target_mouseDragged(unsigned int buttonMask, float x, float y) {
-}
-
-#if TARGET_OPENGL_ES
-void EAGLTarget_configure(int argc, char ** argv, struct EAGLShellConfiguration * configuration) {
-	configuration->preferredOpenGLAPIVersion = EAGLShellOpenGLVersion_ES2;
-}
-
-void EAGLTarget_openURL(const char * url) {
-}
-
-void EAGLTarget_touchesCancelled(unsigned int buttonMask) {
-}
-
-void EAGLTarget_accelerometer(double x, double y, double z) {
-}
-#else
-void GLUTTarget_configure(int argc, const char ** argv, struct GLUTShellConfiguration * configuration) {
-	configuration->windowTitle = "GLSLShader Test Harness";
-}
-#endif

@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2013 Alex Diener
+  Copyright (c) 2014 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -17,10 +17,11 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
   
-  Alex Diener adiener@sacredsoftware.net
+  Alex Diener alex@ludobloom.com
 */
 
 #include "glslshader/GLSLShader.h"
+#include "utilities/IOUtilities.h"
 #include <stdio.h>
 
 #define SUPERCLASS StemObject
@@ -37,6 +38,20 @@ GLSLShader * GLSLShader_create(const char * vshaderSource, size_t vshaderLength,
 
 GLSLShader * GLSLShader_vcreate(const char * vshaderSource, size_t vshaderLength, const char * fshaderSource, size_t fshaderLength, va_list args) {
 	stemobject_create_implementation(GLSLShader, vinit, vshaderSource, vshaderLength, fshaderSource, fshaderLength, args)
+}
+
+GLSLShader * GLSLShader_createWithFiles(const char * vshaderFilePath, const char * fshaderFilePath, ...) {
+	GLSLShader * self;
+	va_list args;
+	
+	va_start(args, fshaderFilePath);
+	self = GLSLShader_vcreateWithFiles(vshaderFilePath, fshaderFilePath, args);
+	va_end(args);
+	return self;
+}
+
+GLSLShader * GLSLShader_vcreateWithFiles(const char * vshaderFilePath, const char * fshaderFilePath, va_list args) {
+	stemobject_create_implementation(GLSLShader, vinitWithFiles, vshaderFilePath, fshaderFilePath, args)
 }
 
 bool GLSLShader_init(GLSLShader * self, const char * vshaderSource, size_t vshaderLength, const char * fshaderSource, size_t fshaderLength, ...) {
@@ -123,6 +138,30 @@ bool GLSLShader_vinit(GLSLShader * self, const char * vshaderSource, size_t vsha
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);
 	return true;
+}
+
+bool GLSLShader_initWithFiles(GLSLShader * self, const char * vshaderFilePath, const char * fshaderFilePath, ...) {
+	va_list args;
+	bool success;
+	
+	va_start(args, fshaderFilePath);
+	success = GLSLShader_vinitWithFiles(self, vshaderFilePath, fshaderFilePath, args);
+	va_end(args);
+	return success;
+}
+
+bool GLSLShader_vinitWithFiles(GLSLShader * self, const char * vshaderFilePath, const char * fshaderFilePath, va_list args) {
+	void * vshader, * fshader;
+	size_t vshaderLength, fshaderLength;
+	bool success;
+	
+	vshader = readFileSimple(vshaderFilePath, &vshaderLength);
+	fshader = readFileSimple(fshaderFilePath, &fshaderLength);
+	success = GLSLShader_vinit(self, vshader, vshaderLength, fshader, fshaderLength, args);
+	free(vshader);
+	free(fshader);
+	
+	return success;
 }
 
 void GLSLShader_dispose(GLSLShader * self) {

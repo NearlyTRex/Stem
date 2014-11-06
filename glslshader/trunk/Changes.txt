@@ -1,3 +1,6 @@
+1.0.2 (2014-11-05)
+ * Added convenience functions for reading vertex and fragment shader from files
+
 1.0.1 (2014-06-29)
  * Added support for modern Xcode/iOS SDK versions
 

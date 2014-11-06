@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2013 Alex Diener
+  Copyright (c) 2014 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -17,7 +17,7 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
   
-  Alex Diener adiener@sacredsoftware.net
+  Alex Diener alex@ludobloom.com
 */
 
 #ifndef __GLSL_SHADER_H__
@@ -45,8 +45,12 @@ stemobject_struct_definition(GLSLShader)
 // Additional args are pairs of attribute names (const char *) and locations (GLuint) to bind to, terminated by NULL
 GLSLShader * GLSLShader_create(const char * vshaderSource, size_t vshaderLength, const char * fshaderSource, size_t fshaderLength, ...) __attribute__((sentinel));
 GLSLShader * GLSLShader_vcreate(const char * vshaderSource, size_t vshaderLength, const char * fshaderSource, size_t fshaderLength, va_list args);
+GLSLShader * GLSLShader_createWithFiles(const char * vshaderFilePath, const char * fshaderFilePath, ...) __attribute__((sentinel));
+GLSLShader * GLSLShader_vcreateWithFiles(const char * vshaderFilePath, const char * fshaderFilePath, va_list args);
 bool GLSLShader_init(GLSLShader * self, const char * vshaderSource, size_t vshaderLength, const char * fshaderSource, size_t fshaderLength, ...) __attribute__((sentinel));
 bool GLSLShader_vinit(GLSLShader * self, const char * vshaderSource, size_t vshaderLength, const char * fshaderSource, size_t fshaderLength, va_list args);
+bool GLSLShader_initWithFiles(GLSLShader * self, const char * vshaderFilePath, const char * fshaderFilePath, ...) __attribute__((sentinel));
+bool GLSLShader_vinitWithFiles(GLSLShader * self, const char * vshaderFilePath, const char * fshaderFilePath, va_list args);
 
 void GLSLShader_dispose(GLSLShader * self);
 GLint GLSLShader_getUniformLocation(GLSLShader * self, const char * uniformName);
