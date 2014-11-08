@@ -1,1 +1,0 @@
-GLFont defines an interface to an object that handles the measuring and drawing of strings of text. No actual measuring or drawing is implemented in glfont; this functionality is provided by other stem libraries that depend on glfont.

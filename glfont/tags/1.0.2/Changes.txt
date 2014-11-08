@@ -1,6 +1,0 @@
-1.0.2
- * Updated for stemobject 3.0.0
-
-1.0.1
- * Updated for stemobject 2.0.0
- * Synchronized with template_stemlib Stable_2011-01-13
