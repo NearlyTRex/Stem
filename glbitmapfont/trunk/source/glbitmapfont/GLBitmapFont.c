@@ -25,7 +25,7 @@
 #include <string.h>
 #include <stddef.h>
 
-#define SUPERCLASS GLFont
+#define SUPERCLASS StemObject
 
 GLBitmapFont * GLBitmapFont_create(struct GLBitmapFont_charEntry characters[GLBITMAPFONT_NUM_CHARS]) {
 	stemobject_create_implementation(GLBitmapFont, init, characters)
@@ -34,15 +34,11 @@ GLBitmapFont * GLBitmapFont_create(struct GLBitmapFont_charEntry characters[GLBI
 static void sharedInit(GLBitmapFont * self) {
 	call_super(init, self);
 	
-	self->textureName = NULL;
-	self->textureNameOwned = false;
-	self->texture = NULL;
-	self->textureOwned = false;
+	self->atlasName = NULL;
+	self->private_ivar(atlasNameOwned) = false;
+	self->atlas = NULL;
+	self->private_ivar(atlasOwned) = false;
 	self->dispose = GLBitmapFont_dispose;
-	self->measureString = GLBitmapFont_measureString;
-	self->indexAtWidth = GLBitmapFont_indexAtWidth;
-	self->drawString = GLBitmapFont_drawString;
-	self->setTexture = GLBitmapFont_setTexture;
 }
 
 bool GLBitmapFont_init(GLBitmapFont * self, struct GLBitmapFont_charEntry characters[GLBITMAPFONT_NUM_CHARS]) {
@@ -62,11 +58,11 @@ bool GLBitmapFont_init(GLBitmapFont * self, struct GLBitmapFont_charEntry charac
 void GLBitmapFont_dispose(GLBitmapFont * self) {
 	unsigned int charIndex;
 	
-	if (self->textureNameOwned) {
-		free(self->textureName);
+	if (self->private_ivar(atlasNameOwned)) {
+		free(self->atlasName);
 	}
-	if (self->textureOwned) {
-		self->texture->dispose(self->texture);
+	if (self->private_ivar(atlasOwned)) {
+		self->atlas->dispose(self->atlas);
 	}
 	for (charIndex = 0; charIndex < GLBITMAPFONT_NUM_CHARS; charIndex++) {
 		free(self->characters[charIndex].kernChars);
@@ -94,18 +90,18 @@ bool GLBitmapFont_loadSerializedData(GLBitmapFont * self, compat_type(Deserializ
 	size_t kernCharIndex, kernCharIndex2, nchars;
 	unsigned int charIndex;
 	const char * key, * key2;
-	const char * textureName;
+	const char * atlasName;
 	
 	sharedInit(self);
 	memset(self->characters, 0x00, sizeof(self->characters));
 	
 	context->beginStructure(context, "glbitmapfont");
 	formatVersion = context->readUInt16(context, "format_version");
-	if (formatVersion > GLBITMAPFONT_SERIALIZATION_FORMAT_VERSION) {
+	if (formatVersion != GLBITMAPFONT_SERIALIZATION_FORMAT_VERSION) {
 		self->dispose(self);
 		return false;
 	}
-	textureName = context->readString(context, "texture_name");
+	atlasName = context->readString(context, "atlas_name");
 	nchars = context->beginDictionary(context, "characters");
 	if (nchars != GLBITMAPFONT_NUM_CHARS) {
 		self->dispose(self);
@@ -121,12 +117,7 @@ bool GLBitmapFont_loadSerializedData(GLBitmapFont * self, compat_type(Deserializ
 		self->characters[key[0] - GLBITMAPFONT_PRINTABLE_MIN].advance = context->readFloat(context, "advance");
 		self->characters[key[0] - GLBITMAPFONT_PRINTABLE_MIN].glyphOffset = context->readFloat(context, "glyph_offset");
 		self->characters[key[0] - GLBITMAPFONT_PRINTABLE_MIN].glyphWidth = context->readFloat(context, "glyph_width");
-		context->beginArray(context, "texture_bounds");
-		self->characters[key[0] - GLBITMAPFONT_PRINTABLE_MIN].textureLeft = context->readFloat(context, NULL);
-		self->characters[key[0] - GLBITMAPFONT_PRINTABLE_MIN].textureRight = context->readFloat(context, NULL);
-		self->characters[key[0] - GLBITMAPFONT_PRINTABLE_MIN].textureBottom = context->readFloat(context, NULL);
-		self->characters[key[0] - GLBITMAPFONT_PRINTABLE_MIN].textureTop = context->readFloat(context, NULL);
-		context->endArray(context);
+		self->characters[key[0] - GLBITMAPFONT_PRINTABLE_MIN].atlasKey = strdup(context->readString(context, "atlas_key"));
 		
 		self->characters[key[0] - GLBITMAPFONT_PRINTABLE_MIN].kernCharCount = context->beginDictionary(context, "kerning_table");
 		if (self->characters[key[0] - GLBITMAPFONT_PRINTABLE_MIN].kernCharCount == 0) {
@@ -157,9 +148,8 @@ bool GLBitmapFont_loadSerializedData(GLBitmapFont * self, compat_type(Deserializ
 		return false;
 	}
 	
-	self->textureName = malloc(strlen(textureName) + 1);
-	strcpy(self->textureName, textureName);
-	self->textureNameOwned = true;
+	self->atlasName = strdup(atlasName);
+	self->private_ivar(atlasNameOwned) = true;
 	
 	return true;
 }
@@ -171,7 +161,7 @@ void GLBitmapFont_serialize(GLBitmapFont * self, compat_type(SerializationContex
 	
 	context->beginStructure(context, "glbitmapfont");
 	context->writeUInt16(context, "format_version", GLBITMAPFONT_SERIALIZATION_FORMAT_VERSION);
-	context->writeString(context, "texture_name", self->textureName);
+	context->writeString(context, "atlas_name", self->atlasName);
 	context->beginDictionary(context, "characters");
 	for (charIndex = 0; charIndex < GLBITMAPFONT_NUM_CHARS; charIndex++) {
 		charString[0] = GLBITMAPFONT_PRINTABLE_MIN + charIndex;
@@ -179,12 +169,7 @@ void GLBitmapFont_serialize(GLBitmapFont * self, compat_type(SerializationContex
 		context->writeFloat(context, "advance", self->characters[charIndex].advance);
 		context->writeFloat(context, "glyph_offset", self->characters[charIndex].glyphOffset);
 		context->writeFloat(context, "glyph_width", self->characters[charIndex].glyphWidth);
-		context->beginArray(context, "texture_bounds");
-		context->writeFloat(context, NULL, self->characters[charIndex].textureLeft);
-		context->writeFloat(context, NULL, self->characters[charIndex].textureRight);
-		context->writeFloat(context, NULL, self->characters[charIndex].textureBottom);
-		context->writeFloat(context, NULL, self->characters[charIndex].textureTop);
-		context->endArray(context);
+		context->writeString(context, "atlas_key", self->characters[charIndex].atlasKey);
 		context->beginDictionary(context, "kerning_table");
 		for (kernCharIndex = 0; kernCharIndex < self->characters[charIndex].kernCharCount; kernCharIndex++) {
 			charString[0] = self->characters[charIndex].kernChars[kernCharIndex].previous;
@@ -197,12 +182,12 @@ void GLBitmapFont_serialize(GLBitmapFont * self, compat_type(SerializationContex
 	context->endStructure(context);
 }
 
-void GLBitmapFont_setTexture(GLBitmapFont * self, compat_type(GLTexture *) texturePtr, bool takeOwnership) {
-	if (self->textureOwned) {
-		self->texture->dispose(self->texture);
+void GLBitmapFont_setTextureAtlas(GLBitmapFont * self, GLTextureAtlas * atlas, bool takeOwnership) {
+	if (self->private_ivar(atlasOwned)) {
+		self->atlas->dispose(self->atlas);
 	}
-	self->texture = texturePtr;
-	self->textureOwned = takeOwnership;
+	self->atlas = atlas;
+	self->private_ivar(atlasOwned) = takeOwnership && atlas != NULL;
 }
 
 float GLBitmapFont_measureString(GLBitmapFont * self, const char * string, size_t length) {
@@ -265,96 +250,184 @@ struct vertex_p4f_t2f {
 	GLfloat texCoords[2];
 };
 
-void GLBitmapFont_drawString(GLBitmapFont * self, const char * string, size_t length, float emHeight, float offsetX, float offsetY, float offsetZ) {
-	struct vertex_p4f_t2f * vertices;
-	GLushort * indexes;
-	size_t charIndex, kernCharIndex, printableCharCount = 0, vertexIndex = 0, indexIndex = 0;
-	float positionX = 0.0f;
-	unsigned int charEntryIndex;
+unsigned int GLBitmapFont_getStringIndexes(GLBitmapFont * self,
+                                           const char * string,
+                                           size_t length,
+                                           void * outIndexes,
+                                           GLenum indexType,
+                                           unsigned int indexOffset) {
+	size_t charIndex;
+	unsigned int indexCount = 0, vertexCount = indexOffset;
 	
-	for (charIndex = 0; charIndex < length; charIndex++) {
-		if (string[charIndex] >= GLBITMAPFONT_PRINTABLE_MIN && string[charIndex] <= GLBITMAPFONT_PRINTABLE_MAX) {
-			printableCharCount++;
-		}
+	if (length == GLBITMAPFONT_USE_STRLEN) {
+		length = strlen(string);
 	}
-	
-	vertices = malloc(sizeof(struct vertex_p4f_t2f) * 4 * printableCharCount);
-	indexes = malloc(sizeof(GLushort) * 6 * printableCharCount);
-	
 	for (charIndex = 0; charIndex < length; charIndex++) {
 		if (string[charIndex] >= GLBITMAPFONT_PRINTABLE_MIN && string[charIndex] <= GLBITMAPFONT_PRINTABLE_MAX) {
-			charEntryIndex = string[charIndex] - GLBITMAPFONT_PRINTABLE_MIN;
-			if (charIndex > 0) {
-				for (kernCharIndex = 0; kernCharIndex < self->characters[charEntryIndex].kernCharCount; kernCharIndex++) {
-					if (string[charIndex - 1] == self->characters[charEntryIndex].kernChars[kernCharIndex].previous) {
-						positionX += self->characters[charEntryIndex].kernChars[kernCharIndex].offset;
+			if (outIndexes != NULL) {
+				switch (indexType) {
+					case GL_UNSIGNED_BYTE: {
+						GLubyte * indexesByte = outIndexes;
+				
+						indexesByte[indexCount + 0] = vertexCount;
+						indexesByte[indexCount + 1] = vertexCount + 1;
+						indexesByte[indexCount + 2] = vertexCount + 2;
+						indexesByte[indexCount + 3] = vertexCount + 2;
+						indexesByte[indexCount + 4] = vertexCount + 3;
+						indexesByte[indexCount + 5] = vertexCount;
+						break;
+					}
+					case GL_UNSIGNED_SHORT: {
+						GLushort * indexesShort = outIndexes;
+				
+						indexesShort[indexCount + 0] = vertexCount;
+						indexesShort[indexCount + 1] = vertexCount + 1;
+						indexesShort[indexCount + 2] = vertexCount + 2;
+						indexesShort[indexCount + 3] = vertexCount + 2;
+						indexesShort[indexCount + 4] = vertexCount + 3;
+						indexesShort[indexCount + 5] = vertexCount;
+						break;
+					}
+					case GL_UNSIGNED_INT: {
+						GLuint * indexesUint = outIndexes;
+				
+						indexesUint[indexCount + 0] = vertexCount;
+						indexesUint[indexCount + 1] = vertexCount + 1;
+						indexesUint[indexCount + 2] = vertexCount + 2;
+						indexesUint[indexCount + 3] = vertexCount + 2;
+						indexesUint[indexCount + 4] = vertexCount + 3;
+						indexesUint[indexCount + 5] = vertexCount;
 						break;
 					}
 				}
 			}
-			vertices[vertexIndex].position[0] = offsetX + (positionX + self->characters[charEntryIndex].glyphOffset) * emHeight;
-			vertices[vertexIndex].position[1] = offsetY + emHeight;
-			vertices[vertexIndex].position[2] = offsetZ;
-			vertices[vertexIndex].position[3] = 1.0f;
-			vertices[vertexIndex].texCoords[0] = self->characters[charEntryIndex].textureLeft;
-			vertices[vertexIndex].texCoords[1] = self->characters[charEntryIndex].textureTop;
-			vertices[vertexIndex + 1].position[0] = offsetX + (positionX + self->characters[charEntryIndex].glyphOffset) * emHeight;
-			vertices[vertexIndex + 1].position[1] = offsetY;
-			vertices[vertexIndex + 1].position[2] = offsetZ;
-			vertices[vertexIndex + 1].position[3] = 1.0f;
-			vertices[vertexIndex + 1].texCoords[0] = self->characters[charEntryIndex].textureLeft;
-			vertices[vertexIndex + 1].texCoords[1] = self->characters[charEntryIndex].textureBottom;
-			vertices[vertexIndex + 2].position[0] = offsetX + (positionX + self->characters[charEntryIndex].glyphOffset + self->characters[charEntryIndex].glyphWidth) * emHeight;
-			vertices[vertexIndex + 2].position[1] = offsetY;
-			vertices[vertexIndex + 2].position[2] = offsetZ;
-			vertices[vertexIndex + 2].position[3] = 1.0f;
-			vertices[vertexIndex + 2].texCoords[0] = self->characters[charEntryIndex].textureRight;
-			vertices[vertexIndex + 2].texCoords[1] = self->characters[charEntryIndex].textureBottom;
-			vertices[vertexIndex + 3].position[0] = offsetX + (positionX + self->characters[charEntryIndex].glyphOffset + self->characters[charEntryIndex].glyphWidth) * emHeight;
-			vertices[vertexIndex + 3].position[1] = offsetY + emHeight;
-			vertices[vertexIndex + 3].position[2] = offsetZ;
-			vertices[vertexIndex + 3].position[3] = 1.0f;
-			vertices[vertexIndex + 3].texCoords[0] = self->characters[charEntryIndex].textureRight;
-			vertices[vertexIndex + 3].texCoords[1] = self->characters[charEntryIndex].textureTop;
-			
-			indexes[indexIndex] = vertexIndex;
-			indexes[indexIndex + 1] = vertexIndex + 1;
-			indexes[indexIndex + 2] = vertexIndex + 2;
-			indexes[indexIndex + 3] = vertexIndex + 2;
-			indexes[indexIndex + 4] = vertexIndex + 3;
-			indexes[indexIndex + 5] = vertexIndex;
-			
-			vertexIndex += 4;
-			indexIndex += 6;
-			positionX += self->characters[charEntryIndex].advance;
+			vertexCount += 4;
+			indexCount += 6;
 		}
 	}
 	
-	if (GLGraphics_getOpenGLAPIVersion() == GL_API_VERSION_ES2) {
-		glEnableVertexAttribArray(0);
-		glEnableVertexAttribArray(1);
-		glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(struct vertex_p4f_t2f), vertices[0].position);
-		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(struct vertex_p4f_t2f), vertices[0].texCoords);
-		
-	} else {
-		glEnableClientState(GL_VERTEX_ARRAY);
-		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		glVertexPointer(4, GL_FLOAT, sizeof(struct vertex_p4f_t2f), vertices[0].position);
-		glTexCoordPointer(2, GL_FLOAT, sizeof(struct vertex_p4f_t2f), vertices[0].texCoords);
+	return indexCount;
+}
+
+#define getVertices_kern() \
+	if (charIndex > 0) { \
+		for (kernCharIndex = 0; kernCharIndex < self->characters[charEntryIndex].kernCharCount; kernCharIndex++) { \
+			if (string[charIndex - 1] == self->characters[charEntryIndex].kernChars[kernCharIndex].previous) { \
+				positionX += self->characters[charEntryIndex].kernChars[kernCharIndex].offset; \
+				break; \
+			} \
+		} \
+	}
+
+#define getVertices_writePosition() \
+	outVertices[vertexCount + 0].position[0] = \
+	outVertices[vertexCount + 1].position[0] = offsetX + (positionX + self->characters[charEntryIndex].glyphOffset) * emHeight; \
+	outVertices[vertexCount + 0].position[1] = \
+	outVertices[vertexCount + 3].position[1] = offsetY + emHeight; \
+	outVertices[vertexCount + 2].position[0] = \
+	outVertices[vertexCount + 3].position[0] = offsetX + (positionX + self->characters[charEntryIndex].glyphOffset + self->characters[charEntryIndex].glyphWidth) * emHeight; \
+	outVertices[vertexCount + 1].position[1] = \
+	outVertices[vertexCount + 2].position[1] = offsetY
+
+#define getVertices_writeTexCoords() \
+	outVertices[vertexCount + 0].texCoords[0] = \
+	outVertices[vertexCount + 1].texCoords[0] = atlasEntry.left; \
+	outVertices[vertexCount + 1].texCoords[1] = \
+	outVertices[vertexCount + 2].texCoords[1] = atlasEntry.bottom; \
+	outVertices[vertexCount + 2].texCoords[0] = \
+	outVertices[vertexCount + 3].texCoords[0] = atlasEntry.right; \
+	outVertices[vertexCount + 0].texCoords[1] = \
+	outVertices[vertexCount + 3].texCoords[1] = atlasEntry.top
+
+#define getVertices_writeColor() \
+	outVertices[vertexCount + 0].color[0] = \
+	outVertices[vertexCount + 1].color[0] = \
+	outVertices[vertexCount + 2].color[0] = \
+	outVertices[vertexCount + 3].color[0] = red; \
+	outVertices[vertexCount + 0].color[1] = \
+	outVertices[vertexCount + 1].color[1] = \
+	outVertices[vertexCount + 2].color[1] = \
+	outVertices[vertexCount + 3].color[1] = green; \
+	outVertices[vertexCount + 0].color[2] = \
+	outVertices[vertexCount + 1].color[2] = \
+	outVertices[vertexCount + 2].color[2] = \
+	outVertices[vertexCount + 3].color[2] = blue; \
+	outVertices[vertexCount + 0].color[3] = \
+	outVertices[vertexCount + 1].color[3] = \
+	outVertices[vertexCount + 2].color[3] = \
+	outVertices[vertexCount + 3].color[3] = alpha
+
+unsigned int GLBitmapFont_getStringVertices(GLBitmapFont * self,
+                                            const char * string,
+                                            size_t length,
+                                            float emHeight,
+                                            float offsetX,
+                                            float offsetY,
+                                            float relativeOriginX,
+                                            float relativeOriginY,
+                                            struct vertex_p2f_t2f * outVertices) {
+	size_t charIndex, kernCharIndex;
+	float positionX = 0.0f;
+	unsigned int charEntryIndex;
+	unsigned int vertexCount = 0;
+	struct GLTextureAtlas_entry atlasEntry;
+	
+	if (length == GLBITMAPFONT_USE_STRLEN) {
+		length = strlen(string);
+	}
+	for (charIndex = 0; charIndex < length; charIndex++) {
+		if (string[charIndex] >= GLBITMAPFONT_PRINTABLE_MIN && string[charIndex] <= GLBITMAPFONT_PRINTABLE_MAX) {
+			if (outVertices != NULL) {
+				charEntryIndex = string[charIndex] - GLBITMAPFONT_PRINTABLE_MIN;
+				atlasEntry = GLTextureAtlas_lookup(self->atlas, self->characters[charEntryIndex].atlasKey);
+				getVertices_kern();
+				getVertices_writePosition();
+				getVertices_writeTexCoords();
+				positionX += self->characters[charEntryIndex].advance;
+			}
+			vertexCount += 4;
+		}
 	}
 	
-	self->texture->activate(self->texture);
-	glDrawElements(GL_TRIANGLES, indexIndex, GL_UNSIGNED_SHORT, indexes);
-	self->texture->deactivate(self->texture);
+	return vertexCount;
+}
+
+unsigned int GLBitmapFont_getStringVerticesWithColor(GLBitmapFont * self,
+                                                     const char * string,
+                                                     size_t length,
+                                                     float emHeight,
+                                                     float offsetX,
+                                                     float offsetY,
+                                                     float relativeOriginX,
+                                                     float relativeOriginY,
+                                                     float red,
+                                                     float green,
+                                                     float blue,
+                                                     float alpha,
+                                                     struct vertex_p2f_t2f_c4f * outVertices) {
+	size_t charIndex, kernCharIndex;
+	float positionX = 0.0f;
+	unsigned int charEntryIndex;
+	unsigned int vertexCount = 0;
+	struct GLTextureAtlas_entry atlasEntry;
 	
-	if (GLGraphics_getOpenGLAPIVersion() == GL_API_VERSION_ES2) {
-		glDisableVertexAttribArray(0);
-		glDisableVertexAttribArray(1);
-	} else {
-		glDisableClientState(GL_VERTEX_ARRAY);
-		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	if (length == GLBITMAPFONT_USE_STRLEN) {
+		length = strlen(string);
+	}
+	for (charIndex = 0; charIndex < length; charIndex++) {
+		if (string[charIndex] >= GLBITMAPFONT_PRINTABLE_MIN && string[charIndex] <= GLBITMAPFONT_PRINTABLE_MAX) {
+			if (outVertices != NULL) {
+				charEntryIndex = string[charIndex] - GLBITMAPFONT_PRINTABLE_MIN;
+				atlasEntry = GLTextureAtlas_lookup(self->atlas, self->characters[charEntryIndex].atlasKey);
+				getVertices_kern();
+				getVertices_writePosition();
+				getVertices_writeTexCoords();
+				getVertices_writeColor();
+				positionX += self->characters[charEntryIndex].advance;
+			}
+			vertexCount += 4;
+		}
 	}
 	
-	free(vertices);
-	free(indexes);
+	return vertexCount;
 }

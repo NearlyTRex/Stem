@@ -1,5 +1,5 @@
 .PHONY: all
-all: library unittest testharness convertfontunits test include
+all: library unittest testharness test include
 
 UNAME = ${shell uname}
 ifeq (${UNAME},Linux)
@@ -31,7 +31,7 @@ PROJECT_NAME = glbitmapfont
 CODESIGN_IDENTITY ?= "iPhone Developer"
 
 LIBRARY_TARGETS = library
-EXECUTABLE_TARGETS = unittest convertfontunits
+EXECUTABLE_TARGETS = unittest
 APPLICATION_TARGETS = testharness
 TARGETS = ${LIBRARY_TARGETS} ${EXECUTABLE_TARGETS} ${APPLICATION_TARGETS}
 PLATFORMS = ${filter ${TARGET_PLATFORMS_${HOST_PLATFORM}},macosx iphonesimulator iphoneos linux32 linux64 win32 win64}
@@ -39,20 +39,17 @@ ANALYZERS = splint clang
 
 TARGET_NAME_library = libstem_${PROJECT_NAME}
 TARGET_NAME_unittest = ${PROJECT_NAME}_unittest
-TARGET_NAME_convertfontunits = convertfontunits
 TARGET_NAME_testharness = ${PROJECT_NAME}_testharness
 HUMAN_READABLE_TARGET_NAME_testharness = GLBitmapFont
 
 #Per-target configurations
 CONFIGURATIONS_library = debug profile release
 CONFIGURATIONS_unittest = debug
-CONFIGURATIONS_convertfontunits = debug profile release
 CONFIGURATIONS_testharness = debug profile release
 
 #Per-target platforms
 PLATFORMS_library = ${filter ${PLATFORMS},macosx iphonesimulator iphoneos linux32 linux64 win32 win64}
-PLATFORMS_unittest = ${filter ${PLATFORMS},macosx iphonesimulator linux32 linux64 win32 win64}
-PLATFORMS_convertfontunits = ${filter ${PLATFORMS},macosx linux32 linux64 win32 win64}
+PLATFORMS_unittest = ${filter ${PLATFORMS},macosx linux32 linux64 win32 win64} #HACK: iphonesimulator omitted until a better way is found to run iPhone unit tests
 PLATFORMS_testharness = ${filter ${PLATFORMS},macosx iphonesimulator iphoneos linux32 linux64 win32 win64}
 
 #Per-target analyzer settings
@@ -159,7 +156,6 @@ LINK_ORDER = \
 	library \
 	unittest \
 	glgraphics \
-	glfont \
 	gltexture \
 	pngimageio \
 	bitmapimage \
@@ -171,7 +167,7 @@ LINK_ORDER = \
 	stubshell \
 	serialization \
 	stemobject \
-	3dmath \
+	gamemath \
 	libpng \
 	glew \
 	zlib
@@ -179,52 +175,40 @@ LINK_ORDER = \
 #Dependencies (can optionally be per-target or per-target-per-platform)
 
 PROJECT_LIBRARY_DEPENDENCIES_unittest = library
-PROJECT_LIBRARY_DEPENDENCIES_convertfontunits = library
 PROJECT_LIBRARY_DEPENDENCIES_testharness = library
 STEM_LIBRARY_DEPENDENCIES_library = \
-	glgraphics/1.2.2
+	glgraphics/1.3.0
 STEM_LIBRARY_DEPENDENCIES = \
-	glfont/1.0.3 \
-	gltexture/1.1.0 \
+	gltexture/1.1.1 \
 	serialization/1.4.1 \
-	stemobject/3.1.1
-STEM_LIBRARY_DEPENDENCIES_convertfontunits = \
-	jsonserialization/1.0.6 \
-	jsonio/1.2.5 \
-	utilities/1.8.1 \
-	stubshell/1.3.2
+	stemobject/3.1.1 \
+	utilities/1.8.1
 STEM_LIBRARY_DEPENDENCIES_testharness = \
 	pngimageio/1.2.0 \
 	bitmapimage/1.3.2 \
 	jsonserialization/1.0.6 \
 	jsonio/1.2.5 \
 	utilities/1.8.1 \
-	3dmath/2.1.1 \
-	shell/1.2.0
+	gamemath/2.2.0 \
+	shell/2.0.0
 STEM_LIBRARY_DEPENDENCIES_unittest = \
 	utilities/1.8.1 \
-	unittest/1.1.0
+	unittest/1.1.1
 THIRDPARTY_LIBRARY_DEPENDENCIES = 
 THIRDPARTY_LIBRARY_DEPENDENCIES_testharness = libpng/1.6.12/libpng.a
-STEM_LIBRARY_DEPENDENCIES_unittest_macosx = glgraphics/1.2.2_noglew
-STEM_LIBRARY_DEPENDENCIES_unittest_win32 = glgraphics/1.2.2
-STEM_LIBRARY_DEPENDENCIES_unittest_win64 = glgraphics/1.2.2
-STEM_LIBRARY_DEPENDENCIES_unittest_linux32 = glgraphics/1.2.2
-STEM_LIBRARY_DEPENDENCIES_unittest_linux64 = glgraphics/1.2.2
-STEM_LIBRARY_DEPENDENCIES_unittest_iphonesimulator = glgraphics/1.2.2_noglew
-STEM_LIBRARY_DEPENDENCIES_convertfontunits_macosx = glgraphics/1.2.2_noglew
-STEM_LIBRARY_DEPENDENCIES_convertfontunits_win32 = glgraphics/1.2.2
-STEM_LIBRARY_DEPENDENCIES_convertfontunits_win64 = glgraphics/1.2.2
-STEM_LIBRARY_DEPENDENCIES_convertfontunits_linux32 = glgraphics/1.2.2
-STEM_LIBRARY_DEPENDENCIES_convertfontunits_linux64 = glgraphics/1.2.2
-STEM_LIBRARY_DEPENDENCIES_convertfontunits_iphonesimulator = glgraphics/1.2.2_noglew
-STEM_LIBRARY_DEPENDENCIES_testharness_macosx = glutshell/1.7.0 glgraphics/1.2.2_noglew
-STEM_LIBRARY_DEPENDENCIES_testharness_win32 = glutshell/1.7.0 glgraphics/1.2.2
-STEM_LIBRARY_DEPENDENCIES_testharness_win64 = glutshell/1.7.0 glgraphics/1.2.2
-STEM_LIBRARY_DEPENDENCIES_testharness_linux32 = glutshell/1.7.0 glgraphics/1.2.2
-STEM_LIBRARY_DEPENDENCIES_testharness_linux64 = glutshell/1.7.0 glgraphics/1.2.2
-STEM_LIBRARY_DEPENDENCIES_testharness_iphonesimulator = glgraphics/1.2.2_noglew eaglshell/2.5.2
-STEM_LIBRARY_DEPENDENCIES_testharness_iphoneos = glgraphics/1.2.2_noglew eaglshell/2.5.2
+STEM_LIBRARY_DEPENDENCIES_unittest_macosx = glgraphics/1.3.0_noglew
+STEM_LIBRARY_DEPENDENCIES_unittest_win32 = glgraphics/1.3.0
+STEM_LIBRARY_DEPENDENCIES_unittest_win64 = glgraphics/1.3.0
+STEM_LIBRARY_DEPENDENCIES_unittest_linux32 = glgraphics/1.3.0
+STEM_LIBRARY_DEPENDENCIES_unittest_linux64 = glgraphics/1.3.0
+STEM_LIBRARY_DEPENDENCIES_unittest_iphonesimulator = glgraphics/1.3.0_noglew
+STEM_LIBRARY_DEPENDENCIES_testharness_macosx = glutshell/2.0.0 glgraphics/1.3.0_noglew
+STEM_LIBRARY_DEPENDENCIES_testharness_win32 = glutshell/2.0.0 glgraphics/1.3.0
+STEM_LIBRARY_DEPENDENCIES_testharness_win64 = glutshell/2.0.0 glgraphics/1.3.0
+STEM_LIBRARY_DEPENDENCIES_testharness_linux32 = glutshell/2.0.0 glgraphics/1.3.0
+STEM_LIBRARY_DEPENDENCIES_testharness_linux64 = glutshell/2.0.0 glgraphics/1.3.0
+STEM_LIBRARY_DEPENDENCIES_testharness_iphonesimulator = glgraphics/1.3.0_noglew eaglshell/3.0.0
+STEM_LIBRARY_DEPENDENCIES_testharness_iphoneos = glgraphics/1.3.0_noglew eaglshell/3.0.0
 THIRDPARTY_LIBRARY_DEPENDENCIES_library_win32 = glew/1.5.4/libglew.a
 THIRDPARTY_LIBRARY_DEPENDENCIES_library_win64 = glew/1.5.4/libglew.a
 THIRDPARTY_LIBRARY_DEPENDENCIES_library_linux32 = glew/1.5.4/libglew.a
@@ -233,10 +217,6 @@ THIRDPARTY_LIBRARY_DEPENDENCIES_unittest_win32 = glew/1.5.4/libglew.a
 THIRDPARTY_LIBRARY_DEPENDENCIES_unittest_win64 = glew/1.5.4/libglew.a
 THIRDPARTY_LIBRARY_DEPENDENCIES_unittest_linux32 = glew/1.5.4/libglew.a
 THIRDPARTY_LIBRARY_DEPENDENCIES_unittest_linux64 = glew/1.5.4/libglew.a
-THIRDPARTY_LIBRARY_DEPENDENCIES_convertfontunits_win32 = glew/1.5.4/libglew.a
-THIRDPARTY_LIBRARY_DEPENDENCIES_convertfontunits_win64 = glew/1.5.4/libglew.a
-THIRDPARTY_LIBRARY_DEPENDENCIES_convertfontunits_linux32 = glew/1.5.4/libglew.a
-THIRDPARTY_LIBRARY_DEPENDENCIES_convertfontunits_linux64 = glew/1.5.4/libglew.a
 THIRDPARTY_LIBRARY_DEPENDENCIES_testharness_win32 = glew/1.5.4/libglew.a zlib/1.2.3/libz.a
 THIRDPARTY_LIBRARY_DEPENDENCIES_testharness_win64 = glew/1.5.4/libglew.a zlib/1.2.3/libz.a
 THIRDPARTY_LIBRARY_DEPENDENCIES_testharness_linux32 = glew/1.5.4/libglew.a
@@ -254,9 +234,6 @@ SOURCES_unittest = \
 SOURCES_unittest_suites = \
 	source/unittest/GLBitmapFontTest.c
 
-SOURCES_convertfontunits = \
-	source/convertfontunits/convertfontunits.c
-
 SOURCES_testharness = \
 	source/testharness/TestHarness_main.c
 
@@ -268,6 +245,7 @@ INCLUDES = \
 #Target resources
 
 RESOURCES_testharness = \
+	resources/test_font_atlas.json \
 	resources/test_font_texture.json \
 	resources/test_font_texture.png \
 	resources/test_font.json
@@ -291,7 +269,6 @@ SPLINTFLAGS = -exportlocal
 
 ANALYZER_EXCLUDE_SOURCES_clang = 
 ANALYZER_EXCLUDE_SOURCES_splint = \
-	source/convertfontunits/convertfontunits.c \
 	source/${PROJECT_NAME}/GLBitmapFont.c \
 	source/testharness/TestHarness_main.c \
 	${SOURCES_unittest}
@@ -842,9 +819,8 @@ INSTALL_DIR = ${STEM_SHARED_DIR}/${PROJECT_NAME}/${VERSION_MAJOR}.${VERSION_MINO
 
 .PHONY: install
 install:
-	mkdir -p "${INSTALL_DIR}/include" "${INSTALL_DIR}/library" "${INSTALL_DIR}/testharness" "${INSTALL_DIR}/convertfontunits"
+	mkdir -p "${INSTALL_DIR}/include" "${INSTALL_DIR}/library" "${INSTALL_DIR}/testharness"
 	cp Changes.txt License.txt ReadMe.txt version ${INSTALL_DIR}
 	cp -r build/include/* ${INSTALL_DIR}/include
 	cp -r build/library/* ${INSTALL_DIR}/library
 	cp -r build/testharness/* ${INSTALL_DIR}/testharness
-	cp -r build/convertfontunits/* ${INSTALL_DIR}/convertfontunits
