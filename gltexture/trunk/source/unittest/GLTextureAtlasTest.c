@@ -22,6 +22,7 @@ static void testInit() {
 	TestCase_assert(atlas.getVerticesWithColor == GLTextureAtlas_getVerticesWithColor, "Expected %p but got %p", GLTextureAtlas_getVerticesWithColor, atlas.getVerticesWithColor);
 	TestCase_assert(atlas.getIndexes == GLTextureAtlas_getIndexes, "Expected %p but got %p", GLTextureAtlas_getIndexes, atlas.getIndexes);
 	TestCase_assert(atlas.textureName == NULL, "Expected NULL but got %p", atlas.textureName);
+	TestCase_assert(atlas.texture == NULL, "Expected NULL but got %p", atlas.texture);
 	atlas.dispose(&atlas);
 	
 	memset(&atlas, 0xFF, sizeof(GLTextureAtlas));
@@ -37,6 +38,7 @@ static void testInit() {
 	TestCase_assert(atlas.getVerticesWithColor == GLTextureAtlas_getVerticesWithColor, "Expected %p but got %p", GLTextureAtlas_getVerticesWithColor, atlas.getVerticesWithColor);
 	TestCase_assert(atlas.getIndexes == GLTextureAtlas_getIndexes, "Expected %p but got %p", GLTextureAtlas_getIndexes, atlas.getIndexes);
 	TestCase_assert(atlas.textureName == NULL, "Expected NULL but got %p", atlas.textureName);
+	TestCase_assert(atlas.texture == NULL, "Expected NULL but got %p", atlas.texture);
 	atlas.dispose(&atlas);
 	
 	atlasPtr = GLTextureAtlas_create();
@@ -51,6 +53,7 @@ static void testInit() {
 	TestCase_assert(atlasPtr->getVerticesWithColor == GLTextureAtlas_getVerticesWithColor, "Expected %p but got %p", GLTextureAtlas_getVerticesWithColor, atlasPtr->getVerticesWithColor);
 	TestCase_assert(atlasPtr->getIndexes == GLTextureAtlas_getIndexes, "Expected %p but got %p", GLTextureAtlas_getIndexes, atlasPtr->getIndexes);
 	TestCase_assert(atlasPtr->textureName == NULL, "Expected NULL but got %p", atlasPtr->textureName);
+	TestCase_assert(atlasPtr->texture == NULL, "Expected NULL but got %p", atlasPtr->texture);
 	atlasPtr->dispose(atlasPtr);
 }
 
@@ -156,6 +159,7 @@ static void testDeserialization() {
 	TestCase_assert(atlasPtr->lookup == GLTextureAtlas_lookup, "Expected %p but got %p", GLTextureAtlas_lookup, atlasPtr->lookup);
 	TestCase_assert(atlasPtr->textureName != NULL, "Expected non-NULL but got NULL");
 	TestCase_assert(!strcmp(atlasPtr->textureName, "foo"), "Expected \"foo\" but got \"%s\"", atlasPtr->textureName);
+	TestCase_assert(atlasPtr->texture == NULL, "Expected NULL but got %p", atlasPtr->texture);
 	keyCount = -1;
 	keys = atlasPtr->getKeys(atlasPtr, &keyCount);
 	TestCase_assert(keyCount == 0, "Expected 0 but got " SIZE_T_FORMAT, keyCount);
@@ -176,6 +180,7 @@ static void testDeserialization() {
 	TestCase_assert(atlas.lookup == GLTextureAtlas_lookup, "Expected %p but got %p", GLTextureAtlas_lookup, atlas.lookup);
 	TestCase_assert(atlas.textureName != NULL, "Expected non-NULL but got NULL");
 	TestCase_assert(!strcmp(atlas.textureName, "foo"), "Expected \"foo\" but got \"%s\"", atlas.textureName);
+	TestCase_assert(atlasPtr->texture == NULL, "Expected NULL but got %p", atlasPtr->texture);
 	keyCount = -1;
 	keys = atlas.getKeys(&atlas, &keyCount);
 	TestCase_assert(keyCount == 0, "Expected 0 but got " SIZE_T_FORMAT, keyCount);
@@ -221,6 +226,7 @@ static void testDeserialization() {
 	TestCase_assert(atlasPtr->lookup == GLTextureAtlas_lookup, "Expected %p but got %p", GLTextureAtlas_lookup, atlasPtr->lookup);
 	TestCase_assert(atlasPtr->textureName != NULL, "Expected non-NULL but got NULL");
 	TestCase_assert(!strcmp(atlasPtr->textureName, "bar"), "Expected \"bar\" but got \"%s\"", atlasPtr->textureName);
+	TestCase_assert(atlasPtr->texture == NULL, "Expected NULL but got %p", atlasPtr->texture);
 	keyCount = -1;
 	keys = atlasPtr->getKeys(atlasPtr, &keyCount);
 	TestCase_assert(keyCount == 2, "Expected 2 but got " SIZE_T_FORMAT, keyCount);
@@ -255,6 +261,7 @@ static void testDeserialization() {
 	TestCase_assert(atlas.lookup == GLTextureAtlas_lookup, "Expected %p but got %p", GLTextureAtlas_lookup, atlas.lookup);
 	TestCase_assert(atlas.textureName != NULL, "Expected non-NULL but got NULL");
 	TestCase_assert(!strcmp(atlas.textureName, "bar"), "Expected \"bar\" but got \"%s\"", atlas.textureName);
+	TestCase_assert(atlas.texture == NULL, "Expected NULL but got %p", atlas.texture);
 	keyCount = -1;
 	keys = atlas.getKeys(&atlas, &keyCount);
 	TestCase_assert(keyCount == 2, "Expected 2 but got " SIZE_T_FORMAT, keyCount);

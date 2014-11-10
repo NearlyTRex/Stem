@@ -1,5 +1,6 @@
 1.1.1 (2014-11-04)
  * Added GLTextureAtlas_getVerticesWithColor
+ * Added an option to set a GLTexture pointer in GLTextureAtlas, taking ownership if desired (see GLTextureAtlas_setTexture and the 'texture' struct field)
 
 1.1.0 (2014-06-29)
  * Added GLTextureAtlas

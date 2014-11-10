@@ -31,6 +31,8 @@ static void sharedInit(GLTextureAtlas * self) {
 	
 	self->textureName = NULL;
 	self->private_ivar(textureNameOwned) = false;
+	self->texture = NULL;
+	self->private_ivar(textureOwned) = false;
 	self->dispose = GLTextureAtlas_dispose;
 	self->getKeys = GLTextureAtlas_getKeys;
 	self->hasKey = GLTextureAtlas_hasKey;
@@ -55,6 +57,9 @@ bool GLTextureAtlas_init(GLTextureAtlas * self) {
 void GLTextureAtlas_dispose(GLTextureAtlas * self) {
 	if (self->private_ivar(textureNameOwned)) {
 		free(self->textureName);
+	}
+	if (self->private_ivar(textureOwned)) {
+		self->texture->dispose(self->texture);
 	}
 	hashDispose(self->private_ivar(hashTable));
 	call_super(dispose, self);
@@ -135,6 +140,14 @@ void GLTextureAtlas_serialize(GLTextureAtlas * self, compat_type(SerializationCo
 	}
 	context->endDictionary(context);
 	context->endStructure(context);
+}
+
+void GLTextureAtlas_setTexture(GLTextureAtlas * self, GLTexture * texture, bool takeOwnership) {
+	if (self->private_ivar(textureOwned)) {
+		self->texture->dispose(self->texture);
+	}
+	self->texture = texture;
+	self->private_ivar(textureOwned) = takeOwnership && texture != NULL;
 }
 
 const char ** GLTextureAtlas_getKeys(GLTextureAtlas * self, size_t * outCount) {

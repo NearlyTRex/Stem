@@ -50,6 +50,8 @@ struct GLTextureAtlas_entry {
 	\
 	char * textureName; \
 	bool private_ivar(textureNameOwned); \
+	GLTexture * texture; \
+	bool private_ivar(textureOwned); \
 	HashTable * private_ivar(hashTable); \
 	\
 	const char ** (* getKeys)(self_type * self, size_t * outCount); \
@@ -71,6 +73,7 @@ GLTextureAtlas * GLTextureAtlas_deserialize(compat_type(DeserializationContext *
 bool GLTextureAtlas_loadSerializedData(GLTextureAtlas * self, compat_type(DeserializationContext *) deserializationContext);
 void GLTextureAtlas_serialize(GLTextureAtlas * self, compat_type(SerializationContext *) serializationContext);
 
+void GLTextureAtlas_setTexture(GLTextureAtlas * self, GLTexture * texture, bool takeOwnership);
 const char ** GLTextureAtlas_getKeys(GLTextureAtlas * self, size_t * outCount);
 bool GLTextureAtlas_hasKey(GLTextureAtlas * self, const char * key);
 void GLTextureAtlas_setEntry(GLTextureAtlas * self, const char * key, struct GLTextureAtlas_entry entry);
