@@ -321,11 +321,11 @@ unsigned int GLBitmapFont_getStringIndexes(GLBitmapFont * self,
 
 #define getVertices_writePosition() \
 	outVertices[vertexCount + 0].position[0] = \
-	outVertices[vertexCount + 1].position[0] = offsetX + (positionX + self->characters[charEntryIndex].glyphOffset) * emHeight; \
+	outVertices[vertexCount + 1].position[0] = offsetX + (positionX + self->characters[charEntryIndex].glyphOffset) * fabs(emHeight); \
 	outVertices[vertexCount + 0].position[1] = \
 	outVertices[vertexCount + 3].position[1] = offsetY + emHeight; \
 	outVertices[vertexCount + 2].position[0] = \
-	outVertices[vertexCount + 3].position[0] = offsetX + (positionX + self->characters[charEntryIndex].glyphOffset + self->characters[charEntryIndex].glyphWidth) * emHeight; \
+	outVertices[vertexCount + 3].position[0] = offsetX + (positionX + self->characters[charEntryIndex].glyphOffset + self->characters[charEntryIndex].glyphWidth) * fabs(emHeight); \
 	outVertices[vertexCount + 1].position[1] = \
 	outVertices[vertexCount + 2].position[1] = offsetY
 

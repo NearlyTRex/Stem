@@ -72,7 +72,7 @@ SPLINT_macosx ?= /usr/local/bin/splint
 CLANG_macosx ?= ${shell xcrun --sdk ${SDKROOT_macosx} --find clang}
 ARCHS_macosx ?= i386 x86_64
 CCFLAGS_macosx += -isysroot ${SDKROOT_macosx} -mmacosx-version-min=${MACOSX_VERSION_MIN} -DGLGRAPHICS_NO_GLEW
-LINKFLAGS_macosx += -isysroot ${SDKROOT_macosx} -mmacosx-version-min=${MACOSX_VERSION_MIN} -framework OpenGL -framework GLUT -framework CoreFoundation -framework ApplicationServices -lz
+LINKFLAGS_macosx += -isysroot ${SDKROOT_macosx} -mmacosx-version-min=${MACOSX_VERSION_MIN} -framework Cocoa -framework IOKit -framework OpenGL -lz
 
 SDKROOT_iphonesimulator ?= /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator7.1.sdk
 SDKROOT_iphonesimulator_unittest ?= ${SDKROOT_iphonesimulator}
@@ -164,6 +164,7 @@ LINK_ORDER = \
 	utilities \
 	eaglshell \
 	glutshell \
+	nsopenglshell \
 	stubshell \
 	serialization \
 	stemobject \
@@ -202,7 +203,7 @@ STEM_LIBRARY_DEPENDENCIES_unittest_win64 = glgraphics/1.3.0
 STEM_LIBRARY_DEPENDENCIES_unittest_linux32 = glgraphics/1.3.0
 STEM_LIBRARY_DEPENDENCIES_unittest_linux64 = glgraphics/1.3.0
 STEM_LIBRARY_DEPENDENCIES_unittest_iphonesimulator = glgraphics/1.3.0_noglew
-STEM_LIBRARY_DEPENDENCIES_testharness_macosx = glutshell/2.0.0 glgraphics/1.3.0_noglew
+STEM_LIBRARY_DEPENDENCIES_testharness_macosx = nsopenglshell/2.1.0 glgraphics/1.3.0_noglew
 STEM_LIBRARY_DEPENDENCIES_testharness_win32 = glutshell/2.0.0 glgraphics/1.3.0
 STEM_LIBRARY_DEPENDENCIES_testharness_win64 = glutshell/2.0.0 glgraphics/1.3.0
 STEM_LIBRARY_DEPENDENCIES_testharness_linux32 = glutshell/2.0.0 glgraphics/1.3.0

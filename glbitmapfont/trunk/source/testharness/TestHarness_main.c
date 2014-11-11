@@ -13,6 +13,9 @@
 #if defined(STEM_PLATFORM_iphonesimulator) || defined(STEM_PLATFORM_iphoneos)
 #include "eaglshell/EAGLShell.h"
 #include "eaglshell/EAGLTarget.h"
+#elif defined(STEM_PLATFORM_macosx)
+#include "nsopenglshell/NSOpenGLShell.h"
+#include "nsopenglshell/NSOpenGLTarget.h"
 #else
 #include "glutshell/GLUTTarget.h"
 #endif
@@ -186,17 +189,11 @@ static void registerShellCallbacks() {
 	Shell_mouseDraggedFunc(Target_mouseDragged);
 }
 
-#if defined(STEM_PLATFORM_iphonesimulator) || defined(STEM_PLATFORM_iphoneos)
-void EAGLTarget_configure(int argc, char ** argv, struct EAGLShellConfiguration * configuration) {
-	configuration->preferredOpenGLAPIVersion = EAGLShellOpenGLVersion_ES1 | EAGLShellOpenGLVersion_ES2;
-	registerShellCallbacks();
-}
-#else
 static void printUsage() {
 	fprintf(stderr, "Usage: glbitmapfont_testharness [-json /path/to/font.json] [-scale %%f]\n");
 }
 
-void GLUTTarget_configure(int argc, const char ** argv, struct GLUTShellConfiguration * configuration) {
+static void parseArgs(int argc, const char ** argv) {
 	int argIndex;
 	bool printUsageAfterParsing = false;
 	
@@ -234,6 +231,23 @@ void GLUTTarget_configure(int argc, const char ** argv, struct GLUTShellConfigur
 	if (printUsageAfterParsing) {
 		printUsage();
 	}
+}
+
+#if defined(STEM_PLATFORM_iphonesimulator) || defined(STEM_PLATFORM_iphoneos)
+void EAGLTarget_configure(int argc, char ** argv, struct EAGLShellConfiguration * configuration) {
+	parseArgs(argc, (const char **) argv);
+	configuration->preferredOpenGLAPIVersion = EAGLShellOpenGLVersion_ES1 | EAGLShellOpenGLVersion_ES2;
+	registerShellCallbacks();
+}
+#elif defined(STEM_PLATFORM_macosx)
+void NSOpenGLTarget_configure(int argc, const char ** argv, struct NSOpenGLShellConfiguration * configuration) {
+	parseArgs(argc, argv);
+	configuration->windowTitle = "GLBitmapFont Test Harness";
+	registerShellCallbacks();
+}
+#else
+void GLUTTarget_configure(int argc, const char ** argv, struct GLUTShellConfiguration * configuration) {
+	parseArgs(argc, argv);
 	configuration->windowTitle = "GLBitmapFont Test Harness";
 	registerShellCallbacks();
 }
