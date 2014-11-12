@@ -1,6 +1,10 @@
-1.1.1 (2014-11-04)
- * Added GLTextureAtlas_getVerticesWithColor
+1.2.0 (2014-11-12)
+ * Removed GLTextureAtlas_getIndexes, and merged its functionality with GLTextureAtlas_getVertices
+ * GLTextureAtlas_getVertices now uses Vector2f instead of raw floats for offsetX/offsetY and relativeOriginX/relativeOriginY
+ * Added GLTextureAtlas_getVerticesWithColor and GLTextureAtlas_getEntryDimensions
  * Added an option to set a GLTexture pointer in GLTextureAtlas, taking ownership if desired (see GLTextureAtlas_setTexture and the 'texture' struct field)
+ * Removed function pointers to GLTexture and GLTextureAtlas methods from their structs in preparation for stemobject 4.0.0. Call the GLTexture_*()/GLTextureAtlas_*() methods directly instead.
+ * GLTexture objects that have been initialized but have not had setImage called on them will have pixelWidth and pixelHeight set to 0 instead of an uninitialized value.
 
 1.1.0 (2014-06-29)
  * Added GLTextureAtlas

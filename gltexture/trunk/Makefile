@@ -178,6 +178,7 @@ LINK_ORDER = \
 PROJECT_LIBRARY_DEPENDENCIES_unittest = library
 PROJECT_LIBRARY_DEPENDENCIES_testharness = library
 STEM_LIBRARY_DEPENDENCIES = \
+	gamemath/2.2.0 \
 	serialization/1.4.1 \
 	stemobject/3.1.1 \
 	shell/2.0.0 \
@@ -188,7 +189,6 @@ STEM_LIBRARY_DEPENDENCIES_unittest = \
 	glgraphics/1.3.0_noglew \
 	unittest/1.1.1
 STEM_LIBRARY_DEPENDENCIES_testharness = \
-	gamemath/2.2.0 \
 	bitmapimage/1.3.2 \
 	jsonio/1.2.5 \
 	jsonserialization/1.0.6 \

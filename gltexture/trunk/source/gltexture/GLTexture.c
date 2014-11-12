@@ -53,6 +53,8 @@ bool GLTexture_init(GLTexture * self,
 	self->imageName = NULL;
 	self->imageNameAllocated = false;
 	self->textureName = 0;
+	self->pixelWidth = 0;
+	self->pixelHeight = 0;
 	self->bitmapDataFormat = bitmapDataFormat;
 	self->bitmapDataType = bitmapDataType;
 	self->minFilter = minFilter;
