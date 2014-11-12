@@ -321,13 +321,13 @@ unsigned int GLBitmapFont_getStringIndexes(GLBitmapFont * self,
 
 #define getVertices_writePosition() \
 	outVertices[vertexCount + 0].position[0] = \
-	outVertices[vertexCount + 1].position[0] = offsetX + (positionX + self->characters[charEntryIndex].glyphOffset) * fabs(emHeight); \
+	outVertices[vertexCount + 1].position[0] = offset.x + (positionX + self->characters[charEntryIndex].glyphOffset) * fabs(emHeight); \
 	outVertices[vertexCount + 0].position[1] = \
-	outVertices[vertexCount + 3].position[1] = offsetY + emHeight; \
+	outVertices[vertexCount + 3].position[1] = offset.y + emHeight; \
 	outVertices[vertexCount + 2].position[0] = \
-	outVertices[vertexCount + 3].position[0] = offsetX + (positionX + self->characters[charEntryIndex].glyphOffset + self->characters[charEntryIndex].glyphWidth) * fabs(emHeight); \
+	outVertices[vertexCount + 3].position[0] = offset.x + (positionX + self->characters[charEntryIndex].glyphOffset + self->characters[charEntryIndex].glyphWidth) * fabs(emHeight); \
 	outVertices[vertexCount + 1].position[1] = \
-	outVertices[vertexCount + 2].position[1] = offsetY
+	outVertices[vertexCount + 2].position[1] = offset.y
 
 #define getVertices_writeTexCoords() \
 	outVertices[vertexCount + 0].texCoords[0] = \
@@ -357,24 +357,56 @@ unsigned int GLBitmapFont_getStringIndexes(GLBitmapFont * self,
 	outVertices[vertexCount + 2].color[3] = \
 	outVertices[vertexCount + 3].color[3] = alpha
 
-unsigned int GLBitmapFont_getStringVertices(GLBitmapFont * self,
-                                            const char * string,
-                                            size_t length,
-                                            float emHeight,
-                                            float offsetX,
-                                            float offsetY,
-                                            float relativeOriginX,
-                                            float relativeOriginY,
-                                            struct vertex_p2f_t2f * outVertices) {
+#define getVertices_writeTypedIndexes(indexes) \
+	indexes[indexCount + 0] = baseIndex + vertexCount; \
+	indexes[indexCount + 1] = baseIndex + vertexCount + 1; \
+	indexes[indexCount + 2] = baseIndex + vertexCount + 2; \
+	indexes[indexCount + 3] = baseIndex + vertexCount + 2; \
+	indexes[indexCount + 4] = baseIndex + vertexCount + 3; \
+	indexes[indexCount + 5] = baseIndex + vertexCount;
+
+#define getVertices_writeIndexes() \
+	switch (indexType) { \
+		case GL_UNSIGNED_BYTE: { \
+			GLubyte * indexesByte = outIndexes; \
+			getVertices_writeTypedIndexes(indexesByte); \
+			break; \
+		} \
+		case GL_UNSIGNED_SHORT: { \
+			GLushort * indexesShort = outIndexes; \
+			getVertices_writeTypedIndexes(indexesShort); \
+			break; \
+		} \
+		case GL_UNSIGNED_INT: { \
+			GLuint * indexesInt = outIndexes; \
+			getVertices_writeTypedIndexes(indexesInt); \
+			break; \
+		} \
+	}
+
+void GLBitmapFont_getStringVertices(GLBitmapFont * self,
+                                    const char * string,
+                                    size_t length,
+                                    float emHeight,
+                                    Vector2f offset,
+                                    Vector2f relativeOrigin,
+                                    GLenum indexType,
+                                    unsigned int baseIndex,
+                                    struct vertex_p2f_t2f * outVertices,
+                                    void * outIndexes,
+                                    unsigned int * ioVertexCount,
+                                    unsigned int * ioIndexCount) {
 	size_t charIndex, kernCharIndex;
 	float positionX = 0.0f;
 	unsigned int charEntryIndex;
-	unsigned int vertexCount = 0;
+	unsigned int vertexCount = 0, indexCount = 0;
 	struct GLTextureAtlas_entry atlasEntry;
 	
 	if (length == GLBITMAPFONT_USE_STRLEN) {
 		length = strlen(string);
 	}
+	offset.x -= GLBitmapFont_measureString(self, string, length) * emHeight * relativeOrigin.x;
+	offset.y -= emHeight * relativeOrigin.y;
 	for (charIndex = 0; charIndex < length; charIndex++) {
 		if (string[charIndex] >= GLBITMAPFONT_PRINTABLE_MIN && string[charIndex] <= GLBITMAPFONT_PRINTABLE_MAX) {
 			if (outVertices != NULL) {
@@ -385,35 +417,48 @@ unsigned int GLBitmapFont_getStringVertices(GLBitmapFont * self,
 				getVertices_writeTexCoords();
 				positionX += self->characters[charEntryIndex].advance;
 			}
+			if (outIndexes != NULL) {
+				getVertices_writeIndexes();
+			}
 			vertexCount += 4;
+			indexCount += 6;
 		}
 	}
-	
-	return vertexCount;
+	if (ioVertexCount != NULL) {
+		*ioVertexCount += vertexCount;
+	}
+	if (ioIndexCount != NULL) {
+		*ioIndexCount += indexCount;
+	}
 }
 
-unsigned int GLBitmapFont_getStringVerticesWithColor(GLBitmapFont * self,
-                                                     const char * string,
-                                                     size_t length,
-                                                     float emHeight,
-                                                     float offsetX,
-                                                     float offsetY,
-                                                     float relativeOriginX,
-                                                     float relativeOriginY,
-                                                     float red,
-                                                     float green,
-                                                     float blue,
-                                                     float alpha,
-                                                     struct vertex_p2f_t2f_c4f * outVertices) {
+void GLBitmapFont_getStringVerticesWithColor(GLBitmapFont * self,
+                                             const char * string,
+                                             size_t length,
+                                             float emHeight,
+                                             Vector2f offset,
+                                             Vector2f relativeOrigin,
+                                             float red,
+                                             float green,
+                                             float blue,
+                                             float alpha,
+                                             GLenum indexType,
+                                             unsigned int baseIndex,
+                                             struct vertex_p2f_t2f_c4f * outVertices,
+                                             void * outIndexes,
+                                             unsigned int * ioVertexCount,
+                                             unsigned int * ioIndexCount) {
 	size_t charIndex, kernCharIndex;
 	float positionX = 0.0f;
 	unsigned int charEntryIndex;
-	unsigned int vertexCount = 0;
+	unsigned int vertexCount = 0, indexCount = 0;
 	struct GLTextureAtlas_entry atlasEntry;
 	
 	if (length == GLBITMAPFONT_USE_STRLEN) {
 		length = strlen(string);
 	}
+	offset.x -= GLBitmapFont_measureString(self, string, length) * emHeight * relativeOrigin.x;
+	offset.y -= emHeight * relativeOrigin.y;
 	for (charIndex = 0; charIndex < length; charIndex++) {
 		if (string[charIndex] >= GLBITMAPFONT_PRINTABLE_MIN && string[charIndex] <= GLBITMAPFONT_PRINTABLE_MAX) {
 			if (outVertices != NULL) {
@@ -425,9 +470,17 @@ unsigned int GLBitmapFont_getStringVerticesWithColor(GLBitmapFont * self,
 				getVertices_writeColor();
 				positionX += self->characters[charEntryIndex].advance;
 			}
+			if (outIndexes != NULL) {
+				getVertices_writeIndexes();
+			}
 			vertexCount += 4;
+			indexCount += 6;
 		}
 	}
-	
-	return vertexCount;
+	if (ioVertexCount != NULL) {
+		*ioVertexCount += vertexCount;
+	}
+	if (ioIndexCount != NULL) {
+		*ioIndexCount += indexCount;
+	}
 }

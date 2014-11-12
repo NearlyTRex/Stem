@@ -180,7 +180,8 @@ PROJECT_LIBRARY_DEPENDENCIES_testharness = library
 STEM_LIBRARY_DEPENDENCIES_library = \
 	glgraphics/1.3.0
 STEM_LIBRARY_DEPENDENCIES = \
-	gltexture/1.1.1 \
+	gamemath/2.2.0 \
+	gltexture/1.2.0 \
 	serialization/1.4.1 \
 	stemobject/3.1.1 \
 	utilities/1.8.1
@@ -190,7 +191,6 @@ STEM_LIBRARY_DEPENDENCIES_testharness = \
 	jsonserialization/1.0.6 \
 	jsonio/1.2.5 \
 	utilities/1.8.1 \
-	gamemath/2.2.0 \
 	shell/2.0.0
 STEM_LIBRARY_DEPENDENCIES_unittest = \
 	utilities/1.8.1 \

@@ -50,7 +50,7 @@ static float scale = 1.0f;
 
 static void drawString(GLBitmapFont * font, const char * string, size_t length, float emHeight, float offsetX, float offsetY) {
 	static GLuint indexBufferID, vertexBufferID;
-	unsigned int indexCount, vertexCount;
+	unsigned int indexCount = 0, vertexCount = 0;
 	struct vertex_p2f_t2f * vertices;
 	GLushort * indexes;
 	
@@ -58,16 +58,14 @@ static void drawString(GLBitmapFont * font, const char * string, size_t length, 
 		glGenBuffersARB(1, &indexBufferID);
 		glGenBuffersARB(1, &vertexBufferID);
 	}
-	indexCount = GLBitmapFont_getStringIndexes(font, string, length, NULL, GL_UNSIGNED_SHORT, 0);
-	vertexCount = GLBitmapFont_getStringVertices(font, string, length, emHeight, offsetX, offsetY, 0.0f, 0.0f, NULL);
+	GLBitmapFont_getStringVertices(font, string, length, emHeight, VECTOR2f(offsetX, offsetY), VECTOR2f(0.0f, 0.0f), GL_UNSIGNED_SHORT, 0, NULL, NULL, &vertexCount, &indexCount);
 	glBindBufferARB(GL_ARRAY_BUFFER, vertexBufferID);
 	glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER, indexBufferID);
 	glBufferDataARB(GL_ARRAY_BUFFER, sizeof(struct vertex_p2f_t2f) * vertexCount, NULL, GL_STREAM_DRAW);
 	glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLushort) * indexCount, NULL, GL_STREAM_DRAW);
 	vertices = glMapBufferARB(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
 	indexes = glMapBufferARB(GL_ELEMENT_ARRAY_BUFFER, GL_WRITE_ONLY);
-	GLBitmapFont_getStringIndexes(font, string, length, indexes, GL_UNSIGNED_SHORT, 0);
-	GLBitmapFont_getStringVertices(font, string, length, emHeight, offsetX, offsetY, 0.0f, 0.0f, vertices);
+	GLBitmapFont_getStringVertices(font, string, length, emHeight, VECTOR2f(offsetX, offsetY), VECTOR2f(0.0f, 0.0f), GL_UNSIGNED_SHORT, 0, vertices, indexes, NULL, NULL);
 	glUnmapBufferARB(GL_ARRAY_BUFFER);
 	glUnmapBufferARB(GL_ELEMENT_ARRAY_BUFFER);
 	
