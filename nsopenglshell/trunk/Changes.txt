@@ -1,5 +1,6 @@
 2.1.0 (2014-11-02)
  * Fixed an oversight that caused the initial call to the Shell_resizeFunc callback (prior to Target_init()) to be passed a size in points instead of pixels
+ * Mouse event callbacks are now passed pixels instead of points
  * Improved rendering performance and consistency somewhat
  * Fixed GL errors/incorrect rendering when closing window or quitting from full screen mode
 

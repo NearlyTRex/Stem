@@ -31,6 +31,7 @@
 @interface NSView ()
 - (void)setWantsBestResolutionOpenGLSurface:(BOOL)flag;
 - (NSRect)convertRectToBacking:(NSRect)aRect;
+- (NSPoint)convertPointToBacking:(NSPoint)aPoint;
 @end
 
 @implementation NSOpenGLShellView
@@ -90,8 +91,6 @@
 		[self setVSync: vsyncWindow];
 		
 		[[NSNotificationCenter defaultCenter] addObserver: self selector: @selector(frameDidChange:) name: NSViewFrameDidChangeNotification object: nil];
-		
-		drawTimer = [[NSTimer alloc] initWithFireDate: nil interval: 1.0 / 240.0 target: self selector: @selector(drawTimer:) userInfo: nil repeats: YES];
 	}
 	[pixelFormat release];
 	return self;
@@ -99,7 +98,8 @@
 
 - (void) dealloc {
 	[[NSNotificationCenter defaultCenter] removeObserver: self];
-	[drawTimer release];
+	[drawTimer invalidate];
+	drawTimer = nil;
 	[super dealloc];
 }
 
@@ -139,12 +139,31 @@
 	}
 }
 
+- (NSPoint) pixelLocationForEvent: (NSEvent *) event {
+	NSRect bounds;
+	NSPoint location = [event locationInWindow];
+	
+	if ([self respondsToSelector: @selector(convertPointToBacking:)]) {
+		location = [self convertPointToBacking: location];
+		location.y = -location.y;
+	}
+	
+	bounds = [self bounds];
+	if ([self respondsToSelector: @selector(convertRectToBacking:)]) {
+		bounds = [self convertRectToBacking: bounds];
+	}
+	location.y = bounds.size.height - location.y;
+	
+	return location;
+}
+
 - (void) mouseMoved: (NSEvent *) event {
 	if (mouseMovedCallback != NULL) {
 		if (g_mouseDeltaMode) {
 			mouseMovedCallback([event deltaX], -[event deltaY]);
 		} else {
-			mouseMovedCallback([event locationInWindow].x, [self frame].size.height - [event locationInWindow].y);
+			NSPoint location = [self pixelLocationForEvent: event];
+			mouseMovedCallback(location.x, location.y);
 		}
 	}
 }
@@ -152,7 +171,8 @@
 - (void) mouseDown: (NSEvent *) event {
 	buttonMask |= 1 << [event buttonNumber];
 	if (mouseDownCallback != NULL) {
-		mouseDownCallback([event buttonNumber], [event locationInWindow].x, [self frame].size.height - [event locationInWindow].y);
+		NSPoint location = [self pixelLocationForEvent: event];
+		mouseDownCallback([event buttonNumber], location.x, location.y);
 	}
 }
 
@@ -161,7 +181,8 @@
 		if (g_mouseDeltaMode) {
 			mouseDraggedCallback(buttonMask, [event deltaX], -[event deltaY]);
 		} else {
-			mouseDraggedCallback(buttonMask, [event locationInWindow].x, [self frame].size.height - [event locationInWindow].y);
+			NSPoint location = [self pixelLocationForEvent: event];
+			mouseDraggedCallback(buttonMask, location.x, location.y);
 		}
 	}
 }
@@ -169,7 +190,8 @@
 - (void) mouseUp: (NSEvent *) event {
 	buttonMask &= ~(1 << [event buttonNumber]);
 	if (mouseUpCallback != NULL) {
-		mouseUpCallback([event buttonNumber], [event locationInWindow].x, [self frame].size.height - [event locationInWindow].y);
+		NSPoint location = [self pixelLocationForEvent: event];
+		mouseUpCallback([event buttonNumber], location.x, location.y);
 	}
 }
 
@@ -553,6 +575,7 @@ static unsigned int NSEventKeyModifiersToShellKeyModifiers(NSUInteger modifiers)
 
 - (void) redisplay {
 	if (!redisplayWasPosted) {
+		drawTimer = [NSTimer timerWithTimeInterval: 1.0 / 240.0 target: self selector: @selector(drawTimer:) userInfo: nil repeats: YES];
 		[[NSRunLoop mainRunLoop] addTimer: drawTimer forMode: NSRunLoopCommonModes];
 	}
 	redisplayWasPosted = YES;
@@ -606,6 +629,7 @@ double NSOpenGLShell_lastFlushBufferTime;
 	
 	if (!redisplayWasPosted) {
 		[drawTimer invalidate];
+		drawTimer = nil;
 	}
 }
 
