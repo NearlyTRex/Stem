@@ -574,7 +574,7 @@ static unsigned int NSEventKeyModifiersToShellKeyModifiers(NSUInteger modifiers)
 }
 
 - (void) redisplay {
-	if (!redisplayWasPosted) {
+	if (drawTimer == nil) {
 		drawTimer = [NSTimer timerWithTimeInterval: 1.0 / 240.0 target: self selector: @selector(drawTimer:) userInfo: nil repeats: YES];
 		[[NSRunLoop mainRunLoop] addTimer: drawTimer forMode: NSRunLoopCommonModes];
 	}
