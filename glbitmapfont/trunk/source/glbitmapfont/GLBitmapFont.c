@@ -457,7 +457,7 @@ void GLBitmapFont_getStringVerticesWithColor(GLBitmapFont * self,
 	if (length == GLBITMAPFONT_USE_STRLEN) {
 		length = strlen(string);
 	}
-	offset.x -= GLBitmapFont_measureString(self, string, length) * emHeight * relativeOrigin.x;
+	offset.x -= GLBitmapFont_measureString(self, string, length) * fabs(emHeight) * relativeOrigin.x;
 	offset.y -= emHeight * relativeOrigin.y;
 	for (charIndex = 0; charIndex < length; charIndex++) {
 		if (string[charIndex] >= GLBITMAPFONT_PRINTABLE_MIN && string[charIndex] <= GLBITMAPFONT_PRINTABLE_MAX) {
