@@ -1,7 +1,10 @@
-2.0.0
+2.0.1 (2014-11-17)
+ * Respond to Alt-F4 and Ctrl-F4
+
+2.0.0 (2014-10-21)
  * Updated for shell 2.0.0 (adds multiple display support, scroll wheel events, registered callbacks for input events)
 
-1.1.0
+1.1.0 (2014-01-10)
  * Updated for shell 1.2.0 (adds Shell_openURL)
  * Added multisampling and accumulation buffer options to WGLShellConfiguration
  * Modifier keys now produce Target_keyDown() and Target_keyUp() events

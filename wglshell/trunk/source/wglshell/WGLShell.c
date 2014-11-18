@@ -969,6 +969,11 @@ static LRESULT CALLBACK windowProc(HWND window, UINT message, WPARAM wParam, LPA
 				charCode = msg.wParam;
 			}
 			keyCode = lParamToShellKeyCode(lParam);
+			
+			if (keyCode == KEYBOARD_F4 && ((modifierFlags & MODIFIER_ALT_BIT) || (modifierFlags & MODIFIER_CONTROL_BIT))) {
+				exit(EXIT_SUCCESS);
+			}
+			
 			if (keyCode != 0 && keyDownCallback != NULL) {
 				keyDownCallback(charCode, keyCode, modifierFlags);
 			}
