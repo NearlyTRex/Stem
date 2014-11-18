@@ -327,19 +327,17 @@ static void testSave() {
 }
 
 static unsigned int valueChangedCalls;
-static void * expectedSender;
 static const char * expectedName;
 static enum PreferencesType expectedType;
 static union PreferencesValue expectedValue;
 static union PreferencesValue expectedPreviousValue;
 static union PreferencesValue newValue;
 
-static bool valueChanged(void * sender, const char * eventID, void * eventData, void * context) {
+static bool valueChanged(const char * eventID, void * eventData, void * context) {
 	struct PreferencesEvent * event = eventData;
 	
 	valueChangedCalls++;
 	TestCase_assert(!strcmp(eventID, PREFERENCES_EVENT_VALUE_CHANGED), "Expected " PREFERENCES_EVENT_VALUE_CHANGED " but got %s", eventID);
-	TestCase_assert(sender == expectedSender, "Expected %p but got %p", expectedSender, sender);
 	TestCase_assert(!strcmp(event->name, expectedName), "Expected %s but got %s", expectedName, event->name);
 	TestCase_assert(event->type == expectedType, "Expected %d but got %d", expectedType, event->type);
 	
@@ -389,14 +387,13 @@ static void testEvents() {
 	
 	valueChangedCalls = 0;
 	preferences = Preferences_create("preferences_unittest");
-	preferences->eventDispatcher->registerForEvent(preferences->eventDispatcher, Atom_fromString(PREFERENCES_EVENT_VALUE_CHANGED), valueChanged, NULL);
+	EventDispatcher_registerForEvent(preferences->eventDispatcher, Atom_fromString(PREFERENCES_EVENT_VALUE_CHANGED), valueChanged, NULL);
 	preferences->addInteger(preferences, "integer1", 1);
 	preferences->addFloat(preferences, "float1", 1.0f);
 	preferences->addBoolean(preferences, "boolean1", true);
 	preferences->addString(preferences, "string1", "");
 	preferences->addData(preferences, "data1", defaultData, sizeof(defaultData));
 	
-	expectedSender = preferences;
 	TestCase_assert(valueChangedCalls == 0, "Expected 0 but got %u", valueChangedCalls);
 	
 	expectedName = "integer1";

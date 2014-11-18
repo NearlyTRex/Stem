@@ -44,7 +44,7 @@ bool Preferences_init(Preferences * self, const char * identifier) {
 	newIdentifier = malloc(strlen(identifier) + 1);
 	strcpy(newIdentifier, identifier);
 	self->identifier = newIdentifier;
-	self->eventDispatcher = EventDispatcher_create(self);
+	self->eventDispatcher = EventDispatcher_create();
 	
 	self->dispose = Preferences_dispose;
 	self->addInteger = Preferences_addInteger;
@@ -250,7 +250,7 @@ void Preferences_setInteger(Preferences * self, const char * name, int value) {
 	event.type = PREFERENCES_TYPE_INTEGER;
 	event.value.integer = value;
 	event.previousValue.integer = self->getInteger(self, name);
-	self->eventDispatcher->dispatchEvent(self->eventDispatcher, Atom_fromString(PREFERENCES_EVENT_VALUE_CHANGED), &event);
+	EventDispatcher_dispatchEvent(self->eventDispatcher, Atom_fromString(PREFERENCES_EVENT_VALUE_CHANGED), &event);
 	
 	Preferences_setIntegerPrivate(self, name, event.value.integer);
 }
@@ -262,7 +262,7 @@ void Preferences_setFloat(Preferences * self, const char * name, float value) {
 	event.type = PREFERENCES_TYPE_FLOAT;
 	event.value.number = value;
 	event.previousValue.number = self->getFloat(self, name);
-	self->eventDispatcher->dispatchEvent(self->eventDispatcher, Atom_fromString(PREFERENCES_EVENT_VALUE_CHANGED), &event);
+	EventDispatcher_dispatchEvent(self->eventDispatcher, Atom_fromString(PREFERENCES_EVENT_VALUE_CHANGED), &event);
 	
 	Preferences_setFloatPrivate(self, name, event.value.number);
 }
@@ -274,7 +274,7 @@ void Preferences_setBoolean(Preferences * self, const char * name, bool value) {
 	event.type = PREFERENCES_TYPE_BOOLEAN;
 	event.value.boolean = value;
 	event.previousValue.boolean = self->getBoolean(self, name);
-	self->eventDispatcher->dispatchEvent(self->eventDispatcher, Atom_fromString(PREFERENCES_EVENT_VALUE_CHANGED), &event);
+	EventDispatcher_dispatchEvent(self->eventDispatcher, Atom_fromString(PREFERENCES_EVENT_VALUE_CHANGED), &event);
 	
 	Preferences_setBooleanPrivate(self, name, event.value.boolean);
 }
@@ -286,7 +286,7 @@ void Preferences_setString(Preferences * self, const char * name, const char * v
 	event.type = PREFERENCES_TYPE_STRING;
 	event.value.string = value;
 	event.previousValue.string = self->getString(self, name);
-	self->eventDispatcher->dispatchEvent(self->eventDispatcher, Atom_fromString(PREFERENCES_EVENT_VALUE_CHANGED), &event);
+	EventDispatcher_dispatchEvent(self->eventDispatcher, Atom_fromString(PREFERENCES_EVENT_VALUE_CHANGED), &event);
 	
 	Preferences_setStringPrivate(self, name, event.value.string);
 }
@@ -299,7 +299,7 @@ void Preferences_setData(Preferences * self, const char * name, const void * val
 	event.value.data.bytes = value;
 	event.value.data.length = length;
 	event.previousValue.data.bytes = self->getData(self, name, &event.previousValue.data.length);
-	self->eventDispatcher->dispatchEvent(self->eventDispatcher, Atom_fromString(PREFERENCES_EVENT_VALUE_CHANGED), &event);
+	EventDispatcher_dispatchEvent(self->eventDispatcher, Atom_fromString(PREFERENCES_EVENT_VALUE_CHANGED), &event);
 	
 	Preferences_setDataPrivate(self, name, event.value.data.bytes, event.value.data.length);
 }

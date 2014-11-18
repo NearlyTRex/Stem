@@ -1,5 +1,6 @@
 1.1.5 (2014-11-17)
  * Updated jsonio dependency from 1.2.4 to 1.2.5 (layout of struct JSONParseError changed)
+ * Updated utilities dependency from 1.8.1 to 1.9.0 (layout of EventDispatcher changed)
 
 1.1.4 (2014-06-29)
  * Added support for modern Xcode/iOS SDK versions

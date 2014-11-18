@@ -168,12 +168,12 @@ LINK_ORDER = \
 PROJECT_LIBRARY_DEPENDENCIES_unittest = library_stub
 PROJECT_LIBRARY_DEPENDENCIES_testharness = library
 STEM_LIBRARY_DEPENDENCIES = \
-	utilities/1.8.0 \
+	utilities/1.9.0 \
 	stemobject/3.1.0
 STEM_LIBRARY_DEPENDENCIES_library = \
 	jsonio/1.2.5
 STEM_LIBRARY_DEPENDENCIES_unittest = \
-	stubshell/1.3.1 \
+	stubshell/1.4.0 \
 	unittest/1.1.0
 STEM_LIBRARY_DEPENDENCIES_testharness = \
 	jsonio/1.2.5 \
