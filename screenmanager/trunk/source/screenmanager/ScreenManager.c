@@ -33,7 +33,7 @@ bool ScreenManager_init(ScreenManager * self) {
 	call_super(init, self);
 	self->dispose = ScreenManager_dispose;
 	
-	self->eventDispatcher = EventDispatcher_create(self);
+	self->eventDispatcher = EventDispatcher_create();
 	self->currentScreen = NULL;
 	self->validScreenCount = 0;
 	self->validScreens = NULL;
