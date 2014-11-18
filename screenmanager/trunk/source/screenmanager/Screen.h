@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2013 Alex Diener
+  Copyright (c) 2014 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -17,33 +17,37 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
   
-  Alex Diener adiener@sacredsoftware.net
+  Alex Diener alex@ludobloom.com
 */
 
-#ifndef __STATE_H__
-#define __STATE_H__
+#ifndef __Screen_H__
+#define __Screen_H__
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-typedef struct State State;
+typedef struct Screen Screen;
 
 #include "stemobject/StemObject.h"
-#include "statecontroller/StateController.h"
+#include "screenmanager/ScreenManager.h"
 
-#define State_structContents(self_type) \
+#define Screen_structContents(self_type) \
 	StemObject_structContents(self_type) \
 	\
-	StateController * stateController; \
+	ScreenManager * screenManager; \
 	\
 	void (* activate)(self_type * self); \
-	void (* deactivate)(self_type * self); \
-	void (* draw)(self_type * self);
+	void (* deactivate)(self_type * self);
 
-stemobject_struct_definition(State)
+stemobject_struct_definition(Screen)
 
-bool State_init(State * self);
-void State_dispose(State * self);
+bool Screen_init(Screen * self);
+void Screen_dispose(Screen * self);
 
-void State_activate(State * self);
-void State_deactivate(State * self);
-void State_draw(State * self);
+void Screen_activate(Screen * self);
+void Screen_deactivate(Screen * self);
 
+#ifdef __cplusplus
+}
+#endif
 #endif

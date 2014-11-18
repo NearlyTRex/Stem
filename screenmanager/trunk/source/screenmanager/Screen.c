@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2013 Alex Diener
+  Copyright (c) 2014 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -17,32 +17,28 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
   
-  Alex Diener adiener@sacredsoftware.net
+  Alex Diener alex@ludobloom.com
 */
 
-#include "statecontroller/State.h"
+#include "screenmanager/Screen.h"
 
 #define SUPERCLASS StemObject
 
-bool State_init(State * self) {
+bool Screen_init(Screen * self) {
 	call_super(init, self);
-	self->dispose = State_dispose;
-	self->activate = State_activate;
-	self->deactivate = State_deactivate;
-	self->draw = State_draw;
-	self->stateController = NULL;
+	self->dispose = Screen_dispose;
+	self->activate = Screen_activate;
+	self->deactivate = Screen_deactivate;
+	self->screenManager = NULL;
 	return true;
 }
 
-void State_dispose(State * self) {
+void Screen_dispose(Screen * self) {
 	call_super(dispose, self);
 }
 
-void State_activate(State * self) {
+void Screen_activate(Screen * self) {
 }
 
-void State_deactivate(State * self) {
-}
-
-void State_draw(State * self) {
+void Screen_deactivate(Screen * self) {
 }

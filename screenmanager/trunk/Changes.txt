@@ -1,3 +1,9 @@
+2.0.0 (2014-11-18)
+ * Renamed project from statecontroller to screenmanager
+ * Renamed StateContoller class to ScreenManager, and State class to Screen
+ * Removed Screen_draw function. The recommended approach to drawing the active screen is to dispatch a draw event through ScreenManager's EventDispatcher, which each Screen registers to receive in its activate() method.
+ * Removed function pointers to ScreenManager methods from its struct in preparation for stemobject 4.0.0. Call the ScreenManager_*() methods directly instead.
+
 1.0.3 (2014-06-29)
  * Added support for modern Xcode/iOS SDK versions
 
