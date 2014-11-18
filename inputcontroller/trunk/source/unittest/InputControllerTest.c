@@ -55,13 +55,13 @@ static unsigned int actionDownCallCount;
 static unsigned int actionUpCallCount;
 static Atom lastActionID;
 
-static bool actionDown(void * sender, Atom eventID, void * eventData, void * context) {
+static bool actionDown(Atom eventID, void * eventData, void * context) {
 	actionDownCallCount++;
 	lastActionID = eventData;
 	return true;
 }
 
-static bool actionUp(void * sender, Atom eventID, void * eventData, void * context) {
+static bool actionUp(Atom eventID, void * eventData, void * context) {
 	actionUpCallCount++;
 	lastActionID = eventData;
 	return true;
@@ -72,8 +72,8 @@ static void testActionTriggers() {
 	
 	actionDownCallCount = actionUpCallCount = 0;
 	inputController = InputController_create(NULL, "a", "b", NULL);
-	inputController->eventDispatcher->registerForEvent(inputController->eventDispatcher, ATOM(INPUT_CONTROLLER_EVENT_ACTION_DOWN), actionDown, NULL);
-	inputController->eventDispatcher->registerForEvent(inputController->eventDispatcher, ATOM(INPUT_CONTROLLER_EVENT_ACTION_UP), actionUp, NULL);
+	EventDispatcher_registerForEvent(inputController->eventDispatcher, ATOM(INPUT_CONTROLLER_EVENT_ACTION_DOWN), actionDown, NULL);
+	EventDispatcher_registerForEvent(inputController->eventDispatcher, ATOM(INPUT_CONTROLLER_EVENT_ACTION_UP), actionUp, NULL);
 	
 	lastActionID = NULL;
 	inputController->triggerAction(inputController, ATOM("a"));
@@ -105,8 +105,8 @@ static void testKeyboardBindings() {
 	actionDownCallCount = actionUpCallCount = 0;
 	inputMap = InputMap_create();
 	inputController = InputController_create(inputMap, "a", "b", NULL);
-	inputController->eventDispatcher->registerForEvent(inputController->eventDispatcher, ATOM(INPUT_CONTROLLER_EVENT_ACTION_DOWN), actionDown, NULL);
-	inputController->eventDispatcher->registerForEvent(inputController->eventDispatcher, ATOM(INPUT_CONTROLLER_EVENT_ACTION_UP), actionUp, NULL);
+	EventDispatcher_registerForEvent(inputController->eventDispatcher, ATOM(INPUT_CONTROLLER_EVENT_ACTION_DOWN), actionDown, NULL);
+	EventDispatcher_registerForEvent(inputController->eventDispatcher, ATOM(INPUT_CONTROLLER_EVENT_ACTION_UP), actionUp, NULL);
 	inputMap->bindKey(inputMap, ATOM("a"), 1, 0);
 	inputMap->bindKey(inputMap, ATOM("b"), 2, 0);
 	
@@ -141,8 +141,8 @@ static void testKeyModifierBindings() {
 	actionDownCallCount = actionUpCallCount = 0;
 	inputMap = InputMap_create();
 	inputController = InputController_create(inputMap, "a", "b", NULL);
-	inputController->eventDispatcher->registerForEvent(inputController->eventDispatcher, ATOM(INPUT_CONTROLLER_EVENT_ACTION_DOWN), actionDown, NULL);
-	inputController->eventDispatcher->registerForEvent(inputController->eventDispatcher, ATOM(INPUT_CONTROLLER_EVENT_ACTION_UP), actionUp, NULL);
+	EventDispatcher_registerForEvent(inputController->eventDispatcher, ATOM(INPUT_CONTROLLER_EVENT_ACTION_DOWN), actionDown, NULL);
+	EventDispatcher_registerForEvent(inputController->eventDispatcher, ATOM(INPUT_CONTROLLER_EVENT_ACTION_UP), actionUp, NULL);
 	inputMap->bindKeyModifier(inputMap, ATOM("a"), 0x1);
 	inputMap->bindKeyModifier(inputMap, ATOM("b"), 0x2);
 	
@@ -177,8 +177,8 @@ static void testButtonBindings() {
 	actionDownCallCount = actionUpCallCount = 0;
 	inputMap = InputMap_create();
 	inputController = InputController_create(inputMap, "a", "b", "c", "d", NULL);
-	inputController->eventDispatcher->registerForEvent(inputController->eventDispatcher, ATOM(INPUT_CONTROLLER_EVENT_ACTION_DOWN), actionDown, NULL);
-	inputController->eventDispatcher->registerForEvent(inputController->eventDispatcher, ATOM(INPUT_CONTROLLER_EVENT_ACTION_UP), actionUp, NULL);
+	EventDispatcher_registerForEvent(inputController->eventDispatcher, ATOM(INPUT_CONTROLLER_EVENT_ACTION_DOWN), actionDown, NULL);
+	EventDispatcher_registerForEvent(inputController->eventDispatcher, ATOM(INPUT_CONTROLLER_EVENT_ACTION_UP), actionUp, NULL);
 	inputMap->bindButton(inputMap, ATOM("a"), 1, 2, 3);
 	inputMap->bindButton(inputMap, ATOM("b"), 4, 2, 3);
 	inputMap->bindButton(inputMap, ATOM("c"), 1, 5, 3);
@@ -223,8 +223,8 @@ static void testAxisBindings() {
 	actionDownCallCount = actionUpCallCount = 0;
 	inputMap = InputMap_create();
 	inputController = InputController_create(inputMap, "a", "b", "c", "d", "e", NULL);
-	inputController->eventDispatcher->registerForEvent(inputController->eventDispatcher, ATOM(INPUT_CONTROLLER_EVENT_ACTION_DOWN), actionDown, NULL);
-	inputController->eventDispatcher->registerForEvent(inputController->eventDispatcher, ATOM(INPUT_CONTROLLER_EVENT_ACTION_UP), actionUp, NULL);
+	EventDispatcher_registerForEvent(inputController->eventDispatcher, ATOM(INPUT_CONTROLLER_EVENT_ACTION_DOWN), actionDown, NULL);
+	EventDispatcher_registerForEvent(inputController->eventDispatcher, ATOM(INPUT_CONTROLLER_EVENT_ACTION_UP), actionUp, NULL);
 	inputMap->bindAxis(inputMap, ATOM("a"), 1, 2, 3, 0.75f, 0.25f);
 	inputMap->bindAxis(inputMap, ATOM("b"), 4, 2, 3, 0.75f, 0.25f);
 	inputMap->bindAxis(inputMap, ATOM("c"), 1, 5, 3, 0.75f, 0.25f);

@@ -65,7 +65,7 @@ bool InputController_vinit(InputController * self, InputMap * inputMap, va_list 
 	self->releaseAction = InputController_releaseAction;
 	self->reset = InputController_reset;
 	
-	self->eventDispatcher = EventDispatcher_create(self);
+	self->eventDispatcher = EventDispatcher_create();
 	self->inputMap = inputMap;
 	self->lastModifiers = 0x0;
 	self->actionCount = 0;
@@ -90,7 +90,7 @@ bool InputController_vinit(InputController * self, InputMap * inputMap, va_list 
 }
 
 void InputController_dispose(InputController * self) {
-	self->eventDispatcher->dispose(self->eventDispatcher);
+	EventDispatcher_dispose(self->eventDispatcher);
 	free(self->actions);
 	call_super(dispose, self);
 }
@@ -235,7 +235,7 @@ bool InputController_triggerAction(InputController * self, Atom actionID) {
 		if (actionID == self->actions[actionIndex].actionID) {
 			if (!self->actions[actionIndex].triggered) {
 				self->actions[actionIndex].triggered = true;
-				self->eventDispatcher->dispatchEvent(self->eventDispatcher, ATOM(INPUT_CONTROLLER_EVENT_ACTION_DOWN), (void *) self->actions[actionIndex].actionID);
+				EventDispatcher_dispatchEvent(self->eventDispatcher, ATOM(INPUT_CONTROLLER_EVENT_ACTION_DOWN), (void *) self->actions[actionIndex].actionID);
 			}
 			return true;
 		}
@@ -250,7 +250,7 @@ bool InputController_releaseAction(InputController * self, Atom actionID) {
 		if (actionID == self->actions[actionIndex].actionID) {
 			if (self->actions[actionIndex].triggered) {
 				self->actions[actionIndex].triggered = false;
-				self->eventDispatcher->dispatchEvent(self->eventDispatcher, ATOM(INPUT_CONTROLLER_EVENT_ACTION_UP), (void *) self->actions[actionIndex].actionID);
+				EventDispatcher_dispatchEvent(self->eventDispatcher, ATOM(INPUT_CONTROLLER_EVENT_ACTION_UP), (void *) self->actions[actionIndex].actionID);
 			}
 			return true;
 		}

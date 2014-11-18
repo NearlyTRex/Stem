@@ -50,7 +50,7 @@ bool InputPlayback_init(InputPlayback * self, InputController * inputController,
 }
 
 void InputPlayback_dispose(InputPlayback * self) {
-	self->eventDispatcher->dispose(self->eventDispatcher);
+	EventDispatcher_dispose(self->eventDispatcher);
 	free(self->actionsTriggered);
 	call_super(dispose, self);
 }
@@ -68,7 +68,7 @@ void InputPlayback_step(InputPlayback * self) {
 		self->lastFrameIndex = self->frameIndex;
 		self->eventIndex++;
 		if (self->eventIndex >= self->inputSession->eventCount) {
-			self->eventDispatcher->dispatchEvent(self->eventDispatcher, ATOM(INPUT_PLAYBACK_EVENT_PLAYBACK_COMPLETE), NULL);
+			EventDispatcher_dispatchEvent(self->eventDispatcher, ATOM(INPUT_PLAYBACK_EVENT_PLAYBACK_COMPLETE), NULL);
 		}
 	}
 	self->frameIndex++;

@@ -103,7 +103,7 @@ static void testBasicPlayback() {
 
 static unsigned int playbackCompleteCalls;
 
-bool playbackComplete(void * sender, Atom eventID, void * eventData, void * context) {
+bool playbackComplete(Atom eventID, void * eventData, void * context) {
 	playbackCompleteCalls++;
 	return true;
 }
@@ -120,7 +120,7 @@ static void testPlaybackCompleteEvent() {
 	
 	session = InputSession_loadData(testData1, sizeof(testData1) - 1, NULL);
 	playback = InputPlayback_create(&testInputController, session);
-	playback->eventDispatcher->registerForEvent(playback->eventDispatcher, ATOM(INPUT_PLAYBACK_EVENT_PLAYBACK_COMPLETE), playbackComplete, NULL);
+	EventDispatcher_registerForEvent(playback->eventDispatcher, ATOM(INPUT_PLAYBACK_EVENT_PLAYBACK_COMPLETE), playbackComplete, NULL);
 	
 	playback->step(playback);
 	TestCase_assert(playbackCompleteCalls == 0, "Expected 0 but got %u", playbackCompleteCalls);

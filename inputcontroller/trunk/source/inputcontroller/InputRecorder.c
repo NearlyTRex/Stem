@@ -44,7 +44,7 @@ static void writeData(InputRecorder * self, unsigned int size, const void * data
 	}
 }
 
-static bool action(void * sender, Atom eventID, void * eventData, void * context) {
+static bool action(Atom eventID, void * eventData, void * context) {
 	InputRecorder * self = context;
 	unsigned int actionIndex;
 	uint16_t uint16;
@@ -76,8 +76,8 @@ static void sharedInit(InputRecorder * self, InputController * inputController) 
 	self->nextFrame = InputRecorder_nextFrame;
 	
 	if (self->inputController != NULL) {
-		self->inputController->eventDispatcher->registerForEvent(self->inputController->eventDispatcher, ATOM(INPUT_CONTROLLER_EVENT_ACTION_DOWN), action, self);
-		self->inputController->eventDispatcher->registerForEvent(self->inputController->eventDispatcher, ATOM(INPUT_CONTROLLER_EVENT_ACTION_UP), action, self);
+		EventDispatcher_registerForEvent(self->inputController->eventDispatcher, ATOM(INPUT_CONTROLLER_EVENT_ACTION_DOWN), action, self);
+		EventDispatcher_registerForEvent(self->inputController->eventDispatcher, ATOM(INPUT_CONTROLLER_EVENT_ACTION_UP), action, self);
 	}
 }
 
@@ -132,8 +132,8 @@ bool InputRecorder_initWithMemwriteOutput(InputRecorder * self, InputController 
 void InputRecorder_dispose(InputRecorder * self) {
 	call_super(dispose, self);
 	if (self->inputController != NULL) {
-		self->inputController->eventDispatcher->unregisterForEvent(self->inputController->eventDispatcher, ATOM(INPUT_CONTROLLER_EVENT_ACTION_DOWN), action, self);
-		self->inputController->eventDispatcher->unregisterForEvent(self->inputController->eventDispatcher, ATOM(INPUT_CONTROLLER_EVENT_ACTION_UP), action, self);
+		EventDispatcher_unregisterForEvent(self->inputController->eventDispatcher, ATOM(INPUT_CONTROLLER_EVENT_ACTION_DOWN), action, self);
+		EventDispatcher_unregisterForEvent(self->inputController->eventDispatcher, ATOM(INPUT_CONTROLLER_EVENT_ACTION_UP), action, self);
 	}
 	if (self->outputFile == NULL) {
 		free(self->memwriteContext.data);

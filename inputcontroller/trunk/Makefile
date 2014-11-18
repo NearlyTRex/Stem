@@ -169,10 +169,10 @@ STEM_LIBRARY_DEPENDENCIES = \
 	gamepad/1.4.0 \
 	serialization/1.4.1 \
 	stemobject/3.1.0 \
-	utilities/1.8.0
+	utilities/1.9.0
 STEM_LIBRARY_DEPENDENCIES_unittest = \
-	stubshell/1.3.1 \
-	unittest/1.1.0
+	stubshell/1.4.0 \
+	unittest/1.1.1
 THIRDPARTY_LIBRARY_DEPENDENCIES = 
 
 #Per-target source file lists
