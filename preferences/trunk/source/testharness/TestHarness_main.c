@@ -55,34 +55,34 @@ int main(int argc, char ** argv) {
 	}
 	
 	preferences = Preferences_create(identifier);
-	preferences->addInteger(preferences, "integer1", 1);
-	preferences->addInteger(preferences, "integer2", -2);
-	preferences->addFloat(preferences, "float1", 4.0f);
-	preferences->addFloat(preferences, "float2", -0.125f);
-	preferences->addBoolean(preferences, "boolean1", true);
-	preferences->addBoolean(preferences, "boolean2", false);
-	preferences->addString(preferences, "string1", "Hello, world!");
-	preferences->addString(preferences, "string2", "foo");
-	preferences->addData(preferences, "data1", defaultData1, sizeof(defaultData1));
-	preferences->addData(preferences, "data2", defaultData2, sizeof(defaultData2));
-	preferences->load(preferences);
+	Preferences_addInteger(preferences, "integer1", 1);
+	Preferences_addInteger(preferences, "integer2", -2);
+	Preferences_addFloat(preferences, "float1", 4.0f);
+	Preferences_addFloat(preferences, "float2", -0.125f);
+	Preferences_addBoolean(preferences, "boolean1", true);
+	Preferences_addBoolean(preferences, "boolean2", false);
+	Preferences_addString(preferences, "string1", "Hello, world!");
+	Preferences_addString(preferences, "string2", "foo");
+	Preferences_addData(preferences, "data1", defaultData1, sizeof(defaultData1));
+	Preferences_addData(preferences, "data2", defaultData2, sizeof(defaultData2));
+	Preferences_load(preferences);
 	
-	printf("integer1: %d\n", preferences->getInteger(preferences, "integer1"));
-	printf("integer2: %d\n", preferences->getInteger(preferences, "integer2"));
-	printf("float1: %f\n", preferences->getFloat(preferences, "float1"));
-	printf("float2: %f\n", preferences->getFloat(preferences, "float2"));
-	printf("boolean1: %s\n", preferences->getBoolean(preferences, "boolean1") ? "true" : "false");
-	printf("boolean2: %s\n", preferences->getBoolean(preferences, "boolean2") ? "true" : "false");
-	printf("string1: %s\n", preferences->getString(preferences, "string1"));
-	printf("string2: %s\n", preferences->getString(preferences, "string2"));
+	printf("integer1: %d\n", Preferences_getInteger(preferences, "integer1"));
+	printf("integer2: %d\n", Preferences_getInteger(preferences, "integer2"));
+	printf("float1: %f\n", Preferences_getFloat(preferences, "float1"));
+	printf("float2: %f\n", Preferences_getFloat(preferences, "float2"));
+	printf("boolean1: %s\n", Preferences_getBoolean(preferences, "boolean1") ? "true" : "false");
+	printf("boolean2: %s\n", Preferences_getBoolean(preferences, "boolean2") ? "true" : "false");
+	printf("string1: %s\n", Preferences_getString(preferences, "string1"));
+	printf("string2: %s\n", Preferences_getString(preferences, "string2"));
 	printf("data1:");
-	data = preferences->getData(preferences, "data1", &length);
+	data = Preferences_getData(preferences, "data1", &length);
 	for (byteIndex = 0; byteIndex < length; byteIndex++) {
 		printf(" %02X", ((unsigned char *) data)[byteIndex]);
 	}
 	putchar('\n');
 	printf("data2:");
-	data = preferences->getData(preferences, "data2", &length);
+	data = Preferences_getData(preferences, "data2", &length);
 	for (byteIndex = 0; byteIndex < length; byteIndex++) {
 		printf(" %02X", ((unsigned char *) data)[byteIndex]);
 	}
@@ -92,24 +92,24 @@ int main(int argc, char ** argv) {
 		char data1[] = {0xFF, 0x7F, 0x00};
 		char data2[] = {0xAA, 0xBB};
 		
-		preferences->setInteger(preferences, "integer1", -50);
-		preferences->setInteger(preferences, "integer2", 123);
-		preferences->setFloat(preferences, "float1", -1.0f);
-		preferences->setFloat(preferences, "float2", 2.25f);
-		preferences->setBoolean(preferences, "boolean1", false);
-		preferences->setBoolean(preferences, "boolean2", true);
-		preferences->setString(preferences, "string1", "bar");
-		preferences->setString(preferences, "string2", "baz");
-		preferences->setData(preferences, "data1", data1, sizeof(data1));
-		preferences->setData(preferences, "data2", data2, sizeof(data2));
-		preferences->save(preferences);
+		Preferences_setInteger(preferences, "integer1", -50);
+		Preferences_setInteger(preferences, "integer2", 123);
+		Preferences_setFloat(preferences, "float1", -1.0f);
+		Preferences_setFloat(preferences, "float2", 2.25f);
+		Preferences_setBoolean(preferences, "boolean1", false);
+		Preferences_setBoolean(preferences, "boolean2", true);
+		Preferences_setString(preferences, "string1", "bar");
+		Preferences_setString(preferences, "string2", "baz");
+		Preferences_setData(preferences, "data1", data1, sizeof(data1));
+		Preferences_setData(preferences, "data2", data2, sizeof(data2));
+		Preferences_save(preferences);
 		
 	} else if (action == ACTION_DEFAULTS) {
-		preferences->loadDefaultValues(preferences);
-		preferences->save(preferences);
+		Preferences_loadDefaultValues(preferences);
+		Preferences_save(preferences);
 	}
 	
-	preferences->dispose(preferences);
+	Preferences_dispose(preferences);
 	
 	return EXIT_SUCCESS;
 }

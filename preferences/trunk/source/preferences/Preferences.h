@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2013 Alex Diener
+  Copyright (c) 2014 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -17,7 +17,7 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
   
-  Alex Diener adiener@sacredsoftware.net
+  Alex Diener alex@ludobloom.com
 */
 
 #ifndef __Preferences_H__
@@ -91,30 +91,7 @@ struct Preferences_valueRecord {
 	const char * identifier; \
 	size_t valueCount; \
 	struct Preferences_valueRecord * values; \
-	EventDispatcher * eventDispatcher; \
-	\
-	void (* addInteger)(self_type * self, const char * name, int defaultValue); \
-	void (* addFloat)(self_type * self, const char * name, float defaultValue); \
-	void (* addBoolean)(self_type * self, const char * name, bool defaultValue); \
-	void (* addString)(self_type * self, const char * name, const char * defaultValue); \
-	void (* addData)(self_type * self, const char * name, const void * defaultValue, size_t defaultLength); \
-	\
-	int (* getInteger)(self_type * self, const char * name); \
-	float (* getFloat)(self_type * self, const char * name); \
-	bool (* getBoolean)(self_type * self, const char * name); \
-	const char * (* getString)(self_type * self, const char * name); \
-	void * (* getData)(self_type * self, const char * name, size_t * outLength); \
-	\
-	void (* setInteger)(self_type * self, const char * name, int value); \
-	void (* setFloat)(self_type * self, const char * name, float value); \
-	void (* setBoolean)(self_type * self, const char * name, bool value); \
-	void (* setString)(self_type * self, const char * name, const char * value); \
-	void (* setData)(self_type * self, const char * name, const void * value, size_t length); \
-	\
-	void (* load)(self_type * self); \
-	void (* save)(self_type * self); \
-	void (* loadDefaultValues)(self_type * self); \
-	void (* loadDefaultValue)(self_type * self, const char * name);
+	EventDispatcher * eventDispatcher;
 
 stemobject_struct_definition(Preferences)
 

@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2013 Alex Diener
+  Copyright (c) 2014 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -17,7 +17,7 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
   
-  Alex Diener adiener@sacredsoftware.net
+  Alex Diener alex@ludobloom.com
 */
 
 #include "preferences/Preferences.h"
@@ -47,25 +47,6 @@ bool Preferences_init(Preferences * self, const char * identifier) {
 	self->eventDispatcher = EventDispatcher_create();
 	
 	self->dispose = Preferences_dispose;
-	self->addInteger = Preferences_addInteger;
-	self->addFloat = Preferences_addFloat;
-	self->addBoolean = Preferences_addBoolean;
-	self->addString = Preferences_addString;
-	self->addData = Preferences_addData;
-	self->getInteger = Preferences_getInteger;
-	self->getFloat = Preferences_getFloat;
-	self->getBoolean = Preferences_getBoolean;
-	self->getString = Preferences_getString;
-	self->getData = Preferences_getData;
-	self->setInteger = Preferences_setInteger;
-	self->setFloat = Preferences_setFloat;
-	self->setBoolean = Preferences_setBoolean;
-	self->setString = Preferences_setString;
-	self->setData = Preferences_setData;
-	self->load = Preferences_load;
-	self->save = Preferences_save;
-	self->loadDefaultValues = Preferences_loadDefaultValues;
-	self->loadDefaultValue = Preferences_loadDefaultValue;
 	return true;
 }
 
@@ -249,7 +230,7 @@ void Preferences_setInteger(Preferences * self, const char * name, int value) {
 	event.name = name;
 	event.type = PREFERENCES_TYPE_INTEGER;
 	event.value.integer = value;
-	event.previousValue.integer = self->getInteger(self, name);
+	event.previousValue.integer = Preferences_getInteger(self, name);
 	EventDispatcher_dispatchEvent(self->eventDispatcher, Atom_fromString(PREFERENCES_EVENT_VALUE_CHANGED), &event);
 	
 	Preferences_setIntegerPrivate(self, name, event.value.integer);
@@ -261,7 +242,7 @@ void Preferences_setFloat(Preferences * self, const char * name, float value) {
 	event.name = name;
 	event.type = PREFERENCES_TYPE_FLOAT;
 	event.value.number = value;
-	event.previousValue.number = self->getFloat(self, name);
+	event.previousValue.number = Preferences_getFloat(self, name);
 	EventDispatcher_dispatchEvent(self->eventDispatcher, Atom_fromString(PREFERENCES_EVENT_VALUE_CHANGED), &event);
 	
 	Preferences_setFloatPrivate(self, name, event.value.number);
@@ -273,7 +254,7 @@ void Preferences_setBoolean(Preferences * self, const char * name, bool value) {
 	event.name = name;
 	event.type = PREFERENCES_TYPE_BOOLEAN;
 	event.value.boolean = value;
-	event.previousValue.boolean = self->getBoolean(self, name);
+	event.previousValue.boolean = Preferences_getBoolean(self, name);
 	EventDispatcher_dispatchEvent(self->eventDispatcher, Atom_fromString(PREFERENCES_EVENT_VALUE_CHANGED), &event);
 	
 	Preferences_setBooleanPrivate(self, name, event.value.boolean);
@@ -285,7 +266,7 @@ void Preferences_setString(Preferences * self, const char * name, const char * v
 	event.name = name;
 	event.type = PREFERENCES_TYPE_STRING;
 	event.value.string = value;
-	event.previousValue.string = self->getString(self, name);
+	event.previousValue.string = Preferences_getString(self, name);
 	EventDispatcher_dispatchEvent(self->eventDispatcher, Atom_fromString(PREFERENCES_EVENT_VALUE_CHANGED), &event);
 	
 	Preferences_setStringPrivate(self, name, event.value.string);
@@ -298,7 +279,7 @@ void Preferences_setData(Preferences * self, const char * name, const void * val
 	event.type = PREFERENCES_TYPE_DATA;
 	event.value.data.bytes = value;
 	event.value.data.length = length;
-	event.previousValue.data.bytes = self->getData(self, name, &event.previousValue.data.length);
+	event.previousValue.data.bytes = Preferences_getData(self, name, &event.previousValue.data.length);
 	EventDispatcher_dispatchEvent(self->eventDispatcher, Atom_fromString(PREFERENCES_EVENT_VALUE_CHANGED), &event);
 	
 	Preferences_setDataPrivate(self, name, event.value.data.bytes, event.value.data.length);
@@ -316,7 +297,7 @@ void Preferences_loadDefaultValues(Preferences * self) {
 	size_t valueIndex;
 	
 	for (valueIndex = 0; valueIndex < self->valueCount; valueIndex++) {
-		self->loadDefaultValue(self, self->values[valueIndex].name);
+		Preferences_loadDefaultValue(self, self->values[valueIndex].name);
 	}
 }
 
