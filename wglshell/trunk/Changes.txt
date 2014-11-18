@@ -1,5 +1,6 @@
 2.0.1 (2014-11-17)
- * Respond to Alt-F4 and Ctrl-F4
+ * Shell now responds to Alt-F4 and Ctrl-F4
+ * Fixed a bug that caused the Shell_resizeFunc callback not to be called as frequently as it should have been during window resizing
 
 2.0.0 (2014-10-21)
  * Updated for shell 2.0.0 (adds multiple display support, scroll wheel events, registered callbacks for input events)

@@ -833,7 +833,7 @@ static LRESULT CALLBACK windowProc(HWND window, UINT message, WPARAM wParam, LPA
 			RECT rect;
 			
 			GetClientRect(window, &rect);
-			if ((int) (rect.right - rect.left) != lastWidth && (int) (rect.bottom - rect.top) != lastHeight) {
+			if ((int) (rect.right - rect.left) != lastWidth || (int) (rect.bottom - rect.top) != lastHeight) {
 				lastWidth = rect.right - rect.left;
 				lastHeight = rect.bottom - rect.top;
 				glViewport(0, 0, lastWidth, lastHeight);
