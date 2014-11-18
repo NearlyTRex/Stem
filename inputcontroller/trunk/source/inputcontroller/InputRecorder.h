@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2013 Alex Diener
+  Copyright (c) 2014 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -17,7 +17,7 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
   
-  Alex Diener adiener@sacredsoftware.net
+  Alex Diener alex@ludobloom.com
 */
 
 #ifndef __InputRecorder_H__
@@ -41,9 +41,7 @@ typedef struct InputRecorder InputRecorder;
 	unsigned int frameIndex; \
 	unsigned int lastFrameIndex; \
 	FILE * outputFile; \
-	struct memwriteContext memwriteContext; \
-	\
-	void (* nextFrame)(self_type * self);
+	struct memwriteContext memwriteContext;
 
 stemobject_struct_definition(InputRecorder)
 

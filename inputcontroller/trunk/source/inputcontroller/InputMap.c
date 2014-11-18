@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2013 Alex Diener
+  Copyright (c) 2014 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -17,7 +17,7 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
   
-  Alex Diener adiener@sacredsoftware.net
+  Alex Diener alex@ludobloom.com
 */
 
 #include "inputcontroller/InputMap.h"
@@ -31,18 +31,6 @@ InputMap * InputMap_create() {
 bool InputMap_init(InputMap * self) {
 	call_super(init, self);
 	self->dispose = InputMap_dispose;
-	self->isKeyBound = InputMap_isKeyBound;
-	self->bindKey = InputMap_bindKey;
-	self->unbindKey = InputMap_unbindKey;
-	self->isKeyModifierBound = InputMap_isKeyModifierBound;
-	self->bindKeyModifier = InputMap_bindKeyModifier;
-	self->unbindKeyModifier = InputMap_unbindKeyModifier;
-	self->isButtonBound = InputMap_isButtonBound;
-	self->bindButton = InputMap_bindButton;
-	self->unbindButton = InputMap_unbindButton;
-	self->isAxisBound = InputMap_isAxisBound;
-	self->bindAxis = InputMap_bindAxis;
-	self->unbindAxis = InputMap_unbindAxis;
 	
 	self->keyboardBindingCount = 0;
 	self->keyboardBindings = NULL;

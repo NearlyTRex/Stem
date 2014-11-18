@@ -18,14 +18,7 @@ static void verifyInit(InputController * inputController, InputMap * inputMap, u
 	}
 	va_end(args);
 	TestCase_assert(inputController->actionCount == actionCount, "Expected %u but got %u (%u)", actionCount, inputController->actionCount, lineNumber);
-	
 	TestCase_assert(inputController->dispose == InputController_dispose, "Expected %p but got %p (%u)", InputController_dispose, inputController->dispose, lineNumber);
-	TestCase_assert(inputController->keyDown == InputController_keyDown, "Expected %p but got %p (%u)", InputController_keyDown, inputController->keyDown, lineNumber);
-	TestCase_assert(inputController->keyUp == InputController_keyUp, "Expected %p but got %p (%u)", InputController_keyUp, inputController->keyUp, lineNumber);
-	TestCase_assert(inputController->keyModifiersChanged == InputController_keyModifiersChanged, "Expected %p but got %p (%u)", InputController_keyModifiersChanged, inputController->keyModifiersChanged, lineNumber);
-	TestCase_assert(inputController->gamepadButtonDown == InputController_gamepadButtonDown, "Expected %p but got %p (%u)", InputController_gamepadButtonDown, inputController->gamepadButtonDown, lineNumber);
-	TestCase_assert(inputController->gamepadButtonUp == InputController_gamepadButtonUp, "Expected %p but got %p (%u)", InputController_gamepadButtonUp, inputController->gamepadButtonUp, lineNumber);
-	TestCase_assert(inputController->gamepadAxisMoved == InputController_gamepadAxisMoved, "Expected %p but got %p (%u)", InputController_gamepadAxisMoved, inputController->gamepadAxisMoved, lineNumber);
 	TestCase_assert(inputController->triggerAction == InputController_triggerAction, "Expected %p but got %p (%u)", InputController_triggerAction, inputController->triggerAction, lineNumber);
 	TestCase_assert(inputController->releaseAction == InputController_releaseAction, "Expected %p but got %p (%u)", InputController_releaseAction, inputController->releaseAction, lineNumber);
 }
@@ -37,18 +30,18 @@ static void testInit() {
 	memset(&inputController, 0x00, sizeof(InputController));
 	InputController_init(&inputController, NULL, NULL);
 	verifyInit(&inputController, NULL, __LINE__, NULL);
-	inputController.dispose(&inputController);
+	InputController_dispose(&inputController);
 	
 	inputMap = InputMap_create();
 	memset(&inputController, 0xFF, sizeof(InputController));
 	InputController_init(&inputController, inputMap, "a", NULL);
 	verifyInit(&inputController, inputMap, __LINE__, "a", NULL);
-	inputController.dispose(&inputController);
+	InputController_dispose(&inputController);
 	
 	inputControllerPtr = InputController_create(inputMap, "b", "c", NULL);
 	verifyInit(inputControllerPtr, inputMap, __LINE__, "b", "c", NULL);
 	inputControllerPtr->dispose(inputControllerPtr);
-	inputMap->dispose(inputMap);
+	InputMap_dispose(inputMap);
 }
 
 static unsigned int actionDownCallCount;
@@ -95,7 +88,7 @@ static void testActionTriggers() {
 	TestCase_assert(actionDownCallCount == 3, "Expected 3 but got %u", actionDownCallCount);
 	TestCase_assert(lastActionID == ATOM("b"), "Expected \"b\" (%p) but got \"%s\" (%p)", ATOM("b"), lastActionID, lastActionID);
 	
-	inputController->dispose(inputController);
+	InputController_dispose(inputController);
 }
 
 static void testKeyboardBindings() {
@@ -107,31 +100,31 @@ static void testKeyboardBindings() {
 	inputController = InputController_create(inputMap, "a", "b", NULL);
 	EventDispatcher_registerForEvent(inputController->eventDispatcher, ATOM(INPUT_CONTROLLER_EVENT_ACTION_DOWN), actionDown, NULL);
 	EventDispatcher_registerForEvent(inputController->eventDispatcher, ATOM(INPUT_CONTROLLER_EVENT_ACTION_UP), actionUp, NULL);
-	inputMap->bindKey(inputMap, ATOM("a"), 1, 0);
-	inputMap->bindKey(inputMap, ATOM("b"), 2, 0);
+	InputMap_bindKey(inputMap, ATOM("a"), 1, 0);
+	InputMap_bindKey(inputMap, ATOM("b"), 2, 0);
 	
 	lastActionID = NULL;
-	inputController->keyDown(inputController, 1);
+	InputController_keyDown(inputController, 1);
 	TestCase_assert(actionDownCallCount == 1, "Expected 1 but got %u", actionDownCallCount);
 	TestCase_assert(lastActionID == ATOM("a"), "Expected \"a\" (%p) but got \"%s\" (%p)", ATOM("a"), lastActionID, lastActionID);
-	inputController->keyDown(inputController, 1);
+	InputController_keyDown(inputController, 1);
 	TestCase_assert(actionDownCallCount == 1, "Expected 1 but got %u", actionDownCallCount);
 	lastActionID = NULL;
-	inputController->keyUp(inputController, 1);
+	InputController_keyUp(inputController, 1);
 	TestCase_assert(actionUpCallCount == 1, "Expected 1 but got %u", actionUpCallCount);
 	TestCase_assert(lastActionID == ATOM("a"), "Expected \"a\" (%p) but got \"%s\" (%p)", ATOM("a"), lastActionID, lastActionID);
 	lastActionID = NULL;
-	inputController->keyDown(inputController, 1);
+	InputController_keyDown(inputController, 1);
 	TestCase_assert(actionDownCallCount == 2, "Expected 2 but got %u", actionDownCallCount);
 	TestCase_assert(lastActionID == ATOM("a"), "Expected \"a\" (%p) but got \"%s\" (%p)", ATOM("a"), lastActionID, lastActionID);
 	
 	lastActionID = NULL;
-	inputController->keyDown(inputController, 2);
+	InputController_keyDown(inputController, 2);
 	TestCase_assert(actionDownCallCount == 3, "Expected 3 but got %u", actionDownCallCount);
 	TestCase_assert(lastActionID == ATOM("b"), "Expected \"b\" (%p) but got \"%s\" (%p)", ATOM("b"), lastActionID, lastActionID);
 	
-	inputController->dispose(inputController);
-	inputMap->dispose(inputMap);
+	InputController_dispose(inputController);
+	InputMap_dispose(inputMap);
 }
 
 static void testKeyModifierBindings() {
@@ -143,31 +136,31 @@ static void testKeyModifierBindings() {
 	inputController = InputController_create(inputMap, "a", "b", NULL);
 	EventDispatcher_registerForEvent(inputController->eventDispatcher, ATOM(INPUT_CONTROLLER_EVENT_ACTION_DOWN), actionDown, NULL);
 	EventDispatcher_registerForEvent(inputController->eventDispatcher, ATOM(INPUT_CONTROLLER_EVENT_ACTION_UP), actionUp, NULL);
-	inputMap->bindKeyModifier(inputMap, ATOM("a"), 0x1);
-	inputMap->bindKeyModifier(inputMap, ATOM("b"), 0x2);
+	InputMap_bindKeyModifier(inputMap, ATOM("a"), 0x1);
+	InputMap_bindKeyModifier(inputMap, ATOM("b"), 0x2);
 	
 	lastActionID = NULL;
-	inputController->keyModifiersChanged(inputController, 0x1);
+	InputController_keyModifiersChanged(inputController, 0x1);
 	TestCase_assert(actionDownCallCount == 1, "Expected 1 but got %u", actionDownCallCount);
 	TestCase_assert(lastActionID == ATOM("a"), "Expected \"a\" (%p) but got \"%s\" (%p)", ATOM("a"), lastActionID, lastActionID);
-	inputController->keyModifiersChanged(inputController, 0x5);
+	InputController_keyModifiersChanged(inputController, 0x5);
 	TestCase_assert(actionDownCallCount == 1, "Expected 1 but got %u", actionDownCallCount);
 	lastActionID = NULL;
-	inputController->keyModifiersChanged(inputController, 0x4);
+	InputController_keyModifiersChanged(inputController, 0x4);
 	TestCase_assert(actionUpCallCount == 1, "Expected 1 but got %u", actionUpCallCount);
 	TestCase_assert(lastActionID == ATOM("a"), "Expected \"a\" (%p) but got \"%s\" (%p)", ATOM("a"), lastActionID, lastActionID);
 	lastActionID = NULL;
-	inputController->keyModifiersChanged(inputController, 0x1);
+	InputController_keyModifiersChanged(inputController, 0x1);
 	TestCase_assert(actionDownCallCount == 2, "Expected 2 but got %u", actionDownCallCount);
 	TestCase_assert(lastActionID == ATOM("a"), "Expected \"a\" (%p) but got \"%s\" (%p)", ATOM("a"), lastActionID, lastActionID);
 	
 	lastActionID = NULL;
-	inputController->keyModifiersChanged(inputController, 0x3);
+	InputController_keyModifiersChanged(inputController, 0x3);
 	TestCase_assert(actionDownCallCount == 3, "Expected 3 but got %u", actionDownCallCount);
 	TestCase_assert(lastActionID == ATOM("b"), "Expected \"b\" (%p) but got \"%s\" (%p)", ATOM("b"), lastActionID, lastActionID);
 	
-	inputController->dispose(inputController);
-	inputMap->dispose(inputMap);
+	InputController_dispose(inputController);
+	InputMap_dispose(inputMap);
 }
 
 static void testButtonBindings() {
@@ -179,41 +172,41 @@ static void testButtonBindings() {
 	inputController = InputController_create(inputMap, "a", "b", "c", "d", NULL);
 	EventDispatcher_registerForEvent(inputController->eventDispatcher, ATOM(INPUT_CONTROLLER_EVENT_ACTION_DOWN), actionDown, NULL);
 	EventDispatcher_registerForEvent(inputController->eventDispatcher, ATOM(INPUT_CONTROLLER_EVENT_ACTION_UP), actionUp, NULL);
-	inputMap->bindButton(inputMap, ATOM("a"), 1, 2, 3);
-	inputMap->bindButton(inputMap, ATOM("b"), 4, 2, 3);
-	inputMap->bindButton(inputMap, ATOM("c"), 1, 5, 3);
-	inputMap->bindButton(inputMap, ATOM("d"), 1, 2, 6);
+	InputMap_bindButton(inputMap, ATOM("a"), 1, 2, 3);
+	InputMap_bindButton(inputMap, ATOM("b"), 4, 2, 3);
+	InputMap_bindButton(inputMap, ATOM("c"), 1, 5, 3);
+	InputMap_bindButton(inputMap, ATOM("d"), 1, 2, 6);
 	
 	lastActionID = NULL;
-	inputController->gamepadButtonDown(inputController, 1, 2, 3);
+	InputController_gamepadButtonDown(inputController, 1, 2, 3);
 	TestCase_assert(actionDownCallCount == 1, "Expected 1 but got %u", actionDownCallCount);
 	TestCase_assert(lastActionID == ATOM("a"), "Expected \"a\" (%p) but got \"%s\" (%p)", ATOM("a"), lastActionID, lastActionID);
-	inputController->gamepadButtonDown(inputController, 1, 2, 3);
+	InputController_gamepadButtonDown(inputController, 1, 2, 3);
 	TestCase_assert(actionDownCallCount == 1, "Expected 1 but got %u", actionDownCallCount);
 	lastActionID = NULL;
-	inputController->gamepadButtonUp(inputController, 1, 2, 3);
+	InputController_gamepadButtonUp(inputController, 1, 2, 3);
 	TestCase_assert(actionUpCallCount == 1, "Expected 1 but got %u", actionUpCallCount);
 	TestCase_assert(lastActionID == ATOM("a"), "Expected \"a\" (%p) but got \"%s\" (%p)", ATOM("a"), lastActionID, lastActionID);
 	lastActionID = NULL;
-	inputController->gamepadButtonDown(inputController, 1, 2, 3);
+	InputController_gamepadButtonDown(inputController, 1, 2, 3);
 	TestCase_assert(actionDownCallCount == 2, "Expected 2 but got %u", actionDownCallCount);
 	TestCase_assert(lastActionID == ATOM("a"), "Expected \"a\" (%p) but got \"%s\" (%p)", ATOM("a"), lastActionID, lastActionID);
 	
 	lastActionID = NULL;
-	inputController->gamepadButtonDown(inputController, 4, 2, 3);
+	InputController_gamepadButtonDown(inputController, 4, 2, 3);
 	TestCase_assert(actionDownCallCount == 3, "Expected 3 but got %u", actionDownCallCount);
 	TestCase_assert(lastActionID == ATOM("b"), "Expected \"b\" (%p) but got \"%s\" (%p)", ATOM("b"), lastActionID, lastActionID);
 	lastActionID = NULL;
-	inputController->gamepadButtonDown(inputController, 1, 5, 3);
+	InputController_gamepadButtonDown(inputController, 1, 5, 3);
 	TestCase_assert(actionDownCallCount == 4, "Expected 4 but got %u", actionDownCallCount);
 	TestCase_assert(lastActionID == ATOM("c"), "Expected \"b\" (%p) but got \"%s\" (%p)", ATOM("b"), lastActionID, lastActionID);
 	lastActionID = NULL;
-	inputController->gamepadButtonDown(inputController, 1, 2, 6);
+	InputController_gamepadButtonDown(inputController, 1, 2, 6);
 	TestCase_assert(actionDownCallCount == 5, "Expected 5 but got %u", actionDownCallCount);
 	TestCase_assert(lastActionID == ATOM("d"), "Expected \"b\" (%p) but got \"%s\" (%p)", ATOM("b"), lastActionID, lastActionID);
 	
-	inputController->dispose(inputController);
-	inputMap->dispose(inputMap);
+	InputController_dispose(inputController);
+	InputMap_dispose(inputMap);
 }
 
 static void testAxisBindings() {
@@ -225,64 +218,64 @@ static void testAxisBindings() {
 	inputController = InputController_create(inputMap, "a", "b", "c", "d", "e", NULL);
 	EventDispatcher_registerForEvent(inputController->eventDispatcher, ATOM(INPUT_CONTROLLER_EVENT_ACTION_DOWN), actionDown, NULL);
 	EventDispatcher_registerForEvent(inputController->eventDispatcher, ATOM(INPUT_CONTROLLER_EVENT_ACTION_UP), actionUp, NULL);
-	inputMap->bindAxis(inputMap, ATOM("a"), 1, 2, 3, 0.75f, 0.25f);
-	inputMap->bindAxis(inputMap, ATOM("b"), 4, 2, 3, 0.75f, 0.25f);
-	inputMap->bindAxis(inputMap, ATOM("c"), 1, 5, 3, 0.75f, 0.25f);
-	inputMap->bindAxis(inputMap, ATOM("d"), 1, 2, 6, 0.75f, 0.25f);
-	inputMap->bindAxis(inputMap, ATOM("e"), 1, 2, 3, -0.75f, -0.25f);
+	InputMap_bindAxis(inputMap, ATOM("a"), 1, 2, 3, 0.75f, 0.25f);
+	InputMap_bindAxis(inputMap, ATOM("b"), 4, 2, 3, 0.75f, 0.25f);
+	InputMap_bindAxis(inputMap, ATOM("c"), 1, 5, 3, 0.75f, 0.25f);
+	InputMap_bindAxis(inputMap, ATOM("d"), 1, 2, 6, 0.75f, 0.25f);
+	InputMap_bindAxis(inputMap, ATOM("e"), 1, 2, 3, -0.75f, -0.25f);
 	
 	lastActionID = NULL;
-	inputController->gamepadAxisMoved(inputController, 1, 2, 3, 1.0f, 0.0f);
+	InputController_gamepadAxisMoved(inputController, 1, 2, 3, 1.0f, 0.0f);
 	TestCase_assert(actionDownCallCount == 1, "Expected 1 but got %u", actionDownCallCount);
 	TestCase_assert(lastActionID == ATOM("a"), "Expected \"a\" (%p) but got \"%s\" (%p)", ATOM("a"), lastActionID, lastActionID);
-	inputController->gamepadAxisMoved(inputController, 1, 2, 3, 1.0f, 0.0f);
+	InputController_gamepadAxisMoved(inputController, 1, 2, 3, 1.0f, 0.0f);
 	TestCase_assert(actionDownCallCount == 1, "Expected 1 but got %u", actionDownCallCount);
 	lastActionID = NULL;
-	inputController->gamepadAxisMoved(inputController, 1, 2, 3, 0.0f, 1.0f);
+	InputController_gamepadAxisMoved(inputController, 1, 2, 3, 0.0f, 1.0f);
 	TestCase_assert(actionUpCallCount == 1, "Expected 1 but got %u", actionUpCallCount);
 	TestCase_assert(lastActionID == ATOM("a"), "Expected \"a\" (%p) but got \"%s\" (%p)", ATOM("a"), lastActionID, lastActionID);
 	lastActionID = NULL;
-	inputController->gamepadAxisMoved(inputController, 1, 2, 3, 1.0f, 0.0f);
+	InputController_gamepadAxisMoved(inputController, 1, 2, 3, 1.0f, 0.0f);
 	TestCase_assert(actionDownCallCount == 2, "Expected 2 but got %u", actionDownCallCount);
 	TestCase_assert(lastActionID == ATOM("a"), "Expected \"a\" (%p) but got \"%s\" (%p)", ATOM("a"), lastActionID, lastActionID);
 	
 	lastActionID = NULL;
-	inputController->gamepadAxisMoved(inputController, 4, 2, 3, 1.0f, 0.0f);
+	InputController_gamepadAxisMoved(inputController, 4, 2, 3, 1.0f, 0.0f);
 	TestCase_assert(actionDownCallCount == 3, "Expected 3 but got %u", actionDownCallCount);
 	TestCase_assert(lastActionID == ATOM("b"), "Expected \"b\" (%p) but got \"%s\" (%p)", ATOM("b"), lastActionID, lastActionID);
 	lastActionID = NULL;
-	inputController->gamepadAxisMoved(inputController, 1, 5, 3, 1.0f, 0.0f);
+	InputController_gamepadAxisMoved(inputController, 1, 5, 3, 1.0f, 0.0f);
 	TestCase_assert(actionDownCallCount == 4, "Expected 4 but got %u", actionDownCallCount);
 	TestCase_assert(lastActionID == ATOM("c"), "Expected \"b\" (%p) but got \"%s\" (%p)", ATOM("b"), lastActionID, lastActionID);
 	lastActionID = NULL;
-	inputController->gamepadAxisMoved(inputController, 1, 2, 6, 1.0f, 0.0f);
+	InputController_gamepadAxisMoved(inputController, 1, 2, 6, 1.0f, 0.0f);
 	TestCase_assert(actionDownCallCount == 5, "Expected 5 but got %u", actionDownCallCount);
 	TestCase_assert(lastActionID == ATOM("d"), "Expected \"b\" (%p) but got \"%s\" (%p)", ATOM("b"), lastActionID, lastActionID);
 	lastActionID = NULL;
-	inputController->gamepadAxisMoved(inputController, 1, 2, 3, -1.0f, 0.0f);
+	InputController_gamepadAxisMoved(inputController, 1, 2, 3, -1.0f, 0.0f);
 	TestCase_assert(actionDownCallCount == 6, "Expected 6 but got %u", actionDownCallCount);
 	TestCase_assert(lastActionID == ATOM("e"), "Expected \"e\" (%p) but got \"%s\" (%p)", ATOM("b"), lastActionID, lastActionID);
 	
-	inputController->gamepadAxisMoved(inputController, 1, 2, 3, 0.0f, 1.0f);
+	InputController_gamepadAxisMoved(inputController, 1, 2, 3, 0.0f, 1.0f);
 	TestCase_assert(actionUpCallCount == 2, "Expected 2 but got %u", actionUpCallCount);
-	inputMap->bindAxis(inputMap, ATOM("a"), 1, 2, 3, 1.0f, 0.0f);
+	InputMap_bindAxis(inputMap, ATOM("a"), 1, 2, 3, 1.0f, 0.0f);
 	
-	inputController->gamepadAxisMoved(inputController, 1, 2, 3, 0.875f, 0.0f);
+	InputController_gamepadAxisMoved(inputController, 1, 2, 3, 0.875f, 0.0f);
 	TestCase_assert(actionDownCallCount == 6, "Expected 6 but got %u", actionDownCallCount);
 	lastActionID = NULL;
-	inputController->gamepadAxisMoved(inputController, 1, 2, 3, 1.0f, 0.875f);
+	InputController_gamepadAxisMoved(inputController, 1, 2, 3, 1.0f, 0.875f);
 	TestCase_assert(actionDownCallCount == 7, "Expected 7 but got %u", actionDownCallCount);
 	TestCase_assert(lastActionID == ATOM("a"), "Expected \"a\" (%p) but got \"%s\" (%p)", ATOM("a"), lastActionID, lastActionID);
 	lastActionID = NULL;
-	inputController->gamepadAxisMoved(inputController, 1, 2, 3, 0.125f, 1.0f);
+	InputController_gamepadAxisMoved(inputController, 1, 2, 3, 0.125f, 1.0f);
 	TestCase_assert(actionUpCallCount == 2, "Expected 2 but got %u", actionUpCallCount);
 	lastActionID = NULL;
-	inputController->gamepadAxisMoved(inputController, 1, 2, 3, -0.125f, 0.125f);
+	InputController_gamepadAxisMoved(inputController, 1, 2, 3, -0.125f, 0.125f);
 	TestCase_assert(actionUpCallCount == 3, "Expected 3 but got %u", actionUpCallCount);
 	TestCase_assert(lastActionID == ATOM("a"), "Expected \"a\" (%p) but got \"%s\" (%p)", ATOM("a"), lastActionID, lastActionID);
 	
-	inputController->dispose(inputController);
-	inputMap->dispose(inputMap);
+	InputController_dispose(inputController);
+	InputMap_dispose(inputMap);
 }
 
 TEST_SUITE(InputControllerTest,

@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2013 Alex Diener
+  Copyright (c) 2014 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -17,7 +17,7 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
   
-  Alex Diener adiener@sacredsoftware.net
+  Alex Diener alex@ludobloom.com
 */
 
 #ifndef __InputPlayback_H__
@@ -45,10 +45,7 @@ typedef struct InputPlayback InputPlayback;
 	unsigned int frameIndex; \
 	unsigned int lastFrameIndex; \
 	unsigned int eventIndex; \
-	bool * actionsTriggered; \
-	\
-	void (* step)(self_type * self); \
-	void (* rewind)(self_type * self);
+	bool * actionsTriggered;
 
 stemobject_struct_definition(InputPlayback)
 

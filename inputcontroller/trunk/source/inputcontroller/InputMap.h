@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2013 Alex Diener
+  Copyright (c) 2014 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -17,7 +17,7 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
   
-  Alex Diener adiener@sacredsoftware.net
+  Alex Diener alex@ludobloom.com
 */
 
 #ifndef __InputMap_H__
@@ -76,20 +76,7 @@ struct InputMap_gamepadMap {
 	unsigned int keyModifierBindingCount; \
 	struct InputMap_keyModifierBinding * keyModifierBindings; \
 	unsigned int gamepadMapCount; \
-	struct InputMap_gamepadMap * gamepadMaps; \
-	\
-	bool (* isKeyBound)(self_type * self, Atom actionID, unsigned int keyCode); \
-	void (* bindKey)(self_type * self, Atom actionID, unsigned int keyCode, unsigned int charCode); \
-	void (* unbindKey)(self_type * self, Atom actionID, unsigned int keyCode); \
-	bool (* isKeyModifierBound)(self_type * self, Atom actionID, int modifierBit); \
-	void (* bindKeyModifier)(self_type * self, Atom actionID, int modifierBit); \
-	void (* unbindKeyModifier)(self_type * self, Atom actionID, int modifierBit); \
-	bool (* isButtonBound)(self_type * self, Atom actionID, int vendorID, int productID, unsigned int buttonID); \
-	void (* bindButton)(self_type * self, Atom actionID, int vendorID, int productID, unsigned int buttonID); \
-	void (* unbindButton)(self_type * self, Atom actionID, int vendorID, int productID, unsigned int buttonID); \
-	bool (* isAxisBound)(self_type * self, Atom actionID, int vendorID, int productID, unsigned int axisID); \
-	void (* bindAxis)(self_type * self, Atom actionID, int vendorID, int productID, unsigned int axisID, float triggerThreshold, float releaseThreshold); \
-	void (* unbindAxis)(self_type * self, Atom actionID, int vendorID, int productID, unsigned int axisID);
+	struct InputMap_gamepadMap * gamepadMaps;
 
 stemobject_struct_definition(InputMap)
 

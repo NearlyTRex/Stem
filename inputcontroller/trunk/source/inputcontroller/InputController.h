@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2013 Alex Diener
+  Copyright (c) 2014 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -17,7 +17,7 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
   
-  Alex Diener adiener@sacredsoftware.net
+  Alex Diener alex@ludobloom.com
 */
 
 #ifndef __InputController_H__
@@ -50,16 +50,8 @@ struct InputController_action {
 	unsigned int lastModifiers; \
 	unsigned int actionCount; \
 	struct InputController_action * actions; \
-	\
-	bool (* keyDown)(self_type * self, unsigned int keyCode); \
-	bool (* keyUp)(self_type * self, unsigned int keyCode); \
-	bool (* keyModifiersChanged)(self_type * self, unsigned int modifiers); \
-	bool (* gamepadButtonDown)(self_type * self, int vendorID, int productID, unsigned int buttonID); \
-	bool (* gamepadButtonUp)(self_type * self, int vendorID, int productID, unsigned int buttonID); \
-	bool (* gamepadAxisMoved)(self_type * self, int vendorID, int productID, unsigned int axisID, float value, float lastValue); \
 	bool (* triggerAction)(self_type * self, Atom actionID); \
-	bool (* releaseAction)(self_type * self, Atom actionID); \
-	void (* reset)(self_type * self);
+	bool (* releaseAction)(self_type * self, Atom actionID);
 
 stemobject_struct_definition(InputController)
 

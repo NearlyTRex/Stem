@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2013 Alex Diener
+  Copyright (c) 2014 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -17,7 +17,7 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
   
-  Alex Diener adiener@sacredsoftware.net
+  Alex Diener alex@ludobloom.com
 */
 
 #include "inputcontroller/InputController.h"
@@ -55,15 +55,8 @@ bool InputController_vinit(InputController * self, InputMap * inputMap, va_list 
 	
 	call_super(init, self);
 	self->dispose = InputController_dispose;
-	self->keyDown = InputController_keyDown;
-	self->keyUp = InputController_keyUp;
-	self->keyModifiersChanged = InputController_keyModifiersChanged;
-	self->gamepadButtonDown = InputController_gamepadButtonDown;
-	self->gamepadButtonUp = InputController_gamepadButtonUp;
-	self->gamepadAxisMoved = InputController_gamepadAxisMoved;
 	self->triggerAction = InputController_triggerAction;
 	self->releaseAction = InputController_releaseAction;
-	self->reset = InputController_reset;
 	
 	self->eventDispatcher = EventDispatcher_create();
 	self->inputMap = inputMap;
