@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2013 Alex Diener
+  Copyright (c) 2014 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -17,12 +17,13 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
   
-  Alex Diener adiener@sacredsoftware.net
+  Alex Diener alex@ludobloom.com
 */
 
 #ifndef __IO_UTILITIES_H__
 #define __IO_UTILITIES_H__
 
+#include <stdarg.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -57,6 +58,10 @@ void * readStdinSimple(size_t * outLength);
 
 // fileNameTemplate is a mkstemp template. Return value is added to AutoFreePool, so it needn't be freed directly by the caller.
 const char * temporaryFilePath(const char * fileNameTemplate, int * outFD);
+
+// Guarantees null termination on all platforms (stdlib *snprintf doesn't terminate on Windows if it truncates)
+int snprintf_safe(char * restrict str, size_t size, const char * restrict format, ...);
+int vsnprintf_safe(char * restrict str, size_t size, const char * restrict format, va_list ap);
 
 static inline uint16_t swapLittleEndian16(uint16_t value) {
 	unsigned char * valueBytes = (unsigned char *) &value;

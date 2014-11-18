@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2013 Alex Diener
+  Copyright (c) 2014 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -17,7 +17,7 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
   
-  Alex Diener adiener@sacredsoftware.net
+  Alex Diener alex@ludobloom.com
 */
 
 #include "utilities/FixedIntervalRunLoop.h"
@@ -39,12 +39,9 @@ bool FixedIntervalRunLoop_init(FixedIntervalRunLoop * self, double (* timeFuncti
 	self->stepContext = stepContext;
 	self->lastTime = self->timeFunction();
 	self->slop = 0.0;
+	self->tolerance = 0.0;
 	self->paused = false;
-	
 	self->dispose = FixedIntervalRunLoop_dispose;
-	self->run = FixedIntervalRunLoop_run;
-	self->pause = FixedIntervalRunLoop_pause;
-	self->resume = FixedIntervalRunLoop_resume;
 	return true;
 }
 
@@ -52,23 +49,35 @@ void FixedIntervalRunLoop_dispose(FixedIntervalRunLoop * self) {
 	call_super(dispose, self);
 }
 
-void FixedIntervalRunLoop_run(FixedIntervalRunLoop * self) {
+unsigned int FixedIntervalRunLoop_run(FixedIntervalRunLoop * self) {
 	double currentTime, interval;
+	unsigned int calls = 0;
 	
 	if (self->paused) {
-		return;
+		return 0;
 	}
 	currentTime = self->timeFunction();
 	interval = (currentTime - self->lastTime) + self->slop;
 	
 	while (interval >= self->stepInterval) {
+		if (calls == 1 && interval <= self->stepInterval + self->tolerance) {
+			break;
+		}
 		self->stepCallback(self->stepContext);
+		calls++;
+		interval -= self->stepInterval;
+	}
+	if (calls == 0 && interval >= self->stepInterval - self->tolerance) {
+		self->stepCallback(self->stepContext);
+		calls++;
 		interval -= self->stepInterval;
 	}
 	self->slop = interval;
 	self->lastTime = currentTime;
 	
 	AutoFreePool_empty();
+	
+	return calls;
 }
 
 void FixedIntervalRunLoop_pause(FixedIntervalRunLoop * self) {
@@ -83,4 +92,8 @@ void FixedIntervalRunLoop_resume(FixedIntervalRunLoop * self) {
 		self->paused = false;
 		self->lastTime += self->timeFunction() - self->pauseTime;
 	}
+}
+
+void FixedIntervalRunLoop_setTolerance(FixedIntervalRunLoop * self, double tolerance) {
+	self->tolerance = tolerance;
 }

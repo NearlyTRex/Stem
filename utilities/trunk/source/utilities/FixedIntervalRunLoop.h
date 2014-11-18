@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2013 Alex Diener
+  Copyright (c) 2014 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -17,7 +17,7 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
   
-  Alex Diener adiener@sacredsoftware.net
+  Alex Diener alex@ludobloom.com
 */
 
 #ifndef __FIXED_INTERVAL_RUN_LOOP_H__
@@ -37,22 +37,32 @@ typedef void (* FixedIntervalRunLoopCallback)(void * context);
 	void * stepContext; \
 	double lastTime; \
 	double slop; \
+	double tolerance; \
 	bool paused; \
-	double pauseTime; \
-	\
-	void (* run)(self_type * self); \
-	void (* pause)(self_type * self); \
-	void (* resume)(self_type * self);
+	double pauseTime;
 
 stemobject_struct_definition(FixedIntervalRunLoop)
 
 // timeFunction is a pointer to a function that will return the current time in seconds when called
 FixedIntervalRunLoop * FixedIntervalRunLoop_create(double (* timeFunction)(), double stepInterval, FixedIntervalRunLoopCallback stepCallback, void * stepContext);
 bool FixedIntervalRunLoop_init(FixedIntervalRunLoop * self, double (* timeFunction)(), double stepInterval, FixedIntervalRunLoopCallback stepCallback, void * stepContext);
-
 void FixedIntervalRunLoop_dispose(FixedIntervalRunLoop * self);
-void FixedIntervalRunLoop_run(FixedIntervalRunLoop * self);
+
+// Invokes stepCallback zero or more times based on the time interval since the last call, as measured by timeFunction. Returns the number of times stepCallback was invoked.
+// Calls AutoFreePool_empty() before returning.
+unsigned int FixedIntervalRunLoop_run(FixedIntervalRunLoop * self);
+
+// Suspends time measurement for the run loop. Calls to FixedIntervalRunLoop_run while paused will behave as if time is not advancing.
+// Calling this function while the run loop is paused has no effect.
 void FixedIntervalRunLoop_pause(FixedIntervalRunLoop * self);
+
+// Resumes time measurement for the run loop. Subsequent calls to FixedIntervalRunLoop_run will behave as though no actual time passed while the run loop was paused.
+// Calling this function while the run loop is not paused has no effect.
 void FixedIntervalRunLoop_resume(FixedIntervalRunLoop * self);
+
+// Sets a finite amount of time deviation allowed between stepCallback invocations, used to relieve temporal aliasing. Defaults to 0.
+// If set, FixedIntervalRunLoop_run will deviate by up to the specified amount of time in either direction in an attempt to invoke stepCallback exactly once per call.
+// It is recommended to set tolerance to a value less than half of the run loop's stepInterval. Behavior is undefined for negative values.
+void FixedIntervalRunLoop_setTolerance(FixedIntervalRunLoop * self, double tolerance);
 
 #endif

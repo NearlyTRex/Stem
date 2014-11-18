@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2013 Alex Diener
+  Copyright (c) 2014 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -17,11 +17,14 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
   
-  Alex Diener adiener@sacredsoftware.net
+  Alex Diener alex@ludobloom.com
 */
 
-#ifndef __EVENT_DISPATCHER_H__
-#define __EVENT_DISPATCHER_H__
+#ifndef __EventDispatcher_H__
+#define __EventDispatcher_H__
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include "stemobject/StemObject.h"
 #include "utilities/Atom.h"
@@ -31,41 +34,26 @@ typedef struct EventDispatcher EventDispatcher;
 
 /* Signature for event handler callbacks.
    
-   sender: Object that dispatched the event. More specifically, the object passed to EventDispatcher_create.
    eventID: Name of event that was triggered
    eventData: Arbitrary data passed by dispatcher. Its format is known by convention depending on the event ID being dispatched.
    context: Value passed as context to registerForEvent
    
    This function should return true if the event was handled, or false if it was ignored. */
-typedef bool (* EventDispatcherCallback)(void * sender, Atom eventID, void * eventData, void * context);
+typedef bool (* EventDispatcherCallback)(Atom eventID, void * eventData, void * context);
 
 struct EventTarget;
 
 #define EventDispatcher_structContents(self_type) \
 	StemObject_structContents(self_type) \
 	\
-	void * owner; \
-	\
 	size_t numberOfTargets; \
 	size_t targetListSize; \
-	struct EventTarget * targets; \
-	\
-	void (* registerForEvent)(self_type * self, Atom eventID, EventDispatcherCallback callback, void * context); \
-	void (* unregisterForEvent)(self_type * self, Atom eventID, EventDispatcherCallback callback, void * context); \
-	bool (* dispatchEvent)(self_type * self, Atom eventID, void * eventData);
+	struct EventTarget * targets;
 
 stemobject_struct_definition(EventDispatcher)
 
-/* Allocate and initialize a new EventDispatcher object. owner will be passed to event callbacks as
-   the sender parameter. */
-EventDispatcher * EventDispatcher_create(void * owner);
-
-/* Initialize an already allocated EventDispatcher. owner will be passed to event callbacks as the
-   sender parameter. */
-bool EventDispatcher_init(EventDispatcher * self, void * owner);
-
-/* Free all memory allocated by EventDispatcher (including self if allocated with
-   EventDispatcher_create()), and remove all registered listeners. */
+EventDispatcher * EventDispatcher_create();
+bool EventDispatcher_init(EventDispatcher * self);
 void EventDispatcher_dispose(EventDispatcher * self);
 
 /* Register for notification of events of type eventID */
@@ -78,4 +66,7 @@ void EventDispatcher_unregisterForEvent(EventDispatcher * self, Atom eventID, Ev
    registered and returns true from its handler callback. */
 bool EventDispatcher_dispatchEvent(EventDispatcher * self, Atom eventID, void * eventData);
 
+#ifdef __cplusplus
+}
+#endif
 #endif

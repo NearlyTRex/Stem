@@ -75,6 +75,7 @@ CCFLAGS_macosx += -isysroot ${SDKROOT_macosx} -mmacosx-version-min=${MACOSX_VERS
 LINKFLAGS_macosx += -isysroot ${SDKROOT_macosx} -mmacosx-version-min=${MACOSX_VERSION_MIN}
 
 SDKROOT_iphonesimulator ?= /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator7.1.sdk
+SDKROOT_iphonesimulator_unittest ?= ${SDKROOT_iphonesimulator}
 IPHONEOS_TARGET_MIN ?= 7.1
 CC_iphonesimulator_i386 ?= ${shell xcrun --sdk ${SDKROOT_iphonesimulator} --find cc} -arch i386
 AR_iphonesimulator ?= ${shell xcrun --sdk ${SDKROOT_iphonesimulator} --find ar}
@@ -82,8 +83,8 @@ RANLIB_iphonesimulator ?= ${shell xcrun --sdk ${SDKROOT_iphonesimulator} --find 
 SPLINT_iphonesimulator ?= /usr/local/bin/splint
 CLANG_iphonesimulator ?= ${shell xcrun --sdk ${SDKROOT_iphonesimulator} --find clang}
 ARCHS_iphonesimulator ?= i386
-CCFLAGS_iphonesimulator += -isysroot ${SDKROOT_iphonesimulator} -mios-simulator-version-min=${IPHONEOS_TARGET_MIN}
-LINKFLAGS_iphonesimulator += -isysroot ${SDKROOT_iphonesimulator} -mios-simulator-version-min=${IPHONEOS_TARGET_MIN}
+CCFLAGS_iphonesimulator += -isysroot ${SDKROOT_iphonesimulator} -mios-simulator-version-min=${IPHONEOS_TARGET_MIN} -fobjc-abi-version=2 -fobjc-legacy-dispatch
+LINKFLAGS_iphonesimulator += -isysroot ${SDKROOT_iphonesimulator} -mios-simulator-version-min=${IPHONEOS_TARGET_MIN} -Xlinker -objc_abi_version -Xlinker 2
 
 SDKROOT_iphoneos ?= /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS7.1.sdk
 CC_iphoneos_armv7 ?= ${shell xcrun --sdk ${SDKROOT_iphoneos} --find cc} -arch armv7
@@ -93,7 +94,7 @@ RANLIB_iphoneos ?= ${shell xcrun --sdk ${SDKROOT_iphoneos} --find ranlib}
 SPLINT_iphoneos ?= /usr/local/bin/splint
 CLANG_iphoneos ?= ${shell xcrun --sdk ${SDKROOT_iphoneos} --find clang}
 ARCHS_iphoneos ?= armv7 arm64
-CCFLAGS_iphoneos += -isysroot ${SDKROOT_iphoneos} -miphoneos-version-min=${IPHONEOS_TARGET_MIN}
+CCFLAGS_iphoneos += -isysroot ${SDKROOT_iphoneos} -miphoneos-version-min=${IPHONEOS_TARGET_MIN} -fobjc-abi-version=2 -fobjc-legacy-dispatch
 LINKFLAGS_iphoneos += -isysroot ${SDKROOT_iphoneos} -miphoneos-version-min=${IPHONEOS_TARGET_MIN} -Xlinker -objc_abi_version -Xlinker 2
 
 CC_linux32_i386 ?= /usr/bin/gcc
@@ -163,7 +164,7 @@ PROJECT_LIBRARY_DEPENDENCIES_testharness = library
 STEM_LIBRARY_DEPENDENCIES = \
 	stemobject/3.1.0
 STEM_LIBRARY_DEPENDENCIES_unittest = \
-	unittest/1.1.0
+	unittest/1.1.1
 STEM_LIBRARY_DEPENDENCIES_testharness = 
 STEM_SOURCE_DEPENDENCIES = 
 THIRDPARTY_LIBRARY_DEPENDENCIES = 
@@ -273,7 +274,9 @@ ${foreach target,${TARGETS}, \
 
 
 define create_directory_target_template #(dir)
+ifneq (${UNAME},Linux)
 .LOW_RESOLUTION_TIME: $1
+endif
 $1:
 	mkdir -p $1
 endef
@@ -368,7 +371,7 @@ ${foreach target,${LIBRARY_TARGETS}, \
 
 define executable_template #(target, configuration, platform, arch, output_file, dependent_libraries)
 build/intermediate/$1-$2-$3-$4/$5: ${call arch_object_list_template,$1,$2,$3,$4} $6
-	${CC_$3_$4} -o $$@ $$^ ${LINKFLAGS} ${LINKFLAGS_$3}
+	${CC_$3_$4} -o $$@ $$^ ${LINKFLAGS} ${LINKFLAGS_$3} ${LINKFLAGS_$1_$3}
 endef
 
 define library_dependency_template #(target, configuration, platform)
@@ -632,7 +635,7 @@ run_unittests_macosx: unittest
 
 .PHONY: run_unittests_iphonesimulator
 run_unittests_iphonesimulator: unittest
-	DYLD_ROOT_PATH=${SDKROOT_iphonesimulator} \
+	DYLD_ROOT_PATH=${SDKROOT_iphonesimulator_unittest} \
 	./build/unittest/debug-iphonesimulator/${TARGET_NAME_unittest} "${CURDIR}/build/unittest/debug-iphonesimulator"
 
 .PHONY: run_unittests_linux32
@@ -720,27 +723,12 @@ include: ${INCLUDES} | ${foreach include_file,${INCLUDES},build/include/${notdir
 clean:
 	rm -rf build
 
-TARGET_SUFFIX_ipad = _ipad
-IPHONESIMULATOR_SDK_VERSION ?= 7.1
-IPHONESIMULATOR_APPLICATIONS_DIR_iphone ?= ${HOME}/Library/Application Support/iPhone Simulator/${IPHONESIMULATOR_SDK_VERSION}/Applications
-IPHONESIMULATOR_APPLICATIONS_DIR_ipad ?= ${HOME}/Library/Application Support/iPhone Simulator/${IPHONESIMULATOR_SDK_VERSION}/Applications
-SIMULATE_DEVICE_iphone = iPhone
-SIMULATE_DEVICE_ipad = iPad
-IPHONE_SIMULATOR_PATH ?= /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Applications/iPhone\ Simulator.app
+IOS_SIM ?= ios-sim
 
-define install_target_iphonesimulator_template #(target, simulate_device)
-.PHONY: install_$1_iphonesimulator${TARGET_SUFFIX_$2}
-install_$1_iphonesimulator${TARGET_SUFFIX_$2}: $1
-	killall "iPhone Simulator"; true
-	rm -rf "${IPHONESIMULATOR_APPLICATIONS_DIR_$2}/${TARGET_NAME_$1}"
-	mkdir -p "${IPHONESIMULATOR_APPLICATIONS_DIR_$2}/${TARGET_NAME_$1}/Documents"
-	mkdir -p "${IPHONESIMULATOR_APPLICATIONS_DIR_$2}/${TARGET_NAME_$1}/Library/Preferences"
-	mkdir -p "${IPHONESIMULATOR_APPLICATIONS_DIR_$2}/${TARGET_NAME_$1}/tmp"
-	cp -r "build/$1/debug-iphonesimulator/${TARGET_NAME_$1}.app" "${IPHONESIMULATOR_APPLICATIONS_DIR_$2}/${TARGET_NAME_$1}"
-	defaults write com.apple.iphonesimulator SimulateDevice -string "${SIMULATE_DEVICE_$2}"
-	defaults write com.apple.iphonesimulator SimulateSDKRoot -string "${SDKROOT_iphonesimulator}"
-	defaults write com.apple.iphonesimulator currentSDKRoot -string "${SDKROOT_iphonesimulator}"
-	open "${IPHONE_SIMULATOR_PATH}"
+define launch_target_iphonesimulator_template #(target)
+.PHONY: launch_$1_iphonesimulator
+launch_$1_iphonesimulator: $1
+	${IOS_SIM} launch "build/$1/debug-iphonesimulator/${TARGET_NAME_$1}.app" ${IOS_SIM_ARGS}
 endef
 
 define add_blob_header #(source_file, target_file)
@@ -762,8 +750,7 @@ codesign_$1_iphoneos: $1
 endef
 
 ${foreach target,${APPLICATION_TARGETS}, \
-	${eval ${call install_target_iphonesimulator_template,${target},iphone}} \
-	${eval ${call install_target_iphonesimulator_template,${target},ipad}} \
+	${eval ${call launch_target_iphonesimulator_template,${target}}} \
 	${eval ${call codesign_target_iphoneos_template,${target}}} \
 }
 

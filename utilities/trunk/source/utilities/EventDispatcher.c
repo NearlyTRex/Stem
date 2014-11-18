@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2013 Alex Diener
+  Copyright (c) 2014 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -17,7 +17,7 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
   
-  Alex Diener adiener@sacredsoftware.net
+  Alex Diener alex@ludobloom.com
 */
 
 #include "utilities/EventDispatcher.h"
@@ -31,19 +31,14 @@ struct EventTarget {
 	void * context;
 };
 
-EventDispatcher * EventDispatcher_create(void * owner) {
-	stemobject_create_implementation(EventDispatcher, init, owner)
+EventDispatcher * EventDispatcher_create() {
+	stemobject_create_implementation(EventDispatcher, init)
 }
 
-bool EventDispatcher_init(EventDispatcher * self, void * owner) {
+bool EventDispatcher_init(EventDispatcher * self) {
 	call_super(init, self);
 	
 	self->dispose = EventDispatcher_dispose;
-	self->registerForEvent = EventDispatcher_registerForEvent;
-	self->unregisterForEvent = EventDispatcher_unregisterForEvent;
-	self->dispatchEvent = EventDispatcher_dispatchEvent;
-	
-	self->owner = owner;
 	self->numberOfTargets = 0;
 	self->targetListSize = 1;
 	self->targets = (struct EventTarget *) malloc(sizeof(struct EventTarget) * self->targetListSize);
@@ -94,7 +89,7 @@ bool EventDispatcher_dispatchEvent(EventDispatcher * self, Atom eventID, void * 
 	anyEventsHandled = false;
 	for (targetIndex = 0; targetIndex < numberOfTargetsCopy; targetIndex++) {
 		if (eventID == targetsCopy[targetIndex].eventID) {
-			eventHandled = targetsCopy[targetIndex].callback(self->owner, eventID, eventData, targetsCopy[targetIndex].context);
+			eventHandled = targetsCopy[targetIndex].callback(eventID, eventData, targetsCopy[targetIndex].context);
 			
 			if (eventHandled) {
 				anyEventsHandled = true;

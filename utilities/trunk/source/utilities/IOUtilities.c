@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2013 Alex Diener
+  Copyright (c) 2014 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -17,7 +17,7 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
   
-  Alex Diener adiener@sacredsoftware.net
+  Alex Diener alex@ludobloom.com
 */
 
 #include "utilities/IOUtilities.h"
@@ -231,4 +231,23 @@ const char * temporaryFilePath(const char * fileNameTemplate, int * outFD) {
 		*outFD = fd;
 	}
 	return AutoFreePool_add(fileName);
+}
+
+int snprintf_safe(char * restrict str, size_t size, const char * restrict format, ...) {
+	va_list ap;
+	int result;
+	
+	va_start(ap, format);
+	result = vsnprintf(str, size, format, ap);
+	va_end(ap);
+	str[size - 1] = 0;
+	return result;
+}
+
+int vsnprintf_safe(char * restrict str, size_t size, const char * restrict format, va_list ap) {
+	int result;
+	
+	result = vsnprintf(str, size, format, ap);
+	str[size - 1] = 0;
+	return result;
 }

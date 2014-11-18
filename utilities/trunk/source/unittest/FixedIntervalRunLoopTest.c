@@ -2,7 +2,7 @@
 #include "utilities/FixedIntervalRunLoop.h"
 
 static void runCallback(void * context) {
-	*(int *) context += 1;
+	*(unsigned int *) context += 1;
 }
 
 static double timeValue;
@@ -13,61 +13,122 @@ static double getTime() {
 
 static void testCallbackInterval() {
 	FixedIntervalRunLoop * runLoop;
-	int callbackCalls = 0;
+	unsigned int callbackCalls = 0, reportedCallbackCalls;
 	
 	timeValue = 0.0;
 	runLoop = FixedIntervalRunLoop_create(getTime, 1, runCallback, &callbackCalls);
 	timeValue = 0.9999;
-	runLoop->run(runLoop);
-	TestCase_assert(callbackCalls == 0, "Expected 0 but got %d", callbackCalls);
+	reportedCallbackCalls = FixedIntervalRunLoop_run(runLoop);
+	TestCase_assert(callbackCalls == 0, "Expected 0 but got %u", callbackCalls);
+	TestCase_assert(reportedCallbackCalls == 0, "Expected 0 but got %u", reportedCallbackCalls);
 	
 	timeValue = 1.0;
-	runLoop->run(runLoop);
-	TestCase_assert(callbackCalls == 1, "Expected 1 but got %d", callbackCalls);
+	reportedCallbackCalls = FixedIntervalRunLoop_run(runLoop);
+	TestCase_assert(callbackCalls == 1, "Expected 1 but got %u", callbackCalls);
+	TestCase_assert(reportedCallbackCalls == 1, "Expected 1 but got %u", reportedCallbackCalls);
 	
 	timeValue = 4.9999;
-	runLoop->run(runLoop);
-	TestCase_assert(callbackCalls == 4, "Expected 4 but got %d", callbackCalls);
+	reportedCallbackCalls = FixedIntervalRunLoop_run(runLoop);
+	TestCase_assert(callbackCalls == 4, "Expected 4 but got %u", callbackCalls);
+	TestCase_assert(reportedCallbackCalls == 3, "Expected 3 but got %u", reportedCallbackCalls);
 	
 	runLoop->dispose(runLoop);
 }
 
 void testPauseResume() {
 	FixedIntervalRunLoop * runLoop;
-	int callbackCalls = 0;
+	unsigned int callbackCalls = 0, reportedCallbackCalls;
 	
 	timeValue = 5.0;
 	runLoop = FixedIntervalRunLoop_create(getTime, 2, runCallback, &callbackCalls);
-	runLoop->pause(runLoop);
+	FixedIntervalRunLoop_pause(runLoop);
 	timeValue = 9.0;
-	runLoop->resume(runLoop);
-	runLoop->run(runLoop);
-	TestCase_assert(callbackCalls == 0, "Loop ran %d times while paused...", callbackCalls);
+	FixedIntervalRunLoop_resume(runLoop);
+	reportedCallbackCalls = FixedIntervalRunLoop_run(runLoop);
+	TestCase_assert(callbackCalls == 0, "Loop ran %u times while paused (expected 0)", callbackCalls);
+	TestCase_assert(reportedCallbackCalls == 0, "Expected 0 but got %u", reportedCallbackCalls);
 	
 	timeValue = 13.5;
-	runLoop->run(runLoop);
+	reportedCallbackCalls = FixedIntervalRunLoop_run(runLoop);
 	TestCase_assert(callbackCalls == 2, "Expected 2 but got %d", callbackCalls);
+	TestCase_assert(reportedCallbackCalls == 2, "Expected 2 but got %u", reportedCallbackCalls);
 	
 	timeValue = 15.5;
-	runLoop->resume(runLoop);
-	runLoop->run(runLoop);
+	FixedIntervalRunLoop_resume(runLoop);
+	reportedCallbackCalls = FixedIntervalRunLoop_run(runLoop);
 	TestCase_assert(callbackCalls == 3, "Expected 3 but got %d", callbackCalls);
+	TestCase_assert(reportedCallbackCalls == 1, "Expected 1 but got %u", reportedCallbackCalls);
 	
-	runLoop->pause(runLoop);
+	FixedIntervalRunLoop_pause(runLoop);
 	timeValue = 17.5;
-	runLoop->pause(runLoop);
-	runLoop->resume(runLoop);
+	FixedIntervalRunLoop_pause(runLoop);
+	FixedIntervalRunLoop_resume(runLoop);
 	timeValue = 19.5;
-	runLoop->run(runLoop);
+	reportedCallbackCalls = FixedIntervalRunLoop_run(runLoop);
 	TestCase_assert(callbackCalls == 4, "Expected 4 but got %d", callbackCalls);
+	TestCase_assert(reportedCallbackCalls == 1, "Expected 1 but got %u", reportedCallbackCalls);
 	
 	timeValue = 22.0;
-	runLoop->pause(runLoop);
-	runLoop->resume(runLoop);
-	runLoop->run(runLoop);
+	FixedIntervalRunLoop_pause(runLoop);
+	FixedIntervalRunLoop_resume(runLoop);
+	reportedCallbackCalls = FixedIntervalRunLoop_run(runLoop);
 	TestCase_assert(callbackCalls == 5, "Expected 5 but got %d", callbackCalls);
+	TestCase_assert(reportedCallbackCalls == 1, "Expected 1 but got %u", reportedCallbackCalls);
 	
 	runLoop->dispose(runLoop);
 }
 
-TEST_SUITE(FixedIntervalRunLoopTest, testCallbackInterval, testPauseResume)
+static void testTolerance() {
+	FixedIntervalRunLoop * runLoop;
+	unsigned int callbackCalls = 0, reportedCallbackCalls;
+	
+	timeValue = 0.0;
+	runLoop = FixedIntervalRunLoop_create(getTime, 1, runCallback, &callbackCalls);
+	FixedIntervalRunLoop_setTolerance(runLoop, 0.25);
+	timeValue = 0.7499;
+	reportedCallbackCalls = FixedIntervalRunLoop_run(runLoop);
+	TestCase_assert(callbackCalls == 0, "Expected 0 but got %u", callbackCalls);
+	TestCase_assert(reportedCallbackCalls == 0, "Expected 0 but got %u", reportedCallbackCalls);
+	
+	timeValue = 0.75;
+	reportedCallbackCalls = FixedIntervalRunLoop_run(runLoop);
+	TestCase_assert(callbackCalls == 1, "Expected 1 but got %u", callbackCalls);
+	TestCase_assert(reportedCallbackCalls == 1, "Expected 1 but got %u", reportedCallbackCalls);
+	
+	timeValue = 1.0;
+	reportedCallbackCalls = FixedIntervalRunLoop_run(runLoop);
+	TestCase_assert(callbackCalls == 1, "Expected 1 but got %u", callbackCalls);
+	TestCase_assert(reportedCallbackCalls == 0, "Expected 0 but got %u", reportedCallbackCalls);
+	
+	timeValue = 2.25;
+	reportedCallbackCalls = FixedIntervalRunLoop_run(runLoop);
+	TestCase_assert(callbackCalls == 2, "Expected 2 but got %u", callbackCalls);
+	TestCase_assert(reportedCallbackCalls == 1, "Expected 1 but got %u", reportedCallbackCalls);
+	
+	timeValue = 2.75;
+	reportedCallbackCalls = FixedIntervalRunLoop_run(runLoop);
+	TestCase_assert(callbackCalls == 3, "Expected 3 but got %u", callbackCalls);
+	TestCase_assert(reportedCallbackCalls == 1, "Expected 1 but got %u", reportedCallbackCalls);
+	
+	timeValue = 5.25;
+	reportedCallbackCalls = FixedIntervalRunLoop_run(runLoop);
+	TestCase_assert(callbackCalls == 4, "Expected 4 but got %u", callbackCalls);
+	TestCase_assert(reportedCallbackCalls == 1, "Expected 1 but got %u", reportedCallbackCalls);
+	
+	timeValue = 5.25;
+	reportedCallbackCalls = FixedIntervalRunLoop_run(runLoop);
+	TestCase_assert(callbackCalls == 5, "Expected 5 but got %u", callbackCalls);
+	TestCase_assert(reportedCallbackCalls == 1, "Expected 1 but got %u", reportedCallbackCalls);
+	
+	timeValue = 7.251;
+	reportedCallbackCalls = FixedIntervalRunLoop_run(runLoop);
+	TestCase_assert(callbackCalls == 7, "Expected 7 but got %u", callbackCalls);
+	TestCase_assert(reportedCallbackCalls == 2, "Expected 2 but got %u", reportedCallbackCalls);
+	
+	runLoop->dispose(runLoop);
+}
+
+TEST_SUITE(FixedIntervalRunLoopTest,
+           testCallbackInterval,
+           testPauseResume,
+           testTolerance)
