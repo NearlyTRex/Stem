@@ -171,12 +171,12 @@ STEM_LIBRARY_DEPENDENCIES = \
 	utilities/1.8.0 \
 	stemobject/3.1.0
 STEM_LIBRARY_DEPENDENCIES_library = \
-	jsonio/1.2.4
+	jsonio/1.2.5
 STEM_LIBRARY_DEPENDENCIES_unittest = \
 	stubshell/1.3.1 \
 	unittest/1.1.0
 STEM_LIBRARY_DEPENDENCIES_testharness = \
-	jsonio/1.2.4 \
+	jsonio/1.2.5 \
 	stubshell/1.3.1
 THIRDPARTY_LIBRARY_DEPENDENCIES = 
 
