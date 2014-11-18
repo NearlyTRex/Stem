@@ -146,7 +146,7 @@ static void testDeserialization() {
 	TestCase_assert(atlas.dispose == GLTextureAtlas_dispose, "Expected %p but got %p", GLTextureAtlas_dispose, atlas.dispose);
 	TestCase_assert(atlas.textureName != NULL, "Expected non-NULL but got NULL");
 	TestCase_assert(!strcmp(atlas.textureName, "foo"), "Expected \"foo\" but got \"%s\"", atlas.textureName);
-	TestCase_assert(atlasPtr->texture == NULL, "Expected NULL but got %p", atlasPtr->texture);
+	TestCase_assert(atlas.texture == NULL, "Expected NULL but got %p", atlas.texture);
 	keyCount = -1;
 	keys = GLTextureAtlas_getKeys(&atlas, &keyCount);
 	TestCase_assert(keyCount == 0, "Expected 0 but got " SIZE_T_FORMAT, keyCount);
