@@ -126,17 +126,14 @@ void GLBitmapFont_getStringVertices(GLBitmapFont * self,
                                     unsigned int * ioIndexCount);
 
 // Same as above, but uses vertex_p2f_t2f_c4f instead of vertex_p2f_t2f. All vertex colors will be set to
-// the values specified by the red, green, blue, and alpha parameters.
+// the values specified by the color parameter.
 void GLBitmapFont_getStringVerticesWithColor(GLBitmapFont * self,
                                              const char * string,
                                              size_t length,
                                              float emHeight,
                                              Vector2f offset,
                                              Vector2f relativeOrigin,
-                                             float red,
-                                             float green,
-                                             float blue,
-                                             float alpha,
+                                             Color4f color,
                                              GLenum indexType,
                                              unsigned int baseIndex,
                                              struct vertex_p2f_t2f_c4f * outVertices,

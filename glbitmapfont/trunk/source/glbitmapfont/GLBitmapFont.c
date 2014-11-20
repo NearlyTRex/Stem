@@ -343,19 +343,19 @@ unsigned int GLBitmapFont_getStringIndexes(GLBitmapFont * self,
 	outVertices[vertexCount + 0].color[0] = \
 	outVertices[vertexCount + 1].color[0] = \
 	outVertices[vertexCount + 2].color[0] = \
-	outVertices[vertexCount + 3].color[0] = red; \
+	outVertices[vertexCount + 3].color[0] = color.red; \
 	outVertices[vertexCount + 0].color[1] = \
 	outVertices[vertexCount + 1].color[1] = \
 	outVertices[vertexCount + 2].color[1] = \
-	outVertices[vertexCount + 3].color[1] = green; \
+	outVertices[vertexCount + 3].color[1] = color.green; \
 	outVertices[vertexCount + 0].color[2] = \
 	outVertices[vertexCount + 1].color[2] = \
 	outVertices[vertexCount + 2].color[2] = \
-	outVertices[vertexCount + 3].color[2] = blue; \
+	outVertices[vertexCount + 3].color[2] = color.blue; \
 	outVertices[vertexCount + 0].color[3] = \
 	outVertices[vertexCount + 1].color[3] = \
 	outVertices[vertexCount + 2].color[3] = \
-	outVertices[vertexCount + 3].color[3] = alpha
+	outVertices[vertexCount + 3].color[3] = color.alpha
 
 #define getVertices_writeTypedIndexes(indexes) \
 	indexes[indexCount + 0] = baseIndex + vertexCount; \
@@ -438,10 +438,7 @@ void GLBitmapFont_getStringVerticesWithColor(GLBitmapFont * self,
                                              float emHeight,
                                              Vector2f offset,
                                              Vector2f relativeOrigin,
-                                             float red,
-                                             float green,
-                                             float blue,
-                                             float alpha,
+                                             Color4f color,
                                              GLenum indexType,
                                              unsigned int baseIndex,
                                              struct vertex_p2f_t2f_c4f * outVertices,
