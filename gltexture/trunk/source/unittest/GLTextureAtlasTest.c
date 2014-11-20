@@ -554,7 +554,7 @@ static void testGetVerticesWithColor() {
 	GLTextureAtlas_setEntry(&atlas, "b", (struct GLTextureAtlas_entry) {0.125f, 0.375f, 0.625f, 0.875f});
 	
 	vertexCount = indexCount = 0;
-	GLTextureAtlas_getVerticesWithColor(&atlas, "a", VECTOR2f(0.0f, 0.0f), VECTOR2f(0.0f, 0.0f), VECTOR2f(0.0f, 0.0f), 0.0f, 0.0f, 0.0f, 0.0f, GL_UNSIGNED_INT, 0, NULL, NULL, &vertexCount, &indexCount);
+	GLTextureAtlas_getVerticesWithColor(&atlas, "a", VECTOR2f(0.0f, 0.0f), VECTOR2f(0.0f, 0.0f), VECTOR2f(0.0f, 0.0f), COLOR4f(0.0f, 0.0f, 0.0f, 0.0f), GL_UNSIGNED_INT, 0, NULL, NULL, &vertexCount, &indexCount);
 	TestCase_assert(vertexCount == 4, "Expected 4 but got %u", vertexCount);
 	TestCase_assert(indexCount == 6, "Expected 6 but got %u", indexCount);
 	
@@ -562,7 +562,7 @@ static void testGetVerticesWithColor() {
 	memset(indexesByte, 0xFF, sizeof(indexesByte));
 	vertexCount = 1;
 	indexCount = 2;
-	GLTextureAtlas_getVerticesWithColor(&atlas, "a", VECTOR2f(0.0f, 0.0f), VECTOR2f(0.0f, 0.0f), VECTOR2f(1.0f, 1.0f), 0.0f, 0.0f, 0.0f, 0.0f, GL_UNSIGNED_BYTE, 3, vertices, indexesByte, &vertexCount, &indexCount);
+	GLTextureAtlas_getVerticesWithColor(&atlas, "a", VECTOR2f(0.0f, 0.0f), VECTOR2f(0.0f, 0.0f), VECTOR2f(1.0f, 1.0f), COLOR4f(0.0f, 0.0f, 0.0f, 0.0f), GL_UNSIGNED_BYTE, 3, vertices, indexesByte, &vertexCount, &indexCount);
 	TestCase_assert(vertexCount == 5, "Expected 5 but got %u", vertexCount);
 	TestCase_assert(vertices[0].position[0] == 0.0f, "Expected 0.0 but got %f\n", vertices[0].position[0]);
 	TestCase_assert(vertices[0].position[1] == 0.0f, "Expected 0.0 but got %f\n", vertices[0].position[1]);
@@ -607,7 +607,7 @@ static void testGetVerticesWithColor() {
 	memset(vertices, 0xFF, sizeof(vertices));
 	memset(indexesShort, 0xFF, sizeof(indexesShort));
 	vertexCount = indexCount = 0;
-	GLTextureAtlas_getVerticesWithColor(&atlas, "b", VECTOR2f(0.0f, 0.0f), VECTOR2f(0.0f, 0.0f), VECTOR2f(1.0f, 1.0f), 0.25f, 0.5f, 0.75f, 1.0f, GL_UNSIGNED_SHORT, 4, vertices, indexesShort, &vertexCount, &indexCount);
+	GLTextureAtlas_getVerticesWithColor(&atlas, "b", VECTOR2f(0.0f, 0.0f), VECTOR2f(0.0f, 0.0f), VECTOR2f(1.0f, 1.0f), COLOR4f(0.25f, 0.5f, 0.75f, 1.0f), GL_UNSIGNED_SHORT, 4, vertices, indexesShort, &vertexCount, &indexCount);
 	TestCase_assert(vertexCount == 4, "Expected 4 but got %u", vertexCount);
 	TestCase_assert(vertices[0].position[0] == 0.0f, "Expected 0.0 but got %f\n", vertices[0].position[0]);
 	TestCase_assert(vertices[0].position[1] == 0.0f, "Expected 0.0 but got %f\n", vertices[0].position[1]);
@@ -652,7 +652,7 @@ static void testGetVerticesWithColor() {
 	memset(vertices, 0xFF, sizeof(vertices));
 	memset(indexesInt, 0xFF, sizeof(indexesInt));
 	vertexCount = indexCount = 0;
-	GLTextureAtlas_getVerticesWithColor(&atlas, "a", VECTOR2f(6.0f, -3.0f), VECTOR2f(0.5f, 1.0f), VECTOR2f(2.0f, 1.5f), 0.25f, 0.5f, 0.75f, 1.0f, GL_UNSIGNED_INT, 5, vertices, indexesInt, &vertexCount, &indexCount);
+	GLTextureAtlas_getVerticesWithColor(&atlas, "a", VECTOR2f(6.0f, -3.0f), VECTOR2f(0.5f, 1.0f), VECTOR2f(2.0f, 1.5f), COLOR4f(0.25f, 0.5f, 0.75f, 1.0f), GL_UNSIGNED_INT, 5, vertices, indexesInt, &vertexCount, &indexCount);
 	TestCase_assert(vertexCount == 4, "Expected 4 but got %u", vertexCount);
 	TestCase_assert(vertices[0].position[0] == 5.0f, "Expected 5.0 but got %f\n", vertices[0].position[0]);
 	TestCase_assert(vertices[0].position[1] == -4.5f, "Expected -4.5 but got %f\n", vertices[0].position[1]);

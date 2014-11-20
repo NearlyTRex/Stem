@@ -111,16 +111,13 @@ void GLTextureAtlas_getVertices(GLTextureAtlas * self,
                                 unsigned int * ioIndexCount);
 
 // Same as above, but uses vertex_p2f_t2f_c4f instead of vertex_p2f_t2f. All vertex colors will be set to
-// the values specified by the red, green, blue, and alpha parameters.
+// the values specified by the color parameter.
 void GLTextureAtlas_getVerticesWithColor(GLTextureAtlas * self,
                                          const char * key,
                                          Vector2f offset,
                                          Vector2f relativeOrigin,
                                          Vector2f size,
-                                         float red,
-                                         float green,
-                                         float blue,
-                                         float alpha,
+                                         Color4f color,
                                          GLenum indexType,
                                          unsigned int baseIndex,
                                          struct vertex_p2f_t2f_c4f * outVertices,

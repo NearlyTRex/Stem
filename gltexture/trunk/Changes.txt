@@ -1,4 +1,4 @@
-1.2.0 (2014-11-12)
+1.2.0 (2014-11-20)
  * Removed GLTextureAtlas_getIndexes, and merged its functionality with GLTextureAtlas_getVertices
  * GLTextureAtlas_getVertices now uses Vector2f instead of raw floats for offsetX/offsetY and relativeOriginX/relativeOriginY
  * Added GLTextureAtlas_getVerticesWithColor and GLTextureAtlas_getEntryDimensions

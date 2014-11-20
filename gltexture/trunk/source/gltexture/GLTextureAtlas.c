@@ -214,19 +214,19 @@ Vector2f GLTextureAtlas_getEntryDimensions(GLTextureAtlas * self, const char * k
 	outVertices[0].color[0] = \
 	outVertices[1].color[0] = \
 	outVertices[2].color[0] = \
-	outVertices[3].color[0] = red; \
+	outVertices[3].color[0] = color.red; \
 	outVertices[0].color[1] = \
 	outVertices[1].color[1] = \
 	outVertices[2].color[1] = \
-	outVertices[3].color[1] = green; \
+	outVertices[3].color[1] = color.green; \
 	outVertices[0].color[2] = \
 	outVertices[1].color[2] = \
 	outVertices[2].color[2] = \
-	outVertices[3].color[2] = blue; \
+	outVertices[3].color[2] = color.blue; \
 	outVertices[0].color[3] = \
 	outVertices[1].color[3] = \
 	outVertices[2].color[3] = \
-	outVertices[3].color[3] = alpha
+	outVertices[3].color[3] = color.alpha
 
 #define getVertices_writeTypedIndexes(indexes) \
 	indexes[0] = baseIndex; \
@@ -274,7 +274,7 @@ void GLTextureAtlas_getVertices(GLTextureAtlas * self, const char * key, Vector2
 	}
 }
 
-void GLTextureAtlas_getVerticesWithColor(GLTextureAtlas * self, const char * key, Vector2f offset, Vector2f relativeOrigin, Vector2f size, float red, float green, float blue, float alpha, GLenum indexType, unsigned int baseIndex, struct vertex_p2f_t2f_c4f * outVertices, void * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount) {
+void GLTextureAtlas_getVerticesWithColor(GLTextureAtlas * self, const char * key, Vector2f offset, Vector2f relativeOrigin, Vector2f size, Color4f color, GLenum indexType, unsigned int baseIndex, struct vertex_p2f_t2f_c4f * outVertices, void * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount) {
 	if (outVertices != NULL) {
 		struct GLTextureAtlas_entry entry;
 		
