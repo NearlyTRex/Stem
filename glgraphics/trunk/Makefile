@@ -196,7 +196,8 @@ SOURCES_unittest = \
 
 SOURCES_unittest_suites = \
 	source/unittest/GLGraphicsTest.c \
-	source/unittest/GLUtilitiesTest.c
+	source/unittest/GLUtilitiesTest.c \
+	source/unittest/VertexTypesTest.c
 
 #Include files to be distributed with library
 

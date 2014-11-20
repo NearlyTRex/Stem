@@ -27,6 +27,7 @@ extern "C" {
 #endif
 
 #include "glgraphics/GLIncludes.h"
+#include <stdint.h>
 
 // Vertices can be interchangeably represented as arrays of multiples of the appropriate
 // number of floats for the type, or as one of the structures defined below.
@@ -97,7 +98,24 @@ struct vertex_p3f_t2f_n3f_c4f {
 	GLfloat color[4];
 };
 
+typedef struct Color4f {
+	GLfloat red;
+	GLfloat green;
+	GLfloat blue;
+	GLfloat alpha;
+} Color4f;
+
 #pragma pack(pop)
+
+#define COLOR4f(red, green, blue, alpha) ((Color4f) {red, green, blue, alpha})
+
+static inline Color4f Color4f_fromRGBA8888(unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha) {
+	return (Color4f) {red / (float) 0xFF, green / (float) 0xFF, blue / (float) 0xFF, alpha / (float) 0xFF};
+}
+
+static inline Color4f Color4f_fromRGBA32(uint32_t rgba) {
+	return (Color4f) {(rgba >> 24) / (float) 0xFF, (rgba >> 16 & 0xFF) / (float) 0xFF, (rgba >> 8 & 0xFF) / (float) 0xFF, (rgba & 0xFF) / (float) 0xFF};
+}
 
 #ifdef __cplusplus
 }
