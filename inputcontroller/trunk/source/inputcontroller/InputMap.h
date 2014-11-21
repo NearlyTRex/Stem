@@ -34,12 +34,11 @@ typedef struct InputMap InputMap;
 #include "utilities/Atom.h"
 #include <stdlib.h>
 
-#define INPUT_MAP_SERIALIZATION_FORMAT_VERSION 2
+#define INPUT_MAP_SERIALIZATION_FORMAT_VERSION 3
 
 struct InputMap_keyboardBinding {
 	Atom actionID;
 	unsigned int keyCode;
-	unsigned int charCode;
 };
 
 struct InputMap_keyModifierBinding {
@@ -89,17 +88,32 @@ bool InputMap_loadSerializedData(InputMap * self, compat_type(DeserializationCon
 void InputMap_serialize(InputMap * self, compat_type(SerializationContext *) serializationContext);
 
 bool InputMap_isKeyBound(InputMap * self, Atom actionID, unsigned int keyCode);
-void InputMap_bindKey(InputMap * self, Atom actionID, unsigned int keyCode, unsigned int charCode);
-void InputMap_unbindKey(InputMap * self, Atom actionID, unsigned int keyCode);
 bool InputMap_isKeyModifierBound(InputMap * self, Atom actionID, int modifierBit);
-void InputMap_bindKeyModifier(InputMap * self, Atom actionID, int modifierBit);
-void InputMap_unbindKeyModifier(InputMap * self, Atom actionID, int modifierBit);
 bool InputMap_isButtonBound(InputMap * self, Atom actionID, int vendorID, int productID, unsigned int buttonID);
-void InputMap_bindButton(InputMap * self, Atom actionID, int vendorID, int productID, unsigned int buttonID);
-void InputMap_unbindButton(InputMap * self, Atom actionID, int vendorID, int productID, unsigned int buttonID);
 bool InputMap_isAxisBound(InputMap * self, Atom actionID, int vendorID, int productID, unsigned int axisID);
+
+void InputMap_bindKey(InputMap * self, Atom actionID, unsigned int keyCode);
+void InputMap_bindKeyModifier(InputMap * self, Atom actionID, int modifierBit);
+void InputMap_bindButton(InputMap * self, Atom actionID, int vendorID, int productID, unsigned int buttonID);
 void InputMap_bindAxis(InputMap * self, Atom actionID, int vendorID, int productID, unsigned int axisID, float triggerThreshold, float releaseThreshold);
+
+void InputMap_unbindKey(InputMap * self, Atom actionID, unsigned int keyCode);
+void InputMap_unbindKeyModifier(InputMap * self, Atom actionID, int modifierBit);
+void InputMap_unbindButton(InputMap * self, Atom actionID, int vendorID, int productID, unsigned int buttonID);
 void InputMap_unbindAxis(InputMap * self, Atom actionID, int vendorID, int productID, unsigned int axisID);
+
+void InputMap_unbindAllKeysForAction(InputMap * self, Atom actionID);
+void InputMap_unbindAllKeyModifiersForAction(InputMap * self, Atom actionID);
+void InputMap_unbindAllButtonsForAction(InputMap * self, Atom actionID);
+void InputMap_unbindAllAxesForAction(InputMap * self, Atom actionID);
+
+void InputMap_unbindAllButtonsOnDeviceForAction(InputMap * self, int vendorID, int productID, Atom actionID);
+void InputMap_unbindAllAxesOnDeviceForAction(InputMap * self, int vendorID, int productID, Atom actionID);
+
+void InputMap_unbindAllActionsForKey(InputMap * self, unsigned int keyCode);
+void InputMap_unbindAllActionsForKeyModifier(InputMap * self, int modifierBit);
+void InputMap_unbindAllActionsForButton(InputMap * self, int vendorID, int productID, unsigned int buttonID);
+void InputMap_unbindAllActionsForAxis(InputMap * self, int vendorID, int productID, unsigned int axisID, bool positive);
 
 #ifdef __cplusplus
 }

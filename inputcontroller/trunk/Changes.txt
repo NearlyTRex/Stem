@@ -1,4 +1,5 @@
-1.0.3 (2014-11-18)
+1.1.0 (2014-11-21)
+ * Added InputMap methods for unbinding all actions for a particular input, and all inputs of one type for a particular action
  * Updated for utilities 1.9.0
  * Removed method function pointers in preparation for stemobject 4.0.0 (except for InputController's triggerAction and releaseAction)
 

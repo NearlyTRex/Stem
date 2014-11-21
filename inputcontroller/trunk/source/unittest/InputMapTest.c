@@ -30,56 +30,51 @@ static void testInit() {
 	inputMapPtr->dispose(inputMapPtr);
 }
 
-static bool isKeyBound(InputMap * inputMap, Atom actionID, unsigned int keyCode, unsigned int charCode) {
+static bool isKeyBound(InputMap * inputMap, Atom actionID, unsigned int keyCode) {
 	unsigned int bindingIndex;
 	
 	for (bindingIndex = 0; bindingIndex < inputMap->keyboardBindingCount; bindingIndex++) {
 		if (inputMap->keyboardBindings[bindingIndex].actionID == actionID &&
-		    inputMap->keyboardBindings[bindingIndex].keyCode == keyCode &&
-		    inputMap->keyboardBindings[bindingIndex].charCode == charCode) {
+		    inputMap->keyboardBindings[bindingIndex].keyCode == keyCode) {
 			return true;
 		}
 	}
 	return false;
 }
 
-static void verifyKeyNotBound(InputMap * inputMap, Atom actionID, unsigned int keyCode, unsigned int charCode, int callingLine) {
-	TestCase_assert(!InputMap_isKeyBound(inputMap, actionID, keyCode), "Key unexpectedly reported as bound (keyCode = %u, charCode = %u, actionID = \"%s\") (line %d)", keyCode, charCode, actionID, callingLine);
-	TestCase_assert(!isKeyBound(inputMap, actionID, keyCode, charCode), "Unexpectedly found bound key (keyCode = %u, charCode = %u, actionID = \"%s\") (line %d)", keyCode, charCode, actionID, callingLine);
+static void verifyKeyNotBound(InputMap * inputMap, Atom actionID, unsigned int keyCode, int callingLine) {
+	TestCase_assert(!InputMap_isKeyBound(inputMap, actionID, keyCode), "Key unexpectedly reported as bound (keyCode = %u, actionID = \"%s\") (line %d)", keyCode, actionID, callingLine);
+	TestCase_assert(!isKeyBound(inputMap, actionID, keyCode), "Unexpectedly found bound key (keyCode = %u, actionID = \"%s\") (line %d)", keyCode, actionID, callingLine);
 }
 
-static void verifyKeyBound(InputMap * inputMap, Atom actionID, unsigned int keyCode, unsigned int charCode, int callingLine) {
-	TestCase_assert(InputMap_isKeyBound(inputMap, actionID, keyCode), "Key unexpectedly reported as unbound (keyCode = %u, charCode = %u, actionID = \"%s\") (line %d)", keyCode, charCode, actionID, callingLine);
-	TestCase_assert(isKeyBound(inputMap, actionID, keyCode, charCode), "Couldn't find bound key (keyCode = %u, charCode = %u, actionID = \"%s\") (line %d)", keyCode, charCode, actionID, callingLine);
+static void verifyKeyBound(InputMap * inputMap, Atom actionID, unsigned int keyCode, int callingLine) {
+	TestCase_assert(InputMap_isKeyBound(inputMap, actionID, keyCode), "Key unexpectedly reported as unbound (keyCode = %u, actionID = \"%s\") (line %d)", keyCode, actionID, callingLine);
+	TestCase_assert(isKeyBound(inputMap, actionID, keyCode), "Couldn't find bound key (keyCode = %u, actionID = \"%s\") (line %d)", keyCode, actionID, callingLine);
 }
 
 static void testKeyboardBindings() {
 	InputMap * inputMap;
 	
 	inputMap = InputMap_create();
-	verifyKeyNotBound(inputMap, ATOM("a"), 1, 3, __LINE__);
-	verifyKeyNotBound(inputMap, ATOM("b"), 1, 2, __LINE__);
+	verifyKeyNotBound(inputMap, ATOM("a"), 1, __LINE__);
+	verifyKeyNotBound(inputMap, ATOM("b"), 1, __LINE__);
 	
-	InputMap_bindKey(inputMap, ATOM("a"), 1, 3);
-	verifyKeyBound(inputMap, ATOM("a"), 1, 3, __LINE__);
+	InputMap_bindKey(inputMap, ATOM("a"), 1);
+	verifyKeyBound(inputMap, ATOM("a"), 1, __LINE__);
 	
-	InputMap_bindKey(inputMap, ATOM("a"), 1, 2);
-	verifyKeyBound(inputMap, ATOM("a"), 1, 2, __LINE__);
-	TestCase_assert(!isKeyBound(inputMap, ATOM("a"), 1, 3), "Expected false but got true");
+	InputMap_bindKey(inputMap, ATOM("a"), 2);
+	verifyKeyBound(inputMap, ATOM("a"), 1, __LINE__);
+	verifyKeyBound(inputMap, ATOM("a"), 2, __LINE__);
 	
-	InputMap_bindKey(inputMap, ATOM("a"), 2, 4);
-	verifyKeyBound(inputMap, ATOM("a"), 1, 2, __LINE__);
-	verifyKeyBound(inputMap, ATOM("a"), 2, 4, __LINE__);
-	
-	InputMap_bindKey(inputMap, ATOM("b"), 1, 2);
-	verifyKeyBound(inputMap, ATOM("a"), 1, 2, __LINE__);
-	verifyKeyBound(inputMap, ATOM("a"), 2, 4, __LINE__);
-	verifyKeyBound(inputMap, ATOM("b"), 1, 2, __LINE__);
+	InputMap_bindKey(inputMap, ATOM("b"), 1);
+	verifyKeyBound(inputMap, ATOM("a"), 1, __LINE__);
+	verifyKeyBound(inputMap, ATOM("a"), 2, __LINE__);
+	verifyKeyBound(inputMap, ATOM("b"), 1, __LINE__);
 	
 	InputMap_unbindKey(inputMap, ATOM("a"), 1);
-	verifyKeyNotBound(inputMap, ATOM("a"), 1, 2, __LINE__);
-	verifyKeyBound(inputMap, ATOM("a"), 2, 4, __LINE__);
-	verifyKeyBound(inputMap, ATOM("b"), 1, 2, __LINE__);
+	verifyKeyNotBound(inputMap, ATOM("a"), 1, __LINE__);
+	verifyKeyBound(inputMap, ATOM("a"), 2, __LINE__);
+	verifyKeyBound(inputMap, ATOM("b"), 1, __LINE__);
 }
 
 static bool isKeyModifierBound(InputMap * inputMap, Atom actionID, int modifierBit) {
@@ -305,8 +300,8 @@ static void testSerialization() {
 	}
 	
 	InputMap_init(&inputMap);
-	InputMap_bindKey(&inputMap, ATOM("a"), 1, 2);
-	InputMap_bindKey(&inputMap, ATOM("b"), 3, 4);
+	InputMap_bindKey(&inputMap, ATOM("a"), 1);
+	InputMap_bindKey(&inputMap, ATOM("b"), 3);
 	InputMap_bindButton(&inputMap, ATOM("a"), 1, 2, 3);
 	InputMap_bindButton(&inputMap, ATOM("b"), 1, 2, 4);
 	InputMap_bindButton(&inputMap, ATOM("c"), 4, 5, 6);
@@ -320,12 +315,10 @@ static void testSerialization() {
 			context->expectCall(context, context->beginStructure, NULL);
 				context->expectCall(context, context->writeString, "action", "a");
 				context->expectCall(context, context->writeUInt32, "key_code", 1);
-				context->expectCall(context, context->writeUInt32, "char_code", 2);
 			context->expectCall(context, context->endStructure);
 			context->expectCall(context, context->beginStructure, NULL);
 				context->expectCall(context, context->writeString, "action", "b");
 				context->expectCall(context, context->writeUInt32, "key_code", 3);
-				context->expectCall(context, context->writeUInt32, "char_code", 4);
 			context->expectCall(context, context->endStructure);
 		context->expectCall(context, context->endArray);
 		context->expectCall(context, context->beginArray, "gamepad_maps");
@@ -399,12 +392,10 @@ static void setUpBasicDeserializationContext(TestDeserializationContext * contex
 			context->expectCall(context, context->beginStructure, NULL);
 				context->expectCall(context, context->readString, "action", "a");
 				context->expectCall(context, context->readUInt32, "key_code", 1);
-				context->expectCall(context, context->readUInt32, "char_code", 2);
 			context->expectCall(context, context->endStructure);
 			context->expectCall(context, context->beginStructure, NULL);
 				context->expectCall(context, context->readString, "action", "b");
 				context->expectCall(context, context->readUInt32, "key_code", 3);
-				context->expectCall(context, context->readUInt32, "char_code", 4);
 			context->expectCall(context, context->endStructure);
 		context->expectCall(context, context->endArray);
 		context->expectCall(context, context->beginArray, "gamepad_maps", 2);
@@ -458,10 +449,8 @@ static void verifyBasicInputMap(InputMap * inputMap, unsigned int lineNumber) {
 	TestCase_assert(inputMap->keyboardBindings != NULL, "Expected non-NULL but got NULL (%u)", lineNumber);
 	TestCase_assert(inputMap->keyboardBindings[0].actionID == ATOM("a"), "Expected \"a\" (%p) but got \"%s\" (%p) (%u)", ATOM("a"), inputMap->keyboardBindings[0].actionID, inputMap->keyboardBindings[0].actionID, lineNumber);
 	TestCase_assert(inputMap->keyboardBindings[0].keyCode == 1, "Expected 1 but got %u (%u)", inputMap->keyboardBindings[0].keyCode, lineNumber);
-	TestCase_assert(inputMap->keyboardBindings[0].charCode == 2, "Expected 2 but got %u (%u)", inputMap->keyboardBindings[0].charCode, lineNumber);
 	TestCase_assert(inputMap->keyboardBindings[1].actionID == ATOM("b"), "Expected \"a\" (%p) but got \"%s\" (%p) (%u)", ATOM("b"), inputMap->keyboardBindings[1].actionID, inputMap->keyboardBindings[1].actionID, lineNumber);
 	TestCase_assert(inputMap->keyboardBindings[1].keyCode == 3, "Expected 3 but got %u (%u)", inputMap->keyboardBindings[1].keyCode, lineNumber);
-	TestCase_assert(inputMap->keyboardBindings[1].charCode == 4, "Expected 4 but got %u (%u)", inputMap->keyboardBindings[1].charCode, lineNumber);
 	TestCase_assert(inputMap->gamepadMapCount == 2, "Expected 2 but got %u (%u)", inputMap->gamepadMapCount, lineNumber);
 	TestCase_assert(inputMap->gamepadMaps != NULL, "Expected non-NULL but got NULL (%u)", lineNumber);
 	TestCase_assert(inputMap->gamepadMaps[0].vendorID == 1, "Expected 1 but got %d (%u)", inputMap->gamepadMaps[0].vendorID, lineNumber);
@@ -551,7 +540,7 @@ static void testDeserialization() {
 	verifyBasicInputMap(inputMapPtr, __LINE__);
 	inputMapPtr->dispose(inputMapPtr);
 	
-	for (failIndex = 0; failIndex < 57; failIndex++) {
+	for (failIndex = 0; failIndex < 55; failIndex++) {
 		context = TestDeserializationContext_create(&jmpEnv);
 		if (setjmp(jmpEnv) != 0) {
 			TestCase_assert(false, "%s", context->error);
@@ -604,6 +593,206 @@ static void testDeserialization() {
 	TestCase_assert(inputMapPtr == NULL, "InputMap_deserialize didn't return NULL when format version was too new");
 }
 
+static void testUnbindAllInputsForAction() {
+	InputMap * inputMap;
+	
+	inputMap = InputMap_create();
+	InputMap_bindKey(inputMap, ATOM("a"), 1);
+	InputMap_bindKey(inputMap, ATOM("a"), 2);
+	InputMap_bindKey(inputMap, ATOM("b"), 1);
+	
+	InputMap_bindKeyModifier(inputMap, ATOM("a"), 1);
+	InputMap_bindKeyModifier(inputMap, ATOM("a"), 2);
+	InputMap_bindKeyModifier(inputMap, ATOM("b"), 1);
+	
+	InputMap_bindButton(inputMap, ATOM("a"), 0, 0, 0);
+	InputMap_bindButton(inputMap, ATOM("a"), 0, 0, 1);
+	InputMap_bindButton(inputMap, ATOM("b"), 0, 0, 0);
+	
+	InputMap_bindAxis(inputMap, ATOM("a"), 0, 0, 0, 1.0f, 0.0f);
+	InputMap_bindAxis(inputMap, ATOM("a"), 0, 0, 1, 1.0f, 0.0f);
+	InputMap_bindAxis(inputMap, ATOM("b"), 0, 0, 0, -1.0f, 0.0f);
+	
+	verifyKeyBound(inputMap, ATOM("a"), 1, __LINE__);
+	verifyKeyBound(inputMap, ATOM("a"), 2, __LINE__);
+	verifyKeyBound(inputMap, ATOM("b"), 1, __LINE__);
+	InputMap_unbindAllKeysForAction(inputMap, ATOM("a"));
+	verifyKeyNotBound(inputMap, ATOM("a"), 1, __LINE__);
+	verifyKeyNotBound(inputMap, ATOM("a"), 2, __LINE__);
+	verifyKeyBound(inputMap, ATOM("b"), 1, __LINE__);
+	InputMap_unbindAllKeysForAction(inputMap, ATOM("b"));
+	verifyKeyNotBound(inputMap, ATOM("b"), 1, __LINE__);
+	
+	verifyKeyModifierBound(inputMap, ATOM("a"), 1, __LINE__);
+	verifyKeyModifierBound(inputMap, ATOM("a"), 2, __LINE__);
+	verifyKeyModifierBound(inputMap, ATOM("b"), 1, __LINE__);
+	InputMap_unbindAllKeyModifiersForAction(inputMap, ATOM("a"));
+	verifyKeyModifierNotBound(inputMap, ATOM("a"), 1, __LINE__);
+	verifyKeyModifierNotBound(inputMap, ATOM("a"), 2, __LINE__);
+	verifyKeyModifierBound(inputMap, ATOM("b"), 1, __LINE__);
+	InputMap_unbindAllKeyModifiersForAction(inputMap, ATOM("b"));
+	verifyKeyModifierNotBound(inputMap, ATOM("b"), 1, __LINE__);
+	
+	verifyButtonBound(inputMap, ATOM("a"), 0, 0, 0, __LINE__);
+	verifyButtonBound(inputMap, ATOM("a"), 0, 0, 1, __LINE__);
+	verifyButtonBound(inputMap, ATOM("b"), 0, 0, 0, __LINE__);
+	InputMap_unbindAllButtonsForAction(inputMap, ATOM("a"));
+	verifyButtonNotBound(inputMap, ATOM("a"), 0, 0, 0, __LINE__);
+	verifyButtonNotBound(inputMap, ATOM("a"), 0, 0, 1, __LINE__);
+	verifyButtonBound(inputMap, ATOM("b"), 0, 0, 0, __LINE__);
+	InputMap_unbindAllButtonsForAction(inputMap, ATOM("b"));
+	verifyButtonNotBound(inputMap, ATOM("b"), 0, 0, 0, __LINE__);
+	
+	verifyAxisBound(inputMap, ATOM("a"), 0, 0, 0, 1.0f, 0.0f, __LINE__);
+	verifyAxisBound(inputMap, ATOM("a"), 0, 0, 1, 1.0f, 0.0f, __LINE__);
+	verifyAxisBound(inputMap, ATOM("b"), 0, 0, 0, -1.0f, 0.0f, __LINE__);
+	InputMap_unbindAllAxesForAction(inputMap, ATOM("a"));
+	verifyAxisNotBound(inputMap, ATOM("a"), 0, 0, 0, 1.0f, 0.0f, __LINE__);
+	verifyAxisNotBound(inputMap, ATOM("a"), 0, 0, 1, 1.0f, 0.0f, __LINE__);
+	verifyAxisBound(inputMap, ATOM("b"), 0, 0, 0, -1.0f, 0.0f, __LINE__);
+	InputMap_unbindAllAxesForAction(inputMap, ATOM("b"));
+	verifyAxisNotBound(inputMap, ATOM("b"), 0, 0, 0, -1.0f, 0.0f, __LINE__);
+	
+	InputMap_dispose(inputMap);
+}
+
+static void testUnbindAllInputsOnDeviceForAction() {
+	InputMap * inputMap;
+	
+	inputMap = InputMap_create();
+	InputMap_bindButton(inputMap, ATOM("a"), 0, 0, 0);
+	InputMap_bindButton(inputMap, ATOM("a"), 0, 0, 1);
+	InputMap_bindButton(inputMap, ATOM("b"), 0, 0, 0);
+	InputMap_bindButton(inputMap, ATOM("a"), 1, 1, 0);
+	InputMap_bindButton(inputMap, ATOM("a"), 1, 1, 1);
+	InputMap_bindButton(inputMap, ATOM("b"), 1, 1, 0);
+	
+	InputMap_bindAxis(inputMap, ATOM("a"), 0, 0, 0, 1.0f, 0.0f);
+	InputMap_bindAxis(inputMap, ATOM("a"), 0, 0, 1, 1.0f, 0.0f);
+	InputMap_bindAxis(inputMap, ATOM("b"), 0, 0, 0, -1.0f, 0.0f);
+	InputMap_bindAxis(inputMap, ATOM("a"), 1, 1, 0, 1.0f, 0.0f);
+	InputMap_bindAxis(inputMap, ATOM("a"), 1, 1, 1, 1.0f, 0.0f);
+	InputMap_bindAxis(inputMap, ATOM("b"), 1, 1, 0, -1.0f, 0.0f);
+	
+	verifyButtonBound(inputMap, ATOM("a"), 0, 0, 0, __LINE__);
+	verifyButtonBound(inputMap, ATOM("a"), 0, 0, 1, __LINE__);
+	verifyButtonBound(inputMap, ATOM("b"), 0, 0, 0, __LINE__);
+	InputMap_unbindAllButtonsOnDeviceForAction(inputMap, 0, 0, ATOM("a"));
+	verifyButtonNotBound(inputMap, ATOM("a"), 0, 0, 0, __LINE__);
+	verifyButtonNotBound(inputMap, ATOM("a"), 0, 0, 1, __LINE__);
+	verifyButtonBound(inputMap, ATOM("b"), 0, 0, 0, __LINE__);
+	InputMap_unbindAllButtonsOnDeviceForAction(inputMap, 0, 0, ATOM("b"));
+	verifyButtonNotBound(inputMap, ATOM("b"), 0, 0, 0, __LINE__);
+	
+	verifyAxisBound(inputMap, ATOM("a"), 0, 0, 0, 1.0f, 0.0f, __LINE__);
+	verifyAxisBound(inputMap, ATOM("a"), 0, 0, 1, 1.0f, 0.0f, __LINE__);
+	verifyAxisBound(inputMap, ATOM("b"), 0, 0, 0, -1.0f, 0.0f, __LINE__);
+	InputMap_unbindAllAxesOnDeviceForAction(inputMap, 0, 0, ATOM("a"));
+	verifyAxisNotBound(inputMap, ATOM("a"), 0, 0, 0, 1.0f, 0.0f, __LINE__);
+	verifyAxisNotBound(inputMap, ATOM("a"), 0, 0, 1, 1.0f, 0.0f, __LINE__);
+	verifyAxisBound(inputMap, ATOM("b"), 0, 0, 0, -1.0f, 0.0f, __LINE__);
+	InputMap_unbindAllAxesOnDeviceForAction(inputMap, 0, 0, ATOM("b"));
+	verifyAxisNotBound(inputMap, ATOM("b"), 0, 0, 0, -1.0f, 0.0f, __LINE__);
+	
+	verifyButtonBound(inputMap, ATOM("a"), 1, 1, 0, __LINE__);
+	verifyButtonBound(inputMap, ATOM("a"), 1, 1, 1, __LINE__);
+	verifyButtonBound(inputMap, ATOM("b"), 1, 1, 0, __LINE__);
+	InputMap_unbindAllButtonsOnDeviceForAction(inputMap, 1, 1, ATOM("a"));
+	verifyButtonNotBound(inputMap, ATOM("a"), 1, 1, 0, __LINE__);
+	verifyButtonNotBound(inputMap, ATOM("a"), 1, 1, 1, __LINE__);
+	verifyButtonBound(inputMap, ATOM("b"), 1, 1, 0, __LINE__);
+	InputMap_unbindAllButtonsOnDeviceForAction(inputMap, 1, 1, ATOM("b"));
+	verifyButtonNotBound(inputMap, ATOM("b"), 1, 1, 0, __LINE__);
+	
+	verifyAxisBound(inputMap, ATOM("a"), 1, 1, 0, 1.0f, 0.0f, __LINE__);
+	verifyAxisBound(inputMap, ATOM("a"), 1, 1, 1, 1.0f, 0.0f, __LINE__);
+	verifyAxisBound(inputMap, ATOM("b"), 1, 1, 0, -1.0f, 0.0f, __LINE__);
+	InputMap_unbindAllAxesOnDeviceForAction(inputMap, 1, 1, ATOM("a"));
+	verifyAxisNotBound(inputMap, ATOM("a"), 1, 1, 0, 1.0f, 0.0f, __LINE__);
+	verifyAxisNotBound(inputMap, ATOM("a"), 1, 1, 1, 1.0f, 0.0f, __LINE__);
+	verifyAxisBound(inputMap, ATOM("b"), 1, 1, 0, -1.0f, 0.0f, __LINE__);
+	InputMap_unbindAllAxesOnDeviceForAction(inputMap, 1, 1, ATOM("b"));
+	verifyAxisNotBound(inputMap, ATOM("b"), 1, 1, 0, -1.0f, 0.0f, __LINE__);
+	
+	InputMap_dispose(inputMap);
+}
+
+static void testUnbindAllActionsForInput() {
+	InputMap * inputMap;
+	
+	inputMap = InputMap_create();
+	InputMap_bindKey(inputMap, ATOM("a"), 1);
+	InputMap_bindKey(inputMap, ATOM("a"), 2);
+	InputMap_bindKey(inputMap, ATOM("b"), 1);
+	
+	InputMap_bindKeyModifier(inputMap, ATOM("a"), 1);
+	InputMap_bindKeyModifier(inputMap, ATOM("a"), 2);
+	InputMap_bindKeyModifier(inputMap, ATOM("b"), 1);
+	
+	InputMap_bindButton(inputMap, ATOM("a"), 0, 0, 0);
+	InputMap_bindButton(inputMap, ATOM("a"), 0, 0, 1);
+	InputMap_bindButton(inputMap, ATOM("b"), 0, 0, 0);
+	
+	InputMap_bindAxis(inputMap, ATOM("a"), 0, 0, 0, -1.0f, 0.0f);
+	InputMap_bindAxis(inputMap, ATOM("a"), 0, 0, 1, -1.0f, 0.0f);
+	InputMap_bindAxis(inputMap, ATOM("b"), 0, 0, 0, -1.0f, 0.0f);
+	InputMap_bindAxis(inputMap, ATOM("c"), 0, 0, 0, 1.0f, 0.0f);
+	InputMap_bindAxis(inputMap, ATOM("c"), 0, 0, 1, 1.0f, 0.0f);
+	InputMap_bindAxis(inputMap, ATOM("d"), 0, 0, 0, 1.0f, 0.0f);
+	
+	verifyKeyBound(inputMap, ATOM("a"), 1, __LINE__);
+	verifyKeyBound(inputMap, ATOM("a"), 2, __LINE__);
+	verifyKeyBound(inputMap, ATOM("b"), 1, __LINE__);
+	InputMap_unbindAllActionsForKey(inputMap, 1);
+	verifyKeyNotBound(inputMap, ATOM("a"), 1, __LINE__);
+	verifyKeyBound(inputMap, ATOM("a"), 2, __LINE__);
+	verifyKeyNotBound(inputMap, ATOM("b"), 1, __LINE__);
+	InputMap_unbindAllActionsForKey(inputMap, 2);
+	verifyKeyNotBound(inputMap, ATOM("a"), 2, __LINE__);
+	
+	verifyKeyModifierBound(inputMap, ATOM("a"), 1, __LINE__);
+	verifyKeyModifierBound(inputMap, ATOM("a"), 2, __LINE__);
+	verifyKeyModifierBound(inputMap, ATOM("b"), 1, __LINE__);
+	InputMap_unbindAllActionsForKeyModifier(inputMap, 1);
+	verifyKeyModifierNotBound(inputMap, ATOM("a"), 1, __LINE__);
+	verifyKeyModifierBound(inputMap, ATOM("a"), 2, __LINE__);
+	verifyKeyModifierNotBound(inputMap, ATOM("b"), 1, __LINE__);
+	InputMap_unbindAllActionsForKeyModifier(inputMap, 2);
+	verifyKeyModifierNotBound(inputMap, ATOM("a"), 2, __LINE__);
+	
+	verifyButtonBound(inputMap, ATOM("a"), 0, 0, 0, __LINE__);
+	verifyButtonBound(inputMap, ATOM("a"), 0, 0, 1, __LINE__);
+	verifyButtonBound(inputMap, ATOM("b"), 0, 0, 0, __LINE__);
+	InputMap_unbindAllActionsForButton(inputMap, 0, 0, 0);
+	verifyButtonNotBound(inputMap, ATOM("a"), 0, 0, 0, __LINE__);
+	verifyButtonBound(inputMap, ATOM("a"), 0, 0, 1, __LINE__);
+	verifyButtonNotBound(inputMap, ATOM("b"), 0, 0, 0, __LINE__);
+	InputMap_unbindAllActionsForButton(inputMap, 0, 0, 1);
+	verifyButtonNotBound(inputMap, ATOM("a"), 0, 0, 1, __LINE__);
+	
+	verifyAxisBound(inputMap, ATOM("a"), 0, 0, 0, -1.0f, 0.0f, __LINE__);
+	verifyAxisBound(inputMap, ATOM("a"), 0, 0, 1, -1.0f, 0.0f, __LINE__);
+	verifyAxisBound(inputMap, ATOM("b"), 0, 0, 0, -1.0f, 0.0f, __LINE__);
+	InputMap_unbindAllActionsForAxis(inputMap, 0, 0, 0, false);
+	verifyAxisNotBound(inputMap, ATOM("a"), 0, 0, 0, -1.0f, 0.0f, __LINE__);
+	verifyAxisBound(inputMap, ATOM("a"), 0, 0, 1, -1.0f, 0.0f, __LINE__);
+	verifyAxisNotBound(inputMap, ATOM("b"), 0, 0, 0, -1.0f, 0.0f, __LINE__);
+	InputMap_unbindAllActionsForAxis(inputMap, 0, 0, 1, false);
+	verifyAxisNotBound(inputMap, ATOM("a"), 0, 0, 1, -1.0f, 0.0f, __LINE__);
+	
+	verifyAxisBound(inputMap, ATOM("c"), 0, 0, 0, 1.0f, 0.0f, __LINE__);
+	verifyAxisBound(inputMap, ATOM("c"), 0, 0, 1, 1.0f, 0.0f, __LINE__);
+	verifyAxisBound(inputMap, ATOM("d"), 0, 0, 0, 1.0f, 0.0f, __LINE__);
+	InputMap_unbindAllActionsForAxis(inputMap, 0, 0, 0, true);
+	verifyAxisNotBound(inputMap, ATOM("c"), 0, 0, 0, 1.0f, 0.0f, __LINE__);
+	verifyAxisBound(inputMap, ATOM("c"), 0, 0, 1, 1.0f, 0.0f, __LINE__);
+	verifyAxisNotBound(inputMap, ATOM("d"), 0, 0, 0, 1.0f, 0.0f, __LINE__);
+	InputMap_unbindAllActionsForAxis(inputMap, 0, 0, 1, true);
+	verifyAxisNotBound(inputMap, ATOM("c"), 0, 0, 1, 1.0f, 0.0f, __LINE__);
+	
+	InputMap_dispose(inputMap);
+}
+
 TEST_SUITE(InputMapTest,
            testInit,
            testKeyboardBindings,
@@ -611,4 +800,7 @@ TEST_SUITE(InputMapTest,
            testButtonBindings,
            testAxisBindings,
            testSerialization,
-           testDeserialization)
+           testDeserialization,
+           testUnbindAllInputsForAction,
+           testUnbindAllInputsOnDeviceForAction,
+           testUnbindAllActionsForInput)

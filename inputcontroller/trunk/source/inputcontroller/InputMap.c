@@ -78,7 +78,6 @@ bool InputMap_loadSerializedData(InputMap * self, compat_type(DeserializationCon
 		context->beginStructure(context, NULL);
 		keyboardBindings[bindingIndex].actionID = Atom_fromString(context->readString(context, "action"));
 		keyboardBindings[bindingIndex].keyCode = context->readUInt32(context, "key_code");
-		keyboardBindings[bindingIndex].charCode = context->readUInt32(context, "char_code");
 		context->endStructure(context);
 	}
 	context->endArray(context);
@@ -143,7 +142,6 @@ void InputMap_serialize(InputMap * self, compat_type(SerializationContext *) ser
 		context->beginStructure(context, NULL);
 		context->writeString(context, "action", self->keyboardBindings[bindingIndex].actionID);
 		context->writeUInt32(context, "key_code", self->keyboardBindings[bindingIndex].keyCode);
-		context->writeUInt32(context, "char_code", self->keyboardBindings[bindingIndex].charCode);
 		context->endStructure(context);
 	}
 	context->endArray(context);
@@ -184,36 +182,6 @@ bool InputMap_isKeyBound(InputMap * self, Atom actionID, unsigned int keyCode) {
 	return false;
 }
 
-void InputMap_bindKey(InputMap * self, Atom actionID, unsigned int keyCode, unsigned int charCode) {
-	unsigned int bindingIndex;
-	
-	for (bindingIndex = 0; bindingIndex < self->keyboardBindingCount; bindingIndex++) {
-		if (self->keyboardBindings[bindingIndex].actionID == actionID && self->keyboardBindings[bindingIndex].keyCode == keyCode) {
-			self->keyboardBindings[bindingIndex].charCode = charCode;
-			return;
-		}
-	}
-	self->keyboardBindings = realloc(self->keyboardBindings, sizeof(struct InputMap_keyboardBinding) * (self->keyboardBindingCount + 1));
-	self->keyboardBindings[self->keyboardBindingCount].actionID = actionID;
-	self->keyboardBindings[self->keyboardBindingCount].charCode = charCode;
-	self->keyboardBindings[self->keyboardBindingCount].keyCode = keyCode;
-	self->keyboardBindingCount++;
-}
-
-void InputMap_unbindKey(InputMap * self, Atom actionID, unsigned int keyCode) {
-	unsigned int bindingIndex;
-	
-	for (bindingIndex = 0; bindingIndex < self->keyboardBindingCount; bindingIndex++) {
-		if (self->keyboardBindings[bindingIndex].actionID == actionID && self->keyboardBindings[bindingIndex].keyCode == keyCode) {
-			self->keyboardBindingCount--;
-			for (; bindingIndex < self->keyboardBindingCount; bindingIndex++) {
-				self->keyboardBindings[bindingIndex] = self->keyboardBindings[bindingIndex + 1];
-			}
-			break;
-		}
-	}
-}
-
 bool InputMap_isKeyModifierBound(InputMap * self, Atom actionID, int modifierBit) {
 	unsigned int bindingIndex;
 	
@@ -223,34 +191,6 @@ bool InputMap_isKeyModifierBound(InputMap * self, Atom actionID, int modifierBit
 		}
 	}
 	return false;
-}
-
-void InputMap_bindKeyModifier(InputMap * self, Atom actionID, int modifierBit) {
-	unsigned int bindingIndex;
-	
-	for (bindingIndex = 0; bindingIndex < self->keyModifierBindingCount; bindingIndex++) {
-		if (self->keyModifierBindings[bindingIndex].actionID == actionID && self->keyModifierBindings[bindingIndex].modifierBit == modifierBit) {
-			return;
-		}
-	}
-	self->keyModifierBindings = realloc(self->keyModifierBindings, sizeof(struct InputMap_keyModifierBinding) * (self->keyModifierBindingCount + 1));
-	self->keyModifierBindings[self->keyModifierBindingCount].actionID = actionID;
-	self->keyModifierBindings[self->keyModifierBindingCount].modifierBit = modifierBit;
-	self->keyModifierBindingCount++;
-}
-
-void InputMap_unbindKeyModifier(InputMap * self, Atom actionID, int modifierBit) {
-	unsigned int bindingIndex;
-	
-	for (bindingIndex = 0; bindingIndex < self->keyModifierBindingCount; bindingIndex++) {
-		if (self->keyModifierBindings[bindingIndex].actionID == actionID && self->keyModifierBindings[bindingIndex].modifierBit == modifierBit) {
-			self->keyModifierBindingCount--;
-			for (; bindingIndex < self->keyModifierBindingCount; bindingIndex++) {
-				self->keyModifierBindings[bindingIndex] = self->keyModifierBindings[bindingIndex + 1];
-			}
-			break;
-		}
-	}
 }
 
 bool InputMap_isButtonBound(InputMap * self, Atom actionID, int vendorID, int productID, unsigned int buttonID) {
@@ -266,6 +206,49 @@ bool InputMap_isButtonBound(InputMap * self, Atom actionID, int vendorID, int pr
 		}
 	}
 	return false;
+}
+
+bool InputMap_isAxisBound(InputMap * self, Atom actionID, int vendorID, int productID, unsigned int axisID) {
+	unsigned int gamepadIndex, bindingIndex;
+	
+	for (gamepadIndex = 0; gamepadIndex < self->gamepadMapCount; gamepadIndex++) {
+		if (self->gamepadMaps[gamepadIndex].vendorID == vendorID && self->gamepadMaps[gamepadIndex].productID == productID) {
+			for (bindingIndex = 0; bindingIndex < self->gamepadMaps[gamepadIndex].axisBindingCount; bindingIndex++) {
+				if (self->gamepadMaps[gamepadIndex].axisBindings[bindingIndex].actionID == actionID && self->gamepadMaps[gamepadIndex].axisBindings[bindingIndex].axisID == axisID) {
+					return true;
+				}
+			}
+		}
+	}
+	return false;
+}
+
+void InputMap_bindKey(InputMap * self, Atom actionID, unsigned int keyCode) {
+	unsigned int bindingIndex;
+	
+	for (bindingIndex = 0; bindingIndex < self->keyboardBindingCount; bindingIndex++) {
+		if (self->keyboardBindings[bindingIndex].actionID == actionID && self->keyboardBindings[bindingIndex].keyCode == keyCode) {
+			return;
+		}
+	}
+	self->keyboardBindings = realloc(self->keyboardBindings, sizeof(struct InputMap_keyboardBinding) * (self->keyboardBindingCount + 1));
+	self->keyboardBindings[self->keyboardBindingCount].actionID = actionID;
+	self->keyboardBindings[self->keyboardBindingCount].keyCode = keyCode;
+	self->keyboardBindingCount++;
+}
+
+void InputMap_bindKeyModifier(InputMap * self, Atom actionID, int modifierBit) {
+	unsigned int bindingIndex;
+	
+	for (bindingIndex = 0; bindingIndex < self->keyModifierBindingCount; bindingIndex++) {
+		if (self->keyModifierBindings[bindingIndex].actionID == actionID && self->keyModifierBindings[bindingIndex].modifierBit == modifierBit) {
+			return;
+		}
+	}
+	self->keyModifierBindings = realloc(self->keyModifierBindings, sizeof(struct InputMap_keyModifierBinding) * (self->keyModifierBindingCount + 1));
+	self->keyModifierBindings[self->keyModifierBindingCount].actionID = actionID;
+	self->keyModifierBindings[self->keyModifierBindingCount].modifierBit = modifierBit;
+	self->keyModifierBindingCount++;
 }
 
 void InputMap_bindButton(InputMap * self, Atom actionID, int vendorID, int productID, unsigned int buttonID) {
@@ -296,39 +279,6 @@ void InputMap_bindButton(InputMap * self, Atom actionID, int vendorID, int produ
 	self->gamepadMaps[self->gamepadMapCount].axisBindingCount = 0;
 	self->gamepadMaps[self->gamepadMapCount].axisBindings = NULL;
 	self->gamepadMapCount++;
-}
-
-void InputMap_unbindButton(InputMap * self, Atom actionID, int vendorID, int productID, unsigned int buttonID) {
-	unsigned int gamepadIndex, bindingIndex;
-	
-	for (gamepadIndex = 0; gamepadIndex < self->gamepadMapCount; gamepadIndex++) {
-		if (self->gamepadMaps[gamepadIndex].vendorID == vendorID && self->gamepadMaps[gamepadIndex].productID == productID) {
-			for (bindingIndex = 0; bindingIndex < self->gamepadMaps[gamepadIndex].buttonBindingCount; bindingIndex++) {
-				if (self->gamepadMaps[gamepadIndex].buttonBindings[bindingIndex].actionID == actionID && self->gamepadMaps[gamepadIndex].buttonBindings[bindingIndex].buttonID == buttonID) {
-					self->gamepadMaps[gamepadIndex].buttonBindingCount--;
-					for (; bindingIndex < self->gamepadMaps[gamepadIndex].buttonBindingCount; bindingIndex++) {
-						self->gamepadMaps[gamepadIndex].buttonBindings[bindingIndex] = self->gamepadMaps[gamepadIndex].buttonBindings[bindingIndex + 1];
-					}
-					return;
-				}
-			}
-		}
-	}
-}
-
-bool InputMap_isAxisBound(InputMap * self, Atom actionID, int vendorID, int productID, unsigned int axisID) {
-	unsigned int gamepadIndex, bindingIndex;
-	
-	for (gamepadIndex = 0; gamepadIndex < self->gamepadMapCount; gamepadIndex++) {
-		if (self->gamepadMaps[gamepadIndex].vendorID == vendorID && self->gamepadMaps[gamepadIndex].productID == productID) {
-			for (bindingIndex = 0; bindingIndex < self->gamepadMaps[gamepadIndex].axisBindingCount; bindingIndex++) {
-				if (self->gamepadMaps[gamepadIndex].axisBindings[bindingIndex].actionID == actionID && self->gamepadMaps[gamepadIndex].axisBindings[bindingIndex].axisID == axisID) {
-					return true;
-				}
-			}
-		}
-	}
-	return false;
 }
 
 void InputMap_bindAxis(InputMap * self, Atom actionID, int vendorID, int productID, unsigned int axisID, float triggerThreshold, float releaseThreshold) {
@@ -367,6 +317,72 @@ void InputMap_bindAxis(InputMap * self, Atom actionID, int vendorID, int product
 	self->gamepadMapCount++;
 }
 
+static void removeKeyBinding(InputMap * self, unsigned int bindingIndex) {
+	self->keyboardBindingCount--;
+	for (; bindingIndex < self->keyboardBindingCount; bindingIndex++) {
+		self->keyboardBindings[bindingIndex] = self->keyboardBindings[bindingIndex + 1];
+	}
+}
+
+static void removeKeyModifierBinding(InputMap * self, unsigned int bindingIndex) {
+	self->keyModifierBindingCount--;
+	for (; bindingIndex < self->keyModifierBindingCount; bindingIndex++) {
+		self->keyModifierBindings[bindingIndex] = self->keyModifierBindings[bindingIndex + 1];
+	}
+}
+
+static void removeButtonBinding(InputMap * self, unsigned int gamepadIndex, unsigned int bindingIndex) {
+	self->gamepadMaps[gamepadIndex].buttonBindingCount--;
+	for (; bindingIndex < self->gamepadMaps[gamepadIndex].buttonBindingCount; bindingIndex++) {
+		self->gamepadMaps[gamepadIndex].buttonBindings[bindingIndex] = self->gamepadMaps[gamepadIndex].buttonBindings[bindingIndex + 1];
+	}
+}
+
+static void removeAxisBinding(InputMap * self, unsigned int gamepadIndex, unsigned int bindingIndex) {
+	self->gamepadMaps[gamepadIndex].axisBindingCount--;
+	for (; bindingIndex < self->gamepadMaps[gamepadIndex].axisBindingCount; bindingIndex++) {
+		self->gamepadMaps[gamepadIndex].axisBindings[bindingIndex] = self->gamepadMaps[gamepadIndex].axisBindings[bindingIndex + 1];
+	}
+}
+
+void InputMap_unbindKey(InputMap * self, Atom actionID, unsigned int keyCode) {
+	unsigned int bindingIndex;
+	
+	for (bindingIndex = 0; bindingIndex < self->keyboardBindingCount; bindingIndex++) {
+		if (self->keyboardBindings[bindingIndex].actionID == actionID && self->keyboardBindings[bindingIndex].keyCode == keyCode) {
+			removeKeyBinding(self, bindingIndex);
+			break;
+		}
+	}
+}
+
+void InputMap_unbindKeyModifier(InputMap * self, Atom actionID, int modifierBit) {
+	unsigned int bindingIndex;
+	
+	for (bindingIndex = 0; bindingIndex < self->keyModifierBindingCount; bindingIndex++) {
+		if (self->keyModifierBindings[bindingIndex].actionID == actionID && self->keyModifierBindings[bindingIndex].modifierBit == modifierBit) {
+			removeKeyModifierBinding(self, bindingIndex);
+			break;
+		}
+	}
+}
+
+void InputMap_unbindButton(InputMap * self, Atom actionID, int vendorID, int productID, unsigned int buttonID) {
+	unsigned int gamepadIndex, bindingIndex;
+	
+	for (gamepadIndex = 0; gamepadIndex < self->gamepadMapCount; gamepadIndex++) {
+		if (self->gamepadMaps[gamepadIndex].vendorID == vendorID && self->gamepadMaps[gamepadIndex].productID == productID) {
+			for (bindingIndex = 0; bindingIndex < self->gamepadMaps[gamepadIndex].buttonBindingCount; bindingIndex++) {
+				if (self->gamepadMaps[gamepadIndex].buttonBindings[bindingIndex].actionID == actionID && self->gamepadMaps[gamepadIndex].buttonBindings[bindingIndex].buttonID == buttonID) {
+					removeButtonBinding(self, gamepadIndex, bindingIndex);
+					return;
+				}
+			}
+			return;
+		}
+	}
+}
+
 void InputMap_unbindAxis(InputMap * self, Atom actionID, int vendorID, int productID, unsigned int axisID) {
 	unsigned int gamepadIndex, bindingIndex;
 	
@@ -374,11 +390,142 @@ void InputMap_unbindAxis(InputMap * self, Atom actionID, int vendorID, int produ
 		if (self->gamepadMaps[gamepadIndex].vendorID == vendorID && self->gamepadMaps[gamepadIndex].productID == productID) {
 			for (bindingIndex = 0; bindingIndex < self->gamepadMaps[gamepadIndex].axisBindingCount; bindingIndex++) {
 				if (self->gamepadMaps[gamepadIndex].axisBindings[bindingIndex].actionID == actionID && self->gamepadMaps[gamepadIndex].axisBindings[bindingIndex].axisID == axisID) {
-					self->gamepadMaps[gamepadIndex].axisBindingCount--;
-					for (; bindingIndex < self->gamepadMaps[gamepadIndex].axisBindingCount; bindingIndex++) {
-						self->gamepadMaps[gamepadIndex].axisBindings[bindingIndex] = self->gamepadMaps[gamepadIndex].axisBindings[bindingIndex + 1];
-					}
+					removeAxisBinding(self, gamepadIndex, bindingIndex);
 					return;
+				}
+			}
+			return;
+		}
+	}
+}
+
+void InputMap_unbindAllKeysForAction(InputMap * self, Atom actionID) {
+	unsigned int bindingIndex;
+	
+	for (bindingIndex = 0; bindingIndex < self->keyboardBindingCount; bindingIndex++) {
+		if (self->keyboardBindings[bindingIndex].actionID == actionID) {
+			removeKeyBinding(self, bindingIndex);
+			bindingIndex--;
+		}
+	}
+}
+
+void InputMap_unbindAllKeyModifiersForAction(InputMap * self, Atom actionID) {
+	unsigned int bindingIndex;
+	
+	for (bindingIndex = 0; bindingIndex < self->keyModifierBindingCount; bindingIndex++) {
+		if (self->keyModifierBindings[bindingIndex].actionID == actionID) {
+			removeKeyModifierBinding(self, bindingIndex);
+			bindingIndex--;
+		}
+	}
+}
+
+void InputMap_unbindAllButtonsForAction(InputMap * self, Atom actionID) {
+	unsigned int gamepadIndex, bindingIndex;
+	
+	for (gamepadIndex = 0; gamepadIndex < self->gamepadMapCount; gamepadIndex++) {
+		for (bindingIndex = 0; bindingIndex < self->gamepadMaps[gamepadIndex].buttonBindingCount; bindingIndex++) {
+			if (self->gamepadMaps[gamepadIndex].buttonBindings[bindingIndex].actionID == actionID) {
+				removeButtonBinding(self, gamepadIndex, bindingIndex);
+				bindingIndex--;
+			}
+		}
+	}
+}
+
+void InputMap_unbindAllAxesForAction(InputMap * self, Atom actionID) {
+	unsigned int gamepadIndex, bindingIndex;
+	
+	for (gamepadIndex = 0; gamepadIndex < self->gamepadMapCount; gamepadIndex++) {
+		for (bindingIndex = 0; bindingIndex < self->gamepadMaps[gamepadIndex].axisBindingCount; bindingIndex++) {
+			if (self->gamepadMaps[gamepadIndex].axisBindings[bindingIndex].actionID == actionID) {
+				removeAxisBinding(self, gamepadIndex, bindingIndex);
+				bindingIndex--;
+			}
+		}
+	}
+}
+
+void InputMap_unbindAllButtonsOnDeviceForAction(InputMap * self, int vendorID, int productID, Atom actionID) {
+	unsigned int gamepadIndex, bindingIndex;
+	
+	for (gamepadIndex = 0; gamepadIndex < self->gamepadMapCount; gamepadIndex++) {
+		if (self->gamepadMaps[gamepadIndex].vendorID == vendorID && self->gamepadMaps[gamepadIndex].productID == productID) {
+			for (bindingIndex = 0; bindingIndex < self->gamepadMaps[gamepadIndex].buttonBindingCount; bindingIndex++) {
+				if (self->gamepadMaps[gamepadIndex].buttonBindings[bindingIndex].actionID == actionID) {
+					removeButtonBinding(self, gamepadIndex, bindingIndex);
+					bindingIndex--;
+				}
+			}
+			return;
+		}
+	}
+}
+
+void InputMap_unbindAllAxesOnDeviceForAction(InputMap * self, int vendorID, int productID, Atom actionID) {
+	unsigned int gamepadIndex, bindingIndex;
+	
+	for (gamepadIndex = 0; gamepadIndex < self->gamepadMapCount; gamepadIndex++) {
+		if (self->gamepadMaps[gamepadIndex].vendorID == vendorID && self->gamepadMaps[gamepadIndex].productID == productID) {
+			for (bindingIndex = 0; bindingIndex < self->gamepadMaps[gamepadIndex].axisBindingCount; bindingIndex++) {
+				if (self->gamepadMaps[gamepadIndex].axisBindings[bindingIndex].actionID == actionID) {
+					removeAxisBinding(self, gamepadIndex, bindingIndex);
+					bindingIndex--;
+				}
+			}
+			return;
+		}
+	}
+}
+
+void InputMap_unbindAllActionsForKey(InputMap * self, unsigned int keyCode) {
+	unsigned int bindingIndex;
+	
+	for (bindingIndex = 0; bindingIndex < self->keyboardBindingCount; bindingIndex++) {
+		if (self->keyboardBindings[bindingIndex].keyCode == keyCode) {
+			removeKeyBinding(self, bindingIndex);
+			bindingIndex--;
+		}
+	}
+}
+
+void InputMap_unbindAllActionsForKeyModifier(InputMap * self, int modifierBit) {
+	unsigned int bindingIndex;
+	
+	for (bindingIndex = 0; bindingIndex < self->keyModifierBindingCount; bindingIndex++) {
+		if (self->keyModifierBindings[bindingIndex].modifierBit == modifierBit) {
+			removeKeyModifierBinding(self, bindingIndex);
+			bindingIndex--;
+		}
+	}
+}
+
+void InputMap_unbindAllActionsForButton(InputMap * self, int vendorID, int productID, unsigned int buttonID) {
+	unsigned int gamepadIndex, bindingIndex;
+	
+	for (gamepadIndex = 0; gamepadIndex < self->gamepadMapCount; gamepadIndex++) {
+		if (self->gamepadMaps[gamepadIndex].vendorID == vendorID && self->gamepadMaps[gamepadIndex].productID == productID) {
+			for (bindingIndex = 0; bindingIndex < self->gamepadMaps[gamepadIndex].buttonBindingCount; bindingIndex++) {
+				if (self->gamepadMaps[gamepadIndex].buttonBindings[bindingIndex].buttonID == buttonID) {
+					removeButtonBinding(self, gamepadIndex, bindingIndex);
+					bindingIndex--;
+				}
+			}
+			return;
+		}
+	}
+}
+
+void InputMap_unbindAllActionsForAxis(InputMap * self, int vendorID, int productID, unsigned int axisID, bool positive) {
+	unsigned int gamepadIndex, bindingIndex;
+	
+	for (gamepadIndex = 0; gamepadIndex < self->gamepadMapCount; gamepadIndex++) {
+		if (self->gamepadMaps[gamepadIndex].vendorID == vendorID && self->gamepadMaps[gamepadIndex].productID == productID) {
+			for (bindingIndex = 0; bindingIndex < self->gamepadMaps[gamepadIndex].axisBindingCount; bindingIndex++) {
+				if (self->gamepadMaps[gamepadIndex].axisBindings[bindingIndex].axisID == axisID && self->gamepadMaps[gamepadIndex].axisBindings[bindingIndex].triggerThreshold > 0.0f == positive) {
+					removeAxisBinding(self, gamepadIndex, bindingIndex);
+					bindingIndex--;
 				}
 			}
 			return;

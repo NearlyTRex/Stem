@@ -100,8 +100,8 @@ static void testKeyboardBindings() {
 	inputController = InputController_create(inputMap, "a", "b", NULL);
 	EventDispatcher_registerForEvent(inputController->eventDispatcher, ATOM(INPUT_CONTROLLER_EVENT_ACTION_DOWN), actionDown, NULL);
 	EventDispatcher_registerForEvent(inputController->eventDispatcher, ATOM(INPUT_CONTROLLER_EVENT_ACTION_UP), actionUp, NULL);
-	InputMap_bindKey(inputMap, ATOM("a"), 1, 0);
-	InputMap_bindKey(inputMap, ATOM("b"), 2, 0);
+	InputMap_bindKey(inputMap, ATOM("a"), 1);
+	InputMap_bindKey(inputMap, ATOM("b"), 2);
 	
 	lastActionID = NULL;
 	InputController_keyDown(inputController, 1);
