@@ -194,6 +194,9 @@ float GLBitmapFont_measureString(GLBitmapFont * self, const char * string, size_
 	float width = 0.0f;
 	unsigned int charIndex, kernCharIndex;
 	
+	if (length == GLBITMAPFONT_USE_STRLEN) {
+		length = strlen(string);
+	}
 	for (charIndex = 0; charIndex < length; charIndex++) {
 		if (string[charIndex] >= GLBITMAPFONT_PRINTABLE_MIN && string[charIndex] <= GLBITMAPFONT_PRINTABLE_MAX) {
 			width += self->characters[string[charIndex] - GLBITMAPFONT_PRINTABLE_MIN].advance;
@@ -214,6 +217,9 @@ size_t GLBitmapFont_indexAtWidth(GLBitmapFont * self, const char * string, size_
 	float totalWidth = 0.0f, charWidth, halfKernOffset = 0.0f;
 	size_t charIndex, kernCharIndex;
 	
+	if (length == GLBITMAPFONT_USE_STRLEN) {
+		length = strlen(string);
+	}
 	for (charIndex = 0; charIndex < length; charIndex++) {
 		if (string[charIndex] >= GLBITMAPFONT_PRINTABLE_MIN && string[charIndex] <= GLBITMAPFONT_PRINTABLE_MAX) {
 			charWidth = self->characters[string[charIndex] - GLBITMAPFONT_PRINTABLE_MIN].advance + halfKernOffset;

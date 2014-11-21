@@ -1,10 +1,11 @@
-2.0.0 (2014-11-12)
+2.0.0 (2014-11-20)
  * GLBitmapFont's texture coordinate storage has been superseded by GLTextureAtlas. Instead of texture coordinates, GLBitmapFont now stores a key for atlas lookup.
  * References to texture have been renamed/repurposed to refer to a texture atlas instead.
  * drawString has been replaced by getStringVertices/getStringVerticesWithColor.
  * GLFont was unnecessary and no longer exists. GLBitmapFont now inherits directly from StemObject.
  * convertfontunits is obsolete and has been removed.
  * In preparation for stemobject 4.0.0, instance methods no longer exist as struct fields. Instead of calling instance->method(instance, ...), call GLBitmapFont_method(instance, ...).
+ * GLBitmapFont functions that take a length parameter can now accept GLBITMAPFONT_USE_STRLEN instead of an explicit length
 
 1.0.4 (2014-06-30)
  * Added support for modern Xcode/iOS SDK versions
