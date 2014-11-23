@@ -123,13 +123,13 @@ void Shell_setVSync(bool sync, bool fullscreen);
     bytes will be written to outFilePath. If the user cancels the dialog, false is returned, and the
     contents of outFilePath are undefined. basePath can optionally be used to specify the starting directory
     for the dialog. */
-bool Shell_openFileDialog(const char * basePath, char * outFilePath, size_t maxLength);
+bool Shell_openFileDialog(const char * basePath, char * outFilePath, unsigned int maxLength);
 
 /** Shows a modal Save File dialog, returning the chosen file path in outFilePath. No more than maxLength
     bytes will be written to outFilePath. If the user cancels the dialog, false is returned, and the
     contents of outFilePath are undefined. basePath can optionally be used to specify the starting directory
     for the dialog. baseName can optionally be used to set a default name for the file to be saved. */
-bool Shell_saveFileDialog(const char * basePath, const char * baseName, char * outFilePath, size_t maxLength);
+bool Shell_saveFileDialog(const char * basePath, const char * baseName, char * outFilePath, unsigned int maxLength);
 
 #ifdef __cplusplus
 }
