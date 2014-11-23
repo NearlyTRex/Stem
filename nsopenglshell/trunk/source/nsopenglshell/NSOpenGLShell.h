@@ -46,10 +46,6 @@ enum NSOpenGLShellCursor {
 	NSOpenGLShellCursor_operationNotAllowed
 };
 
-// Enables/disables vsync for the display mode specified by fullscreen.
-// Defaults: Enabled for both windowed and fullscreen mode.
-void NSOpenGLShell_setVSync(bool sync, bool fullscreen);
-
 #ifdef __cplusplus
 }
 #endif

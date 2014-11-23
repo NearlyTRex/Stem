@@ -94,6 +94,7 @@ static bool cursorHiddenByHide = false;
 static unsigned int nextTimerID;
 static size_t timerCount;
 static struct NSOpenGLShellTimer * timers;
+static unsigned int lastFullScreenDisplayIndex;
 
 #if !USE_NSTIMER
 
@@ -175,6 +176,7 @@ bool Shell_enterFullScreen(unsigned int displayIndex) {
 	if (displayIndex >= [[NSScreen screens] count]) {
 		displayIndex = Shell_getDisplayIndexFromWindow();
 	}
+	lastFullScreenDisplayIndex = displayIndex;
 	return [[(NSOpenGLShellApplication *) [NSApplication sharedApplication] view] enterFullScreen: [[NSScreen screens] objectAtIndex: displayIndex]];
 }
 
@@ -565,6 +567,56 @@ bool Shell_tryWaitSemaphore(ShellSemaphore semaphore) {
 	return !sem_trywait((sem_t *) semaphore);
 }
 
-void NSOpenGLShell_setVSync(bool sync, bool fullscreen) {
+void Shell_setVSync(bool sync, bool fullscreen) {
 	[[(NSOpenGLShellApplication *) [NSApplication sharedApplication] view] setVSync: sync forFullscreen: fullscreen];
+}
+
+bool Shell_openFileDialog(const char * basePath, char * outFilePath) {
+	bool wasFullScreen = Shell_isFullScreen();
+	if (wasFullScreen) {
+		Shell_exitFullScreen();
+	}
+	
+	NSOpenPanel * openPanel = [NSOpenPanel openPanel];
+	if (basePath != NULL) {
+		[openPanel setDirectoryURL: [NSURL fileURLWithPath: [NSString stringWithUTF8String: basePath]]];
+	}
+	
+	NSInteger result = [openPanel runModal];
+	if (wasFullScreen) {
+		Shell_enterFullScreen(lastFullScreenDisplayIndex);
+	}
+	if (result == NSFileHandlingPanelOKButton) {
+		strncpy(outFilePath, [[[openPanel URLs] objectAtIndex: 0] fileSystemRepresentation], PATH_MAX);
+		return true;
+	}
+	return false;
+}
+
+bool Shell_saveFileDialog(const char * basePath, const char * baseName, char * outFilePath) {
+	bool wasFullScreen = Shell_isFullScreen();
+	if (wasFullScreen) {
+		Shell_exitFullScreen();
+	}
+	
+	NSSavePanel * savePanel = [NSSavePanel savePanel];
+	if ([savePanel respondsToSelector: @selector(setShowsTagField:)]) {
+		[savePanel setShowsTagField: NO];
+	}
+	if (basePath != NULL) {
+		[savePanel setDirectoryURL: [NSURL fileURLWithPath: [NSString stringWithUTF8String: basePath]]];
+	}
+	if (baseName != NULL) {
+		[savePanel setNameFieldStringValue: [NSString stringWithUTF8String: baseName]];
+	}
+	
+	NSInteger result = [savePanel runModal];
+	if (wasFullScreen) {
+		Shell_enterFullScreen(lastFullScreenDisplayIndex);
+	}
+	if (result == NSFileHandlingPanelOKButton) {
+		strncpy(outFilePath, [[savePanel URL] fileSystemRepresentation], PATH_MAX);
+		return true;
+	}
+	return false;
 }

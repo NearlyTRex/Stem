@@ -85,8 +85,8 @@ LINK_ORDER = \
 
 PROJECT_LIBRARY_DEPENDENCIES_testharness = library
 STEM_LIBRARY_DEPENDENCIES = \
-	glgraphics/1.2.2_noglew \
-	shell/2.0.0
+	glgraphics/1.3.1_noglew \
+	shell/2.1.0
 THIRDPARTY_LIBRARY_DEPENDENCIES = 
 
 #Per-target source file lists

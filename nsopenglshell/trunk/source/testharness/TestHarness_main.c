@@ -175,8 +175,30 @@ static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned
 			syncWindow = !syncWindow;
 			sync = syncWindow;
 		}
-		NSOpenGLShell_setVSync(sync, fullscreen);
-		printf("GLUTShell_setVSync(%s, %s)\n", sync ? "true" : "false", fullscreen ? "true" : "false");
+		Shell_setVSync(sync, fullscreen);
+		printf("Shell_setVSync(%s, %s)\n", sync ? "true" : "false", fullscreen ? "true" : "false");
+		
+	} else if (keyCode == KEYBOARD_O) {
+		char filePath[PATH_MAX];
+		bool success;
+		
+		success = Shell_openFileDialog(NULL, filePath);
+		if (success) {
+			printf("Shell_openFileDialog returned true with path \"%s\"\n", filePath);
+		} else {
+			printf("Shell_openFileDialog returned false\n");
+		}
+		
+	} else if (keyCode == KEYBOARD_P) {
+		char filePath[PATH_MAX];
+		bool success;
+		
+		success = Shell_saveFileDialog(NULL, NULL, filePath);
+		if (success) {
+			printf("Shell_saveFileDialog returned true with path \"%s\"\n", filePath);
+		} else {
+			printf("Shell_saveFileDialog returned false\n");
+		}
 		
 	} else if (keyCode == KEYBOARD_COMMA) {
 		if (timer1ID == UINT_MAX) {
