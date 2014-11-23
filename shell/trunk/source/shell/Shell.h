@@ -115,6 +115,22 @@ void Shell_setMouseDeltaMode(bool deltaMode);
 /** Opens the specified URL string in the user's default web browser. */
 void Shell_openURL(const char * url);
 
+/** Enables or disables vsync for the display mode specified by fullscreen. If the application is not
+    currently in the specified display mode, the change will be applied next time the mode is changed. */
+void Shell_setVSync(bool sync, bool fullscreen);
+
+/** Shows a modal Open File dialog, returning the chosen file path in outFilePath, which must be at least
+    PATH_MAX in size to safely accept any path. If the user cancels the dialog, false is returned and
+    outFilePath is not modified. basePath can optionally be used to specify the starting directory for
+    the dialog. */
+bool Shell_openFileDialog(const char * basePath, char * outFilePath);
+
+/** Shows a modal Save File dialog, returning the chosen file path in outFilePath, which must be at least
+    PATH_MAX in size to safely accept any path. If the user cancels the dialog, false is returned and
+    outFilePath is not modified. basePath can optionally be used to specify the starting directory for
+    the dialog. baseName can optionally be used to set a default name for the file to be saved. */
+bool Shell_saveFileDialog(const char * basePath, const char * baseName, char * outFilePath);
+
 #ifdef __cplusplus
 }
 #endif
