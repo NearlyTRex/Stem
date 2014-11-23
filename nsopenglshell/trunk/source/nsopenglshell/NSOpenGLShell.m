@@ -571,7 +571,7 @@ void Shell_setVSync(bool sync, bool fullscreen) {
 	[[(NSOpenGLShellApplication *) [NSApplication sharedApplication] view] setVSync: sync forFullscreen: fullscreen];
 }
 
-bool Shell_openFileDialog(const char * basePath, char * outFilePath) {
+bool Shell_openFileDialog(const char * basePath, char * outFilePath, unsigned int maxLength) {
 	bool wasFullScreen = Shell_isFullScreen();
 	if (wasFullScreen) {
 		Shell_exitFullScreen();
@@ -587,13 +587,13 @@ bool Shell_openFileDialog(const char * basePath, char * outFilePath) {
 		Shell_enterFullScreen(lastFullScreenDisplayIndex);
 	}
 	if (result == NSFileHandlingPanelOKButton) {
-		strncpy(outFilePath, [[[openPanel URLs] objectAtIndex: 0] fileSystemRepresentation], PATH_MAX);
+		strncpy(outFilePath, [[[openPanel URLs] objectAtIndex: 0] fileSystemRepresentation], maxLength);
 		return true;
 	}
 	return false;
 }
 
-bool Shell_saveFileDialog(const char * basePath, const char * baseName, char * outFilePath) {
+bool Shell_saveFileDialog(const char * basePath, const char * baseName, char * outFilePath, unsigned int maxLength) {
 	bool wasFullScreen = Shell_isFullScreen();
 	if (wasFullScreen) {
 		Shell_exitFullScreen();
@@ -615,7 +615,7 @@ bool Shell_saveFileDialog(const char * basePath, const char * baseName, char * o
 		Shell_enterFullScreen(lastFullScreenDisplayIndex);
 	}
 	if (result == NSFileHandlingPanelOKButton) {
-		strncpy(outFilePath, [[savePanel URL] fileSystemRepresentation], PATH_MAX);
+		strncpy(outFilePath, [[savePanel URL] fileSystemRepresentation], maxLength);
 		return true;
 	}
 	return false;

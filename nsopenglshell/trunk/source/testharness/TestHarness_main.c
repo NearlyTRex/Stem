@@ -182,7 +182,7 @@ static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned
 		char filePath[PATH_MAX];
 		bool success;
 		
-		success = Shell_openFileDialog(NULL, filePath);
+		success = Shell_openFileDialog(NULL, filePath, PATH_MAX);
 		if (success) {
 			printf("Shell_openFileDialog returned true with path \"%s\"\n", filePath);
 		} else {
@@ -193,7 +193,7 @@ static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned
 		char filePath[PATH_MAX];
 		bool success;
 		
-		success = Shell_saveFileDialog(NULL, NULL, filePath);
+		success = Shell_saveFileDialog(NULL, NULL, filePath, PATH_MAX);
 		if (success) {
 			printf("Shell_saveFileDialog returned true with path \"%s\"\n", filePath);
 		} else {
