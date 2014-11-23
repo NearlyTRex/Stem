@@ -41,10 +41,6 @@ enum WGLShellCursor {
 	WGLShellCursor_upArrow            // IDC_UPARROW
 };
 
-// Enables/disables vsync for the display mode specified by fullscreen.
-// Defaults: Enabled for both windowed and fullscreen mode.
-void WGLShell_setVSync(bool sync, bool fullscreen);
-
 // Causes all data subsequently written to stdout to be directed into the file
 // specified by path. Primarily for debugging 64-bit applications where building
 // with -mwindows is required.

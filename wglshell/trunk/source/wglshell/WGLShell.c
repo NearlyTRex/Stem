@@ -38,6 +38,7 @@
 #include <windowsx.h>
 #include <shellapi.h>
 #include <PowrProf.h>
+#include <commdlg.h>
 
 struct WGLShellTimer {
 	double interval;
@@ -589,7 +590,7 @@ bool Shell_tryWaitSemaphore(ShellSemaphore semaphore) {
 	return WaitForSingleObject(semaphore, 0) != WAIT_TIMEOUT;
 }
 
-void WGLShell_setVSync(bool sync, bool fullscreen) {
+void Shell_setVSync(bool sync, bool fullscreen) {
 	if (fullscreen) {
 		vsyncFullscreen = sync;
 		if (isFullScreen) {
@@ -602,6 +603,45 @@ void WGLShell_setVSync(bool sync, bool fullscreen) {
 			setVSync(sync);
 		}
 	}
+}
+
+bool Shell_openFileDialog(const char * basePath, char * outFilePath, unsigned int maxLength) {
+	OPENFILENAME openFileName;
+	BOOL success;
+	
+	ZeroMemory(&openFileName, sizeof(openFileName));
+	openFileName.lStructSize = sizeof(openFileName);
+	openFileName.hwndOwner = window;
+	openFileName.lpstrFile = outFilePath;
+	openFileName.lpstrFile[0] = '\0';
+	openFileName.nMaxFile = maxLength;
+	openFileName.lpstrInitialDir = basePath;
+	
+	success = GetOpenFileName(&openFileName);
+	return success;
+}
+
+bool Shell_saveFileDialog(const char * basePath, const char * baseName, char * outFilePath, unsigned int maxLength) {
+	OPENFILENAME openFileName;
+	BOOL success;
+	
+	ZeroMemory(&openFileName, sizeof(openFileName));
+	openFileName.lStructSize = sizeof(openFileName);
+	openFileName.hwndOwner = window;
+	if (baseName == NULL) {
+		outFilePath[0] = '\0';
+	} else {
+		strncpy(outFilePath, baseName, maxLength);
+	}
+	openFileName.lpstrFile = outFilePath;
+	openFileName.nMaxFile = maxLength;
+	openFileName.lpstrInitialDir = basePath;
+	
+	success = GetSaveFileName(&openFileName);
+	if (baseName != NULL) {
+		free(openFileName.lpstrFileTitle);
+	}
+	return success;
 }
 
 void WGLShell_redirectStdoutToFile(const char * path) {

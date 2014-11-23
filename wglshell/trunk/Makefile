@@ -65,7 +65,7 @@ SPLINT_win32 ?= ${SPLINT_WIN_PATH}
 CLANG_win32 ?= ${CLANG_WIN_PATH}
 ARCHS_win32 ?= i386
 CCFLAGS_win32 += -DGLEW_STATIC
-LINKFLAGS_win32 += -lfreeglut32_static -lopengl32 -lglu32 -lwinmm -lgdi32 -lpowrprof
+LINKFLAGS_win32 += -lfreeglut32_static -lopengl32 -lglu32 -lwinmm -lgdi32 -lpowrprof -lcomdlg32
 EXECUTABLE_SUFFIX_win32 = .exe
 
 MINGW_W64_PATH ?= C:/MinGW-w64
@@ -77,7 +77,7 @@ SPLINT_win64 ?= ${SPLINT_WIN_PATH}
 CLANG_win64 ?= ${CLANG_WIN_PATH}
 ARCHS_win64 ?= x86_64
 CCFLAGS_win64 += -DGLEW_STATIC
-LINKFLAGS_win64 += -lfreeglut64_static -lopengl32 -lglu32 -lwinmm -lgdi32 -lpowrprof -mwindows
+LINKFLAGS_win64 += -lfreeglut64_static -lopengl32 -lglu32 -lwinmm -lgdi32 -lpowrprof -lcomdlg32 -mwindows
 EXECUTABLE_SUFFIX_win64 = .exe
 
 #General compile/link settings
@@ -100,8 +100,8 @@ LINK_ORDER = \
 
 PROJECT_LIBRARY_DEPENDENCIES_testharness = library
 STEM_LIBRARY_DEPENDENCIES = \
-	glgraphics/1.2.2 \
-	shell/2.0.0
+	glgraphics/1.3.1 \
+	shell/2.1.0
 THIRDPARTY_LIBRARY_DEPENDENCIES = glew/1.5.4/libglew.a
 
 #Per-target source file lists
