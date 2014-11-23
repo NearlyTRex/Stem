@@ -26,12 +26,6 @@
 extern "C" {
 #endif
 
-#include <stdbool.h>
-
-// Enables/disables vsync for the display mode specified by fullscreen.
-// Defaults: Enabled for fullscreen, disabled for window.
-void GLXShell_setVSync(bool sync, bool fullscreen);
-
 #ifdef __cplusplus
 }
 #endif

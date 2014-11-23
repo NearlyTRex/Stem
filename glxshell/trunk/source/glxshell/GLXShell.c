@@ -1020,7 +1020,7 @@ void Shell_setMouseDeltaMode(bool deltaMode) {
 	}
 }
 
-void GLXShell_setVSync(bool sync, bool fullscreen) {
+void Shell_setVSync(bool sync, bool fullscreen) {
 	if (fullscreen) {
 		vsyncFullscreen = sync;
 		if (inFullScreenMode) {
@@ -1035,6 +1035,88 @@ void GLXShell_setVSync(bool sync, bool fullscreen) {
 	}
 }
 
+#include <gtk/gtk.h>
+
+bool Shell_openFileDialog(const char * basePath, char * outFilePath, unsigned int maxLength) {
+	GtkWidget * dialog;
+	GtkFileChooser * chooser;
+	gint res;
+	bool success = false;
+	
+	dialog = gtk_file_chooser_dialog_new(NULL,
+	                                     NULL,
+	                                     GTK_FILE_CHOOSER_ACTION_OPEN,
+	                                     "Cancel",
+	                                     GTK_RESPONSE_CANCEL,
+	                                     "Open",
+	                                     GTK_RESPONSE_ACCEPT,
+	                                     NULL);
+	
+	chooser = GTK_FILE_CHOOSER(dialog);
+	if (basePath != NULL) {
+		gtk_file_chooser_set_current_folder(chooser, basePath);
+	}
+	
+	res = gtk_dialog_run(GTK_DIALOG(dialog));
+	printf("%d\n", res);
+	if (res == GTK_RESPONSE_ACCEPT) {
+		char * filename;
+		GtkFileChooser * chooser = GTK_FILE_CHOOSER(dialog);
+		filename = gtk_file_chooser_get_filename(chooser);
+		strncpy(outFilePath, filename, maxLength);
+		g_free(filename);
+		success = true;
+	}
+	
+	gtk_widget_destroy(dialog);
+	while (gtk_events_pending()) {
+		gtk_main_iteration();
+	}
+	return success;
+}
+
+bool Shell_saveFileDialog(const char * basePath, const char * baseName, char * outFilePath, unsigned int maxLength) {
+	GtkWidget * dialog;
+	GtkFileChooser * chooser;
+	gint res;
+	bool success = false;
+	
+	dialog = gtk_file_chooser_dialog_new(NULL,
+	                                     NULL,
+	                                     GTK_FILE_CHOOSER_ACTION_SAVE,
+	                                     "Cancel",
+	                                     GTK_RESPONSE_CANCEL,
+	                                     "Open",
+	                                     GTK_RESPONSE_ACCEPT,
+	                                     NULL);
+	
+	chooser = GTK_FILE_CHOOSER(dialog);
+	gtk_file_chooser_set_do_overwrite_confirmation(chooser, TRUE);
+	if (basePath != NULL) {
+		gtk_file_chooser_set_current_folder(chooser, basePath);
+	}
+	if (baseName != NULL) {
+		gtk_file_chooser_set_current_name(chooser, baseName);
+	}
+	
+	res = gtk_dialog_run(GTK_DIALOG(dialog));
+	printf("%d\n", res);
+	if (res == GTK_RESPONSE_ACCEPT) {
+		char * filename;
+		GtkFileChooser * chooser = GTK_FILE_CHOOSER(dialog);
+		filename = gtk_file_chooser_get_filename(chooser);
+		strncpy(outFilePath, filename, maxLength);
+		g_free(filename);
+		success = true;
+	}
+	
+	gtk_widget_destroy(dialog);
+	while (gtk_events_pending()) {
+		gtk_main_iteration();
+	}
+	return success;
+}
+	
 #ifndef SEM_VALUE_MAX
 #define SEM_VALUE_MAX 32767
 #endif
@@ -1169,6 +1251,8 @@ int main(int argc, char ** argv) {
 	XSetWindowAttributes windowAttributes;
 	int attributes[7];
 	Colormap colormap;
+	
+	gtk_init(&argc, &argv);
 	
 	display = XOpenDisplay(NULL);
 	if (display == NULL) {

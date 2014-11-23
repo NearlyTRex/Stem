@@ -60,8 +60,8 @@ RANLIB_linux32 ?= /usr/bin/ranlib
 SPLINT_linux32 ?= /usr/local/bin/splint
 CLANG_linux32 ?= /usr/local/bin/clang
 ARCHS_linux32 ?= i386
-CCFLAGS_linux32 += -m32
-LINKFLAGS_linux32 += -m32 -lrt -lpthread -lX11 -lGLU -lGL -lm
+CCFLAGS_linux32 += -m32 ${shell pkg-config --cflags gtk+-3.0}
+LINKFLAGS_linux32 += -m32 -lrt -lpthread -lX11 -lGLU -lGL -lm ${shell pkg-config --libs gtk+-3.0}
 
 CC_linux64_x86_64 ?= /usr/bin/gcc
 AR_linux64 ?= /usr/bin/ar
@@ -69,8 +69,8 @@ RANLIB_linux64 ?= /usr/bin/ranlib
 SPLINT_linux64 ?= /usr/local/bin/splint
 CLANG_linux64 ?= /usr/local/bin/clang
 ARCHS_linux64 ?= x86_64
-CCFLAGS_linux64 += -m64
-LINKFLAGS_linux64 += -m64 -lrt -lpthread -lX11 -lGLU -lGL -lm
+CCFLAGS_linux64 += -m64 ${shell pkg-config --cflags gtk+-3.0}
+LINKFLAGS_linux64 += -m64 -lrt -lpthread -lX11 -lGLU -lGL -lm ${shell pkg-config --libs gtk+-3.0}
 
 #General compile/link settings
 DEFINE_CCFLAGS = -DVERSION_MAJOR=${VERSION_MAJOR}u -DVERSION_MINOR=${VERSION_MINOR}u -DVERSION_TWEAK=${VERSION_TWEAK}u
@@ -92,8 +92,8 @@ LINK_ORDER = \
 
 PROJECT_LIBRARY_DEPENDENCIES_testharness = library
 STEM_LIBRARY_DEPENDENCIES = \
-	glgraphics/1.2.2 \
-	shell/2.0.0
+	glgraphics/1.3.1 \
+	shell/2.1.0
 THIRDPARTY_LIBRARY_DEPENDENCIES = glew/1.5.4/libglew.a
 
 #Per-target source file lists
