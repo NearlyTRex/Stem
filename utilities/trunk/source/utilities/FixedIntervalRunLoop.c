@@ -41,17 +41,22 @@ bool FixedIntervalRunLoop_init(FixedIntervalRunLoop * self, double (* timeFuncti
 	self->slop = 0.0;
 	self->tolerance = 0.0;
 	self->paused = false;
+	self->private_ivar(disposedWhileRunning) = NULL;
 	self->dispose = FixedIntervalRunLoop_dispose;
 	return true;
 }
 
 void FixedIntervalRunLoop_dispose(FixedIntervalRunLoop * self) {
+	if (self->private_ivar(disposedWhileRunning) != NULL) {
+		*self->private_ivar(disposedWhileRunning) = true;
+	}
 	call_super(dispose, self);
 }
 
 unsigned int FixedIntervalRunLoop_run(FixedIntervalRunLoop * self) {
 	double currentTime, interval;
 	unsigned int calls = 0;
+	bool disposedWhileRunning = false;
 	
 	if (self->paused) {
 		return 0;
@@ -59,21 +64,29 @@ unsigned int FixedIntervalRunLoop_run(FixedIntervalRunLoop * self) {
 	currentTime = self->timeFunction();
 	interval = (currentTime - self->lastTime) + self->slop;
 	
+	self->private_ivar(disposedWhileRunning) = &disposedWhileRunning;
 	while (interval >= self->stepInterval) {
 		if (calls == 1 && interval <= self->stepInterval + self->tolerance) {
 			break;
 		}
 		self->stepCallback(self->stepContext);
 		calls++;
+		if (disposedWhileRunning) {
+			return calls;
+		}
 		interval -= self->stepInterval;
 	}
 	if (calls == 0 && interval >= self->stepInterval - self->tolerance) {
 		self->stepCallback(self->stepContext);
 		calls++;
+		if (disposedWhileRunning) {
+			return calls;
+		}
 		interval -= self->stepInterval;
 	}
 	self->slop = interval;
 	self->lastTime = currentTime;
+	self->private_ivar(disposedWhileRunning) = NULL;
 	
 	AutoFreePool_empty();
 	

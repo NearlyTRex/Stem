@@ -39,7 +39,8 @@ typedef void (* FixedIntervalRunLoopCallback)(void * context);
 	double slop; \
 	double tolerance; \
 	bool paused; \
-	double pauseTime;
+	double pauseTime; \
+	bool * private_ivar(disposedWhileRunning);
 
 stemobject_struct_definition(FixedIntervalRunLoop)
 

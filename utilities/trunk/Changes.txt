@@ -2,6 +2,7 @@
  * Added snprintf_safe and vsnprintf_safe to IOUtilities
  * Added FixedIntervalRunLoop_setTolerance
  * FixedIntervalRunLoop_run now returns the number of times it invoked stepCallback
+ * FixedIntervalRunLoop_run now allows the run loop to be disposed from its stepCallback, and will return after the iteration that disposed it
  * Removed EventDispatcher's mostly-useless owner field and parameter, and removed sender parameter from event callbacks
  * Removed function pointers to EventDispatcher, FixedIntervalRunLoop, and Ranrot methods from their structs in preparation for stemobject 4.0.0. Call the EventDispatcher_*()/FixedIntervalRunLoop_*()/Ranrot_*() methods directly instead.
 
