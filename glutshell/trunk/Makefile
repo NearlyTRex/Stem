@@ -82,7 +82,7 @@ SPLINT_linux64 ?= /usr/local/bin/splint
 CLANG_linux64 ?= /usr/local/bin/clang
 ARCHS_linux64 ?= x86_64
 CCFLAGS_linux64 += -m64 -Wno-int-to-pointer-cast -Wno-pointer-to-int-cast -Wno-unused-result
-LINKFLAGS_linux64 += -m64 -lrt -lglut -lGLU -lGL -lm
+LINKFLAGS_linux64 += -m64 -lrt -lglut -lGLU -lGL -lm -lpthread
 
 MINGW_W32_PATH ?= C:/MinGW
 MINGW_W32_VERSION ?= 4.6.2
