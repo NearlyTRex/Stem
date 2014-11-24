@@ -56,6 +56,9 @@ void (* StubShellCallback_hideCursorUntilMouseMoves)(void * context) = NULL;
 void (* StubShellCallback_setCursor)(void * context, int cursor) = NULL;
 void (* StubShellCallback_setMouseDeltaMode)(void * context, bool deltaMode) = NULL;
 void (* StubShellCallback_openURL)(void * context, const char * url) = NULL;
+void (* StubShellCallback_setVSync)(void * context, bool sync, bool fullscreen) = NULL;
+bool (* StubShellCallback_openFileDialog)(void * context, const char * basePath, char * outFilePath, unsigned int maxLength) = NULL;
+bool (* StubShellCallback_saveFileDialog)(void * context, const char * basePath, const char * baseName, char * outFilePath, unsigned int maxLength) = NULL;
 ShellThread (* StubShellCallback_createThread)(void * context, int (* threadFunction)(void * context), void * threadContext) = NULL;
 void (* StubShellCallback_exitThread)(void * context, int statusCode) = NULL;
 int (* StubShellCallback_joinThread)(void * context, ShellThread thread) = NULL;
@@ -281,4 +284,24 @@ void Shell_unlockMutex(ShellMutex mutex) {
 	if (StubShellCallback_unlockMutex != NULL) {
 		StubShellCallback_unlockMutex(StubShell_callbackContext, mutex);
 	}
+}
+
+void Shell_setVSync(bool sync, bool fullscreen) {
+	if (StubShellCallback_setVSync != NULL) {
+		StubShellCallback_setVSync(StubShell_callbackContext, sync, fullscreen);
+	}
+}
+
+bool Shell_openFileDialog(const char * basePath, char * outFilePath, unsigned int maxLength) {
+	if (StubShellCallback_openFileDialog != NULL) {
+		return StubShellCallback_openFileDialog(StubShell_callbackContext, basePath, outFilePath, maxLength);
+	}
+	return false;
+}
+
+bool Shell_saveFileDialog(const char * basePath, const char * baseName, char * outFilePath, unsigned int maxLength) {
+	if (StubShellCallback_saveFileDialog != NULL) {
+		return StubShellCallback_saveFileDialog(StubShell_callbackContext, basePath, baseName, outFilePath, maxLength);
+	}
+	return false;
 }

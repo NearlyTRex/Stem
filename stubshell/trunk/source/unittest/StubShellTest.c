@@ -20,13 +20,14 @@ static bool lastRepeat;
 static void (* lastTimerCallback)(unsigned int timerID, void * timerContext);
 static void * lastPtrArg;
 static unsigned int lastTimerID;
-static bool lastBoolArg;
+static bool lastBoolArg, lastBoolArg2;
 static int lastIntArg;
 static int lastUIntArg;
 static ShellThread lastShellThreadArg;
 static ShellMutex lastShellMutexArg;
 static int (* lastThreadCallback)(void * threadContext);
-static const char * lastConstCharPtrArg;
+static const char * lastConstCharPtrArg, * lastConstCharPtrArg2;
+static char * lastCharPtrArg;
 static int * lastOffsetXPtrArg;
 static int * lastOffsetYPtrArg;
 static unsigned int * lastWidthPtrArg;
@@ -178,6 +179,32 @@ static ShellMutex shellMutexReturnTestCallback(void * context) {
 	callbackCalls++;
 	lastContext = context;
 	return ptrReturnValue;
+}
+
+static void setVSyncTestCallback(void * context, bool boolArg, bool boolArg2) {
+	callbackCalls++;
+	lastContext = context;
+	lastBoolArg = boolArg;
+	lastBoolArg2 = boolArg2;
+}
+
+static bool openFileDialogTestCallback(void * context, const char * basePath, char * outFilePath, unsigned int maxLength) {
+	callbackCalls++;
+	lastContext = context;
+	lastConstCharPtrArg = basePath;
+	lastCharPtrArg = outFilePath;
+	lastUIntArg = maxLength;
+	return boolReturnValue;
+}
+
+static bool saveFileDialogTestCallback(void * context, const char * basePath, const char * baseName, char * outFilePath, unsigned int maxLength) {
+	callbackCalls++;
+	lastContext = context;
+	lastConstCharPtrArg = basePath;
+	lastConstCharPtrArg2 = baseName;
+	lastCharPtrArg = outFilePath;
+	lastUIntArg = maxLength;
+	return boolReturnValue;
 }
 
 static void testMainLoop() {
@@ -803,6 +830,82 @@ static void testGetDisplayBounds() {
 	TestCase_assert(lastHeightPtrArg == (unsigned int *) 0xA, "Expected 0xA but got %p", lastHeightPtrArg);
 }
 
+static void testSetVSync() {
+	callbackCalls = 0;
+	lastContext = NULL;
+	
+	StubShellCallback_setVSync = setVSyncTestCallback;
+	StubShell_callbackContext = (void *) 0x37;
+	Shell_setVSync(true, false);
+	TestCase_assert(lastBoolArg, "Expected true but got false");
+	TestCase_assert(!lastBoolArg2, "Expected false but got true");
+	TestCase_assert(callbackCalls == 1, "Expected 1 but got %d", callbackCalls);
+	TestCase_assert(lastContext == (void *) 0x37, "Expected 0x37 but got %p", lastContext);
+	
+	StubShell_callbackContext = (void *) 0x38;
+	Shell_setVSync(false, true);
+	TestCase_assert(!lastBoolArg, "Expected false but got true");
+	TestCase_assert(lastBoolArg2, "Expected true but got false");
+	TestCase_assert(callbackCalls == 2, "Expected 2 but got %d", callbackCalls);
+	TestCase_assert(lastContext == (void *) 0x38, "Expected 0x38 but got %p", lastContext);
+}
+
+static void testOpenFileDialog() {
+	bool result;
+	
+	callbackCalls = 0;
+	lastContext = NULL;
+	StubShellCallback_openFileDialog = openFileDialogTestCallback;
+	StubShell_callbackContext = (void *) 0x39;
+	boolReturnValue = false;
+	result = Shell_openFileDialog((const char *) 0x1, (char *) 0x2, 3);
+	TestCase_assert(!result, "Expected false but got true");
+	TestCase_assert(lastConstCharPtrArg == (const char *) 0x1, "Expected 0x1 but got %p", lastConstCharPtrArg);
+	TestCase_assert(lastCharPtrArg == (char *) 0x2, "Expected 0x2 but got %p", lastCharPtrArg);
+	TestCase_assert(lastUIntArg == 3, "Expected 3 but got %u", lastUIntArg);
+	TestCase_assert(callbackCalls == 1, "Expected 1 but got %d", callbackCalls);
+	TestCase_assert(lastContext == (void *) 0x39, "Expected 0x39 but got %p", lastContext);
+	
+	StubShell_callbackContext = (void *) 0x3A;
+	boolReturnValue = true;
+	result = Shell_openFileDialog((const char *) 0x4, (char *) 0x5, 6);
+	TestCase_assert(result, "Expected true but got false");
+	TestCase_assert(lastConstCharPtrArg == (const char *) 0x4, "Expected 0x4 but got %p", lastConstCharPtrArg);
+	TestCase_assert(lastCharPtrArg == (char *) 0x5, "Expected 0x5 but got %p", lastCharPtrArg);
+	TestCase_assert(lastUIntArg == 6, "Expected 6 but got %u", lastUIntArg);
+	TestCase_assert(callbackCalls == 2, "Expected 2 but got %d", callbackCalls);
+	TestCase_assert(lastContext == (void *) 0x3A, "Expected 0x3A but got %p", lastContext);
+}
+
+static void testSaveFileDialog() {
+	bool result;
+	
+	callbackCalls = 0;
+	lastContext = NULL;
+	StubShellCallback_saveFileDialog = saveFileDialogTestCallback;
+	StubShell_callbackContext = (void *) 0x3B;
+	boolReturnValue = false;
+	result = Shell_saveFileDialog((const char *) 0x1, (const char *) 0x2, (char *) 0x3, 4);
+	TestCase_assert(!result, "Expected false but got true");
+	TestCase_assert(lastConstCharPtrArg == (const char *) 0x1, "Expected 0x1 but got %p", lastConstCharPtrArg);
+	TestCase_assert(lastConstCharPtrArg2 == (const char *) 0x2, "Expected 0x2 but got %p", lastConstCharPtrArg2);
+	TestCase_assert(lastCharPtrArg == (char *) 0x3, "Expected 0x3 but got %p", lastCharPtrArg);
+	TestCase_assert(lastUIntArg == 4, "Expected 4 but got %u", lastUIntArg);
+	TestCase_assert(callbackCalls == 1, "Expected 1 but got %d", callbackCalls);
+	TestCase_assert(lastContext == (void *) 0x3B, "Expected 0x3B but got %p", lastContext);
+	
+	StubShell_callbackContext = (void *) 0x3C;
+	boolReturnValue = true;
+	result = Shell_saveFileDialog((const char *) 0x5, (const char *) 0x6, (char *) 0x7, 8);
+	TestCase_assert(result, "Expected true but got false");
+	TestCase_assert(lastConstCharPtrArg == (const char *) 0x5, "Expected 0x5 but got %p", lastConstCharPtrArg);
+	TestCase_assert(lastConstCharPtrArg2 == (const char *) 0x6, "Expected 0x6 but got %p", lastConstCharPtrArg2);
+	TestCase_assert(lastCharPtrArg == (char *) 0x7, "Expected 0x7 but got %p", lastCharPtrArg);
+	TestCase_assert(lastUIntArg == 8, "Expected 8 but got %u", lastUIntArg);
+	TestCase_assert(callbackCalls == 2, "Expected 2 but got %d", callbackCalls);
+	TestCase_assert(lastContext == (void *) 0x3C, "Expected 0x3C but got %p", lastContext);
+}
+
 TEST_SUITE(StubShellTest,
            testMainLoop,
            testRedisplay,
@@ -832,4 +935,7 @@ TEST_SUITE(StubShellTest,
            testExitFullScreen,
            testGetDisplayCount,
            testGetDisplayIndexFromWindow,
-           testGetDisplayBounds)
+           testGetDisplayBounds,
+           testSetVSync,
+           testOpenFileDialog,
+           testSaveFileDialog)
