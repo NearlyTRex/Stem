@@ -22,6 +22,7 @@
 
 #include "screenmanager/ScreenManager.h"
 #include <string.h>
+#include <stdio.h>
 
 #define SUPERCLASS StemObject
 
@@ -80,9 +81,12 @@ void ScreenManager_setScreen(ScreenManager * self, compat_type(Screen *) screen)
 			}
 			self->currentScreen = screen;
 			self->currentScreen->activate(self->currentScreen);
-			break;
+			return;
 		}
 	}
+#ifdef DEBUG
+	fprintf(stderr, "Warning: ScreenManager_setScreen called with object %p, which has not been added with ScreenManager_addScreen\n", screen);
+#endif
 }
 
 void ScreenManager_addTransition(ScreenManager * self, compat_type(Screen *) fromScreen, compat_type(Screen *) toScreen, const char * transitionName) {
@@ -109,9 +113,12 @@ void ScreenManager_addTransition(ScreenManager * self, compat_type(Screen *) fro
 			self->transitions[self->transitionCount].name = malloc(strlen(transitionName) + 1);
 			strcpy(self->transitions[self->transitionCount].name, transitionName);
 			self->transitionCount++;
-			break;
+			return;
 		}
 	}
+#ifdef DEBUG
+	fprintf(stderr, "Warning: ScreenManager_addTransition called with objects %p and %p, at least one of which has not been added with ScreenManager_addScreen\n", fromScreen, toScreen);
+#endif
 }
 
 void ScreenManager_transition(ScreenManager * self, const char * transitionName) {
@@ -122,7 +129,10 @@ void ScreenManager_transition(ScreenManager * self, const char * transitionName)
 			self->currentScreen->deactivate(self->currentScreen);
 			self->currentScreen = self->transitions[transitionIndex].toScreen;
 			self->currentScreen->activate(self->currentScreen);
-			break;
+			return;
 		}
 	}
+#ifdef DEBUG
+	fprintf(stderr, "Warning: ScreenManager_transition called with transition name \"%s\", which is not valid for screen %p\n", transitionName, self->currentScreen);
+#endif
 }
