@@ -154,7 +154,7 @@ LINK_ORDER = \
 #Dependencies (can optionally be per-target or per-target-per-platform)
 
 PROJECT_LIBRARY_DEPENDENCIES_unittest = library
-STEM_LIBRARY_DEPENDENCIES_unittest = unittest/1.1.0
+STEM_LIBRARY_DEPENDENCIES_unittest = unittest/1.1.1
 THIRDPARTY_LIBRARY_DEPENDENCIES = 
 
 #Per-target source file lists
