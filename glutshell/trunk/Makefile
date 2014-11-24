@@ -73,7 +73,7 @@ SPLINT_linux32 ?= /usr/local/bin/splint
 CLANG_linux32 ?= /usr/local/bin/clang
 ARCHS_linux32 ?= i386
 CCFLAGS_linux32 += -m32 -Wno-int-to-pointer-cast -Wno-pointer-to-int-cast -Wno-unused-result
-LINKFLAGS_linux32 += -m32 -lrt -lglut -lGLU -lGL -lm
+LINKFLAGS_linux32 += -m32 -lrt -lglut -lGLU -lGL -lm -lpthread
 
 CC_linux64_x86_64 ?= /usr/bin/gcc
 AR_linux64 ?= /usr/bin/ar
