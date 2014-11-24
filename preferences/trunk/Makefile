@@ -169,15 +169,15 @@ PROJECT_LIBRARY_DEPENDENCIES_unittest = library_stub
 PROJECT_LIBRARY_DEPENDENCIES_testharness = library
 STEM_LIBRARY_DEPENDENCIES = \
 	utilities/1.9.0 \
-	stemobject/3.1.0
+	stemobject/3.1.1
 STEM_LIBRARY_DEPENDENCIES_library = \
 	jsonio/1.2.5
 STEM_LIBRARY_DEPENDENCIES_unittest = \
-	stubshell/1.4.0 \
-	unittest/1.1.0
+	stubshell/1.5.0 \
+	unittest/1.1.1
 STEM_LIBRARY_DEPENDENCIES_testharness = \
 	jsonio/1.2.5 \
-	stubshell/1.3.1
+	stubshell/1.5.0
 THIRDPARTY_LIBRARY_DEPENDENCIES = 
 
 #Per-target source file lists
