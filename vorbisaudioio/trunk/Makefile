@@ -166,15 +166,15 @@ LINK_ORDER = \
 PROJECT_LIBRARY_DEPENDENCIES_unittest = library
 PROJECT_LIBRARY_DEPENDENCIES_testharness = library
 STEM_LIBRARY_DEPENDENCIES_library = \
-	pcmaudio/1.0.2 \
-	stemobject/3.1.0 \
-	utilities/1.8.0
+	pcmaudio/1.0.3 \
+	stemobject/3.1.1 \
+	utilities/1.9.0
 STEM_LIBRARY_DEPENDENCIES_unittest =
 STEM_LIBRARY_DEPENDENCIES_testharness = \
-	pcmaudio/1.0.2 \
-	stemobject/3.1.0 \
-	utilities/1.8.0 \
-	stubshell/1.3.1
+	pcmaudio/1.0.3 \
+	stemobject/3.1.1 \
+	utilities/1.9.0 \
+	stubshell/1.5.0
 THIRDPARTY_LIBRARY_DEPENDENCIES_library = \
 	libogg/1.2.2/libogg.a \
 	libvorbis/1.3.2/libvorbis.a \
