@@ -164,17 +164,17 @@ LINK_ORDER = \
 #Dependencies (can optionally be per-target or per-target-per-platform)
 
 STEM_LIBRARY_DEPENDENCIES_glew = \
-	glgraphics/1.3.0 \
-	stemobject/3.1.0 \
-	utilities/1.8.1
+	glgraphics/1.3.1 \
+	stemobject/3.1.1 \
+	utilities/1.9.0
 STEM_LIBRARY_DEPENDENCIES_noglew = \
-	glgraphics/1.3.0_noglew \
-	stemobject/3.1.0 \
-	utilities/1.8.1
+	glgraphics/1.3.1_noglew \
+	stemobject/3.1.1 \
+	utilities/1.9.0
 
 PROJECT_LIBRARY_DEPENDENCIES_unittest = library
 PROJECT_LIBRARY_DEPENDENCIES_testharness = library
-STEM_LIBRARY_DEPENDENCIES = shell/2.0.0
+STEM_LIBRARY_DEPENDENCIES = shell/2.1.0
 STEM_LIBRARY_DEPENDENCIES_library_macosx = ${STEM_LIBRARY_DEPENDENCIES_noglew}
 STEM_LIBRARY_DEPENDENCIES_library_iphoneos = ${STEM_LIBRARY_DEPENDENCIES_noglew}
 STEM_LIBRARY_DEPENDENCIES_library_iphonesimulator = ${STEM_LIBRARY_DEPENDENCIES_noglew}
@@ -182,14 +182,14 @@ STEM_LIBRARY_DEPENDENCIES_library_win32 = ${STEM_LIBRARY_DEPENDENCIES_glew}
 STEM_LIBRARY_DEPENDENCIES_library_win64 = ${STEM_LIBRARY_DEPENDENCIES_glew}
 STEM_LIBRARY_DEPENDENCIES_library_linux32 = ${STEM_LIBRARY_DEPENDENCIES_glew}
 STEM_LIBRARY_DEPENDENCIES_library_linux64 = ${STEM_LIBRARY_DEPENDENCIES_glew}
-STEM_LIBRARY_DEPENDENCIES_testharness = utilities/1.8.1
-STEM_LIBRARY_DEPENDENCIES_testharness_macosx = glutshell/2.0.0 ${STEM_LIBRARY_DEPENDENCIES_noglew}
+STEM_LIBRARY_DEPENDENCIES_testharness = utilities/1.9.0
+STEM_LIBRARY_DEPENDENCIES_testharness_macosx = glutshell/2.1.0 ${STEM_LIBRARY_DEPENDENCIES_noglew}
 STEM_LIBRARY_DEPENDENCIES_testharness_iphonesimulator = eaglshell/3.0.0 ${STEM_LIBRARY_DEPENDENCIES_noglew}
 STEM_LIBRARY_DEPENDENCIES_testharness_iphoneos = eaglshell/3.0.0 ${STEM_LIBRARY_DEPENDENCIES_noglew}
-STEM_LIBRARY_DEPENDENCIES_testharness_win32 = glutshell/2.0.0 ${STEM_LIBRARY_DEPENDENCIES_glew}
-STEM_LIBRARY_DEPENDENCIES_testharness_win64 = glutshell/2.0.0 ${STEM_LIBRARY_DEPENDENCIES_glew}
-STEM_LIBRARY_DEPENDENCIES_testharness_linux32 = glutshell/2.0.0 ${STEM_LIBRARY_DEPENDENCIES_glew}
-STEM_LIBRARY_DEPENDENCIES_testharness_linux64 = glutshell/2.0.0 ${STEM_LIBRARY_DEPENDENCIES_glew}
+STEM_LIBRARY_DEPENDENCIES_testharness_win32 = glutshell/2.1.0 ${STEM_LIBRARY_DEPENDENCIES_glew}
+STEM_LIBRARY_DEPENDENCIES_testharness_win64 = glutshell/2.1.0 ${STEM_LIBRARY_DEPENDENCIES_glew}
+STEM_LIBRARY_DEPENDENCIES_testharness_linux32 = glutshell/2.1.0 ${STEM_LIBRARY_DEPENDENCIES_glew}
+STEM_LIBRARY_DEPENDENCIES_testharness_linux64 = glutshell/2.1.0 ${STEM_LIBRARY_DEPENDENCIES_glew}
 THIRDPARTY_LIBRARY_DEPENDENCIES_library_win32 = glew/1.5.4/libglew.a
 THIRDPARTY_LIBRARY_DEPENDENCIES_library_win64 = glew/1.5.4/libglew.a
 THIRDPARTY_LIBRARY_DEPENDENCIES_library_linux32 = glew/1.5.4/libglew.a
