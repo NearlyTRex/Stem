@@ -159,7 +159,7 @@ LINK_ORDER = \
 PROJECT_LIBRARY_DEPENDENCIES_unittest = library
 STEM_LIBRARY_DEPENDENCIES = \
 	utilities/1.9.0 \
-	stemobject/3.1.0
+	stemobject/3.1.1
 STEM_LIBRARY_DEPENDENCIES_unittest = unittest/1.1.1
 THIRDPARTY_LIBRARY_DEPENDENCIES = 
 
