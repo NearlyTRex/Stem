@@ -165,11 +165,11 @@ LINK_ORDER = \
 PROJECT_LIBRARY_DEPENDENCIES_unittest = library
 PROJECT_LIBRARY_DEPENDENCIES_testharness = library
 STEM_LIBRARY_DEPENDENCIES = \
-	bitmapimage/1.3.1 \
-	stemobject/3.1.0 \
-	utilities/1.8.0 \
-	stubshell/1.3.1
-STEM_LIBRARY_DEPENDENCIES_unittest = unittest/1.1.0
+	bitmapimage/1.3.2 \
+	stemobject/3.1.1 \
+	utilities/1.9.0 \
+	stubshell/1.5.0
+STEM_LIBRARY_DEPENDENCIES_unittest = unittest/1.1.1
 THIRDPARTY_LIBRARY_DEPENDENCIES = libpng/1.6.12/libpng.a
 THIRDPARTY_LIBRARY_DEPENDENCIES_win32 = zlib/1.2.3/libz.a
 THIRDPARTY_LIBRARY_DEPENDENCIES_win64 = zlib/1.2.3/libz.a
