@@ -523,7 +523,7 @@ void InputMap_unbindAllActionsForAxis(InputMap * self, int vendorID, int product
 	for (gamepadIndex = 0; gamepadIndex < self->gamepadMapCount; gamepadIndex++) {
 		if (self->gamepadMaps[gamepadIndex].vendorID == vendorID && self->gamepadMaps[gamepadIndex].productID == productID) {
 			for (bindingIndex = 0; bindingIndex < self->gamepadMaps[gamepadIndex].axisBindingCount; bindingIndex++) {
-				if (self->gamepadMaps[gamepadIndex].axisBindings[bindingIndex].axisID == axisID && self->gamepadMaps[gamepadIndex].axisBindings[bindingIndex].triggerThreshold > 0.0f == positive) {
+				if (self->gamepadMaps[gamepadIndex].axisBindings[bindingIndex].axisID == axisID && (self->gamepadMaps[gamepadIndex].axisBindings[bindingIndex].triggerThreshold > 0.0f) == positive) {
 					removeAxisBinding(self, gamepadIndex, bindingIndex);
 					bindingIndex--;
 				}
