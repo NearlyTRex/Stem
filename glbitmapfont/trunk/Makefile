@@ -184,16 +184,16 @@ STEM_LIBRARY_DEPENDENCIES = \
 	gltexture/1.2.0 \
 	serialization/1.4.1 \
 	stemobject/3.1.1 \
-	utilities/1.8.1
+	utilities/1.9.0
 STEM_LIBRARY_DEPENDENCIES_testharness = \
 	pngimageio/1.2.0 \
 	bitmapimage/1.3.2 \
 	jsonserialization/1.0.6 \
 	jsonio/1.2.5 \
-	utilities/1.8.1 \
-	shell/2.0.0
+	utilities/1.9.0 \
+	shell/2.1.0
 STEM_LIBRARY_DEPENDENCIES_unittest = \
-	utilities/1.8.1 \
+	utilities/1.9.0 \
 	unittest/1.1.1
 THIRDPARTY_LIBRARY_DEPENDENCIES = 
 THIRDPARTY_LIBRARY_DEPENDENCIES_testharness = libpng/1.6.12/libpng.a
@@ -204,10 +204,10 @@ STEM_LIBRARY_DEPENDENCIES_unittest_linux32 = glgraphics/1.3.1
 STEM_LIBRARY_DEPENDENCIES_unittest_linux64 = glgraphics/1.3.1
 STEM_LIBRARY_DEPENDENCIES_unittest_iphonesimulator = glgraphics/1.3.1_noglew
 STEM_LIBRARY_DEPENDENCIES_testharness_macosx = nsopenglshell/2.1.0 glgraphics/1.3.1_noglew
-STEM_LIBRARY_DEPENDENCIES_testharness_win32 = glutshell/2.0.0 glgraphics/1.3.1
-STEM_LIBRARY_DEPENDENCIES_testharness_win64 = glutshell/2.0.0 glgraphics/1.3.1
-STEM_LIBRARY_DEPENDENCIES_testharness_linux32 = glutshell/2.0.0 glgraphics/1.3.1
-STEM_LIBRARY_DEPENDENCIES_testharness_linux64 = glutshell/2.0.0 glgraphics/1.3.1
+STEM_LIBRARY_DEPENDENCIES_testharness_win32 = glutshell/2.1.0 glgraphics/1.3.1
+STEM_LIBRARY_DEPENDENCIES_testharness_win64 = glutshell/2.1.0 glgraphics/1.3.1
+STEM_LIBRARY_DEPENDENCIES_testharness_linux32 = glutshell/2.1.0 glgraphics/1.3.1
+STEM_LIBRARY_DEPENDENCIES_testharness_linux64 = glutshell/2.1.0 glgraphics/1.3.1
 STEM_LIBRARY_DEPENDENCIES_testharness_iphonesimulator = glgraphics/1.3.1_noglew eaglshell/3.0.0
 STEM_LIBRARY_DEPENDENCIES_testharness_iphoneos = glgraphics/1.3.1_noglew eaglshell/3.0.0
 THIRDPARTY_LIBRARY_DEPENDENCIES_library_win32 = glew/1.5.4/libglew.a
