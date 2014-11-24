@@ -161,12 +161,12 @@ LINK_ORDER = \
 PROJECT_LIBRARY_DEPENDENCIES_unittest = library
 STEM_LIBRARY_DEPENDENCIES = \
 	serialization/1.4.1 \
-	jsonio/1.2.4 \
-	utilities/1.8.0 \
-	stemobject/3.1.0
+	jsonio/1.2.5 \
+	utilities/1.9.0 \
+	stemobject/3.1.1
 STEM_LIBRARY_DEPENDENCIES_unittest = \
-	stubshell/1.3.1 \
-	unittest/1.1.0
+	stubshell/1.5.0 \
+	unittest/1.1.1
 THIRDPARTY_LIBRARY_DEPENDENCIES = 
 
 #Per-target source file lists
