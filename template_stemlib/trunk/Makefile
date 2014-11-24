@@ -160,7 +160,7 @@ LINK_ORDER = \
 
 PROJECT_LIBRARY_DEPENDENCIES_unittest = library
 PROJECT_LIBRARY_DEPENDENCIES_testharness = library
-STEM_LIBRARY_DEPENDENCIES_unittest = unittest/1.1.0
+STEM_LIBRARY_DEPENDENCIES_unittest = unittest/1.1.1
 THIRDPARTY_LIBRARY_DEPENDENCIES = 
 
 #Per-target source file lists
