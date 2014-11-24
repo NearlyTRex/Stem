@@ -167,7 +167,7 @@ PROJECT_LIBRARY_DEPENDENCIES_unittest = library_noglew
 STEM_LIBRARY_DEPENDENCIES_library = 
 STEM_LIBRARY_DEPENDENCIES_library_noglew = 
 STEM_LIBRARY_DEPENDENCIES_unittest = \
-	unittest/1.1.0
+	unittest/1.1.1
 
 PROJECT_LIBRARY_DEPENDENCIES_unittest_macosx = library_noglew
 PROJECT_LIBRARY_DEPENDENCIES_unittest_iphonesimulator = library_noglew

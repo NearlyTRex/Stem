@@ -55,10 +55,12 @@ extern "C" {
 		#if defined(WIN32)
 			#include "GL/wglew.h"
 		#elif defined(__linux)
-			// glxew.h includes X.h, which defines Atom and conflicts with the Atom in utilities
+			// glxew.h includes X.h, which defines Atom and Screen, causing conflicts with the Atom in utilities and the Screen in screenmanager
 			#define Atom Atom_not
+			#define Screen Screen_not
 			#include "GL/glxew.h"
 			#undef Atom
+			#undef Screen
 		#endif
 	#endif
 	#include <GL/gl.h>
