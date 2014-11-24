@@ -130,11 +130,11 @@ LINK_ORDER = \
 
 PROJECT_LIBRARY_DEPENDENCIES_testharness = library
 STEM_LIBRARY_DEPENDENCIES_library = \
-	glgraphics/1.2.2 \
-	shell/2.0.0
+	glgraphics/1.3.1 \
+	shell/2.1.0
 STEM_LIBRARY_DEPENDENCIES_testharness = \
-	glgraphics/1.2.2 \
-	shell/2.0.0
+	glgraphics/1.3.1 \
+	shell/2.1.0
 THIRDPARTY_LIBRARY_DEPENDENCIES = glew/1.5.4/libglew.a
 
 #Per-target source file lists

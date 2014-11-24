@@ -429,7 +429,7 @@ void Shell_setMouseDeltaMode(bool deltaMode) {
 void Shell_openURL(const char * url) {
 }
 
-void GLUTShell_setVSync(bool sync, bool fullscreen) {
+void Shell_setVSync(bool sync, bool fullscreen) {
 	if (fullscreen) {
 		vsyncFullscreen = sync;
 		if (inFullScreenMode) {
@@ -442,6 +442,14 @@ void GLUTShell_setVSync(bool sync, bool fullscreen) {
 			setVSync(sync);
 		}
 	}
+}
+
+bool Shell_openFileDialog(const char * basePath, char * outFilePath, unsigned int maxLength) {
+	return false;
+}
+
+bool Shell_saveFileDialog(const char * basePath, const char * baseName, char * outFilePath, unsigned int maxLength) {
+	return false;
 }
 
 static void displayFunc() {

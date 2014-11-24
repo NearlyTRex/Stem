@@ -181,8 +181,8 @@ static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned
 			syncWindow = !syncWindow;
 			sync = syncWindow;
 		}
-		GLUTShell_setVSync(sync, fullscreen);
-		printf("GLUTShell_setVSync(%s, %s)\n", sync ? "true" : "false", fullscreen ? "true" : "false");
+		Shell_setVSync(sync, fullscreen);
+		printf("Shell_setVSync(%s, %s)\n", sync ? "true" : "false", fullscreen ? "true" : "false");
 		
 	} else if (keyCode == KEYBOARD_COMMA) {
 		if (timer1ID == UINT_MAX) {
