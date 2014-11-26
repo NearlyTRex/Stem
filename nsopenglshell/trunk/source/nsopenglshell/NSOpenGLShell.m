@@ -571,6 +571,10 @@ void Shell_setVSync(bool sync, bool fullscreen) {
 	[[(NSOpenGLShellApplication *) [NSApplication sharedApplication] view] setVSync: sync forFullscreen: fullscreen];
 }
 
+void Shell_systemBeep() {
+	NSBeep();
+}
+
 bool Shell_openFileDialog(const char * basePath, char * outFilePath, unsigned int maxLength) {
 	bool wasFullScreen = Shell_isFullScreen();
 	if (wasFullScreen) {

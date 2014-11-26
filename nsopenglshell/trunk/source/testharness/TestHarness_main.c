@@ -243,6 +243,9 @@ static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned
 		printf("Removed all event callbacks for 5 seconds\n");
 		Shell_setTimer(5.0, false, restoreCallbacksTimer, NULL);
 		
+	} else if (keyCode == KEYBOARD_SPACEBAR) {
+		Shell_systemBeep();
+		
 	} else if (keyCode == KEYBOARD_0 && !(modifierFlags & MODIFIER_SHIFT_BIT)) {
 		Shell_setCursor(ShellCursor_arrow);
 		
