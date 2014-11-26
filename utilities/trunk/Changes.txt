@@ -1,5 +1,5 @@
 1.9.0 (2014-11-18)
- * Added snprintf_safe and vsnprintf_safe to IOUtilities
+ * Added snprintf_safe vsnprintf_safe, and strncpy_safe, to IOUtilities
  * Added FixedIntervalRunLoop_setTolerance
  * FixedIntervalRunLoop_run now returns the number of times it invoked stepCallback
  * FixedIntervalRunLoop_run now allows the run loop to be disposed from its stepCallback, and will return after the iteration that disposed it

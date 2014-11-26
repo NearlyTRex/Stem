@@ -251,3 +251,11 @@ int vsnprintf_safe(char * restrict str, size_t size, const char * restrict forma
 	str[size - 1] = 0;
 	return result;
 }
+
+char * strncpy_safe(char * restrict dst, const char * restrict src, size_t n) {
+	char * result;
+	
+	result = strncpy(dst, src, n);
+	dst[n - 1] = 0;
+	return result;
+}

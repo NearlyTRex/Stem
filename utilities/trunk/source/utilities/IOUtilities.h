@@ -59,9 +59,10 @@ void * readStdinSimple(size_t * outLength);
 // fileNameTemplate is a mkstemp template. Return value is added to AutoFreePool, so it needn't be freed directly by the caller.
 const char * temporaryFilePath(const char * fileNameTemplate, int * outFD);
 
-// Guarantees null termination on all platforms (stdlib *snprintf doesn't terminate on Windows if it truncates)
+// Guarantees null termination on all platforms (stdlib *snprintf/strncpy doesn't terminate on Windows if it truncates)
 int snprintf_safe(char * restrict str, size_t size, const char * restrict format, ...);
 int vsnprintf_safe(char * restrict str, size_t size, const char * restrict format, va_list ap);
+char * strncpy_safe(char * restrict dst, const char * restrict src, size_t n);
 
 static inline uint16_t swapLittleEndian16(uint16_t value) {
 	unsigned char * valueBytes = (unsigned char *) &value;

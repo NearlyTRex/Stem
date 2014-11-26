@@ -334,6 +334,44 @@ static void testEndianSwapping() {
 	TestCase_assert(value64 == 0x203040506070809ull, "Expected 0x203040506070809 but got 0x" XINT64_FORMAT, value64);
 }
 
+static void vsnprintfTest(char * string, size_t size, const char * format, ...) {
+	va_list args;
+	
+	va_start(args, format);
+	vsnprintf_safe(string, size, format, args);
+	va_end(args);
+}
+
+static void testSafeStringFunctions() {
+	char string[16];
+	
+	string[15] = 0;
+	
+	memset(string, '*', 15);
+	snprintf_safe(string, 14, "Hello, %s!", "world");
+	TestCase_assert(!strcmp(string, "Hello, world!"), "Expected \"Hello, world!\" but got \"%s\"", string);
+	
+	memset(string, '*', 15);
+	snprintf_safe(string, 6, "Hello, %s!", "world");
+	TestCase_assert(!strcmp(string, "Hello"), "Expected \"Hello\" but got \"%s\"", string);
+	
+	memset(string, '*', 15);
+	vsnprintfTest(string, 14, "Hello, %s!", "world");
+	TestCase_assert(!strcmp(string, "Hello, world!"), "Expected \"Hello, world!\" but got \"%s\"", string);
+	
+	memset(string, '*', 15);
+	vsnprintfTest(string, 6, "Hello, %s!", "world");
+	TestCase_assert(!strcmp(string, "Hello"), "Expected \"Hello\" but got \"%s\"", string);
+	
+	memset(string, '*', 15);
+	strncpy_safe(string, "Hello, world!", 14);
+	TestCase_assert(!strcmp(string, "Hello, world!"), "Expected \"Hello, world!\" but got \"%s\"", string);
+	
+	memset(string, '*', 15);
+	strncpy_safe(string, "Hello, world!", 6);
+	TestCase_assert(!strcmp(string, "Hello"), "Expected \"Hello\" but got \"%s\"", string);
+}
+
 TEST_SUITE(IOUtilitiesTest,
            testMemreadContextInit,
            testMemread,
@@ -342,4 +380,5 @@ TEST_SUITE(IOUtilitiesTest,
            testReadFileSimple,
            testWriteFileSimple,
            testTemporaryFilePath,
-           testEndianSwapping)
+           testEndianSwapping,
+           testSafeStringFunctions)
