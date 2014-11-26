@@ -616,6 +616,7 @@ bool Shell_openFileDialog(const char * basePath, char * outFilePath, unsigned in
 	openFileName.lpstrFile[0] = '\0';
 	openFileName.nMaxFile = maxLength;
 	openFileName.lpstrInitialDir = basePath;
+	openFileName.Flags |= OFN_NOCHANGEDIR;
 	
 	success = GetOpenFileName(&openFileName);
 	return success;
@@ -636,6 +637,7 @@ bool Shell_saveFileDialog(const char * basePath, const char * baseName, char * o
 	openFileName.lpstrFile = outFilePath;
 	openFileName.nMaxFile = maxLength;
 	openFileName.lpstrInitialDir = basePath;
+	openFileName.Flags |= OFN_NOCHANGEDIR;
 	
 	success = GetSaveFileName(&openFileName);
 	if (baseName != NULL) {
