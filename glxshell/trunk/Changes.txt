@@ -1,5 +1,5 @@
 2.1.0 (2014-11-22)
- * Updated for shell 2.1.0 (adds Shell_setVSync (which replaces GLXShell_setVSync), Shell_openFileDialog, and Shell_saveFileDialog)
+ * Updated for shell 2.1.0 (adds Shell_setVSync (which replaces GLXShell_setVSync), Shell_openFileDialog, Shell_saveFileDialog, and Shell_systemBeep)
 
 2.0.0 (2014-10-24)
  * Updated for shell 2.0.0 (adds multiple display support, scroll wheel events, registered callbacks for input events)

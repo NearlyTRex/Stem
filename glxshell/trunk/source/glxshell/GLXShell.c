@@ -1116,6 +1116,9 @@ bool Shell_saveFileDialog(const char * basePath, const char * baseName, char * o
 	}
 	return success;
 }
+
+void Shell_systemBeep() {
+}
 	
 #ifndef SEM_VALUE_MAX
 #define SEM_VALUE_MAX 32767
