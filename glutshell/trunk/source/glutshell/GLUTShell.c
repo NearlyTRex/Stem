@@ -452,6 +452,9 @@ bool Shell_saveFileDialog(const char * basePath, const char * baseName, char * o
 	return false;
 }
 
+void Shell_systemBeep() {
+}
+
 static void displayFunc() {
 #ifdef DEBUG
 	GLenum error;
