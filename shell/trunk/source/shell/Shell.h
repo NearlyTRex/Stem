@@ -75,6 +75,13 @@ unsigned int Shell_getDisplayIndexFromWindow();
     main display. */
 void Shell_getDisplayBounds(unsigned int displayIndex, int * outOffsetX, int * outOffsetY, unsigned int * outWidth, unsigned int * outHeight);
 
+/** Returns the offset and dimensions of a region within the specified display in which windows
+    can safely be placed without overlapping system UI elements. Pass NULL for any out parameters
+    you don't need returned. If displayIndex is greater than or equal to the return value of
+    Shell_getDisplayCount(), the out parameters will not be modified. Display index 0 is the
+    main display. */
+void Shell_getSafeWindowRect(unsigned int displayIndex, int * outOffsetX, int * outOffsetY, unsigned int * outWidth, unsigned int * outHeight);
+
 /** Attempts to enter full screen mode on the specified display. Returns true if successful.
     Unless the user has otherwise selected a specific display, it is recommended to pass the
     return value of Shell_getDisplayIndexFromWindow() as displayIndex. */
@@ -130,6 +137,9 @@ bool Shell_openFileDialog(const char * basePath, char * outFilePath, unsigned in
     contents of outFilePath are undefined. basePath can optionally be used to specify the starting directory
     for the dialog. baseName can optionally be used to set a default name for the file to be saved. */
 bool Shell_saveFileDialog(const char * basePath, const char * baseName, char * outFilePath, unsigned int maxLength);
+
+/** Plays the current platform's system beep sound, if applicable. */
+void Shell_systemBeep();
 
 #ifdef __cplusplus
 }

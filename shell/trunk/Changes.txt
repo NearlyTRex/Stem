@@ -1,5 +1,5 @@
 2.1.0 (2014-11-22)
- * Added Shell_setVSync, Shell_openFileDialog, and Shell_saveFileDialog
+ * Added Shell_setVSync, Shell_openFileDialog, Shell_saveFileDialog, Shell_getSafeWindowRect, and Shell_systemBeep
 
 2.0.0 (2014-10-17)
  * Target_* callbacks other than Target_init() are no longer directly linked. Instead, each one can be individually opted into by calling Shell_*Func() to register a callback for the event.
