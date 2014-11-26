@@ -644,6 +644,10 @@ bool Shell_saveFileDialog(const char * basePath, const char * baseName, char * o
 	return success;
 }
 
+void Shell_systemBeep() {
+	MessageBeep(MB_OK);
+}
+
 void WGLShell_redirectStdoutToFile(const char * path) {
 	freopen(path, "a", stdout);
 }

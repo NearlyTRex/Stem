@@ -21,6 +21,9 @@ static bool deltaMode;
 static bool syncFullscreen = true, syncWindow = true;
 static bool printMouseMoved = true;
 
+static void registerShellCallbacks();
+static void unregisterShellCallbacks();
+
 bool Target_draw() {
 	printf("Target_draw()\n");
 	glClearColor(0.0f, 0.25f, 0.5f, 0.0f);
@@ -59,6 +62,11 @@ static int threadFunc3(void * context) {
 	Shell_exitThread(2);
 	printf("Secondary thread 3 %p end (bad!)\n", Shell_getCurrentThread());
 	return 0;
+}
+
+static void restoreCallbacksTimer(unsigned int timerID, void * context) {
+	registerShellCallbacks();
+	printf("Restored event callbacks\n");
 }
 
 static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned int modifierFlags) {
@@ -223,6 +231,14 @@ static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned
 		printMouseMoved = !printMouseMoved;
 		printf("Mouse move messages %s\n", printMouseMoved ? "enabled" : "disabled");
 		
+	} else if (keyCode == KEYBOARD_DELETE_OR_BACKSPACE) {
+		unregisterShellCallbacks();
+		printf("Removed all event callbacks for 5 seconds\n");
+		Shell_setTimer(5.0, false, restoreCallbacksTimer, NULL);
+		
+	} else if (keyCode == KEYBOARD_SPACEBAR) {
+		Shell_systemBeep();
+		
 	} else if (keyCode == KEYBOARD_0 && !(modifierFlags & MODIFIER_SHIFT_BIT)) {
 		Shell_setCursor(ShellCursor_arrow);
 		
@@ -310,6 +326,36 @@ static void Target_foregrounded() {
 	printf("Target_foregrounded()\n");
 }
 
+static void registerShellCallbacks() {
+	Shell_drawFunc(Target_draw);
+	Shell_resizeFunc(Target_resized);
+	Shell_keyDownFunc(Target_keyDown);
+	Shell_keyUpFunc(Target_keyUp);
+	Shell_keyModifiersChangedFunc(Target_keyModifiersChanged);
+	Shell_mouseDownFunc(Target_mouseDown);
+	Shell_mouseUpFunc(Target_mouseUp);
+	Shell_mouseMovedFunc(Target_mouseMoved);
+	Shell_mouseDraggedFunc(Target_mouseDragged);
+	Shell_scrollWheelFunc(Target_scrollWheel);
+	Shell_backgroundedFunc(Target_backgrounded);
+	Shell_foregroundedFunc(Target_foregrounded);
+}
+
+static void unregisterShellCallbacks() {
+	Shell_drawFunc(NULL);
+	Shell_resizeFunc(NULL);
+	Shell_keyDownFunc(NULL);
+	Shell_keyUpFunc(NULL);
+	Shell_keyModifiersChangedFunc(NULL);
+	Shell_mouseDownFunc(NULL);
+	Shell_mouseUpFunc(NULL);
+	Shell_mouseMovedFunc(NULL);
+	Shell_mouseDraggedFunc(NULL);
+	Shell_scrollWheelFunc(NULL);
+	Shell_backgroundedFunc(NULL);
+	Shell_foregroundedFunc(NULL);
+}
+
 void WGLTarget_configure(void * instance, void * prevInstance, char * commandLine, int command, int argc, const char ** argv, struct WGLShellConfiguration * configuration) {
 	char workingDir[PATH_MAX];
 	int argIndex;
@@ -340,18 +386,7 @@ void WGLTarget_configure(void * instance, void * prevInstance, char * commandLin
 	
 	printf("getcwd(): %s\n", getcwd(workingDir, PATH_MAX));
 	
-	Shell_drawFunc(Target_draw);
-	Shell_resizeFunc(Target_resized);
-	Shell_keyDownFunc(Target_keyDown);
-	Shell_keyUpFunc(Target_keyUp);
-	Shell_keyModifiersChangedFunc(Target_keyModifiersChanged);
-	Shell_mouseDownFunc(Target_mouseDown);
-	Shell_mouseUpFunc(Target_mouseUp);
-	Shell_mouseMovedFunc(Target_mouseMoved);
-	Shell_mouseDraggedFunc(Target_mouseDragged);
-	Shell_scrollWheelFunc(Target_scrollWheel);
-	Shell_backgroundedFunc(Target_backgrounded);
-	Shell_foregroundedFunc(Target_foregrounded);
+	registerShellCallbacks();
 }
 
 void Target_init() {
