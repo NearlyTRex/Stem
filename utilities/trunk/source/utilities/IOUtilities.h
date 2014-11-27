@@ -60,7 +60,7 @@ void * readStdinSimple(size_t * outLength);
 const char * temporaryFilePath(const char * fileNameTemplate, int * outFD);
 
 // Guarantees null termination on all platforms (stdlib *snprintf/strncpy doesn't terminate on Windows if it truncates)
-int snprintf_safe(char * restrict str, size_t size, const char * restrict format, ...);
+int snprintf_safe(char * restrict str, size_t size, const char * restrict format, ...) __attribute__((format(printf, 3, 4)));
 int vsnprintf_safe(char * restrict str, size_t size, const char * restrict format, va_list ap);
 char * strncpy_safe(char * restrict dst, const char * restrict src, size_t n);
 
