@@ -659,6 +659,9 @@ void Shell_getDisplayBounds(unsigned int displayIndex, int * outOffsetX, int * o
 	}
 }
 
+void Shell_getSafeWindowRect(unsigned int displayIndex, int * outOffsetX, int * outOffsetY, unsigned int * outWidth, unsigned int * outHeight) {
+}
+
 bool Shell_isFullScreen() {
 	return inFullScreenMode;
 }

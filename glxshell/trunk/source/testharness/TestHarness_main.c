@@ -5,6 +5,7 @@
 #include <limits.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <string.h>
 #include "glgraphics/GLGraphics.h"
 #include "shell/ShellBatteryInfo.h"
 #include "shell/ShellCallbacks.h"
@@ -149,6 +150,16 @@ static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned
 	} else if (keyCode == KEYBOARD_B) {
 		printf("Shell_getBatteryState(): %d\n", Shell_getBatteryState());
 		printf("Shell_getBatteryLevel(): %f\n", Shell_getBatteryLevel());
+		
+	} else if (keyCode == KEYBOARD_Z) {
+		int x = 0, y = 0;
+		unsigned int width = 0, height = 0;
+		static unsigned int screenIndex;
+		
+		screenIndex %= Shell_getDisplayCount();
+		Shell_getSafeWindowRect(screenIndex, &x, &y, &width, &height);
+		printf("Shell_getSafeWindowRect(%u): %d, %d, %u, %u\n", screenIndex, x, y, width, height);
+		screenIndex++;
 		
 	} else if (keyCode == KEYBOARD_X) {
 		int x = 0, y = 0;
@@ -354,6 +365,20 @@ void GLXTarget_configure(int argc, const char ** argv, struct GLXShellConfigurat
 	
 	configuration->windowTitle = "GLXShell Test Harness";
 	printf("configuration->windowTitle = \"%s\"\n", configuration->windowTitle);
+	
+	for (argIndex = 0; argIndex < argc; argIndex++) {
+		if (!strcmp(argv[argIndex], "--windowRect") && argIndex < argc - 4) {
+			sscanf(argv[argIndex + 1], "%d", &configuration->windowX);
+			sscanf(argv[argIndex + 2], "%d", &configuration->windowY);
+			sscanf(argv[argIndex + 3], "%d", &configuration->windowWidth);
+			sscanf(argv[argIndex + 4], "%d", &configuration->windowHeight);
+			printf("configuration->windowX = %d\n", configuration->windowX);
+			printf("configuration->windowY = %d\n", configuration->windowY);
+			printf("configuration->windowWidth = %d\n", configuration->windowWidth);
+			printf("configuration->windowHeight = %d\n", configuration->windowHeight);
+			argIndex += 4;
+		}
+	}
 	
 	printf("getcwd(): %s\n", getcwd(workingDir, PATH_MAX));
 	
