@@ -211,7 +211,7 @@ static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned
 		char filePath[PATH_MAX];
 		bool success;
 		
-		success = Shell_saveFileDialog(NULL, NULL, filePath, PATH_MAX);
+		success = Shell_saveFileDialog(NULL, "test", filePath, PATH_MAX);
 		if (success) {
 			printf("Shell_saveFileDialog returned true with path \"%s\"\n", filePath);
 		} else {
