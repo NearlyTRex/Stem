@@ -5,6 +5,7 @@
 #include <limits.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <string.h>
 #include "glgraphics/GLGraphics.h"
 #include "shell/ShellBatteryInfo.h"
 #include "shell/ShellCallbacks.h"
@@ -24,11 +25,16 @@ static bool printMouseMoved = true;
 static void registerShellCallbacks();
 static void unregisterShellCallbacks();
 
-bool Target_draw() {
+static bool Target_draw() {
 	printf("Target_draw()\n");
 	glClearColor(0.0f, 0.25f, 0.5f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 	return true;
+}
+
+static void Target_resized(unsigned int newWidth, unsigned int newHeight) {
+	printf("Target_resized(%d, %d)\n", newWidth, newHeight);
+	glViewport(0, 0, newWidth, newHeight);
 }
 
 static void timerCallback(unsigned int timerID, void * context) {
@@ -143,6 +149,16 @@ static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned
 	} else if (keyCode == KEYBOARD_B) {
 		printf("Shell_getBatteryState(): %d\n", Shell_getBatteryState());
 		printf("Shell_getBatteryLevel(): %f\n", Shell_getBatteryLevel());
+		
+	} else if (keyCode == KEYBOARD_Z) {
+		int x = 0, y = 0;
+		unsigned int width = 0, height = 0;
+		static unsigned int screenIndex;
+		
+		screenIndex %= Shell_getDisplayCount();
+		Shell_getSafeWindowRect(screenIndex, &x, &y, &width, &height);
+		printf("Shell_getSafeWindowRect(%u): %d, %d, %u, %u\n", screenIndex, x, y, width, height);
+		screenIndex++;
 		
 	} else if (keyCode == KEYBOARD_X) {
 		int x = 0, y = 0;
@@ -313,11 +329,6 @@ static void Target_scrollWheel(int deltaX, int deltaY) {
 	printf("Target_scrollWheel(%d, %d)\n", deltaX, deltaY);
 }
 
-static void Target_resized(unsigned int newWidth, unsigned int newHeight) {
-	printf("Target_resized(%d, %d)\n", newWidth, newHeight);
-	glViewport(0, 0, newWidth, newHeight);
-}
-
 static void Target_backgrounded() {
 	printf("Target_backgrounded()\n");
 }
@@ -357,8 +368,8 @@ static void unregisterShellCallbacks() {
 }
 
 void WGLTarget_configure(void * instance, void * prevInstance, char * commandLine, int command, int argc, const char ** argv, struct WGLShellConfiguration * configuration) {
-	char workingDir[PATH_MAX];
 	int argIndex;
+	char workingDir[PATH_MAX];
 	
 #ifdef STEM_ARCH_x86_64
 	WGLShell_redirectStdoutToFile("stdout.txt");
@@ -383,6 +394,20 @@ void WGLTarget_configure(void * instance, void * prevInstance, char * commandLin
 	
 	configuration->windowTitle = "WGLShell Test Harness";
 	printf("configuration->windowTitle = \"%s\"\n", configuration->windowTitle);
+	
+	for (argIndex = 0; argIndex < argc; argIndex++) {
+		if (!strcmp(argv[argIndex], "--windowRect") && argIndex < argc - 4) {
+			sscanf(argv[argIndex + 1], "%d", &configuration->windowX);
+			sscanf(argv[argIndex + 2], "%d", &configuration->windowY);
+			sscanf(argv[argIndex + 3], "%d", &configuration->windowWidth);
+			sscanf(argv[argIndex + 4], "%d", &configuration->windowHeight);
+			printf("configuration->windowX = %d\n", configuration->windowX);
+			printf("configuration->windowY = %d\n", configuration->windowY);
+			printf("configuration->windowWidth = %d\n", configuration->windowWidth);
+			printf("configuration->windowHeight = %d\n", configuration->windowHeight);
+			argIndex += 4;
+		}
+	}
 	
 	printf("getcwd(): %s\n", getcwd(workingDir, PATH_MAX));
 	

@@ -318,6 +318,9 @@ void Shell_getDisplayBounds(unsigned int displayIndex, int * outOffsetX, int * o
 	}
 }
 
+void Shell_getSafeWindowRect(unsigned int displayIndex, int * outOffsetX, int * outOffsetY, unsigned int * outWidth, unsigned int * outHeight) {
+}
+
 unsigned int Shell_setTimer(double interval, bool repeat, void (* callback)(unsigned int timerID, void * context), void * context) {
 	timers = realloc(timers, sizeof(struct WGLShellTimer) * (timerCount + 1));
 	timers[timerCount].interval = interval;
