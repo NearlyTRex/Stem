@@ -12,10 +12,13 @@ GLUT does not have an official API for mouse wheel events. The Shell_scrollWheel
 
 Shell_openURL() is not implemented by glutshell. Calling it has no effect.
 
-Shell_openFileDialog and Shell_saveFileDialog display nothing and always return false. Use a platform-native shell if you want to browse for files.
+Shell_openFileDialog() and Shell_saveFileDialog() display nothing and always return false. Use a platform-native shell if you want to browse for files.
+
+Shell_systemBeep() has no effect.
 
 Multiple display support is unimplemented. The Shell functions that deal with displays behave in the following way:
 - Shell_getDisplayCount() always returns 1
 - Shell_getDisplayIndexFromWindow() always returns 0
 - Shell_getDisplayBounds() ignores its displayIndex parameter and may return unexpected width/height values for if multiple displays are attached
 - Shell_enterFullScreen() ignores its displayIndex parameter and will enter full screen mode on the main display or the display containing the main window
+- Shell_getSafeWindowRect() returns the same values as Shell_getDisplayBounds()

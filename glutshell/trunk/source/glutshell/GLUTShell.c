@@ -248,6 +248,10 @@ void Shell_getDisplayBounds(unsigned int displayIndex, int * outOffsetX, int * o
 	}
 }
 
+void Shell_getSafeWindowRect(unsigned int displayIndex, int * outOffsetX, int * outOffsetY, unsigned int * outWidth, unsigned int * outHeight) {
+	Shell_getDisplayBounds(displayIndex, outOffsetX, outOffsetY, outWidth, outHeight);
+}
+
 static void idleFunc() {
 	unsigned int timerIndex, timerIndex2;
 	double currentTime;
