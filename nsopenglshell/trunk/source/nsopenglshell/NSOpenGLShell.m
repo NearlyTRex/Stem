@@ -309,6 +309,29 @@ void Shell_getDisplayBounds(unsigned int displayIndex, int * outOffsetX, int * o
 	
 	if (displayIndex < [screens count]) {
 		NSRect bounds = [[screens objectAtIndex: displayIndex] frame];
+		bounds.origin.y = [[NSScreen mainScreen] frame].size.height - bounds.origin.y - bounds.size.height;
+		if (outOffsetX != NULL) {
+			*outOffsetX = bounds.origin.x;
+		}
+		if (outOffsetY != NULL) {
+			*outOffsetY = bounds.origin.y;
+		}
+		if (outWidth != NULL) {
+			*outWidth = bounds.size.width;
+		}
+		if (outHeight != NULL) {
+			*outHeight = bounds.size.height;
+		}
+	}
+}
+
+void Shell_getSafeWindowRect(unsigned int displayIndex, int * outOffsetX, int * outOffsetY, unsigned int * outWidth, unsigned int * outHeight) {
+	NSArray * screens = [NSScreen screens];
+	
+	if (displayIndex < [screens count]) {
+		NSRect bounds = [[screens objectAtIndex: displayIndex] visibleFrame];
+		bounds = [NSWindow contentRectForFrameRect: bounds styleMask: NSTitledWindowMask];
+		bounds.origin.y = [[NSScreen mainScreen] frame].size.height - bounds.origin.y - bounds.size.height;
 		if (outOffsetX != NULL) {
 			*outOffsetX = bounds.origin.x;
 		}
@@ -623,4 +646,14 @@ bool Shell_saveFileDialog(const char * basePath, const char * baseName, char * o
 		return true;
 	}
 	return false;
+}
+
+float NSOpenGLShell_getDisplayScaleFactor(unsigned int displayIndex) {
+	if (![NSScreen instancesRespondToSelector: @selector(backingScaleFactor)]) {
+		return 1.0f;
+	}
+	if (displayIndex >= [[NSScreen screens] count]) {
+		displayIndex = 0;
+	}
+	return [[[NSScreen screens] objectAtIndex: displayIndex] backingScaleFactor];
 }

@@ -1,7 +1,8 @@
 2.1.0 (2014-11-02)
- * Updated for shell 2.1.0 (adds Shell_setVSync (which replaces NSOpenGLShell_setVSync), Shell_openFileDialog, Shell_saveFileDialog, and Shell_systemBeep)
+ * Updated for shell 2.1.0 (adds Shell_setVSync (which replaces NSOpenGLShell_setVSync), Shell_openFileDialog, Shell_saveFileDialog, Shell_systemBeep, and Shell_getSafeWindowRect)
  * Fixed an oversight that caused the initial call to the Shell_resizeFunc callback (prior to Target_init()) to be passed a size in points instead of pixels
- * Mouse event callbacks are now passed pixels instead of points
+ * All coordinates of mouse events, window bounds, and screen bounds are now in raw pixels measured from the upper left corner
+ * Added NSOpenGLShell_getDisplayScaleFactor
  * Improved rendering performance and consistency somewhat
  * Fixed GL errors/incorrect rendering when closing window or quitting from full screen mode
 

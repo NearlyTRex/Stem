@@ -44,11 +44,39 @@ extern bool mainLoopCalled;
 
 @implementation NSOpenGLShellApplication
 
+static NSScreen * screenForRect(NSRect rect) {
+	NSScreen * screen;
+	NSRect frame, intersection;
+	unsigned int screenIndex, bestScreenIndex = 0;
+	CGFloat coverage, bestCoverage = 0.0;
+	
+	for (screenIndex = 0; screenIndex < [[NSScreen screens] count]; screenIndex++) {
+		screen = [[NSScreen screens] objectAtIndex: screenIndex];
+		frame = [screen frame];
+		frame.origin.y = [[NSScreen mainScreen] frame].size.height - frame.origin.y - frame.size.height;
+		intersection = NSIntersectionRect(rect, frame);
+		coverage = intersection.size.width * intersection.size.height;
+		if (coverage > bestCoverage) {
+			bestCoverage = coverage;
+			bestScreenIndex = screenIndex;
+		}
+	}
+	return [[NSScreen screens] objectAtIndex: bestScreenIndex];
+}
+
 - (void) applicationDidFinishLaunching: (NSNotification *) notification {
-	window = [[NSWindowWithSquareCorners alloc] initWithContentRect: NSMakeRect(g_configuration.windowX, [[NSScreen mainScreen] frame].size.height - g_configuration.windowY, g_configuration.windowWidth, g_configuration.windowHeight)
+	NSScreen * screen;
+	NSRect contentRect;
+	
+	contentRect = NSMakeRect(g_configuration.windowX, [[NSScreen mainScreen] frame].size.height - g_configuration.windowY - g_configuration.windowHeight, g_configuration.windowWidth, g_configuration.windowHeight);
+	screen = screenForRect(contentRect);
+	contentRect.origin.x -= [screen frame].origin.x;
+	contentRect.origin.y -= [screen frame].origin.y;
+	window = [[NSWindowWithSquareCorners alloc] initWithContentRect: contentRect
 	                                                      styleMask: NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask | NSResizableWindowMask
 	                                                        backing: NSBackingStoreBuffered
-	                                                          defer: NO];
+	                                                          defer: NO
+	                                                         screen: screen];
 	[window setDelegate: self];
 	[window setTitle: [NSString stringWithUTF8String: g_configuration.windowTitle]];
 	[window setAcceptsMouseMovedEvents: YES];

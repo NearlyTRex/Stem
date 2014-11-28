@@ -46,6 +46,8 @@ enum NSOpenGLShellCursor {
 	NSOpenGLShellCursor_operationNotAllowed
 };
 
+float NSOpenGLShell_getDisplayScaleFactor(unsigned int displayIndex);
+
 #ifdef __cplusplus
 }
 #endif

@@ -35,6 +35,8 @@ int main(int argc, const char ** argv) {
 	NSMenu * menuBar, * applicationMenu, * windowMenu;
 	NSMenuItem * applicationMenuItem, * windowMenuItem;
 	
+	pool = [[NSAutoreleasePool alloc] init];
+	
 	g_argc = argc;
 	g_argv = argv;
 	g_configuration.windowX = 2;
@@ -53,8 +55,6 @@ int main(int argc, const char ** argv) {
 	g_configuration.displayMode.multisample = false;
 	g_configuration.displayMode.sampleBuffers = 1;
 	g_configuration.displayMode.samples = 4;
-	
-	pool = [[NSAutoreleasePool alloc] init];
 	
 	[[NSOpenGLShellApplication sharedApplication] setDelegate: (NSOpenGLShellApplication *) [NSOpenGLShellApplication sharedApplication]];
 	
