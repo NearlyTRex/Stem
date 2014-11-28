@@ -48,6 +48,8 @@
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
 #include <X11/cursorfont.h>
+#include <gtk/gtk.h>
+#include <gdk/gdkscreen.h>
 
 struct GLXShellTimer {
 	double interval;
@@ -660,6 +662,20 @@ void Shell_getDisplayBounds(unsigned int displayIndex, int * outOffsetX, int * o
 }
 
 void Shell_getSafeWindowRect(unsigned int displayIndex, int * outOffsetX, int * outOffsetY, unsigned int * outWidth, unsigned int * outHeight) {
+	GdkRectangle rect;
+	gdk_screen_get_monitor_workarea(gdk_screen_get_default(), displayIndex, &rect);
+	if (outOffsetX != NULL) {
+		*outOffsetX = rect.x;
+	}
+	if (outOffsetY != NULL) {
+		*outOffsetY = rect.y;
+	}
+	if (outWidth != NULL) {
+		*outWidth = rect.width;
+	}
+	if (outHeight != NULL) {
+		*outHeight = rect.height;
+	}
 }
 
 bool Shell_isFullScreen() {
@@ -1037,8 +1053,6 @@ void Shell_setVSync(bool sync, bool fullscreen) {
 		}
 	}
 }
-
-#include <gtk/gtk.h>
 
 bool Shell_openFileDialog(const char * basePath, char * outFilePath, unsigned int maxLength) {
 	GtkWidget * dialog;
