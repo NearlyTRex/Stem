@@ -318,7 +318,41 @@ void Shell_getDisplayBounds(unsigned int displayIndex, int * outOffsetX, int * o
 	}
 }
 
+static BOOL CALLBACK monitorEnumProcGetWorkArea(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMonitor, LPARAM dwData) {
+	struct monitorEnumProcGetBoundsContext * context = (struct monitorEnumProcGetBoundsContext *) dwData;
+	
+	if (context->displayIndex++ == context->targetDisplayIndex) {
+		MONITORINFO monitorInfo;
+		
+		monitorInfo.cbSize = sizeof(monitorInfo);
+		if (GetMonitorInfo(hMonitor, &monitorInfo)) {
+			context->bounds = monitorInfo.rcWork;
+			context->bounds.top += GetSystemMetrics(SM_CYCAPTION);
+			context->found = true;
+		}
+	}
+	return true;
+}
+
 void Shell_getSafeWindowRect(unsigned int displayIndex, int * outOffsetX, int * outOffsetY, unsigned int * outWidth, unsigned int * outHeight) {
+	BOOL success;
+	struct monitorEnumProcGetBoundsContext context = {displayIndex, 0, false, {0, 0, 0, 0}};
+	
+	success = EnumDisplayMonitors(NULL, NULL, monitorEnumProcGetWorkArea, (LPARAM) &context);
+	if (success && context.found) {
+		if (outOffsetX != NULL) {
+			*outOffsetX = context.bounds.left;
+		}
+		if (outOffsetY != NULL) {
+			*outOffsetY = context.bounds.top;
+		}
+		if (outWidth != NULL) {
+			*outWidth = context.bounds.right - context.bounds.left;
+		}
+		if (outHeight != NULL) {
+			*outHeight = context.bounds.bottom - context.bounds.top;
+		}
+	}
 }
 
 unsigned int Shell_setTimer(double interval, bool repeat, void (* callback)(unsigned int timerID, void * context), void * context) {
