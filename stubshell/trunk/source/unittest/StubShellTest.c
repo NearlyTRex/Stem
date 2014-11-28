@@ -830,6 +830,31 @@ static void testGetDisplayBounds() {
 	TestCase_assert(lastHeightPtrArg == (unsigned int *) 0xA, "Expected 0xA but got %p", lastHeightPtrArg);
 }
 
+static void testGetSafeWindowRect() {
+	callbackCalls = 0;
+	lastContext = NULL;
+	StubShellCallback_getSafeWindowRect = getDisplayBoundsTestCallback;
+	StubShell_callbackContext = (void *) 0x35;
+	Shell_getSafeWindowRect(1, (int *) 0x2, (int *) 0x3, (unsigned int *) 0x4, (unsigned int *) 0x5);
+	TestCase_assert(callbackCalls == 1, "Expected 1 but got %d", callbackCalls);
+	TestCase_assert(lastContext == (void *) 0x35, "Expected 0x35 but got %p", lastContext);
+	TestCase_assert(lastUIntArg == 1, "Expected 1 but got %u", lastUIntArg);
+	TestCase_assert(lastOffsetXPtrArg == (int *) 0x2, "Expected 0x2 but got %p", lastOffsetXPtrArg);
+	TestCase_assert(lastOffsetYPtrArg == (int *) 0x3, "Expected 0x3 but got %p", lastOffsetYPtrArg);
+	TestCase_assert(lastWidthPtrArg == (unsigned int *) 0x4, "Expected 0x4 but got %p", lastWidthPtrArg);
+	TestCase_assert(lastHeightPtrArg == (unsigned int *) 0x5, "Expected 0x5 but got %p", lastHeightPtrArg);
+	
+	StubShell_callbackContext = (void *) 0x36;
+	Shell_getSafeWindowRect(6, (int *) 0x7, (int *) 0x8, (unsigned int *) 0x9, (unsigned int *) 0xA);
+	TestCase_assert(callbackCalls == 2, "Expected 2 but got %d", callbackCalls);
+	TestCase_assert(lastContext == (void *) 0x36, "Expected 0x36 but got %p", lastContext);
+	TestCase_assert(lastUIntArg == 6, "Expected 1 but got %u", lastUIntArg);
+	TestCase_assert(lastOffsetXPtrArg == (int *) 0x7, "Expected 0x7 but got %p", lastOffsetXPtrArg);
+	TestCase_assert(lastOffsetYPtrArg == (int *) 0x8, "Expected 0x8 but got %p", lastOffsetYPtrArg);
+	TestCase_assert(lastWidthPtrArg == (unsigned int *) 0x9, "Expected 0x9 but got %p", lastWidthPtrArg);
+	TestCase_assert(lastHeightPtrArg == (unsigned int *) 0xA, "Expected 0xA but got %p", lastHeightPtrArg);
+}
+
 static void testSetVSync() {
 	callbackCalls = 0;
 	lastContext = NULL;
@@ -906,6 +931,17 @@ static void testSaveFileDialog() {
 	TestCase_assert(lastContext == (void *) 0x3C, "Expected 0x3C but got %p", lastContext);
 }
 
+static void testSystemBeep() {
+	callbackCalls = 0;
+	lastContext = NULL;
+	
+	StubShellCallback_systemBeep = voidTestCallback;
+	StubShell_callbackContext = (void *) 0x3D;
+	Shell_systemBeep();
+	TestCase_assert(callbackCalls == 1, "Expected 1 but got %d", callbackCalls);
+	TestCase_assert(lastContext == (void *) 0x3D, "Expected 0x3D but got %p", lastContext);
+}
+
 TEST_SUITE(StubShellTest,
            testMainLoop,
            testRedisplay,
@@ -936,6 +972,8 @@ TEST_SUITE(StubShellTest,
            testGetDisplayCount,
            testGetDisplayIndexFromWindow,
            testGetDisplayBounds,
+           testGetSafeWindowRect,
            testSetVSync,
            testOpenFileDialog,
-           testSaveFileDialog)
+           testSaveFileDialog,
+           testSystemBeep)

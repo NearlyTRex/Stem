@@ -46,6 +46,7 @@ extern const char * (* StubShellCallback_getSupportPath)(void * context, const c
 extern unsigned int (* StubShellCallback_getDisplayCount)(void * context);
 extern unsigned int (* StubShellCallback_getDisplayIndexFromWindow)(void * context);
 extern void (* StubShellCallback_getDisplayBounds)(void * context, unsigned int displayIndex, int * outOffsetX, int * outOffsetY, unsigned int * outWidth, unsigned int * outHeight);
+extern void (* StubShellCallback_getSafeWindowRect)(void * context, unsigned int displayIndex, int * outOffsetX, int * outOffsetY, unsigned int * outWidth, unsigned int * outHeight);
 extern enum ShellBatteryState (* StubShellCallback_getBatteryState)(void * context);
 extern float (* StubShellCallback_getBatteryLevel)(void * context);
 extern unsigned int (* StubShellCallback_setTimer)(void * context, double interval, bool repeat, void (* callback)(unsigned int timerID, void * timerContext), void * timerContext);
@@ -58,6 +59,7 @@ extern void (* StubShellCallback_openURL)(void * context, const char * url);
 extern void (* StubShellCallback_setVSync)(void * context, bool sync, bool fullscreen);
 extern bool (* StubShellCallback_openFileDialog)(void * context, const char * basePath, char * outFilePath, unsigned int maxLength);
 extern bool (* StubShellCallback_saveFileDialog)(void * context, const char * basePath, const char * baseName, char * outFilePath, unsigned int maxLength);
+extern void (* StubShellCallback_systemBeep)(void * context);
 extern ShellThread (* StubShellCallback_createThread)(void * context, int (* threadFunction)(void * context), void * threadContext);
 extern void (* StubShellCallback_exitThread)(void * context, int statusCode);
 extern int (* StubShellCallback_joinThread)(void * context, ShellThread thread);

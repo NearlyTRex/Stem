@@ -47,6 +47,7 @@ const char * (* StubShellCallback_getSupportPath)(void * context, const char * s
 unsigned int (* StubShellCallback_getDisplayCount)(void * context) = NULL;
 unsigned int (* StubShellCallback_getDisplayIndexFromWindow)(void * context) = NULL;
 void (* StubShellCallback_getDisplayBounds)(void * context, unsigned int displayIndex, int * outOffsetX, int * outOffsetY, unsigned int * outWidth, unsigned int * outHeight) = NULL;
+void (* StubShellCallback_getSafeWindowRect)(void * context, unsigned int displayIndex, int * outOffsetX, int * outOffsetY, unsigned int * outWidth, unsigned int * outHeight) = NULL;
 enum ShellBatteryState (* StubShellCallback_getBatteryState)(void * context) = NULL;
 float (* StubShellCallback_getBatteryLevel)(void * context) = NULL;
 unsigned int (* StubShellCallback_setTimer)(void * context, double interval, bool repeat, void (* callback)(unsigned int timerID, void * timerContext), void * timerContext) = NULL;
@@ -59,6 +60,7 @@ void (* StubShellCallback_openURL)(void * context, const char * url) = NULL;
 void (* StubShellCallback_setVSync)(void * context, bool sync, bool fullscreen) = NULL;
 bool (* StubShellCallback_openFileDialog)(void * context, const char * basePath, char * outFilePath, unsigned int maxLength) = NULL;
 bool (* StubShellCallback_saveFileDialog)(void * context, const char * basePath, const char * baseName, char * outFilePath, unsigned int maxLength) = NULL;
+void (* StubShellCallback_systemBeep)(void * context) = NULL;
 ShellThread (* StubShellCallback_createThread)(void * context, int (* threadFunction)(void * context), void * threadContext) = NULL;
 void (* StubShellCallback_exitThread)(void * context, int statusCode) = NULL;
 int (* StubShellCallback_joinThread)(void * context, ShellThread thread) = NULL;
@@ -167,6 +169,12 @@ unsigned int Shell_getDisplayIndexFromWindow() {
 void Shell_getDisplayBounds(unsigned int displayIndex, int * outOffsetX, int * outOffsetY, unsigned int * outWidth, unsigned int * outHeight) {
 	if (StubShellCallback_getDisplayBounds != NULL) {
 		StubShellCallback_getDisplayBounds(StubShell_callbackContext, displayIndex, outOffsetX, outOffsetY, outWidth, outHeight);
+	}
+}
+
+void Shell_getSafeWindowRect(unsigned int displayIndex, int * outOffsetX, int * outOffsetY, unsigned int * outWidth, unsigned int * outHeight) {
+	if (StubShellCallback_getSafeWindowRect != NULL) {
+		StubShellCallback_getSafeWindowRect(StubShell_callbackContext, displayIndex, outOffsetX, outOffsetY, outWidth, outHeight);
 	}
 }
 
@@ -304,4 +312,10 @@ bool Shell_saveFileDialog(const char * basePath, const char * baseName, char * o
 		return StubShellCallback_saveFileDialog(StubShell_callbackContext, basePath, baseName, outFilePath, maxLength);
 	}
 	return false;
+}
+
+void Shell_systemBeep() {
+	if (StubShellCallback_systemBeep != NULL) {
+		StubShellCallback_systemBeep(StubShell_callbackContext);
+	}
 }
