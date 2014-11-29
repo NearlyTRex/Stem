@@ -34,6 +34,7 @@ void (* mouseDraggedCallback)(unsigned int buttonMask, float x, float y) __asm("
 void (* scrollWheelCallback)(int deltaX, int deltaY) __asm("scrollWheelCallback$GLUTShell");
 void (* backgroundedCallback)(void) __asm("backgroundedCallback$GLUTShell");
 void (* foregroundedCallback)(void) __asm("foregroundedCallback$GLUTShell");
+bool (* confirmQuitCallback)(void) __asm("confirmQuitCallback$GLUTShell");
 
 void Shell_drawFunc(bool (* callback)(void)) {
 	drawCallback = callback;
@@ -81,4 +82,8 @@ void Shell_backgroundedFunc(void (* callback)(void)) {
 
 void Shell_foregroundedFunc(void (* callback)(void)) {
 	foregroundedCallback = callback;
+}
+
+void Shell_confirmQuitFunc(bool (* callback)(void)) {
+	confirmQuitCallback = callback;
 }

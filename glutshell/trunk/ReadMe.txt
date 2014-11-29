@@ -10,6 +10,8 @@ Foreground and background events also cannot be detected. The Shell_foregrounded
 
 GLUT does not have an official API for mouse wheel events. The Shell_scrollWheelFunc callback will never be invoked.
 
+GLUT provides no mechanism for confirming before quitting. The Shell_confirmQuitFunc callback will never be invoked.
+
 Shell_openURL() is not implemented by glutshell. Calling it has no effect.
 
 Shell_openFileDialog() and Shell_saveFileDialog() display nothing and always return false. Use a platform-native shell if you want to browse for files.
