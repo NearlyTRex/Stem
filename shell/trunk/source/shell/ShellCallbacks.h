@@ -114,7 +114,7 @@ void Shell_foregroundedFunc(void (* callback)(void));
     as possible after saving the user's work, unless the user explicitly chooses to cancel their
     request to quit the application. A call to exit() will not trigger this callback, nor will a
     crash or other unclean termination event. */
-void Shell_quitFunc(bool (* callback)(void));
+void Shell_confirmQuitFunc(bool (* callback)(void));
 
 #ifdef __cplusplus
 }

@@ -3,7 +3,7 @@
  * Added Shell_getSafeWindowRect, an alternative to Shell_getDisplayBounds when used for window positioning.
  * Added Shell_systemBeep
  * Added file dialog API. Call Shell_openFileDialog to browse for files, and Shell_saveFileDialog to specify the path and name of a file to save.
- * Added Shell_quitFunc to allow quitting to be temporarily delayed if the user has unsaved work.
+ * Added Shell_confirmQuitFunc to allow quitting to be temporarily delayed if the user has unsaved work.
 
 2.0.0 (2014-10-17)
  * Target_* callbacks other than Target_init() are no longer directly linked. Instead, each one can be individually opted into by calling Shell_*Func() to register a callback for the event.
