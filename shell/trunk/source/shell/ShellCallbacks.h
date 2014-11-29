@@ -105,6 +105,17 @@ void Shell_backgroundedFunc(void (* callback)(void));
     vary by operating system/shell, and some shells may not be able to report it at all. */
 void Shell_foregroundedFunc(void (* callback)(void));
 
+/** Sets function to be called just prior to quitting the application. Return true to continue
+    quitting, or false to continue running.
+    
+    The sole purpose of this callback is to allow targets to temporarily delay quitting to allow
+    the user to save any work they would otherwise lose. Do not free memory inside this callback;
+    allow the system to reclaim it on exit. If you return false, call the exit() function as soon
+    as possible after saving the user's work, unless the user explicitly chooses to cancel their
+    request to quit the application. A call to exit() will not trigger this callback, nor will a
+    crash or other unclean termination event. */
+bool Shell_quitFunc(void (* callback)(void));
+
 #ifdef __cplusplus
 }
 #endif
