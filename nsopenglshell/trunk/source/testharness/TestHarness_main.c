@@ -23,6 +23,7 @@ static unsigned int timer1ID = UINT_MAX, timer2ID = UINT_MAX;
 static bool deltaMode;
 static bool syncFullscreen = VSYNC_DEFAULT_FULLSCREEN, syncWindow = VSYNC_DEFAULT_WINDOW;
 static bool printMouseMoved = true;
+static bool allowQuit = true;
 
 static void registerShellCallbacks();
 static void unregisterShellCallbacks();
@@ -261,6 +262,10 @@ static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned
 		printf("Removed all event callbacks for 5 seconds\n");
 		Shell_setTimer(5.0, false, restoreCallbacksTimer, NULL);
 		
+	} else if (keyCode == KEYBOARD_BACKSLASH) {
+		allowQuit = !allowQuit;
+		printf("Quitting %s\n", allowQuit ? "enabled" : "disabled");
+		
 	} else if (keyCode == KEYBOARD_SPACEBAR) {
 		Shell_systemBeep();
 		
@@ -355,6 +360,11 @@ static void Target_foregrounded() {
 	printf("Target_foregrounded()\n");
 }
 
+static bool Target_confirmQuit() {
+	printf("Target_confirmQuit() (returning %s)\n", allowQuit ? "true" : "false");
+	return allowQuit;
+}
+
 static void registerShellCallbacks() {
 	Shell_drawFunc(Target_draw);
 	Shell_resizeFunc(Target_resized);
@@ -368,6 +378,7 @@ static void registerShellCallbacks() {
 	Shell_scrollWheelFunc(Target_scrollWheel);
 	Shell_backgroundedFunc(Target_backgrounded);
 	Shell_foregroundedFunc(Target_foregrounded);
+	Shell_confirmQuitFunc(Target_confirmQuit);
 }
 
 static void unregisterShellCallbacks() {
@@ -383,6 +394,7 @@ static void unregisterShellCallbacks() {
 	Shell_scrollWheelFunc(NULL);
 	Shell_backgroundedFunc(NULL);
 	Shell_foregroundedFunc(NULL);
+	Shell_confirmQuitFunc(NULL);
 }
 
 void NSOpenGLTarget_configure(int argc, const char ** argv, struct NSOpenGLShellConfiguration * configuration) {

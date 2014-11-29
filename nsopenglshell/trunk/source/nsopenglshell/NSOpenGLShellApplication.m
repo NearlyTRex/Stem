@@ -162,6 +162,20 @@ static NSScreen * screenForRect(NSRect rect) {
   return YES;
 }
 
+- (NSApplicationTerminateReply) applicationShouldTerminate: (NSNotification *) notification {
+	if (confirmQuitCallback == NULL) {
+		return true;
+	}
+	return confirmQuitCallback();
+}
+
+- (BOOL) windowShouldClose: (NSNotification *) notification {
+	if (confirmQuitCallback == NULL) {
+		return true;
+	}
+	return confirmQuitCallback();
+}
+
 - (void) windowWillClose: (NSNotification *) notification {
 	exit(EXIT_SUCCESS);
 }
