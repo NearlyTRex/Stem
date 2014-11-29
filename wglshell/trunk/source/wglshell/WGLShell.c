@@ -327,7 +327,6 @@ static BOOL CALLBACK monitorEnumProcGetWorkArea(HMONITOR hMonitor, HDC hdcMonito
 		monitorInfo.cbSize = sizeof(monitorInfo);
 		if (GetMonitorInfo(hMonitor, &monitorInfo)) {
 			context->bounds = monitorInfo.rcWork;
-			context->bounds.top += GetSystemMetrics(SM_CYCAPTION);
 			context->found = true;
 		}
 	}
@@ -340,6 +339,12 @@ void Shell_getSafeWindowRect(unsigned int displayIndex, int * outOffsetX, int * 
 	
 	success = EnumDisplayMonitors(NULL, NULL, monitorEnumProcGetWorkArea, (LPARAM) &context);
 	if (success && context.found) {
+		RECT adjustedRect = context.bounds;
+		AdjustWindowRect(&adjustedRect, WS_CAPTION | WS_MAXIMIZEBOX | WS_MINIMIZEBOX | WS_SIZEBOX | WS_OVERLAPPEDWINDOW, false);
+		context.bounds.left -= adjustedRect.left - context.bounds.left;
+		context.bounds.top -= adjustedRect.top - context.bounds.top;
+		context.bounds.right -= adjustedRect.right - context.bounds.right;
+		context.bounds.bottom -= adjustedRect.bottom - context.bounds.bottom;
 		if (outOffsetX != NULL) {
 			*outOffsetX = context.bounds.left;
 		}
