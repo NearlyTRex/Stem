@@ -574,6 +574,9 @@ void Shell_mainLoop() {
 					
 				case ClientMessage:
 					if ((Atom) event.xclient.data.l[0] == deleteWindowAtom) {
+						if (confirmQuitCallback != NULL && !confirmQuitCallback()) {
+							break;
+						}
 						glXMakeCurrent(display, None, NULL);
 						glXDestroyContext(display, context);
 						XDestroyWindow(display, window);
@@ -1135,7 +1138,7 @@ bool Shell_saveFileDialog(const char * basePath, const char * baseName, char * o
 }
 
 void Shell_systemBeep() {
-	XBell(display, 100);
+	gdk_beep();
 }
 	
 #ifndef SEM_VALUE_MAX

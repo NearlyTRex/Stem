@@ -40,6 +40,7 @@ extern void (* mouseDraggedCallback)(unsigned int buttonMask, float x, float y) 
 extern void (* scrollWheelCallback)(int deltaX, int deltaY) __asm("scrollWheelCallback$GLXShell");
 extern void (* backgroundedCallback)(void) __asm("backgroundedCallback$GLXShell");
 extern void (* foregroundedCallback)(void) __asm("foregroundedCallback$GLXShell");
+extern bool (* confirmQuitCallback)(void) __asm("confirmQuitCallback$GLXShell");
 
 #ifdef __cplusplus
 }
