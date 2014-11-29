@@ -1059,7 +1059,9 @@ static LRESULT CALLBACK windowProc(HWND window, UINT message, WPARAM wParam, LPA
 			keyCode = lParamToShellKeyCode(lParam);
 			
 			if (keyCode == KEYBOARD_F4 && ((modifierFlags & MODIFIER_ALT_BIT) || (modifierFlags & MODIFIER_CONTROL_BIT))) {
-				exit(EXIT_SUCCESS);
+				if (confirmQuitCallback == NULL || confirmQuitCallback()) {
+					exit(EXIT_SUCCESS);
+				}
 			}
 			
 			if (keyCode != 0 && keyDownCallback != NULL) {
@@ -1151,6 +1153,12 @@ static LRESULT CALLBACK windowProc(HWND window, UINT message, WPARAM wParam, LPA
 				if (backgroundedCallback != NULL) {
 					backgroundedCallback();
 				}
+			}
+			break;
+			
+		case WM_CLOSE:
+			if (confirmQuitCallback != NULL && !confirmQuitCallback()) {
+				return 0;
 			}
 			break;
 			

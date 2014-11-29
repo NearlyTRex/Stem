@@ -1,5 +1,5 @@
-2.1.0 (2014-11-28)
- * Updated for shell 2.1.0 (adds Shell_setVSync (which replaces WGLShell_setVSync), Shell_openFileDialog, Shell_saveFileDialog, Shell_systemBeep, and Shell_getSafeWindowRect)
+2.1.0 (2014-11-29)
+ * Updated for shell 2.1.0 (adds Shell_setVSync (which replaces WGLShell_setVSync), Shell_openFileDialog, Shell_saveFileDialog, Shell_systemBeep, Shell_getSafeWindowRect, and Shell_confirmQuitFunc)
  * Shell now responds to Alt-F4 and Ctrl-F4
  * Fixed a bug that caused the Shell_resizeFunc callback not to be called as frequently as it should have been during window resizing
 
