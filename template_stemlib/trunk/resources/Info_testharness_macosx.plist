@@ -10,21 +10,25 @@
 	<string>${PRODUCT_NAME}</string>
 	<key>CFBundleGetInfoString</key>
 	<string>${HUMAN_READABLE_PRODUCT_NAME} ${VERSION} Copyright © ${COPYRIGHT_YEAR} Alex Diener
-http://sacredsoftware.net/</string>
+http://ludobloom.com/</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.sacredsoftware.${PRODUCT_NAME}</string>
+	<string>com.ludobloom.${PRODUCT_NAME}</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>${PRODUCT_NAME}</string>
+	<string>${HUMAN_READABLE_PRODUCT_NAME}</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleShortVersionString</key>
 	<string>${HUMAN_READABLE_PRODUCT_NAME} ${VERSION}</string>
+	<key>LSMinimumSystemVersion</key>
+	<string>10.6.0</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>Copyright © ${COPYRIGHT_YEAR} Alex Diener
-http://sacredsoftware.net/</string>
+http://ludobloom.com/</string>
+	<key>NSPrincipalClass</key>
+	<string>NSOpenGLShellApplication</string>
 </dict>
 </plist>
