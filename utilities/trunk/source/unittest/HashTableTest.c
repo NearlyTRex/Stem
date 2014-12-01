@@ -102,7 +102,7 @@ static void testCopy() {
 	TestCase_assert(blob != NULL, "Expected non-NULL but got NULL");
 	TestCase_assert(blobCopy != NULL, "Expected non-NULL but got NULL");
 	TestCase_assert(blob->value.blob.length == 3, "Expected 3 but got " SIZE_T_FORMAT, blob->value.blob.length);
-	TestCase_assert(blobCopy->value.blob.length == 3, "Expected 3 but got %u", blobCopy->value.blob.length);
+	TestCase_assert(blobCopy->value.blob.length == 3, "Expected 3 but got " SIZE_T_FORMAT, blobCopy->value.blob.length);
 	TestCase_assert(!memcmp(blob->value.blob.bytes, "foo", 3), "Expected \"foo\" but got \"%.*s\"", (unsigned int) blob->value.blob.length, (char *) blob->value.blob.bytes);
 	TestCase_assert(!memcmp(blobCopy->value.blob.bytes, "foo", 3), "Expected \"foo\" but got \"%.*s\"", (unsigned int) blobCopy->value.blob.length, (char *) blobCopy->value.blob.bytes);
 	TestCase_assert(blob->value.blob.bytes != blobCopy->value.blob.bytes, "Expected pointers to differ, but they didn't");
