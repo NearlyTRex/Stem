@@ -174,6 +174,8 @@ THIRDPARTY_LIBRARY_DEPENDENCIES =
 SOURCES_library = \
 	source/${PROJECT_NAME}/Atom.c \
 	source/${PROJECT_NAME}/AutoFreePool.c \
+	source/${PROJECT_NAME}/DataArray.c \
+	source/${PROJECT_NAME}/DataValue.c \
 	source/${PROJECT_NAME}/EventDispatcher.c \
 	source/${PROJECT_NAME}/FixedIntervalRunLoop.c \
 	source/${PROJECT_NAME}/HashTable.c \
@@ -189,6 +191,8 @@ SOURCES_unittest = \
 SOURCES_unittest_suites = \
 	source/unittest/AtomTest.c \
 	source/unittest/AutoFreePoolTest.c \
+	source/unittest/DataArrayTest.c \
+	source/unittest/DataValueTest.c \
 	source/unittest/EventDispatcherTest.c \
 	source/unittest/FixedIntervalRunLoopTest.c \
 	source/unittest/HashTableTest.c \
@@ -204,6 +208,8 @@ SOURCES_testharness = \
 INCLUDES = \
 	source/${PROJECT_NAME}/Atom.h \
 	source/${PROJECT_NAME}/AutoFreePool.h \
+	source/${PROJECT_NAME}/DataArray.h \
+	source/${PROJECT_NAME}/DataValue.h \
 	source/${PROJECT_NAME}/EventDispatcher.h \
 	source/${PROJECT_NAME}/FixedIntervalRunLoop.h \
 	source/${PROJECT_NAME}/HashTable.h \

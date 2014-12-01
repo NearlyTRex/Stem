@@ -1,9 +1,12 @@
-1.9.0 (2014-11-18)
- * Added snprintf_safe vsnprintf_safe, and strncpy_safe, to IOUtilities
- * Added FixedIntervalRunLoop_setTolerance
- * FixedIntervalRunLoop_run now returns the number of times it invoked stepCallback
- * FixedIntervalRunLoop_run now allows the run loop to be disposed from its stepCallback, and will return after the iteration that disposed it
- * Removed EventDispatcher's mostly-useless owner field and parameter, and removed sender parameter from event callbacks
+2.0.0 (2014-12-01)
+ * Added a generic type container system. See DataValue and DataArray for more information.
+ * HashTable now uses DataValue to store information.
+ * Removed hashGetCount(). Read the keyCount struct field instead.
+ * Added snprintf_safe vsnprintf_safe, and strncpy_safe, to IOUtilities.
+ * Added FixedIntervalRunLoop_setTolerance.
+ * FixedIntervalRunLoop_run now returns the number of times it invoked stepCallback.
+ * FixedIntervalRunLoop_run now allows the run loop to be disposed from its stepCallback, and will return after the iteration that disposed it.
+ * Removed EventDispatcher's mostly-useless owner field and parameter, and removed sender parameter from event callbacks.
  * Removed function pointers to EventDispatcher, FixedIntervalRunLoop, and Ranrot methods from their structs in preparation for stemobject 4.0.0. Call the EventDispatcher_*()/FixedIntervalRunLoop_*()/Ranrot_*() methods directly instead.
 
 1.8.1 (2014-06-29)

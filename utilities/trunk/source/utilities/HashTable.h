@@ -28,79 +28,29 @@ typedef struct HashTable HashTable;
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdlib.h>
-
-enum HashTableValueType {
-	HASH_TYPE_BOOLEAN,
-	HASH_TYPE_INT8,
-	HASH_TYPE_UINT8,
-	HASH_TYPE_INT16,
-	HASH_TYPE_UINT16,
-	HASH_TYPE_INT32,
-	HASH_TYPE_UINT32,
-	HASH_TYPE_INT64,
-	HASH_TYPE_UINT64,
-	HASH_TYPE_FLOAT,
-	HASH_TYPE_DOUBLE,
-	HASH_TYPE_POINTER,
-	HASH_TYPE_STRUCT,
-	HASH_TYPE_STRING,
-	HASH_TYPE_BLOB,
-	HASH_TYPE_HASH
-};
-
-#define HASH_USE_STRLEN ((size_t) -1)
+#include "utilities/DataValue.h"
 
 struct HashTableEntry {
 	const char * key;
-	enum HashTableValueType type;
-	union HashTableEntryValue {
-		bool boolean;
-		int8_t int8;
-		uint8_t uint8;
-		int16_t int16;
-		uint16_t uint16;
-		int32_t int32;
-		uint32_t uint32;
-		int64_t int64;
-		uint64_t uint64;
-		float float32;
-		double float64;
-		const void * pointer;
-		struct {
-			char * bytes;
-			size_t length;
-		} string;
-		struct {
-			void * bytes;
-			size_t length;
-		} blob;
-		struct HashTable * hashTable;
-	} value;
+	DataValue value;
 };
 
 struct HashTableBucket {
 	size_t count;
 	size_t allocatedCount;
-	void * entries;
+	struct HashTableEntry * entries;
 };
 
 struct HashTable {
 	size_t bucketCount;
 	struct HashTableBucket * buckets;
 	size_t keyCount;
-	size_t structMaxSize;
-	size_t entrySize;
-	void * notFoundStructPtr;
 };
 
-/** Creates and initializes an empty hash table. If you'll be storing structs in this has table, you
-    must specify the size of the largest struct to be stored in structMaxSize so that space can be
-    allocated for it. If the hash table won't be storing structs, pass 0. */
-HashTable * hashCreate(size_t structMaxSize);
+/** Creates and initializes an empty hash table. */
+HashTable * hashCreate();
 
-/** Creates and returns a deep copy of the supplied hash table. New copies are created of entries which are
-    HASH_TYPE_STRING, HASH_TYPE_BLOB, and HASH_TYPE_HASH. Note, however, that HASH_TYPE_POINTER is only copied
-    shallowly; the copy will point to the same memory address as the original. */
+/** Creates and returns a deep copy of the hash table. */
 HashTable * hashCopy(HashTable * hash);
 
 /** Disposes the hash table and all entries in it over which the hash table has ownership. */
@@ -113,12 +63,14 @@ bool hashHas(HashTable * hash, const char * key);
     was successfully removed; false indicates that it was not found in the hash table. */
 bool hashDelete(HashTable * hash, const char * key);
 
-/** Return a pointer to the HashTableEntry struct corresponding to the specified key, or NULL if it doesn't
-    exist in the hash table. */
-struct HashTableEntry * hashLookup(HashTable * hash, const char * key);
+/** Return a pointer to the DataValue corresponding to the specified key, or NULL if it doesn't exist in
+    the hash table. Note that modifying the hash table may invalidate this pointer, so be sure to make a
+    local copy of its contents if you need to cache it. */
+DataValue * hashGet(HashTable * hash, const char * key);
 
-/** Returns the total number of entries in the hash table. */
-size_t hashGetCount(HashTable * hash);
+/** Sets the specified value for the specified key in the hash table. If a value with the same key already
+    exists, it will be overwritten. */
+void hashSet(HashTable * hash, const char * key, DataValue value);
 
 /** Returns an array containing all keys that exist in the hash table. The caller is responsible for freeing
     the returned pointer. However, the elements contained in this array must NOT be freed, only the array
@@ -127,69 +79,5 @@ size_t hashGetCount(HashTable * hash);
     Although you can pass NULL for outCount and count the items with hashGetCount, it's recommended to instead
     retrieve the number of items with outCount. */
 const char ** hashGetKeys(HashTable * hash, size_t * outCount);
-
-/** Sets the specified value for the specified key in the hash table. If a value with the same key already
-    exists, it will be overwritten. */
-void hashSetBoolean(  HashTable * hash, const char * key, bool value);
-void hashSetInt8(     HashTable * hash, const char * key, int8_t value);
-void hashSetUInt8(    HashTable * hash, const char * key, uint8_t value);
-void hashSetInt16(    HashTable * hash, const char * key, int16_t value);
-void hashSetUInt16(   HashTable * hash, const char * key, uint16_t value);
-void hashSetInt32(    HashTable * hash, const char * key, int32_t value);
-void hashSetUInt32(   HashTable * hash, const char * key, uint32_t value);
-void hashSetInt64(    HashTable * hash, const char * key, int64_t value);
-void hashSetUInt64(   HashTable * hash, const char * key, uint64_t value);
-void hashSetFloat(    HashTable * hash, const char * key, float value);
-void hashSetDouble(   HashTable * hash, const char * key, double value);
-void hashSetPointer(  HashTable * hash, const char * key, const void * value);
-
-/** The value parameter must be the address of a struct of a size specified by the size parameter, which must
-    be less than or equal to the structMaxSize used to create the target hash table. Structs differ from blobs
-    in that they aren't allocated separately; storage is as efficient as any primitive type, at the cost of
-    the potential inconvenience of specifying a maximum size at hash creation time. */
-#define hashSetStruct(hash, key, struct_type, value) { \
-	struct_type hashSetStruct_value = (value); \
-	hashSetStructPtr(hash, key, sizeof(struct_type), &hashSetStruct_value); \
-}
-void hashSetStructPtr(HashTable * hash, const char * key, size_t size, void * value);
-
-/** The following three functions make a copy of their inputs; the caller retains ownership of the data. The
-    copies will be freed automatically when the corresponding key is deleted. If you want to retain full
-    ownership of data of any of these types without HashTable copying it, use hashSetPointer() instead.
-    
-    hashSetBlob allows arbitrarily sized data, at the cost of an extra heap allocation per blob. hashSetStruct
-    can be used to avoid the extra allocation.
-    
-    When calling hashSetString, you can pass HASH_USE_STRLEN for the length parameter if you want the
-    string's length to be determined by strlen(). */
-void hashSetString(   HashTable * hash, const char * key, const char * value, size_t length);
-void hashSetBlob(     HashTable * hash, const char * key, const void * value, size_t length);
-void hashSetHashTable(HashTable * hash, const char * key, HashTable * value);
-
-/** Returns the corresponding value for the specified key in the hash table, or false/0/NULL if it doesn't
-    exist or is of a different type. Be aware that this does not function as a way to check if the entry is
-    present, since false, 0, and NULL are all valid return values for these types. If you need to verify that
-    an entry exists for the given key, use hashHas(). */
-bool         hashGetBoolean(  HashTable * hash, const char * key);
-int8_t       hashGetInt8(     HashTable * hash, const char * key);
-uint8_t      hashGetUInt8(    HashTable * hash, const char * key);
-int16_t      hashGetInt16(    HashTable * hash, const char * key);
-uint16_t     hashGetUInt16(   HashTable * hash, const char * key);
-int32_t      hashGetInt32(    HashTable * hash, const char * key);
-uint32_t     hashGetUInt32(   HashTable * hash, const char * key);
-int64_t      hashGetInt64(    HashTable * hash, const char * key);
-uint64_t     hashGetUInt64(   HashTable * hash, const char * key);
-float        hashGetFloat(    HashTable * hash, const char * key);
-double       hashGetDouble(   HashTable * hash, const char * key);
-const void * hashGetPointer(  HashTable * hash, const char * key);
-
-#define hashGetStruct(hash, key, struct_type) \
-	(*(struct_type *) hashGetStructPtr(hash, key))
-void *       hashGetStructPtr(HashTable * hash, const char * key);
-
-/** Returned values are owned by HashTable and should not be altered or freed by the caller. */
-const char * hashGetString(   HashTable * hash, const char * key, size_t * outLength);
-const void * hashGetBlob(     HashTable * hash, const char * key, size_t * outLength);
-HashTable *  hashGetHashTable(HashTable * hash, const char * key);
 
 #endif
