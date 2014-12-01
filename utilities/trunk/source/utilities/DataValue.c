@@ -73,6 +73,21 @@ DataValue valueCreatePointer(void * value) {
 	return (DataValue) {{.pointer = value}, DATA_TYPE_POINTER, false};
 }
 
+#if defined(STEM_PLATFORM_win32) || defined(STEM_PLATFORM_win64)
+static char * strndup(const char * s1, size_t n) {
+	size_t len = 0;
+	char * s2;
+	
+	while (len < n && s1[len] != 0) {
+		len++;
+	}
+	s2 = malloc(len + 1);
+	memcpy(s2, s1, len);
+	s2[len] = 0;
+	return s2;
+}
+#endif
+
 DataValue valueCreateString(const char * value, size_t length, bool takeOwnership, bool copy) {
 	DataValue result;
 	
