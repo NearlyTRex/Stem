@@ -1,5 +1,5 @@
 .PHONY: all
-all: library unittest testharness test include
+all: library unittest test include
 
 UNAME = ${shell uname}
 ifeq (${UNAME},Linux)
@@ -27,30 +27,26 @@ TARGET_PLATFORMS_macosx = macosx iphonesimulator iphoneos
 TARGET_PLATFORMS_linux = linux32 linux64
 TARGET_PLATFORMS_windows = win32 win64
 
-PROJECT_NAME = template_stemlib
+PROJECT_NAME = dynamictypes
 CODESIGN_IDENTITY ?= "iPhone Developer"
 
 LIBRARY_TARGETS = library
 EXECUTABLE_TARGETS = unittest
-APPLICATION_TARGETS = testharness
+APPLICATION_TARGETS = 
 TARGETS = ${LIBRARY_TARGETS} ${EXECUTABLE_TARGETS} ${APPLICATION_TARGETS}
 PLATFORMS = ${filter ${TARGET_PLATFORMS_${HOST_PLATFORM}},macosx iphonesimulator iphoneos linux32 linux64 win32 win64}
 ANALYZERS = splint clang
 
 TARGET_NAME_library = libstem_${PROJECT_NAME}
 TARGET_NAME_unittest = ${PROJECT_NAME}_unittest
-TARGET_NAME_testharness = ${PROJECT_NAME}_testharness
-HUMAN_READABLE_TARGET_NAME_testharness = Stem\ Template
 
 #Per-target configurations
 CONFIGURATIONS_library = debug profile release
 CONFIGURATIONS_unittest = debug
-CONFIGURATIONS_testharness = debug profile release
 
 #Per-target platforms
 PLATFORMS_library = ${filter ${PLATFORMS},macosx iphonesimulator iphoneos linux32 linux64 win32 win64}
 PLATFORMS_unittest = ${filter ${PLATFORMS},macosx iphonesimulator linux32 linux64 win32 win64}
-PLATFORMS_testharness = ${filter ${PLATFORMS},macosx iphonesimulator iphoneos linux32 linux64 win32 win64}
 
 #Per-target analyzer settings
 CLANGFLAGS_unittest = ${CCFLAGS_unittest}
@@ -154,40 +150,57 @@ LINKFLAGS = ${FRAMEWORK_LINKFLAGS} ${LIBRARY_LINKFLAGS} ${OTHER_LINKFLAGS}
 
 LINK_ORDER = \
 	library \
-	unittest
+	unittest \
+	serialization \
+	utilities \
+	stemobject
 
 #Dependencies (can optionally be per-target or per-target-per-platform)
 
 PROJECT_LIBRARY_DEPENDENCIES_unittest = library
-PROJECT_LIBRARY_DEPENDENCIES_testharness = library
-STEM_LIBRARY_DEPENDENCIES_unittest = unittest/1.1.1
+STEM_LIBRARY_DEPENDENCIES = \
+	serialization/1.4.1 \
+	stemobject/3.1.1 \
+	utilities/1.9.0
+STEM_LIBRARY_DEPENDENCIES_unittest = \
+	unittest/1.1.1
 THIRDPARTY_LIBRARY_DEPENDENCIES = 
 
 #Per-target source file lists
 
 SOURCES_library = \
-	source/${PROJECT_NAME}/HelloWorld.c
+	source/${PROJECT_NAME}/AssociativeArray.c \
+	source/${PROJECT_NAME}/DataArray.c \
+	source/${PROJECT_NAME}/DataValue.c \
+	source/${PROJECT_NAME}/HashTable.c \
+	source/${PROJECT_NAME}/DataDeserializationContext.c \
+	source/${PROJECT_NAME}/DataSerializationContext.c
 
 SOURCES_unittest = \
 	build/intermediate/TestList.c \
 	${SOURCES_unittest_suites}
 
 SOURCES_unittest_suites = \
-	source/unittest/HelloWorldTest.c
-
-SOURCES_testharness = \
-	source/testharness/TestHarness_main.c
+	source/unittest/AssociativeArrayTest.c \
+	source/unittest/DataArrayTest.c \
+	source/unittest/DataValueTest.c \
+	source/unittest/HashTableTest.c \
+	source/unittest/DataDeserializationContextTest.c \
+	source/unittest/DataSerializationContextTest.c
 
 #Include files to be distributed with library
 
 INCLUDES = \
-	source/${PROJECT_NAME}/HelloWorld.h
+	source/${PROJECT_NAME}/AssociativeArray.h \
+	source/${PROJECT_NAME}/DataArray.h \
+	source/${PROJECT_NAME}/DataValue.h \
+	source/${PROJECT_NAME}/HashTable.h \
+	source/${PROJECT_NAME}/DataDeserializationContext.h \
+	source/${PROJECT_NAME}/DataSerializationContext.h
 
 #Target resources
 
-RESOURCES_testharness = 
 RESOURCES_unittest = 
-RESOURCES_testharness_macosx = 
 #...
 
 #General analyzer settings
@@ -466,14 +479,10 @@ ${foreach target,${EXECUTABLE_TARGETS}, \
 	} \
 }
 
-PLIST_FILE_testharness_macosx = resources/Info_testharness_macosx.plist
-
-PLIST_FILE_testharness_iphonesimulator = resources/Info_testharness_iphone.plist
 PLIST_PLATFORM_CASED_iphonesimulator = iPhoneSimulator
 PLIST_PLATFORM_LOWER_iphonesimulator = iphonesimulator
 PLIST_SDK_NAME_iphonesimulator = iphonesimulator${IPHONESIMULATOR_VERSION_MIN}
 
-PLIST_FILE_testharness_iphoneos = resources/Info_testharness_iphone.plist
 PLIST_PLATFORM_CASED_iphoneos = iPhoneOS
 PLIST_PLATFORM_LOWER_iphoneos = iphoneos
 PLIST_SDK_NAME_iphoneos = iphoneos${IPHONEOS_VERSION_MIN}
@@ -733,8 +742,7 @@ INSTALL_DIR = ${STEM_SHARED_DIR}/${PROJECT_NAME}/${VERSION_MAJOR}.${VERSION_MINO
 
 .PHONY: install
 install:
-	mkdir -p "${INSTALL_DIR}/include" "${INSTALL_DIR}/library" "${INSTALL_DIR}/testharness"
+	mkdir -p "${INSTALL_DIR}/include" "${INSTALL_DIR}/library"
 	cp Changes.txt License.txt ReadMe.txt version ${INSTALL_DIR}
 	cp -r build/include/* ${INSTALL_DIR}/include
 	cp -r build/library/* ${INSTALL_DIR}/library
-	cp -r build/testharness/* ${INSTALL_DIR}/testharness
