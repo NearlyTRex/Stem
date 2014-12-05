@@ -259,3 +259,22 @@ char * strncpy_safe(char * restrict dst, const char * restrict src, size_t n) {
 	dst[n - 1] = 0;
 	return result;
 }
+
+char * printHexString(const void * blob, size_t length, char * outString, size_t maxLength) {
+	const unsigned char * blobChars = blob;
+	size_t byteIndex, charIndex = 0;
+	
+	for (byteIndex = 0; byteIndex < length; byteIndex++) {
+		snprintf_safe(outString + charIndex, maxLength - charIndex, "%02X ", blobChars[byteIndex]);
+		charIndex += 3;
+		if (charIndex >= maxLength) {
+			return outString;
+		}
+	}
+	if (byteIndex == 0) {
+		outString[0] = 0;
+	} else {
+		outString[charIndex - 1] = 0;
+	}
+	return outString;
+}

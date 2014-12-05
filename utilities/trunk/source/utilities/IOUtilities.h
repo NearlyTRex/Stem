@@ -64,6 +64,9 @@ int snprintf_safe(char * restrict str, size_t size, const char * restrict format
 int vsnprintf_safe(char * restrict str, size_t size, const char * restrict format, va_list ap);
 char * strncpy_safe(char * restrict dst, const char * restrict src, size_t n);
 
+// Writes each byte in blob as a two-character hex string in outString, up to maxLength, returning outString
+char * printHexString(const void * blob, size_t length, char * outString, size_t maxLength);
+
 static inline uint16_t swapLittleEndian16(uint16_t value) {
 	unsigned char * valueBytes = (unsigned char *) &value;
 	return valueBytes[1] << 8 | valueBytes[0];

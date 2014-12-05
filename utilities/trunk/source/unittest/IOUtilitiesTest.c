@@ -372,6 +372,30 @@ static void testSafeStringFunctions() {
 	TestCase_assert(!strcmp(string, "Hello"), "Expected \"Hello\" but got \"%s\"", string);
 }
 
+static void testPrintHexString() {
+	char buffer[32];
+	char hex1[] = {0x00, 0x01, 0x02, 0x03}, hex2[] = "Hello";
+	char * result;
+	
+	buffer[31] = 0;
+	
+	result = printHexString(hex1, sizeof(hex1), buffer, 32);
+	TestCase_assert(result == buffer, "Expected %p but got %p", buffer, result);
+	TestCase_assert(!strcmp(buffer, "00 01 02 03"), "Expected \"00 01 02 03\" but got \"%s\"", buffer);
+	
+	result = printHexString(hex2, sizeof(hex2), buffer, 32);
+	TestCase_assert(result == buffer, "Expected %p but got %p", buffer, result);
+	TestCase_assert(!strcmp(buffer, "48 65 6C 6C 6F 00"), "Expected \"48 65 6C 6C 6F 00\" but got \"%s\"", buffer);
+	
+	result = printHexString(hex2, sizeof(hex2), buffer, 5);
+	TestCase_assert(result == buffer, "Expected %p but got %p", buffer, result);
+	TestCase_assert(!strcmp(buffer, "48 6"), "Expected \"48 6\" but got \"%s\"", buffer);
+	
+	result = printHexString(hex1, 0, buffer, 32);
+	TestCase_assert(result == buffer, "Expected %p but got %p", buffer, result);
+	TestCase_assert(!strcmp(buffer, ""), "Expected \"\" but got \"%s\"", buffer);
+}
+
 TEST_SUITE(IOUtilitiesTest,
            testMemreadContextInit,
            testMemread,
@@ -381,4 +405,5 @@ TEST_SUITE(IOUtilitiesTest,
            testWriteFileSimple,
            testTemporaryFilePath,
            testEndianSwapping,
-           testSafeStringFunctions)
+           testSafeStringFunctions,
+           testPrintHexString)
