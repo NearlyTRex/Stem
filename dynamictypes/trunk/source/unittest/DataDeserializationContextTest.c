@@ -13,6 +13,7 @@
 	verifyFunctionPointer(context, endStructure); \
 	verifyFunctionPointer(context, endDictionary); \
 	verifyFunctionPointer(context, endArray); \
+	verifyFunctionPointer(context, readBoolean); \
 	verifyFunctionPointer(context, readInt8); \
 	verifyFunctionPointer(context, readUInt8); \
 	verifyFunctionPointer(context, readInt16); \
@@ -23,13 +24,13 @@
 	verifyFunctionPointer(context, readUInt64); \
 	verifyFunctionPointer(context, readFloat); \
 	verifyFunctionPointer(context, readDouble); \
-	verifyFunctionPointer(context, readString); \
-	verifyFunctionPointer(context, readBoolean); \
 	verifyFunctionPointer(context, readEnumeration); \
 	verifyFunctionPointer(context, readBitfield8); \
 	verifyFunctionPointer(context, readBitfield16); \
 	verifyFunctionPointer(context, readBitfield32); \
 	verifyFunctionPointer(context, readBitfield64); \
+	verifyFunctionPointer(context, readString); \
+	verifyFunctionPointer(context, readBlob); \
 	verifyFunctionPointer(context, readNextDictionaryKey); \
 	verifyFunctionPointer(context, hasDictionaryKey)
 

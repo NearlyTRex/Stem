@@ -38,6 +38,7 @@ bool DataDeserializationContext_init(DataDeserializationContext * self, DataValu
 	self->endStructure = DataDeserializationContext_endStructure;
 	self->endDictionary = DataDeserializationContext_endDictionary;
 	self->endArray = DataDeserializationContext_endArray;
+	self->readBoolean = DataDeserializationContext_readBoolean;
 	self->readInt8 = DataDeserializationContext_readInt8;
 	self->readUInt8 = DataDeserializationContext_readUInt8;
 	self->readInt16 = DataDeserializationContext_readInt16;
@@ -48,13 +49,13 @@ bool DataDeserializationContext_init(DataDeserializationContext * self, DataValu
 	self->readUInt64 = DataDeserializationContext_readUInt64;
 	self->readFloat = DataDeserializationContext_readFloat;
 	self->readDouble = DataDeserializationContext_readDouble;
-	self->readString = DataDeserializationContext_readString;
-	self->readBoolean = DataDeserializationContext_readBoolean;
 	self->readEnumeration = DataDeserializationContext_readEnumeration;
 	self->readBitfield8 = DataDeserializationContext_readBitfield8;
 	self->readBitfield16 = DataDeserializationContext_readBitfield16;
 	self->readBitfield32 = DataDeserializationContext_readBitfield32;
 	self->readBitfield64 = DataDeserializationContext_readBitfield64;
+	self->readString = DataDeserializationContext_readString;
+	self->readBlob = DataDeserializationContext_readBlob;
 	self->readNextDictionaryKey = DataDeserializationContext_readNextDictionaryKey;
 	self->hasDictionaryKey = DataDeserializationContext_hasDictionaryKey;
 	return true;
@@ -82,6 +83,10 @@ void DataDeserializationContext_endDictionary(DataDeserializationContext * self)
 }
 
 void DataDeserializationContext_endArray(DataDeserializationContext * self) {
+}
+
+bool DataDeserializationContext_readBoolean(DataDeserializationContext * self, const char * key) {
+	return false;
 }
 
 int8_t DataDeserializationContext_readInt8(DataDeserializationContext * self, const char * key) {
@@ -124,14 +129,6 @@ double DataDeserializationContext_readDouble(DataDeserializationContext * self, 
 	return 0.0;
 }
 
-const char * DataDeserializationContext_readString(DataDeserializationContext * self, const char * key) {
-	return NULL;
-}
-
-bool DataDeserializationContext_readBoolean(DataDeserializationContext * self, const char * key) {
-	return false;
-}
-
 int DataDeserializationContext_readEnumeration(DataDeserializationContext * self, const char * key, ...) {
 	return 0;
 }
@@ -150,6 +147,14 @@ uint32_t DataDeserializationContext_readBitfield32(DataDeserializationContext * 
 
 uint64_t DataDeserializationContext_readBitfield64(DataDeserializationContext * self, const char * key, ...) {
 	return 0;
+}
+
+const char * DataDeserializationContext_readString(DataDeserializationContext * self, const char * key) {
+	return NULL;
+}
+
+const void * DataDeserializationContext_readBlob(DataDeserializationContext * self, const char * key, size_t * outLength) {
+	return NULL;
 }
 
 const char * DataDeserializationContext_readNextDictionaryKey(DataDeserializationContext * self) {

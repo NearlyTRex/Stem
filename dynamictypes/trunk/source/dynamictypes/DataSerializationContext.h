@@ -31,18 +31,13 @@ typedef struct DataSerializationContext DataSerializationContext;
 #include "serialization/SerializationContext.h"
 #include "dynamictypes/DataValue.h"
 
-struct DataSerializationContext_stackEntry {
-	DataValue * container;
-	size_t index;
-};
-
 #define DataSerializationContext_structContents(self_type) \
 	SerializationContext_structContents(self_type) \
 	\
 	DataValue rootValue; \
 	DataValue * currentValue; \
 	size_t stackCount; \
-	struct DataSerializationContext_stackEntry * stack;
+	DataValue ** stack;
 
 stemobject_struct_definition(DataSerializationContext)
 
@@ -59,6 +54,7 @@ void DataSerializationContext_beginArray(DataSerializationContext * self, const 
 void DataSerializationContext_endStructure(DataSerializationContext * self);
 void DataSerializationContext_endDictionary(DataSerializationContext * self);
 void DataSerializationContext_endArray(DataSerializationContext * self);
+void DataSerializationContext_writeBoolean(DataSerializationContext * self, const char * key, bool value);
 void DataSerializationContext_writeInt8(DataSerializationContext * self, const char * key, int8_t value);
 void DataSerializationContext_writeUInt8(DataSerializationContext * self, const char * key, uint8_t value);
 void DataSerializationContext_writeInt16(DataSerializationContext * self, const char * key, int16_t value);
@@ -69,13 +65,13 @@ void DataSerializationContext_writeInt64(DataSerializationContext * self, const 
 void DataSerializationContext_writeUInt64(DataSerializationContext * self, const char * key, uint64_t value);
 void DataSerializationContext_writeFloat(DataSerializationContext * self, const char * key, float value);
 void DataSerializationContext_writeDouble(DataSerializationContext * self, const char * key, double value);
-void DataSerializationContext_writeString(DataSerializationContext * self, const char * key, const char * value);
-void DataSerializationContext_writeBoolean(DataSerializationContext * self, const char * key, bool value);
 void DataSerializationContext_writeEnumeration(DataSerializationContext * self, const char * key, int value, ...) __attribute__((sentinel));
 void DataSerializationContext_writeBitfield8(DataSerializationContext * self, const char * key, uint8_t value, ...) __attribute__((sentinel));
 void DataSerializationContext_writeBitfield16(DataSerializationContext * self, const char * key, uint16_t value, ...) __attribute__((sentinel));
 void DataSerializationContext_writeBitfield32(DataSerializationContext * self, const char * key, uint32_t value, ...) __attribute__((sentinel));
 void DataSerializationContext_writeBitfield64(DataSerializationContext * self, const char * key, uint64_t value, ...) __attribute__((sentinel));
+void DataSerializationContext_writeString(DataSerializationContext * self, const char * key, const char * value);
+void DataSerializationContext_writeBlob(DataSerializationContext * self, const char * key, const void * value, size_t length);
 
 #ifdef __cplusplus
 }

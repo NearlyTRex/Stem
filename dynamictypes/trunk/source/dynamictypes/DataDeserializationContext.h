@@ -48,6 +48,7 @@ size_t DataDeserializationContext_beginArray(DataDeserializationContext * self, 
 void DataDeserializationContext_endStructure(DataDeserializationContext * self);
 void DataDeserializationContext_endDictionary(DataDeserializationContext * self);
 void DataDeserializationContext_endArray(DataDeserializationContext * self);
+bool DataDeserializationContext_readBoolean(DataDeserializationContext * self, const char * key);
 int8_t DataDeserializationContext_readInt8(DataDeserializationContext * self, const char * key);
 uint8_t DataDeserializationContext_readUInt8(DataDeserializationContext * self, const char * key);
 int16_t DataDeserializationContext_readInt16(DataDeserializationContext * self, const char * key);
@@ -58,13 +59,13 @@ int64_t DataDeserializationContext_readInt64(DataDeserializationContext * self, 
 uint64_t DataDeserializationContext_readUInt64(DataDeserializationContext * self, const char * key);
 float DataDeserializationContext_readFloat(DataDeserializationContext * self, const char * key);
 double DataDeserializationContext_readDouble(DataDeserializationContext * self, const char * key);
-const char * DataDeserializationContext_readString(DataDeserializationContext * self, const char * key);
-bool DataDeserializationContext_readBoolean(DataDeserializationContext * self, const char * key);
 int DataDeserializationContext_readEnumeration(DataDeserializationContext * self, const char * key, ...) __attribute__((sentinel));
 uint8_t DataDeserializationContext_readBitfield8(DataDeserializationContext * self, const char * key, ...) __attribute__((sentinel));
 uint16_t DataDeserializationContext_readBitfield16(DataDeserializationContext * self, const char * key, ...) __attribute__((sentinel));
 uint32_t DataDeserializationContext_readBitfield32(DataDeserializationContext * self, const char * key, ...) __attribute__((sentinel));
 uint64_t DataDeserializationContext_readBitfield64(DataDeserializationContext * self, const char * key, ...) __attribute__((sentinel));
+const char * DataDeserializationContext_readString(DataDeserializationContext * self, const char * key);
+const void * DataDeserializationContext_readBlob(DataDeserializationContext * self, const char * key, size_t * outLength);
 const char * DataDeserializationContext_readNextDictionaryKey(DataDeserializationContext * self);
 bool DataDeserializationContext_hasDictionaryKey(DataDeserializationContext * self, const char * key);
 

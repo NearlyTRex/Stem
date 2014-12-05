@@ -41,6 +41,7 @@ bool DataSerializationContext_init(DataSerializationContext * self) {
 	self->endStructure = DataSerializationContext_endStructure;
 	self->endDictionary = DataSerializationContext_endDictionary;
 	self->endArray = DataSerializationContext_endArray;
+	self->writeBoolean = DataSerializationContext_writeBoolean;
 	self->writeInt8 = DataSerializationContext_writeInt8;
 	self->writeUInt8 = DataSerializationContext_writeUInt8;
 	self->writeInt16 = DataSerializationContext_writeInt16;
@@ -51,15 +52,17 @@ bool DataSerializationContext_init(DataSerializationContext * self) {
 	self->writeUInt64 = DataSerializationContext_writeUInt64;
 	self->writeFloat = DataSerializationContext_writeFloat;
 	self->writeDouble = DataSerializationContext_writeDouble;
-	self->writeString = DataSerializationContext_writeString;
-	self->writeBoolean = DataSerializationContext_writeBoolean;
 	self->writeEnumeration = DataSerializationContext_writeEnumeration;
 	self->writeBitfield8 = DataSerializationContext_writeBitfield8;
 	self->writeBitfield16 = DataSerializationContext_writeBitfield16;
 	self->writeBitfield32 = DataSerializationContext_writeBitfield32;
 	self->writeBitfield64 = DataSerializationContext_writeBitfield64;
+	self->writeString = DataSerializationContext_writeString;
+	self->writeBlob = DataSerializationContext_writeBlob;
 	self->rootValue = valueCreateBoolean(false);
 	self->currentValue = NULL;
+	self->stackCount = 0;
+	self->stack = NULL;
 	return true;
 }
 
@@ -71,28 +74,64 @@ DataValue DataSerializationContext_result(DataSerializationContext * self) {
 	return self->rootValue;
 }
 
+static void pushContainer(DataSerializationContext * self, const char * key, DataValue container) {
+	if (self->currentValue == NULL) {
+		self->rootValue = container;
+		self->currentValue = &self->rootValue;
+		
+	} else {
+		self->stack = realloc(self->stack, sizeof(DataValue *) * (self->stackCount + 1));
+		self->stack[self->stackCount++] = self->currentValue;
+		switch (self->currentValue->type) {
+			case DATA_TYPE_ARRAY:
+				arrayAppend(self->currentValue->value.array, container);
+				self->currentValue = arrayGet(self->currentValue->value.array, self->currentValue->value.array->count - 1);
+				break;
+				
+			case DATA_TYPE_HASH_TABLE:
+				hashSet(self->currentValue->value.hashTable, key, container);
+				self->currentValue = hashGet(self->currentValue->value.hashTable, key);
+				break;
+				
+			case DATA_TYPE_ASSOCIATIVE_ARRAY:
+				associativeArrayAppend(self->currentValue->value.associativeArray, key, container);
+				self->currentValue = associativeArrayGetValueAtIndex(self->currentValue->value.associativeArray, self->currentValue->value.associativeArray->count - 1);
+				break;
+				
+			default:
+				break;
+		}
+	}
+}
+
 void DataSerializationContext_beginStructure(DataSerializationContext * self, const char * key) {
-	self->rootValue = valueCreateHashTable(hashCreate(), true, false);
-	self->currentValue = &self->rootValue;
+	pushContainer(self, key, valueCreateHashTable(hashCreate(), true, false));
 }
 
 void DataSerializationContext_beginDictionary(DataSerializationContext * self, const char * key) {
-	self->rootValue = valueCreateAssociativeArray(associativeArrayCreate(), true, false);
-	self->currentValue = &self->rootValue;
+	pushContainer(self, key, valueCreateAssociativeArray(associativeArrayCreate(), true, false));
 }
 
 void DataSerializationContext_beginArray(DataSerializationContext * self, const char * key) {
-	self->rootValue = valueCreateArray(arrayCreate(), true, false);
-	self->currentValue = &self->rootValue;
+	pushContainer(self, key, valueCreateArray(arrayCreate(), true, false));
+}
+
+static void popContainer(DataSerializationContext * self, enum DataValueType type) {
+	if (self->stackCount > 0) {
+		self->currentValue = self->stack[--self->stackCount];
+	}
 }
 
 void DataSerializationContext_endStructure(DataSerializationContext * self) {
+	popContainer(self, DATA_TYPE_HASH_TABLE);
 }
 
 void DataSerializationContext_endDictionary(DataSerializationContext * self) {
+	popContainer(self, DATA_TYPE_ASSOCIATIVE_ARRAY);
 }
 
 void DataSerializationContext_endArray(DataSerializationContext * self) {
+	popContainer(self, DATA_TYPE_ARRAY);
 }
 
 static void writeValue(DataSerializationContext * self, const char * key, DataValue value) {
@@ -112,6 +151,10 @@ static void writeValue(DataSerializationContext * self, const char * key, DataVa
 		default:
 			break;
 	}
+}
+
+void DataSerializationContext_writeBoolean(DataSerializationContext * self, const char * key, bool value) {
+	writeValue(self, key, valueCreateBoolean(value));
 }
 
 void DataSerializationContext_writeInt8(DataSerializationContext * self, const char * key, int8_t value) {
@@ -154,24 +197,30 @@ void DataSerializationContext_writeDouble(DataSerializationContext * self, const
 	writeValue(self, key, valueCreateDouble(value));
 }
 
-void DataSerializationContext_writeString(DataSerializationContext * self, const char * key, const char * value) {
-}
-
-void DataSerializationContext_writeBoolean(DataSerializationContext * self, const char * key, bool value) {
-	writeValue(self, key, valueCreateBoolean(value));
-}
-
 void DataSerializationContext_writeEnumeration(DataSerializationContext * self, const char * key, int value, ...) {
+	writeValue(self, key, valueCreateInt32(value));
 }
 
 void DataSerializationContext_writeBitfield8(DataSerializationContext * self, const char * key, uint8_t value, ...) {
+	writeValue(self, key, valueCreateUInt8(value));
 }
 
 void DataSerializationContext_writeBitfield16(DataSerializationContext * self, const char * key, uint16_t value, ...) {
+	writeValue(self, key, valueCreateUInt16(value));
 }
 
 void DataSerializationContext_writeBitfield32(DataSerializationContext * self, const char * key, uint32_t value, ...) {
+	writeValue(self, key, valueCreateUInt32(value));
 }
 
 void DataSerializationContext_writeBitfield64(DataSerializationContext * self, const char * key, uint64_t value, ...) {
+	writeValue(self, key, valueCreateUInt64(value));
+}
+
+void DataSerializationContext_writeString(DataSerializationContext * self, const char * key, const char * value) {
+	writeValue(self, key, valueCreateString(value, DATA_USE_STRLEN, true, true));
+}
+
+void DataSerializationContext_writeBlob(DataSerializationContext * self, const char * key, const void * value, size_t length) {
+	writeValue(self, key, valueCreateBlob(value, length, true, true));
 }
