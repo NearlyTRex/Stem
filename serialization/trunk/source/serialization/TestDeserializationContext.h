@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2013 Alex Diener
+  Copyright (c) 2014 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -17,7 +17,7 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
   
-  Alex Diener adiener@sacredsoftware.net
+  Alex Diener alex@ludobloom.com
 */
 
 #ifndef __TestDeserializationContext_H__
@@ -47,13 +47,15 @@ struct TestDeserializationContext_expectedCall {
 		uint64_t uint64Value;
 		float floatValue;
 		double doubleValue;
-		char * stringValue;
+		const char * stringValue;
+		const void * blobValue;
 		bool boolValue;
 		int enumValue;
 	} returnValue;
 	union TestDeserializationContext_additionalArg {
 		char * stringValue;
 		int enumValue;
+		size_t length;
 	} * additionalArgs;
 };
 
@@ -87,6 +89,7 @@ size_t TestDeserializationContext_beginArray(TestDeserializationContext * self, 
 void TestDeserializationContext_endStructure(TestDeserializationContext * self);
 void TestDeserializationContext_endDictionary(TestDeserializationContext * self);
 void TestDeserializationContext_endArray(TestDeserializationContext * self);
+bool         TestDeserializationContext_readBoolean(TestDeserializationContext * self, const char * key);
 int8_t       TestDeserializationContext_readInt8(TestDeserializationContext * self, const char * key);
 uint8_t      TestDeserializationContext_readUInt8(TestDeserializationContext * self, const char * key);
 int16_t      TestDeserializationContext_readInt16(TestDeserializationContext * self, const char * key);
@@ -97,13 +100,13 @@ int64_t      TestDeserializationContext_readInt64(TestDeserializationContext * s
 uint64_t     TestDeserializationContext_readUInt64(TestDeserializationContext * self, const char * key);
 float        TestDeserializationContext_readFloat(TestDeserializationContext * self, const char * key);
 double       TestDeserializationContext_readDouble(TestDeserializationContext * self, const char * key);
-const char * TestDeserializationContext_readString(TestDeserializationContext * self, const char * key);
-bool         TestDeserializationContext_readBoolean(TestDeserializationContext * self, const char * key);
 int          TestDeserializationContext_readEnumeration(TestDeserializationContext * self, const char * key, ...) __attribute__((sentinel));
 uint8_t      TestDeserializationContext_readBitfield8(TestDeserializationContext * self, const char * key, ...) __attribute__((sentinel));
 uint16_t     TestDeserializationContext_readBitfield16(TestDeserializationContext * self, const char * key, ...) __attribute__((sentinel));
 uint32_t     TestDeserializationContext_readBitfield32(TestDeserializationContext * self, const char * key, ...) __attribute__((sentinel));
 uint64_t     TestDeserializationContext_readBitfield64(TestDeserializationContext * self, const char * key, ...) __attribute__((sentinel));
+const char * TestDeserializationContext_readString(TestDeserializationContext * self, const char * key);
+const void * TestDeserializationContext_readBlob(TestDeserializationContext * self, const char * key, size_t * outLength);
 const char * TestDeserializationContext_readNextDictionaryKey(TestDeserializationContext * self);
 bool         TestDeserializationContext_hasDictionaryKey(TestDeserializationContext * self, const char * key);
 

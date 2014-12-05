@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2013 Alex Diener
+  Copyright (c) 2014 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -17,7 +17,7 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
   
-  Alex Diener adiener@sacredsoftware.net
+  Alex Diener alex@ludobloom.com
 */
 
 #include "serialization/SerializationContext.h"
@@ -38,6 +38,7 @@ bool SerializationContext_init(SerializationContext * self) {
 	self->endStructure = NULL;
 	self->endDictionary = NULL;
 	self->endArray = NULL;
+	self->writeBoolean = NULL;
 	self->writeInt8 = NULL;
 	self->writeUInt8 = NULL;
 	self->writeInt16 = NULL;
@@ -48,14 +49,13 @@ bool SerializationContext_init(SerializationContext * self) {
 	self->writeUInt64 = NULL;
 	self->writeFloat = NULL;
 	self->writeDouble = NULL;
-	self->writeString = NULL;
-	self->writeBoolean = NULL;
-	self->writeBytes = NULL;
 	self->writeEnumeration = NULL;
 	self->writeBitfield8 = NULL;
 	self->writeBitfield16 = NULL;
 	self->writeBitfield32 = NULL;
 	self->writeBitfield64 = NULL;
+	self->writeString = NULL;
+	self->writeBlob = NULL;
 	return true;
 }
 

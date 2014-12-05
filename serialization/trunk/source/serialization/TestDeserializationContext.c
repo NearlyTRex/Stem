@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2013 Alex Diener
+  Copyright (c) 2014 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -17,7 +17,7 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
   
-  Alex Diener adiener@sacredsoftware.net
+  Alex Diener alex@ludobloom.com
 */
 
 #include "serialization/TestDeserializationContext.h"
@@ -95,6 +95,7 @@ static char * functionNameForPtr(TestDeserializationContext * self, void * funct
 	tryFunctionName(endStructure)
 	tryFunctionName(endDictionary)
 	tryFunctionName(endArray)
+	tryFunctionName(readBoolean)
 	tryFunctionName(readInt8)
 	tryFunctionName(readUInt8)
 	tryFunctionName(readInt16)
@@ -105,13 +106,13 @@ static char * functionNameForPtr(TestDeserializationContext * self, void * funct
 	tryFunctionName(readUInt64)
 	tryFunctionName(readFloat)
 	tryFunctionName(readDouble)
-	tryFunctionName(readString)
-	tryFunctionName(readBoolean)
 	tryFunctionName(readEnumeration)
 	tryFunctionName(readBitfield8)
 	tryFunctionName(readBitfield16)
 	tryFunctionName(readBitfield32)
 	tryFunctionName(readBitfield64)
+	tryFunctionName(readString)
+	tryFunctionName(readBlob)
 	tryFunctionName(readNextDictionaryKey)
 	tryFunctionName(hasDictionaryKey)
 #undef tryFunctionName
@@ -247,6 +248,12 @@ void TestDeserializationContext_endArray(TestDeserializationContext * self) {
 	failIfRequested(self);
 }
 
+bool TestDeserializationContext_readBoolean(TestDeserializationContext * self, const char * key) {
+	verifyCallIsInSequence(self, self->readBoolean, key);
+	failIfRequested(self);
+	return self->expectedCalls[self->nextExpectedCallIndex - 1].returnValue.boolValue;
+}
+
 int8_t TestDeserializationContext_readInt8(TestDeserializationContext * self, const char * key) {
 	verifyCallIsInSequence(self, self->readInt8, key);
 	failIfRequested(self);
@@ -307,18 +314,6 @@ double TestDeserializationContext_readDouble(TestDeserializationContext * self, 
 	return self->expectedCalls[self->nextExpectedCallIndex - 1].returnValue.doubleValue;
 }
 
-const char * TestDeserializationContext_readString(TestDeserializationContext * self, const char * key) {
-	verifyCallIsInSequence(self, self->readString, key);
-	failIfRequested(self);
-	return self->expectedCalls[self->nextExpectedCallIndex - 1].returnValue.stringValue;
-}
-
-bool TestDeserializationContext_readBoolean(TestDeserializationContext * self, const char * key) {
-	verifyCallIsInSequence(self, self->readBoolean, key);
-	failIfRequested(self);
-	return self->expectedCalls[self->nextExpectedCallIndex - 1].returnValue.boolValue;
-}
-
 int TestDeserializationContext_readEnumeration(TestDeserializationContext * self, const char * key, ...) {
 	va_list args;
 	
@@ -369,6 +364,21 @@ uint64_t TestDeserializationContext_readBitfield64(TestDeserializationContext * 
 	return self->expectedCalls[self->nextExpectedCallIndex - 1].returnValue.uint64Value;
 }
 
+const char * TestDeserializationContext_readString(TestDeserializationContext * self, const char * key) {
+	verifyCallIsInSequence(self, self->readString, key);
+	failIfRequested(self);
+	return self->expectedCalls[self->nextExpectedCallIndex - 1].returnValue.stringValue;
+}
+
+const void * TestDeserializationContext_readBlob(TestDeserializationContext * self, const char * key, size_t * outLength) {
+	verifyCallIsInSequence(self, self->readBlob, key);
+	failIfRequested(self);
+	if (outLength != NULL) {
+		*outLength = self->expectedCalls[self->nextExpectedCallIndex - 1].additionalArgs[0].length;
+	}
+	return self->expectedCalls[self->nextExpectedCallIndex - 1].returnValue.stringValue;
+}
+
 const char * TestDeserializationContext_readNextDictionaryKey(TestDeserializationContext * self) {
 	verifyCallIsInSequence(self, self->readNextDictionaryKey);
 	failIfRequested(self);
@@ -395,6 +405,9 @@ void TestDeserializationContext_expectCall(TestDeserializationContext * self, vo
 	
 	if (functionPtr == self->beginDictionary || functionPtr == self->beginArray) {
 		self->expectedCalls[self->numExpectedCalls].returnValue.sizeValue = va_arg(args, size_t);
+		
+	} else if (functionPtr == self->readBoolean) {
+		self->expectedCalls[self->numExpectedCalls].returnValue.boolValue = va_arg(args, int);
 		
 	} else if (functionPtr == self->readInt8) {
 		self->expectedCalls[self->numExpectedCalls].returnValue.int8Value = va_arg(args, int);
@@ -426,14 +439,16 @@ void TestDeserializationContext_expectCall(TestDeserializationContext * self, vo
 	} else if (functionPtr == self->readDouble) {
 		self->expectedCalls[self->numExpectedCalls].returnValue.doubleValue = va_arg(args, double);
 		
+	} else if (functionPtr == self->readEnumeration) {
+		self->expectedCalls[self->numExpectedCalls].returnValue.enumValue = va_arg(args, int);
+		
 	} else if (functionPtr == self->readString) {
 		self->expectedCalls[self->numExpectedCalls].returnValue.stringValue = va_arg(args, char *);
 		
-	} else if (functionPtr == self->readBoolean) {
-		self->expectedCalls[self->numExpectedCalls].returnValue.boolValue = va_arg(args, int);
-		
-	} else if (functionPtr == self->readEnumeration) {
-		self->expectedCalls[self->numExpectedCalls].returnValue.enumValue = va_arg(args, int);
+	} else if (functionPtr == self->readBlob) {
+		self->expectedCalls[self->numExpectedCalls].returnValue.blobValue = va_arg(args, char *);
+		self->expectedCalls[self->numExpectedCalls].additionalArgs = malloc(sizeof(union TestDeserializationContext_additionalArg));
+		self->expectedCalls[self->numExpectedCalls].additionalArgs[0].length = va_arg(args, size_t);
 		
 	} else if (functionPtr == self->readNextDictionaryKey) {
 		self->expectedCalls[self->numExpectedCalls].returnValue.stringValue = va_arg(args, char *);

@@ -17,6 +17,7 @@ static void testInit() {
 	TestCase_assert(context.endStructure == NULL, "Expected NULL but got %p", context.endStructure);
 	TestCase_assert(context.endDictionary == NULL, "Expected NULL but got %p", context.endDictionary);
 	TestCase_assert(context.endArray == NULL, "Expected NULL but got %p", context.endArray);
+	TestCase_assert(context.writeBoolean == NULL, "Expected NULL but got %p", context.writeBoolean);
 	TestCase_assert(context.writeInt8 == NULL, "Expected NULL but got %p", context.writeInt8);
 	TestCase_assert(context.writeUInt8 == NULL, "Expected NULL but got %p", context.writeUInt8);
 	TestCase_assert(context.writeInt16 == NULL, "Expected NULL but got %p", context.writeInt16);
@@ -27,14 +28,13 @@ static void testInit() {
 	TestCase_assert(context.writeUInt64 == NULL, "Expected NULL but got %p", context.writeUInt64);
 	TestCase_assert(context.writeFloat == NULL, "Expected NULL but got %p", context.writeFloat);
 	TestCase_assert(context.writeDouble == NULL, "Expected NULL but got %p", context.writeDouble);
-	TestCase_assert(context.writeString == NULL, "Expected NULL but got %p", context.writeString);
-	TestCase_assert(context.writeBoolean == NULL, "Expected NULL but got %p", context.writeBoolean);
-	TestCase_assert(context.writeBytes == NULL, "Expected NULL but got %p", context.writeBytes);
 	TestCase_assert(context.writeEnumeration == NULL, "Expected NULL but got %p", context.writeEnumeration);
 	TestCase_assert(context.writeBitfield8 == NULL, "Expected NULL but got %p", context.writeBitfield8);
 	TestCase_assert(context.writeBitfield16 == NULL, "Expected NULL but got %p", context.writeBitfield16);
 	TestCase_assert(context.writeBitfield32 == NULL, "Expected NULL but got %p", context.writeBitfield32);
 	TestCase_assert(context.writeBitfield64 == NULL, "Expected NULL but got %p", context.writeBitfield64);
+	TestCase_assert(context.writeString == NULL, "Expected NULL but got %p", context.writeString);
+	TestCase_assert(context.writeBlob == NULL, "Expected NULL but got %p", context.writeBlob);
 }
 
 TEST_SUITE(SerializationContextTest, testInit)

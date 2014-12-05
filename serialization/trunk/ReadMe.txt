@@ -40,6 +40,7 @@ Example usage of SerializationContext:
 	context->writeFloat(context, "float", 0.25);
 	context->writeDouble(context, "double", 1.5);
 	context->writeString(context, "string", "Hello, world!");
+	context->writeBlob(context, "blob", "\x01\x02\x03\x04", 4);
 	context->writeEnumeration(context, "first_enum", ENUM_VALUE_0, enumKV(ENUM_VALUE_0), enumKV(ENUM_VALUE_1), NULL);
 	context->writeEnumeration(context, "second_enum", ENUM_VALUE_1, enumKV(ENUM_VALUE_0), enumKV(ENUM_VALUE_1), NULL);
 	context->writeBitfield8(context, "bitfield8_1", 0x1E, "bit0", "bit1", "bit2", "bit3", "bit4", "bit5", NULL);
@@ -92,6 +93,8 @@ Example usage of DeserializationContext, to read back the above data:
 	// doubleValue: 1.5
 	string = context->readString(context, "string");
 	// string: "Hello, world!"
+	blob = context->readBlob(context, "blob", &length);
+	// blob: {0x01, 0x02, 0x03, 0x04}; length: 4
 	enumValue = context->readEnumeration(context, "first_enum", enumKV(ENUM_VALUE_0), enumKV(ENUM_VALUE_1), NULL);
 	// enumValue: ENUM_VALUE_0
 	enumValue = context->readEnumeration(context, "second_enum", enumKV(ENUM_VALUE_0), enumKV(ENUM_VALUE_1), NULL);
@@ -121,9 +124,9 @@ The serialized output of the above code might look like this with a binary seria
 	0020: 00 01 86 A0 FF FF FF FE D5 FA 0E 00 00 00 00 01 	................
 	0030: 2A 05 F2 00 00 00 80 3E 00 00 80 3E 00 00 00 00 	*......>...>....
 	0040: 48 65 6C 6C 6F 2C 20 77 6F 72 6C 64 21 00 00 00 	Hello, world!...
-	0050: 00 00 00 00 00 01 05 03 00 1E 00 05 00 00 00 1E 	................
-	0060: 00 00 00 05 00 00 00 00 00 00 00 1E 00 00 00 00 	................
-	0070: 00 00 00 05                                     	....
+	0050: 00 04 01 02 03 04 00 00 00 00 00 00 00 01 05 03 	................
+	0060: 00 1E 00 05 00 00 00 1E 00 00 00 05 00 00 00 00 	................
+	0070: 00 00 00 1E 00 00 00 00 00 00 00 05             	............
 
 In JSON:
 
@@ -143,6 +146,7 @@ In JSON:
 		"float": 0.25,
 		"double": 1.5,
 		"string": "Hello, world!",
+		"blob": "AQIDBA==",
 		"first_enum": "ENUM_VALUE_0",
 		"second_enum": "ENUM_VALUE_1",
 		"bitfield8_1": [
@@ -205,6 +209,7 @@ In XML:
 		<float value="0.25"/>
 		<double value="1.5"/>
 		<string value="Hello, world!"/>
+		<blob value="AQIDBA=="/>
 		<first_enum value="ENUM_VALUE_0"/>
 		<second_enum value="ENUM_VALUE_1"/>
 		<bitfield8_1>

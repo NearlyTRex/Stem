@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2013 Alex Diener
+  Copyright (c) 2014 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -17,7 +17,7 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
   
-  Alex Diener adiener@sacredsoftware.net
+  Alex Diener alex@ludobloom.com
 */
 
 #ifndef __SerializationContext_H__
@@ -50,6 +50,7 @@ typedef struct SerializationContext SerializationContext;
 	void (* endDictionary)(self_type * self); \
 	void (* endArray)(self_type * self); \
 	\
+	void (* writeBoolean)(self_type * self, const char * key, bool value); \
 	void (* writeInt8)(self_type * self, const char * key, int8_t value); \
 	void (* writeUInt8)(self_type * self, const char * key, uint8_t value); \
 	void (* writeInt16)(self_type * self, const char * key, int16_t value); \
@@ -60,9 +61,6 @@ typedef struct SerializationContext SerializationContext;
 	void (* writeUInt64)(self_type * self, const char * key, uint64_t value); \
 	void (* writeFloat)(self_type * self, const char * key, float value); \
 	void (* writeDouble)(self_type * self, const char * key, double value); \
-	void (* writeString)(self_type * self, const char * key, const char * value); \
-	void (* writeBoolean)(self_type * self, const char * key, bool value); \
-	void (* writeBytes)(self_type * self, const char * key, const void * bytes, size_t length); \
 	\
 	/* Additional args: Pairs of strings naming constants, and the values described by them, terminated by */ \
 	/* NULL. You can use the enumKV macro from serialization/SerializationShared.h for convenience. */ \
@@ -73,7 +71,10 @@ typedef struct SerializationContext SerializationContext;
 	void (* struct_fptr_sentinel writeBitfield8)(self_type * self, const char * key, uint8_t value, ...); \
 	void (* struct_fptr_sentinel writeBitfield16)(self_type * self, const char * key, uint16_t value, ...); \
 	void (* struct_fptr_sentinel writeBitfield32)(self_type * self, const char * key, uint32_t value, ...); \
-	void (* struct_fptr_sentinel writeBitfield64)(self_type * self, const char * key, uint64_t value, ...);
+	void (* struct_fptr_sentinel writeBitfield64)(self_type * self, const char * key, uint64_t value, ...); \
+	\
+	void (* writeString)(self_type * self, const char * key, const char * value); \
+	void (* writeBlob)(self_type * self, const char * key, const void * bytes, size_t length);
 
 stemobject_struct_definition(SerializationContext)
 

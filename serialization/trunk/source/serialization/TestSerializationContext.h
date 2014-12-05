@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2013 Alex Diener
+  Copyright (c) 2014 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -17,7 +17,7 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
   
-  Alex Diener adiener@sacredsoftware.net
+  Alex Diener alex@ludobloom.com
 */
 
 #ifndef __TestSerializationContext_H__
@@ -49,10 +49,12 @@ struct TestSerializationContext_expectedCall {
 		char * stringValue;
 		bool boolValue;
 		int enumValue;
+		void * blobValue;
 	} value;
 	union TestSerializationContext_additionalArg {
 		char * stringValue;
 		int enumValue;
+		size_t length;
 	} * additionalArgs;
 };
 
@@ -96,13 +98,14 @@ void TestSerializationContext_writeInt64(TestSerializationContext * self, const 
 void TestSerializationContext_writeUInt64(TestSerializationContext * self, const char * key, uint64_t value);
 void TestSerializationContext_writeFloat(TestSerializationContext * self, const char * key, float value);
 void TestSerializationContext_writeDouble(TestSerializationContext * self, const char * key, double value);
-void TestSerializationContext_writeString(TestSerializationContext * self, const char * key, const char * value);
 void TestSerializationContext_writeBoolean(TestSerializationContext * self, const char * key, bool value);
 void TestSerializationContext_writeEnumeration(TestSerializationContext * self, const char * key, int value, ...) __attribute__((sentinel));
 void TestSerializationContext_writeBitfield8(TestSerializationContext * self, const char * key, uint8_t value, ...) __attribute__((sentinel));
 void TestSerializationContext_writeBitfield16(TestSerializationContext * self, const char * key, uint16_t value, ...) __attribute__((sentinel));
 void TestSerializationContext_writeBitfield32(TestSerializationContext * self, const char * key, uint32_t value, ...) __attribute__((sentinel));
 void TestSerializationContext_writeBitfield64(TestSerializationContext * self, const char * key, uint64_t value, ...) __attribute__((sentinel));
+void TestSerializationContext_writeString(TestSerializationContext * self, const char * key, const char * value);
+void TestSerializationContext_writeBlob(TestSerializationContext * self, const char * key, const void * value, size_t length);
 
 // selfPtr, functionPtr, key (if applicable), value (if applicable), additional args (if applicable)
 void TestSerializationContext_expectCall(TestSerializationContext * self, void * functionPtr, ...);

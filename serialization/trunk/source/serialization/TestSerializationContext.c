@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2013 Alex Diener
+  Copyright (c) 2014 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -17,10 +17,11 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
   
-  Alex Diener adiener@sacredsoftware.net
+  Alex Diener alex@ludobloom.com
 */
 
 #include "serialization/TestSerializationContext.h"
+#include "utilities/IOUtilities.h"
 #include "utilities/printfFormats.h"
 #include <limits.h>
 #include <stdarg.h>
@@ -94,6 +95,7 @@ static char * functionNameForPtr(TestSerializationContext * self, void * functio
 	tryFunctionName(endStructure)
 	tryFunctionName(endDictionary)
 	tryFunctionName(endArray)
+	tryFunctionName(writeBoolean)
 	tryFunctionName(writeInt8)
 	tryFunctionName(writeUInt8)
 	tryFunctionName(writeInt16)
@@ -104,27 +106,29 @@ static char * functionNameForPtr(TestSerializationContext * self, void * functio
 	tryFunctionName(writeUInt64)
 	tryFunctionName(writeFloat)
 	tryFunctionName(writeDouble)
-	tryFunctionName(writeString)
-	tryFunctionName(writeBoolean)
 	tryFunctionName(writeEnumeration)
 	tryFunctionName(writeBitfield8)
 	tryFunctionName(writeBitfield16)
 	tryFunctionName(writeBitfield32)
 	tryFunctionName(writeBitfield64)
+	tryFunctionName(writeString)
+	tryFunctionName(writeBlob)
 #undef tryFunctionName
 	return "<invalid>";
 }
+
+#define BLOB_STRING_MAX 256
 
 static void verifyCallIsInSequence(TestSerializationContext * self, void * functionPtr, ...) {
 	va_list args;
 	
 	if (self->nextExpectedCallIndex >= self->numExpectedCalls) {
-		snprintf(self->error, SERIALIZATION_ERROR_MAX, "Additional function %s called after expected end of calls", functionNameForPtr(self, functionPtr));
+		snprintf_safe(self->error, SERIALIZATION_ERROR_MAX, "Additional function %s called after expected end of calls", functionNameForPtr(self, functionPtr));
 		longjmp(*self->sequenceBreakJmpEnv, 1);
 	}
 	
 	if (self->expectedCalls[self->nextExpectedCallIndex].functionPtr != functionPtr) {
-		snprintf(self->error, SERIALIZATION_ERROR_MAX, "Function %s called when %s was expected (index %u)", functionNameForPtr(self, functionPtr), functionNameForPtr(self, self->expectedCalls[self->nextExpectedCallIndex].functionPtr), self->nextExpectedCallIndex);
+		snprintf_safe(self->error, SERIALIZATION_ERROR_MAX, "Function %s called when %s was expected (index %u)", functionNameForPtr(self, functionPtr), functionNameForPtr(self, self->expectedCalls[self->nextExpectedCallIndex].functionPtr), self->nextExpectedCallIndex);
 		longjmp(*self->sequenceBreakJmpEnv, 2);
 	}
 	
@@ -134,7 +138,7 @@ static void verifyCallIsInSequence(TestSerializationContext * self, void * funct
 		
 		key = va_arg(args, char *);
 		if (((self->expectedCalls[self->nextExpectedCallIndex].key == NULL || key == NULL) && self->expectedCalls[self->nextExpectedCallIndex].key != key) || (self->expectedCalls[self->nextExpectedCallIndex].key != NULL && key != NULL && strcmp(self->expectedCalls[self->nextExpectedCallIndex].key, key))) {
-			snprintf(self->error, SERIALIZATION_ERROR_MAX, "Arg 2 to call %d (%s) was expected to be \"%s\", but was \"%s\" instead", self->nextExpectedCallIndex, functionNameForPtr(self, functionPtr), self->expectedCalls[self->nextExpectedCallIndex].key, key);
+			snprintf_safe(self->error, SERIALIZATION_ERROR_MAX, "Arg 2 to call %d (%s) was expected to be \"%s\", but was \"%s\" instead", self->nextExpectedCallIndex, functionNameForPtr(self, functionPtr), self->expectedCalls[self->nextExpectedCallIndex].key, key);
 			longjmp(*self->sequenceBreakJmpEnv, 3);
 		}
 	}
@@ -143,7 +147,7 @@ static void verifyCallIsInSequence(TestSerializationContext * self, void * funct
 		
 		int8Value = va_arg(args, int);
 		if (self->expectedCalls[self->nextExpectedCallIndex].value.int8Value != int8Value) {
-			snprintf(self->error, SERIALIZATION_ERROR_MAX, "Arg 3 to call %d (%s) was expected to be %d, but was %d instead", self->nextExpectedCallIndex, functionNameForPtr(self, functionPtr), self->expectedCalls[self->nextExpectedCallIndex].value.int8Value, int8Value);
+			snprintf_safe(self->error, SERIALIZATION_ERROR_MAX, "Arg 3 to call %d (%s) was expected to be %d, but was %d instead", self->nextExpectedCallIndex, functionNameForPtr(self, functionPtr), self->expectedCalls[self->nextExpectedCallIndex].value.int8Value, int8Value);
 			longjmp(*self->sequenceBreakJmpEnv, 3);
 		}
 		
@@ -152,7 +156,7 @@ static void verifyCallIsInSequence(TestSerializationContext * self, void * funct
 		
 		uint8Value = va_arg(args, int);
 		if (self->expectedCalls[self->nextExpectedCallIndex].value.uint8Value != uint8Value) {
-			snprintf(self->error, SERIALIZATION_ERROR_MAX, "Arg 3 to call %d (%s) was expected to be %u, but was %u instead", self->nextExpectedCallIndex, functionNameForPtr(self, functionPtr), self->expectedCalls[self->nextExpectedCallIndex].value.uint8Value, uint8Value);
+			snprintf_safe(self->error, SERIALIZATION_ERROR_MAX, "Arg 3 to call %d (%s) was expected to be %u, but was %u instead", self->nextExpectedCallIndex, functionNameForPtr(self, functionPtr), self->expectedCalls[self->nextExpectedCallIndex].value.uint8Value, uint8Value);
 			longjmp(*self->sequenceBreakJmpEnv, 3);
 		}
 		
@@ -161,7 +165,7 @@ static void verifyCallIsInSequence(TestSerializationContext * self, void * funct
 		
 		int16Value = va_arg(args, int);
 		if (self->expectedCalls[self->nextExpectedCallIndex].value.int16Value != int16Value) {
-			snprintf(self->error, SERIALIZATION_ERROR_MAX, "Arg 3 to call %d (%s) was expected to be %d, but was %d instead", self->nextExpectedCallIndex, functionNameForPtr(self, functionPtr), self->expectedCalls[self->nextExpectedCallIndex].value.int16Value, int16Value);
+			snprintf_safe(self->error, SERIALIZATION_ERROR_MAX, "Arg 3 to call %d (%s) was expected to be %d, but was %d instead", self->nextExpectedCallIndex, functionNameForPtr(self, functionPtr), self->expectedCalls[self->nextExpectedCallIndex].value.int16Value, int16Value);
 			longjmp(*self->sequenceBreakJmpEnv, 3);
 		}
 		
@@ -170,7 +174,7 @@ static void verifyCallIsInSequence(TestSerializationContext * self, void * funct
 		
 		uint16Value = va_arg(args, int);
 		if (self->expectedCalls[self->nextExpectedCallIndex].value.uint16Value != uint16Value) {
-			snprintf(self->error, SERIALIZATION_ERROR_MAX, "Arg 3 to call %d (%s) was expected to be %u, but was %u instead", self->nextExpectedCallIndex, functionNameForPtr(self, functionPtr), self->expectedCalls[self->nextExpectedCallIndex].value.uint16Value, uint16Value);
+			snprintf_safe(self->error, SERIALIZATION_ERROR_MAX, "Arg 3 to call %d (%s) was expected to be %u, but was %u instead", self->nextExpectedCallIndex, functionNameForPtr(self, functionPtr), self->expectedCalls[self->nextExpectedCallIndex].value.uint16Value, uint16Value);
 			longjmp(*self->sequenceBreakJmpEnv, 3);
 		}
 		
@@ -179,7 +183,7 @@ static void verifyCallIsInSequence(TestSerializationContext * self, void * funct
 		
 		int32Value = va_arg(args, int32_t);
 		if (self->expectedCalls[self->nextExpectedCallIndex].value.int32Value != int32Value) {
-			snprintf(self->error, SERIALIZATION_ERROR_MAX, "Arg 3 to call %d (%s) was expected to be %d, but was %d instead", self->nextExpectedCallIndex, functionNameForPtr(self, functionPtr), self->expectedCalls[self->nextExpectedCallIndex].value.int32Value, int32Value);
+			snprintf_safe(self->error, SERIALIZATION_ERROR_MAX, "Arg 3 to call %d (%s) was expected to be %d, but was %d instead", self->nextExpectedCallIndex, functionNameForPtr(self, functionPtr), self->expectedCalls[self->nextExpectedCallIndex].value.int32Value, int32Value);
 			longjmp(*self->sequenceBreakJmpEnv, 3);
 		}
 		
@@ -188,7 +192,7 @@ static void verifyCallIsInSequence(TestSerializationContext * self, void * funct
 		
 		uint32Value = va_arg(args, uint32_t);
 		if (self->expectedCalls[self->nextExpectedCallIndex].value.uint32Value != uint32Value) {
-			snprintf(self->error, SERIALIZATION_ERROR_MAX, "Arg 3 to call %d (%s) was expected to be %u, but was %u instead", self->nextExpectedCallIndex, functionNameForPtr(self, functionPtr), self->expectedCalls[self->nextExpectedCallIndex].value.uint32Value, uint32Value);
+			snprintf_safe(self->error, SERIALIZATION_ERROR_MAX, "Arg 3 to call %d (%s) was expected to be %u, but was %u instead", self->nextExpectedCallIndex, functionNameForPtr(self, functionPtr), self->expectedCalls[self->nextExpectedCallIndex].value.uint32Value, uint32Value);
 			longjmp(*self->sequenceBreakJmpEnv, 3);
 		}
 		
@@ -197,7 +201,7 @@ static void verifyCallIsInSequence(TestSerializationContext * self, void * funct
 		
 		int64Value = va_arg(args, int64_t);
 		if (self->expectedCalls[self->nextExpectedCallIndex].value.int64Value != int64Value) {
-			snprintf(self->error, SERIALIZATION_ERROR_MAX, "Arg 3 to call %d (%s) was expected to be " INT64_FORMAT ", but was " INT64_FORMAT " instead", self->nextExpectedCallIndex, functionNameForPtr(self, functionPtr), self->expectedCalls[self->nextExpectedCallIndex].value.int64Value, int64Value);
+			snprintf_safe(self->error, SERIALIZATION_ERROR_MAX, "Arg 3 to call %d (%s) was expected to be " INT64_FORMAT ", but was " INT64_FORMAT " instead", self->nextExpectedCallIndex, functionNameForPtr(self, functionPtr), self->expectedCalls[self->nextExpectedCallIndex].value.int64Value, int64Value);
 			longjmp(*self->sequenceBreakJmpEnv, 3);
 		}
 		
@@ -206,7 +210,7 @@ static void verifyCallIsInSequence(TestSerializationContext * self, void * funct
 		
 		uint64Value = va_arg(args, uint64_t);
 		if (self->expectedCalls[self->nextExpectedCallIndex].value.uint64Value != uint64Value) {
-			snprintf(self->error, SERIALIZATION_ERROR_MAX, "Arg 3 to call %d (%s) was expected to be " UINT64_FORMAT ", but was " UINT64_FORMAT " instead", self->nextExpectedCallIndex, functionNameForPtr(self, functionPtr), self->expectedCalls[self->nextExpectedCallIndex].value.uint64Value, uint64Value);
+			snprintf_safe(self->error, SERIALIZATION_ERROR_MAX, "Arg 3 to call %d (%s) was expected to be " UINT64_FORMAT ", but was " UINT64_FORMAT " instead", self->nextExpectedCallIndex, functionNameForPtr(self, functionPtr), self->expectedCalls[self->nextExpectedCallIndex].value.uint64Value, uint64Value);
 			longjmp(*self->sequenceBreakJmpEnv, 3);
 		}
 		
@@ -215,7 +219,7 @@ static void verifyCallIsInSequence(TestSerializationContext * self, void * funct
 		
 		floatValue = va_arg(args, double);
 		if (self->expectedCalls[self->nextExpectedCallIndex].value.floatValue != floatValue) {
-			snprintf(self->error, SERIALIZATION_ERROR_MAX, "Arg 3 to call %d (%s) was expected to be %f, but was %f instead", self->nextExpectedCallIndex, functionNameForPtr(self, functionPtr), self->expectedCalls[self->nextExpectedCallIndex].value.floatValue, floatValue);
+			snprintf_safe(self->error, SERIALIZATION_ERROR_MAX, "Arg 3 to call %d (%s) was expected to be %f, but was %f instead", self->nextExpectedCallIndex, functionNameForPtr(self, functionPtr), self->expectedCalls[self->nextExpectedCallIndex].value.floatValue, floatValue);
 			longjmp(*self->sequenceBreakJmpEnv, 3);
 		}
 		
@@ -224,7 +228,7 @@ static void verifyCallIsInSequence(TestSerializationContext * self, void * funct
 		
 		doubleValue = va_arg(args, double);
 		if (self->expectedCalls[self->nextExpectedCallIndex].value.doubleValue != doubleValue) {
-			snprintf(self->error, SERIALIZATION_ERROR_MAX, "Arg 3 to call %d (%s) was expected to be %f, but was %f instead", self->nextExpectedCallIndex, functionNameForPtr(self, functionPtr), self->expectedCalls[self->nextExpectedCallIndex].value.doubleValue, doubleValue);
+			snprintf_safe(self->error, SERIALIZATION_ERROR_MAX, "Arg 3 to call %d (%s) was expected to be %f, but was %f instead", self->nextExpectedCallIndex, functionNameForPtr(self, functionPtr), self->expectedCalls[self->nextExpectedCallIndex].value.doubleValue, doubleValue);
 			longjmp(*self->sequenceBreakJmpEnv, 3);
 		}
 		
@@ -233,7 +237,24 @@ static void verifyCallIsInSequence(TestSerializationContext * self, void * funct
 		
 		stringValue = va_arg(args, char *);
 		if (strcmp(self->expectedCalls[self->nextExpectedCallIndex].value.stringValue, stringValue)) {
-			snprintf(self->error, SERIALIZATION_ERROR_MAX, "Arg 3 to call %d (%s) was expected to be \"%s\", but was \"%s\" instead", self->nextExpectedCallIndex, functionNameForPtr(self, functionPtr), self->expectedCalls[self->nextExpectedCallIndex].value.stringValue, stringValue);
+			snprintf_safe(self->error, SERIALIZATION_ERROR_MAX, "Arg 3 to call %d (%s) was expected to be \"%s\", but was \"%s\" instead", self->nextExpectedCallIndex, functionNameForPtr(self, functionPtr), self->expectedCalls[self->nextExpectedCallIndex].value.stringValue, stringValue);
+			longjmp(*self->sequenceBreakJmpEnv, 3);
+		}
+		
+	} else if (functionPtr == self->writeBlob) {
+		void * blobValue;
+		size_t length;
+		
+		blobValue = va_arg(args, void *);
+		length = va_arg(args, size_t);
+		if (length != self->expectedCalls[self->nextExpectedCallIndex].additionalArgs[0].length) {
+			snprintf_safe(self->error, SERIALIZATION_ERROR_MAX, "Arg 4 to call %d (%s) was expected to be " SIZE_T_FORMAT ", but was " SIZE_T_FORMAT " instead", self->nextExpectedCallIndex, functionNameForPtr(self, functionPtr), self->expectedCalls[self->nextExpectedCallIndex].additionalArgs[0].length, length);
+			longjmp(*self->sequenceBreakJmpEnv, 3);
+		}
+		if (memcmp(self->expectedCalls[self->nextExpectedCallIndex].value.blobValue, blobValue, length)) {
+			char blobString1[256], blobString2[256];
+			
+			snprintf_safe(self->error, SERIALIZATION_ERROR_MAX, "Arg 3 to call %d (%s) was expected to be %s, but was %s instead", self->nextExpectedCallIndex, functionNameForPtr(self, functionPtr), printHexString(self->expectedCalls[self->nextExpectedCallIndex].value.blobValue, length, blobString1, sizeof(blobString1)), printHexString(blobValue, length, blobString2, sizeof(blobString2)));
 			longjmp(*self->sequenceBreakJmpEnv, 3);
 		}
 		
@@ -242,7 +263,7 @@ static void verifyCallIsInSequence(TestSerializationContext * self, void * funct
 		
 		boolValue = va_arg(args, int);
 		if (self->expectedCalls[self->nextExpectedCallIndex].value.boolValue != boolValue) {
-			snprintf(self->error, SERIALIZATION_ERROR_MAX, "Arg 3 to call %d (%s) was expected to be %s, but was %s instead", self->nextExpectedCallIndex, functionNameForPtr(self, functionPtr), self->expectedCalls[self->nextExpectedCallIndex].value.boolValue ? "true" : "false", boolValue ? "true" : "false");
+			snprintf_safe(self->error, SERIALIZATION_ERROR_MAX, "Arg 3 to call %d (%s) was expected to be %s, but was %s instead", self->nextExpectedCallIndex, functionNameForPtr(self, functionPtr), self->expectedCalls[self->nextExpectedCallIndex].value.boolValue ? "true" : "false", boolValue ? "true" : "false");
 			longjmp(*self->sequenceBreakJmpEnv, 3);
 		}
 		
@@ -251,7 +272,7 @@ static void verifyCallIsInSequence(TestSerializationContext * self, void * funct
 		
 		enumValue = va_arg(args, int);
 		if (self->expectedCalls[self->nextExpectedCallIndex].value.enumValue != enumValue) {
-			snprintf(self->error, SERIALIZATION_ERROR_MAX, "Arg 3 to call %d (%s) was expected to be %d, but was %d instead", self->nextExpectedCallIndex, functionNameForPtr(self, functionPtr), self->expectedCalls[self->nextExpectedCallIndex].value.enumValue, enumValue);
+			snprintf_safe(self->error, SERIALIZATION_ERROR_MAX, "Arg 3 to call %d (%s) was expected to be %d, but was %d instead", self->nextExpectedCallIndex, functionNameForPtr(self, functionPtr), self->expectedCalls[self->nextExpectedCallIndex].value.enumValue, enumValue);
 			longjmp(*self->sequenceBreakJmpEnv, 3);
 		}
 	}
@@ -267,22 +288,22 @@ static void verifyCallIsInSequence(TestSerializationContext * self, void * funct
 			string = va_arg(*args2, char *);
 			if (string == NULL) {
 				if (self->expectedCalls[self->nextExpectedCallIndex].additionalArgs[additionalArgIndex].stringValue != NULL) {
-					snprintf(self->error, SERIALIZATION_ERROR_MAX, "Fewer additional args specified to %s (call index %d) than expected (got NULL instead of \"%s\")", functionNameForPtr(self, functionPtr), self->nextExpectedCallIndex, self->expectedCalls[self->nextExpectedCallIndex].additionalArgs[additionalArgIndex].stringValue);
+					snprintf_safe(self->error, SERIALIZATION_ERROR_MAX, "Fewer additional args specified to %s (call index %d) than expected (got NULL instead of \"%s\")", functionNameForPtr(self, functionPtr), self->nextExpectedCallIndex, self->expectedCalls[self->nextExpectedCallIndex].additionalArgs[additionalArgIndex].stringValue);
 					longjmp(*self->sequenceBreakJmpEnv, 3);
 				}
 			} else {
 				enumValue = va_arg(*args2, int);
 				
 				if (self->expectedCalls[self->nextExpectedCallIndex].additionalArgs[additionalArgIndex].stringValue == NULL) {
-					snprintf(self->error, SERIALIZATION_ERROR_MAX, "More additional args specified to %s (call index %d) than expected (got \"%s\" instead of NULL)", functionNameForPtr(self, functionPtr), self->nextExpectedCallIndex, string);
+					snprintf_safe(self->error, SERIALIZATION_ERROR_MAX, "More additional args specified to %s (call index %d) than expected (got \"%s\" instead of NULL)", functionNameForPtr(self, functionPtr), self->nextExpectedCallIndex, string);
 					longjmp(*self->sequenceBreakJmpEnv, 3);
 				}
 				if (strcmp(self->expectedCalls[self->nextExpectedCallIndex].additionalArgs[additionalArgIndex].stringValue, string)) {
-					snprintf(self->error, SERIALIZATION_ERROR_MAX, "Nonmatching additional arg specified to %s (call index %d) (got \"%s\" instead of \"%s\")", functionNameForPtr(self, functionPtr), self->nextExpectedCallIndex, string, self->expectedCalls[self->nextExpectedCallIndex].additionalArgs[additionalArgIndex].stringValue);
+					snprintf_safe(self->error, SERIALIZATION_ERROR_MAX, "Nonmatching additional arg specified to %s (call index %d) (got \"%s\" instead of \"%s\")", functionNameForPtr(self, functionPtr), self->nextExpectedCallIndex, string, self->expectedCalls[self->nextExpectedCallIndex].additionalArgs[additionalArgIndex].stringValue);
 					longjmp(*self->sequenceBreakJmpEnv, 3);
 				}
 				if (self->expectedCalls[self->nextExpectedCallIndex].additionalArgs[additionalArgIndex + 1].enumValue != enumValue) {
-					snprintf(self->error, SERIALIZATION_ERROR_MAX, "Nonmatching additional arg specified to %s (call index %d) (got %d instead of %d)", functionNameForPtr(self, functionPtr), self->nextExpectedCallIndex, enumValue, self->expectedCalls[self->nextExpectedCallIndex].additionalArgs[additionalArgIndex + 1].enumValue);
+					snprintf_safe(self->error, SERIALIZATION_ERROR_MAX, "Nonmatching additional arg specified to %s (call index %d) (got %d instead of %d)", functionNameForPtr(self, functionPtr), self->nextExpectedCallIndex, enumValue, self->expectedCalls[self->nextExpectedCallIndex].additionalArgs[additionalArgIndex + 1].enumValue);
 					longjmp(*self->sequenceBreakJmpEnv, 3);
 				}
 			}
@@ -299,16 +320,16 @@ static void verifyCallIsInSequence(TestSerializationContext * self, void * funct
 			string = va_arg(*args2, char *);
 			if (string == NULL) {
 				if (self->expectedCalls[self->nextExpectedCallIndex].additionalArgs[additionalArgIndex].stringValue != NULL) {
-					snprintf(self->error, SERIALIZATION_ERROR_MAX, "Fewer additional args specified to %s (call index %d) than expected (got NULL instead of \"%s\")", functionNameForPtr(self, functionPtr), self->nextExpectedCallIndex, self->expectedCalls[self->nextExpectedCallIndex].additionalArgs[additionalArgIndex].stringValue);
+					snprintf_safe(self->error, SERIALIZATION_ERROR_MAX, "Fewer additional args specified to %s (call index %d) than expected (got NULL instead of \"%s\")", functionNameForPtr(self, functionPtr), self->nextExpectedCallIndex, self->expectedCalls[self->nextExpectedCallIndex].additionalArgs[additionalArgIndex].stringValue);
 					longjmp(*self->sequenceBreakJmpEnv, 3);
 				}
 			} else {
 				if (self->expectedCalls[self->nextExpectedCallIndex].additionalArgs[additionalArgIndex].stringValue == NULL) {
-					snprintf(self->error, SERIALIZATION_ERROR_MAX, "More additional args specified to %s (call index %d) than expected (got \"%s\" instead of NULL)", functionNameForPtr(self, functionPtr), self->nextExpectedCallIndex, string);
+					snprintf_safe(self->error, SERIALIZATION_ERROR_MAX, "More additional args specified to %s (call index %d) than expected (got \"%s\" instead of NULL)", functionNameForPtr(self, functionPtr), self->nextExpectedCallIndex, string);
 					longjmp(*self->sequenceBreakJmpEnv, 3);
 				}
 				if (strcmp(self->expectedCalls[self->nextExpectedCallIndex].additionalArgs[additionalArgIndex].stringValue, string)) {
-					snprintf(self->error, SERIALIZATION_ERROR_MAX, "Nonmatching additional arg specified to %s (call index %d) (got \"%s\" instead of \"%s\")", functionNameForPtr(self, functionPtr), self->nextExpectedCallIndex, string, self->expectedCalls[self->nextExpectedCallIndex].additionalArgs[additionalArgIndex].stringValue);
+					snprintf_safe(self->error, SERIALIZATION_ERROR_MAX, "Nonmatching additional arg specified to %s (call index %d) (got \"%s\" instead of \"%s\")", functionNameForPtr(self, functionPtr), self->nextExpectedCallIndex, string, self->expectedCalls[self->nextExpectedCallIndex].additionalArgs[additionalArgIndex].stringValue);
 					longjmp(*self->sequenceBreakJmpEnv, 3);
 				}
 			}
@@ -356,6 +377,11 @@ void TestSerializationContext_endDictionary(TestSerializationContext * self) {
 
 void TestSerializationContext_endArray(TestSerializationContext * self) {
 	verifyCallIsInSequence(self, self->endArray);
+	failIfRequested(self);
+}
+
+void TestSerializationContext_writeBoolean(TestSerializationContext * self, const char * key, bool value) {
+	verifyCallIsInSequence(self, self->writeBoolean, key, value);
 	failIfRequested(self);
 }
 
@@ -409,16 +435,6 @@ void TestSerializationContext_writeDouble(TestSerializationContext * self, const
 	failIfRequested(self);
 }
 
-void TestSerializationContext_writeString(TestSerializationContext * self, const char * key, const char * value) {
-	verifyCallIsInSequence(self, self->writeString, key, value);
-	failIfRequested(self);
-}
-
-void TestSerializationContext_writeBoolean(TestSerializationContext * self, const char * key, bool value) {
-	verifyCallIsInSequence(self, self->writeBoolean, key, value);
-	failIfRequested(self);
-}
-
 void TestSerializationContext_writeEnumeration(TestSerializationContext * self, const char * key, int value, ...) {
 	va_list args;
 	
@@ -461,6 +477,16 @@ void TestSerializationContext_writeBitfield64(TestSerializationContext * self, c
 	va_start(args, value);
 	verifyCallIsInSequence(self, self->writeBitfield64, key, value, &args);
 	va_end(args);
+	failIfRequested(self);
+}
+
+void TestSerializationContext_writeString(TestSerializationContext * self, const char * key, const char * value) {
+	verifyCallIsInSequence(self, self->writeString, key, value);
+	failIfRequested(self);
+}
+
+void TestSerializationContext_writeBlob(TestSerializationContext * self, const char * key, const void * value, size_t length) {
+	verifyCallIsInSequence(self, self->writeBlob, key, value);
 	failIfRequested(self);
 }
 
@@ -551,7 +577,7 @@ void TestSerializationContext_failNthCall(TestSerializationContext * self, unsig
 
 void TestSerializationContext_finish(TestSerializationContext * self) {
 	if (self->nextExpectedCallIndex < self->numExpectedCalls) {
-		snprintf(self->error, SERIALIZATION_ERROR_MAX, "%d expected call%s still left in queue at end (next expected call is %s)", self->numExpectedCalls - self->nextExpectedCallIndex, self->numExpectedCalls - self->nextExpectedCallIndex == 1 ? "" : "s", functionNameForPtr(self, self->expectedCalls[self->nextExpectedCallIndex].functionPtr));
+		snprintf_safe(self->error, SERIALIZATION_ERROR_MAX, "%d expected call%s still left in queue at end (next expected call is %s)", self->numExpectedCalls - self->nextExpectedCallIndex, self->numExpectedCalls - self->nextExpectedCallIndex == 1 ? "" : "s", functionNameForPtr(self, self->expectedCalls[self->nextExpectedCallIndex].functionPtr));
 		longjmp(*self->sequenceBreakJmpEnv, 4);
 	}
 }

@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2013 Alex Diener
+  Copyright (c) 2014 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -17,7 +17,7 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
   
-  Alex Diener adiener@sacredsoftware.net
+  Alex Diener alex@ludobloom.com
 */
 
 #include "serialization/DeserializationContext.h"
@@ -38,6 +38,7 @@ bool DeserializationContext_init(DeserializationContext * self) {
 	self->endStructure = NULL;
 	self->endDictionary = NULL;
 	self->endArray = NULL;
+	self->readBoolean = NULL;
 	self->readInt8 = NULL;
 	self->readUInt8 = NULL;
 	self->readInt16 = NULL;
@@ -48,14 +49,13 @@ bool DeserializationContext_init(DeserializationContext * self) {
 	self->readUInt64 = NULL;
 	self->readFloat = NULL;
 	self->readDouble = NULL;
-	self->readString = NULL;
-	self->readBoolean = NULL;
-	self->readBytes = NULL;
 	self->readEnumeration = NULL;
 	self->readBitfield8 = NULL;
 	self->readBitfield16 = NULL;
 	self->readBitfield32 = NULL;
 	self->readBitfield64 = NULL;
+	self->readString = NULL;
+	self->readBlob = NULL;
 	self->readNextDictionaryKey = NULL;
 	self->hasDictionaryKey = NULL;
 	return true;

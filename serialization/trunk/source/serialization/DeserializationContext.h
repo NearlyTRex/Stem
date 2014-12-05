@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2013 Alex Diener
+  Copyright (c) 2014 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -17,7 +17,7 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
   
-  Alex Diener adiener@sacredsoftware.net
+  Alex Diener alex@ludobloom.com
 */
 
 #ifndef __DeserializationContext_H__
@@ -64,6 +64,7 @@ typedef struct DeserializationContext DeserializationContext;
 	void (* endDictionary)(self_type * self); \
 	void (* endArray)(self_type * self); \
 	\
+	bool         (* readBoolean)(self_type * self, const char * key); \
 	int8_t       (* readInt8)(self_type * self, const char * key); \
 	uint8_t      (* readUInt8)(self_type * self, const char * key); \
 	int16_t      (* readInt16)(self_type * self, const char * key); \
@@ -74,13 +75,9 @@ typedef struct DeserializationContext DeserializationContext;
 	uint64_t     (* readUInt64)(self_type * self, const char * key); \
 	float        (* readFloat)(self_type * self, const char * key); \
 	double       (* readDouble)(self_type * self, const char * key); \
-	/* Returned string not owned by caller; do not free */ \
-	const char * (* readString)(self_type * self, const char * key); \
-	bool         (* readBoolean)(self_type * self, const char * key); \
-	const void * (* readBytes)(self_type * self, const char * key, size_t * outLength); \
 	\
 	/* Additional args: Pairs of strings naming constants, and the values described by them, terminated by */ \
-	/* NULL. You can use the enumKV macro from serialization/SerializationShared.h for convenience. */ \
+	/* NULL. You can use the enumKV macro from SerializationShared.h for convenience. */ \
 	int          (* struct_fptr_sentinel readEnumeration)(self_type * self, const char * key, ...); \
 	\
 	/* Additional args: Strings naming each bit from least significant to most significant, up to the maximum */ \
@@ -89,6 +86,10 @@ typedef struct DeserializationContext DeserializationContext;
 	uint16_t     (* struct_fptr_sentinel readBitfield16)(self_type * self, const char * key, ...); \
 	uint32_t     (* struct_fptr_sentinel readBitfield32)(self_type * self, const char * key, ...); \
 	uint64_t     (* struct_fptr_sentinel readBitfield64)(self_type * self, const char * key, ...); \
+	\
+	/* Returned pointers not owned by caller; do not free */ \
+	const char * (* readString)(self_type * self, const char * key); \
+	const void * (* readBlob)(self_type * self, const char * key, size_t * outLength); \
 	\
 	/* Returned string not owned by caller; do not free */ \
 	/* Valid only when reading an ordered dictionary */ \

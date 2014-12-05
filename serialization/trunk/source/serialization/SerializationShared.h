@@ -90,8 +90,7 @@ extern "C" {
 // Other errors defined by concrete serialization modules
 
 /* Returns a human-readable string constant describing one of the errors defined above.
-   Note that unless you're implementing a SerializationContext or DeserializationContext
-   subclass, you should normally call the errorString() instance method on the context that
+   Note that you should normally call the errorString() instance method on the context that
    generated the error instead of this function, since they can describe error codes defined
    by extensions. This function can only define the ones contained within this header. */
 const char * Serialization_errorString(int status);
