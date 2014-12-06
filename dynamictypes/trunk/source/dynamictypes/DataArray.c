@@ -21,6 +21,7 @@
 */
 
 #include "dynamictypes/DataArray.h"
+#include <stdarg.h>
 
 DataArray * arrayCreate() {
 	DataArray * array;
@@ -29,6 +30,19 @@ DataArray * arrayCreate() {
 	array->count = 0;
 	array->allocatedCount = 0;
 	array->values = NULL;
+	return array;
+}
+
+DataArray * _arrayCreateWithValues(DataValue value, ...) {
+	DataArray * array;
+	va_list args;
+	
+	array = arrayCreate();
+	arrayAppend(array, value);
+	va_start(args, value);
+	while ((value = va_arg(args, DataValue)).type != ARRAY_VALUE_SENTINEL.type) {
+		arrayAppend(array, value);
+	}
 	return array;
 }
 

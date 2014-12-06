@@ -47,10 +47,13 @@ struct HashTable {
 	size_t keyCount;
 };
 
-/** Creates and initializes an empty hash table. */
+/** Returns an empty hash table. */
 HashTable * hashCreate();
 
-/** Creates and returns a deep copy of the hash table. */
+/** Returns a hash table initialized with the specified keys and values. */
+HashTable * hashCreateWithKeysAndValues(const char * key, DataValue value, ...) __attribute__((sentinel));
+
+/** Returns a deep copy of a hash table. */
 HashTable * hashCopy(HashTable * hash);
 
 /** Disposes the hash table and all entries in it over which the hash table has ownership. */

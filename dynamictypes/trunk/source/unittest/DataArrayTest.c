@@ -11,6 +11,26 @@ static void testCreate() {
 	arrayDispose(array);
 }
 
+static void testCreateWithValues() {
+	DataArray * array;
+	
+	array = arrayCreateWithValues(valueCreateBoolean(false));
+	TestCase_assert(array != NULL, "Expected non-NULL but got NULL");
+	TestCase_assert(array->count == 1, "Expected 1 but got " SIZE_T_FORMAT, array->count);
+	TestCase_assert(array->values[0].type == DATA_TYPE_BOOLEAN, "Expected %d but got %d", DATA_TYPE_BOOLEAN, array->values[0].type);
+	TestCase_assert(!array->values[0].value.boolean, "Expected false but got true");
+	arrayDispose(array);
+	
+	array = arrayCreateWithValues(valueCreateBoolean(true), valueCreateInt8(2));
+	TestCase_assert(array != NULL, "Expected non-NULL but got NULL");
+	TestCase_assert(array->count == 2, "Expected 2 but got " SIZE_T_FORMAT, array->count);
+	TestCase_assert(array->values[0].type == DATA_TYPE_BOOLEAN, "Expected %d but got %d", DATA_TYPE_BOOLEAN, array->values[0].type);
+	TestCase_assert(array->values[0].value.boolean, "Expected true but got false");
+	TestCase_assert(array->values[1].type == DATA_TYPE_INT8, "Expected %d but got %d", DATA_TYPE_INT8, array->values[1].type);
+	TestCase_assert(array->values[1].value.int8 == 2, "Expected 2 but got %d", array->values[1].value.int8);
+	arrayDispose(array);
+}
+
 static void testAppend() {
 	DataArray * array;
 	
@@ -188,6 +208,7 @@ static void testDelete() {
 
 TEST_SUITE(DataArrayTest,
            testCreate,
+           testCreateWithValues,
            testAppend,
            testGet,
            testInsert,

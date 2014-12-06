@@ -39,10 +39,16 @@ struct DataArray {
 	DataValue * values;
 };
 
-/** Creates and initializes an empty array. */
+#define ARRAY_VALUE_SENTINEL ((DataValue) {{.boolean = false}, -1, false})
+
+/** Returns an empty array. */
 DataArray * arrayCreate();
 
-/** Creates and returns a deep copy of the array. */
+/** Returns an array initialized with the specified values. Use the arrayCreateWithValues macro instead of calling _arrayCreateWithValues directly. */
+DataArray * _arrayCreateWithValues(DataValue value, ...);
+#define arrayCreateWithValues(...) _arrayCreateWithValues(__VA_ARGS__, ARRAY_VALUE_SENTINEL)
+
+/** Returns a deep copy of an array. */
 DataArray * arrayCopy(DataArray * array);
 
 /** Disposes the array and all entries in it over which the array has ownership. */

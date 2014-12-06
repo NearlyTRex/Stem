@@ -23,9 +23,10 @@
 #include "dynamictypes/HashTable.h"
 #include "dynamictypes/lookup3.h"
 #include "utilities/printfFormats.h"
-#include <string.h>
+#include <stdarg.h>
 #include <stddef.h>
 #include <stdio.h>
+#include <string.h>
 
 #define MAX_DENSITY 5
 #define MIN_SIZE 8
@@ -83,6 +84,20 @@ HashTable * hashCreate() {
 	hash->keyCount = 0;
 	hash->bucketCount = nextPrimeSize(0);
 	hash->buckets = calloc(sizeof(struct HashTableBucket), hash->bucketCount);
+	return hash;
+}
+
+HashTable * hashCreateWithKeysAndValues(const char * key, DataValue value, ...) {
+	HashTable * hash;
+	va_list args;
+	
+	hash = hashCreate();
+	hashSet(hash, key, value);
+	va_start(args, value);
+	while ((key = va_arg(args, const char *)) != NULL) {
+		value = va_arg(args, DataValue);
+		hashSet(hash, key, value);
+	}
 	return hash;
 }
 

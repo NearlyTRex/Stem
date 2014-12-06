@@ -42,10 +42,13 @@ struct AssociativeArray {
 
 #define ASSOCIATIVE_ARRAY_NOT_FOUND ((size_t) -1)
 
-/** Creates and initializes an empty associative array. */
+/** Returns an empty associative array. */
 AssociativeArray * associativeArrayCreate();
 
-/** Creates and returns a deep copy of the associative array. */
+/** Returns an associative array initialized with the specified keys and values. */
+AssociativeArray * associativeArrayCreateWithKeysAndValues(const char * key, DataValue value, ...) __attribute__((sentinel));
+
+/** Returns a deep copy of an associative array. */
 AssociativeArray * associativeArrayCopy(AssociativeArray * array);
 
 /** Disposes the associative array and all entries in it over which the associative array has ownership. */

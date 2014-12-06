@@ -21,6 +21,7 @@
 */
 
 #include "dynamictypes/AssociativeArray.h"
+#include <stdarg.h>
 #include <string.h>
 
 AssociativeArray * associativeArrayCreate() {
@@ -31,6 +32,20 @@ AssociativeArray * associativeArrayCreate() {
 	array->allocatedCount = 0;
 	array->values = NULL;
 	array->keys = NULL;
+	return array;
+}
+
+AssociativeArray * associativeArrayCreateWithKeysAndValues(const char * key, DataValue value, ...) {
+	AssociativeArray * array;
+	va_list args;
+	
+	array = associativeArrayCreate();
+	associativeArrayAppend(array, key, value);
+	va_start(args, value);
+	while ((key = va_arg(args, const char *)) != NULL) {
+		value = va_arg(args, DataValue);
+		associativeArrayAppend(array, key, value);
+	}
 	return array;
 }
 

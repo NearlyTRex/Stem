@@ -11,6 +11,29 @@ static void testCreate() {
 	associativeArrayDispose(array);
 }
 
+static void testCreateWithKeysAndValues() {
+	AssociativeArray * array;
+	
+	array = associativeArrayCreateWithKeysAndValues("a", valueCreateBoolean(false), NULL);
+	TestCase_assert(array != NULL, "Expected non-NULL but got NULL");
+	TestCase_assert(array->count == 1, "Expected 1 but got " SIZE_T_FORMAT, array->count);
+	TestCase_assert(array->values[0].type == DATA_TYPE_BOOLEAN, "Expected %d but got %d", DATA_TYPE_BOOLEAN, array->values[0].type);
+	TestCase_assert(!array->values[0].value.boolean, "Expected false but got true");
+	TestCase_assert(!strcmp(array->keys[0], "a"), "Expected \"a\" but got \"%s\"", array->keys[0]);
+	associativeArrayDispose(array);
+	
+	array = associativeArrayCreateWithKeysAndValues("b", valueCreateBoolean(true), "foo", valueCreateInt8(2), NULL);
+	TestCase_assert(array != NULL, "Expected non-NULL but got NULL");
+	TestCase_assert(array->count == 2, "Expected 2 but got " SIZE_T_FORMAT, array->count);
+	TestCase_assert(array->values[0].type == DATA_TYPE_BOOLEAN, "Expected %d but got %d", DATA_TYPE_BOOLEAN, array->values[0].type);
+	TestCase_assert(array->values[0].value.boolean, "Expected true but got false");
+	TestCase_assert(!strcmp(array->keys[0], "b"), "Expected \"b\" but got \"%s\"", array->keys[0]);
+	TestCase_assert(array->values[1].type == DATA_TYPE_INT8, "Expected %d but got %d", DATA_TYPE_INT8, array->values[1].type);
+	TestCase_assert(array->values[1].value.int8 == 2, "Expected 2 but got %d", array->values[1].value.int8);
+	TestCase_assert(!strcmp(array->keys[1], "foo"), "Expected \"foo\" but got \"%s\"", array->keys[1]);
+	associativeArrayDispose(array);
+}
+
 static void testAppend() {
 	AssociativeArray * array;
 	
@@ -283,6 +306,7 @@ static void testDelete() {
 
 TEST_SUITE(AssociativeArrayTest,
            testCreate,
+           testCreateWithKeysAndValues,
            testAppend,
            testGetKeyAtIndex,
            testGetValueAtIndex,

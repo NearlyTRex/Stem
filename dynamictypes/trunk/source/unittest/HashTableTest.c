@@ -13,6 +13,33 @@ static void testCreate() {
 	hashDispose(hashTable);
 }
 
+static void testCreateWithKeysAndValues() {
+	HashTable * hashTable;
+	DataValue * value;
+	
+	hashTable = hashCreateWithKeysAndValues("a", valueCreateBoolean(false), NULL);
+	TestCase_assert(hashTable != NULL, "Expected non-NULL but got NULL");
+	TestCase_assert(hashTable->keyCount == 1, "Expected 1 but got " SIZE_T_FORMAT, hashTable->keyCount);
+	value = hashGet(hashTable, "a");
+	TestCase_assert(value != NULL, "Expected non-NULL but got NULL");
+	TestCase_assert(value->type == DATA_TYPE_BOOLEAN, "Expected %d but got %d", DATA_TYPE_BOOLEAN, value->type);
+	TestCase_assert(!value->value.boolean, "Expected false but got true");
+	hashDispose(hashTable);
+	
+	hashTable = hashCreateWithKeysAndValues("b", valueCreateBoolean(true), "foo", valueCreateInt8(2), NULL);
+	TestCase_assert(hashTable != NULL, "Expected non-NULL but got NULL");
+	TestCase_assert(hashTable->keyCount == 2, "Expected 2 but got " SIZE_T_FORMAT, hashTable->keyCount);
+	value = hashGet(hashTable, "b");
+	TestCase_assert(value != NULL, "Expected non-NULL but got NULL");
+	TestCase_assert(value->type == DATA_TYPE_BOOLEAN, "Expected %d but got %d", DATA_TYPE_BOOLEAN, value->type);
+	TestCase_assert(value->value.boolean, "Expected true but got false");
+	value = hashGet(hashTable, "foo");
+	TestCase_assert(value != NULL, "Expected non-NULL but got NULL");
+	TestCase_assert(value->type == DATA_TYPE_INT8, "Expected %d but got %d", DATA_TYPE_INT8, value->type);
+	TestCase_assert(value->value.int8 == 2, "Expected 2 but got %d", value->value.int8);
+	hashDispose(hashTable);
+}
+
 static void testAccessors() {
 	HashTable * hashTable;
 	DataValue * entry;
@@ -228,6 +255,7 @@ static void testGetKeys() {
 
 TEST_SUITE(HashTableTest,
            testCreate,
+           testCreateWithKeysAndValues,
            testAccessors,
            testCopy,
            testReplaceValues,
