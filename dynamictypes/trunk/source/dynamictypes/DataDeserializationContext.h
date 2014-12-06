@@ -31,10 +31,19 @@ extern "C" {
 
 typedef struct DataDeserializationContext DataDeserializationContext;
 
+struct DataDeserializationContext_stackEntry {
+	DataValue * container;
+	size_t index;
+};
+
 #define DataDeserializationContext_structContents(self_type) \
 	DeserializationContext_structContents(self_type) \
 	\
-	DataValue rootValue;
+	DataValue rootValue; \
+	DataValue * currentValue; \
+	size_t index; \
+	size_t stackCount; \
+	struct DataDeserializationContext_stackEntry * stack;
 
 stemobject_struct_definition(DataDeserializationContext)
 

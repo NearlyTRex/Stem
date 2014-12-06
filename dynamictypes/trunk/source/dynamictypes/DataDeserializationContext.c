@@ -20,7 +20,10 @@
   Alex Diener alex@ludobloom.com
 */
 
+#include "dynamictypes/AssociativeArray.h"
+#include "dynamictypes/DataArray.h"
 #include "dynamictypes/DataDeserializationContext.h"
+#include "dynamictypes/HashTable.h"
 #include <stdlib.h>
 
 #define SUPERCLASS StemObject
@@ -58,6 +61,11 @@ bool DataDeserializationContext_init(DataDeserializationContext * self, DataValu
 	self->readBlob = DataDeserializationContext_readBlob;
 	self->readNextDictionaryKey = DataDeserializationContext_readNextDictionaryKey;
 	self->hasDictionaryKey = DataDeserializationContext_hasDictionaryKey;
+	self->status = SERIALIZATION_ERROR_OK;
+	self->rootValue = rootValue;
+	self->currentValue = NULL;
+	self->stackCount = 0;
+	self->stack = NULL;
 	return true;
 }
 
@@ -65,102 +73,160 @@ void DataDeserializationContext_dispose(DataDeserializationContext * self) {
 	call_super(dispose, self);
 }
 
+static DataValue * readNextValueInContainer(DataDeserializationContext * self, const char * key) {
+	switch (self->currentValue->type) {
+		case DATA_TYPE_ARRAY:
+			return arrayGet(self->currentValue->value.array, self->index++);
+			
+		case DATA_TYPE_ASSOCIATIVE_ARRAY:
+			return associativeArrayGetValueAtIndex(self->currentValue->value.associativeArray, self->index++);
+			
+		case DATA_TYPE_HASH_TABLE:
+			return hashGet(self->currentValue->value.hashTable, key);
+			
+		default:
+			return NULL;
+	}
+}
+
+static void pushContainer(DataDeserializationContext * self, DataValue * container) {
+	self->stack = realloc(self->stack, sizeof(DataValue *) * (self->stackCount + 1));
+	self->stack[self->stackCount].container = self->currentValue;
+	self->stack[self->stackCount].index = self->index;
+	self->stackCount++;
+	self->currentValue = container;
+	self->index = 0;
+}
+
 void DataDeserializationContext_beginStructure(DataDeserializationContext * self, const char * key) {
+	if (self->currentValue == NULL) {
+		self->currentValue = &self->rootValue;
+		self->index = 0;
+	} else {
+		pushContainer(self, readNextValueInContainer(self, key));
+	}
 }
 
 size_t DataDeserializationContext_beginDictionary(DataDeserializationContext * self, const char * key) {
-	return 0;
+	if (self->currentValue == NULL) {
+		self->currentValue = &self->rootValue;
+		self->index = 0;
+	} else {
+		pushContainer(self, readNextValueInContainer(self, key));
+	}
+	return self->currentValue->value.associativeArray->count;
 }
 
 size_t DataDeserializationContext_beginArray(DataDeserializationContext * self, const char * key) {
-	return 0;
+	if (self->currentValue == NULL) {
+		self->currentValue = &self->rootValue;
+		self->index = 0;
+	} else {
+		pushContainer(self, readNextValueInContainer(self, key));
+	}
+	return self->currentValue->value.array->count;
+}
+
+static void popContainer(DataDeserializationContext * self, enum DataValueType type) {
+	if (self->stackCount > 0) {
+		self->stackCount--;
+		self->currentValue = self->stack[self->stackCount].container;
+		self->index = self->stack[self->stackCount].index;
+	}
 }
 
 void DataDeserializationContext_endStructure(DataDeserializationContext * self) {
+	popContainer(self, DATA_TYPE_HASH_TABLE);
 }
 
 void DataDeserializationContext_endDictionary(DataDeserializationContext * self) {
+	popContainer(self, DATA_TYPE_ASSOCIATIVE_ARRAY);
 }
 
 void DataDeserializationContext_endArray(DataDeserializationContext * self) {
+	popContainer(self, DATA_TYPE_ARRAY);
 }
 
 bool DataDeserializationContext_readBoolean(DataDeserializationContext * self, const char * key) {
-	return false;
+	return readNextValueInContainer(self, key)->value.boolean;
 }
 
 int8_t DataDeserializationContext_readInt8(DataDeserializationContext * self, const char * key) {
-	return 0;
+	return readNextValueInContainer(self, key)->value.int8;
 }
 
 uint8_t DataDeserializationContext_readUInt8(DataDeserializationContext * self, const char * key) {
-	return 0;
+	return readNextValueInContainer(self, key)->value.uint8;
 }
 
 int16_t DataDeserializationContext_readInt16(DataDeserializationContext * self, const char * key) {
-	return 0;
+	return readNextValueInContainer(self, key)->value.int16;
 }
 
 uint16_t DataDeserializationContext_readUInt16(DataDeserializationContext * self, const char * key) {
-	return 0;
+	return readNextValueInContainer(self, key)->value.uint16;
 }
 
 int32_t DataDeserializationContext_readInt32(DataDeserializationContext * self, const char * key) {
-	return 0;
+	return readNextValueInContainer(self, key)->value.int32;
 }
 
 uint32_t DataDeserializationContext_readUInt32(DataDeserializationContext * self, const char * key) {
-	return 0;
+	return readNextValueInContainer(self, key)->value.uint32;
 }
 
 int64_t DataDeserializationContext_readInt64(DataDeserializationContext * self, const char * key) {
-	return 0;
+	return readNextValueInContainer(self, key)->value.int64;
 }
 
 uint64_t DataDeserializationContext_readUInt64(DataDeserializationContext * self, const char * key) {
-	return 0;
+	return readNextValueInContainer(self, key)->value.uint64;
 }
 
 float DataDeserializationContext_readFloat(DataDeserializationContext * self, const char * key) {
-	return 0.0f;
+	return readNextValueInContainer(self, key)->value.float32;
 }
 
 double DataDeserializationContext_readDouble(DataDeserializationContext * self, const char * key) {
-	return 0.0;
+	return readNextValueInContainer(self, key)->value.float64;
 }
 
 int DataDeserializationContext_readEnumeration(DataDeserializationContext * self, const char * key, ...) {
-	return 0;
+	return readNextValueInContainer(self, key)->value.int32;
 }
 
 uint8_t DataDeserializationContext_readBitfield8(DataDeserializationContext * self, const char * key, ...) {
-	return 0;
+	return readNextValueInContainer(self, key)->value.uint8;
 }
 
 uint16_t DataDeserializationContext_readBitfield16(DataDeserializationContext * self, const char * key, ...) {
-	return 0;
+	return readNextValueInContainer(self, key)->value.uint16;
 }
 
 uint32_t DataDeserializationContext_readBitfield32(DataDeserializationContext * self, const char * key, ...) {
-	return 0;
+	return readNextValueInContainer(self, key)->value.uint32;
 }
 
 uint64_t DataDeserializationContext_readBitfield64(DataDeserializationContext * self, const char * key, ...) {
-	return 0;
+	return readNextValueInContainer(self, key)->value.uint64;
 }
 
 const char * DataDeserializationContext_readString(DataDeserializationContext * self, const char * key) {
-	return NULL;
+	return readNextValueInContainer(self, key)->value.string.bytes;
 }
 
 const void * DataDeserializationContext_readBlob(DataDeserializationContext * self, const char * key, size_t * outLength) {
-	return NULL;
+	DataValue * value;
+	
+	value = readNextValueInContainer(self, key);
+	*outLength = value->value.blob.length;
+	return value->value.blob.bytes;
 }
 
 const char * DataDeserializationContext_readNextDictionaryKey(DataDeserializationContext * self) {
-	return NULL;
+	return associativeArrayGetKeyAtIndex(self->currentValue->value.associativeArray, self->index++);
 }
 
 bool DataDeserializationContext_hasDictionaryKey(DataDeserializationContext * self, const char * key) {
-	return false;
+	return associativeArrayGetFirstIndexOfKey(self->currentValue->value.associativeArray, key) != ASSOCIATIVE_ARRAY_NOT_FOUND;
 }
