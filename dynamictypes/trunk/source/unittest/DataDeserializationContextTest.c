@@ -340,6 +340,52 @@ static void testValuesInAssociativeArray() {
 	
 	associativeArrayDispose(assArray);
 	DataDeserializationContext_dispose(context);
+	
+	assArray = associativeArrayCreate();
+	associativeArrayAppend(assArray, "uint8_1", valueCreateUInt8(1));
+	associativeArrayAppend(assArray, "uint8_0", valueCreateUInt8(0));
+	associativeArrayAppend(assArray, "uint64_1", valueCreateUInt64(1));
+	associativeArrayAppend(assArray, "uint64_0", valueCreateUInt64(0));
+	associativeArrayAppend(assArray, "uint32_1", valueCreateUInt32(1));
+	associativeArrayAppend(assArray, "uint32_0", valueCreateUInt32(0));
+	associativeArrayAppend(assArray, "uint16_1", valueCreateUInt16(1));
+	associativeArrayAppend(assArray, "uint16_0", valueCreateUInt16(0));
+	associativeArrayAppend(assArray, "string_1", valueCreateString("bar", DATA_USE_STRLEN, false, false));
+	associativeArrayAppend(assArray, "string_0", valueCreateString("foo", DATA_USE_STRLEN, false, false));
+	associativeArrayAppend(assArray, "int8_1", valueCreateInt8(1));
+	associativeArrayAppend(assArray, "int8_0", valueCreateInt8(0));
+	associativeArrayAppend(assArray, "int64_1", valueCreateInt64(1));
+	associativeArrayAppend(assArray, "int64_0", valueCreateInt64(0));
+	associativeArrayAppend(assArray, "int32_1", valueCreateInt32(1));
+	associativeArrayAppend(assArray, "int32_0", valueCreateInt32(0));
+	associativeArrayAppend(assArray, "int16_1", valueCreateInt16(1));
+	associativeArrayAppend(assArray, "int16_0", valueCreateInt16(0));
+	associativeArrayAppend(assArray, "float_1", valueCreateFloat(1.0f));
+	associativeArrayAppend(assArray, "float_0", valueCreateFloat(0.0f));
+	associativeArrayAppend(assArray, "enum_1", valueCreateInt32(ENUM_TEST_1));
+	associativeArrayAppend(assArray, "enum_0", valueCreateInt32(ENUM_TEST_0));
+	associativeArrayAppend(assArray, "double_1", valueCreateDouble(1.0));
+	associativeArrayAppend(assArray, "double_0", valueCreateDouble(0.0));
+	associativeArrayAppend(assArray, "bool_1", valueCreateBoolean(true));
+	associativeArrayAppend(assArray, "bool_0", valueCreateBoolean(false));
+	associativeArrayAppend(assArray, "blob_1", valueCreateBlob("abcd", 4, false, false));
+	associativeArrayAppend(assArray, "blob_0", valueCreateBlob("a", 1, false, false));
+	associativeArrayAppend(assArray, "bitfield8_1", valueCreateUInt8(0x57));
+	associativeArrayAppend(assArray, "bitfield8_0", valueCreateUInt8(0xAA));
+	associativeArrayAppend(assArray, "bitfield64_1", valueCreateUInt64(0x000000000000003Cull));
+	associativeArrayAppend(assArray, "bitfield64_0", valueCreateUInt64(0xF000000000000001ull));
+	associativeArrayAppend(assArray, "bitfield32_1", valueCreateUInt32(0x0000001E));
+	associativeArrayAppend(assArray, "bitfield32_0", valueCreateUInt32(0xF0000001));
+	associativeArrayAppend(assArray, "bitfield16_1", valueCreateUInt16(0x000F));
+	associativeArrayAppend(assArray, "bitfield16_0", valueCreateUInt16(0xF001));
+	
+	context = DataDeserializationContext_create(valueCreateAssociativeArray(assArray, false, false));
+	beginAndVerifyDictionary(NULL, 36);
+	verifyTestValues();
+	context->endDictionary(context);
+	
+	associativeArrayDispose(assArray);
+	DataDeserializationContext_dispose(context);
 }
 
 static void testHierarchy() {
@@ -383,8 +429,479 @@ static void testHierarchy() {
 	DataDeserializationContext_dispose(context);
 }
 
+#define testFailure(VALUE, ERROR_STATUS, PREAMBLE_CODE, FAIL_CODE) \
+	context = DataDeserializationContext_create(VALUE); \
+	PREAMBLE_CODE \
+	TestCase_assert(context->status == SERIALIZATION_ERROR_OK, "Expected %d but got %d (OK)", SERIALIZATION_ERROR_OK, context->status); \
+	FAIL_CODE \
+	TestCase_assert(context->status == ERROR_STATUS, "Expected %d but got %d (context->status)", ERROR_STATUS, context->status); \
+	context->dispose(context); \
+	\
+	context = DataDeserializationContext_create(VALUE); \
+	context->jmpBuf = &jmpBuf; \
+	status = setjmp(jmpBuf); \
+	if (!status) { \
+		PREAMBLE_CODE \
+		TestCase_assert(context->status == SERIALIZATION_ERROR_OK, "Expected %d but got %d (OK setjmp)", SERIALIZATION_ERROR_OK, context->status); \
+		FAIL_CODE \
+	} \
+	TestCase_assert(status == ERROR_STATUS, "Expected %d but got %d (status setjmp)", ERROR_STATUS, status); \
+	TestCase_assert(context->status == ERROR_STATUS, "Expected %d but got %d (context->status setjmp)", ERROR_STATUS, context->status); \
+	context->dispose(context)
+
+#define testFailureWithAllTypes(VALUE, ERROR_STATUS, PREAMBLE_CODE, KEY) \
+	testFailure(VALUE, ERROR_STATUS, PREAMBLE_CODE, context->readBoolean(context, KEY);); \
+	testFailure(VALUE, ERROR_STATUS, PREAMBLE_CODE, context->readInt8(context, KEY);); \
+	testFailure(VALUE, ERROR_STATUS, PREAMBLE_CODE, context->readUInt8(context, KEY);); \
+	testFailure(VALUE, ERROR_STATUS, PREAMBLE_CODE, context->readInt16(context, KEY);); \
+	testFailure(VALUE, ERROR_STATUS, PREAMBLE_CODE, context->readUInt16(context, KEY);); \
+	testFailure(VALUE, ERROR_STATUS, PREAMBLE_CODE, context->readInt32(context, KEY);); \
+	testFailure(VALUE, ERROR_STATUS, PREAMBLE_CODE, context->readUInt32(context, KEY);); \
+	testFailure(VALUE, ERROR_STATUS, PREAMBLE_CODE, context->readInt64(context, KEY);); \
+	testFailure(VALUE, ERROR_STATUS, PREAMBLE_CODE, context->readUInt64(context, KEY);); \
+	testFailure(VALUE, ERROR_STATUS, PREAMBLE_CODE, context->readFloat(context, KEY);); \
+	testFailure(VALUE, ERROR_STATUS, PREAMBLE_CODE, context->readDouble(context, KEY);); \
+	testFailure(VALUE, ERROR_STATUS, PREAMBLE_CODE, context->readEnumeration(context, KEY, enumKV(ENUM_TEST_0), NULL);); \
+	testFailure(VALUE, ERROR_STATUS, PREAMBLE_CODE, context->readBitfield8(context, KEY, "a", NULL);); \
+	testFailure(VALUE, ERROR_STATUS, PREAMBLE_CODE, context->readBitfield16(context, KEY, "a", NULL);); \
+	testFailure(VALUE, ERROR_STATUS, PREAMBLE_CODE, context->readBitfield32(context, KEY, "a", NULL);); \
+	testFailure(VALUE, ERROR_STATUS, PREAMBLE_CODE, context->readBitfield64(context, KEY, "a", NULL);); \
+	testFailure(VALUE, ERROR_STATUS, PREAMBLE_CODE, context->readString(context, KEY);); \
+	testFailure(VALUE, ERROR_STATUS, PREAMBLE_CODE, context->readBlob(context, KEY, &length);)
+
+#define testFailureWithAllTypesExcept(VALUE, ERROR_STATUS, PREAMBLE_CODE, KEY, EXCEPTION) \
+	if (strcmp(#EXCEPTION, "boolean")) { \
+		testFailure(VALUE, ERROR_STATUS, PREAMBLE_CODE, context->readBoolean(context, KEY);); \
+	} \
+	if (strcmp(#EXCEPTION, "int8")) { \
+		testFailure(VALUE, ERROR_STATUS, PREAMBLE_CODE, context->readInt8(context, KEY);); \
+	} \
+	if (strcmp(#EXCEPTION, "uint8")) { \
+		testFailure(VALUE, ERROR_STATUS, PREAMBLE_CODE, context->readUInt8(context, KEY);); \
+		testFailure(VALUE, ERROR_STATUS, PREAMBLE_CODE, context->readBitfield8(context, KEY, "a", NULL);); \
+	} \
+	if (strcmp(#EXCEPTION, "int16")) { \
+		testFailure(VALUE, ERROR_STATUS, PREAMBLE_CODE, context->readInt16(context, KEY);); \
+	} \
+	if (strcmp(#EXCEPTION, "uint16")) { \
+		testFailure(VALUE, ERROR_STATUS, PREAMBLE_CODE, context->readUInt16(context, KEY);); \
+		testFailure(VALUE, ERROR_STATUS, PREAMBLE_CODE, context->readBitfield16(context, KEY, "a", NULL);); \
+	} \
+	if (strcmp(#EXCEPTION, "int32")) { \
+		testFailure(VALUE, ERROR_STATUS, PREAMBLE_CODE, context->readInt32(context, KEY);); \
+		testFailure(VALUE, ERROR_STATUS, PREAMBLE_CODE, context->readEnumeration(context, KEY, enumKV(ENUM_TEST_0), NULL);); \
+	} \
+	if (strcmp(#EXCEPTION, "uint32")) { \
+		testFailure(VALUE, ERROR_STATUS, PREAMBLE_CODE, context->readUInt32(context, KEY);); \
+		testFailure(VALUE, ERROR_STATUS, PREAMBLE_CODE, context->readBitfield32(context, KEY, "a", NULL);); \
+	} \
+	if (strcmp(#EXCEPTION, "int64")) { \
+		testFailure(VALUE, ERROR_STATUS, PREAMBLE_CODE, context->readInt64(context, KEY);); \
+	} \
+	if (strcmp(#EXCEPTION, "uint64")) { \
+		testFailure(VALUE, ERROR_STATUS, PREAMBLE_CODE, context->readUInt64(context, KEY);); \
+		testFailure(VALUE, ERROR_STATUS, PREAMBLE_CODE, context->readBitfield64(context, KEY, "a", NULL);); \
+	} \
+	if (strcmp(#EXCEPTION, "float")) { \
+		testFailure(VALUE, ERROR_STATUS, PREAMBLE_CODE, context->readFloat(context, KEY);); \
+	} \
+	if (strcmp(#EXCEPTION, "double")) { \
+		testFailure(VALUE, ERROR_STATUS, PREAMBLE_CODE, context->readDouble(context, KEY);); \
+	} \
+	if (strcmp(#EXCEPTION, "string")) { \
+		testFailure(VALUE, ERROR_STATUS, PREAMBLE_CODE, context->readString(context, KEY);); \
+	} \
+	if (strcmp(#EXCEPTION, "blob")) { \
+		testFailure(VALUE, ERROR_STATUS, PREAMBLE_CODE, context->readBlob(context, KEY, &length);); \
+	}
+
+#define testArrayTypeFailure(BEGIN_CONTAINER_CODE, VALUE_CREATE_FUNC, CONTAINER_INIT_FUNC, VALUE) \
+	testFailure(VALUE, \
+	            SERIALIZATION_ERROR_INCORRECT_TYPE, \
+	            , \
+	            BEGIN_CONTAINER_CODE); \
+	testFailure(VALUE_CREATE_FUNC(CONTAINER_INIT_FUNC(VALUE), true, false), \
+	            SERIALIZATION_ERROR_INCORRECT_TYPE, \
+	            BEGIN_CONTAINER_CODE, \
+	            BEGIN_CONTAINER_CODE)
+
+#define testKeyedContainerTypeFailure(BEGIN_CONTAINER_CODE, VALUE_CREATE_FUNC, CONTAINER_INIT_FUNC, VALUE) \
+	testFailure(VALUE, \
+	            SERIALIZATION_ERROR_INCORRECT_TYPE, \
+	            , \
+	            BEGIN_CONTAINER_CODE); \
+	testFailure(VALUE_CREATE_FUNC(CONTAINER_INIT_FUNC("a", VALUE, NULL), true, false), \
+	            SERIALIZATION_ERROR_INCORRECT_TYPE, \
+	            BEGIN_CONTAINER_CODE, \
+	            BEGIN_CONTAINER_CODE)
+
+#define testContainerTypeFailures(TEST_MACRO, BEGIN_CONTAINER_CODE, VALUE_CREATE_FUNC, CONTAINER_INIT_FUNC) \
+	TEST_MACRO(BEGIN_CONTAINER_CODE, VALUE_CREATE_FUNC, CONTAINER_INIT_FUNC, valueCreateBoolean(false)); \
+	TEST_MACRO(BEGIN_CONTAINER_CODE, VALUE_CREATE_FUNC, CONTAINER_INIT_FUNC, valueCreateInt8(0)); \
+	TEST_MACRO(BEGIN_CONTAINER_CODE, VALUE_CREATE_FUNC, CONTAINER_INIT_FUNC, valueCreateUInt8(0)); \
+	TEST_MACRO(BEGIN_CONTAINER_CODE, VALUE_CREATE_FUNC, CONTAINER_INIT_FUNC, valueCreateInt16(0)); \
+	TEST_MACRO(BEGIN_CONTAINER_CODE, VALUE_CREATE_FUNC, CONTAINER_INIT_FUNC, valueCreateUInt16(0)); \
+	TEST_MACRO(BEGIN_CONTAINER_CODE, VALUE_CREATE_FUNC, CONTAINER_INIT_FUNC, valueCreateInt32(0)); \
+	TEST_MACRO(BEGIN_CONTAINER_CODE, VALUE_CREATE_FUNC, CONTAINER_INIT_FUNC, valueCreateUInt32(0)); \
+	TEST_MACRO(BEGIN_CONTAINER_CODE, VALUE_CREATE_FUNC, CONTAINER_INIT_FUNC, valueCreateInt64(0)); \
+	TEST_MACRO(BEGIN_CONTAINER_CODE, VALUE_CREATE_FUNC, CONTAINER_INIT_FUNC, valueCreateUInt64(0)); \
+	TEST_MACRO(BEGIN_CONTAINER_CODE, VALUE_CREATE_FUNC, CONTAINER_INIT_FUNC, valueCreateFloat(0.0f)); \
+	TEST_MACRO(BEGIN_CONTAINER_CODE, VALUE_CREATE_FUNC, CONTAINER_INIT_FUNC, valueCreateDouble(0.0)); \
+	TEST_MACRO(BEGIN_CONTAINER_CODE, VALUE_CREATE_FUNC, CONTAINER_INIT_FUNC, valueCreateString("a", 1, false, false)); \
+	TEST_MACRO(BEGIN_CONTAINER_CODE, VALUE_CREATE_FUNC, CONTAINER_INIT_FUNC, valueCreateBlob("a", 1, false, false))
+
 static void testErrors() {
-	TestCase_assert(false, "Unimplemented");
+	DataDeserializationContext * context;
+	jmp_buf jmpBuf;
+	int status;
+	size_t length;
+	
+	//SERIALIZATION_ERROR_INVALID_OPERATION
+	testFailure(valueCreateArray(arrayCreate(), true, false),
+	            SERIALIZATION_ERROR_INVALID_OPERATION,
+	            context->beginArray(context, NULL);,
+	            context->readNextDictionaryKey(context););
+	testFailure(valueCreateArray(arrayCreate(), true, false),
+	            SERIALIZATION_ERROR_INVALID_OPERATION,
+	            context->beginArray(context, NULL);,
+	            context->hasDictionaryKey(context, "a"););
+	testFailure(valueCreateHashTable(hashCreate(), true, false),
+	            SERIALIZATION_ERROR_INVALID_OPERATION,
+	            context->beginStructure(context, NULL);,
+	            context->readNextDictionaryKey(context););
+	testFailure(valueCreateHashTable(hashCreate(), true, false),
+	            SERIALIZATION_ERROR_INVALID_OPERATION,
+	            context->beginStructure(context, NULL);,
+	            context->hasDictionaryKey(context, "a"););
+	
+	//SERIALIZATION_ERROR_KEY_NOT_FOUND
+	testFailureWithAllTypes(valueCreateAssociativeArray(associativeArrayCreate(), false, false),
+	                        SERIALIZATION_ERROR_KEY_NOT_FOUND,
+	                        context->beginDictionary(context, NULL);,
+	                        "a");
+	testFailureWithAllTypes(valueCreateHashTable(hashCreate(), false, false),
+	                        SERIALIZATION_ERROR_KEY_NOT_FOUND,
+	                        context->beginStructure(context, NULL);,
+	                        "a");
+	
+	//SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH
+	testFailure(valueCreateArray(arrayCreateWithValues(valueCreateArray(arrayCreate(), true, false)), true, false),
+	            SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH,
+	            context->beginArray(context, NULL);,
+	            context->endStructure(context););
+	testFailure(valueCreateArray(arrayCreateWithValues(valueCreateArray(arrayCreate(), true, false)), true, false),
+	            SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH,
+	            context->beginArray(context, NULL);
+	            context->beginArray(context, NULL);,
+	            context->endStructure(context););
+	testFailure(valueCreateArray(arrayCreateWithValues(valueCreateArray(arrayCreate(), true, false)), true, false),
+	            SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH,
+	            context->beginArray(context, NULL);,
+	            context->endDictionary(context););
+	testFailure(valueCreateArray(arrayCreateWithValues(valueCreateArray(arrayCreate(), true, false)), true, false),
+	            SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH,
+	            context->beginArray(context, NULL);
+	            context->beginArray(context, NULL);,
+	            context->endDictionary(context););
+	
+	testFailure(valueCreateAssociativeArray(associativeArrayCreateWithKeysAndValues("a", valueCreateAssociativeArray(associativeArrayCreate(), true, false), NULL), true, false),
+	            SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH,
+	            context->beginDictionary(context, NULL);,
+	            context->endStructure(context););
+	testFailure(valueCreateAssociativeArray(associativeArrayCreateWithKeysAndValues("a", valueCreateAssociativeArray(associativeArrayCreate(), true, false), NULL), true, false),
+	            SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH,
+	            context->beginDictionary(context, NULL);
+	            context->beginDictionary(context, "a");,
+	            context->endStructure(context););
+	testFailure(valueCreateAssociativeArray(associativeArrayCreateWithKeysAndValues("a", valueCreateAssociativeArray(associativeArrayCreate(), true, false), NULL), true, false),
+	            SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH,
+	            context->beginDictionary(context, NULL);,
+	            context->endArray(context););
+	testFailure(valueCreateAssociativeArray(associativeArrayCreateWithKeysAndValues("a", valueCreateAssociativeArray(associativeArrayCreate(), true, false), NULL), true, false),
+	            SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH,
+	            context->beginDictionary(context, NULL);
+	            context->beginDictionary(context, "a");,
+	            context->endArray(context););
+	
+	testFailure(valueCreateHashTable(hashCreateWithKeysAndValues("a", valueCreateHashTable(hashCreate(), true, false), NULL), true, false),
+	            SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH,
+	            context->beginStructure(context, NULL);,
+	            context->endDictionary(context););
+	testFailure(valueCreateHashTable(hashCreateWithKeysAndValues("a", valueCreateHashTable(hashCreate(), true, false), NULL), true, false),
+	            SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH,
+	            context->beginStructure(context, NULL);
+	            context->beginStructure(context, "a");,
+	            context->endDictionary(context););
+	testFailure(valueCreateHashTable(hashCreateWithKeysAndValues("a", valueCreateHashTable(hashCreate(), true, false), NULL), true, false),
+	            SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH,
+	            context->beginStructure(context, NULL);,
+	            context->endArray(context););
+	testFailure(valueCreateHashTable(hashCreateWithKeysAndValues("a", valueCreateHashTable(hashCreate(), true, false), NULL), true, false),
+	            SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH,
+	            context->beginStructure(context, NULL);
+	            context->beginStructure(context, "a");,
+	            context->endArray(context););
+	
+	//SERIALIZATION_ERROR_CONTAINER_UNDERFLOW
+	testFailure(valueCreateArray(arrayCreate(), true, false),
+	            SERIALIZATION_ERROR_CONTAINER_UNDERFLOW,
+	            ,
+	            context->endArray(context););
+	testFailure(valueCreateArray(arrayCreate(), true, false),
+	            SERIALIZATION_ERROR_CONTAINER_UNDERFLOW,
+	            context->beginArray(context, NULL);
+	            context->endArray(context);,
+	            context->endArray(context););
+	
+	testFailure(valueCreateAssociativeArray(associativeArrayCreate(), true, false),
+	            SERIALIZATION_ERROR_CONTAINER_UNDERFLOW,
+	            ,
+	            context->endDictionary(context););
+	testFailure(valueCreateAssociativeArray(associativeArrayCreate(), true, false),
+	            SERIALIZATION_ERROR_CONTAINER_UNDERFLOW,
+	            context->beginDictionary(context, NULL);
+	            context->endDictionary(context);,
+	            context->endDictionary(context););
+	
+	testFailure(valueCreateHashTable(hashCreate(), true, false),
+	            SERIALIZATION_ERROR_CONTAINER_UNDERFLOW,
+	            ,
+	            context->endStructure(context););
+	testFailure(valueCreateHashTable(hashCreate(), true, false),
+	            SERIALIZATION_ERROR_CONTAINER_UNDERFLOW,
+	            context->beginStructure(context, NULL);
+	            context->endStructure(context);,
+	            context->endStructure(context););
+	
+	//SERIALIZATION_ERROR_MULTIPLE_TOP_LEVEL_CONTAINERS
+	testFailure(valueCreateArray(arrayCreate(), true, false),
+	            SERIALIZATION_ERROR_MULTIPLE_TOP_LEVEL_CONTAINERS,
+	            context->beginArray(context, NULL);
+	            context->endArray(context);,
+	            context->beginArray(context, NULL););
+	testFailure(valueCreateArray(arrayCreate(), true, false),
+	            SERIALIZATION_ERROR_MULTIPLE_TOP_LEVEL_CONTAINERS,
+	            context->beginArray(context, NULL);
+	            context->endArray(context);,
+	            context->beginStructure(context, NULL););
+	testFailure(valueCreateArray(arrayCreate(), true, false),
+	            SERIALIZATION_ERROR_MULTIPLE_TOP_LEVEL_CONTAINERS,
+	            context->beginArray(context, NULL);
+	            context->endArray(context);,
+	            context->beginDictionary(context, NULL););
+	
+	testFailure(valueCreateAssociativeArray(associativeArrayCreate(), true, false),
+	            SERIALIZATION_ERROR_MULTIPLE_TOP_LEVEL_CONTAINERS,
+	            context->beginDictionary(context, NULL);
+	            context->endDictionary(context);,
+	            context->beginDictionary(context, NULL););
+	testFailure(valueCreateAssociativeArray(associativeArrayCreate(), true, false),
+	            SERIALIZATION_ERROR_MULTIPLE_TOP_LEVEL_CONTAINERS,
+	            context->beginDictionary(context, NULL);
+	            context->endDictionary(context);,
+	            context->beginArray(context, NULL););
+	testFailure(valueCreateAssociativeArray(associativeArrayCreate(), true, false),
+	            SERIALIZATION_ERROR_MULTIPLE_TOP_LEVEL_CONTAINERS,
+	            context->beginDictionary(context, NULL);
+	            context->endDictionary(context);,
+	            context->beginStructure(context, NULL););
+	
+	testFailure(valueCreateHashTable(hashCreate(), true, false),
+	            SERIALIZATION_ERROR_MULTIPLE_TOP_LEVEL_CONTAINERS,
+	            context->beginStructure(context, NULL);
+	            context->endStructure(context);,
+	            context->beginStructure(context, NULL););
+	testFailure(valueCreateHashTable(hashCreate(), true, false),
+	            SERIALIZATION_ERROR_MULTIPLE_TOP_LEVEL_CONTAINERS,
+	            context->beginStructure(context, NULL);
+	            context->endStructure(context);,
+	            context->beginArray(context, NULL););
+	testFailure(valueCreateHashTable(hashCreate(), true, false),
+	            SERIALIZATION_ERROR_MULTIPLE_TOP_LEVEL_CONTAINERS,
+	            context->beginStructure(context, NULL);
+	            context->endStructure(context);,
+	            context->beginDictionary(context, NULL););
+	
+	//SERIALIZATION_ERROR_UNNAMED_BIT
+	testFailure(valueCreateArray(arrayCreateWithValues(valueCreateUInt8(12)), true, false),
+	            SERIALIZATION_ERROR_UNNAMED_BIT,
+	            context->beginArray(context, NULL);,
+	            context->readBitfield8(context, NULL, "a", NULL););
+	testFailure(valueCreateArray(arrayCreateWithValues(valueCreateUInt16(12)), true, false),
+	            SERIALIZATION_ERROR_UNNAMED_BIT,
+	            context->beginArray(context, NULL);,
+	            context->readBitfield16(context, NULL, "a", NULL););
+	testFailure(valueCreateArray(arrayCreateWithValues(valueCreateUInt32(12)), true, false),
+	            SERIALIZATION_ERROR_UNNAMED_BIT,
+	            context->beginArray(context, NULL);,
+	            context->readBitfield32(context, NULL, "a", NULL););
+	testFailure(valueCreateArray(arrayCreateWithValues(valueCreateUInt64(12)), true, false),
+	            SERIALIZATION_ERROR_UNNAMED_BIT,
+	            context->beginArray(context, NULL);,
+	            context->readBitfield64(context, NULL, "a", NULL););
+	
+	//SERIALIZATION_ERROR_DUPLICATE_BIT
+	testFailure(valueCreateArray(arrayCreateWithValues(valueCreateUInt8(1)), true, false),
+	            SERIALIZATION_ERROR_DUPLICATE_BIT,
+	            context->beginArray(context, NULL);,
+	            context->readBitfield8(context, NULL, "a", "a", NULL););
+	testFailure(valueCreateArray(arrayCreateWithValues(valueCreateUInt16(1)), true, false),
+	            SERIALIZATION_ERROR_DUPLICATE_BIT,
+	            context->beginArray(context, NULL);,
+	            context->readBitfield16(context, NULL, "a", "a", NULL););
+	testFailure(valueCreateArray(arrayCreateWithValues(valueCreateUInt32(1)), true, false),
+	            SERIALIZATION_ERROR_DUPLICATE_BIT,
+	            context->beginArray(context, NULL);,
+	            context->readBitfield32(context, NULL, "a", "a", NULL););
+	testFailure(valueCreateArray(arrayCreateWithValues(valueCreateUInt64(1)), true, false),
+	            SERIALIZATION_ERROR_DUPLICATE_BIT,
+	            context->beginArray(context, NULL);,
+	            context->readBitfield64(context, NULL, "a", "a", NULL););
+	
+	//SERIALIZATION_ERROR_ENUM_NOT_NAMED
+	testFailure(valueCreateArray(arrayCreateWithValues(valueCreateInt32(1)), true, false),
+	            SERIALIZATION_ERROR_ENUM_NOT_NAMED,
+	            context->beginArray(context, NULL);,
+	            context->readEnumeration(context, NULL, NULL););
+	testFailure(valueCreateArray(arrayCreateWithValues(valueCreateInt32(1)), true, false),
+	            SERIALIZATION_ERROR_ENUM_NOT_NAMED,
+	            context->beginArray(context, NULL);,
+	            context->readEnumeration(context, NULL, "a", 0, NULL););
+	
+	//SERIALIZATION_ERROR_DUPLICATE_ENUM_NAME
+	testFailure(valueCreateArray(arrayCreateWithValues(valueCreateInt32(0)), true, false),
+	            SERIALIZATION_ERROR_DUPLICATE_ENUM_NAME,
+	            context->beginArray(context, NULL);,
+	            context->readEnumeration(context, NULL, "a", 0, "a", 1, NULL););
+	
+	//SERIALIZATION_ERROR_DUPLICATE_ENUM_VALUE
+	testFailure(valueCreateArray(arrayCreateWithValues(valueCreateInt32(0)), true, false),
+	            SERIALIZATION_ERROR_DUPLICATE_ENUM_VALUE,
+	            context->beginArray(context, NULL);,
+	            context->readEnumeration(context, NULL, "a", 0, "b", 0, NULL););
+	
+	//SERIALIZATION_ERROR_NULL_KEY
+	testFailureWithAllTypes(valueCreateAssociativeArray(associativeArrayCreate(), true, false),
+	                        SERIALIZATION_ERROR_NULL_KEY,
+	                        context->beginDictionary(context, NULL);,
+	                        NULL);
+	testFailureWithAllTypes(valueCreateHashTable(hashCreate(), true, false),
+	                        SERIALIZATION_ERROR_NULL_KEY,
+	                        context->beginStructure(context, NULL);,
+	                        NULL);
+	
+	//SERIALIZATION_ERROR_INCORRECT_TYPE
+	testFailureWithAllTypesExcept(valueCreateArray(arrayCreateWithValues(valueCreateBoolean(false)), true, false),
+	                              SERIALIZATION_ERROR_INCORRECT_TYPE,
+	                              context->beginArray(context, NULL);,
+	                              NULL,
+	                              boolean);
+	testFailureWithAllTypesExcept(valueCreateArray(arrayCreateWithValues(valueCreateInt8(0)), true, false),
+	                              SERIALIZATION_ERROR_INCORRECT_TYPE,
+	                              context->beginArray(context, NULL);,
+	                              NULL,
+	                              int8);
+	testFailureWithAllTypesExcept(valueCreateArray(arrayCreateWithValues(valueCreateUInt8(0)), true, false),
+	                              SERIALIZATION_ERROR_INCORRECT_TYPE,
+	                              context->beginArray(context, NULL);,
+	                              NULL,
+	                              uint8);
+	testFailureWithAllTypesExcept(valueCreateArray(arrayCreateWithValues(valueCreateInt16(0)), true, false),
+	                              SERIALIZATION_ERROR_INCORRECT_TYPE,
+	                              context->beginArray(context, NULL);,
+	                              NULL,
+	                              int16);
+	testFailureWithAllTypesExcept(valueCreateArray(arrayCreateWithValues(valueCreateUInt16(0)), true, false),
+	                              SERIALIZATION_ERROR_INCORRECT_TYPE,
+	                              context->beginArray(context, NULL);,
+	                              NULL,
+	                              uint16);
+	testFailureWithAllTypesExcept(valueCreateArray(arrayCreateWithValues(valueCreateInt32(0)), true, false),
+	                              SERIALIZATION_ERROR_INCORRECT_TYPE,
+	                              context->beginArray(context, NULL);,
+	                              NULL,
+	                              int32);
+	testFailureWithAllTypesExcept(valueCreateArray(arrayCreateWithValues(valueCreateUInt32(0)), true, false),
+	                              SERIALIZATION_ERROR_INCORRECT_TYPE,
+	                              context->beginArray(context, NULL);,
+	                              NULL,
+	                              uint32);
+	testFailureWithAllTypesExcept(valueCreateArray(arrayCreateWithValues(valueCreateInt64(0)), true, false),
+	                              SERIALIZATION_ERROR_INCORRECT_TYPE,
+	                              context->beginArray(context, NULL);,
+	                              NULL,
+	                              int64);
+	testFailureWithAllTypesExcept(valueCreateArray(arrayCreateWithValues(valueCreateUInt64(0)), true, false),
+	                              SERIALIZATION_ERROR_INCORRECT_TYPE,
+	                              context->beginArray(context, NULL);,
+	                              NULL,
+	                              uint64);
+	testFailureWithAllTypesExcept(valueCreateArray(arrayCreateWithValues(valueCreateFloat(0.0f)), true, false),
+	                              SERIALIZATION_ERROR_INCORRECT_TYPE,
+	                              context->beginArray(context, NULL);,
+	                              NULL,
+	                              float);
+	testFailureWithAllTypesExcept(valueCreateArray(arrayCreateWithValues(valueCreateDouble(0.0)), true, false),
+	                              SERIALIZATION_ERROR_INCORRECT_TYPE,
+	                              context->beginArray(context, NULL);,
+	                              NULL,
+	                              double);
+	testFailureWithAllTypesExcept(valueCreateArray(arrayCreateWithValues(valueCreateString("a", DATA_USE_STRLEN, false, false)), true, false),
+	                              SERIALIZATION_ERROR_INCORRECT_TYPE,
+	                              context->beginArray(context, NULL);,
+	                              NULL,
+	                              string);
+	testFailureWithAllTypesExcept(valueCreateArray(arrayCreateWithValues(valueCreateBlob("a", 1, false, false)), true, false),
+	                              SERIALIZATION_ERROR_INCORRECT_TYPE,
+	                              context->beginArray(context, NULL);,
+	                              NULL,
+	                              blob);
+	testFailureWithAllTypesExcept(valueCreateArray(arrayCreateWithValues(valueCreateArray(arrayCreate(), true, false)), true, false),
+	                              SERIALIZATION_ERROR_INCORRECT_TYPE,
+	                              context->beginArray(context, NULL);,
+	                              NULL,
+	                              none);
+	testFailureWithAllTypesExcept(valueCreateArray(arrayCreateWithValues(valueCreateAssociativeArray(associativeArrayCreate(), true, false)), true, false),
+	                              SERIALIZATION_ERROR_INCORRECT_TYPE,
+	                              context->beginArray(context, NULL);,
+	                              NULL,
+	                              none);
+	testFailureWithAllTypesExcept(valueCreateArray(arrayCreateWithValues(valueCreateHashTable(hashCreate(), true, false)), true, false),
+	                              SERIALIZATION_ERROR_INCORRECT_TYPE,
+	                              context->beginArray(context, NULL);,
+	                              NULL,
+	                              none);
+	
+	testContainerTypeFailures(testArrayTypeFailure, context->beginArray(context, NULL);, valueCreateArray, arrayCreateWithValues);
+	testContainerTypeFailures(testKeyedContainerTypeFailure, context->beginStructure(context, "a");, valueCreateHashTable, hashCreateWithKeysAndValues);
+	testContainerTypeFailures(testKeyedContainerTypeFailure, context->beginDictionary(context, "a");, valueCreateAssociativeArray, associativeArrayCreateWithKeysAndValues);
+	
+	//SERIALIZATION_ERROR_END_OF_CONTAINER
+	testFailureWithAllTypes(valueCreateArray(arrayCreate(), true, false),
+	                        SERIALIZATION_ERROR_END_OF_CONTAINER,
+	                        context->beginArray(context, NULL);,
+	                        NULL);
+	testFailureWithAllTypes(valueCreateArray(arrayCreateWithValues(valueCreateBoolean(false)), true, false),
+	                        SERIALIZATION_ERROR_END_OF_CONTAINER,
+	                        context->beginArray(context, NULL);
+	                        context->readBoolean(context, NULL);,
+	                        NULL);
+	
+	testFailure(valueCreateAssociativeArray(associativeArrayCreate(), true, false),
+	            SERIALIZATION_ERROR_END_OF_CONTAINER,
+	            context->beginDictionary(context, NULL);,
+	            context->readNextDictionaryKey(context););
+	testFailure(valueCreateAssociativeArray(associativeArrayCreateWithKeysAndValues("a", valueCreateBoolean(false), NULL), true, false),
+	            SERIALIZATION_ERROR_END_OF_CONTAINER,
+	            context->beginDictionary(context, NULL);
+	            context->readNextDictionaryKey(context);,
+	            context->readNextDictionaryKey(context););
+	
+	//SERIALIZATION_ERROR_NO_CONTAINER_STARTED
+	testFailureWithAllTypes(valueCreateArray(arrayCreate(), true, false),
+	                        SERIALIZATION_ERROR_NO_CONTAINER_STARTED,
+	                        ,
+	                        NULL);
 }
 
 static void testDictionaryKeys() {
@@ -415,5 +932,5 @@ TEST_SUITE(DataDeserializationContextTest,
            testValuesInHashTable,
            testValuesInAssociativeArray,
            testHierarchy,
-           testDictionaryKeys,
-           testErrors)
+           testErrors,
+           testDictionaryKeys)

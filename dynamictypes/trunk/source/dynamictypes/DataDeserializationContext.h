@@ -43,7 +43,8 @@ struct DataDeserializationContext_stackEntry {
 	DataValue * currentValue; \
 	size_t index; \
 	size_t stackCount; \
-	struct DataDeserializationContext_stackEntry * stack;
+	struct DataDeserializationContext_stackEntry * stack; \
+	bool finished;
 
 stemobject_struct_definition(DataDeserializationContext)
 

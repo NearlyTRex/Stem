@@ -26,7 +26,7 @@
 #include "dynamictypes/DataSerializationContext.h"
 #include <stdlib.h>
 
-#define SUPERCLASS StemObject
+#define SUPERCLASS SerializationContext
 
 DataSerializationContext * DataSerializationContext_create() {
 	stemobject_create_implementation(DataSerializationContext, init)
