@@ -37,7 +37,8 @@ typedef struct DataSerializationContext DataSerializationContext;
 	DataValue rootValue; \
 	DataValue * currentValue; \
 	size_t stackCount; \
-	DataValue ** stack;
+	DataValue ** stack; \
+	bool finished;
 
 stemobject_struct_definition(DataSerializationContext)
 

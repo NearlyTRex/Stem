@@ -424,8 +424,225 @@ static void testHierarchy() {
 	DataSerializationContext_dispose(context);
 }
 
+#define testFailure(ERROR_STATUS, PREAMBLE_CODE, FAIL_CODE) \
+	context = DataSerializationContext_create(); \
+	PREAMBLE_CODE \
+	TestCase_assert(context->status == SERIALIZATION_ERROR_OK, "Expected %d but got %d (OK)", SERIALIZATION_ERROR_OK, context->status); \
+	FAIL_CODE \
+	TestCase_assert(context->status == ERROR_STATUS, "Expected %d but got %d (context->status)", ERROR_STATUS, context->status); \
+	context->dispose(context); \
+	\
+	context = DataSerializationContext_create(); \
+	context->jmpBuf = &jmpBuf; \
+	status = setjmp(jmpBuf); \
+	if (!status) { \
+		PREAMBLE_CODE \
+		TestCase_assert(context->status == SERIALIZATION_ERROR_OK, "Expected %d but got %d (OK setjmp)", SERIALIZATION_ERROR_OK, context->status); \
+		FAIL_CODE \
+	} \
+	TestCase_assert(status == ERROR_STATUS, "Expected %d but got %d (status setjmp)", ERROR_STATUS, status); \
+	TestCase_assert(context->status == ERROR_STATUS, "Expected %d but got %d (context->status setjmp)", ERROR_STATUS, context->status); \
+	context->dispose(context)
+
+#define testFailureWithAllTypes(ERROR_STATUS, PREAMBLE_CODE, KEY) \
+	testFailure(ERROR_STATUS, PREAMBLE_CODE, context->writeBoolean(context, KEY, false);); \
+	testFailure(ERROR_STATUS, PREAMBLE_CODE, context->writeInt8(context, KEY, 0);); \
+	testFailure(ERROR_STATUS, PREAMBLE_CODE, context->writeUInt8(context, KEY, 0);); \
+	testFailure(ERROR_STATUS, PREAMBLE_CODE, context->writeInt16(context, KEY, 0);); \
+	testFailure(ERROR_STATUS, PREAMBLE_CODE, context->writeUInt16(context, KEY, 0);); \
+	testFailure(ERROR_STATUS, PREAMBLE_CODE, context->writeInt32(context, KEY, 0);); \
+	testFailure(ERROR_STATUS, PREAMBLE_CODE, context->writeUInt32(context, KEY, 0);); \
+	testFailure(ERROR_STATUS, PREAMBLE_CODE, context->writeInt64(context, KEY, 0);); \
+	testFailure(ERROR_STATUS, PREAMBLE_CODE, context->writeUInt64(context, KEY, 0);); \
+	testFailure(ERROR_STATUS, PREAMBLE_CODE, context->writeFloat(context, KEY, 0.0f);); \
+	testFailure(ERROR_STATUS, PREAMBLE_CODE, context->writeDouble(context, KEY, 0.0);); \
+	testFailure(ERROR_STATUS, PREAMBLE_CODE, context->writeEnumeration(context, KEY, 0, enumKV(ENUM_TEST_0), NULL);); \
+	testFailure(ERROR_STATUS, PREAMBLE_CODE, context->writeBitfield8(context, KEY, 0, "a", NULL);); \
+	testFailure(ERROR_STATUS, PREAMBLE_CODE, context->writeBitfield16(context, KEY, 0, "a", NULL);); \
+	testFailure(ERROR_STATUS, PREAMBLE_CODE, context->writeBitfield32(context, KEY, 0, "a", NULL);); \
+	testFailure(ERROR_STATUS, PREAMBLE_CODE, context->writeBitfield64(context, KEY, 0, "a", NULL);); \
+	testFailure(ERROR_STATUS, PREAMBLE_CODE, context->writeString(context, KEY, "a");); \
+	testFailure(ERROR_STATUS, PREAMBLE_CODE, context->writeBlob(context, KEY, "a", 1);)
+
 static void testErrors() {
-	TestCase_assert(false, "Unimplemented");
+	DataSerializationContext * context;
+	jmp_buf jmpBuf;
+	int status;
+	
+	//SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH
+	testFailure(SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH,
+	            context->beginArray(context, NULL);,
+	            context->endStructure(context););
+	testFailure(SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH,
+	            context->beginArray(context, NULL);
+	            context->beginArray(context, NULL);,
+	            context->endStructure(context););
+	testFailure(SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH,
+	            context->beginArray(context, NULL);,
+	            context->endDictionary(context););
+	testFailure(SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH,
+	            context->beginArray(context, NULL);
+	            context->beginArray(context, NULL);,
+	            context->endDictionary(context););
+	
+	testFailure(SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH,
+	            context->beginDictionary(context, NULL);,
+	            context->endStructure(context););
+	testFailure(SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH,
+	            context->beginDictionary(context, NULL);
+	            context->beginDictionary(context, "a");,
+	            context->endStructure(context););
+	testFailure(SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH,
+	            context->beginDictionary(context, NULL);,
+	            context->endArray(context););
+	testFailure(SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH,
+	            context->beginDictionary(context, NULL);
+	            context->beginDictionary(context, "a");,
+	            context->endArray(context););
+	
+	testFailure(SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH,
+	            context->beginStructure(context, NULL);,
+	            context->endDictionary(context););
+	testFailure(SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH,
+	            context->beginStructure(context, NULL);
+	            context->beginStructure(context, "a");,
+	            context->endDictionary(context););
+	testFailure(SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH,
+	            context->beginStructure(context, NULL);,
+	            context->endArray(context););
+	testFailure(SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH,
+	            context->beginStructure(context, NULL);
+	            context->beginStructure(context, "a");,
+	            context->endArray(context););
+	
+	//SERIALIZATION_ERROR_CONTAINER_UNDERFLOW
+	testFailure(SERIALIZATION_ERROR_CONTAINER_UNDERFLOW,
+	            ,
+	            context->endArray(context););
+	testFailure(SERIALIZATION_ERROR_CONTAINER_UNDERFLOW,
+	            context->beginArray(context, NULL);
+	            context->endArray(context);,
+	            context->endArray(context););
+	
+	testFailure(SERIALIZATION_ERROR_CONTAINER_UNDERFLOW,
+	            ,
+	            context->endDictionary(context););
+	testFailure(SERIALIZATION_ERROR_CONTAINER_UNDERFLOW,
+	            context->beginDictionary(context, NULL);
+	            context->endDictionary(context);,
+	            context->endDictionary(context););
+	
+	testFailure(SERIALIZATION_ERROR_CONTAINER_UNDERFLOW,
+	            ,
+	            context->endStructure(context););
+	testFailure(SERIALIZATION_ERROR_CONTAINER_UNDERFLOW,
+	            context->beginStructure(context, NULL);
+	            context->endStructure(context);,
+	            context->endStructure(context););
+	
+	//SERIALIZATION_ERROR_MULTIPLE_TOP_LEVEL_CONTAINERS
+	testFailure(SERIALIZATION_ERROR_MULTIPLE_TOP_LEVEL_CONTAINERS,
+	            context->beginArray(context, NULL);
+	            context->endArray(context);,
+	            context->beginArray(context, NULL););
+	testFailure(SERIALIZATION_ERROR_MULTIPLE_TOP_LEVEL_CONTAINERS,
+	            context->beginArray(context, NULL);
+	            context->endArray(context);,
+	            context->beginStructure(context, NULL););
+	testFailure(SERIALIZATION_ERROR_MULTIPLE_TOP_LEVEL_CONTAINERS,
+	            context->beginArray(context, NULL);
+	            context->endArray(context);,
+	            context->beginDictionary(context, NULL););
+	
+	testFailure(SERIALIZATION_ERROR_MULTIPLE_TOP_LEVEL_CONTAINERS,
+	            context->beginDictionary(context, NULL);
+	            context->endDictionary(context);,
+	            context->beginDictionary(context, NULL););
+	testFailure(SERIALIZATION_ERROR_MULTIPLE_TOP_LEVEL_CONTAINERS,
+	            context->beginDictionary(context, NULL);
+	            context->endDictionary(context);,
+	            context->beginArray(context, NULL););
+	testFailure(SERIALIZATION_ERROR_MULTIPLE_TOP_LEVEL_CONTAINERS,
+	            context->beginDictionary(context, NULL);
+	            context->endDictionary(context);,
+	            context->beginStructure(context, NULL););
+	
+	testFailure(SERIALIZATION_ERROR_MULTIPLE_TOP_LEVEL_CONTAINERS,
+	            context->beginStructure(context, NULL);
+	            context->endStructure(context);,
+	            context->beginStructure(context, NULL););
+	testFailure(SERIALIZATION_ERROR_MULTIPLE_TOP_LEVEL_CONTAINERS,
+	            context->beginStructure(context, NULL);
+	            context->endStructure(context);,
+	            context->beginArray(context, NULL););
+	testFailure(SERIALIZATION_ERROR_MULTIPLE_TOP_LEVEL_CONTAINERS,
+	            context->beginStructure(context, NULL);
+	            context->endStructure(context);,
+	            context->beginDictionary(context, NULL););
+	
+	//SERIALIZATION_ERROR_UNNAMED_BIT
+	testFailure(SERIALIZATION_ERROR_UNNAMED_BIT,
+	            context->beginArray(context, NULL);,
+	            context->writeBitfield8(context, NULL, 12, "a", NULL););
+	testFailure(SERIALIZATION_ERROR_UNNAMED_BIT,
+	            context->beginArray(context, NULL);,
+	            context->writeBitfield16(context, NULL, 12, "a", NULL););
+	testFailure(SERIALIZATION_ERROR_UNNAMED_BIT,
+	            context->beginArray(context, NULL);,
+	            context->writeBitfield32(context, NULL, 12, "a", NULL););
+	testFailure(SERIALIZATION_ERROR_UNNAMED_BIT,
+	            context->beginArray(context, NULL);,
+	            context->writeBitfield64(context, NULL, 12, "a", NULL););
+	
+	//SERIALIZATION_ERROR_DUPLICATE_BIT
+	testFailure(SERIALIZATION_ERROR_DUPLICATE_BIT,
+	            context->beginArray(context, NULL);,
+	            context->writeBitfield8(context, NULL, 1, "a", "a", NULL););
+	testFailure(SERIALIZATION_ERROR_DUPLICATE_BIT,
+	            context->beginArray(context, NULL);,
+	            context->writeBitfield16(context, NULL, 1, "a", "a", NULL););
+	testFailure(SERIALIZATION_ERROR_DUPLICATE_BIT,
+	            context->beginArray(context, NULL);,
+	            context->writeBitfield32(context, NULL, 1, "a", "a", NULL););
+	testFailure(SERIALIZATION_ERROR_DUPLICATE_BIT,
+	            context->beginArray(context, NULL);,
+	            context->writeBitfield64(context, NULL, 1, "a", "a", NULL););
+	
+	//SERIALIZATION_ERROR_ENUM_NOT_NAMED
+	testFailure(SERIALIZATION_ERROR_ENUM_NOT_NAMED,
+	            context->beginArray(context, NULL);,
+	            context->writeEnumeration(context, NULL, 1, NULL););
+	testFailure(SERIALIZATION_ERROR_ENUM_NOT_NAMED,
+	            context->beginArray(context, NULL);,
+	            context->writeEnumeration(context, NULL, 1, "a", 0, NULL););
+	
+	//SERIALIZATION_ERROR_DUPLICATE_ENUM_NAME
+	testFailure(SERIALIZATION_ERROR_DUPLICATE_ENUM_NAME,
+	            context->beginArray(context, NULL);,
+	            context->writeEnumeration(context, NULL, 0, "a", 0, "a", 1, NULL););
+	
+	//SERIALIZATION_ERROR_DUPLICATE_ENUM_VALUE
+	testFailure(SERIALIZATION_ERROR_DUPLICATE_ENUM_VALUE,
+	            context->beginArray(context, NULL);,
+	            context->writeEnumeration(context, NULL, 0, "a", 0, "b", 0, NULL););
+	
+	//SERIALIZATION_ERROR_NULL_KEY
+	testFailureWithAllTypes(SERIALIZATION_ERROR_NULL_KEY,
+	                        context->beginDictionary(context, NULL);,
+	                        NULL);
+	testFailureWithAllTypes(SERIALIZATION_ERROR_NULL_KEY,
+	                        context->beginStructure(context, NULL);,
+	                        NULL);
+	
+	//SERIALIZATION_ERROR_NO_CONTAINER_STARTED
+	testFailureWithAllTypes(SERIALIZATION_ERROR_NO_CONTAINER_STARTED,
+	                        ,
+	                        NULL);
+	
+	//SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER
+	testFailure(SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER,
+	            ,
+	            DataSerializationContext_result(context););
 }
 
 TEST_SUITE(DataSerializationContextTest,

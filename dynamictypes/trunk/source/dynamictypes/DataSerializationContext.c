@@ -63,6 +63,7 @@ bool DataSerializationContext_init(DataSerializationContext * self) {
 	self->currentValue = NULL;
 	self->stackCount = 0;
 	self->stack = NULL;
+	self->finished = false;
 	return true;
 }
 
@@ -70,12 +71,25 @@ void DataSerializationContext_dispose(DataSerializationContext * self) {
 	call_super(dispose, self);
 }
 
+#define failWithStatus(STATUS, RETURN_CODE) \
+	self->status = (STATUS); \
+	if (self->jmpBuf != NULL) { \
+		longjmp(*self->jmpBuf, self->status); \
+	} \
+	RETURN_CODE
+
 DataValue DataSerializationContext_result(DataSerializationContext * self) {
+	if (!self->finished) {
+		failWithStatus(SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER, return valueCreateBoolean(false));
+	}
 	return self->rootValue;
 }
 
 static void pushContainer(DataSerializationContext * self, const char * key, DataValue container) {
 	if (self->currentValue == NULL) {
+		if (self->finished) {
+			failWithStatus(SERIALIZATION_ERROR_MULTIPLE_TOP_LEVEL_CONTAINERS, return);
+		}
 		self->rootValue = container;
 		self->currentValue = &self->rootValue;
 		
@@ -117,8 +131,17 @@ void DataSerializationContext_beginArray(DataSerializationContext * self, const 
 }
 
 static void popContainer(DataSerializationContext * self, enum DataValueType type) {
+	if (self->currentValue == NULL) {
+		failWithStatus(SERIALIZATION_ERROR_CONTAINER_UNDERFLOW, return);
+	}
+	if (self->currentValue->type != type) {
+		failWithStatus(SERIALIZATION_ERROR_CONTAINER_TYPE_MISMATCH, return);
+	}
 	if (self->stackCount > 0) {
 		self->currentValue = self->stack[--self->stackCount];
+	} else {
+		self->currentValue = NULL;
+		self->finished = true;
 	}
 }
 
@@ -135,16 +158,25 @@ void DataSerializationContext_endArray(DataSerializationContext * self) {
 }
 
 static void writeValue(DataSerializationContext * self, const char * key, DataValue value) {
+	if (self->currentValue == NULL) {
+		failWithStatus(SERIALIZATION_ERROR_NO_CONTAINER_STARTED, return);
+	}
 	switch (self->currentValue->type) {
 		case DATA_TYPE_ARRAY:
 			arrayAppend(self->currentValue->value.array, value);
 			break;
 			
 		case DATA_TYPE_HASH_TABLE:
+			if (key == NULL) {
+				failWithStatus(SERIALIZATION_ERROR_NULL_KEY, return);
+			}
 			hashSet(self->currentValue->value.hashTable, key, value);
 			break;
 			
 		case DATA_TYPE_ASSOCIATIVE_ARRAY:
+			if (key == NULL) {
+				failWithStatus(SERIALIZATION_ERROR_NULL_KEY, return);
+			}
 			associativeArrayAppend(self->currentValue->value.associativeArray, key, value);
 			break;
 			
@@ -198,23 +230,46 @@ void DataSerializationContext_writeDouble(DataSerializationContext * self, const
 }
 
 void DataSerializationContext_writeEnumeration(DataSerializationContext * self, const char * key, int value, ...) {
+	va_list args;
+	int status;
+	
+	va_start(args, value);
+	status = Serialization_checkEnumerationErrors(value, args);
+	va_end(args);
+	
+	if (status != SERIALIZATION_ERROR_OK) {
+		failWithStatus(status, return);
+	}
 	writeValue(self, key, valueCreateInt32(value));
 }
 
+#define writeBitfieldImplementation(BIT_COUNT) \
+	va_list args; \
+	int status; \
+	\
+	va_start(args, value); \
+	status = Serialization_checkBitfield##BIT_COUNT##Errors(value, args); \
+	va_end(args); \
+	\
+	if (status != SERIALIZATION_ERROR_OK) { \
+		failWithStatus(status, return); \
+	} \
+	writeValue(self, key, valueCreateUInt##BIT_COUNT(value))
+
 void DataSerializationContext_writeBitfield8(DataSerializationContext * self, const char * key, uint8_t value, ...) {
-	writeValue(self, key, valueCreateUInt8(value));
+	writeBitfieldImplementation(8);
 }
 
 void DataSerializationContext_writeBitfield16(DataSerializationContext * self, const char * key, uint16_t value, ...) {
-	writeValue(self, key, valueCreateUInt16(value));
+	writeBitfieldImplementation(16);
 }
 
 void DataSerializationContext_writeBitfield32(DataSerializationContext * self, const char * key, uint32_t value, ...) {
-	writeValue(self, key, valueCreateUInt32(value));
+	writeBitfieldImplementation(32);
 }
 
 void DataSerializationContext_writeBitfield64(DataSerializationContext * self, const char * key, uint64_t value, ...) {
-	writeValue(self, key, valueCreateUInt64(value));
+	writeBitfieldImplementation(64);
 }
 
 void DataSerializationContext_writeString(DataSerializationContext * self, const char * key, const char * value) {

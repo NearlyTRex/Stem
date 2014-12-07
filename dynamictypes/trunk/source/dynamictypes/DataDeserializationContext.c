@@ -252,7 +252,7 @@ double DataDeserializationContext_readDouble(DataDeserializationContext * self, 
 int DataDeserializationContext_readEnumeration(DataDeserializationContext * self, const char * key, ...) {
 	va_list args;
 	DataValue * value;
-	bool valid;
+	int status;
 	
 	value = readValue(self, key);
 	if (value == NULL) {
@@ -263,11 +263,11 @@ int DataDeserializationContext_readEnumeration(DataDeserializationContext * self
 	}
 	
 	va_start(args, key);
-	valid = call_super(checkEnumerationErrors, self, args, value->value.int32);
+	status = Serialization_checkEnumerationErrors(value->value.int32, args);
 	va_end(args);
 	
-	if (!valid) {
-		return 0;
+	if (status != SERIALIZATION_ERROR_OK) {
+		failWithStatus(status, return 0);
 	}
 	
 	return value->value.int32;
@@ -276,7 +276,7 @@ int DataDeserializationContext_readEnumeration(DataDeserializationContext * self
 #define readBitfieldImplementation(BIT_COUNT) \
 	va_list args; \
 	DataValue * value; \
-	bool valid; \
+	int status; \
 	\
 	value = readValue(self, key); \
 	if (value == NULL) { \
@@ -287,11 +287,11 @@ int DataDeserializationContext_readEnumeration(DataDeserializationContext * self
 	} \
 	\
 	va_start(args, key); \
-	valid = call_super(checkBitfield##BIT_COUNT##Errors, self, args, value->value.uint##BIT_COUNT); \
+	status = Serialization_checkBitfield##BIT_COUNT##Errors(value->value.uint##BIT_COUNT, args); \
 	va_end(args); \
 	\
-	if (!valid) { \
-		return 0; \
+	if (status != SERIALIZATION_ERROR_OK) { \
+		failWithStatus(status, return 0); \
 	} \
 	\
 	return value->value.uint##BIT_COUNT
