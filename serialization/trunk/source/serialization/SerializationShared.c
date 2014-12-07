@@ -21,6 +21,9 @@
 */
 
 #include "serialization/SerializationShared.h"
+#include <stdbool.h>
+#include <stdlib.h>
+#include <string.h>
 
 const char * Serialization_errorString(int status) {
 	switch (status) {
@@ -78,4 +81,92 @@ const char * Serialization_errorString(int status) {
 		default:
 			return "Unknown error";
 	}
+}
+
+#define checkBitfieldErrors(bit_count) \
+	va_list argsCopy; \
+	unsigned int bitIndex, bitIndex2; \
+	const char * strings[bit_count]; \
+	\
+	va_copy(argsCopy, args); \
+	for (bitIndex = 0; bitIndex < bit_count; bitIndex++) { \
+		strings[bitIndex] = va_arg(argsCopy, char *); \
+		if (strings[bitIndex] == NULL) { \
+			break; \
+		} \
+		for (bitIndex2 = 0; bitIndex2 < bitIndex; bitIndex2++) { \
+			if (!strcmp(strings[bitIndex2], strings[bitIndex])) { \
+				return SERIALIZATION_ERROR_DUPLICATE_BIT; \
+			} \
+		} \
+	} \
+	va_end(argsCopy); \
+	\
+	if (bitIndex < bit_count && value & ~(((uint##bit_count##_t) 1 << bitIndex) - 1)) { \
+		return SERIALIZATION_ERROR_UNNAMED_BIT; \
+	} \
+	return SERIALIZATION_ERROR_OK
+
+int Serialization_checkBitfield8Errors(uint8_t value, va_list args) {
+	checkBitfieldErrors(8);
+}
+
+int Serialization_checkBitfield16Errors(uint16_t value, va_list args) {
+	checkBitfieldErrors(16);
+}
+
+int Serialization_checkBitfield32Errors(uint32_t value, va_list args) {
+	checkBitfieldErrors(32);
+}
+
+int Serialization_checkBitfield64Errors(uint64_t value, va_list args) {
+	checkBitfieldErrors(64);
+}
+
+int Serialization_checkEnumerationErrors(int value, va_list args) {
+	va_list argsCopy;
+	const char * string;
+	int namedValue;
+	bool found = false;
+	struct enumListItem {const char * name; int value;} * enumList;
+	size_t enumListAllocatedSize, enumCount, enumIndex;
+	
+	va_copy(argsCopy, args);
+	enumCount = 0;
+	enumListAllocatedSize = 1;
+	enumList = malloc(sizeof(struct enumListItem) * enumListAllocatedSize);
+	
+	while ((string = va_arg(argsCopy, const char *)) != NULL) {
+		namedValue = va_arg(argsCopy, int);
+		if (namedValue == value) {
+			found = true;
+		}
+		
+		if (enumCount >= enumListAllocatedSize) {
+			enumListAllocatedSize *= 2;
+			enumList = realloc(enumList, sizeof(struct enumListItem) * enumListAllocatedSize);
+		}
+		enumList[enumCount].name = string;
+		enumList[enumCount].value = namedValue;
+		for (enumIndex = 0; enumIndex < enumCount; enumIndex++) {
+			if (enumList[enumIndex].value == namedValue) {
+				free(enumList);
+				va_end(argsCopy);
+				return SERIALIZATION_ERROR_DUPLICATE_ENUM_VALUE;
+				
+			} else if (!strcmp(enumList[enumIndex].name, string)) {
+				free(enumList);
+				va_end(argsCopy);
+				return SERIALIZATION_ERROR_DUPLICATE_ENUM_NAME;
+			}
+		}
+		enumCount++;
+	}
+	va_end(argsCopy);
+	free(enumList);
+	
+	if (!found) {
+		return SERIALIZATION_ERROR_ENUM_NOT_NAMED;
+	}
+	return SERIALIZATION_ERROR_OK;
 }

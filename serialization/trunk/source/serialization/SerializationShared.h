@@ -26,6 +26,9 @@
 extern "C" {
 #endif
 
+#include <stdarg.h>
+#include <stdint.h>
+
 #define enumKV(value) #value, value
 
 // clang has a bug that doesn't allow sentinel to be applied to function pointers in structs
@@ -94,6 +97,15 @@ extern "C" {
    generated the error instead of this function, since they can describe error codes defined
    by extensions. This function can only define the ones contained within this header. */
 const char * Serialization_errorString(int status);
+
+// For internal use by SerializationContext/DeserializationContext subclasses. Returns a serialization status code indicating whether readBitfield* arguments are malformed.
+int Serialization_checkBitfield8Errors(uint8_t value, va_list args);
+int Serialization_checkBitfield16Errors(uint16_t value, va_list args);
+int Serialization_checkBitfield32Errors(uint32_t value, va_list args);
+int Serialization_checkBitfield64Errors(uint64_t value, va_list args);
+
+// For internal use by SerializationContext/DeserializationContext subclasses. Returns a serialization status code indicating whether readEnumeration arguments are malformed.
+int Serialization_checkEnumerationErrors(int value, va_list args);
 
 #ifdef __cplusplus
 }

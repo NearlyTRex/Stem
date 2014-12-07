@@ -30,7 +30,6 @@ typedef struct DeserializationContext DeserializationContext;
 
 #include "serialization/SerializationShared.h"
 #include "stemobject/StemObject.h"
-#include <stdarg.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <setjmp.h>
@@ -103,15 +102,6 @@ stemobject_struct_definition(DeserializationContext)
 
 bool DeserializationContext_init(DeserializationContext * self);
 void DeserializationContext_dispose(DeserializationContext * self);
-
-// For internal use by subclasses. Returns false and sets the appropriate status if readBitfield* arguments are malformed.
-bool DeserializationContext_checkBitfield8Errors(DeserializationContext * self, va_list args, uint8_t value);
-bool DeserializationContext_checkBitfield16Errors(DeserializationContext * self, va_list args, uint16_t value);
-bool DeserializationContext_checkBitfield32Errors(DeserializationContext * self, va_list args, uint32_t value);
-bool DeserializationContext_checkBitfield64Errors(DeserializationContext * self, va_list args, uint64_t value);
-
-// For internal use by subclasses. Returns false and sets the appropriate status if readEnumeration arguments are malformed.
-bool DeserializationContext_checkEnumerationErrors(DeserializationContext * self, va_list args, int value);
 
 #ifdef __cplusplus
 }
