@@ -161,6 +161,7 @@ LINK_ORDER = \
 	bitmapimage \
 	jsonserialization \
 	jsonio \
+	dynamictypes \
 	utilities \
 	eaglshell \
 	glutshell \
@@ -180,15 +181,16 @@ PROJECT_LIBRARY_DEPENDENCIES_testharness = library
 STEM_LIBRARY_DEPENDENCIES_library = \
 	glgraphics/1.3.1
 STEM_LIBRARY_DEPENDENCIES = \
+	dynamictypes/1.0.0 \
 	gamemath/2.2.0 \
 	gltexture/1.2.0 \
-	serialization/1.4.1 \
+	serialization/1.5.0 \
 	stemobject/3.1.1 \
 	utilities/1.9.0
 STEM_LIBRARY_DEPENDENCIES_testharness = \
 	pngimageio/1.2.0 \
 	bitmapimage/1.3.2 \
-	jsonserialization/1.0.6 \
+	jsonserialization/1.1.0 \
 	jsonio/1.2.5 \
 	utilities/1.9.0 \
 	shell/2.1.0
