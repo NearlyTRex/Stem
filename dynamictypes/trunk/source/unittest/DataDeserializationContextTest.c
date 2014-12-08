@@ -116,7 +116,7 @@ static void testInit() {
 #define readAndVerifyBitfield(NBITS, KEY, EXPECTED_VALUE, ...) { \
 	uint##NBITS##_t value; \
 	value = context->readBitfield##NBITS(context, KEY, __VA_ARGS__); \
-	TestCase_assert(value == (EXPECTED_VALUE), "Expected " printfSpecifier_bitfield##NBITS " but got " printfSpecifier_bitfield##NBITS " (type bitfield" #NBITS "; status %d)", (EXPECTED_VALUE), value, context->status); \
+	TestCase_assert(value == (EXPECTED_VALUE), "Expected " printfSpecifier_bitfield##NBITS " but got " printfSpecifier_bitfield##NBITS " (type bitfield" #NBITS "; status %d)", (uint##NBITS##_t)(EXPECTED_VALUE), value, context->status); \
 	TestCase_assert(context->status == SERIALIZATION_ERROR_OK, "Got error from operation that should have succeeded: %d", context->status); \
 }
 
