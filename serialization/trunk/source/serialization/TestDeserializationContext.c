@@ -50,6 +50,7 @@ bool TestDeserializationContext_init(TestDeserializationContext * self, jmp_buf 
 	self->endStructure = TestDeserializationContext_endStructure;
 	self->endDictionary = TestDeserializationContext_endDictionary;
 	self->endArray = TestDeserializationContext_endArray;
+	self->readBoolean = TestDeserializationContext_readBoolean;
 	self->readInt8 = TestDeserializationContext_readInt8;
 	self->readUInt8 = TestDeserializationContext_readUInt8;
 	self->readInt16 = TestDeserializationContext_readInt16;
@@ -60,13 +61,13 @@ bool TestDeserializationContext_init(TestDeserializationContext * self, jmp_buf 
 	self->readUInt64 = TestDeserializationContext_readUInt64;
 	self->readFloat = TestDeserializationContext_readFloat;
 	self->readDouble = TestDeserializationContext_readDouble;
-	self->readString = TestDeserializationContext_readString;
-	self->readBoolean = TestDeserializationContext_readBoolean;
 	self->readEnumeration = TestDeserializationContext_readEnumeration;
 	self->readBitfield8 = TestDeserializationContext_readBitfield8;
 	self->readBitfield16 = TestDeserializationContext_readBitfield16;
 	self->readBitfield32 = TestDeserializationContext_readBitfield32;
 	self->readBitfield64 = TestDeserializationContext_readBitfield64;
+	self->readString = TestDeserializationContext_readString;
+	self->readBlob = TestDeserializationContext_readBlob;
 	self->readNextDictionaryKey = TestDeserializationContext_readNextDictionaryKey;
 	self->hasDictionaryKey = TestDeserializationContext_hasDictionaryKey;
 	self->expectCall = TestDeserializationContext_expectCall;

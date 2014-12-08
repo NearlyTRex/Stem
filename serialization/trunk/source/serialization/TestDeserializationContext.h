@@ -53,7 +53,7 @@ struct TestDeserializationContext_expectedCall {
 		int enumValue;
 	} returnValue;
 	union TestDeserializationContext_additionalArg {
-		char * stringValue;
+		const char * stringValue;
 		int enumValue;
 		size_t length;
 	} * additionalArgs;

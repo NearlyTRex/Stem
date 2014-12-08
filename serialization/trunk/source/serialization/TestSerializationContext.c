@@ -52,6 +52,7 @@ bool TestSerializationContext_init(TestSerializationContext * self, jmp_buf * se
 	self->endStructure = TestSerializationContext_endStructure;
 	self->endDictionary = TestSerializationContext_endDictionary;
 	self->endArray = TestSerializationContext_endArray;
+	self->writeBoolean = TestSerializationContext_writeBoolean;
 	self->writeInt8 = TestSerializationContext_writeInt8;
 	self->writeUInt8 = TestSerializationContext_writeUInt8;
 	self->writeInt16 = TestSerializationContext_writeInt16;
@@ -62,13 +63,13 @@ bool TestSerializationContext_init(TestSerializationContext * self, jmp_buf * se
 	self->writeUInt64 = TestSerializationContext_writeUInt64;
 	self->writeFloat = TestSerializationContext_writeFloat;
 	self->writeDouble = TestSerializationContext_writeDouble;
-	self->writeString = TestSerializationContext_writeString;
-	self->writeBoolean = TestSerializationContext_writeBoolean;
 	self->writeEnumeration = TestSerializationContext_writeEnumeration;
 	self->writeBitfield8 = TestSerializationContext_writeBitfield8;
 	self->writeBitfield16 = TestSerializationContext_writeBitfield16;
 	self->writeBitfield32 = TestSerializationContext_writeBitfield32;
 	self->writeBitfield64 = TestSerializationContext_writeBitfield64;
+	self->writeString = TestSerializationContext_writeString;
+	self->writeBlob = TestSerializationContext_writeBlob;
 	self->expectCall = TestSerializationContext_expectCall;
 	self->failNthCall = TestSerializationContext_failNthCall;
 	self->finish = TestSerializationContext_finish;
@@ -486,7 +487,7 @@ void TestSerializationContext_writeString(TestSerializationContext * self, const
 }
 
 void TestSerializationContext_writeBlob(TestSerializationContext * self, const char * key, const void * value, size_t length) {
-	verifyCallIsInSequence(self, self->writeBlob, key, value);
+	verifyCallIsInSequence(self, self->writeBlob, key, value, length);
 	failIfRequested(self);
 }
 
@@ -502,7 +503,10 @@ void TestSerializationContext_expectCall(TestSerializationContext * self, void *
 		self->expectedCalls[self->numExpectedCalls].key = va_arg(args, char *);
 	}
 	
-	if (functionPtr == self->writeInt8) {
+	if (functionPtr == self->writeBoolean) {
+		self->expectedCalls[self->numExpectedCalls].value.boolValue = va_arg(args, int);
+		
+	} else if (functionPtr == self->writeInt8) {
 		self->expectedCalls[self->numExpectedCalls].value.int8Value = va_arg(args, int);
 		
 	} else if (functionPtr == self->writeUInt8 || functionPtr == self->writeBitfield8) {
@@ -532,14 +536,16 @@ void TestSerializationContext_expectCall(TestSerializationContext * self, void *
 	} else if (functionPtr == self->writeDouble) {
 		self->expectedCalls[self->numExpectedCalls].value.doubleValue = va_arg(args, double);
 		
-	} else if (functionPtr == self->writeString) {
-		self->expectedCalls[self->numExpectedCalls].value.stringValue = va_arg(args, char *);
-		
-	} else if (functionPtr == self->writeBoolean) {
-		self->expectedCalls[self->numExpectedCalls].value.boolValue = va_arg(args, int);
-		
 	} else if (functionPtr == self->writeEnumeration) {
 		self->expectedCalls[self->numExpectedCalls].value.enumValue = va_arg(args, int);
+		
+	} else if (functionPtr == self->writeString) {
+		self->expectedCalls[self->numExpectedCalls].value.stringValue = va_arg(args, const char *);
+		
+	} else if (functionPtr == self->writeBlob) {
+		self->expectedCalls[self->numExpectedCalls].value.blobValue = va_arg(args, const void *);
+		self->expectedCalls[self->numExpectedCalls].additionalArgs = malloc(sizeof(union TestSerializationContext_additionalArg));
+		self->expectedCalls[self->numExpectedCalls].additionalArgs[0].length = va_arg(args, size_t);
 	}
 	
 	if (functionPtr == self->writeEnumeration) {

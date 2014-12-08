@@ -46,13 +46,13 @@ struct TestSerializationContext_expectedCall {
 		uint64_t uint64Value;
 		float floatValue;
 		double doubleValue;
-		char * stringValue;
+		const char * stringValue;
+		const void * blobValue;
 		bool boolValue;
 		int enumValue;
-		void * blobValue;
 	} value;
 	union TestSerializationContext_additionalArg {
-		char * stringValue;
+		const char * stringValue;
 		int enumValue;
 		size_t length;
 	} * additionalArgs;
