@@ -20,6 +20,8 @@
   Alex Diener alex@ludobloom.com
 */
 
+#include "dynamictypes/DataArray.h"
+#include "dynamictypes/hashTable.h"
 #include "gltexture/GLTextureAtlas.h"
 #include <stdlib.h>
 #include <string.h>
@@ -42,7 +44,7 @@ GLTextureAtlas * GLTextureAtlas_create() {
 
 bool GLTextureAtlas_init(GLTextureAtlas * self) {
 	sharedInit(self);
-	self->private_ivar(hashTable) = hashCreate(sizeof(struct GLTextureAtlas_entry));
+	self->private_ivar(hashTable) = hashCreate();
 	return true;
 }
 
@@ -83,7 +85,7 @@ bool GLTextureAtlas_loadSerializedData(GLTextureAtlas * self, compat_type(Deseri
 		return false;
 	}
 	
-	hashTable = hashCreate(sizeof(struct GLTextureAtlas_entry));
+	hashTable = hashCreate();
 	for (keyIndex = 0; keyIndex < keyCount; keyIndex++) {
 		key = context->readNextDictionaryKey(context);
 		context->beginStructure(context, key);
@@ -92,7 +94,12 @@ bool GLTextureAtlas_loadSerializedData(GLTextureAtlas * self, compat_type(Deseri
 		entry.bottom = context->readFloat(context, "bottom");
 		entry.top = context->readFloat(context, "top");
 		context->endStructure(context);
-		hashSetStruct(hashTable, key, struct GLTextureAtlas_entry, entry);
+		hashSet(hashTable, key, valueCreateArray(arrayCreateWithValues(
+			valueCreateFloat(entry.left),
+			valueCreateFloat(entry.right),
+			valueCreateFloat(entry.bottom),
+			valueCreateFloat(entry.top)
+		), true, false));
 	}
 	context->endDictionary(context);
 	context->endStructure(context);
@@ -123,7 +130,7 @@ void GLTextureAtlas_serialize(GLTextureAtlas * self, compat_type(SerializationCo
 	keys = hashGetKeys(self->private_ivar(hashTable), &keyCount);
 	for (keyIndex = 0; keyIndex < keyCount; keyIndex++) {
 		context->beginStructure(context, keys[keyIndex]);
-		entry = hashGetStruct(self->private_ivar(hashTable), keys[keyIndex], struct GLTextureAtlas_entry);
+		entry = GLTextureAtlas_lookup(self, keys[keyIndex]);
 		context->writeFloat(context, "left", entry.left);
 		context->writeFloat(context, "right", entry.right);
 		context->writeFloat(context, "bottom", entry.bottom);
@@ -151,7 +158,12 @@ bool GLTextureAtlas_hasKey(GLTextureAtlas * self, const char * key) {
 }
 
 void GLTextureAtlas_setEntry(GLTextureAtlas * self, const char * key, struct GLTextureAtlas_entry entry) {
-	hashSetStruct(self->private_ivar(hashTable), key, struct GLTextureAtlas_entry, entry);
+	hashSet(self->private_ivar(hashTable), key, valueCreateArray(arrayCreateWithValues(
+		valueCreateFloat(entry.left),
+		valueCreateFloat(entry.right),
+		valueCreateFloat(entry.bottom),
+		valueCreateFloat(entry.top)
+	), true, false));
 }
 
 void GLTextureAtlas_removeEntry(GLTextureAtlas * self, const char * key) {
@@ -159,7 +171,17 @@ void GLTextureAtlas_removeEntry(GLTextureAtlas * self, const char * key) {
 }
 
 struct GLTextureAtlas_entry GLTextureAtlas_lookup(GLTextureAtlas * self, const char * key) {
-	return hashGetStruct(self->private_ivar(hashTable), key, struct GLTextureAtlas_entry);
+	struct GLTextureAtlas_entry entry = {0.0f, 0.0f, 0.0f, 0.0f};
+	DataValue * value;
+	
+	value = hashGet(self->private_ivar(hashTable), key);
+	if (value != NULL) {
+		entry.left = value->value.array->values[0].value.float32;
+		entry.right = value->value.array->values[1].value.float32;
+		entry.bottom = value->value.array->values[2].value.float32;
+		entry.top = value->value.array->values[3].value.float32;
+	}
+	return entry;
 }
 
 Vector2f GLTextureAtlas_getEntryDimensions(GLTextureAtlas * self, const char * key, float width, float height) {

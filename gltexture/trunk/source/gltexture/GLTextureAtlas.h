@@ -28,13 +28,13 @@ extern "C" {
 
 typedef struct GLTextureAtlas GLTextureAtlas;
 
+#include "dynamictypes/HashTable.h"
 #include "gamemath/Vector2f.h"
 #include "glgraphics/VertexTypes.h"
 #include "gltexture/GLTexture.h"
 #include "serialization/DeserializationContext.h"
 #include "serialization/SerializationContext.h"
 #include "stemobject/StemObject.h"
-#include "utilities/HashTable.h"
 #include <math.h>
 
 #define GLTEXTUREATLAS_SERIALIZATION_FORMAT_VERSION 1

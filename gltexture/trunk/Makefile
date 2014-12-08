@@ -163,6 +163,7 @@ LINK_ORDER = \
 	bitmapimage \
 	jsonserialization \
 	jsonio \
+	dynamictypes \
 	serialization \
 	utilities \
 	stemobject \
@@ -178,8 +179,9 @@ LINK_ORDER = \
 PROJECT_LIBRARY_DEPENDENCIES_unittest = library
 PROJECT_LIBRARY_DEPENDENCIES_testharness = library
 STEM_LIBRARY_DEPENDENCIES = \
+	dynamictypes/1.0.0 \
 	gamemath/2.2.0 \
-	serialization/1.4.1 \
+	serialization/1.5.0 \
 	stemobject/3.1.1 \
 	shell/2.1.0 \
 	utilities/1.9.0
@@ -191,7 +193,7 @@ STEM_LIBRARY_DEPENDENCIES_unittest = \
 STEM_LIBRARY_DEPENDENCIES_testharness = \
 	bitmapimage/1.3.2 \
 	jsonio/1.2.5 \
-	jsonserialization/1.0.6 \
+	jsonserialization/1.1.0 \
 	pngimageio/1.2.0
 THIRDPARTY_LIBRARY_DEPENDENCIES_library = libpng/1.6.12/libpng.a
 THIRDPARTY_LIBRARY_DEPENDENCIES_unittest = 
