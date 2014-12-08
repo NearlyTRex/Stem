@@ -167,7 +167,7 @@ PROJECT_LIBRARY_DEPENDENCIES_unittest = library
 PROJECT_LIBRARY_DEPENDENCIES_testharness = library
 STEM_LIBRARY_DEPENDENCIES = \
 	gamepad/1.4.1 \
-	serialization/1.4.1 \
+	serialization/1.5.0 \
 	stemobject/3.1.1 \
 	utilities/1.9.0
 STEM_LIBRARY_DEPENDENCIES_unittest = \
