@@ -137,7 +137,7 @@ static bool pushContainer(DataDeserializationContext * self, const char * key, e
 		if (container->type != expectedType) {
 			failWithStatus(SERIALIZATION_ERROR_INCORRECT_TYPE, return false);
 		}
-		self->stack = realloc(self->stack, sizeof(DataValue *) * (self->stackCount + 1));
+		self->stack = realloc(self->stack, sizeof(struct DataDeserializationContext_stackEntry) * (self->stackCount + 1));
 		self->stack[self->stackCount].container = self->currentValue;
 		self->stack[self->stackCount].index = self->index;
 		self->stackCount++;
