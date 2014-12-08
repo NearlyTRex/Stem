@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2013 Alex Diener
+  Copyright (c) 2014 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -17,7 +17,7 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
   
-  Alex Diener adiener@sacredsoftware.net
+  Alex Diener alex@ludobloom.com
 */
 
 #include "binaryserialization/BinaryDeserializationContext.h"
@@ -127,6 +127,7 @@ static void sharedInit(BinaryDeserializationContext * self) {
 	self->endStructure = BinaryDeserializationContext_endStructure;
 	self->endDictionary = BinaryDeserializationContext_endDictionary;
 	self->endArray = BinaryDeserializationContext_endArray;
+	self->readBoolean = BinaryDeserializationContext_readBoolean;
 	self->readInt8 = BinaryDeserializationContext_readInt8;
 	self->readUInt8 = BinaryDeserializationContext_readUInt8;
 	self->readInt16 = BinaryDeserializationContext_readInt16;
@@ -137,13 +138,13 @@ static void sharedInit(BinaryDeserializationContext * self) {
 	self->readUInt64 = BinaryDeserializationContext_readUInt64;
 	self->readFloat = BinaryDeserializationContext_readFloat;
 	self->readDouble = BinaryDeserializationContext_readDouble;
-	self->readString = BinaryDeserializationContext_readString;
-	self->readBoolean = BinaryDeserializationContext_readBoolean;
 	self->readEnumeration = BinaryDeserializationContext_readEnumeration;
 	self->readBitfield8 = BinaryDeserializationContext_readBitfield8;
 	self->readBitfield16 = BinaryDeserializationContext_readBitfield16;
 	self->readBitfield32 = BinaryDeserializationContext_readBitfield32;
 	self->readBitfield64 = BinaryDeserializationContext_readBitfield64;
+	self->readString = BinaryDeserializationContext_readString;
+	self->readBlob = BinaryDeserializationContext_readBlob;
 	self->readNextDictionaryKey = BinaryDeserializationContext_readNextDictionaryKey;
 	self->hasDictionaryKey = BinaryDeserializationContext_hasDictionaryKey;
 }
@@ -327,6 +328,10 @@ void BinaryDeserializationContext_endArray(BinaryDeserializationContext * self) 
 	}
 }
 
+bool BinaryDeserializationContext_readBoolean(BinaryDeserializationContext * self, const char * key) {
+	return self->readUInt8(self, key);
+}
+
 int8_t BinaryDeserializationContext_readInt8(BinaryDeserializationContext * self, const char * key) {
 	int8_t value;
 	
@@ -435,16 +440,6 @@ double BinaryDeserializationContext_readDouble(BinaryDeserializationContext * se
 	
 	value.u = self->readUInt64(self, key);
 	return value.f;
-}
-
-const char * BinaryDeserializationContext_readString(BinaryDeserializationContext * self, const char * key) {
-	lookUpKey(key, return NULL)
-	checkCanReadValue(0, return NULL)
-	return readStringInternal(self);
-}
-
-bool BinaryDeserializationContext_readBoolean(BinaryDeserializationContext * self, const char * key) {
-	return self->readUInt8(self, key);
 }
 
 int BinaryDeserializationContext_readEnumeration(BinaryDeserializationContext * self, const char * key, ...) {
@@ -556,6 +551,29 @@ uint64_t BinaryDeserializationContext_readBitfield64(BinaryDeserializationContex
 	value = self->readUInt64(self, key);
 	checkBitfieldErrors(64)
 	return value;
+}
+
+const char * BinaryDeserializationContext_readString(BinaryDeserializationContext * self, const char * key) {
+	lookUpKey(key, return NULL)
+	checkCanReadValue(0, return NULL)
+	return readStringInternal(self);
+}
+
+const void * BinaryDeserializationContext_readBlob(BinaryDeserializationContext * self, const char * key, size_t * outLength) {
+	size_t length;
+	const void * value;
+	
+	lookUpKey(key, return NULL)
+	checkCanReadValue(4, return NULL)
+	
+	length = readUInt32Internal(self);
+	if (length + self->position <= self->length) {
+		value = (const void *) self->bytes + self->position;
+		self->position += length;
+		*outLength = length;
+		return value;
+	}
+	failWithStatus(BINARY_SERIALIZATION_ERROR_UNEXPECTED_EOF, return NULL)
 }
 
 const char * BinaryDeserializationContext_readNextDictionaryKey(BinaryDeserializationContext * self) {

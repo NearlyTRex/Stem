@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2013 Alex Diener
+  Copyright (c) 2014 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -17,7 +17,7 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
   
-  Alex Diener adiener@sacredsoftware.net
+  Alex Diener alex@ludobloom.com
 */
 
 #ifndef __BinarySerializationContext_H__
@@ -49,10 +49,7 @@ struct BinarySerializationContext_containerNode {
 	size_t containerCount; \
 	size_t containerListSize; \
 	struct BinarySerializationContext_containerNode * containerStack; \
-	bool finished; \
-	\
-	void * (* writeToBytes)(self_type * self, size_t * outLength); \
-	bool (* writeToFile)(self_type * self, const char * filePath);
+	bool finished;
 
 stemobject_struct_definition(BinarySerializationContext)
 
@@ -71,6 +68,7 @@ void BinarySerializationContext_beginArray(BinarySerializationContext * self, co
 void BinarySerializationContext_endStructure(BinarySerializationContext * self);
 void BinarySerializationContext_endDictionary(BinarySerializationContext * self);
 void BinarySerializationContext_endArray(BinarySerializationContext * self);
+void BinarySerializationContext_writeBoolean(BinarySerializationContext * self, const char * key, bool value);
 void BinarySerializationContext_writeInt8(BinarySerializationContext * self, const char * key, int8_t value);
 void BinarySerializationContext_writeUInt8(BinarySerializationContext * self, const char * key, uint8_t value);
 void BinarySerializationContext_writeInt16(BinarySerializationContext * self, const char * key, int16_t value);
@@ -81,13 +79,13 @@ void BinarySerializationContext_writeInt64(BinarySerializationContext * self, co
 void BinarySerializationContext_writeUInt64(BinarySerializationContext * self, const char * key, uint64_t value);
 void BinarySerializationContext_writeFloat(BinarySerializationContext * self, const char * key, float value);
 void BinarySerializationContext_writeDouble(BinarySerializationContext * self, const char * key, double value);
-void BinarySerializationContext_writeString(BinarySerializationContext * self, const char * key, const char * value);
-void BinarySerializationContext_writeBoolean(BinarySerializationContext * self, const char * key, bool value);
 void BinarySerializationContext_writeEnumeration(BinarySerializationContext * self, const char * key, int value, ...) __attribute__((sentinel));
 void BinarySerializationContext_writeBitfield8(BinarySerializationContext * self, const char * key, uint8_t value, ...) __attribute__((sentinel));
 void BinarySerializationContext_writeBitfield16(BinarySerializationContext * self, const char * key, uint16_t value, ...) __attribute__((sentinel));
 void BinarySerializationContext_writeBitfield32(BinarySerializationContext * self, const char * key, uint32_t value, ...) __attribute__((sentinel));
 void BinarySerializationContext_writeBitfield64(BinarySerializationContext * self, const char * key, uint64_t value, ...) __attribute__((sentinel));
+void BinarySerializationContext_writeString(BinarySerializationContext * self, const char * key, const char * value);
+void BinarySerializationContext_writeBlob(BinarySerializationContext * self, const char * key, const void * value, size_t length);
 
 #ifdef __cplusplus
 }

@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2013 Alex Diener
+  Copyright (c) 2014 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -17,7 +17,7 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
   
-  Alex Diener adiener@sacredsoftware.net
+  Alex Diener alex@ludobloom.com
 */
 
 #ifndef __BinaryDeserializationContext_H__
@@ -65,6 +65,7 @@ size_t BinaryDeserializationContext_beginArray(BinaryDeserializationContext * se
 void BinaryDeserializationContext_endStructure(BinaryDeserializationContext * self);
 void BinaryDeserializationContext_endDictionary(BinaryDeserializationContext * self);
 void BinaryDeserializationContext_endArray(BinaryDeserializationContext * self);
+bool BinaryDeserializationContext_readBoolean(BinaryDeserializationContext * self, const char * key);
 int8_t BinaryDeserializationContext_readInt8(BinaryDeserializationContext * self, const char * key);
 uint8_t BinaryDeserializationContext_readUInt8(BinaryDeserializationContext * self, const char * key);
 int16_t BinaryDeserializationContext_readInt16(BinaryDeserializationContext * self, const char * key);
@@ -75,13 +76,13 @@ int64_t BinaryDeserializationContext_readInt64(BinaryDeserializationContext * se
 uint64_t BinaryDeserializationContext_readUInt64(BinaryDeserializationContext * self, const char * key);
 float BinaryDeserializationContext_readFloat(BinaryDeserializationContext * self, const char * key);
 double BinaryDeserializationContext_readDouble(BinaryDeserializationContext * self, const char * key);
-const char * BinaryDeserializationContext_readString(BinaryDeserializationContext * self, const char * key);
-bool BinaryDeserializationContext_readBoolean(BinaryDeserializationContext * self, const char * key);
 int BinaryDeserializationContext_readEnumeration(BinaryDeserializationContext * self, const char * key, ...) __attribute__((sentinel));
 uint8_t BinaryDeserializationContext_readBitfield8(BinaryDeserializationContext * self, const char * key, ...) __attribute__((sentinel));
 uint16_t BinaryDeserializationContext_readBitfield16(BinaryDeserializationContext * self, const char * key, ...) __attribute__((sentinel));
 uint32_t BinaryDeserializationContext_readBitfield32(BinaryDeserializationContext * self, const char * key, ...) __attribute__((sentinel));
 uint64_t BinaryDeserializationContext_readBitfield64(BinaryDeserializationContext * self, const char * key, ...) __attribute__((sentinel));
+const char * BinaryDeserializationContext_readString(BinaryDeserializationContext * self, const char * key);
+const void * BinaryDeserializationContext_readBlob(BinaryDeserializationContext * self, const char * key, size_t * outLength);
 const char * BinaryDeserializationContext_readNextDictionaryKey(BinaryDeserializationContext * self);
 bool BinaryDeserializationContext_hasDictionaryKey(BinaryDeserializationContext * self, const char * key);
 

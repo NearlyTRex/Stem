@@ -6,6 +6,39 @@
 #include <string.h>
 #include <unistd.h>
 
+static void verifyInit(BinaryDeserializationContext * context) {
+	TestCase_assert(context->jmpBuf == NULL, "Expected NULL but got %p", context->jmpBuf);
+	TestCase_assert(context->status == SERIALIZATION_ERROR_OK, "Expected %d but got %d", SERIALIZATION_ERROR_OK, context->status);
+	TestCase_assert(context->dispose == BinaryDeserializationContext_dispose, "Expected %p but got %p", BinaryDeserializationContext_dispose, context->dispose);
+	TestCase_assert(context->errorString == BinarySerialization_errorString, "Expected %p but got %p", BinarySerialization_errorString, context->errorString);
+	TestCase_assert(context->beginStructure == BinaryDeserializationContext_beginStructure, "Expected %p but got %p", BinaryDeserializationContext_beginStructure, context->beginStructure);
+	TestCase_assert(context->beginDictionary == BinaryDeserializationContext_beginDictionary, "Expected %p but got %p", BinaryDeserializationContext_beginDictionary, context->beginDictionary);
+	TestCase_assert(context->beginArray == BinaryDeserializationContext_beginArray, "Expected %p but got %p", BinaryDeserializationContext_beginArray, context->beginArray);
+	TestCase_assert(context->endStructure == BinaryDeserializationContext_endStructure, "Expected %p but got %p", BinaryDeserializationContext_endStructure, context->endStructure);
+	TestCase_assert(context->endDictionary == BinaryDeserializationContext_endDictionary, "Expected %p but got %p", BinaryDeserializationContext_endDictionary, context->endDictionary);
+	TestCase_assert(context->endArray == BinaryDeserializationContext_endArray, "Expected %p but got %p", BinaryDeserializationContext_endArray, context->endArray);
+	TestCase_assert(context->readBoolean == BinaryDeserializationContext_readBoolean, "Expected %p but got %p", BinaryDeserializationContext_readBoolean, context->readBoolean);
+	TestCase_assert(context->readInt8 == BinaryDeserializationContext_readInt8, "Expected %p but got %p", BinaryDeserializationContext_readInt8, context->readInt8);
+	TestCase_assert(context->readUInt8 == BinaryDeserializationContext_readUInt8, "Expected %p but got %p", BinaryDeserializationContext_readUInt8, context->readUInt8);
+	TestCase_assert(context->readInt16 == BinaryDeserializationContext_readInt16, "Expected %p but got %p", BinaryDeserializationContext_readInt16, context->readInt16);
+	TestCase_assert(context->readUInt16 == BinaryDeserializationContext_readUInt16, "Expected %p but got %p", BinaryDeserializationContext_readUInt16, context->readUInt16);
+	TestCase_assert(context->readInt32 == BinaryDeserializationContext_readInt32, "Expected %p but got %p", BinaryDeserializationContext_readInt32, context->readInt32);
+	TestCase_assert(context->readUInt32 == BinaryDeserializationContext_readUInt32, "Expected %p but got %p", BinaryDeserializationContext_readUInt32, context->readUInt32);
+	TestCase_assert(context->readInt64 == BinaryDeserializationContext_readInt64, "Expected %p but got %p", BinaryDeserializationContext_readInt64, context->readInt64);
+	TestCase_assert(context->readUInt64 == BinaryDeserializationContext_readUInt64, "Expected %p but got %p", BinaryDeserializationContext_readUInt64, context->readUInt64);
+	TestCase_assert(context->readFloat == BinaryDeserializationContext_readFloat, "Expected %p but got %p", BinaryDeserializationContext_readFloat, context->readFloat);
+	TestCase_assert(context->readDouble == BinaryDeserializationContext_readDouble, "Expected %p but got %p", BinaryDeserializationContext_readDouble, context->readDouble);
+	TestCase_assert(context->readEnumeration == BinaryDeserializationContext_readEnumeration, "Expected %p but got %p", BinaryDeserializationContext_readEnumeration, context->readEnumeration);
+	TestCase_assert(context->readBitfield8 == BinaryDeserializationContext_readBitfield8, "Expected %p but got %p", BinaryDeserializationContext_readBitfield8, context->readBitfield8);
+	TestCase_assert(context->readBitfield16 == BinaryDeserializationContext_readBitfield16, "Expected %p but got %p", BinaryDeserializationContext_readBitfield16, context->readBitfield16);
+	TestCase_assert(context->readBitfield32 == BinaryDeserializationContext_readBitfield32, "Expected %p but got %p", BinaryDeserializationContext_readBitfield32, context->readBitfield32);
+	TestCase_assert(context->readBitfield64 == BinaryDeserializationContext_readBitfield64, "Expected %p but got %p", BinaryDeserializationContext_readBitfield64, context->readBitfield64);
+	TestCase_assert(context->readString == BinaryDeserializationContext_readString, "Expected %p but got %p", BinaryDeserializationContext_readString, context->readString);
+	TestCase_assert(context->readBlob == BinaryDeserializationContext_readBlob, "Expected %p but got %p", BinaryDeserializationContext_readBlob, context->readBlob);
+	TestCase_assert(context->readNextDictionaryKey == BinaryDeserializationContext_readNextDictionaryKey, "Expected %p but got %p", BinaryDeserializationContext_readNextDictionaryKey, context->readNextDictionaryKey);
+	TestCase_assert(context->hasDictionaryKey == BinaryDeserializationContext_hasDictionaryKey, "Expected %p but got %p", BinaryDeserializationContext_hasDictionaryKey, context->hasDictionaryKey);
+}
+
 static void testInit() {
 	BinaryDeserializationContext context, * contextPtr;
 	const char * tempFilePath;
@@ -15,36 +48,8 @@ static void testInit() {
 	context.status = -1;
 	context.jmpBuf = (void *) -1;
 	BinaryDeserializationContext_initWithBytes(&context, "Stem", 4);
-	TestCase_assert(context.jmpBuf == NULL, "Expected NULL but got %p", context.jmpBuf);
-	TestCase_assert(context.status == SERIALIZATION_ERROR_OK, "Expected %d but got %d", SERIALIZATION_ERROR_OK, context.status);
+	verifyInit(&context);
 	TestCase_assert(context.bigEndian, "Expected true but got false");
-	TestCase_assert(context.dispose == BinaryDeserializationContext_dispose, "Expected %p but got %p", BinaryDeserializationContext_dispose, context.dispose);
-	TestCase_assert(context.errorString == BinarySerialization_errorString, "Expected %p but got %p", BinarySerialization_errorString, context.errorString);
-	TestCase_assert(context.beginStructure == BinaryDeserializationContext_beginStructure, "Expected %p but got %p", BinaryDeserializationContext_beginStructure, context.beginStructure);
-	TestCase_assert(context.beginDictionary == BinaryDeserializationContext_beginDictionary, "Expected %p but got %p", BinaryDeserializationContext_beginDictionary, context.beginDictionary);
-	TestCase_assert(context.beginArray == BinaryDeserializationContext_beginArray, "Expected %p but got %p", BinaryDeserializationContext_beginArray, context.beginArray);
-	TestCase_assert(context.endStructure == BinaryDeserializationContext_endStructure, "Expected %p but got %p", BinaryDeserializationContext_endStructure, context.endStructure);
-	TestCase_assert(context.endDictionary == BinaryDeserializationContext_endDictionary, "Expected %p but got %p", BinaryDeserializationContext_endDictionary, context.endDictionary);
-	TestCase_assert(context.endArray == BinaryDeserializationContext_endArray, "Expected %p but got %p", BinaryDeserializationContext_endArray, context.endArray);
-	TestCase_assert(context.readInt8 == BinaryDeserializationContext_readInt8, "Expected %p but got %p", BinaryDeserializationContext_readInt8, context.readInt8);
-	TestCase_assert(context.readUInt8 == BinaryDeserializationContext_readUInt8, "Expected %p but got %p", BinaryDeserializationContext_readUInt8, context.readUInt8);
-	TestCase_assert(context.readInt16 == BinaryDeserializationContext_readInt16, "Expected %p but got %p", BinaryDeserializationContext_readInt16, context.readInt16);
-	TestCase_assert(context.readUInt16 == BinaryDeserializationContext_readUInt16, "Expected %p but got %p", BinaryDeserializationContext_readUInt16, context.readUInt16);
-	TestCase_assert(context.readInt32 == BinaryDeserializationContext_readInt32, "Expected %p but got %p", BinaryDeserializationContext_readInt32, context.readInt32);
-	TestCase_assert(context.readUInt32 == BinaryDeserializationContext_readUInt32, "Expected %p but got %p", BinaryDeserializationContext_readUInt32, context.readUInt32);
-	TestCase_assert(context.readInt64 == BinaryDeserializationContext_readInt64, "Expected %p but got %p", BinaryDeserializationContext_readInt64, context.readInt64);
-	TestCase_assert(context.readUInt64 == BinaryDeserializationContext_readUInt64, "Expected %p but got %p", BinaryDeserializationContext_readUInt64, context.readUInt64);
-	TestCase_assert(context.readFloat == BinaryDeserializationContext_readFloat, "Expected %p but got %p", BinaryDeserializationContext_readFloat, context.readFloat);
-	TestCase_assert(context.readDouble == BinaryDeserializationContext_readDouble, "Expected %p but got %p", BinaryDeserializationContext_readDouble, context.readDouble);
-	TestCase_assert(context.readString == BinaryDeserializationContext_readString, "Expected %p but got %p", BinaryDeserializationContext_readString, context.readString);
-	TestCase_assert(context.readBoolean == BinaryDeserializationContext_readBoolean, "Expected %p but got %p", BinaryDeserializationContext_readBoolean, context.readBoolean);
-	TestCase_assert(context.readEnumeration == BinaryDeserializationContext_readEnumeration, "Expected %p but got %p", BinaryDeserializationContext_readEnumeration, context.readEnumeration);
-	TestCase_assert(context.readBitfield8 == BinaryDeserializationContext_readBitfield8, "Expected %p but got %p", BinaryDeserializationContext_readBitfield8, context.readBitfield8);
-	TestCase_assert(context.readBitfield16 == BinaryDeserializationContext_readBitfield16, "Expected %p but got %p", BinaryDeserializationContext_readBitfield16, context.readBitfield16);
-	TestCase_assert(context.readBitfield32 == BinaryDeserializationContext_readBitfield32, "Expected %p but got %p", BinaryDeserializationContext_readBitfield32, context.readBitfield32);
-	TestCase_assert(context.readBitfield64 == BinaryDeserializationContext_readBitfield64, "Expected %p but got %p", BinaryDeserializationContext_readBitfield64, context.readBitfield64);
-	TestCase_assert(context.readNextDictionaryKey == BinaryDeserializationContext_readNextDictionaryKey, "Expected %p but got %p", BinaryDeserializationContext_readNextDictionaryKey, context.readNextDictionaryKey);
-	TestCase_assert(context.hasDictionaryKey == BinaryDeserializationContext_hasDictionaryKey, "Expected %p but got %p", BinaryDeserializationContext_hasDictionaryKey, context.hasDictionaryKey);
 	context.dispose(&context);
 	
 	memset(&context, 0, sizeof(context));
@@ -55,71 +60,15 @@ static void testInit() {
 	BinaryDeserializationContext_initWithFile(&context, tempFilePath);
 	close(fd);
 	unlink(tempFilePath);
-	TestCase_assert(context.jmpBuf == NULL, "Expected NULL but got %p", context.jmpBuf);
-	TestCase_assert(context.status == SERIALIZATION_ERROR_OK, "Expected %d but got %d", SERIALIZATION_ERROR_OK, context.status);
+	verifyInit(&context);
 	TestCase_assert(!context.bigEndian, "Expected false but got true");
-	TestCase_assert(context.dispose == BinaryDeserializationContext_dispose, "Expected %p but got %p", BinaryDeserializationContext_dispose, context.dispose);
-	TestCase_assert(context.errorString == BinarySerialization_errorString, "Expected %p but got %p", BinarySerialization_errorString, context.errorString);
-	TestCase_assert(context.beginStructure == BinaryDeserializationContext_beginStructure, "Expected %p but got %p", BinaryDeserializationContext_beginStructure, context.beginStructure);
-	TestCase_assert(context.beginDictionary == BinaryDeserializationContext_beginDictionary, "Expected %p but got %p", BinaryDeserializationContext_beginDictionary, context.beginDictionary);
-	TestCase_assert(context.beginArray == BinaryDeserializationContext_beginArray, "Expected %p but got %p", BinaryDeserializationContext_beginArray, context.beginArray);
-	TestCase_assert(context.endStructure == BinaryDeserializationContext_endStructure, "Expected %p but got %p", BinaryDeserializationContext_endStructure, context.endStructure);
-	TestCase_assert(context.endDictionary == BinaryDeserializationContext_endDictionary, "Expected %p but got %p", BinaryDeserializationContext_endDictionary, context.endDictionary);
-	TestCase_assert(context.endArray == BinaryDeserializationContext_endArray, "Expected %p but got %p", BinaryDeserializationContext_endArray, context.endArray);
-	TestCase_assert(context.readInt8 == BinaryDeserializationContext_readInt8, "Expected %p but got %p", BinaryDeserializationContext_readInt8, context.readInt8);
-	TestCase_assert(context.readUInt8 == BinaryDeserializationContext_readUInt8, "Expected %p but got %p", BinaryDeserializationContext_readUInt8, context.readUInt8);
-	TestCase_assert(context.readInt16 == BinaryDeserializationContext_readInt16, "Expected %p but got %p", BinaryDeserializationContext_readInt16, context.readInt16);
-	TestCase_assert(context.readUInt16 == BinaryDeserializationContext_readUInt16, "Expected %p but got %p", BinaryDeserializationContext_readUInt16, context.readUInt16);
-	TestCase_assert(context.readInt32 == BinaryDeserializationContext_readInt32, "Expected %p but got %p", BinaryDeserializationContext_readInt32, context.readInt32);
-	TestCase_assert(context.readUInt32 == BinaryDeserializationContext_readUInt32, "Expected %p but got %p", BinaryDeserializationContext_readUInt32, context.readUInt32);
-	TestCase_assert(context.readInt64 == BinaryDeserializationContext_readInt64, "Expected %p but got %p", BinaryDeserializationContext_readInt64, context.readInt64);
-	TestCase_assert(context.readUInt64 == BinaryDeserializationContext_readUInt64, "Expected %p but got %p", BinaryDeserializationContext_readUInt64, context.readUInt64);
-	TestCase_assert(context.readFloat == BinaryDeserializationContext_readFloat, "Expected %p but got %p", BinaryDeserializationContext_readFloat, context.readFloat);
-	TestCase_assert(context.readDouble == BinaryDeserializationContext_readDouble, "Expected %p but got %p", BinaryDeserializationContext_readDouble, context.readDouble);
-	TestCase_assert(context.readString == BinaryDeserializationContext_readString, "Expected %p but got %p", BinaryDeserializationContext_readString, context.readString);
-	TestCase_assert(context.readBoolean == BinaryDeserializationContext_readBoolean, "Expected %p but got %p", BinaryDeserializationContext_readBoolean, context.readBoolean);
-	TestCase_assert(context.readEnumeration == BinaryDeserializationContext_readEnumeration, "Expected %p but got %p", BinaryDeserializationContext_readEnumeration, context.readEnumeration);
-	TestCase_assert(context.readBitfield8 == BinaryDeserializationContext_readBitfield8, "Expected %p but got %p", BinaryDeserializationContext_readBitfield8, context.readBitfield8);
-	TestCase_assert(context.readBitfield16 == BinaryDeserializationContext_readBitfield16, "Expected %p but got %p", BinaryDeserializationContext_readBitfield16, context.readBitfield16);
-	TestCase_assert(context.readBitfield32 == BinaryDeserializationContext_readBitfield32, "Expected %p but got %p", BinaryDeserializationContext_readBitfield32, context.readBitfield32);
-	TestCase_assert(context.readBitfield64 == BinaryDeserializationContext_readBitfield64, "Expected %p but got %p", BinaryDeserializationContext_readBitfield64, context.readBitfield64);
-	TestCase_assert(context.readNextDictionaryKey == BinaryDeserializationContext_readNextDictionaryKey, "Expected %p but got %p", BinaryDeserializationContext_readNextDictionaryKey, context.readNextDictionaryKey);
-	TestCase_assert(context.hasDictionaryKey == BinaryDeserializationContext_hasDictionaryKey, "Expected %p but got %p", BinaryDeserializationContext_hasDictionaryKey, context.hasDictionaryKey);
 	context.dispose(&context);
 	
 	contextPtr = BinaryDeserializationContext_createWithBytes("metS", 4);
 	TestCase_assert(contextPtr != NULL, "Expected non-NULL but got NULL");
 	if (contextPtr == NULL) {return;} // Suppress clang warning
-	TestCase_assert(contextPtr->jmpBuf == NULL, "Expected NULL but got %p", contextPtr->jmpBuf);
-	TestCase_assert(contextPtr->status == SERIALIZATION_ERROR_OK, "Expected %d but got %d", SERIALIZATION_ERROR_OK, contextPtr->status);
+	verifyInit(contextPtr);
 	TestCase_assert(!contextPtr->bigEndian, "Expected false but got true");
-	TestCase_assert(contextPtr->dispose == BinaryDeserializationContext_dispose, "Expected %p but got %p", BinaryDeserializationContext_dispose, contextPtr->dispose);
-	TestCase_assert(contextPtr->errorString == BinarySerialization_errorString, "Expected %p but got %p", BinarySerialization_errorString, contextPtr->errorString);
-	TestCase_assert(contextPtr->beginStructure == BinaryDeserializationContext_beginStructure, "Expected %p but got %p", BinaryDeserializationContext_beginStructure, contextPtr->beginStructure);
-	TestCase_assert(contextPtr->beginDictionary == BinaryDeserializationContext_beginDictionary, "Expected %p but got %p", BinaryDeserializationContext_beginDictionary, contextPtr->beginDictionary);
-	TestCase_assert(contextPtr->beginArray == BinaryDeserializationContext_beginArray, "Expected %p but got %p", BinaryDeserializationContext_beginArray, contextPtr->beginArray);
-	TestCase_assert(contextPtr->endStructure == BinaryDeserializationContext_endStructure, "Expected %p but got %p", BinaryDeserializationContext_endStructure, contextPtr->endStructure);
-	TestCase_assert(contextPtr->endDictionary == BinaryDeserializationContext_endDictionary, "Expected %p but got %p", BinaryDeserializationContext_endDictionary, contextPtr->endDictionary);
-	TestCase_assert(contextPtr->endArray == BinaryDeserializationContext_endArray, "Expected %p but got %p", BinaryDeserializationContext_endArray, contextPtr->endArray);
-	TestCase_assert(contextPtr->readInt8 == BinaryDeserializationContext_readInt8, "Expected %p but got %p", BinaryDeserializationContext_readInt8, contextPtr->readInt8);
-	TestCase_assert(contextPtr->readUInt8 == BinaryDeserializationContext_readUInt8, "Expected %p but got %p", BinaryDeserializationContext_readUInt8, contextPtr->readUInt8);
-	TestCase_assert(contextPtr->readInt16 == BinaryDeserializationContext_readInt16, "Expected %p but got %p", BinaryDeserializationContext_readInt16, contextPtr->readInt16);
-	TestCase_assert(contextPtr->readUInt16 == BinaryDeserializationContext_readUInt16, "Expected %p but got %p", BinaryDeserializationContext_readUInt16, contextPtr->readUInt16);
-	TestCase_assert(contextPtr->readInt32 == BinaryDeserializationContext_readInt32, "Expected %p but got %p", BinaryDeserializationContext_readInt32, contextPtr->readInt32);
-	TestCase_assert(contextPtr->readUInt32 == BinaryDeserializationContext_readUInt32, "Expected %p but got %p", BinaryDeserializationContext_readUInt32, contextPtr->readUInt32);
-	TestCase_assert(contextPtr->readInt64 == BinaryDeserializationContext_readInt64, "Expected %p but got %p", BinaryDeserializationContext_readInt64, contextPtr->readInt64);
-	TestCase_assert(contextPtr->readUInt64 == BinaryDeserializationContext_readUInt64, "Expected %p but got %p", BinaryDeserializationContext_readUInt64, contextPtr->readUInt64);
-	TestCase_assert(contextPtr->readFloat == BinaryDeserializationContext_readFloat, "Expected %p but got %p", BinaryDeserializationContext_readFloat, contextPtr->readFloat);
-	TestCase_assert(contextPtr->readDouble == BinaryDeserializationContext_readDouble, "Expected %p but got %p", BinaryDeserializationContext_readDouble, contextPtr->readDouble);
-	TestCase_assert(contextPtr->readString == BinaryDeserializationContext_readString, "Expected %p but got %p", BinaryDeserializationContext_readString, contextPtr->readString);
-	TestCase_assert(contextPtr->readBoolean == BinaryDeserializationContext_readBoolean, "Expected %p but got %p", BinaryDeserializationContext_readBoolean, contextPtr->readBoolean);
-	TestCase_assert(contextPtr->readEnumeration == BinaryDeserializationContext_readEnumeration, "Expected %p but got %p", BinaryDeserializationContext_readEnumeration, contextPtr->readEnumeration);
-	TestCase_assert(contextPtr->readBitfield8 == BinaryDeserializationContext_readBitfield8, "Expected %p but got %p", BinaryDeserializationContext_readBitfield8, contextPtr->readBitfield8);
-	TestCase_assert(contextPtr->readBitfield16 == BinaryDeserializationContext_readBitfield16, "Expected %p but got %p", BinaryDeserializationContext_readBitfield16, contextPtr->readBitfield16);
-	TestCase_assert(contextPtr->readBitfield32 == BinaryDeserializationContext_readBitfield32, "Expected %p but got %p", BinaryDeserializationContext_readBitfield32, contextPtr->readBitfield32);
-	TestCase_assert(contextPtr->readBitfield64 == BinaryDeserializationContext_readBitfield64, "Expected %p but got %p", BinaryDeserializationContext_readBitfield64, contextPtr->readBitfield64);
-	TestCase_assert(contextPtr->readNextDictionaryKey == BinaryDeserializationContext_readNextDictionaryKey, "Expected %p but got %p", BinaryDeserializationContext_readNextDictionaryKey, contextPtr->readNextDictionaryKey);
-	TestCase_assert(contextPtr->hasDictionaryKey == BinaryDeserializationContext_hasDictionaryKey, "Expected %p but got %p", BinaryDeserializationContext_hasDictionaryKey, contextPtr->hasDictionaryKey);
 	contextPtr->dispose(contextPtr);
 	
 	tempFilePath = temporaryFilePath("tmpXXXXXX", &fd);
@@ -129,36 +78,8 @@ static void testInit() {
 	unlink(tempFilePath);
 	TestCase_assert(contextPtr != NULL, "Expected non-NULL but got NULL");
 	if (contextPtr == NULL) {return;} // Suppress clang warning
-	TestCase_assert(contextPtr->jmpBuf == NULL, "Expected NULL but got %p", contextPtr->jmpBuf);
-	TestCase_assert(contextPtr->status == SERIALIZATION_ERROR_OK, "Expected %d but got %d", SERIALIZATION_ERROR_OK, contextPtr->status);
+	verifyInit(contextPtr);
 	TestCase_assert(contextPtr->bigEndian, "Expected true but got false");
-	TestCase_assert(contextPtr->dispose == BinaryDeserializationContext_dispose, "Expected %p but got %p", BinaryDeserializationContext_dispose, contextPtr->dispose);
-	TestCase_assert(contextPtr->errorString == BinarySerialization_errorString, "Expected %p but got %p", BinarySerialization_errorString, contextPtr->errorString);
-	TestCase_assert(contextPtr->beginStructure == BinaryDeserializationContext_beginStructure, "Expected %p but got %p", BinaryDeserializationContext_beginStructure, contextPtr->beginStructure);
-	TestCase_assert(contextPtr->beginDictionary == BinaryDeserializationContext_beginDictionary, "Expected %p but got %p", BinaryDeserializationContext_beginDictionary, contextPtr->beginDictionary);
-	TestCase_assert(contextPtr->beginArray == BinaryDeserializationContext_beginArray, "Expected %p but got %p", BinaryDeserializationContext_beginArray, contextPtr->beginArray);
-	TestCase_assert(contextPtr->endStructure == BinaryDeserializationContext_endStructure, "Expected %p but got %p", BinaryDeserializationContext_endStructure, contextPtr->endStructure);
-	TestCase_assert(contextPtr->endDictionary == BinaryDeserializationContext_endDictionary, "Expected %p but got %p", BinaryDeserializationContext_endDictionary, contextPtr->endDictionary);
-	TestCase_assert(contextPtr->endArray == BinaryDeserializationContext_endArray, "Expected %p but got %p", BinaryDeserializationContext_endArray, contextPtr->endArray);
-	TestCase_assert(contextPtr->readInt8 == BinaryDeserializationContext_readInt8, "Expected %p but got %p", BinaryDeserializationContext_readInt8, contextPtr->readInt8);
-	TestCase_assert(contextPtr->readUInt8 == BinaryDeserializationContext_readUInt8, "Expected %p but got %p", BinaryDeserializationContext_readUInt8, contextPtr->readUInt8);
-	TestCase_assert(contextPtr->readInt16 == BinaryDeserializationContext_readInt16, "Expected %p but got %p", BinaryDeserializationContext_readInt16, contextPtr->readInt16);
-	TestCase_assert(contextPtr->readUInt16 == BinaryDeserializationContext_readUInt16, "Expected %p but got %p", BinaryDeserializationContext_readUInt16, contextPtr->readUInt16);
-	TestCase_assert(contextPtr->readInt32 == BinaryDeserializationContext_readInt32, "Expected %p but got %p", BinaryDeserializationContext_readInt32, contextPtr->readInt32);
-	TestCase_assert(contextPtr->readUInt32 == BinaryDeserializationContext_readUInt32, "Expected %p but got %p", BinaryDeserializationContext_readUInt32, contextPtr->readUInt32);
-	TestCase_assert(contextPtr->readInt64 == BinaryDeserializationContext_readInt64, "Expected %p but got %p", BinaryDeserializationContext_readInt64, contextPtr->readInt64);
-	TestCase_assert(contextPtr->readUInt64 == BinaryDeserializationContext_readUInt64, "Expected %p but got %p", BinaryDeserializationContext_readUInt64, contextPtr->readUInt64);
-	TestCase_assert(contextPtr->readFloat == BinaryDeserializationContext_readFloat, "Expected %p but got %p", BinaryDeserializationContext_readFloat, contextPtr->readFloat);
-	TestCase_assert(contextPtr->readDouble == BinaryDeserializationContext_readDouble, "Expected %p but got %p", BinaryDeserializationContext_readDouble, contextPtr->readDouble);
-	TestCase_assert(contextPtr->readString == BinaryDeserializationContext_readString, "Expected %p but got %p", BinaryDeserializationContext_readString, contextPtr->readString);
-	TestCase_assert(contextPtr->readBoolean == BinaryDeserializationContext_readBoolean, "Expected %p but got %p", BinaryDeserializationContext_readBoolean, contextPtr->readBoolean);
-	TestCase_assert(contextPtr->readEnumeration == BinaryDeserializationContext_readEnumeration, "Expected %p but got %p", BinaryDeserializationContext_readEnumeration, contextPtr->readEnumeration);
-	TestCase_assert(contextPtr->readBitfield8 == BinaryDeserializationContext_readBitfield8, "Expected %p but got %p", BinaryDeserializationContext_readBitfield8, contextPtr->readBitfield8);
-	TestCase_assert(contextPtr->readBitfield16 == BinaryDeserializationContext_readBitfield16, "Expected %p but got %p", BinaryDeserializationContext_readBitfield16, contextPtr->readBitfield16);
-	TestCase_assert(contextPtr->readBitfield32 == BinaryDeserializationContext_readBitfield32, "Expected %p but got %p", BinaryDeserializationContext_readBitfield32, contextPtr->readBitfield32);
-	TestCase_assert(contextPtr->readBitfield64 == BinaryDeserializationContext_readBitfield64, "Expected %p but got %p", BinaryDeserializationContext_readBitfield64, contextPtr->readBitfield64);
-	TestCase_assert(contextPtr->readNextDictionaryKey == BinaryDeserializationContext_readNextDictionaryKey, "Expected %p but got %p", BinaryDeserializationContext_readNextDictionaryKey, contextPtr->readNextDictionaryKey);
-	TestCase_assert(contextPtr->hasDictionaryKey == BinaryDeserializationContext_hasDictionaryKey, "Expected %p but got %p", BinaryDeserializationContext_hasDictionaryKey, contextPtr->hasDictionaryKey);
 	contextPtr->dispose(contextPtr);
 }
 
@@ -231,7 +152,17 @@ static void testInitErrors() {
 	const char * value; \
 	value = context->readString(context, KEY); \
 	TestCase_assert(value != NULL, "Expected non-NULL but got NULL"); \
-	TestCase_assert(!strcmp(value, (EXPECTED_VALUE)), "Expected \"%s\" but got \"%s\" (status %d)", (EXPECTED_VALUE), value, context->status); \
+	TestCase_assert(!strcmp(value, (EXPECTED_VALUE)), "Expected \"%s\" but got \"%s\"", (EXPECTED_VALUE), value); \
+	TestCase_assert(context->status == SERIALIZATION_ERROR_OK, "Got error from operation that should have succeeded: %d", context->status); \
+}
+
+#define readAndVerifyBlob(KEY, EXPECTED_VALUE, EXPECTED_LENGTH) { \
+	const void * value; \
+	size_t length; \
+	value = context->readBlob(context, KEY, &length); \
+	TestCase_assert(value != NULL, "Expected non-NULL but got NULL"); \
+	TestCase_assert(length == EXPECTED_LENGTH, "Expected " SIZE_T_FORMAT " but got " SIZE_T_FORMAT, EXPECTED_LENGTH, length); \
+	TestCase_assert(!memcmp(value, (EXPECTED_VALUE), EXPECTED_LENGTH), "Expected \"%s\" but got \"%s\"", (char *) (EXPECTED_VALUE), (char *) value); \
 	TestCase_assert(context->status == SERIALIZATION_ERROR_OK, "Got error from operation that should have succeeded: %d", context->status); \
 }
 
@@ -416,6 +347,40 @@ static void testStringValues() {
 	context->dispose(context);
 }
 
+static void testBlobValues() {
+	BinaryDeserializationContext * context;
+	
+	context = BinaryDeserializationContext_createWithBytes(
+		"Stem"
+		"\x00\x00\x00\x02"
+		"\x00\x00\x00\x03" "foo"
+		"\x00\x00\x00\x0D" "Hello, world!",
+		32
+	);
+	TestCase_assert(context != NULL, "Expected non-NULL but got NULL");
+	if (context == NULL) {return;} // Suppress clang warning
+	beginAndVerifyArray("", 2)
+	readAndVerifyBlob("", "foo", 3)
+	readAndVerifyBlob("", "Hello, world!", 13)
+	context->endArray(context);
+	context->dispose(context);
+	
+	context = BinaryDeserializationContext_createWithBytes(
+		"metS"
+		"\x02\x00\x00\x00"
+		"\x03\x00\x00\x00" "foo"
+		"\x0D\x00\x00\x00" "Hello, world!",
+		32
+	);
+	TestCase_assert(context != NULL, "Expected non-NULL but got NULL");
+	if (context == NULL) {return;} // Suppress clang warning
+	beginAndVerifyArray("", 2)
+	readAndVerifyBlob("", "foo", 3)
+	readAndVerifyBlob("", "Hello, world!", 13)
+	context->endArray(context);
+	context->dispose(context);
+}
+
 static void testBooleanValues() {
 	BinaryDeserializationContext * context;
 	
@@ -569,7 +534,7 @@ static void testArrays() {
 		"\x00\x00\x00\x02"
 		"\x00\x00\x00\x01"
 		"\xFF"
-		"\x00\x00\x00\x0C"
+		"\x00\x00\x00\x0D"
 		"\x00"
 		"\x01"
 		"\x00\x00\x00\x06"
@@ -582,13 +547,14 @@ static void testArrays() {
 		"\x41\x00\x00\x00"
 		"\x40\x22\x00\x00\x00\x00\x00\x00"
 		"10\x00"
+		"\x00\x00\x00\x04" "blob"
 		"\x01"
 		"\x00\x00\x00\x0C"
 		"\x01"
 		"\x00\x01"
 		"\x00\x00\x00\x01"
 		"\x00\x00\x00\x00\x00\x00\x00\x01",
-		86
+		94
 	);
 	TestCase_assert(context != NULL, "Expected non-NULL but got NULL");
 	if (context == NULL) {return;} // Suppress clang warning
@@ -596,7 +562,7 @@ static void testArrays() {
 		beginAndVerifyArray("", 1)
 			readAndVerifyNumber(int8_t, "", -1)
 		context->endArray(context);
-		beginAndVerifyArray("", 12)
+		beginAndVerifyArray("", 13)
 			readAndVerifyNumber(int8_t, "", 0)
 			readAndVerifyNumber(uint8_t, "", 1)
 			beginAndVerifyArray("", 6)
@@ -610,6 +576,7 @@ static void testArrays() {
 			readAndVerifyNumber(float, "", 8)
 			readAndVerifyNumber(double, "", 9)
 			readAndVerifyString("", "10")
+			readAndVerifyBlob("", "blob", 4)
 			readAndVerifyNumber(bool, "", true)
 			readAndVerifyEnumeration("", 12, "enum", 12, NULL)
 			readAndVerifyBitfield(8, "", 0x01, "13", NULL)
@@ -1195,6 +1162,7 @@ static void testErrorReporting() {
 	BinaryDeserializationContext * context, context2;
 	jmp_buf jmpBuf;
 	int status;
+	size_t length;
 	
 	context = BinaryDeserializationContext_createWithFile("If this file exists, unit tests will fail");
 	TestCase_assert(context != NULL, "Expected non-NULL but got NULL");
@@ -1323,6 +1291,21 @@ static void testErrorReporting() {
 	             BINARY_SERIALIZATION_ERROR_UNEXPECTED_EOF,
 	             context->beginStructure(context, "");,
 	             context->readString(context, "");)
+	_testFailure("Stem",
+	             4,
+	             BINARY_SERIALIZATION_ERROR_UNEXPECTED_EOF,
+	             context->beginStructure(context, "");,
+	             context->readBlob(context, "", &length);)
+	_testFailure("Stem\xFF",
+	             5,
+	             BINARY_SERIALIZATION_ERROR_UNEXPECTED_EOF,
+	             context->beginStructure(context, "");,
+	             context->readBlob(context, "", &length);)
+	_testFailure("Stem\x00\x00\x00\x01",
+	             5,
+	             BINARY_SERIALIZATION_ERROR_UNEXPECTED_EOF,
+	             context->beginStructure(context, "");,
+	             context->readBlob(context, "", &length);)
 	_testFailure("Stem",
 	             4,
 	             BINARY_SERIALIZATION_ERROR_UNEXPECTED_EOF,
@@ -1857,6 +1840,7 @@ TEST_SUITE(BinaryDeserializationContextTest,
            testInitErrors,
            testNumberValues,
            testStringValues,
+           testBlobValues,
            testBooleanValues,
            testEnumerations,
            testBitfields,

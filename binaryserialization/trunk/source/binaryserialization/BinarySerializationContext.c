@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2013 Alex Diener
+  Copyright (c) 2014 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -17,7 +17,7 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
   
-  Alex Diener adiener@sacredsoftware.net
+  Alex Diener alex@ludobloom.com
 */
 
 #include "binaryserialization/BinarySerializationContext.h"
@@ -52,6 +52,7 @@ bool BinarySerializationContext_init(BinarySerializationContext * self, bool big
 	self->endStructure = BinarySerializationContext_endStructure;
 	self->endDictionary = BinarySerializationContext_endDictionary;
 	self->endArray = BinarySerializationContext_endArray;
+	self->writeBoolean = BinarySerializationContext_writeBoolean;
 	self->writeInt8 = BinarySerializationContext_writeInt8;
 	self->writeUInt8 = BinarySerializationContext_writeUInt8;
 	self->writeInt16 = BinarySerializationContext_writeInt16;
@@ -62,15 +63,13 @@ bool BinarySerializationContext_init(BinarySerializationContext * self, bool big
 	self->writeUInt64 = BinarySerializationContext_writeUInt64;
 	self->writeFloat = BinarySerializationContext_writeFloat;
 	self->writeDouble = BinarySerializationContext_writeDouble;
-	self->writeString = BinarySerializationContext_writeString;
-	self->writeBoolean = BinarySerializationContext_writeBoolean;
 	self->writeEnumeration = BinarySerializationContext_writeEnumeration;
 	self->writeBitfield8 = BinarySerializationContext_writeBitfield8;
 	self->writeBitfield16 = BinarySerializationContext_writeBitfield16;
 	self->writeBitfield32 = BinarySerializationContext_writeBitfield32;
 	self->writeBitfield64 = BinarySerializationContext_writeBitfield64;
-	self->writeToBytes = BinarySerializationContext_writeToBytes;
-	self->writeToFile = BinarySerializationContext_writeToFile;
+	self->writeString = BinarySerializationContext_writeString;
+	self->writeBlob = BinarySerializationContext_writeBlob;
 	return true;
 }
 
@@ -347,6 +346,14 @@ void BinarySerializationContext_endArray(BinarySerializationContext * self) {
 	}
 }
 
+void BinarySerializationContext_writeBoolean(BinarySerializationContext * self, const char * key, bool value) {
+	uint8_t value8;
+	
+	writePreamble(self, key);
+	value8 = !!value;
+	memwrite(&self->memwriteContext, 1, &value8);
+}
+
 void BinarySerializationContext_writeInt8(BinarySerializationContext * self, const char * key, int8_t value) {
 	writePreamble(self, key);
 	memwrite(&self->memwriteContext, 1, &value);
@@ -399,19 +406,6 @@ void BinarySerializationContext_writeDouble(BinarySerializationContext * self, c
 	
 	writePreamble(self, key);
 	writeUInt64Internal(self, valueUnion.u);
-}
-
-void BinarySerializationContext_writeString(BinarySerializationContext * self, const char * key, const char * value) {
-	writePreamble(self, key);
-	memwrite(&self->memwriteContext, strlen(value) + 1, value);
-}
-
-void BinarySerializationContext_writeBoolean(BinarySerializationContext * self, const char * key, bool value) {
-	uint8_t value8;
-	
-	writePreamble(self, key);
-	value8 = !!value;
-	memwrite(&self->memwriteContext, 1, &value8);
 }
 
 void BinarySerializationContext_writeEnumeration(BinarySerializationContext * self, const char * key, int value, ...) {
@@ -510,4 +504,15 @@ void BinarySerializationContext_writeBitfield64(BinarySerializationContext * sel
 	checkBitfieldErrors(64)
 	writePreamble(self, key);
 	writeUInt64Internal(self, value);
+}
+
+void BinarySerializationContext_writeString(BinarySerializationContext * self, const char * key, const char * value) {
+	writePreamble(self, key);
+	memwrite(&self->memwriteContext, strlen(value) + 1, value);
+}
+
+void BinarySerializationContext_writeBlob(BinarySerializationContext * self, const char * key, const void * value, size_t length) {
+	writePreamble(self, key);
+	writeUInt32Internal(self, length);
+	memwrite(&self->memwriteContext, length, value);
 }

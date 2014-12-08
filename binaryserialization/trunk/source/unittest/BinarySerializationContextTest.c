@@ -6,73 +6,49 @@
 #include <float.h>
 #include <unistd.h>
 
+static void verifyInit(BinarySerializationContext * context) {
+	TestCase_assert(context->jmpBuf == NULL, "Expected NULL but got %p", context->jmpBuf);
+	TestCase_assert(context->status == SERIALIZATION_ERROR_OK, "Expected %d but got %d", SERIALIZATION_ERROR_OK, context->status);
+	TestCase_assert(context->dispose == BinarySerializationContext_dispose, "Expected %p but got %p", BinarySerializationContext_dispose, context->dispose);
+	TestCase_assert(context->errorString == BinarySerialization_errorString, "Expected %p but got %p", BinarySerialization_errorString, context->errorString);
+	TestCase_assert(context->beginStructure == BinarySerializationContext_beginStructure, "Expected %p but got %p", BinarySerializationContext_beginStructure, context->beginStructure);
+	TestCase_assert(context->beginDictionary == BinarySerializationContext_beginDictionary, "Expected %p but got %p", BinarySerializationContext_beginDictionary, context->beginDictionary);
+	TestCase_assert(context->beginArray == BinarySerializationContext_beginArray, "Expected %p but got %p", BinarySerializationContext_beginArray, context->beginArray);
+	TestCase_assert(context->endStructure == BinarySerializationContext_endStructure, "Expected %p but got %p", BinarySerializationContext_endStructure, context->endStructure);
+	TestCase_assert(context->endDictionary == BinarySerializationContext_endDictionary, "Expected %p but got %p", BinarySerializationContext_endDictionary, context->endDictionary);
+	TestCase_assert(context->endArray == BinarySerializationContext_endArray, "Expected %p but got %p", BinarySerializationContext_endArray, context->endArray);
+	TestCase_assert(context->writeBoolean == BinarySerializationContext_writeBoolean, "Expected %p but got %p", BinarySerializationContext_writeBoolean, context->writeBoolean);
+	TestCase_assert(context->writeInt8 == BinarySerializationContext_writeInt8, "Expected %p but got %p", BinarySerializationContext_writeInt8, context->writeInt8);
+	TestCase_assert(context->writeUInt8 == BinarySerializationContext_writeUInt8, "Expected %p but got %p", BinarySerializationContext_writeUInt8, context->writeUInt8);
+	TestCase_assert(context->writeInt16 == BinarySerializationContext_writeInt16, "Expected %p but got %p", BinarySerializationContext_writeInt16, context->writeInt16);
+	TestCase_assert(context->writeUInt16 == BinarySerializationContext_writeUInt16, "Expected %p but got %p", BinarySerializationContext_writeUInt16, context->writeUInt16);
+	TestCase_assert(context->writeInt32 == BinarySerializationContext_writeInt32, "Expected %p but got %p", BinarySerializationContext_writeInt32, context->writeInt32);
+	TestCase_assert(context->writeUInt32 == BinarySerializationContext_writeUInt32, "Expected %p but got %p", BinarySerializationContext_writeUInt32, context->writeUInt32);
+	TestCase_assert(context->writeInt64 == BinarySerializationContext_writeInt64, "Expected %p but got %p", BinarySerializationContext_writeInt64, context->writeInt64);
+	TestCase_assert(context->writeUInt64 == BinarySerializationContext_writeUInt64, "Expected %p but got %p", BinarySerializationContext_writeUInt64, context->writeUInt64);
+	TestCase_assert(context->writeFloat == BinarySerializationContext_writeFloat, "Expected %p but got %p", BinarySerializationContext_writeFloat, context->writeFloat);
+	TestCase_assert(context->writeDouble == BinarySerializationContext_writeDouble, "Expected %p but got %p", BinarySerializationContext_writeDouble, context->writeDouble);
+	TestCase_assert(context->writeEnumeration == BinarySerializationContext_writeEnumeration, "Expected %p but got %p", BinarySerializationContext_writeEnumeration, context->writeEnumeration);
+	TestCase_assert(context->writeBitfield8 == BinarySerializationContext_writeBitfield8, "Expected %p but got %p", BinarySerializationContext_writeBitfield8, context->writeBitfield8);
+	TestCase_assert(context->writeBitfield16 == BinarySerializationContext_writeBitfield16, "Expected %p but got %p", BinarySerializationContext_writeBitfield16, context->writeBitfield16);
+	TestCase_assert(context->writeBitfield32 == BinarySerializationContext_writeBitfield32, "Expected %p but got %p", BinarySerializationContext_writeBitfield32, context->writeBitfield32);
+	TestCase_assert(context->writeBitfield64 == BinarySerializationContext_writeBitfield64, "Expected %p but got %p", BinarySerializationContext_writeBitfield64, context->writeBitfield64);
+	TestCase_assert(context->writeString == BinarySerializationContext_writeString, "Expected %p but got %p", BinarySerializationContext_writeString, context->writeString);
+	TestCase_assert(context->writeBlob == BinarySerializationContext_writeBlob, "Expected %p but got %p", BinarySerializationContext_writeBlob, context->writeBlob);
+}
+
 static void testInit() {
 	BinarySerializationContext context, * contextPtr;
 	
 	memset(&context, 0xFF, sizeof(context));
 	BinarySerializationContext_init(&context, false);
-	TestCase_assert(context.jmpBuf == NULL, "Expected NULL but got %p", context.jmpBuf);
-	TestCase_assert(context.status == SERIALIZATION_ERROR_OK, "Expected %d but got %d", SERIALIZATION_ERROR_OK, context.status);
-	TestCase_assert(context.dispose == BinarySerializationContext_dispose, "Expected %p but got %p", BinarySerializationContext_dispose, context.dispose);
-	TestCase_assert(context.errorString == BinarySerialization_errorString, "Expected %p but got %p", BinarySerialization_errorString, context.errorString);
-	TestCase_assert(context.beginStructure == BinarySerializationContext_beginStructure, "Expected %p but got %p", BinarySerializationContext_beginStructure, context.beginStructure);
-	TestCase_assert(context.beginDictionary == BinarySerializationContext_beginDictionary, "Expected %p but got %p", BinarySerializationContext_beginDictionary, context.beginDictionary);
-	TestCase_assert(context.beginArray == BinarySerializationContext_beginArray, "Expected %p but got %p", BinarySerializationContext_beginArray, context.beginArray);
-	TestCase_assert(context.endStructure == BinarySerializationContext_endStructure, "Expected %p but got %p", BinarySerializationContext_endStructure, context.endStructure);
-	TestCase_assert(context.endDictionary == BinarySerializationContext_endDictionary, "Expected %p but got %p", BinarySerializationContext_endDictionary, context.endDictionary);
-	TestCase_assert(context.endArray == BinarySerializationContext_endArray, "Expected %p but got %p", BinarySerializationContext_endArray, context.endArray);
-	TestCase_assert(context.writeInt8 == BinarySerializationContext_writeInt8, "Expected %p but got %p", BinarySerializationContext_writeInt8, context.writeInt8);
-	TestCase_assert(context.writeUInt8 == BinarySerializationContext_writeUInt8, "Expected %p but got %p", BinarySerializationContext_writeUInt8, context.writeUInt8);
-	TestCase_assert(context.writeInt16 == BinarySerializationContext_writeInt16, "Expected %p but got %p", BinarySerializationContext_writeInt16, context.writeInt16);
-	TestCase_assert(context.writeUInt16 == BinarySerializationContext_writeUInt16, "Expected %p but got %p", BinarySerializationContext_writeUInt16, context.writeUInt16);
-	TestCase_assert(context.writeInt32 == BinarySerializationContext_writeInt32, "Expected %p but got %p", BinarySerializationContext_writeInt32, context.writeInt32);
-	TestCase_assert(context.writeUInt32 == BinarySerializationContext_writeUInt32, "Expected %p but got %p", BinarySerializationContext_writeUInt32, context.writeUInt32);
-	TestCase_assert(context.writeInt64 == BinarySerializationContext_writeInt64, "Expected %p but got %p", BinarySerializationContext_writeInt64, context.writeInt64);
-	TestCase_assert(context.writeUInt64 == BinarySerializationContext_writeUInt64, "Expected %p but got %p", BinarySerializationContext_writeUInt64, context.writeUInt64);
-	TestCase_assert(context.writeFloat == BinarySerializationContext_writeFloat, "Expected %p but got %p", BinarySerializationContext_writeFloat, context.writeFloat);
-	TestCase_assert(context.writeDouble == BinarySerializationContext_writeDouble, "Expected %p but got %p", BinarySerializationContext_writeDouble, context.writeDouble);
-	TestCase_assert(context.writeString == BinarySerializationContext_writeString, "Expected %p but got %p", BinarySerializationContext_writeString, context.writeString);
-	TestCase_assert(context.writeBoolean == BinarySerializationContext_writeBoolean, "Expected %p but got %p", BinarySerializationContext_writeBoolean, context.writeBoolean);
-	TestCase_assert(context.writeEnumeration == BinarySerializationContext_writeEnumeration, "Expected %p but got %p", BinarySerializationContext_writeEnumeration, context.writeEnumeration);
-	TestCase_assert(context.writeBitfield8 == BinarySerializationContext_writeBitfield8, "Expected %p but got %p", BinarySerializationContext_writeBitfield8, context.writeBitfield8);
-	TestCase_assert(context.writeBitfield16 == BinarySerializationContext_writeBitfield16, "Expected %p but got %p", BinarySerializationContext_writeBitfield16, context.writeBitfield16);
-	TestCase_assert(context.writeBitfield32 == BinarySerializationContext_writeBitfield32, "Expected %p but got %p", BinarySerializationContext_writeBitfield32, context.writeBitfield32);
-	TestCase_assert(context.writeBitfield64 == BinarySerializationContext_writeBitfield64, "Expected %p but got %p", BinarySerializationContext_writeBitfield64, context.writeBitfield64);
-	TestCase_assert(context.writeToBytes == BinarySerializationContext_writeToBytes, "Expected %p but got %p", BinarySerializationContext_writeToBytes, context.writeToBytes);
-	TestCase_assert(context.writeToFile == BinarySerializationContext_writeToFile, "Expected %p but got %p", BinarySerializationContext_writeToFile, context.writeToFile);
+	verifyInit(&context);
+	BinarySerializationContext_dispose(&context);
 	
 	contextPtr = BinarySerializationContext_create(false);
 	TestCase_assert(contextPtr != NULL, "Expected non-NULL but got NULL");
 	if (contextPtr == NULL) {return;} // Suppress clang warning
-	TestCase_assert(contextPtr->jmpBuf == NULL, "Expected NULL but got %p", contextPtr->jmpBuf);
-	TestCase_assert(contextPtr->status == SERIALIZATION_ERROR_OK, "Expected %d but got %d", SERIALIZATION_ERROR_OK, contextPtr->status);
-	TestCase_assert(contextPtr->dispose == BinarySerializationContext_dispose, "Expected %p but got %p", BinarySerializationContext_dispose, contextPtr->dispose);
-	TestCase_assert(contextPtr->errorString == BinarySerialization_errorString, "Expected %p but got %p", BinarySerialization_errorString, contextPtr->errorString);
-	TestCase_assert(contextPtr->beginStructure == BinarySerializationContext_beginStructure, "Expected %p but got %p", BinarySerializationContext_beginStructure, contextPtr->beginStructure);
-	TestCase_assert(contextPtr->beginDictionary == BinarySerializationContext_beginDictionary, "Expected %p but got %p", BinarySerializationContext_beginDictionary, contextPtr->beginDictionary);
-	TestCase_assert(contextPtr->beginArray == BinarySerializationContext_beginArray, "Expected %p but got %p", BinarySerializationContext_beginArray, contextPtr->beginArray);
-	TestCase_assert(contextPtr->endStructure == BinarySerializationContext_endStructure, "Expected %p but got %p", BinarySerializationContext_endStructure, contextPtr->endStructure);
-	TestCase_assert(contextPtr->endDictionary == BinarySerializationContext_endDictionary, "Expected %p but got %p", BinarySerializationContext_endDictionary, contextPtr->endDictionary);
-	TestCase_assert(contextPtr->endArray == BinarySerializationContext_endArray, "Expected %p but got %p", BinarySerializationContext_endArray, contextPtr->endArray);
-	TestCase_assert(contextPtr->writeInt8 == BinarySerializationContext_writeInt8, "Expected %p but got %p", BinarySerializationContext_writeInt8, contextPtr->writeInt8);
-	TestCase_assert(contextPtr->writeUInt8 == BinarySerializationContext_writeUInt8, "Expected %p but got %p", BinarySerializationContext_writeUInt8, contextPtr->writeUInt8);
-	TestCase_assert(contextPtr->writeInt16 == BinarySerializationContext_writeInt16, "Expected %p but got %p", BinarySerializationContext_writeInt16, contextPtr->writeInt16);
-	TestCase_assert(contextPtr->writeUInt16 == BinarySerializationContext_writeUInt16, "Expected %p but got %p", BinarySerializationContext_writeUInt16, contextPtr->writeUInt16);
-	TestCase_assert(contextPtr->writeInt32 == BinarySerializationContext_writeInt32, "Expected %p but got %p", BinarySerializationContext_writeInt32, contextPtr->writeInt32);
-	TestCase_assert(contextPtr->writeUInt32 == BinarySerializationContext_writeUInt32, "Expected %p but got %p", BinarySerializationContext_writeUInt32, contextPtr->writeUInt32);
-	TestCase_assert(contextPtr->writeInt64 == BinarySerializationContext_writeInt64, "Expected %p but got %p", BinarySerializationContext_writeInt64, contextPtr->writeInt64);
-	TestCase_assert(contextPtr->writeUInt64 == BinarySerializationContext_writeUInt64, "Expected %p but got %p", BinarySerializationContext_writeUInt64, contextPtr->writeUInt64);
-	TestCase_assert(contextPtr->writeFloat == BinarySerializationContext_writeFloat, "Expected %p but got %p", BinarySerializationContext_writeFloat, contextPtr->writeFloat);
-	TestCase_assert(contextPtr->writeDouble == BinarySerializationContext_writeDouble, "Expected %p but got %p", BinarySerializationContext_writeDouble, contextPtr->writeDouble);
-	TestCase_assert(contextPtr->writeString == BinarySerializationContext_writeString, "Expected %p but got %p", BinarySerializationContext_writeString, contextPtr->writeString);
-	TestCase_assert(contextPtr->writeBoolean == BinarySerializationContext_writeBoolean, "Expected %p but got %p", BinarySerializationContext_writeBoolean, contextPtr->writeBoolean);
-	TestCase_assert(contextPtr->writeEnumeration == BinarySerializationContext_writeEnumeration, "Expected %p but got %p", BinarySerializationContext_writeEnumeration, contextPtr->writeEnumeration);
-	TestCase_assert(contextPtr->writeBitfield8 == BinarySerializationContext_writeBitfield8, "Expected %p but got %p", BinarySerializationContext_writeBitfield8, contextPtr->writeBitfield8);
-	TestCase_assert(contextPtr->writeBitfield16 == BinarySerializationContext_writeBitfield16, "Expected %p but got %p", BinarySerializationContext_writeBitfield16, contextPtr->writeBitfield16);
-	TestCase_assert(contextPtr->writeBitfield32 == BinarySerializationContext_writeBitfield32, "Expected %p but got %p", BinarySerializationContext_writeBitfield32, contextPtr->writeBitfield32);
-	TestCase_assert(contextPtr->writeBitfield64 == BinarySerializationContext_writeBitfield64, "Expected %p but got %p", BinarySerializationContext_writeBitfield64, contextPtr->writeBitfield64);
-	TestCase_assert(contextPtr->writeToBytes == BinarySerializationContext_writeToBytes, "Expected %p but got %p", BinarySerializationContext_writeToBytes, contextPtr->writeToBytes);
-	TestCase_assert(contextPtr->writeToFile == BinarySerializationContext_writeToFile, "Expected %p but got %p", BinarySerializationContext_writeToFile, contextPtr->writeToFile);
+	verifyInit(contextPtr);
 	contextPtr->dispose(contextPtr);
 }
 
@@ -115,7 +91,7 @@ static void testTopLevelContainers() {
 	context->beginStructure(context, "key");
 	context->endStructure(context);
 	TestCase_assert(context->status == SERIALIZATION_ERROR_OK, "Unexpected error %d", context->status);
-	bytes = context->writeToBytes(context, &length);
+	bytes = BinarySerializationContext_writeToBytes(context, &length);
 	context->dispose(context);
 	TestCase_assert(bytes != NULL, "Expected non-NULL but got NULL");
 	if (bytes == NULL) {return;} // Suppress clang warning
@@ -129,7 +105,7 @@ static void testTopLevelContainers() {
 	context->beginArray(context, "key");
 	context->endArray(context);
 	TestCase_assert(context->status == SERIALIZATION_ERROR_OK, "Unexpected error %d", context->status);
-	bytes = context->writeToBytes(context, &length);
+	bytes = BinarySerializationContext_writeToBytes(context, &length);
 	context->dispose(context);
 	TestCase_assert(bytes != NULL, "Expected non-NULL but got NULL");
 	if (bytes == NULL) {return;} // Suppress clang warning
@@ -143,7 +119,7 @@ static void testTopLevelContainers() {
 	context->beginDictionary(context, "key");
 	context->endDictionary(context);
 	TestCase_assert(context->status == SERIALIZATION_ERROR_OK, "Unexpected error %d", context->status);
-	bytes = context->writeToBytes(context, &length);
+	bytes = BinarySerializationContext_writeToBytes(context, &length);
 	context->dispose(context);
 	TestCase_assert(bytes != NULL, "Expected non-NULL but got NULL");
 	if (bytes == NULL) {return;} // Suppress clang warning
@@ -173,7 +149,7 @@ static void testNumberValues() {
 	context->writeDouble(context, "item", 9);
 	context->endArray(context);
 	TestCase_assert(context->status == SERIALIZATION_ERROR_OK, "Unexpected error %d", context->status);
-	bytes = context->writeToBytes(context, &length);
+	bytes = BinarySerializationContext_writeToBytes(context, &length);
 	context->dispose(context);
 	TestCase_assert(bytes != NULL, "Expected non-NULL but got NULL");
 	if (bytes == NULL) {return;} // Suppress clang warning
@@ -208,7 +184,7 @@ static void testNumberValues() {
 	context->writeDouble(context, "item", 9);
 	context->endArray(context);
 	TestCase_assert(context->status == SERIALIZATION_ERROR_OK, "Unexpected error %d", context->status);
-	bytes = context->writeToBytes(context, &length);
+	bytes = BinarySerializationContext_writeToBytes(context, &length);
 	context->dispose(context);
 	TestCase_assert(bytes != NULL, "Expected non-NULL but got NULL");
 	if (bytes == NULL) {return;} // Suppress clang warning
@@ -243,7 +219,7 @@ static void testNumberValues() {
 	context->writeDouble(context, "item", DBL_MAX);
 	context->endArray(context);
 	TestCase_assert(context->status == SERIALIZATION_ERROR_OK, "Unexpected error %d", context->status);
-	bytes = context->writeToBytes(context, &length);
+	bytes = BinarySerializationContext_writeToBytes(context, &length);
 	context->dispose(context);
 	TestCase_assert(bytes != NULL, "Expected non-NULL but got NULL");
 	if (bytes == NULL) {return;} // Suppress clang warning
@@ -278,7 +254,7 @@ static void testNumberValues() {
 	context->writeDouble(context, "item", DBL_MAX);
 	context->endArray(context);
 	TestCase_assert(context->status == SERIALIZATION_ERROR_OK, "Unexpected error %d", context->status);
-	bytes = context->writeToBytes(context, &length);
+	bytes = BinarySerializationContext_writeToBytes(context, &length);
 	context->dispose(context);
 	TestCase_assert(bytes != NULL, "Expected non-NULL but got NULL");
 	if (bytes == NULL) {return;} // Suppress clang warning
@@ -311,7 +287,7 @@ static void testStringValues() {
 	context->writeString(context, "item", "Hello, world!");
 	context->endArray(context);
 	TestCase_assert(context->status == SERIALIZATION_ERROR_OK, "Unexpected error %d", context->status);
-	bytes = context->writeToBytes(context, &length);
+	bytes = BinarySerializationContext_writeToBytes(context, &length);
 	context->dispose(context);
 	TestCase_assert(bytes != NULL, "Expected non-NULL but got NULL");
 	if (bytes == NULL) {return;} // Suppress clang warning
@@ -330,7 +306,7 @@ static void testStringValues() {
 	context->writeString(context, "item", "Hello, world!");
 	context->endArray(context);
 	TestCase_assert(context->status == SERIALIZATION_ERROR_OK, "Unexpected error %d", context->status);
-	bytes = context->writeToBytes(context, &length);
+	bytes = BinarySerializationContext_writeToBytes(context, &length);
 	context->dispose(context);
 	TestCase_assert(bytes != NULL, "Expected non-NULL but got NULL");
 	if (bytes == NULL) {return;} // Suppress clang warning
@@ -339,6 +315,50 @@ static void testStringValues() {
 	                        "\x02\x00\x00\x00"
 	                        "foo\x00"
 	                        "Hello, world!\x00", length);
+	free(bytes);
+}
+
+static void testBlobValues() {
+	BinarySerializationContext * context;
+	void * bytes;
+	size_t length;
+	
+	context = BinarySerializationContext_create(true);
+	TestCase_assert(context != NULL, "Expected non-NULL but got NULL");
+	if (context == NULL) {return;} // Suppress clang warning
+	context->beginArray(context, "key");
+	context->writeBlob(context, "item", "foo", 3);
+	context->writeBlob(context, "item", "Hello, world!", 13);
+	context->endArray(context);
+	TestCase_assert(context->status == SERIALIZATION_ERROR_OK, "Unexpected error %d", context->status);
+	bytes = BinarySerializationContext_writeToBytes(context, &length);
+	context->dispose(context);
+	TestCase_assert(bytes != NULL, "Expected non-NULL but got NULL");
+	if (bytes == NULL) {return;} // Suppress clang warning
+	TestCase_assert(length == 32, "Expected 32 but got " SIZE_T_FORMAT, length);
+	assertBytesMatch(bytes, "Stem"
+	                        "\x00\x00\x00\x02"
+	                        "\x00\x00\x00\x03" "foo"
+	                        "\x00\x00\x00\x0D" "Hello, world!", length);
+	free(bytes);
+	
+	context = BinarySerializationContext_create(false);
+	TestCase_assert(context != NULL, "Expected non-NULL but got NULL");
+	if (context == NULL) {return;} // Suppress clang warning
+	context->beginArray(context, "key");
+	context->writeBlob(context, "item", "foo", 3);
+	context->writeBlob(context, "item", "Hello, world!", 13);
+	context->endArray(context);
+	TestCase_assert(context->status == SERIALIZATION_ERROR_OK, "Unexpected error %d", context->status);
+	bytes = BinarySerializationContext_writeToBytes(context, &length);
+	context->dispose(context);
+	TestCase_assert(bytes != NULL, "Expected non-NULL but got NULL");
+	if (bytes == NULL) {return;} // Suppress clang warning
+	TestCase_assert(length == 32, "Expected 32 but got " SIZE_T_FORMAT, length);
+	assertBytesMatch(bytes, "metS"
+	                        "\x02\x00\x00\x00"
+	                        "\x03\x00\x00\x00" "foo"
+	                        "\x0D\x00\x00\x00" "Hello, world!", length);
 	free(bytes);
 }
 
@@ -355,7 +375,7 @@ static void testBooleanValues() {
 	context->writeBoolean(context, "item", true);
 	context->endArray(context);
 	TestCase_assert(context->status == SERIALIZATION_ERROR_OK, "Unexpected error %d", context->status);
-	bytes = context->writeToBytes(context, &length);
+	bytes = BinarySerializationContext_writeToBytes(context, &length);
 	context->dispose(context);
 	TestCase_assert(bytes != NULL, "Expected non-NULL but got NULL");
 	if (bytes == NULL) {return;} // Suppress clang warning
@@ -374,7 +394,7 @@ static void testBooleanValues() {
 	context->writeBoolean(context, "item", true);
 	context->endArray(context);
 	TestCase_assert(context->status == SERIALIZATION_ERROR_OK, "Unexpected error %d", context->status);
-	bytes = context->writeToBytes(context, &length);
+	bytes = BinarySerializationContext_writeToBytes(context, &length);
 	context->dispose(context);
 	TestCase_assert(bytes != NULL, "Expected non-NULL but got NULL");
 	if (bytes == NULL) {return;} // Suppress clang warning
@@ -408,7 +428,7 @@ static void testEnumerations() {
 	context->writeEnumeration(context, "item", ENUM_TEST_two,  enumKV(ENUM_TEST_zero), enumKV(ENUM_TEST_one), enumKV(ENUM_TEST_two), NULL);
 	context->endArray(context);
 	TestCase_assert(context->status == SERIALIZATION_ERROR_OK, "Unexpected error %d", context->status);
-	bytes = context->writeToBytes(context, &length);
+	bytes = BinarySerializationContext_writeToBytes(context, &length);
 	context->dispose(context);
 	TestCase_assert(bytes != NULL, "Expected non-NULL but got NULL");
 	if (bytes == NULL) {return;} // Suppress clang warning
@@ -433,7 +453,7 @@ static void testEnumerations() {
 	context->writeEnumeration(context, "item", ENUM_TEST_two,  enumKV(ENUM_TEST_zero), enumKV(ENUM_TEST_one), enumKV(ENUM_TEST_two), NULL);
 	context->endArray(context);
 	TestCase_assert(context->status == SERIALIZATION_ERROR_OK, "Unexpected error %d", context->status);
-	bytes = context->writeToBytes(context, &length);
+	bytes = BinarySerializationContext_writeToBytes(context, &length);
 	context->dispose(context);
 	TestCase_assert(bytes != NULL, "Expected non-NULL but got NULL");
 	if (bytes == NULL) {return;} // Suppress clang warning
@@ -471,7 +491,7 @@ static void testBitfields() {
 	context->writeBitfield64(context, "item", 0x0000000000000000ull, NULL);
 	context->endArray(context);
 	TestCase_assert(context->status == SERIALIZATION_ERROR_OK, "Unexpected error %d", context->status);
-	bytes = context->writeToBytes(context, &length);
+	bytes = BinarySerializationContext_writeToBytes(context, &length);
 	context->dispose(context);
 	TestCase_assert(bytes != NULL, "Expected non-NULL but got NULL");
 	if (bytes == NULL) {return;} // Suppress clang warning
@@ -510,7 +530,7 @@ static void testBitfields() {
 	context->writeBitfield64(context, "item", 0x0000000000000000ull, NULL);
 	context->endArray(context);
 	TestCase_assert(context->status == SERIALIZATION_ERROR_OK, "Unexpected error %d", context->status);
-	bytes = context->writeToBytes(context, &length);
+	bytes = BinarySerializationContext_writeToBytes(context, &length);
 	context->dispose(context);
 	TestCase_assert(bytes != NULL, "Expected non-NULL but got NULL");
 	if (bytes == NULL) {return;} // Suppress clang warning
@@ -545,7 +565,7 @@ static void testArrays() {
 		context->endArray(context);
 	context->endArray(context);
 	TestCase_assert(context->status == SERIALIZATION_ERROR_OK, "Unexpected error %d", context->status);
-	bytes = context->writeToBytes(context, &length);
+	bytes = BinarySerializationContext_writeToBytes(context, &length);
 	context->dispose(context);
 	TestCase_assert(bytes != NULL, "Expected non-NULL but got NULL");
 	if (bytes == NULL) {return;} // Suppress clang warning
@@ -563,7 +583,7 @@ static void testArrays() {
 		context->endArray(context);
 	context->endArray(context);
 	TestCase_assert(context->status == SERIALIZATION_ERROR_OK, "Unexpected error %d", context->status);
-	bytes = context->writeToBytes(context, &length);
+	bytes = BinarySerializationContext_writeToBytes(context, &length);
 	context->dispose(context);
 	TestCase_assert(bytes != NULL, "Expected non-NULL but got NULL");
 	if (bytes == NULL) {return;} // Suppress clang warning
@@ -602,7 +622,7 @@ static void testArrays() {
 		context->endArray(context);
 	context->endArray(context);
 	TestCase_assert(context->status == SERIALIZATION_ERROR_OK, "Unexpected error %d", context->status);
-	bytes = context->writeToBytes(context, &length);
+	bytes = BinarySerializationContext_writeToBytes(context, &length);
 	context->dispose(context);
 	TestCase_assert(bytes != NULL, "Expected non-NULL but got NULL");
 	if (bytes == NULL) {return;} // Suppress clang warning
@@ -660,7 +680,7 @@ static void testArrays() {
 		context->endArray(context);
 	context->endArray(context);
 	TestCase_assert(context->status == SERIALIZATION_ERROR_OK, "Unexpected error %d", context->status);
-	bytes = context->writeToBytes(context, &length);
+	bytes = BinarySerializationContext_writeToBytes(context, &length);
 	context->dispose(context);
 	TestCase_assert(bytes != NULL, "Expected non-NULL but got NULL");
 	if (bytes == NULL) {return;} // Suppress clang warning
@@ -703,7 +723,7 @@ static void testStructures() {
 		context->endStructure(context);
 	context->endStructure(context);
 	TestCase_assert(context->status == SERIALIZATION_ERROR_OK, "Unexpected error %d", context->status);
-	bytes = context->writeToBytes(context, &length);
+	bytes = BinarySerializationContext_writeToBytes(context, &length);
 	context->dispose(context);
 	TestCase_assert(bytes != NULL, "Expected non-NULL but got NULL");
 	if (bytes == NULL) {return;} // Suppress clang warning
@@ -719,7 +739,7 @@ static void testStructures() {
 		context->endStructure(context);
 	context->endStructure(context);
 	TestCase_assert(context->status == SERIALIZATION_ERROR_OK, "Unexpected error %d", context->status);
-	bytes = context->writeToBytes(context, &length);
+	bytes = BinarySerializationContext_writeToBytes(context, &length);
 	context->dispose(context);
 	TestCase_assert(bytes != NULL, "Expected non-NULL but got NULL");
 	if (bytes == NULL) {return;} // Suppress clang warning
@@ -756,7 +776,7 @@ static void testStructures() {
 		context->endStructure(context);
 	context->endStructure(context);
 	TestCase_assert(context->status == SERIALIZATION_ERROR_OK, "Unexpected error %d", context->status);
-	bytes = context->writeToBytes(context, &length);
+	bytes = BinarySerializationContext_writeToBytes(context, &length);
 	context->dispose(context);
 	TestCase_assert(bytes != NULL, "Expected non-NULL but got NULL");
 	if (bytes == NULL) {return;} // Suppress clang warning
@@ -810,7 +830,7 @@ static void testStructures() {
 		context->endStructure(context);
 	context->endStructure(context);
 	TestCase_assert(context->status == SERIALIZATION_ERROR_OK, "Unexpected error %d", context->status);
-	bytes = context->writeToBytes(context, &length);
+	bytes = BinarySerializationContext_writeToBytes(context, &length);
 	context->dispose(context);
 	TestCase_assert(bytes != NULL, "Expected non-NULL but got NULL");
 	if (bytes == NULL) {return;} // Suppress clang warning
@@ -849,7 +869,7 @@ static void testDictionaries() {
 		context->endDictionary(context);
 	context->endDictionary(context);
 	TestCase_assert(context->status == SERIALIZATION_ERROR_OK, "Unexpected error %d", context->status);
-	bytes = context->writeToBytes(context, &length);
+	bytes = BinarySerializationContext_writeToBytes(context, &length);
 	context->dispose(context);
 	TestCase_assert(bytes != NULL, "Expected non-NULL but got NULL");
 	if (bytes == NULL) {return;} // Suppress clang warning
@@ -869,7 +889,7 @@ static void testDictionaries() {
 		context->endDictionary(context);
 	context->endDictionary(context);
 	TestCase_assert(context->status == SERIALIZATION_ERROR_OK, "Unexpected error %d", context->status);
-	bytes = context->writeToBytes(context, &length);
+	bytes = BinarySerializationContext_writeToBytes(context, &length);
 	context->dispose(context);
 	TestCase_assert(bytes != NULL, "Expected non-NULL but got NULL");
 	if (bytes == NULL) {return;} // Suppress clang warning
@@ -910,7 +930,7 @@ static void testDictionaries() {
 		context->endDictionary(context);
 	context->endDictionary(context);
 	TestCase_assert(context->status == SERIALIZATION_ERROR_OK, "Unexpected error %d", context->status);
-	bytes = context->writeToBytes(context, &length);
+	bytes = BinarySerializationContext_writeToBytes(context, &length);
 	context->dispose(context);
 	TestCase_assert(bytes != NULL, "Expected non-NULL but got NULL");
 	if (bytes == NULL) {return;} // Suppress clang warning
@@ -1008,7 +1028,7 @@ static void testDictionaries() {
 		context->endDictionary(context);
 	context->endDictionary(context);
 	TestCase_assert(context->status == SERIALIZATION_ERROR_OK, "Unexpected error %d", context->status);
-	bytes = context->writeToBytes(context, &length);
+	bytes = BinarySerializationContext_writeToBytes(context, &length);
 	context->dispose(context);
 	TestCase_assert(bytes != NULL, "Expected non-NULL but got NULL");
 	if (bytes == NULL) {return;} // Suppress clang warning
@@ -1101,7 +1121,7 @@ static void testMixedContainers() {
 		context->endDictionary(context);
 	context->endArray(context);
 	TestCase_assert(context->status == SERIALIZATION_ERROR_OK, "Unexpected error %d", context->status);
-	bytes = context->writeToBytes(context, &length);
+	bytes = BinarySerializationContext_writeToBytes(context, &length);
 	context->dispose(context);
 	TestCase_assert(bytes != NULL, "Expected non-NULL but got NULL");
 	if (bytes == NULL) {return;} // Suppress clang warning
@@ -1136,7 +1156,7 @@ static void testMixedContainers() {
 		context->endDictionary(context);
 	context->endArray(context);
 	TestCase_assert(context->status == SERIALIZATION_ERROR_OK, "Unexpected error %d", context->status);
-	bytes = context->writeToBytes(context, &length);
+	bytes = BinarySerializationContext_writeToBytes(context, &length);
 	context->dispose(context);
 	TestCase_assert(bytes != NULL, "Expected non-NULL but got NULL");
 	if (bytes == NULL) {return;} // Suppress clang warning
@@ -1175,7 +1195,7 @@ static void testWriteToFile() {
 	TestCase_assert(context->status == SERIALIZATION_ERROR_OK, "Unexpected error %d", context->status);
 	
 	tempFilePath = temporaryFilePath("tmpXXXXXX", &fd);
-	success = context->writeToFile(context, tempFilePath);
+	success = BinarySerializationContext_writeToFile(context, tempFilePath);
 	context->dispose(context);
 	bytes = readFileSimple(tempFilePath, &length);
 	close(fd);
@@ -1203,7 +1223,7 @@ static void testWriteToFile() {
 	TestCase_assert(context->status == SERIALIZATION_ERROR_OK, "Unexpected error %d", context->status);
 	
 	tempFilePath = temporaryFilePath("tmpXXXXXX", &fd);
-	success = context->writeToFile(context, tempFilePath);
+	success = BinarySerializationContext_writeToFile(context, tempFilePath);
 	context->dispose(context);
 	bytes = readFileSimple(tempFilePath, &length);
 	close(fd);
@@ -1226,7 +1246,7 @@ static void testInvalidOperations() {
 	
 	// No data
 	context = BinarySerializationContext_create(true);
-	bytes = context->writeToBytes(context, &length);
+	bytes = BinarySerializationContext_writeToBytes(context, &length);
 	TestCase_assert(bytes == NULL, "Expected NULL but got %p", bytes);
 	context->dispose(context);
 	
@@ -1234,7 +1254,7 @@ static void testInvalidOperations() {
 #define _testNoTopLevelContainer(FUNCTION, ...) \
 	context = BinarySerializationContext_create(true); \
 	context->FUNCTION(context, "key", __VA_ARGS__); \
-	bytes = context->writeToBytes(context, &length); \
+	bytes = BinarySerializationContext_writeToBytes(context, &length); \
 	TestCase_assert(bytes == NULL, "Expected NULL but got %p", bytes); \
 	context->dispose(context);
 	
@@ -1260,7 +1280,7 @@ static void testInvalidOperations() {
 	// Unterminated array
 	context = BinarySerializationContext_create(true);
 	context->beginArray(context, "key");
-	bytes = context->writeToBytes(context, &length);
+	bytes = BinarySerializationContext_writeToBytes(context, &length);
 	TestCase_assert(bytes == NULL, "Expected NULL but got %p", bytes);
 	context->dispose(context);
 	
@@ -1268,14 +1288,14 @@ static void testInvalidOperations() {
 	context->beginArray(context, "key");
 	context->beginArray(context, "key");
 	context->endArray(context);
-	bytes = context->writeToBytes(context, &length);
+	bytes = BinarySerializationContext_writeToBytes(context, &length);
 	TestCase_assert(bytes == NULL, "Expected NULL but got %p", bytes);
 	context->dispose(context);
 	
 	// Unterminated structure
 	context = BinarySerializationContext_create(true);
 	context->beginStructure(context, "key");
-	bytes = context->writeToBytes(context, &length);
+	bytes = BinarySerializationContext_writeToBytes(context, &length);
 	TestCase_assert(bytes == NULL, "Expected NULL but got %p", bytes);
 	context->dispose(context);
 	
@@ -1283,14 +1303,14 @@ static void testInvalidOperations() {
 	context->beginStructure(context, "key");
 	context->beginStructure(context, "key");
 	context->endStructure(context);
-	bytes = context->writeToBytes(context, &length);
+	bytes = BinarySerializationContext_writeToBytes(context, &length);
 	TestCase_assert(bytes == NULL, "Expected NULL but got %p", bytes);
 	context->dispose(context);
 	
 	// Unterminated dictionary
 	context = BinarySerializationContext_create(true);
 	context->beginDictionary(context, "key");
-	bytes = context->writeToBytes(context, &length);
+	bytes = BinarySerializationContext_writeToBytes(context, &length);
 	TestCase_assert(bytes == NULL, "Expected NULL but got %p", bytes);
 	context->dispose(context);
 	
@@ -1298,7 +1318,7 @@ static void testInvalidOperations() {
 	context->beginDictionary(context, "key");
 	context->beginDictionary(context, "key");
 	context->endDictionary(context);
-	bytes = context->writeToBytes(context, &length);
+	bytes = BinarySerializationContext_writeToBytes(context, &length);
 	TestCase_assert(bytes == NULL, "Expected NULL but got %p", bytes);
 	context->dispose(context);
 	
@@ -1307,7 +1327,7 @@ static void testInvalidOperations() {
 	context = BinarySerializationContext_create(true); \
 	context->begin##CONTAINER_1(context, "key"); \
 	context->end##CONTAINER_2(context); \
-	bytes = context->writeToBytes(context, &length); \
+	bytes = BinarySerializationContext_writeToBytes(context, &length); \
 	TestCase_assert(bytes == NULL, "Expected NULL but got %p", bytes); \
 	context->dispose(context);
 #define _testWrongContainerTypeTerminatedInner(CONTAINER_1, CONTAINER_2) \
@@ -1316,7 +1336,7 @@ static void testInvalidOperations() {
 	context->begin##CONTAINER_1(context, "key"); \
 	context->end##CONTAINER_2(context); \
 	context->end##CONTAINER_1(context); \
-	bytes = context->writeToBytes(context, &length); \
+	bytes = BinarySerializationContext_writeToBytes(context, &length); \
 	TestCase_assert(bytes == NULL, "Expected NULL but got %p", bytes); \
 	context->dispose(context);
 	
@@ -1340,7 +1360,7 @@ static void testInvalidOperations() {
 	context->beginArray(context, "key");
 	context->endArray(context);
 	context->endArray(context);
-	bytes = context->writeToBytes(context, &length);
+	bytes = BinarySerializationContext_writeToBytes(context, &length);
 	TestCase_assert(bytes == NULL, "Expected NULL but got %p", bytes);
 	context->dispose(context);
 	
@@ -1348,7 +1368,7 @@ static void testInvalidOperations() {
 	context->beginStructure(context, "key");
 	context->endStructure(context);
 	context->endStructure(context);
-	bytes = context->writeToBytes(context, &length);
+	bytes = BinarySerializationContext_writeToBytes(context, &length);
 	TestCase_assert(bytes == NULL, "Expected NULL but got %p", bytes);
 	context->dispose(context);
 	
@@ -1356,7 +1376,7 @@ static void testInvalidOperations() {
 	context->beginDictionary(context, "key");
 	context->endDictionary(context);
 	context->endDictionary(context);
-	bytes = context->writeToBytes(context, &length);
+	bytes = BinarySerializationContext_writeToBytes(context, &length);
 	TestCase_assert(bytes == NULL, "Expected NULL but got %p", bytes);
 	context->dispose(context);
 	
@@ -1366,7 +1386,7 @@ static void testInvalidOperations() {
 	context->endArray(context);
 	context->beginArray(context, "key");
 	context->endArray(context);
-	bytes = context->writeToBytes(context, &length);
+	bytes = BinarySerializationContext_writeToBytes(context, &length);
 	TestCase_assert(bytes == NULL, "Expected NULL but got %p", bytes);
 	context->dispose(context);
 	
@@ -1375,7 +1395,7 @@ static void testInvalidOperations() {
 	context->endStructure(context);
 	context->beginStructure(context, "key");
 	context->endStructure(context);
-	bytes = context->writeToBytes(context, &length);
+	bytes = BinarySerializationContext_writeToBytes(context, &length);
 	TestCase_assert(bytes == NULL, "Expected NULL but got %p", bytes);
 	context->dispose(context);
 	
@@ -1384,7 +1404,7 @@ static void testInvalidOperations() {
 	context->endDictionary(context);
 	context->beginDictionary(context, "key");
 	context->endDictionary(context);
-	bytes = context->writeToBytes(context, &length);
+	bytes = BinarySerializationContext_writeToBytes(context, &length);
 	TestCase_assert(bytes == NULL, "Expected NULL but got %p", bytes);
 	context->dispose(context);
 	
@@ -1393,7 +1413,7 @@ static void testInvalidOperations() {
 	context->beginArray(context, "key");
 	context->writeBitfield8(context, "item", 0x01, NULL);
 	context->endArray(context);
-	bytes = context->writeToBytes(context, &length);
+	bytes = BinarySerializationContext_writeToBytes(context, &length);
 	TestCase_assert(bytes == NULL, "Expected NULL but got %p", bytes);
 	context->dispose(context);
 	
@@ -1401,7 +1421,7 @@ static void testInvalidOperations() {
 	context->beginArray(context, "key");
 	context->writeBitfield16(context, "item", 0x0002, "bit0", NULL);
 	context->endArray(context);
-	bytes = context->writeToBytes(context, &length);
+	bytes = BinarySerializationContext_writeToBytes(context, &length);
 	TestCase_assert(bytes == NULL, "Expected NULL but got %p", bytes);
 	context->dispose(context);
 	
@@ -1409,7 +1429,7 @@ static void testInvalidOperations() {
 	context->beginArray(context, "key");
 	context->writeBitfield32(context, "item", 0x00000004, "bit0", "bit1", NULL);
 	context->endArray(context);
-	bytes = context->writeToBytes(context, &length);
+	bytes = BinarySerializationContext_writeToBytes(context, &length);
 	TestCase_assert(bytes == NULL, "Expected NULL but got %p", bytes);
 	context->dispose(context);
 	
@@ -1417,7 +1437,7 @@ static void testInvalidOperations() {
 	context->beginArray(context, "key");
 	context->writeBitfield64(context, "item", 0x0000000000000008ull, "bit0", "bit1", "bit2", NULL);
 	context->endArray(context);
-	bytes = context->writeToBytes(context, &length);
+	bytes = BinarySerializationContext_writeToBytes(context, &length);
 	TestCase_assert(bytes == NULL, "Expected NULL but got %p", bytes);
 	context->dispose(context);
 	
@@ -1426,7 +1446,7 @@ static void testInvalidOperations() {
 	context->beginArray(context, "key");
 	context->writeBitfield8(context, "item", 0x00, "bit0", "bit0", NULL);
 	context->endArray(context);
-	bytes = context->writeToBytes(context, &length);
+	bytes = BinarySerializationContext_writeToBytes(context, &length);
 	TestCase_assert(bytes == NULL, "Expected NULL but got %p", bytes);
 	context->dispose(context);
 	
@@ -1434,7 +1454,7 @@ static void testInvalidOperations() {
 	context->beginArray(context, "key");
 	context->writeBitfield16(context, "item", 0x0000, "bit0", "bit0", NULL);
 	context->endArray(context);
-	bytes = context->writeToBytes(context, &length);
+	bytes = BinarySerializationContext_writeToBytes(context, &length);
 	TestCase_assert(bytes == NULL, "Expected NULL but got %p", bytes);
 	context->dispose(context);
 	
@@ -1442,7 +1462,7 @@ static void testInvalidOperations() {
 	context->beginArray(context, "key");
 	context->writeBitfield32(context, "item", 0x00000000, "bit0", "bit0", NULL);
 	context->endArray(context);
-	bytes = context->writeToBytes(context, &length);
+	bytes = BinarySerializationContext_writeToBytes(context, &length);
 	TestCase_assert(bytes == NULL, "Expected NULL but got %p", bytes);
 	context->dispose(context);
 	
@@ -1450,7 +1470,7 @@ static void testInvalidOperations() {
 	context->beginArray(context, "key");
 	context->writeBitfield64(context, "item", 0x0000000000000000ull, "bit0", "bit0", NULL);
 	context->endArray(context);
-	bytes = context->writeToBytes(context, &length);
+	bytes = BinarySerializationContext_writeToBytes(context, &length);
 	TestCase_assert(bytes == NULL, "Expected NULL but got %p", bytes);
 	context->dispose(context);
 	
@@ -1459,7 +1479,7 @@ static void testInvalidOperations() {
 	context->beginArray(context, "key");
 	context->writeEnumeration(context, "item", 0, "enum", 1, NULL);
 	context->endArray(context);
-	bytes = context->writeToBytes(context, &length);
+	bytes = BinarySerializationContext_writeToBytes(context, &length);
 	TestCase_assert(bytes == NULL, "Expected NULL but got %p", bytes);
 	context->dispose(context);
 	
@@ -1468,7 +1488,7 @@ static void testInvalidOperations() {
 	context->beginArray(context, "key");
 	context->writeEnumeration(context, "item", 0, "enum0", 0, "enum1", 0, NULL);
 	context->endArray(context);
-	bytes = context->writeToBytes(context, &length);
+	bytes = BinarySerializationContext_writeToBytes(context, &length);
 	TestCase_assert(bytes == NULL, "Expected NULL but got %p", bytes);
 	context->dispose(context);
 	
@@ -1476,7 +1496,7 @@ static void testInvalidOperations() {
 	context->beginArray(context, "key");
 	context->writeEnumeration(context, "item", 0, "enum0", 0, "enum1", 1, "enum2", 1, NULL);
 	context->endArray(context);
-	bytes = context->writeToBytes(context, &length);
+	bytes = BinarySerializationContext_writeToBytes(context, &length);
 	TestCase_assert(bytes == NULL, "Expected NULL but got %p", bytes);
 	context->dispose(context);
 	
@@ -1485,7 +1505,7 @@ static void testInvalidOperations() {
 	context->beginArray(context, "key");
 	context->writeEnumeration(context, "item", 0, "enum", 0, "enum", 1, NULL);
 	context->endArray(context);
-	bytes = context->writeToBytes(context, &length);
+	bytes = BinarySerializationContext_writeToBytes(context, &length);
 	TestCase_assert(bytes == NULL, "Expected NULL but got %p", bytes);
 	context->dispose(context);
 	
@@ -1493,7 +1513,7 @@ static void testInvalidOperations() {
 	context->beginArray(context, "key");
 	context->writeEnumeration(context, "item", 0, "enum0", 0, "enum1", 1, "enum1", 2, NULL);
 	context->endArray(context);
-	bytes = context->writeToBytes(context, &length);
+	bytes = BinarySerializationContext_writeToBytes(context, &length);
 	TestCase_assert(bytes == NULL, "Expected NULL but got %p", bytes);
 	context->dispose(context);
 	
@@ -1502,7 +1522,7 @@ static void testInvalidOperations() {
 	context->begin##CONTAINER(context, "key"); \
 	context->FUNCTION(context, NULL, __VA_ARGS__); \
 	context->end##CONTAINER(context); \
-	bytes = context->writeToBytes(context, &length); \
+	bytes = BinarySerializationContext_writeToBytes(context, &length); \
 	TestCase_assert(bytes == NULL, "Expected NULL but got %p", bytes); \
 	context->dispose(context);
 	
@@ -1511,7 +1531,7 @@ static void testInvalidOperations() {
 	context->begin##CONTAINER(context, "key"); \
 	context->FUNCTION(context, NULL); \
 	context->end##CONTAINER(context); \
-	bytes = context->writeToBytes(context, &length); \
+	bytes = BinarySerializationContext_writeToBytes(context, &length); \
 	TestCase_assert(bytes == NULL, "Expected NULL but got %p", bytes); \
 	context->dispose(context);
 	
@@ -1574,7 +1594,7 @@ static void testErrorReporting() {
 	
 	context = BinarySerializationContext_create(true);
 	TestCase_assert(context->status == SERIALIZATION_ERROR_OK, "Expected %d but got %d", SERIALIZATION_ERROR_OK, context->status);
-	bytes = context->writeToBytes(context, &length);
+	bytes = BinarySerializationContext_writeToBytes(context, &length);
 	TestCase_assert(bytes == NULL, "Expected NULL but got %p", bytes);
 	TestCase_assert(context->status == BINARY_SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER, "Expected %d but got %d", BINARY_SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER, context->status);
 	context->dispose(context);
@@ -1582,7 +1602,7 @@ static void testErrorReporting() {
 	context = BinarySerializationContext_create(true);
 	TestCase_assert(context->status == SERIALIZATION_ERROR_OK, "Expected %d but got %d", SERIALIZATION_ERROR_OK, context->status);
 	tempFilePath = temporaryFilePath("tmpXXXXXX", &fd);
-	success = context->writeToFile(context, tempFilePath);
+	success = BinarySerializationContext_writeToFile(context, tempFilePath);
 	close(fd);
 	unlink(tempFilePath);
 	TestCase_assert(!success, "Expected false but got true");
@@ -1912,6 +1932,7 @@ TEST_SUITE(BinarySerializationContextTest,
            testTopLevelContainers,
            testNumberValues,
            testStringValues,
+           testBlobValues,
            testBooleanValues,
            testEnumerations,
            testBitfields,

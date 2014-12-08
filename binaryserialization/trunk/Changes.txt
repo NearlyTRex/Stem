@@ -1,3 +1,7 @@
+1.1.0 (2014-12-08)
+ * Implemented readBlob and writeBlob (added in serialization 1.5.0)
+ * Removed writeToBytes and writeToFile function pointers from BinarySerializationContext struct in preparation for stemobject 4.0.0
+
 1.0.3 (2014-06-29)
  * Added support for modern Xcode/iOS SDK versions
 
