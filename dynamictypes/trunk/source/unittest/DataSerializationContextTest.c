@@ -57,18 +57,30 @@ static void testInit() {
 #define ENUM_TEST_0 0
 #define ENUM_TEST_1 1
 
+#define FORMAT_DATA_TYPE_BOOLEAN "%d"
+#define FORMAT_DATA_TYPE_INT8 "%d"
+#define FORMAT_DATA_TYPE_UINT8 "%u"
+#define FORMAT_DATA_TYPE_INT16 "%d"
+#define FORMAT_DATA_TYPE_UINT16 "%u"
+#define FORMAT_DATA_TYPE_INT32 "%d"
+#define FORMAT_DATA_TYPE_UINT32 "%u"
+#define FORMAT_DATA_TYPE_INT64 INT64_FORMAT
+#define FORMAT_DATA_TYPE_UINT64 UINT64_FORMAT
+#define FORMAT_DATA_TYPE_FLOAT "%f"
+#define FORMAT_DATA_TYPE_DOUBLE "%f"
+
 #define assertDataValueInArray(VALUE, INDEX, TYPE, EXPECTED_VALUE, FIELD) \
 	TestCase_assert(VALUE.array->values[INDEX].type == TYPE, "Expected %d but got %d", TYPE, VALUE.array->values[INDEX].type); \
-	TestCase_assert(VALUE.array->values[INDEX].value.FIELD == EXPECTED_VALUE, "Expected " #EXPECTED_VALUE " but got %d", VALUE.array->values[INDEX].value.FIELD)
+	TestCase_assert(VALUE.array->values[INDEX].value.FIELD == EXPECTED_VALUE, "Expected " #EXPECTED_VALUE " but got " FORMAT_##TYPE, VALUE.array->values[INDEX].value.FIELD)
 
 #define assertStringInArray(VALUE, INDEX, EXPECTED_VALUE) \
 	TestCase_assert(VALUE.array->values[INDEX].type == DATA_TYPE_STRING, "Expected %d but got %d", DATA_TYPE_STRING, VALUE.array->values[INDEX].type); \
-	TestCase_assert(!strcmp(VALUE.array->values[INDEX].value.string, EXPECTED_VALUE), "Expected " EXPECTED_VALUE " but got %d", VALUE.array->values[INDEX].value.string)
+	TestCase_assert(!strcmp(VALUE.array->values[INDEX].value.string, EXPECTED_VALUE), "Expected " EXPECTED_VALUE " but got \"%s\"", VALUE.array->values[INDEX].value.string)
 
 #define assertBlobInArray(VALUE, INDEX, EXPECTED_VALUE, LENGTH) \
 	TestCase_assert(VALUE.array->values[INDEX].type == DATA_TYPE_BLOB, "Expected %d but got %d", DATA_TYPE_BLOB, VALUE.array->values[INDEX].type); \
 	TestCase_assert(VALUE.array->values[INDEX].value.blob.length == LENGTH, "Expected " #LENGTH " but got " SIZE_T_FORMAT, VALUE.array->values[INDEX].value.blob.length); \
-	TestCase_assert(!memcmp(VALUE.array->values[INDEX].value.blob.bytes, EXPECTED_VALUE, LENGTH), "Expected \"" EXPECTED_VALUE "\" but got \"%s\"", VALUE.array->values[INDEX].value.blob.bytes)
+	TestCase_assert(!memcmp(VALUE.array->values[INDEX].value.blob.bytes, EXPECTED_VALUE, LENGTH), "Expected \"" EXPECTED_VALUE "\" but got \"%s\"", (char *) VALUE.array->values[INDEX].value.blob.bytes)
 
 static void testValuesInArray() {
 	DataSerializationContext * context;
@@ -162,20 +174,20 @@ static void testValuesInArray() {
 	value = hashGet(VALUE.hashTable, KEY); \
 	TestCase_assert(value != NULL, "Expected non-NULL but got NULL"); \
 	TestCase_assert(value->type == TYPE, "Expected %d but got %d", TYPE, value->type); \
-	TestCase_assert(value->value.FIELD == EXPECTED_VALUE, "Expected " #EXPECTED_VALUE " but got %d", value->value.FIELD)
+	TestCase_assert(value->value.FIELD == EXPECTED_VALUE, "Expected " #EXPECTED_VALUE " but got " FORMAT_##TYPE, value->value.FIELD)
 
 #define assertStringInHashTable(VALUE, KEY, EXPECTED_VALUE) \
 	value = hashGet(VALUE.hashTable, KEY); \
 	TestCase_assert(value != NULL, "Expected non-NULL but got NULL"); \
 	TestCase_assert(value->type == DATA_TYPE_STRING, "Expected %d but got %d", DATA_TYPE_STRING, value->type); \
-	TestCase_assert(!strcmp(value->value.string, EXPECTED_VALUE), "Expected " EXPECTED_VALUE " but got %d", value->value.string)
+	TestCase_assert(!strcmp(value->value.string, EXPECTED_VALUE), "Expected " EXPECTED_VALUE " but got \"%s\"", value->value.string)
 
 #define assertBlobInHashTable(VALUE, KEY, EXPECTED_VALUE, LENGTH) \
 	value = hashGet(VALUE.hashTable, KEY); \
 	TestCase_assert(value != NULL, "Expected non-NULL but got NULL"); \
 	TestCase_assert(value->type == DATA_TYPE_BLOB, "Expected %d but got %d", DATA_TYPE_BLOB, value->type); \
 	TestCase_assert(value->value.blob.length == LENGTH, "Expected " #LENGTH " but got " SIZE_T_FORMAT, value->value.blob.length); \
-	TestCase_assert(!memcmp(value->value.blob.bytes, EXPECTED_VALUE, LENGTH), "Expected \"" EXPECTED_VALUE "\" but got \"%s\"", value->value.blob.bytes)
+	TestCase_assert(!memcmp(value->value.blob.bytes, EXPECTED_VALUE, LENGTH), "Expected \"" EXPECTED_VALUE "\" but got \"%s\"", (char *) value->value.blob.bytes)
 
 static void testValuesInHashTable() {
 	DataSerializationContext * context;
@@ -267,18 +279,18 @@ static void testValuesInHashTable() {
 
 #define assertDataValueInAssociativeArray(VALUE, INDEX, KEY, TYPE, EXPECTED_VALUE, FIELD) \
 	TestCase_assert(VALUE.associativeArray->values[INDEX].type == TYPE, "Expected %d but got %d", TYPE, VALUE.associativeArray->values[INDEX].type); \
-	TestCase_assert(VALUE.associativeArray->values[INDEX].value.FIELD == EXPECTED_VALUE, "Expected " #EXPECTED_VALUE " but got %d", VALUE.associativeArray->values[INDEX].value.FIELD); \
+	TestCase_assert(VALUE.associativeArray->values[INDEX].value.FIELD == EXPECTED_VALUE, "Expected " #EXPECTED_VALUE " but got " FORMAT_##TYPE, VALUE.associativeArray->values[INDEX].value.FIELD); \
 	TestCase_assert(!strcmp(VALUE.associativeArray->keys[INDEX], KEY), "Expected \"%s\" but got \"%s\"", KEY, VALUE.associativeArray->keys[INDEX])
 
 #define assertStringInAssociativeArray(VALUE, INDEX, KEY, EXPECTED_VALUE) \
 	TestCase_assert(VALUE.associativeArray->values[INDEX].type == DATA_TYPE_STRING, "Expected %d but got %d", DATA_TYPE_STRING, VALUE.associativeArray->values[INDEX].type); \
-	TestCase_assert(!strcmp(VALUE.associativeArray->values[INDEX].value.string, EXPECTED_VALUE), "Expected " EXPECTED_VALUE " but got %d", VALUE.associativeArray->values[INDEX].value.string); \
+	TestCase_assert(!strcmp(VALUE.associativeArray->values[INDEX].value.string, EXPECTED_VALUE), "Expected " EXPECTED_VALUE " but got \"%s\"", VALUE.associativeArray->values[INDEX].value.string); \
 	TestCase_assert(!strcmp(VALUE.associativeArray->keys[INDEX], KEY), "Expected \"%s\" but got \"%s\"", KEY, VALUE.associativeArray->keys[INDEX])
 
 #define assertBlobInAssociativeArray(VALUE, INDEX, KEY, EXPECTED_VALUE, LENGTH) \
 	TestCase_assert(VALUE.associativeArray->values[INDEX].type == DATA_TYPE_BLOB, "Expected %d but got %d", DATA_TYPE_BLOB, VALUE.associativeArray->values[INDEX].type); \
 	TestCase_assert(VALUE.associativeArray->values[INDEX].value.blob.length == LENGTH, "Expected " #LENGTH " but got " SIZE_T_FORMAT, VALUE.associativeArray->values[INDEX].value.blob.length); \
-	TestCase_assert(!memcmp(VALUE.associativeArray->values[INDEX].value.blob.bytes, EXPECTED_VALUE, LENGTH), "Expected \"" EXPECTED_VALUE "\" but got \"%s\"", VALUE.associativeArray->values[INDEX].value.blob.bytes); \
+	TestCase_assert(!memcmp(VALUE.associativeArray->values[INDEX].value.blob.bytes, EXPECTED_VALUE, LENGTH), "Expected \"" EXPECTED_VALUE "\" but got \"%s\"", (char *) VALUE.associativeArray->values[INDEX].value.blob.bytes); \
 	TestCase_assert(!strcmp(VALUE.associativeArray->keys[INDEX], KEY), "Expected \"%s\" but got \"%s\"", KEY, VALUE.associativeArray->keys[INDEX])
 
 static void testValuesInAssociativeArray() {

@@ -782,10 +782,10 @@ static void testDeserialize() {
 	TestCase_assert(!strcmp(value.value.array->values[23].value.string, "foo"), "Expected \"foo\" but got \"%s\"", value.value.array->values[23].value.string);
 	TestCase_assert(value.value.array->values[24].type == DATA_TYPE_BLOB, "Expected %d but got %d", DATA_TYPE_BLOB, value.value.array->values[24].type);
 	TestCase_assert(value.value.array->values[24].value.blob.length == 1, "Expected 1 but got " SIZE_T_FORMAT, value.value.array->values[24].value.blob.length);
-	TestCase_assert(!memcmp(value.value.array->values[24].value.blob.bytes, "a", 1), "Expected \"a\" but got \"%.*s\"", value.value.array->values[24].value.blob.length, value.value.array->values[24].value.blob.bytes);
+	TestCase_assert(!memcmp(value.value.array->values[24].value.blob.bytes, "a", 1), "Expected \"a\" but got \"%.*s\"", (int) value.value.array->values[24].value.blob.length, (char *) value.value.array->values[24].value.blob.bytes);
 	TestCase_assert(value.value.array->values[25].type == DATA_TYPE_BLOB, "Expected %d but got %d", DATA_TYPE_BLOB, value.value.array->values[25].type);
 	TestCase_assert(value.value.array->values[25].value.blob.length == 3, "Expected 3 but got " SIZE_T_FORMAT, value.value.array->values[25].value.blob.length);
-	TestCase_assert(!memcmp(value.value.array->values[25].value.blob.bytes, "foo", 3), "Expected \"foo\" but got \"%.*s\"", value.value.array->values[25].value.blob.length, value.value.array->values[25].value.blob.bytes);
+	TestCase_assert(!memcmp(value.value.array->values[25].value.blob.bytes, "foo", 3), "Expected \"foo\" but got \"%.*s\"", (int) value.value.array->values[25].value.blob.length, (char *) value.value.array->values[25].value.blob.bytes);
 	
 	TestDeserializationContext_finish(context);
 	TestDeserializationContext_dispose(context);
@@ -930,17 +930,17 @@ static void testDeserialize() {
 			TestCase_assert(hashTableValue->type == DATA_TYPE_UINT32, "Expected %d but got %d", DATA_TYPE_UINT32, hashTableValue->type);
 			TestCase_assert(hashTableValue->value.uint32 == 1, "Expected 1 but got %d", hashTableValue->value.uint32);
 		} else if (!strcmp(keys[keyIndex], "int64_0")) {
-			TestCase_assert(hashTableValue->type == DATA_TYPE_INT64, "Expected %d but got " INT64_FORMAT, DATA_TYPE_INT64, hashTableValue->type);
-			TestCase_assert(hashTableValue->value.int64 == 0, "Expected 0 but got %d", hashTableValue->value.int64);
+			TestCase_assert(hashTableValue->type == DATA_TYPE_INT64, "Expected %d but got %d", DATA_TYPE_INT64, hashTableValue->type);
+			TestCase_assert(hashTableValue->value.int64 == 0, "Expected 0 but got " INT64_FORMAT, hashTableValue->value.int64);
 		} else if (!strcmp(keys[keyIndex], "int64_1")) {
-			TestCase_assert(hashTableValue->type == DATA_TYPE_INT64, "Expected %d but got " INT64_FORMAT, DATA_TYPE_INT64, hashTableValue->type);
-			TestCase_assert(hashTableValue->value.int64 == 1, "Expected 1 but got %d", hashTableValue->value.int64);
+			TestCase_assert(hashTableValue->type == DATA_TYPE_INT64, "Expected %d but got %d", DATA_TYPE_INT64, hashTableValue->type);
+			TestCase_assert(hashTableValue->value.int64 == 1, "Expected 1 but got " INT64_FORMAT, hashTableValue->value.int64);
 		} else if (!strcmp(keys[keyIndex], "uint64_0")) {
-			TestCase_assert(hashTableValue->type == DATA_TYPE_UINT64, "Expected %d but got " UINT64_FORMAT, DATA_TYPE_UINT64, hashTableValue->type);
-			TestCase_assert(hashTableValue->value.uint64 == 0, "Expected 0 but got %d", hashTableValue->value.uint64);
+			TestCase_assert(hashTableValue->type == DATA_TYPE_UINT64, "Expected %d but got %d", DATA_TYPE_UINT64, hashTableValue->type);
+			TestCase_assert(hashTableValue->value.uint64 == 0, "Expected 0 but got " UINT64_FORMAT, hashTableValue->value.uint64);
 		} else if (!strcmp(keys[keyIndex], "uint64_1")) {
-			TestCase_assert(hashTableValue->type == DATA_TYPE_UINT64, "Expected %d but got " UINT64_FORMAT, DATA_TYPE_UINT64, hashTableValue->type);
-			TestCase_assert(hashTableValue->value.uint64 == 1, "Expected 1 but got %d", hashTableValue->value.uint64);
+			TestCase_assert(hashTableValue->type == DATA_TYPE_UINT64, "Expected %d but got %d", DATA_TYPE_UINT64, hashTableValue->type);
+			TestCase_assert(hashTableValue->value.uint64 == 1, "Expected 1 but got " UINT64_FORMAT, hashTableValue->value.uint64);
 		} else if (!strcmp(keys[keyIndex], "float_0")) {
 			TestCase_assert(hashTableValue->type == DATA_TYPE_FLOAT, "Expected %d but got %d", DATA_TYPE_FLOAT, hashTableValue->type);
 			TestCase_assert(hashTableValue->value.float32 == 0.0f, "Expected 0.0 but got %f", hashTableValue->value.float32);
@@ -962,11 +962,11 @@ static void testDeserialize() {
 		} else if (!strcmp(keys[keyIndex], "blob_a")) {
 			TestCase_assert(hashTableValue->type == DATA_TYPE_BLOB, "Expected %d but got %d", DATA_TYPE_BLOB, hashTableValue->type);
 			TestCase_assert(hashTableValue->value.blob.length == 1, "Expected 1 but got " SIZE_T_FORMAT, hashTableValue->value.blob.length);
-			TestCase_assert(!memcmp(hashTableValue->value.blob.bytes, "a", 1), "Expected \"a\" but got \"%.*s\"", hashTableValue->value.blob.length, hashTableValue->value.blob.bytes);
+			TestCase_assert(!memcmp(hashTableValue->value.blob.bytes, "a", 1), "Expected \"a\" but got \"%.*s\"", (int) hashTableValue->value.blob.length, (char *) hashTableValue->value.blob.bytes);
 		} else if (!strcmp(keys[keyIndex], "blob_foo")) {
 			TestCase_assert(hashTableValue->type == DATA_TYPE_BLOB, "Expected %d but got %d", DATA_TYPE_BLOB, hashTableValue->type);
 			TestCase_assert(hashTableValue->value.blob.length == 3, "Expected 3 but got " SIZE_T_FORMAT, hashTableValue->value.blob.length);
-			TestCase_assert(!memcmp(hashTableValue->value.blob.bytes, "foo", 3), "Expected \"foo\" but got \"%.*s\"", hashTableValue->value.blob.length, hashTableValue->value.blob.bytes);
+			TestCase_assert(!memcmp(hashTableValue->value.blob.bytes, "foo", 3), "Expected \"foo\" but got \"%.*s\"", (int) hashTableValue->value.blob.length, (char *) hashTableValue->value.blob.bytes);
 		} else {
 			TestCase_assert(false, "Unexpected key in hash table: \"%s\"", keys[keyIndex]);
 		}
@@ -1145,11 +1145,11 @@ static void testDeserialize() {
 	TestCase_assert(!strcmp(value.value.associativeArray->keys[24], "blob_a"), "Expected \"blob_a\" but got \"%s\"", value.value.associativeArray->keys[24]);
 	TestCase_assert(value.value.associativeArray->values[24].type == DATA_TYPE_BLOB, "Expected %d but got %d", DATA_TYPE_BLOB, value.value.associativeArray->values[24].type);
 	TestCase_assert(value.value.associativeArray->values[24].value.blob.length == 1, "Expected 1 but got " SIZE_T_FORMAT, value.value.associativeArray->values[24].value.blob.length);
-	TestCase_assert(!memcmp(value.value.associativeArray->values[24].value.blob.bytes, "a", 1), "Expected \"a\" but got \"%.*s\"", value.value.associativeArray->values[24].value.blob.length, value.value.associativeArray->values[24].value.blob.bytes);
+	TestCase_assert(!memcmp(value.value.associativeArray->values[24].value.blob.bytes, "a", 1), "Expected \"a\" but got \"%.*s\"", (int) value.value.associativeArray->values[24].value.blob.length, (char *) value.value.associativeArray->values[24].value.blob.bytes);
 	TestCase_assert(!strcmp(value.value.associativeArray->keys[25], "blob_foo"), "Expected \"blob_foo\" but got \"%s\"", value.value.associativeArray->keys[25]);
 	TestCase_assert(value.value.associativeArray->values[25].type == DATA_TYPE_BLOB, "Expected %d but got %d", DATA_TYPE_BLOB, value.value.associativeArray->values[25].type);
 	TestCase_assert(value.value.associativeArray->values[25].value.blob.length == 3, "Expected 3 but got " SIZE_T_FORMAT, value.value.associativeArray->values[25].value.blob.length);
-	TestCase_assert(!memcmp(value.value.associativeArray->values[25].value.blob.bytes, "foo", 3), "Expected \"foo\" but got \"%.*s\"", value.value.associativeArray->values[25].value.blob.length, value.value.associativeArray->values[25].value.blob.bytes);
+	TestCase_assert(!memcmp(value.value.associativeArray->values[25].value.blob.bytes, "foo", 3), "Expected \"foo\" but got \"%.*s\"", (int) value.value.associativeArray->values[25].value.blob.length, (char *) value.value.associativeArray->values[25].value.blob.bytes);
 	
 	TestDeserializationContext_finish(context);
 	TestDeserializationContext_dispose(context);

@@ -133,8 +133,8 @@ static void testInit() {
 	size_t length; \
 	value = context->readBlob(context, KEY, &length); \
 	TestCase_assert(value != NULL, "Expected non-NULL but got NULL"); \
-	TestCase_assert(length == LENGTH, "Expected " SIZE_T_FORMAT " but got " SIZE_T_FORMAT, LENGTH, length); \
-	TestCase_assert(!memcmp(value, (EXPECTED_VALUE), (LENGTH)), "Expected \"%s\" but got \"%s\" (type blob; status %d)", (EXPECTED_VALUE), value, context->status); \
+	TestCase_assert(length == LENGTH, "Expected " SIZE_T_FORMAT " but got " SIZE_T_FORMAT, (size_t) LENGTH, length); \
+	TestCase_assert(!memcmp(value, (EXPECTED_VALUE), (LENGTH)), "Expected \"%s\" but got \"%s\" (type blob; status %d)", (char *) (EXPECTED_VALUE), (char *) value, context->status); \
 	TestCase_assert(context->status == SERIALIZATION_ERROR_OK, "Got error from operation that should have succeeded: %d", context->status); \
 }
 
