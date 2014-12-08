@@ -313,7 +313,7 @@ uint64_t DataDeserializationContext_readBitfield64(DataDeserializationContext * 
 }
 
 const char * DataDeserializationContext_readString(DataDeserializationContext * self, const char * key) {
-	readValueImplementation(string.bytes, NULL, DATA_TYPE_STRING);
+	readValueImplementation(string, NULL, DATA_TYPE_STRING);
 }
 
 const void * DataDeserializationContext_readBlob(DataDeserializationContext * self, const char * key, size_t * outLength) {

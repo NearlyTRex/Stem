@@ -81,7 +81,7 @@ HashTable * hashCreate() {
 	HashTable * hash;
 	
 	hash = malloc(sizeof(HashTable));
-	hash->keyCount = 0;
+	hash->count = 0;
 	hash->bucketCount = nextPrimeSize(0);
 	hash->buckets = calloc(sizeof(struct HashTableBucket), hash->bucketCount);
 	return hash;
@@ -158,7 +158,7 @@ static void newEntrySlot(HashTable * hash, const char * key, size_t * outBucketI
 		}
 	}
 	if (entryIndex >= hash->buckets[bucketIndex].count) {
-    if (hash->keyCount / hash->bucketCount > MAX_DENSITY) {
+    if (hash->count / hash->bucketCount > MAX_DENSITY) {
 			rehash(hash);
 			bucketIndex = hashValue % hash->bucketCount;
 			for (entryIndex = 0; entryIndex < hash->buckets[bucketIndex].count; entryIndex++) {
@@ -174,7 +174,7 @@ static void newEntrySlot(HashTable * hash, const char * key, size_t * outBucketI
 		}
 		hash->buckets[bucketIndex].entries = realloc(hash->buckets[bucketIndex].entries, sizeof(struct HashTableEntry) * hash->buckets[bucketIndex].allocatedCount);
 		hash->buckets[bucketIndex].count++;
-		hash->keyCount++;
+		hash->count++;
 	}
 	*outBucketIndex = bucketIndex;
 	*outEntryIndex = entryIndex;
@@ -226,7 +226,7 @@ bool hashDelete(HashTable * hash, const char * key) {
 			for (; entryIndex < hash->buckets[bucketIndex].count; entryIndex++) {
 				hash->buckets[bucketIndex].entries[entryIndex] = hash->buckets[bucketIndex].entries[entryIndex + 1];
 			}
-			hash->keyCount--;
+			hash->count--;
 			return true;
 		}
 	}
@@ -275,17 +275,17 @@ void hashSet(HashTable * hash, const char * key, DataValue value) {
 }
 
 size_t hashGetCount(HashTable * hash) {
-	return hash->keyCount;
+	return hash->count;
 }
 
 const char ** hashGetKeys(HashTable * hash, size_t * outCount) {
 	const char ** keys;
 	size_t keyIndex = 0, bucketIndex, entryIndex;
 	
-	keys = malloc(sizeof(const char *) * hash->keyCount);
+	keys = malloc(sizeof(const char *) * hash->count);
 	for (bucketIndex = 0; bucketIndex < hash->bucketCount; bucketIndex++) {
 		for (entryIndex = 0; entryIndex < hash->buckets[bucketIndex].count; entryIndex++) {
-			if (keyIndex >= hash->keyCount) {
+			if (keyIndex >= hash->count) {
 				fprintf(stderr, "Internal error: Hash table's key count is less than its actual number of keys!\n");
 				return NULL;
 			}
@@ -296,12 +296,12 @@ const char ** hashGetKeys(HashTable * hash, size_t * outCount) {
 			}
 		}
 	}
-	if (keyIndex < hash->keyCount) {
+	if (keyIndex < hash->count) {
 		fprintf(stderr, "Internal error: Hash table's key count is greater than its actual number of keys!\n");
 		return NULL;
 	}
 	if (outCount != NULL) {
-		*outCount = hash->keyCount;
+		*outCount = hash->count;
 	}
 	return keys;
 }

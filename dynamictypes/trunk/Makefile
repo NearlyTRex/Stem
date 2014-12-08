@@ -171,10 +171,11 @@ THIRDPARTY_LIBRARY_DEPENDENCIES =
 SOURCES_library = \
 	source/${PROJECT_NAME}/AssociativeArray.c \
 	source/${PROJECT_NAME}/DataArray.c \
-	source/${PROJECT_NAME}/DataValue.c \
-	source/${PROJECT_NAME}/HashTable.c \
 	source/${PROJECT_NAME}/DataDeserializationContext.c \
-	source/${PROJECT_NAME}/DataSerializationContext.c
+	source/${PROJECT_NAME}/DataSerializationContext.c \
+	source/${PROJECT_NAME}/DataSerializer.c \
+	source/${PROJECT_NAME}/DataValue.c \
+	source/${PROJECT_NAME}/HashTable.c
 
 SOURCES_unittest = \
 	build/intermediate/TestList.c \
@@ -183,20 +184,22 @@ SOURCES_unittest = \
 SOURCES_unittest_suites = \
 	source/unittest/AssociativeArrayTest.c \
 	source/unittest/DataArrayTest.c \
-	source/unittest/DataValueTest.c \
-	source/unittest/HashTableTest.c \
 	source/unittest/DataDeserializationContextTest.c \
-	source/unittest/DataSerializationContextTest.c
+	source/unittest/DataSerializationContextTest.c \
+	source/unittest/DataSerializerTest.c \
+	source/unittest/DataValueTest.c \
+	source/unittest/HashTableTest.c
 
 #Include files to be distributed with library
 
 INCLUDES = \
 	source/${PROJECT_NAME}/AssociativeArray.h \
 	source/${PROJECT_NAME}/DataArray.h \
-	source/${PROJECT_NAME}/DataValue.h \
-	source/${PROJECT_NAME}/HashTable.h \
 	source/${PROJECT_NAME}/DataDeserializationContext.h \
-	source/${PROJECT_NAME}/DataSerializationContext.h
+	source/${PROJECT_NAME}/DataSerializationContext.h \
+	source/${PROJECT_NAME}/DataSerializer.h \
+	source/${PROJECT_NAME}/DataValue.h \
+	source/${PROJECT_NAME}/HashTable.h
 
 #Target resources
 

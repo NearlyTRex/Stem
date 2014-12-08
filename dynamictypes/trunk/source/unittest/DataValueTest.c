@@ -124,14 +124,12 @@ static void testCreate() {
 	
 	value = valueCreateString(string1, 2, true, true);
 	TestCase_assert(value.type == DATA_TYPE_STRING, "Expected %d but got %d", DATA_TYPE_STRING, value.type);
-	TestCase_assert(value.value.string.length == 2, "Expected 2 but got " SIZE_T_FORMAT, value.value.string.length);
-	TestCase_assert(!strcmp(value.value.string.bytes, "ab"), "Expected \"ab\" but got \"%s\"", value.value.string.bytes);
-	TestCase_assert(value.value.string.bytes != string1, "Expected differing pointers, but both are %p", string1);
+	TestCase_assert(!strcmp(value.value.string, "ab"), "Expected \"ab\" but got \"%s\"", value.value.string);
+	TestCase_assert(value.value.string != string1, "Expected differing pointers, but both are %p", string1);
 	valueDispose(&value);
 	value = valueCreateString(string2, DATA_USE_STRLEN, false, false);
 	TestCase_assert(value.type == DATA_TYPE_STRING, "Expected %d but got %d", DATA_TYPE_STRING, value.type);
-	TestCase_assert(value.value.string.bytes == string2, "Expected %p but got %p", string2, value.value.string.bytes);
-	TestCase_assert(value.value.string.length == 3, "Expected 3 but got " SIZE_T_FORMAT, value.value.string.length);
+	TestCase_assert(value.value.string == string2, "Expected %p but got %p", string2, value.value.string);
 	valueDispose(&value);
 	
 	value = valueCreateBlob(blob1, sizeof(blob1), true, true);
@@ -152,7 +150,7 @@ static void testCreate() {
 	value = valueCreateHashTable(hashTable1, true, true);
 	TestCase_assert(value.type == DATA_TYPE_HASH_TABLE, "Expected %d but got %d", DATA_TYPE_HASH_TABLE, value.type);
 	TestCase_assert(value.value.hashTable != hashTable1, "Expected differing pointers, but both are %p", hashTable1);
-	TestCase_assert(value.value.hashTable->keyCount == hashTable1->keyCount, "Expected " SIZE_T_FORMAT " but got " SIZE_T_FORMAT, hashTable1->keyCount, value.value.hashTable->keyCount);
+	TestCase_assert(value.value.hashTable->count == hashTable1->count, "Expected " SIZE_T_FORMAT " but got " SIZE_T_FORMAT, hashTable1->count, value.value.hashTable->count);
 	TestCase_assert(hashGet(value.value.hashTable, "a") != NULL, "Expected non-NULL but got NULL");
 	TestCase_assert(hashGet(value.value.hashTable, "a")->type == DATA_TYPE_BOOLEAN, "Expected %d but got %d", DATA_TYPE_BOOLEAN, hashGet(value.value.hashTable, "a")->type);
 	TestCase_assert(!hashGet(value.value.hashTable, "a")->value.boolean, "Expected false but got true");
@@ -326,15 +324,13 @@ static void testGet() {
 	valueDispose(&value);
 	
 	value = valueCreateString("", DATA_USE_STRLEN, false, false);
-	string = valueGetString(&value, &length);
+	string = valueGetString(&value);
 	TestCase_assert(string != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(length == 0, "Expected 0 but got " SIZE_T_FORMAT, length);
 	TestCase_assert(!strcmp(string, ""), "Expected \"\" but got \"%s\"", string);
 	valueDispose(&value);
 	value = valueCreateString("abc", DATA_USE_STRLEN, false, false);
-	string = valueGetString(&value, &length);
+	string = valueGetString(&value);
 	TestCase_assert(string != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(length == 3, "Expected 3 but got " SIZE_T_FORMAT, length);
 	TestCase_assert(!strcmp(string, "abc"), "Expected \"abc\" but got \"%s\"", string);
 	valueDispose(&value);
 	
@@ -531,27 +527,24 @@ static void testCopy() {
 	value = valueCreateString("", DATA_USE_STRLEN, false, false);
 	copy = valueCopy(&value);
 	TestCase_assert(copy.type == DATA_TYPE_STRING, "Expected %d but got %d", DATA_TYPE_STRING, copy.type);
-	TestCase_assert(copy.value.string.bytes != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(copy.value.string.length == 0, "Expected 0 but got " SIZE_T_FORMAT, copy.value.string.length);
-	TestCase_assert(!strcmp(copy.value.string.bytes, ""), "Expected \"\" but got \"%s\"", copy.value.string.bytes);
+	TestCase_assert(copy.value.string != NULL, "Expected non-NULL but got NULL");
+	TestCase_assert(!strcmp(copy.value.string, ""), "Expected \"\" but got \"%s\"", copy.value.string);
 	valueDispose(&value);
 	valueDispose(&copy);
 	value = valueCreateString("abc", DATA_USE_STRLEN, false, false);
 	copy = valueCopy(&value);
 	TestCase_assert(copy.type == DATA_TYPE_STRING, "Expected %d but got %d", DATA_TYPE_STRING, copy.type);
-	TestCase_assert(copy.value.string.bytes != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(copy.value.string.length == 3, "Expected 3 but got " SIZE_T_FORMAT, copy.value.string.length);
-	TestCase_assert(!strcmp(copy.value.string.bytes, "abc"), "Expected \"abc\" but got \"%s\"", copy.value.string.bytes);
-	TestCase_assert(copy.value.string.bytes == value.value.string.bytes, "Expected %p but got %p", value.value.string.bytes, copy.value.string.bytes);
+	TestCase_assert(copy.value.string != NULL, "Expected non-NULL but got NULL");
+	TestCase_assert(!strcmp(copy.value.string, "abc"), "Expected \"abc\" but got \"%s\"", copy.value.string);
+	TestCase_assert(copy.value.string == value.value.string, "Expected %p but got %p", value.value.string, copy.value.string);
 	valueDispose(&value);
 	valueDispose(&copy);
 	value = valueCreateString("abc", DATA_USE_STRLEN, true, true);
 	copy = valueCopy(&value);
 	TestCase_assert(copy.type == DATA_TYPE_STRING, "Expected %d but got %d", DATA_TYPE_STRING, copy.type);
-	TestCase_assert(copy.value.string.bytes != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(copy.value.string.length == 3, "Expected 3 but got " SIZE_T_FORMAT, copy.value.string.length);
-	TestCase_assert(!strcmp(copy.value.string.bytes, "abc"), "Expected \"abc\" but got \"%s\"", copy.value.string.bytes);
-	TestCase_assert(copy.value.string.bytes != value.value.string.bytes, "Expected pointers to differ, but both are %p", copy.value.string.bytes);
+	TestCase_assert(copy.value.string != NULL, "Expected non-NULL but got NULL");
+	TestCase_assert(!strcmp(copy.value.string, "abc"), "Expected \"abc\" but got \"%s\"", copy.value.string);
+	TestCase_assert(copy.value.string != value.value.string, "Expected pointers to differ, but both are %p", copy.value.string);
 	valueDispose(&value);
 	valueDispose(&copy);
 	
@@ -592,7 +585,7 @@ static void testCopy() {
 	value = valueCreateHashTable(hashTable, true, true);
 	copy = valueCopy(&value);
 	TestCase_assert(copy.type == DATA_TYPE_HASH_TABLE, "Expected %d but got %d", DATA_TYPE_HASH_TABLE, copy.type);
-	TestCase_assert(copy.value.hashTable->keyCount == 1, "Expected 1 but got " SIZE_T_FORMAT, copy.value.hashTable->keyCount);
+	TestCase_assert(copy.value.hashTable->count == 1, "Expected 1 but got " SIZE_T_FORMAT, copy.value.hashTable->count);
 	TestCase_assert(copy.value.hashTable != value.value.hashTable, "Expected pointers to differ, but both are %p", copy.value.hashTable);
 	valueDispose(&value);
 	valueDispose(&copy);
@@ -646,7 +639,7 @@ static void testCopy() {
 	float32 = valueGetFloat(&value); \
 	float64 = valueGetDouble(&value); \
 	pointer = valueGetPointer(&value); \
-	string = valueGetString(&value, NULL); \
+	string = valueGetString(&value); \
 	blob = valueGetBlob(&value, NULL); \
 	hashTable = valueGetHashTable(&value); \
 	array = valueGetArray(&value); \
@@ -793,7 +786,7 @@ static void testConversions() {
 	value = valueCreateString("abcd", 4, false, false);
 	getAllValues(value);
 	assertAllPrimitiveTypes(false, 0, 0.0);
-	assertAllPointerTypesSeparate(value.value.string.bytes, value.value.string.bytes, value.value.string.bytes, NULL, NULL, NULL);
+	assertAllPointerTypesSeparate(value.value.string, value.value.string, value.value.string, NULL, NULL, NULL);
 	
 	value = valueCreateBlob(NULL, 0, false, false);
 	getAllValues(value);

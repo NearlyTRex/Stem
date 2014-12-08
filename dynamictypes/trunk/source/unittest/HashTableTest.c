@@ -9,7 +9,7 @@ static void testCreate() {
 	
 	hashTable = hashCreate();
 	TestCase_assert(hashTable != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(hashTable->keyCount == 0, "Expected 0 but got " SIZE_T_FORMAT, hashTable->keyCount);
+	TestCase_assert(hashTable->count == 0, "Expected 0 but got " SIZE_T_FORMAT, hashTable->count);
 	hashDispose(hashTable);
 }
 
@@ -19,7 +19,7 @@ static void testCreateWithKeysAndValues() {
 	
 	hashTable = hashCreateWithKeysAndValues("a", valueCreateBoolean(false), NULL);
 	TestCase_assert(hashTable != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(hashTable->keyCount == 1, "Expected 1 but got " SIZE_T_FORMAT, hashTable->keyCount);
+	TestCase_assert(hashTable->count == 1, "Expected 1 but got " SIZE_T_FORMAT, hashTable->count);
 	value = hashGet(hashTable, "a");
 	TestCase_assert(value != NULL, "Expected non-NULL but got NULL");
 	TestCase_assert(value->type == DATA_TYPE_BOOLEAN, "Expected %d but got %d", DATA_TYPE_BOOLEAN, value->type);
@@ -28,7 +28,7 @@ static void testCreateWithKeysAndValues() {
 	
 	hashTable = hashCreateWithKeysAndValues("b", valueCreateBoolean(true), "foo", valueCreateInt8(2), NULL);
 	TestCase_assert(hashTable != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(hashTable->keyCount == 2, "Expected 2 but got " SIZE_T_FORMAT, hashTable->keyCount);
+	TestCase_assert(hashTable->count == 2, "Expected 2 but got " SIZE_T_FORMAT, hashTable->count);
 	value = hashGet(hashTable, "b");
 	TestCase_assert(value != NULL, "Expected non-NULL but got NULL");
 	TestCase_assert(value->type == DATA_TYPE_BOOLEAN, "Expected %d but got %d", DATA_TYPE_BOOLEAN, value->type);
@@ -62,9 +62,9 @@ static void testAccessors() {
 	
 	// Set values
 	hashSet(hashTable, "value1", valueCreateBoolean(false));
-	TestCase_assert(hashTable->keyCount == 1, "Expected 1 but got " SIZE_T_FORMAT, hashTable->keyCount);
+	TestCase_assert(hashTable->count == 1, "Expected 1 but got " SIZE_T_FORMAT, hashTable->count);
 	hashSet(hashTable, "value2", valueCreateBoolean(true));
-	TestCase_assert(hashTable->keyCount == 2, "Expected 2 but got " SIZE_T_FORMAT, hashTable->keyCount);
+	TestCase_assert(hashTable->count == 2, "Expected 2 but got " SIZE_T_FORMAT, hashTable->count);
 	
 	// Verify table full
 	keyPresent = hashHas(hashTable, "value1");
@@ -93,7 +93,7 @@ static void testCopy() {
 	hashTableCopy = hashCopy(hashTable);
 	TestCase_assert(hashTableCopy != NULL, "Expected non-NULL but got NULL");
 	TestCase_assert(hashTableCopy != hashTable, "Expected pointers to differ, but they didn't");
-	TestCase_assert(hashTable->keyCount == hashTableCopy->keyCount, "Expected " SIZE_T_FORMAT " but got " SIZE_T_FORMAT, hashTable->keyCount, hashTableCopy->keyCount);
+	TestCase_assert(hashTable->count == hashTableCopy->count, "Expected " SIZE_T_FORMAT " but got " SIZE_T_FORMAT, hashTable->count, hashTableCopy->count);
 	hashDispose(hashTable);
 	hashDispose(hashTableCopy);
 	
@@ -110,7 +110,7 @@ static void testCopy() {
 	TestCase_assert(hashTableCopy != NULL, "Expected non-NULL but got NULL");
 	TestCase_assert(hashTableCopy != hashTable, "Expected pointers to differ, but they didn't");
 	
-	TestCase_assert(hashTable->keyCount == hashTableCopy->keyCount, "Expected " SIZE_T_FORMAT " but got " SIZE_T_FORMAT, hashTable->keyCount, hashTableCopy->keyCount);
+	TestCase_assert(hashTable->count == hashTableCopy->count, "Expected " SIZE_T_FORMAT " but got " SIZE_T_FORMAT, hashTable->count, hashTableCopy->count);
 	
 	string = hashGet(hashTable, "a");
 	stringCopy = hashGet(hashTableCopy, "a");
@@ -118,11 +118,9 @@ static void testCopy() {
 	TestCase_assert(stringCopy != NULL, "Expected non-NULL but got NULL");
 	TestCase_assert(string->type == DATA_TYPE_STRING, "Expected %d but got %d", DATA_TYPE_STRING, string->type);
 	TestCase_assert(stringCopy->type == DATA_TYPE_STRING, "Expected %d but got %d", DATA_TYPE_STRING, stringCopy->type);
-	TestCase_assert(string->value.string.length == 5, "Expected 5 but got " SIZE_T_FORMAT, string->value.string.length);
-	TestCase_assert(stringCopy->value.string.length == 5, "Expected 5 but got " SIZE_T_FORMAT, stringCopy->value.string.length);
-	TestCase_assert(!strcmp(string->value.string.bytes, "hello"), "Expected \"hello\" but got \"%s\"", string->value.string.bytes);
-	TestCase_assert(!strcmp(stringCopy->value.string.bytes, "hello"), "Expected \"hello\" but got \"%s\"", stringCopy->value.string.bytes);
-	TestCase_assert(string->value.string.bytes != stringCopy->value.string.bytes, "Expected pointers to differ, but they didn't");
+	TestCase_assert(!strcmp(string->value.string, "hello"), "Expected \"hello\" but got \"%s\"", string->value.string);
+	TestCase_assert(!strcmp(stringCopy->value.string, "hello"), "Expected \"hello\" but got \"%s\"", stringCopy->value.string);
+	TestCase_assert(string->value.string != stringCopy->value.string, "Expected pointers to differ, but they didn't");
 	
 	blob = hashGet(hashTable, "b");
 	blobCopy = hashGet(hashTableCopy, "b");
@@ -138,8 +136,8 @@ static void testCopy() {
 	subtableValueCopy = hashGet(hashTableCopy, "c");
 	TestCase_assert(subtableValue != NULL, "Expected non-NULL but got NULL");
 	TestCase_assert(subtableValueCopy != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(subtableValue->value.hashTable->keyCount == 2, "Expected 2 but got " SIZE_T_FORMAT, subtableValue->value.hashTable->keyCount);
-	TestCase_assert(subtableValueCopy->value.hashTable->keyCount == 2, "Expected 2 but got " SIZE_T_FORMAT, subtableValueCopy->value.hashTable->keyCount);
+	TestCase_assert(subtableValue->value.hashTable->count == 2, "Expected 2 but got " SIZE_T_FORMAT, subtableValue->value.hashTable->count);
+	TestCase_assert(subtableValueCopy->value.hashTable->count == 2, "Expected 2 but got " SIZE_T_FORMAT, subtableValueCopy->value.hashTable->count);
 	TestCase_assert(subtableValue->value.hashTable != subtableValueCopy->value.hashTable, "Expected pointers to differ, but they didn't");
 	
 	hashDispose(hashTable);
@@ -156,24 +154,24 @@ static void testReplaceValues() {
 	hash = hashCreate();
 	hashSet(hash, "a", valueCreateInt32(1));
 	hashSet(hash, "b", valueCreateInt32(2));
-	TestCase_assert(hash->keyCount == 2, "Expected 2 but got " SIZE_T_FORMAT, hash->keyCount);
+	TestCase_assert(hash->count == 2, "Expected 2 but got " SIZE_T_FORMAT, hash->count);
 	int32Value = hashGet(hash, "b");
 	TestCase_assert(int32Value->value.int32 == 2, "Expected 2 but got %d", int32Value->value.int32);
 	
 	hashSet(hash, "b", valueCreateInt32(3));
-	TestCase_assert(hash->keyCount == 2, "Expected 2 but got " SIZE_T_FORMAT, hash->keyCount);
+	TestCase_assert(hash->count == 2, "Expected 2 but got " SIZE_T_FORMAT, hash->count);
 	int32Value = hashGet(hash, "b");
 	TestCase_assert(int32Value->value.int32 == 3, "Expected 3 but got %d", int32Value->value.int32);
 	
 	hashSet(hash, "a", valueCreateString("hello", DATA_USE_STRLEN, false, false));
-	TestCase_assert(hash->keyCount == 2, "Expected 2 but got " SIZE_T_FORMAT, hash->keyCount);
+	TestCase_assert(hash->count == 2, "Expected 2 but got " SIZE_T_FORMAT, hash->count);
 	stringValue = hashGet(hash, "a");
 	TestCase_assert(stringValue != NULL, "Expected non-NULL but got NULL");
 	TestCase_assert(stringValue->type == DATA_TYPE_STRING, "Expected %d but got %d", DATA_TYPE_STRING, stringValue->type);
-	TestCase_assert(!strcmp(stringValue->value.string.bytes, "hello"), "Expected \"hello\" but got \"%s\"", stringValue->value.string.bytes);
+	TestCase_assert(!strcmp(stringValue->value.string, "hello"), "Expected \"hello\" but got \"%s\"", stringValue->value.string);
 	
 	hashSet(hash, "a", valueCreateInt32(1));
-	TestCase_assert(hash->keyCount == 2, "Expected 2 but got " SIZE_T_FORMAT, hash->keyCount);
+	TestCase_assert(hash->count == 2, "Expected 2 but got " SIZE_T_FORMAT, hash->count);
 	int32Value = hashGet(hash, "a");
 	TestCase_assert(int32Value->value.int32 == 1, "Expected 1 but got %d", int32Value->value.int32);
 	
@@ -193,14 +191,14 @@ static void testDeleteValues() {
 	hashSet(hash, "a", valueCreateInt32(1));
 	hashSet(hash, "b", valueCreateInt32(2));
 	hashSet(hash, "c", valueCreateInt32(3));
-	TestCase_assert(hash->keyCount == 3, "Expected 3 but got " SIZE_T_FORMAT, hash->keyCount);
+	TestCase_assert(hash->count == 3, "Expected 3 but got " SIZE_T_FORMAT, hash->count);
 	
 	found = hashDelete(hash, "d");
 	TestCase_assert(!found, "Expected false but got true");
 	
 	found = hashDelete(hash, "b");
 	TestCase_assert(found, "Expected true but got false");
-	TestCase_assert(hash->keyCount == 2, "Expected 2 but got " SIZE_T_FORMAT, hash->keyCount);
+	TestCase_assert(hash->count == 2, "Expected 2 but got " SIZE_T_FORMAT, hash->count);
 	TestCase_assert(!hashHas(hash, "b"), "Expected false but got true");
 	keys = hashGetKeys(hash, &count);
 	TestCase_assert(count == 2, "Expected 2 but got " SIZE_T_FORMAT, count);
@@ -212,7 +210,7 @@ static void testDeleteValues() {
 	
 	found = hashDelete(hash, "a");
 	TestCase_assert(found, "Expected true but got false");
-	TestCase_assert(hash->keyCount == 1, "Expected 1 but got " SIZE_T_FORMAT, hash->keyCount);
+	TestCase_assert(hash->count == 1, "Expected 1 but got " SIZE_T_FORMAT, hash->count);
 	TestCase_assert(!hashHas(hash, "a"), "Expected false but got true");
 	keys = hashGetKeys(hash, &count);
 	TestCase_assert(count == 1, "Expected 1 but got " SIZE_T_FORMAT, count);

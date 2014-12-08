@@ -44,7 +44,7 @@ struct HashTableBucket {
 struct HashTable {
 	size_t bucketCount;
 	struct HashTableBucket * buckets;
-	size_t keyCount;
+	size_t count;
 };
 
 /** Returns an empty hash table. */
@@ -76,7 +76,7 @@ DataValue * hashGet(HashTable * hash, const char * key);
 void hashSet(HashTable * hash, const char * key, DataValue value);
 
 /** Returns an array containing all keys that exist in the hash table. The caller is responsible for freeing
-    the returned pointer. However, the elements contained in this array must NOT be freed, only the array
+    the returned pointer. However, the elements contained in this array must NOT be freed; only the array
     itself.
     
     Although you can pass NULL for outCount and count the items with hashGetCount, it's recommended to instead

@@ -63,7 +63,7 @@ static void testInit() {
 
 #define assertStringInArray(VALUE, INDEX, EXPECTED_VALUE) \
 	TestCase_assert(VALUE.array->values[INDEX].type == DATA_TYPE_STRING, "Expected %d but got %d", DATA_TYPE_STRING, VALUE.array->values[INDEX].type); \
-	TestCase_assert(!strcmp(VALUE.array->values[INDEX].value.string.bytes, EXPECTED_VALUE), "Expected " EXPECTED_VALUE " but got %d", VALUE.array->values[INDEX].value.string.bytes)
+	TestCase_assert(!strcmp(VALUE.array->values[INDEX].value.string, EXPECTED_VALUE), "Expected " EXPECTED_VALUE " but got %d", VALUE.array->values[INDEX].value.string)
 
 #define assertBlobInArray(VALUE, INDEX, EXPECTED_VALUE, LENGTH) \
 	TestCase_assert(VALUE.array->values[INDEX].type == DATA_TYPE_BLOB, "Expected %d but got %d", DATA_TYPE_BLOB, VALUE.array->values[INDEX].type); \
@@ -168,7 +168,7 @@ static void testValuesInArray() {
 	value = hashGet(VALUE.hashTable, KEY); \
 	TestCase_assert(value != NULL, "Expected non-NULL but got NULL"); \
 	TestCase_assert(value->type == DATA_TYPE_STRING, "Expected %d but got %d", DATA_TYPE_STRING, value->type); \
-	TestCase_assert(!strcmp(value->value.string.bytes, EXPECTED_VALUE), "Expected " EXPECTED_VALUE " but got %d", value->value.string.bytes)
+	TestCase_assert(!strcmp(value->value.string, EXPECTED_VALUE), "Expected " EXPECTED_VALUE " but got %d", value->value.string)
 
 #define assertBlobInHashTable(VALUE, KEY, EXPECTED_VALUE, LENGTH) \
 	value = hashGet(VALUE.hashTable, KEY); \
@@ -224,7 +224,7 @@ static void testValuesInHashTable() {
 	result = DataSerializationContext_result(context);
 	TestCase_assert(result.type == DATA_TYPE_HASH_TABLE, "Expected %d but got %d", DATA_TYPE_HASH_TABLE, result.type);
 	TestCase_assert(result.value.hashTable != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(result.value.hashTable->keyCount == 36, "Expected 36 but got " SIZE_T_FORMAT, result.value.hashTable->keyCount);
+	TestCase_assert(result.value.hashTable->count == 36, "Expected 36 but got " SIZE_T_FORMAT, result.value.hashTable->count);
 	assertDataValueInHashTable(result.value, "bool_0", DATA_TYPE_BOOLEAN, false, boolean);
 	assertDataValueInHashTable(result.value, "bool_1", DATA_TYPE_BOOLEAN, true, boolean);
 	assertDataValueInHashTable(result.value, "int8_0", DATA_TYPE_INT8, 0, int8);
@@ -272,7 +272,7 @@ static void testValuesInHashTable() {
 
 #define assertStringInAssociativeArray(VALUE, INDEX, KEY, EXPECTED_VALUE) \
 	TestCase_assert(VALUE.associativeArray->values[INDEX].type == DATA_TYPE_STRING, "Expected %d but got %d", DATA_TYPE_STRING, VALUE.associativeArray->values[INDEX].type); \
-	TestCase_assert(!strcmp(VALUE.associativeArray->values[INDEX].value.string.bytes, EXPECTED_VALUE), "Expected " EXPECTED_VALUE " but got %d", VALUE.associativeArray->values[INDEX].value.string.bytes); \
+	TestCase_assert(!strcmp(VALUE.associativeArray->values[INDEX].value.string, EXPECTED_VALUE), "Expected " EXPECTED_VALUE " but got %d", VALUE.associativeArray->values[INDEX].value.string); \
 	TestCase_assert(!strcmp(VALUE.associativeArray->keys[INDEX], KEY), "Expected \"%s\" but got \"%s\"", KEY, VALUE.associativeArray->keys[INDEX])
 
 #define assertBlobInAssociativeArray(VALUE, INDEX, KEY, EXPECTED_VALUE, LENGTH) \
@@ -405,7 +405,7 @@ static void testHierarchy() {
 	TestCase_assert(!strcmp(result.value.associativeArray->keys[3], "struct_0"), "Expected \"struct_0\" but got \"%s\"", result.value.associativeArray->keys[3]);
 	TestCase_assert(result.value.associativeArray->values[3].type == DATA_TYPE_HASH_TABLE, "Expected %d but got %d", DATA_TYPE_HASH_TABLE, result.value.associativeArray->values[3].type);
 	TestCase_assert(result.value.associativeArray->values[3].value.hashTable != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(result.value.associativeArray->values[3].value.hashTable->keyCount == 2, "Expected 2 but got " SIZE_T_FORMAT, result.value.associativeArray->values[3].value.hashTable->keyCount);
+	TestCase_assert(result.value.associativeArray->values[3].value.hashTable->count == 2, "Expected 2 but got " SIZE_T_FORMAT, result.value.associativeArray->values[3].value.hashTable->count);
 	TestCase_assert(!strcmp(result.value.associativeArray->keys[4], "dictionary_1"), "Expected \"dictionary_1\" but got \"%s\"", result.value.associativeArray->keys[4]);
 	TestCase_assert(result.value.associativeArray->values[4].type == DATA_TYPE_ASSOCIATIVE_ARRAY, "Expected %d but got %d", DATA_TYPE_ASSOCIATIVE_ARRAY, result.value.associativeArray->values[4].type);
 	TestCase_assert(result.value.associativeArray->values[4].value.associativeArray != NULL, "Expected non-NULL but got NULL");

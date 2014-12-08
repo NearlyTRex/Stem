@@ -93,15 +93,14 @@ DataValue valueCreateString(const char * value, size_t length, bool takeOwnershi
 	DataValue result;
 	
 	result.type = DATA_TYPE_STRING;
-	if (copy) {
-		result.value.string.bytes = strndup(value, length);
-	} else {
-		result.value.string.bytes = value;
-	}
 	if (length == DATA_USE_STRLEN) {
 		length = strlen(value);
 	}
-	result.value.string.length = length;
+	if (copy) {
+		result.value.string = strndup(value, length);
+	} else {
+		result.value.string = value;
+	}
 	result.owned = takeOwnership;
 	return result;
 }
@@ -166,7 +165,7 @@ DataValue valueCopy(DataValue * value) {
 	if (copy.owned) {
 		switch (copy.type) {
 			case DATA_TYPE_STRING:
-				copy.value.string.bytes = strndup(copy.value.string.bytes, copy.value.string.length);
+				copy.value.string = strdup(copy.value.string);
 				break;
 				
 			case DATA_TYPE_BLOB: {
@@ -276,7 +275,7 @@ void * valueGetPointer(DataValue * value) {
 		case DATA_TYPE_POINTER:
 			return value->value.pointer;
 		case DATA_TYPE_STRING:
-			return (void *) value->value.string.bytes;
+			return (void *) value->value.string;
 		case DATA_TYPE_BLOB:
 			return (void *) value->value.blob.bytes;
 		case DATA_TYPE_HASH_TABLE:
@@ -290,22 +289,19 @@ void * valueGetPointer(DataValue * value) {
 	}
 }
 
-const char * valueGetString(DataValue * value, size_t * outLength) {
+const char * valueGetString(DataValue * value) {
 	if (value->type != DATA_TYPE_STRING) {
 		return NULL;
 	}
-	if (outLength != NULL) {
-		*outLength = value->value.string.length;
-	}
-	return value->value.string.bytes;
+	return value->value.string;
 }
 
 const void * valueGetBlob(DataValue * value, size_t * outLength) {
 	if (value->type == DATA_TYPE_STRING) {
 		if (outLength != NULL) {
-			*outLength = value->value.string.length;
+			*outLength = strlen(value->value.string);
 		}
-		return value->value.string.bytes;
+		return value->value.string;
 	}
 	if (value->type != DATA_TYPE_BLOB) {
 		return NULL;

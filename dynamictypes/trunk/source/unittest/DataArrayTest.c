@@ -150,10 +150,9 @@ static void testCopy() {
 	copy = arrayCopy(array);
 	TestCase_assert(copy->count == 1, "Expected 1 but got " SIZE_T_FORMAT, copy->count);
 	TestCase_assert(copy->values[0].type == DATA_TYPE_STRING, "Expected %d but got %d", DATA_TYPE_STRING, copy->values[0].type);
-	TestCase_assert(copy->values[0].value.string.bytes != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(copy->values[0].value.string.length == 3, "Expected 3 but got " SIZE_T_FORMAT, copy->values[0].value.string.length);
-	TestCase_assert(!strcmp(copy->values[0].value.string.bytes, "foo"), "Expected \"foo\" but got \"%s\"", copy->values[0].value.string.bytes);
-	TestCase_assert(copy->values[0].value.string.bytes != array->values[0].value.string.bytes, "Expected pointers to differ, but both are %p", copy->values[0].value.string.bytes);
+	TestCase_assert(copy->values[0].value.string != NULL, "Expected non-NULL but got NULL");
+	TestCase_assert(!strcmp(copy->values[0].value.string, "foo"), "Expected \"foo\" but got \"%s\"", copy->values[0].value.string);
+	TestCase_assert(copy->values[0].value.string != array->values[0].value.string, "Expected pointers to differ, but both are %p", copy->values[0].value.string);
 	
 	arrayDispose(copy);
 	arrayDispose(array);

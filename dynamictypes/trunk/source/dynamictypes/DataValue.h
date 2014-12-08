@@ -72,10 +72,7 @@ struct DataValue {
 		float float32;
 		double float64;
 		void * pointer;
-		struct {
-			const char * bytes;
-			size_t length;
-		} string;
+		const char * string;
 		struct {
 			const void * bytes;
 			size_t length;
@@ -139,7 +136,7 @@ uint64_t valueGetUInt64(DataValue * value);
 float valueGetFloat(DataValue * value);
 double valueGetDouble(DataValue * value);
 void * valueGetPointer(DataValue * value);
-const char * valueGetString(DataValue * value, size_t * outLength);
+const char * valueGetString(DataValue * value);
 const void * valueGetBlob(DataValue * value, size_t * outLength);
 struct HashTable * valueGetHashTable(DataValue * value);
 struct DataArray * valueGetArray(DataValue * value);
