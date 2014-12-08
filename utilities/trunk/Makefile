@@ -204,6 +204,7 @@ SOURCES_testharness = \
 INCLUDES = \
 	source/${PROJECT_NAME}/Atom.h \
 	source/${PROJECT_NAME}/AutoFreePool.h \
+	source/${PROJECT_NAME}/Base64.h \
 	source/${PROJECT_NAME}/EventDispatcher.h \
 	source/${PROJECT_NAME}/FixedIntervalRunLoop.h \
 	source/${PROJECT_NAME}/IOUtilities.h \
