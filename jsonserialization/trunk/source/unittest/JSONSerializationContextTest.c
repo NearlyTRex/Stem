@@ -8,75 +8,49 @@
 #include <stdint.h>
 #include <unistd.h>
 
+static void verifyInit(JSONSerializationContext * context) {
+	TestCase_assert(context->jmpBuf == NULL, "Expected NULL but got %p", context->jmpBuf);
+	TestCase_assert(context->status == SERIALIZATION_ERROR_OK, "Expected %d but got %d", SERIALIZATION_ERROR_OK, context->status);
+	TestCase_assert(context->dispose == JSONSerializationContext_dispose, "Expected %p but got %p", JSONSerializationContext_dispose, context->dispose);
+	TestCase_assert(context->errorString == JSONSerialization_errorString, "Expected %p but got %p", JSONSerialization_errorString, context->errorString);
+	TestCase_assert(context->beginStructure == JSONSerializationContext_beginStructure, "Expected %p but got %p", JSONSerializationContext_beginStructure, context->beginStructure);
+	TestCase_assert(context->beginDictionary == JSONSerializationContext_beginDictionary, "Expected %p but got %p", JSONSerializationContext_beginDictionary, context->beginDictionary);
+	TestCase_assert(context->beginArray == JSONSerializationContext_beginArray, "Expected %p but got %p", JSONSerializationContext_beginArray, context->beginArray);
+	TestCase_assert(context->endStructure == JSONSerializationContext_endStructure, "Expected %p but got %p", JSONSerializationContext_endStructure, context->endStructure);
+	TestCase_assert(context->endDictionary == JSONSerializationContext_endDictionary, "Expected %p but got %p", JSONSerializationContext_endDictionary, context->endDictionary);
+	TestCase_assert(context->endArray == JSONSerializationContext_endArray, "Expected %p but got %p", JSONSerializationContext_endArray, context->endArray);
+	TestCase_assert(context->writeBoolean == JSONSerializationContext_writeBoolean, "Expected %p but got %p", JSONSerializationContext_writeBoolean, context->writeBoolean);
+	TestCase_assert(context->writeInt8 == JSONSerializationContext_writeInt8, "Expected %p but got %p", JSONSerializationContext_writeInt8, context->writeInt8);
+	TestCase_assert(context->writeUInt8 == JSONSerializationContext_writeUInt8, "Expected %p but got %p", JSONSerializationContext_writeUInt8, context->writeUInt8);
+	TestCase_assert(context->writeInt16 == JSONSerializationContext_writeInt16, "Expected %p but got %p", JSONSerializationContext_writeInt16, context->writeInt16);
+	TestCase_assert(context->writeUInt16 == JSONSerializationContext_writeUInt16, "Expected %p but got %p", JSONSerializationContext_writeUInt16, context->writeUInt16);
+	TestCase_assert(context->writeInt32 == JSONSerializationContext_writeInt32, "Expected %p but got %p", JSONSerializationContext_writeInt32, context->writeInt32);
+	TestCase_assert(context->writeUInt32 == JSONSerializationContext_writeUInt32, "Expected %p but got %p", JSONSerializationContext_writeUInt32, context->writeUInt32);
+	TestCase_assert(context->writeInt64 == JSONSerializationContext_writeInt64, "Expected %p but got %p", JSONSerializationContext_writeInt64, context->writeInt64);
+	TestCase_assert(context->writeUInt64 == JSONSerializationContext_writeUInt64, "Expected %p but got %p", JSONSerializationContext_writeUInt64, context->writeUInt64);
+	TestCase_assert(context->writeFloat == JSONSerializationContext_writeFloat, "Expected %p but got %p", JSONSerializationContext_writeFloat, context->writeFloat);
+	TestCase_assert(context->writeDouble == JSONSerializationContext_writeDouble, "Expected %p but got %p", JSONSerializationContext_writeDouble, context->writeDouble);
+	TestCase_assert(context->writeEnumeration == JSONSerializationContext_writeEnumeration, "Expected %p but got %p", JSONSerializationContext_writeEnumeration, context->writeEnumeration);
+	TestCase_assert(context->writeBitfield8 == JSONSerializationContext_writeBitfield8, "Expected %p but got %p", JSONSerializationContext_writeBitfield8, context->writeBitfield8);
+	TestCase_assert(context->writeBitfield16 == JSONSerializationContext_writeBitfield16, "Expected %p but got %p", JSONSerializationContext_writeBitfield16, context->writeBitfield16);
+	TestCase_assert(context->writeBitfield32 == JSONSerializationContext_writeBitfield32, "Expected %p but got %p", JSONSerializationContext_writeBitfield32, context->writeBitfield32);
+	TestCase_assert(context->writeBitfield64 == JSONSerializationContext_writeBitfield64, "Expected %p but got %p", JSONSerializationContext_writeBitfield64, context->writeBitfield64);
+	TestCase_assert(context->writeString == JSONSerializationContext_writeString, "Expected %p but got %p", JSONSerializationContext_writeString, context->writeString);
+	TestCase_assert(context->writeBlob == JSONSerializationContext_writeBlob, "Expected %p but got %p", JSONSerializationContext_writeBlob, context->writeBlob);
+}
+
 static void testInit() {
 	JSONSerializationContext context, * contextPtr;
 	
 	memset(&context, 0, sizeof(context));
 	JSONSerializationContext_init(&context);
-	TestCase_assert(context.jmpBuf == NULL, "Expected NULL but got %p", context.jmpBuf);
-	TestCase_assert(context.status == SERIALIZATION_ERROR_OK, "Expected %d but got %d", SERIALIZATION_ERROR_OK, context.status);
-	TestCase_assert(context.dispose == JSONSerializationContext_dispose, "Expected %p but got %p", JSONSerializationContext_dispose, context.dispose);
-	TestCase_assert(context.errorString == JSONSerialization_errorString, "Expected %p but got %p", JSONSerialization_errorString, context.errorString);
-	TestCase_assert(context.beginStructure == JSONSerializationContext_beginStructure, "Expected %p but got %p", JSONSerializationContext_beginStructure, context.beginStructure);
-	TestCase_assert(context.beginDictionary == JSONSerializationContext_beginDictionary, "Expected %p but got %p", JSONSerializationContext_beginDictionary, context.beginDictionary);
-	TestCase_assert(context.beginArray == JSONSerializationContext_beginArray, "Expected %p but got %p", JSONSerializationContext_beginArray, context.beginArray);
-	TestCase_assert(context.endStructure == JSONSerializationContext_endStructure, "Expected %p but got %p", JSONSerializationContext_endStructure, context.endStructure);
-	TestCase_assert(context.endDictionary == JSONSerializationContext_endDictionary, "Expected %p but got %p", JSONSerializationContext_endDictionary, context.endDictionary);
-	TestCase_assert(context.endArray == JSONSerializationContext_endArray, "Expected %p but got %p", JSONSerializationContext_endArray, context.endArray);
-	TestCase_assert(context.writeInt8 == JSONSerializationContext_writeInt8, "Expected %p but got %p", JSONSerializationContext_writeInt8, context.writeInt8);
-	TestCase_assert(context.writeUInt8 == JSONSerializationContext_writeUInt8, "Expected %p but got %p", JSONSerializationContext_writeUInt8, context.writeUInt8);
-	TestCase_assert(context.writeInt16 == JSONSerializationContext_writeInt16, "Expected %p but got %p", JSONSerializationContext_writeInt16, context.writeInt16);
-	TestCase_assert(context.writeUInt16 == JSONSerializationContext_writeUInt16, "Expected %p but got %p", JSONSerializationContext_writeUInt16, context.writeUInt16);
-	TestCase_assert(context.writeInt32 == JSONSerializationContext_writeInt32, "Expected %p but got %p", JSONSerializationContext_writeInt32, context.writeInt32);
-	TestCase_assert(context.writeUInt32 == JSONSerializationContext_writeUInt32, "Expected %p but got %p", JSONSerializationContext_writeUInt32, context.writeUInt32);
-	TestCase_assert(context.writeInt64 == JSONSerializationContext_writeInt64, "Expected %p but got %p", JSONSerializationContext_writeInt64, context.writeInt64);
-	TestCase_assert(context.writeUInt64 == JSONSerializationContext_writeUInt64, "Expected %p but got %p", JSONSerializationContext_writeUInt64, context.writeUInt64);
-	TestCase_assert(context.writeFloat == JSONSerializationContext_writeFloat, "Expected %p but got %p", JSONSerializationContext_writeFloat, context.writeFloat);
-	TestCase_assert(context.writeDouble == JSONSerializationContext_writeDouble, "Expected %p but got %p", JSONSerializationContext_writeDouble, context.writeDouble);
-	TestCase_assert(context.writeString == JSONSerializationContext_writeString, "Expected %p but got %p", JSONSerializationContext_writeString, context.writeString);
-	TestCase_assert(context.writeBoolean == JSONSerializationContext_writeBoolean, "Expected %p but got %p", JSONSerializationContext_writeBoolean, context.writeBoolean);
-	TestCase_assert(context.writeEnumeration == JSONSerializationContext_writeEnumeration, "Expected %p but got %p", JSONSerializationContext_writeEnumeration, context.writeEnumeration);
-	TestCase_assert(context.writeBitfield8 == JSONSerializationContext_writeBitfield8, "Expected %p but got %p", JSONSerializationContext_writeBitfield8, context.writeBitfield8);
-	TestCase_assert(context.writeBitfield16 == JSONSerializationContext_writeBitfield16, "Expected %p but got %p", JSONSerializationContext_writeBitfield16, context.writeBitfield16);
-	TestCase_assert(context.writeBitfield32 == JSONSerializationContext_writeBitfield32, "Expected %p but got %p", JSONSerializationContext_writeBitfield32, context.writeBitfield32);
-	TestCase_assert(context.writeBitfield64 == JSONSerializationContext_writeBitfield64, "Expected %p but got %p", JSONSerializationContext_writeBitfield64, context.writeBitfield64);
-	TestCase_assert(context.writeToFile == JSONSerializationContext_writeToFile, "Expected %p but got %p", JSONSerializationContext_writeToFile, context.writeToFile);
-	TestCase_assert(context.writeToString == JSONSerializationContext_writeToString, "Expected %p but got %p", JSONSerializationContext_writeToString, context.writeToString);
-	TestCase_assert(context.writeToJSONNode == JSONSerializationContext_writeToJSONNode, "Expected %p but got %p", JSONSerializationContext_writeToJSONNode, context.writeToJSONNode);
+	verifyInit(&context);
+	JSONSerializationContext_dispose(&context);
 	
 	contextPtr = JSONSerializationContext_create();
 	TestCase_assert(contextPtr != NULL, "Expected non-NULL but got NULL");
 	if (contextPtr == NULL) {return;} // Suppress clang warning
-	TestCase_assert(contextPtr->jmpBuf == NULL, "Expected NULL but got %p", contextPtr->jmpBuf);
-	TestCase_assert(contextPtr->status == SERIALIZATION_ERROR_OK, "Expected %d but got %d", SERIALIZATION_ERROR_OK, contextPtr->status);
-	TestCase_assert(contextPtr->dispose == JSONSerializationContext_dispose, "Expected %p but got %p", JSONSerializationContext_dispose, contextPtr->dispose);
-	TestCase_assert(contextPtr->errorString == JSONSerialization_errorString, "Expected %p but got %p", JSONSerialization_errorString, contextPtr->errorString);
-	TestCase_assert(contextPtr->beginStructure == JSONSerializationContext_beginStructure, "Expected %p but got %p", JSONSerializationContext_beginStructure, contextPtr->beginStructure);
-	TestCase_assert(contextPtr->beginDictionary == JSONSerializationContext_beginDictionary, "Expected %p but got %p", JSONSerializationContext_beginDictionary, contextPtr->beginDictionary);
-	TestCase_assert(contextPtr->beginArray == JSONSerializationContext_beginArray, "Expected %p but got %p", JSONSerializationContext_beginArray, contextPtr->beginArray);
-	TestCase_assert(contextPtr->endStructure == JSONSerializationContext_endStructure, "Expected %p but got %p", JSONSerializationContext_endStructure, contextPtr->endStructure);
-	TestCase_assert(contextPtr->endDictionary == JSONSerializationContext_endDictionary, "Expected %p but got %p", JSONSerializationContext_endDictionary, contextPtr->endDictionary);
-	TestCase_assert(contextPtr->endArray == JSONSerializationContext_endArray, "Expected %p but got %p", JSONSerializationContext_endArray, contextPtr->endArray);
-	TestCase_assert(contextPtr->writeInt8 == JSONSerializationContext_writeInt8, "Expected %p but got %p", JSONSerializationContext_writeInt8, contextPtr->writeInt8);
-	TestCase_assert(contextPtr->writeUInt8 == JSONSerializationContext_writeUInt8, "Expected %p but got %p", JSONSerializationContext_writeUInt8, contextPtr->writeUInt8);
-	TestCase_assert(contextPtr->writeInt16 == JSONSerializationContext_writeInt16, "Expected %p but got %p", JSONSerializationContext_writeInt16, contextPtr->writeInt16);
-	TestCase_assert(contextPtr->writeUInt16 == JSONSerializationContext_writeUInt16, "Expected %p but got %p", JSONSerializationContext_writeUInt16, contextPtr->writeUInt16);
-	TestCase_assert(contextPtr->writeInt32 == JSONSerializationContext_writeInt32, "Expected %p but got %p", JSONSerializationContext_writeInt32, contextPtr->writeInt32);
-	TestCase_assert(contextPtr->writeUInt32 == JSONSerializationContext_writeUInt32, "Expected %p but got %p", JSONSerializationContext_writeUInt32, contextPtr->writeUInt32);
-	TestCase_assert(contextPtr->writeInt64 == JSONSerializationContext_writeInt64, "Expected %p but got %p", JSONSerializationContext_writeInt64, contextPtr->writeInt64);
-	TestCase_assert(contextPtr->writeUInt64 == JSONSerializationContext_writeUInt64, "Expected %p but got %p", JSONSerializationContext_writeUInt64, contextPtr->writeUInt64);
-	TestCase_assert(contextPtr->writeFloat == JSONSerializationContext_writeFloat, "Expected %p but got %p", JSONSerializationContext_writeFloat, contextPtr->writeFloat);
-	TestCase_assert(contextPtr->writeDouble == JSONSerializationContext_writeDouble, "Expected %p but got %p", JSONSerializationContext_writeDouble, contextPtr->writeDouble);
-	TestCase_assert(contextPtr->writeString == JSONSerializationContext_writeString, "Expected %p but got %p", JSONSerializationContext_writeString, contextPtr->writeString);
-	TestCase_assert(contextPtr->writeBoolean == JSONSerializationContext_writeBoolean, "Expected %p but got %p", JSONSerializationContext_writeBoolean, contextPtr->writeBoolean);
-	TestCase_assert(contextPtr->writeEnumeration == JSONSerializationContext_writeEnumeration, "Expected %p but got %p", JSONSerializationContext_writeEnumeration, contextPtr->writeEnumeration);
-	TestCase_assert(contextPtr->writeBitfield8 == JSONSerializationContext_writeBitfield8, "Expected %p but got %p", JSONSerializationContext_writeBitfield8, contextPtr->writeBitfield8);
-	TestCase_assert(contextPtr->writeBitfield16 == JSONSerializationContext_writeBitfield16, "Expected %p but got %p", JSONSerializationContext_writeBitfield16, contextPtr->writeBitfield16);
-	TestCase_assert(contextPtr->writeBitfield32 == JSONSerializationContext_writeBitfield32, "Expected %p but got %p", JSONSerializationContext_writeBitfield32, contextPtr->writeBitfield32);
-	TestCase_assert(contextPtr->writeBitfield64 == JSONSerializationContext_writeBitfield64, "Expected %p but got %p", JSONSerializationContext_writeBitfield64, contextPtr->writeBitfield64);
-	TestCase_assert(contextPtr->writeToFile == JSONSerializationContext_writeToFile, "Expected %p but got %p", JSONSerializationContext_writeToFile, contextPtr->writeToFile);
-	TestCase_assert(contextPtr->writeToString == JSONSerializationContext_writeToString, "Expected %p but got %p", JSONSerializationContext_writeToString, contextPtr->writeToString);
-	TestCase_assert(contextPtr->writeToJSONNode == JSONSerializationContext_writeToJSONNode, "Expected %p but got %p", JSONSerializationContext_writeToJSONNode, contextPtr->writeToJSONNode);
+	verifyInit(contextPtr);
 	contextPtr->dispose(contextPtr);
 }
 
@@ -89,7 +63,7 @@ static void testTopLevelContainers() {
 	if (context == NULL) {return;} // Suppress clang warning
 	context->beginStructure(context, "key");
 	context->endStructure(context);
-	node = context->writeToJSONNode(context);
+	node = JSONSerializationContext_writeToJSONNode(context);
 	context->dispose(context);
 	TestCase_assert(node != NULL, "Expected non-NULL but got NULL");
 	if (node == NULL) {return;} // Suppress clang warning
@@ -104,7 +78,7 @@ static void testTopLevelContainers() {
 	if (context == NULL) {return;} // Suppress clang warning
 	context->beginDictionary(context, "key");
 	context->endDictionary(context);
-	node = context->writeToJSONNode(context);
+	node = JSONSerializationContext_writeToJSONNode(context);
 	context->dispose(context);
 	TestCase_assert(node != NULL, "Expected non-NULL but got NULL");
 	if (node == NULL) {return;} // Suppress clang warning
@@ -119,7 +93,7 @@ static void testTopLevelContainers() {
 	if (context == NULL) {return;} // Suppress clang warning
 	context->beginArray(context, "key");
 	context->endArray(context);
-	node = context->writeToJSONNode(context);
+	node = JSONSerializationContext_writeToJSONNode(context);
 	context->dispose(context);
 	TestCase_assert(node != NULL, "Expected non-NULL but got NULL");
 	if (node == NULL) {return;} // Suppress clang warning
@@ -149,7 +123,7 @@ static void testNumberValues() {
 	context->writeFloat(context, "item", 8);
 	context->writeDouble(context, "item", 9);
 	context->endArray(context);
-	node = context->writeToJSONNode(context);
+	node = JSONSerializationContext_writeToJSONNode(context);
 	context->dispose(context);
 	TestCase_assert(node != NULL, "Expected non-NULL but got NULL");
 	if (node == NULL) {return;} // Suppress clang warning
@@ -204,7 +178,7 @@ static void testNumberValues() {
 	context->writeFloat(context, "item", FLT_MAX);
 	context->writeDouble(context, "item", DBL_MAX);
 	context->endArray(context);
-	node = context->writeToJSONNode(context);
+	node = JSONSerializationContext_writeToJSONNode(context);
 	context->dispose(context);
 	TestCase_assert(node != NULL, "Expected non-NULL but got NULL");
 	if (node == NULL) {return;} // Suppress clang warning
@@ -262,7 +236,7 @@ static void testLargeIntegerRepresentability() {
 	context->writeInt64(context, "item", -((1ll << DBL_MANT_DIG) + 1));
 	context->writeUInt64(context, "item", (1ull << DBL_MANT_DIG) + 1);
 	context->endArray(context);
-	node = context->writeToJSONNode(context);
+	node = JSONSerializationContext_writeToJSONNode(context);
 	context->dispose(context);
 	TestCase_assert(node != NULL, "Expected non-NULL but got NULL");
 	if (node == NULL) {return;} // Suppress clang warning
@@ -312,7 +286,7 @@ static void testStringValues() {
 	context->writeString(context, "item", "foo");
 	context->writeString(context, "item", "Hello, world!");
 	context->endArray(context);
-	node = context->writeToJSONNode(context);
+	node = JSONSerializationContext_writeToJSONNode(context);
 	context->dispose(context);
 	TestCase_assert(node != NULL, "Expected non-NULL but got NULL");
 	if (node == NULL) {return;} // Suppress clang warning
@@ -331,6 +305,36 @@ static void testStringValues() {
 	JSONNode_dispose(node);
 }
 
+static void testBlobValues() {
+	JSONSerializationContext * context;
+	struct JSONNode * node;
+	
+	context = JSONSerializationContext_create();
+	TestCase_assert(context != NULL, "Expected non-NULL but got NULL");
+	if (context == NULL) {return;} // Suppress clang warning
+	context->beginArray(context, "key");
+	context->writeBlob(context, "item", "foo", 3);
+	context->writeBlob(context, "item", "Hello, world!", 13);
+	context->endArray(context);
+	node = JSONSerializationContext_writeToJSONNode(context);
+	context->dispose(context);
+	TestCase_assert(node != NULL, "Expected non-NULL but got NULL");
+	if (node == NULL) {return;} // Suppress clang warning
+	TestCase_assert(node->type == JSON_TYPE_ARRAY, "Expected %d but got %d", JSON_TYPE_ARRAY, node->type);
+	TestCase_assert(node->key == NULL, "Expected NULL but got \"%s\"", node->key);
+	TestCase_assert(node->value.count == 2, "Expected 2 but got " SIZE_T_FORMAT, node->value.count);
+	TestCase_assert(node->subitems != NULL, "Expected non-NULL but got NULL");
+	TestCase_assert(node->subitems[0].type == JSON_TYPE_STRING, "Expected %d but got %d", JSON_TYPE_STRING, node->subitems[0].type);
+	TestCase_assert(node->subitems[0].key == NULL, "Expected NULL but got %p", node->subitems[0].key);
+	TestCase_assert(node->subitems[0].stringLength == 4, "Expected 4 but got " SIZE_T_FORMAT, node->subitems[0].stringLength);
+	TestCase_assert(!strcmp(node->subitems[0].value.string, "Zm9v"), "Expected \"Zm9v\" but got \"%s\"", node->subitems[0].value.string);
+	TestCase_assert(node->subitems[1].type == JSON_TYPE_STRING, "Expected %d but got %d", JSON_TYPE_STRING, node->subitems[0].type);
+	TestCase_assert(node->subitems[1].key == NULL, "Expected NULL but got %p", node->subitems[0].key);
+	TestCase_assert(node->subitems[1].stringLength == 20, "Expected 20 but got " SIZE_T_FORMAT, node->subitems[0].stringLength);
+	TestCase_assert(!strcmp(node->subitems[1].value.string, "SGVsbG8sIHdvcmxkIQ=="), "Expected \"SGVsbG8sIHdvcmxkIQ==\" but got \"%s\"", node->subitems[1].value.string);
+	JSONNode_dispose(node);
+}
+
 static void testBooleanValues() {
 	JSONSerializationContext * context;
 	struct JSONNode * node;
@@ -342,7 +346,7 @@ static void testBooleanValues() {
 	context->writeBoolean(context, "item", false);
 	context->writeBoolean(context, "item", true);
 	context->endArray(context);
-	node = context->writeToJSONNode(context);
+	node = JSONSerializationContext_writeToJSONNode(context);
 	context->dispose(context);
 	TestCase_assert(node != NULL, "Expected non-NULL but got NULL");
 	if (node == NULL) {return;} // Suppress clang warning
@@ -379,7 +383,7 @@ static void testEnumerations() {
 	context->writeEnumeration(context, "item", ENUM_TEST_one,  enumKV(ENUM_TEST_zero), enumKV(ENUM_TEST_one), enumKV(ENUM_TEST_two), NULL);
 	context->writeEnumeration(context, "item", ENUM_TEST_two,  enumKV(ENUM_TEST_zero), enumKV(ENUM_TEST_one), enumKV(ENUM_TEST_two), NULL);
 	context->endArray(context);
-	node = context->writeToJSONNode(context);
+	node = JSONSerializationContext_writeToJSONNode(context);
 	context->dispose(context);
 	TestCase_assert(node != NULL, "Expected non-NULL but got NULL");
 	if (node == NULL) {return;} // Suppress clang warning
@@ -431,7 +435,7 @@ static void testBitfields() {
 	context->writeBitfield32(context, "item", 0x00000000, NULL);
 	context->writeBitfield64(context, "item", 0x0000000000000000ull, NULL);
 	context->endArray(context);
-	node = context->writeToJSONNode(context);
+	node = JSONSerializationContext_writeToJSONNode(context);
 	context->dispose(context);
 	TestCase_assert(node != NULL, "Expected non-NULL but got NULL");
 	if (node == NULL) {return;} // Suppress clang warning
@@ -658,7 +662,7 @@ static void testArrays() {
 		context->beginArray(context, "item");
 		context->endArray(context);
 	context->endArray(context);
-	node = context->writeToJSONNode(context);
+	node = JSONSerializationContext_writeToJSONNode(context);
 	context->dispose(context);
 	TestCase_assert(node != NULL, "Expected non-NULL but got NULL");
 	if (node == NULL) {return;} // Suppress clang warning
@@ -700,7 +704,7 @@ static void testArrays() {
 			context->writeBitfield64(context, "item", 1, "16", NULL);
 		context->endArray(context);
 	context->endArray(context);
-	node = context->writeToJSONNode(context);
+	node = JSONSerializationContext_writeToJSONNode(context);
 	context->dispose(context);
 	TestCase_assert(node != NULL, "Expected non-NULL but got NULL");
 	if (node == NULL) {return;} // Suppress clang warning
@@ -807,7 +811,7 @@ static void testStructures() {
 		context->beginStructure(context, "item");
 		context->endStructure(context);
 	context->endStructure(context);
-	node = context->writeToJSONNode(context);
+	node = JSONSerializationContext_writeToJSONNode(context);
 	context->dispose(context);
 	TestCase_assert(node != NULL, "Expected non-NULL but got NULL");
 	if (node == NULL) {return;} // Suppress clang warning
@@ -850,7 +854,7 @@ static void testStructures() {
 			context->writeBitfield64(context, "bitfield64", 1, "16", NULL);
 		context->endStructure(context);
 	context->endStructure(context);
-	node = context->writeToJSONNode(context);
+	node = JSONSerializationContext_writeToJSONNode(context);
 	context->dispose(context);
 	TestCase_assert(node != NULL, "Expected non-NULL but got NULL");
 	if (node == NULL) {return;} // Suppress clang warning
@@ -977,7 +981,7 @@ static void testDictionaries() {
 		context->beginDictionary(context, "item");
 		context->endDictionary(context);
 	context->endDictionary(context);
-	node = context->writeToJSONNode(context);
+	node = JSONSerializationContext_writeToJSONNode(context);
 	context->dispose(context);
 	TestCase_assert(node != NULL, "Expected non-NULL but got NULL");
 	if (node == NULL) {return;} // Suppress clang warning
@@ -1020,7 +1024,7 @@ static void testDictionaries() {
 			context->writeBitfield64(context, "bitfield64", 1, "16", NULL);
 		context->endDictionary(context);
 	context->endDictionary(context);
-	node = context->writeToJSONNode(context);
+	node = JSONSerializationContext_writeToJSONNode(context);
 	context->dispose(context);
 	TestCase_assert(node != NULL, "Expected non-NULL but got NULL");
 	if (node == NULL) {return;} // Suppress clang warning
@@ -1157,7 +1161,7 @@ static void testMixedContainers() {
 			context->endStructure(context);
 		context->endDictionary(context);
 	context->endArray(context);
-	node = context->writeToJSONNode(context);
+	node = JSONSerializationContext_writeToJSONNode(context);
 	context->dispose(context);
 	TestCase_assert(node != NULL, "Expected non-NULL but got NULL");
 	if (node == NULL) {return;} // Suppress clang warning
@@ -1213,21 +1217,21 @@ static void testWriteToString() {
 	context->endArray(context);
 	
 	length = 0;
-	string = context->writeToString(context, JSONEmitterFormat_compact, &length, NULL);
+	string = JSONSerializationContext_writeToString(context, JSONEmitterFormat_compact, &length, NULL);
 	TestCase_assert(string != NULL, "Expected non-NULL but got NULL");
 	TestCase_assert(!strcmp(string, "[10,{\"bool\":false,\"string\":\"Hello, world!\"}]"), "Expected \"[10,{\"bool\":false,\"string\":\"Hello, world!\"}]\" but got \"%s\"", string);
 	TestCase_assert(length == 44, "Expected 44 but got " SIZE_T_FORMAT, length);
 	free(string);
 	
 	length = 0;
-	string = context->writeToString(context, JSONEmitterFormat_singleLine, &length, NULL);
+	string = JSONSerializationContext_writeToString(context, JSONEmitterFormat_singleLine, &length, NULL);
 	TestCase_assert(string != NULL, "Expected non-NULL but got NULL");
 	TestCase_assert(!strcmp(string, "[10, {\"bool\": false, \"string\": \"Hello, world!\"}]"), "Expected \"[10, {\"bool\": false, \"string\": \"Hello, world!\"}]\" but got \"%s\"", string);
 	TestCase_assert(length == 48, "Expected 48 but got " SIZE_T_FORMAT, length);
 	free(string);
 	
 	length = 0;
-	string = context->writeToString(context, JSONEmitterFormat_multiLine, &length, NULL);
+	string = JSONSerializationContext_writeToString(context, JSONEmitterFormat_multiLine, &length, NULL);
 	TestCase_assert(string != NULL, "Expected non-NULL but got NULL");
 	TestCase_assert(!strcmp(string, "[\n\t10,\n\t{\n\t\t\"bool\": false,\n\t\t\"string\": \"Hello, world!\"\n\t}\n]"), "Expected \"[\n\t10,\n\t{\n\t\t\"bool\": false,\n\t\t\"string\": \"Hello, world!\"\n\t}\n]\" but got \"%s\"", string);
 	TestCase_assert(length == 59, "Expected 59 but got " SIZE_T_FORMAT, length);
@@ -1256,7 +1260,7 @@ static void testWriteToFile() {
 	context->endArray(context);
 	
 	tempFilePath = temporaryFilePath("tmpXXXXXX", &fd);
-	success = context->writeToFile(context, JSONEmitterFormat_compact, tempFilePath, NULL);
+	success = JSONSerializationContext_writeToFile(context, JSONEmitterFormat_compact, tempFilePath, NULL);
 	string = readFileSimple(tempFilePath, &length);
 	close(fd);
 	unlink(tempFilePath);
@@ -1267,7 +1271,7 @@ static void testWriteToFile() {
 	free(string);
 	
 	tempFilePath = temporaryFilePath("tmpXXXXXX", &fd);
-	success = context->writeToFile(context, JSONEmitterFormat_singleLine, tempFilePath, NULL);
+	success = JSONSerializationContext_writeToFile(context, JSONEmitterFormat_singleLine, tempFilePath, NULL);
 	string = readFileSimple(tempFilePath, &length);
 	close(fd);
 	unlink(tempFilePath);
@@ -1278,7 +1282,7 @@ static void testWriteToFile() {
 	free(string);
 	
 	tempFilePath = temporaryFilePath("tmpXXXXXX", &fd);
-	success = context->writeToFile(context, JSONEmitterFormat_multiLine, tempFilePath, NULL);
+	success = JSONSerializationContext_writeToFile(context, JSONEmitterFormat_multiLine, tempFilePath, NULL);
 	string = readFileSimple(tempFilePath, &length);
 	close(fd);
 	unlink(tempFilePath);
@@ -1297,7 +1301,7 @@ static void testInvalidOperations() {
 	
 	// No data
 	context = JSONSerializationContext_create();
-	node = context->writeToJSONNode(context);
+	node = JSONSerializationContext_writeToJSONNode(context);
 	TestCase_assert(node == NULL, "Expected NULL but got %p", node);
 	context->dispose(context);
 	
@@ -1305,7 +1309,7 @@ static void testInvalidOperations() {
 #define _testNoTopLevelContainer(FUNCTION, ...) \
 	context = JSONSerializationContext_create(); \
 	context->FUNCTION(context, "key", __VA_ARGS__); \
-	node = context->writeToJSONNode(context); \
+	node = JSONSerializationContext_writeToJSONNode(context); \
 	TestCase_assert(node == NULL, "Expected NULL but got %p", node); \
 	context->dispose(context);
 	
@@ -1331,7 +1335,7 @@ static void testInvalidOperations() {
 	// Unterminated array
 	context = JSONSerializationContext_create();
 	context->beginArray(context, "key");
-	node = context->writeToJSONNode(context);
+	node = JSONSerializationContext_writeToJSONNode(context);
 	TestCase_assert(node == NULL, "Expected NULL but got %p", node);
 	context->dispose(context);
 	
@@ -1339,14 +1343,14 @@ static void testInvalidOperations() {
 	context->beginArray(context, "key");
 	context->beginArray(context, "key");
 	context->endArray(context);
-	node = context->writeToJSONNode(context);
+	node = JSONSerializationContext_writeToJSONNode(context);
 	TestCase_assert(node == NULL, "Expected NULL but got %p", node);
 	context->dispose(context);
 	
 	// Unterminated structure
 	context = JSONSerializationContext_create();
 	context->beginStructure(context, "key");
-	node = context->writeToJSONNode(context);
+	node = JSONSerializationContext_writeToJSONNode(context);
 	TestCase_assert(node == NULL, "Expected NULL but got %p", node);
 	context->dispose(context);
 	
@@ -1354,14 +1358,14 @@ static void testInvalidOperations() {
 	context->beginStructure(context, "key");
 	context->beginStructure(context, "key");
 	context->endStructure(context);
-	node = context->writeToJSONNode(context);
+	node = JSONSerializationContext_writeToJSONNode(context);
 	TestCase_assert(node == NULL, "Expected NULL but got %p", node);
 	context->dispose(context);
 	
 	// Unterminated dictionary
 	context = JSONSerializationContext_create();
 	context->beginDictionary(context, "key");
-	node = context->writeToJSONNode(context);
+	node = JSONSerializationContext_writeToJSONNode(context);
 	TestCase_assert(node == NULL, "Expected NULL but got %p", node);
 	context->dispose(context);
 	
@@ -1369,7 +1373,7 @@ static void testInvalidOperations() {
 	context->beginDictionary(context, "key");
 	context->beginDictionary(context, "key");
 	context->endDictionary(context);
-	node = context->writeToJSONNode(context);
+	node = JSONSerializationContext_writeToJSONNode(context);
 	TestCase_assert(node == NULL, "Expected NULL but got %p", node);
 	context->dispose(context);
 	
@@ -1378,7 +1382,7 @@ static void testInvalidOperations() {
 	context = JSONSerializationContext_create(); \
 	context->begin##CONTAINER_1(context, "key"); \
 	context->end##CONTAINER_2(context); \
-	node = context->writeToJSONNode(context); \
+	node = JSONSerializationContext_writeToJSONNode(context); \
 	TestCase_assert(node == NULL, "Expected NULL but got %p", node); \
 	context->dispose(context);
 #define _testWrongContainerTypeTerminatedInner(CONTAINER_1, CONTAINER_2) \
@@ -1387,7 +1391,7 @@ static void testInvalidOperations() {
 	context->begin##CONTAINER_1(context, "key"); \
 	context->end##CONTAINER_2(context); \
 	context->end##CONTAINER_1(context); \
-	node = context->writeToJSONNode(context); \
+	node = JSONSerializationContext_writeToJSONNode(context); \
 	TestCase_assert(node == NULL, "Expected NULL but got %p", node); \
 	context->dispose(context);
 	
@@ -1411,7 +1415,7 @@ static void testInvalidOperations() {
 	context->beginArray(context, "key");
 	context->endArray(context);
 	context->endArray(context);
-	node = context->writeToJSONNode(context);
+	node = JSONSerializationContext_writeToJSONNode(context);
 	TestCase_assert(node == NULL, "Expected NULL but got %p", node);
 	context->dispose(context);
 	
@@ -1419,7 +1423,7 @@ static void testInvalidOperations() {
 	context->beginStructure(context, "key");
 	context->endStructure(context);
 	context->endStructure(context);
-	node = context->writeToJSONNode(context);
+	node = JSONSerializationContext_writeToJSONNode(context);
 	TestCase_assert(node == NULL, "Expected NULL but got %p", node);
 	context->dispose(context);
 	
@@ -1427,7 +1431,7 @@ static void testInvalidOperations() {
 	context->beginDictionary(context, "key");
 	context->endDictionary(context);
 	context->endDictionary(context);
-	node = context->writeToJSONNode(context);
+	node = JSONSerializationContext_writeToJSONNode(context);
 	TestCase_assert(node == NULL, "Expected NULL but got %p", node);
 	context->dispose(context);
 	
@@ -1437,7 +1441,7 @@ static void testInvalidOperations() {
 	context->endArray(context);
 	context->beginArray(context, "key");
 	context->endArray(context);
-	node = context->writeToJSONNode(context);
+	node = JSONSerializationContext_writeToJSONNode(context);
 	TestCase_assert(node == NULL, "Expected NULL but got %p", node);
 	context->dispose(context);
 	
@@ -1446,7 +1450,7 @@ static void testInvalidOperations() {
 	context->endStructure(context);
 	context->beginStructure(context, "key");
 	context->endStructure(context);
-	node = context->writeToJSONNode(context);
+	node = JSONSerializationContext_writeToJSONNode(context);
 	TestCase_assert(node == NULL, "Expected NULL but got %p", node);
 	context->dispose(context);
 	
@@ -1455,7 +1459,7 @@ static void testInvalidOperations() {
 	context->endDictionary(context);
 	context->beginDictionary(context, "key");
 	context->endDictionary(context);
-	node = context->writeToJSONNode(context);
+	node = JSONSerializationContext_writeToJSONNode(context);
 	TestCase_assert(node == NULL, "Expected NULL but got %p", node);
 	context->dispose(context);
 	
@@ -1464,7 +1468,7 @@ static void testInvalidOperations() {
 	context->beginArray(context, "key");
 	context->writeBitfield8(context, "item", 0x01, NULL);
 	context->endArray(context);
-	node = context->writeToJSONNode(context);
+	node = JSONSerializationContext_writeToJSONNode(context);
 	TestCase_assert(node == NULL, "Expected NULL but got %p", node);
 	context->dispose(context);
 	
@@ -1472,7 +1476,7 @@ static void testInvalidOperations() {
 	context->beginArray(context, "key");
 	context->writeBitfield16(context, "item", 0x0002, "bit0", NULL);
 	context->endArray(context);
-	node = context->writeToJSONNode(context);
+	node = JSONSerializationContext_writeToJSONNode(context);
 	TestCase_assert(node == NULL, "Expected NULL but got %p", node);
 	context->dispose(context);
 	
@@ -1480,7 +1484,7 @@ static void testInvalidOperations() {
 	context->beginArray(context, "key");
 	context->writeBitfield32(context, "item", 0x00000004, "bit0", "bit1", NULL);
 	context->endArray(context);
-	node = context->writeToJSONNode(context);
+	node = JSONSerializationContext_writeToJSONNode(context);
 	TestCase_assert(node == NULL, "Expected NULL but got %p", node);
 	context->dispose(context);
 	
@@ -1488,7 +1492,7 @@ static void testInvalidOperations() {
 	context->beginArray(context, "key");
 	context->writeBitfield64(context, "item", 0x0000000000000008ull, "bit0", "bit1", "bit2", NULL);
 	context->endArray(context);
-	node = context->writeToJSONNode(context);
+	node = JSONSerializationContext_writeToJSONNode(context);
 	TestCase_assert(node == NULL, "Expected NULL but got %p", node);
 	context->dispose(context);
 	
@@ -1497,7 +1501,7 @@ static void testInvalidOperations() {
 	context->beginArray(context, "key");
 	context->writeBitfield8(context, "item", 0x00, "bit0", "bit0", NULL);
 	context->endArray(context);
-	node = context->writeToJSONNode(context);
+	node = JSONSerializationContext_writeToJSONNode(context);
 	TestCase_assert(node == NULL, "Expected NULL but got %p", node);
 	context->dispose(context);
 	
@@ -1505,7 +1509,7 @@ static void testInvalidOperations() {
 	context->beginArray(context, "key");
 	context->writeBitfield16(context, "item", 0x0000, "bit0", "bit0", NULL);
 	context->endArray(context);
-	node = context->writeToJSONNode(context);
+	node = JSONSerializationContext_writeToJSONNode(context);
 	TestCase_assert(node == NULL, "Expected NULL but got %p", node);
 	context->dispose(context);
 	
@@ -1513,7 +1517,7 @@ static void testInvalidOperations() {
 	context->beginArray(context, "key");
 	context->writeBitfield32(context, "item", 0x00000000, "bit0", "bit0", NULL);
 	context->endArray(context);
-	node = context->writeToJSONNode(context);
+	node = JSONSerializationContext_writeToJSONNode(context);
 	TestCase_assert(node == NULL, "Expected NULL but got %p", node);
 	context->dispose(context);
 	
@@ -1521,7 +1525,7 @@ static void testInvalidOperations() {
 	context->beginArray(context, "key");
 	context->writeBitfield64(context, "item", 0x0000000000000000ull, "bit0", "bit0", NULL);
 	context->endArray(context);
-	node = context->writeToJSONNode(context);
+	node = JSONSerializationContext_writeToJSONNode(context);
 	TestCase_assert(node == NULL, "Expected NULL but got %p", node);
 	context->dispose(context);
 	
@@ -1530,7 +1534,7 @@ static void testInvalidOperations() {
 	context->beginArray(context, "key");
 	context->writeEnumeration(context, "item", 0, "enum", 1, NULL);
 	context->endArray(context);
-	node = context->writeToJSONNode(context);
+	node = JSONSerializationContext_writeToJSONNode(context);
 	TestCase_assert(node == NULL, "Expected NULL but got %p", node);
 	context->dispose(context);
 	
@@ -1539,7 +1543,7 @@ static void testInvalidOperations() {
 	context->beginArray(context, "key");
 	context->writeEnumeration(context, "item", 0, "enum0", 0, "enum1", 0, NULL);
 	context->endArray(context);
-	node = context->writeToJSONNode(context);
+	node = JSONSerializationContext_writeToJSONNode(context);
 	TestCase_assert(node == NULL, "Expected NULL but got %p", node);
 	context->dispose(context);
 	
@@ -1547,7 +1551,7 @@ static void testInvalidOperations() {
 	context->beginArray(context, "key");
 	context->writeEnumeration(context, "item", 0, "enum0", 0, "enum1", 1, "enum2", 1, NULL);
 	context->endArray(context);
-	node = context->writeToJSONNode(context);
+	node = JSONSerializationContext_writeToJSONNode(context);
 	TestCase_assert(node == NULL, "Expected NULL but got %p", node);
 	context->dispose(context);
 	
@@ -1556,7 +1560,7 @@ static void testInvalidOperations() {
 	context->beginArray(context, "key");
 	context->writeEnumeration(context, "item", 0, "enum", 0, "enum", 1, NULL);
 	context->endArray(context);
-	node = context->writeToJSONNode(context);
+	node = JSONSerializationContext_writeToJSONNode(context);
 	TestCase_assert(node == NULL, "Expected NULL but got %p", node);
 	context->dispose(context);
 	
@@ -1564,7 +1568,7 @@ static void testInvalidOperations() {
 	context->beginArray(context, "key");
 	context->writeEnumeration(context, "item", 0, "enum0", 0, "enum1", 1, "enum1", 2, NULL);
 	context->endArray(context);
-	node = context->writeToJSONNode(context);
+	node = JSONSerializationContext_writeToJSONNode(context);
 	TestCase_assert(node == NULL, "Expected NULL but got %p", node);
 	context->dispose(context);
 	
@@ -1573,7 +1577,7 @@ static void testInvalidOperations() {
 	context->begin##CONTAINER(context, "key"); \
 	context->FUNCTION(context, NULL, __VA_ARGS__); \
 	context->end##CONTAINER(context); \
-	node = context->writeToJSONNode(context); \
+	node = JSONSerializationContext_writeToJSONNode(context); \
 	TestCase_assert(node == NULL, "Expected NULL but got %p", node); \
 	context->dispose(context);
 	
@@ -1582,7 +1586,7 @@ static void testInvalidOperations() {
 	context->begin##CONTAINER(context, "key"); \
 	context->FUNCTION(context, NULL); \
 	context->end##CONTAINER(context); \
-	node = context->writeToJSONNode(context); \
+	node = JSONSerializationContext_writeToJSONNode(context); \
 	TestCase_assert(node == NULL, "Expected NULL but got %p", node); \
 	context->dispose(context);
 	
@@ -1645,14 +1649,14 @@ static void testErrorReporting() {
 	
 	context = JSONSerializationContext_create();
 	TestCase_assert(context->status == SERIALIZATION_ERROR_OK, "Expected %d but got %d", SERIALIZATION_ERROR_OK, context->status);
-	node = context->writeToJSONNode(context);
+	node = JSONSerializationContext_writeToJSONNode(context);
 	TestCase_assert(node == NULL, "Expected NULL but got %p", node);
 	TestCase_assert(context->status == SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER, "Expected %d but got %d", SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER, context->status);
 	context->dispose(context);
 	
 	context = JSONSerializationContext_create();
 	TestCase_assert(context->status == SERIALIZATION_ERROR_OK, "Expected %d but got %d", SERIALIZATION_ERROR_OK, context->status);
-	string = context->writeToString(context, JSONEmitterFormat_compact, NULL, NULL);
+	string = JSONSerializationContext_writeToString(context, JSONEmitterFormat_compact, NULL, NULL);
 	TestCase_assert(string == NULL, "Expected NULL but got %p", string);
 	TestCase_assert(context->status == SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER, "Expected %d but got %d", SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER, context->status);
 	context->dispose(context);
@@ -1660,7 +1664,7 @@ static void testErrorReporting() {
 	context = JSONSerializationContext_create();
 	TestCase_assert(context->status == SERIALIZATION_ERROR_OK, "Expected %d but got %d", SERIALIZATION_ERROR_OK, context->status);
 	tempFilePath = temporaryFilePath("tmpXXXXXX", &fd);
-	success = context->writeToFile(context, JSONEmitterFormat_compact, tempFilePath, NULL);
+	success = JSONSerializationContext_writeToFile(context, JSONEmitterFormat_compact, tempFilePath, NULL);
 	close(fd);
 	unlink(tempFilePath);
 	TestCase_assert(!success, "Expected false but got true");
@@ -1996,8 +2000,8 @@ static void testThatNodeIsCopiedWhenRequestedMultipleTimes() {
 			context->writeBitfield64(context, "item", 1, "16", NULL);
 		context->endArray(context);
 	context->endArray(context);
-	node1 = context->writeToJSONNode(context);
-	node2 = context->writeToJSONNode(context);
+	node1 = JSONSerializationContext_writeToJSONNode(context);
+	node2 = JSONSerializationContext_writeToJSONNode(context);
 	context->dispose(context);
 	TestCase_assert(node1 != NULL, "Expected non-NULL but got NULL");
 	if (node1 == NULL) {return;} // Suppress clang warning
@@ -2068,6 +2072,7 @@ TEST_SUITE(JSONSerializationContextTest,
            testNumberValues,
            testLargeIntegerRepresentability,
            testStringValues,
+           testBlobValues,
            testBooleanValues,
            testEnumerations,
            testBitfields,

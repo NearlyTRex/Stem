@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2013 Alex Diener
+  Copyright (c) 2014 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -17,7 +17,7 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
   
-  Alex Diener adiener@sacredsoftware.net
+  Alex Diener alex@ludobloom.com
 */
 
 #ifndef __JSONDeserializationContext_H__
@@ -48,7 +48,9 @@ struct JSONDeserializationContext_nodeStackItem {
 	size_t nodeStackAllocatedSize; \
 	size_t nodeStackCurrentDepth; \
 	size_t nextNodeIndex; \
-	bool finished;
+	bool finished; \
+	void ** ownedBlobs; \
+	size_t blobCount;
 
 stemobject_struct_definition(JSONDeserializationContext)
 
@@ -76,13 +78,14 @@ int64_t JSONDeserializationContext_readInt64(JSONDeserializationContext * self, 
 uint64_t JSONDeserializationContext_readUInt64(JSONDeserializationContext * self, const char * key);
 float JSONDeserializationContext_readFloat(JSONDeserializationContext * self, const char * key);
 double JSONDeserializationContext_readDouble(JSONDeserializationContext * self, const char * key);
-const char * JSONDeserializationContext_readString(JSONDeserializationContext * self, const char * key);
 bool JSONDeserializationContext_readBoolean(JSONDeserializationContext * self, const char * key);
 int JSONDeserializationContext_readEnumeration(JSONDeserializationContext * self, const char * key, ...) __attribute__((sentinel));
 uint8_t JSONDeserializationContext_readBitfield8(JSONDeserializationContext * self, const char * key, ...) __attribute__((sentinel));
 uint16_t JSONDeserializationContext_readBitfield16(JSONDeserializationContext * self, const char * key, ...) __attribute__((sentinel));
 uint32_t JSONDeserializationContext_readBitfield32(JSONDeserializationContext * self, const char * key, ...) __attribute__((sentinel));
 uint64_t JSONDeserializationContext_readBitfield64(JSONDeserializationContext * self, const char * key, ...) __attribute__((sentinel));
+const char * JSONDeserializationContext_readString(JSONDeserializationContext * self, const char * key);
+const void * JSONDeserializationContext_readBlob(JSONDeserializationContext * self, const char * key, size_t * outLength);
 const char * JSONDeserializationContext_readNextDictionaryKey(JSONDeserializationContext * self);
 bool JSONDeserializationContext_hasDictionaryKey(JSONDeserializationContext * self, const char * key);
 

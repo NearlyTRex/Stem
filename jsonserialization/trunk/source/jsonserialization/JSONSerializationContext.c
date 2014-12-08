@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2013 Alex Diener
+  Copyright (c) 2014 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -17,10 +17,11 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
   
-  Alex Diener adiener@sacredsoftware.net
+  Alex Diener alex@ludobloom.com
 */
 
 #include "jsonserialization/JSONSerializationContext.h"
+#include "utilities/Base64.h"
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
@@ -77,6 +78,7 @@ bool JSONSerializationContext_init(JSONSerializationContext * self) {
 	self->endStructure = JSONSerializationContext_endStructure;
 	self->endDictionary = JSONSerializationContext_endDictionary;
 	self->endArray = JSONSerializationContext_endArray;
+	self->writeBoolean = JSONSerializationContext_writeBoolean;
 	self->writeInt8 = JSONSerializationContext_writeInt8;
 	self->writeUInt8 = JSONSerializationContext_writeUInt8;
 	self->writeInt16 = JSONSerializationContext_writeInt16;
@@ -87,16 +89,13 @@ bool JSONSerializationContext_init(JSONSerializationContext * self) {
 	self->writeUInt64 = JSONSerializationContext_writeUInt64;
 	self->writeFloat = JSONSerializationContext_writeFloat;
 	self->writeDouble = JSONSerializationContext_writeDouble;
-	self->writeString = JSONSerializationContext_writeString;
-	self->writeBoolean = JSONSerializationContext_writeBoolean;
 	self->writeEnumeration = JSONSerializationContext_writeEnumeration;
 	self->writeBitfield8 = JSONSerializationContext_writeBitfield8;
 	self->writeBitfield16 = JSONSerializationContext_writeBitfield16;
 	self->writeBitfield32 = JSONSerializationContext_writeBitfield32;
 	self->writeBitfield64 = JSONSerializationContext_writeBitfield64;
-	self->writeToFile = JSONSerializationContext_writeToFile;
-	self->writeToString = JSONSerializationContext_writeToString;
-	self->writeToJSONNode = JSONSerializationContext_writeToJSONNode;
+	self->writeString = JSONSerializationContext_writeString;
+	self->writeBlob = JSONSerializationContext_writeBlob;
 	
 	self->rootNode = NULL;
 	self->currentNode = NULL;
@@ -316,6 +315,13 @@ void JSONSerializationContext_endArray(JSONSerializationContext * self) {
 	}
 }
 
+void JSONSerializationContext_writeBoolean(JSONSerializationContext * self, const char * key, bool value) {
+	failIfContainerNotStarted()
+	self->currentNode->subitems = realloc(self->currentNode->subitems, sizeof(struct JSONNode) * (self->currentNode->value.count + 1));
+	writeNodeCommonArgs(JSON_TYPE_BOOLEAN, boolean);
+	self->currentNode->value.count++;
+}
+
 void JSONSerializationContext_writeInt8(JSONSerializationContext * self, const char * key, int8_t value) {
 	failIfContainerNotStarted()
 	self->currentNode->subitems = realloc(self->currentNode->subitems, sizeof(struct JSONNode) * (self->currentNode->value.count + 1));
@@ -417,27 +423,6 @@ void JSONSerializationContext_writeDouble(JSONSerializationContext * self, const
 	failIfContainerNotStarted()
 	self->currentNode->subitems = realloc(self->currentNode->subitems, sizeof(struct JSONNode) * (self->currentNode->value.count + 1));
 	writeNodeCommonArgs(JSON_TYPE_NUMBER, number);
-	self->currentNode->value.count++;
-}
-
-void JSONSerializationContext_writeString(JSONSerializationContext * self, const char * key, const char * value) {
-	failIfContainerNotStarted()
-	self->currentNode->subitems = realloc(self->currentNode->subitems, sizeof(struct JSONNode) * (self->currentNode->value.count + 1));
-	self->currentNode->subitems[self->currentNode->value.count].stringLength = strlen(value);
-	writeNode(self->currentNode->subitems[self->currentNode->value.count],
-	          self->currentNode,
-	          key,
-	          JSON_TYPE_STRING,
-	          string,
-	          malloc(self->currentNode->subitems[self->currentNode->value.count].stringLength + 1));
-	strcpy(self->currentNode->subitems[self->currentNode->value.count].value.string, value);
-	self->currentNode->value.count++;
-}
-
-void JSONSerializationContext_writeBoolean(JSONSerializationContext * self, const char * key, bool value) {
-	failIfContainerNotStarted()
-	self->currentNode->subitems = realloc(self->currentNode->subitems, sizeof(struct JSONNode) * (self->currentNode->value.count + 1));
-	writeNodeCommonArgs(JSON_TYPE_BOOLEAN, boolean);
 	self->currentNode->value.count++;
 }
 
@@ -572,4 +557,34 @@ void JSONSerializationContext_writeBitfield32(JSONSerializationContext * self, c
 
 void JSONSerializationContext_writeBitfield64(JSONSerializationContext * self, const char * key, uint64_t value, ...) {
 	writeBitfieldImplementation(64)
+}
+
+void JSONSerializationContext_writeString(JSONSerializationContext * self, const char * key, const char * value) {
+	failIfContainerNotStarted()
+	self->currentNode->subitems = realloc(self->currentNode->subitems, sizeof(struct JSONNode) * (self->currentNode->value.count + 1));
+	self->currentNode->subitems[self->currentNode->value.count].stringLength = strlen(value);
+	writeNode(self->currentNode->subitems[self->currentNode->value.count],
+	          self->currentNode,
+	          key,
+	          JSON_TYPE_STRING,
+	          string,
+	          malloc(self->currentNode->subitems[self->currentNode->value.count].stringLength + 1));
+	strcpy(self->currentNode->subitems[self->currentNode->value.count].value.string, value);
+	self->currentNode->value.count++;
+}
+
+void JSONSerializationContext_writeBlob(JSONSerializationContext * self, const char * key, const void * value, size_t length) {
+	char * encodedString;
+	
+	failIfContainerNotStarted()
+	self->currentNode->subitems = realloc(self->currentNode->subitems, sizeof(struct JSONNode) * (self->currentNode->value.count + 1));
+	self->currentNode->subitems[self->currentNode->value.count].stringLength = encodeBase64(value, length, NULL, 0);
+	encodeBase64(value, length, encodedString = malloc(self->currentNode->subitems[self->currentNode->value.count].stringLength + 1), self->currentNode->subitems[self->currentNode->value.count].stringLength + 1);
+	writeNode(self->currentNode->subitems[self->currentNode->value.count],
+	          self->currentNode,
+	          key,
+	          JSON_TYPE_STRING,
+	          string,
+	          encodedString);
+	self->currentNode->value.count++;
 }

@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2013 Alex Diener
+  Copyright (c) 2014 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -17,11 +17,12 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
   
-  Alex Diener adiener@sacredsoftware.net
+  Alex Diener alex@ludobloom.com
 */
 
 #include "jsonserialization/JSONDeserializationContext.h"
 #include "jsonio/JSONParser.h"
+#include "utilities/Base64.h"
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
@@ -51,6 +52,7 @@ static void JSONDeserializationContext_init(JSONDeserializationContext * self) {
 	self->endStructure = JSONDeserializationContext_endStructure;
 	self->endDictionary = JSONDeserializationContext_endDictionary;
 	self->endArray = JSONDeserializationContext_endArray;
+	self->readBoolean = JSONDeserializationContext_readBoolean;
 	self->readInt8 = JSONDeserializationContext_readInt8;
 	self->readUInt8 = JSONDeserializationContext_readUInt8;
 	self->readInt16 = JSONDeserializationContext_readInt16;
@@ -61,13 +63,13 @@ static void JSONDeserializationContext_init(JSONDeserializationContext * self) {
 	self->readUInt64 = JSONDeserializationContext_readUInt64;
 	self->readFloat = JSONDeserializationContext_readFloat;
 	self->readDouble = JSONDeserializationContext_readDouble;
-	self->readString = JSONDeserializationContext_readString;
-	self->readBoolean = JSONDeserializationContext_readBoolean;
 	self->readEnumeration = JSONDeserializationContext_readEnumeration;
 	self->readBitfield8 = JSONDeserializationContext_readBitfield8;
 	self->readBitfield16 = JSONDeserializationContext_readBitfield16;
 	self->readBitfield32 = JSONDeserializationContext_readBitfield32;
 	self->readBitfield64 = JSONDeserializationContext_readBitfield64;
+	self->readString = JSONDeserializationContext_readString;
+	self->readBlob = JSONDeserializationContext_readBlob;
 	self->readNextDictionaryKey = JSONDeserializationContext_readNextDictionaryKey;
 	self->hasDictionaryKey = JSONDeserializationContext_hasDictionaryKey;
 	self->currentNode = NULL;
@@ -75,6 +77,8 @@ static void JSONDeserializationContext_init(JSONDeserializationContext * self) {
 	self->nodeStackAllocatedSize = 0;
 	self->nodeStackCurrentDepth = 0;
 	self->finished = false;
+	self->ownedBlobs = NULL;
+	self->blobCount = 0;
 }
 
 bool JSONDeserializationContext_initWithFile(JSONDeserializationContext * self, const char * filePath) {
@@ -107,10 +111,16 @@ bool JSONDeserializationContext_initWithJSONNode(JSONDeserializationContext * se
 }
 
 void JSONDeserializationContext_dispose(JSONDeserializationContext * self) {
+	unsigned int blobIndex;
+	
 	if (self->rootNode != NULL) {
 		JSONNode_dispose(self->rootNode);
 	}
 	free(self->nodeStack);
+	for (blobIndex = 0; blobIndex < self->blobCount; blobIndex++) {
+		free(self->ownedBlobs[blobIndex]);
+	}
+	free(self->ownedBlobs);
 	call_super(dispose, self);
 }
 
@@ -353,6 +363,14 @@ void JSONDeserializationContext_endArray(JSONDeserializationContext * self) {
 		failWithStatus(SERIALIZATION_ERROR_NUMBER_OUT_OF_RANGE,) \
 	}
 
+bool JSONDeserializationContext_readBoolean(JSONDeserializationContext * self, const char * key) {
+	size_t nextNodeIndex = 0;
+	
+	getNextNodeIndex(0)
+	_failIfNotOfType(JSON_TYPE_BOOLEAN, 0)
+	return self->currentNode->subitems[nextNodeIndex].value.boolean;
+}
+
 int8_t JSONDeserializationContext_readInt8(JSONDeserializationContext * self, const char * key) {
 	size_t nextNodeIndex = 0;
 	
@@ -492,22 +510,6 @@ double JSONDeserializationContext_readDouble(JSONDeserializationContext * self, 
 	return self->currentNode->subitems[nextNodeIndex].value.number;
 }
 
-const char * JSONDeserializationContext_readString(JSONDeserializationContext * self, const char * key) {
-	size_t nextNodeIndex = 0;
-	
-	getNextNodeIndex(0)
-	_failIfNotOfType(JSON_TYPE_STRING, NULL)
-	return self->currentNode->subitems[nextNodeIndex].value.string;
-}
-
-bool JSONDeserializationContext_readBoolean(JSONDeserializationContext * self, const char * key) {
-	size_t nextNodeIndex = 0;
-	
-	getNextNodeIndex(0)
-	_failIfNotOfType(JSON_TYPE_BOOLEAN, 0)
-	return self->currentNode->subitems[nextNodeIndex].value.boolean;
-}
-
 int JSONDeserializationContext_readEnumeration(JSONDeserializationContext * self, const char * key, ...) {
 	va_list args;
 	const char * enumName;
@@ -631,6 +633,27 @@ uint32_t JSONDeserializationContext_readBitfield32(JSONDeserializationContext * 
 
 uint64_t JSONDeserializationContext_readBitfield64(JSONDeserializationContext * self, const char * key, ...) {
 	readBitfieldImplementation(64)
+}
+
+const char * JSONDeserializationContext_readString(JSONDeserializationContext * self, const char * key) {
+	size_t nextNodeIndex = 0;
+	
+	getNextNodeIndex(0)
+	_failIfNotOfType(JSON_TYPE_STRING, NULL)
+	return self->currentNode->subitems[nextNodeIndex].value.string;
+}
+
+const void * JSONDeserializationContext_readBlob(JSONDeserializationContext * self, const char * key, size_t * outLength) {
+	size_t nextNodeIndex = 0;
+	size_t decodedLength;
+	
+	getNextNodeIndex(0)
+	_failIfNotOfType(JSON_TYPE_STRING, NULL)
+	self->ownedBlobs = realloc(self->ownedBlobs, sizeof(void *) * (self->blobCount + 1));
+	decodedLength = decodeBase64(self->currentNode->subitems[nextNodeIndex].value.string, self->currentNode->subitems[nextNodeIndex].stringLength, NULL, 0);
+	decodeBase64(self->currentNode->subitems[nextNodeIndex].value.string, self->currentNode->subitems[nextNodeIndex].stringLength, self->ownedBlobs[self->blobCount] = malloc(decodedLength), decodedLength);
+	*outLength = decodedLength;
+	return self->ownedBlobs[self->blobCount++];
 }
 
 #undef _failIfNotOfType

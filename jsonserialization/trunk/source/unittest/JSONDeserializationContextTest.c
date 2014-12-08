@@ -9,6 +9,39 @@
 
 #define stringAndLength(str) str, strlen(str)
 
+static void verifyInit(JSONDeserializationContext * context) {
+	TestCase_assert(context->jmpBuf == NULL, "Expected NULL but got %p", context->jmpBuf);
+	TestCase_assert(context->status == SERIALIZATION_ERROR_OK, "Expected %d but got %d", SERIALIZATION_ERROR_OK, context->status);
+	TestCase_assert(context->dispose == JSONDeserializationContext_dispose, "Expected %p but got %p", JSONDeserializationContext_dispose, context->dispose);
+	TestCase_assert(context->errorString == JSONSerialization_errorString, "Expected %p but got %p", JSONSerialization_errorString, context->errorString);
+	TestCase_assert(context->beginStructure == JSONDeserializationContext_beginStructure, "Expected %p but got %p", JSONDeserializationContext_beginStructure, context->beginStructure);
+	TestCase_assert(context->beginDictionary == JSONDeserializationContext_beginDictionary, "Expected %p but got %p", JSONDeserializationContext_beginDictionary, context->beginDictionary);
+	TestCase_assert(context->beginArray == JSONDeserializationContext_beginArray, "Expected %p but got %p", JSONDeserializationContext_beginArray, context->beginArray);
+	TestCase_assert(context->endStructure == JSONDeserializationContext_endStructure, "Expected %p but got %p", JSONDeserializationContext_endStructure, context->endStructure);
+	TestCase_assert(context->endDictionary == JSONDeserializationContext_endDictionary, "Expected %p but got %p", JSONDeserializationContext_endDictionary, context->endDictionary);
+	TestCase_assert(context->endArray == JSONDeserializationContext_endArray, "Expected %p but got %p", JSONDeserializationContext_endArray, context->endArray);
+	TestCase_assert(context->readBoolean == JSONDeserializationContext_readBoolean, "Expected %p but got %p", JSONDeserializationContext_readBoolean, context->readBoolean);
+	TestCase_assert(context->readInt8 == JSONDeserializationContext_readInt8, "Expected %p but got %p", JSONDeserializationContext_readInt8, context->readInt8);
+	TestCase_assert(context->readUInt8 == JSONDeserializationContext_readUInt8, "Expected %p but got %p", JSONDeserializationContext_readUInt8, context->readUInt8);
+	TestCase_assert(context->readInt16 == JSONDeserializationContext_readInt16, "Expected %p but got %p", JSONDeserializationContext_readInt16, context->readInt16);
+	TestCase_assert(context->readUInt16 == JSONDeserializationContext_readUInt16, "Expected %p but got %p", JSONDeserializationContext_readUInt16, context->readUInt16);
+	TestCase_assert(context->readInt32 == JSONDeserializationContext_readInt32, "Expected %p but got %p", JSONDeserializationContext_readInt32, context->readInt32);
+	TestCase_assert(context->readUInt32 == JSONDeserializationContext_readUInt32, "Expected %p but got %p", JSONDeserializationContext_readUInt32, context->readUInt32);
+	TestCase_assert(context->readInt64 == JSONDeserializationContext_readInt64, "Expected %p but got %p", JSONDeserializationContext_readInt64, context->readInt64);
+	TestCase_assert(context->readUInt64 == JSONDeserializationContext_readUInt64, "Expected %p but got %p", JSONDeserializationContext_readUInt64, context->readUInt64);
+	TestCase_assert(context->readFloat == JSONDeserializationContext_readFloat, "Expected %p but got %p", JSONDeserializationContext_readFloat, context->readFloat);
+	TestCase_assert(context->readDouble == JSONDeserializationContext_readDouble, "Expected %p but got %p", JSONDeserializationContext_readDouble, context->readDouble);
+	TestCase_assert(context->readEnumeration == JSONDeserializationContext_readEnumeration, "Expected %p but got %p", JSONDeserializationContext_readEnumeration, context->readEnumeration);
+	TestCase_assert(context->readBitfield8 == JSONDeserializationContext_readBitfield8, "Expected %p but got %p", JSONDeserializationContext_readBitfield8, context->readBitfield8);
+	TestCase_assert(context->readBitfield16 == JSONDeserializationContext_readBitfield16, "Expected %p but got %p", JSONDeserializationContext_readBitfield16, context->readBitfield16);
+	TestCase_assert(context->readBitfield32 == JSONDeserializationContext_readBitfield32, "Expected %p but got %p", JSONDeserializationContext_readBitfield32, context->readBitfield32);
+	TestCase_assert(context->readBitfield64 == JSONDeserializationContext_readBitfield64, "Expected %p but got %p", JSONDeserializationContext_readBitfield64, context->readBitfield64);
+	TestCase_assert(context->readString == JSONDeserializationContext_readString, "Expected %p but got %p", JSONDeserializationContext_readString, context->readString);
+	TestCase_assert(context->readBlob == JSONDeserializationContext_readBlob, "Expected %p but got %p", JSONDeserializationContext_readBlob, context->readBlob);
+	TestCase_assert(context->readNextDictionaryKey == JSONDeserializationContext_readNextDictionaryKey, "Expected %p but got %p", JSONDeserializationContext_readNextDictionaryKey, context->readNextDictionaryKey);
+	TestCase_assert(context->hasDictionaryKey == JSONDeserializationContext_hasDictionaryKey, "Expected %p but got %p", JSONDeserializationContext_hasDictionaryKey, context->hasDictionaryKey);
+}
+
 static void testInit() {
 	JSONDeserializationContext context, * contextPtr;
 	struct JSONNode node;
@@ -22,35 +55,7 @@ static void testInit() {
 	
 	memset(&context, 0, sizeof(context));
 	JSONDeserializationContext_initWithString(&context, stringAndLength("[]"));
-	TestCase_assert(context.jmpBuf == NULL, "Expected NULL but got %p", context.jmpBuf);
-	TestCase_assert(context.status == SERIALIZATION_ERROR_OK, "Expected %d but got %d", SERIALIZATION_ERROR_OK, context.status);
-	TestCase_assert(context.dispose == JSONDeserializationContext_dispose, "Expected %p but got %p", JSONDeserializationContext_dispose, context.dispose);
-	TestCase_assert(context.errorString == JSONSerialization_errorString, "Expected %p but got %p", JSONSerialization_errorString, context.errorString);
-	TestCase_assert(context.beginStructure == JSONDeserializationContext_beginStructure, "Expected %p but got %p", JSONDeserializationContext_beginStructure, context.beginStructure);
-	TestCase_assert(context.beginDictionary == JSONDeserializationContext_beginDictionary, "Expected %p but got %p", JSONDeserializationContext_beginDictionary, context.beginDictionary);
-	TestCase_assert(context.beginArray == JSONDeserializationContext_beginArray, "Expected %p but got %p", JSONDeserializationContext_beginArray, context.beginArray);
-	TestCase_assert(context.endStructure == JSONDeserializationContext_endStructure, "Expected %p but got %p", JSONDeserializationContext_endStructure, context.endStructure);
-	TestCase_assert(context.endDictionary == JSONDeserializationContext_endDictionary, "Expected %p but got %p", JSONDeserializationContext_endDictionary, context.endDictionary);
-	TestCase_assert(context.endArray == JSONDeserializationContext_endArray, "Expected %p but got %p", JSONDeserializationContext_endArray, context.endArray);
-	TestCase_assert(context.readInt8 == JSONDeserializationContext_readInt8, "Expected %p but got %p", JSONDeserializationContext_readInt8, context.readInt8);
-	TestCase_assert(context.readUInt8 == JSONDeserializationContext_readUInt8, "Expected %p but got %p", JSONDeserializationContext_readUInt8, context.readUInt8);
-	TestCase_assert(context.readInt16 == JSONDeserializationContext_readInt16, "Expected %p but got %p", JSONDeserializationContext_readInt16, context.readInt16);
-	TestCase_assert(context.readUInt16 == JSONDeserializationContext_readUInt16, "Expected %p but got %p", JSONDeserializationContext_readUInt16, context.readUInt16);
-	TestCase_assert(context.readInt32 == JSONDeserializationContext_readInt32, "Expected %p but got %p", JSONDeserializationContext_readInt32, context.readInt32);
-	TestCase_assert(context.readUInt32 == JSONDeserializationContext_readUInt32, "Expected %p but got %p", JSONDeserializationContext_readUInt32, context.readUInt32);
-	TestCase_assert(context.readInt64 == JSONDeserializationContext_readInt64, "Expected %p but got %p", JSONDeserializationContext_readInt64, context.readInt64);
-	TestCase_assert(context.readUInt64 == JSONDeserializationContext_readUInt64, "Expected %p but got %p", JSONDeserializationContext_readUInt64, context.readUInt64);
-	TestCase_assert(context.readFloat == JSONDeserializationContext_readFloat, "Expected %p but got %p", JSONDeserializationContext_readFloat, context.readFloat);
-	TestCase_assert(context.readDouble == JSONDeserializationContext_readDouble, "Expected %p but got %p", JSONDeserializationContext_readDouble, context.readDouble);
-	TestCase_assert(context.readString == JSONDeserializationContext_readString, "Expected %p but got %p", JSONDeserializationContext_readString, context.readString);
-	TestCase_assert(context.readBoolean == JSONDeserializationContext_readBoolean, "Expected %p but got %p", JSONDeserializationContext_readBoolean, context.readBoolean);
-	TestCase_assert(context.readEnumeration == JSONDeserializationContext_readEnumeration, "Expected %p but got %p", JSONDeserializationContext_readEnumeration, context.readEnumeration);
-	TestCase_assert(context.readBitfield8 == JSONDeserializationContext_readBitfield8, "Expected %p but got %p", JSONDeserializationContext_readBitfield8, context.readBitfield8);
-	TestCase_assert(context.readBitfield16 == JSONDeserializationContext_readBitfield16, "Expected %p but got %p", JSONDeserializationContext_readBitfield16, context.readBitfield16);
-	TestCase_assert(context.readBitfield32 == JSONDeserializationContext_readBitfield32, "Expected %p but got %p", JSONDeserializationContext_readBitfield32, context.readBitfield32);
-	TestCase_assert(context.readBitfield64 == JSONDeserializationContext_readBitfield64, "Expected %p but got %p", JSONDeserializationContext_readBitfield64, context.readBitfield64);
-	TestCase_assert(context.readNextDictionaryKey == JSONDeserializationContext_readNextDictionaryKey, "Expected %p but got %p", JSONDeserializationContext_readNextDictionaryKey, context.readNextDictionaryKey);
-	TestCase_assert(context.hasDictionaryKey == JSONDeserializationContext_hasDictionaryKey, "Expected %p but got %p", JSONDeserializationContext_hasDictionaryKey, context.hasDictionaryKey);
+	verifyInit(&context);
 	context.dispose(&context);
 	
 	memset(&context, 0, sizeof(context));
@@ -59,102 +64,18 @@ static void testInit() {
 	JSONDeserializationContext_initWithFile(&context, tempFilePath);
 	close(fd);
 	unlink(tempFilePath);
-	TestCase_assert(context.jmpBuf == NULL, "Expected NULL but got %p", context.jmpBuf);
-	TestCase_assert(context.status == SERIALIZATION_ERROR_OK, "Expected %d but got %d", SERIALIZATION_ERROR_OK, context.status);
-	TestCase_assert(context.dispose == JSONDeserializationContext_dispose, "Expected %p but got %p", JSONDeserializationContext_dispose, context.dispose);
-	TestCase_assert(context.errorString == JSONSerialization_errorString, "Expected %p but got %p", JSONSerialization_errorString, context.errorString);
-	TestCase_assert(context.beginStructure == JSONDeserializationContext_beginStructure, "Expected %p but got %p", JSONDeserializationContext_beginStructure, context.beginStructure);
-	TestCase_assert(context.beginDictionary == JSONDeserializationContext_beginDictionary, "Expected %p but got %p", JSONDeserializationContext_beginDictionary, context.beginDictionary);
-	TestCase_assert(context.beginArray == JSONDeserializationContext_beginArray, "Expected %p but got %p", JSONDeserializationContext_beginArray, context.beginArray);
-	TestCase_assert(context.endStructure == JSONDeserializationContext_endStructure, "Expected %p but got %p", JSONDeserializationContext_endStructure, context.endStructure);
-	TestCase_assert(context.endDictionary == JSONDeserializationContext_endDictionary, "Expected %p but got %p", JSONDeserializationContext_endDictionary, context.endDictionary);
-	TestCase_assert(context.endArray == JSONDeserializationContext_endArray, "Expected %p but got %p", JSONDeserializationContext_endArray, context.endArray);
-	TestCase_assert(context.readInt8 == JSONDeserializationContext_readInt8, "Expected %p but got %p", JSONDeserializationContext_readInt8, context.readInt8);
-	TestCase_assert(context.readUInt8 == JSONDeserializationContext_readUInt8, "Expected %p but got %p", JSONDeserializationContext_readUInt8, context.readUInt8);
-	TestCase_assert(context.readInt16 == JSONDeserializationContext_readInt16, "Expected %p but got %p", JSONDeserializationContext_readInt16, context.readInt16);
-	TestCase_assert(context.readUInt16 == JSONDeserializationContext_readUInt16, "Expected %p but got %p", JSONDeserializationContext_readUInt16, context.readUInt16);
-	TestCase_assert(context.readInt32 == JSONDeserializationContext_readInt32, "Expected %p but got %p", JSONDeserializationContext_readInt32, context.readInt32);
-	TestCase_assert(context.readUInt32 == JSONDeserializationContext_readUInt32, "Expected %p but got %p", JSONDeserializationContext_readUInt32, context.readUInt32);
-	TestCase_assert(context.readInt64 == JSONDeserializationContext_readInt64, "Expected %p but got %p", JSONDeserializationContext_readInt64, context.readInt64);
-	TestCase_assert(context.readUInt64 == JSONDeserializationContext_readUInt64, "Expected %p but got %p", JSONDeserializationContext_readUInt64, context.readUInt64);
-	TestCase_assert(context.readFloat == JSONDeserializationContext_readFloat, "Expected %p but got %p", JSONDeserializationContext_readFloat, context.readFloat);
-	TestCase_assert(context.readDouble == JSONDeserializationContext_readDouble, "Expected %p but got %p", JSONDeserializationContext_readDouble, context.readDouble);
-	TestCase_assert(context.readString == JSONDeserializationContext_readString, "Expected %p but got %p", JSONDeserializationContext_readString, context.readString);
-	TestCase_assert(context.readBoolean == JSONDeserializationContext_readBoolean, "Expected %p but got %p", JSONDeserializationContext_readBoolean, context.readBoolean);
-	TestCase_assert(context.readEnumeration == JSONDeserializationContext_readEnumeration, "Expected %p but got %p", JSONDeserializationContext_readEnumeration, context.readEnumeration);
-	TestCase_assert(context.readBitfield8 == JSONDeserializationContext_readBitfield8, "Expected %p but got %p", JSONDeserializationContext_readBitfield8, context.readBitfield8);
-	TestCase_assert(context.readBitfield16 == JSONDeserializationContext_readBitfield16, "Expected %p but got %p", JSONDeserializationContext_readBitfield16, context.readBitfield16);
-	TestCase_assert(context.readBitfield32 == JSONDeserializationContext_readBitfield32, "Expected %p but got %p", JSONDeserializationContext_readBitfield32, context.readBitfield32);
-	TestCase_assert(context.readBitfield64 == JSONDeserializationContext_readBitfield64, "Expected %p but got %p", JSONDeserializationContext_readBitfield64, context.readBitfield64);
-	TestCase_assert(context.readNextDictionaryKey == JSONDeserializationContext_readNextDictionaryKey, "Expected %p but got %p", JSONDeserializationContext_readNextDictionaryKey, context.readNextDictionaryKey);
-	TestCase_assert(context.hasDictionaryKey == JSONDeserializationContext_hasDictionaryKey, "Expected %p but got %p", JSONDeserializationContext_hasDictionaryKey, context.hasDictionaryKey);
+	verifyInit(&context);
 	context.dispose(&context);
 	
 	memset(&context, 0, sizeof(context));
 	JSONDeserializationContext_initWithJSONNode(&context, &node);
-	TestCase_assert(context.jmpBuf == NULL, "Expected NULL but got %p", context.jmpBuf);
-	TestCase_assert(context.status == SERIALIZATION_ERROR_OK, "Expected %d but got %d", SERIALIZATION_ERROR_OK, context.status);
-	TestCase_assert(context.dispose == JSONDeserializationContext_dispose, "Expected %p but got %p", JSONDeserializationContext_dispose, context.dispose);
-	TestCase_assert(context.errorString == JSONSerialization_errorString, "Expected %p but got %p", JSONSerialization_errorString, context.errorString);
-	TestCase_assert(context.beginStructure == JSONDeserializationContext_beginStructure, "Expected %p but got %p", JSONDeserializationContext_beginStructure, context.beginStructure);
-	TestCase_assert(context.beginDictionary == JSONDeserializationContext_beginDictionary, "Expected %p but got %p", JSONDeserializationContext_beginDictionary, context.beginDictionary);
-	TestCase_assert(context.beginArray == JSONDeserializationContext_beginArray, "Expected %p but got %p", JSONDeserializationContext_beginArray, context.beginArray);
-	TestCase_assert(context.endStructure == JSONDeserializationContext_endStructure, "Expected %p but got %p", JSONDeserializationContext_endStructure, context.endStructure);
-	TestCase_assert(context.endDictionary == JSONDeserializationContext_endDictionary, "Expected %p but got %p", JSONDeserializationContext_endDictionary, context.endDictionary);
-	TestCase_assert(context.endArray == JSONDeserializationContext_endArray, "Expected %p but got %p", JSONDeserializationContext_endArray, context.endArray);
-	TestCase_assert(context.readInt8 == JSONDeserializationContext_readInt8, "Expected %p but got %p", JSONDeserializationContext_readInt8, context.readInt8);
-	TestCase_assert(context.readUInt8 == JSONDeserializationContext_readUInt8, "Expected %p but got %p", JSONDeserializationContext_readUInt8, context.readUInt8);
-	TestCase_assert(context.readInt16 == JSONDeserializationContext_readInt16, "Expected %p but got %p", JSONDeserializationContext_readInt16, context.readInt16);
-	TestCase_assert(context.readUInt16 == JSONDeserializationContext_readUInt16, "Expected %p but got %p", JSONDeserializationContext_readUInt16, context.readUInt16);
-	TestCase_assert(context.readInt32 == JSONDeserializationContext_readInt32, "Expected %p but got %p", JSONDeserializationContext_readInt32, context.readInt32);
-	TestCase_assert(context.readUInt32 == JSONDeserializationContext_readUInt32, "Expected %p but got %p", JSONDeserializationContext_readUInt32, context.readUInt32);
-	TestCase_assert(context.readInt64 == JSONDeserializationContext_readInt64, "Expected %p but got %p", JSONDeserializationContext_readInt64, context.readInt64);
-	TestCase_assert(context.readUInt64 == JSONDeserializationContext_readUInt64, "Expected %p but got %p", JSONDeserializationContext_readUInt64, context.readUInt64);
-	TestCase_assert(context.readFloat == JSONDeserializationContext_readFloat, "Expected %p but got %p", JSONDeserializationContext_readFloat, context.readFloat);
-	TestCase_assert(context.readDouble == JSONDeserializationContext_readDouble, "Expected %p but got %p", JSONDeserializationContext_readDouble, context.readDouble);
-	TestCase_assert(context.readString == JSONDeserializationContext_readString, "Expected %p but got %p", JSONDeserializationContext_readString, context.readString);
-	TestCase_assert(context.readBoolean == JSONDeserializationContext_readBoolean, "Expected %p but got %p", JSONDeserializationContext_readBoolean, context.readBoolean);
-	TestCase_assert(context.readEnumeration == JSONDeserializationContext_readEnumeration, "Expected %p but got %p", JSONDeserializationContext_readEnumeration, context.readEnumeration);
-	TestCase_assert(context.readBitfield8 == JSONDeserializationContext_readBitfield8, "Expected %p but got %p", JSONDeserializationContext_readBitfield8, context.readBitfield8);
-	TestCase_assert(context.readBitfield16 == JSONDeserializationContext_readBitfield16, "Expected %p but got %p", JSONDeserializationContext_readBitfield16, context.readBitfield16);
-	TestCase_assert(context.readBitfield32 == JSONDeserializationContext_readBitfield32, "Expected %p but got %p", JSONDeserializationContext_readBitfield32, context.readBitfield32);
-	TestCase_assert(context.readBitfield64 == JSONDeserializationContext_readBitfield64, "Expected %p but got %p", JSONDeserializationContext_readBitfield64, context.readBitfield64);
-	TestCase_assert(context.readNextDictionaryKey == JSONDeserializationContext_readNextDictionaryKey, "Expected %p but got %p", JSONDeserializationContext_readNextDictionaryKey, context.readNextDictionaryKey);
-	TestCase_assert(context.hasDictionaryKey == JSONDeserializationContext_hasDictionaryKey, "Expected %p but got %p", JSONDeserializationContext_hasDictionaryKey, context.hasDictionaryKey);
+	verifyInit(&context);
 	context.dispose(&context);
 	
 	contextPtr = JSONDeserializationContext_createWithString(stringAndLength("[]"));
 	TestCase_assert(contextPtr != NULL, "Expected non-NULL but got NULL");
 	if (contextPtr == NULL) {return;} // Suppress clang warning
-	TestCase_assert(contextPtr->jmpBuf == NULL, "Expected NULL but got %p", contextPtr->jmpBuf);
-	TestCase_assert(contextPtr->status == SERIALIZATION_ERROR_OK, "Expected %d but got %d", SERIALIZATION_ERROR_OK, contextPtr->status);
-	TestCase_assert(contextPtr->dispose == JSONDeserializationContext_dispose, "Expected %p but got %p", JSONDeserializationContext_dispose, contextPtr->dispose);
-	TestCase_assert(contextPtr->errorString == JSONSerialization_errorString, "Expected %p but got %p", JSONSerialization_errorString, contextPtr->errorString);
-	TestCase_assert(contextPtr->beginStructure == JSONDeserializationContext_beginStructure, "Expected %p but got %p", JSONDeserializationContext_beginStructure, contextPtr->beginStructure);
-	TestCase_assert(contextPtr->beginDictionary == JSONDeserializationContext_beginDictionary, "Expected %p but got %p", JSONDeserializationContext_beginDictionary, contextPtr->beginDictionary);
-	TestCase_assert(contextPtr->beginArray == JSONDeserializationContext_beginArray, "Expected %p but got %p", JSONDeserializationContext_beginArray, contextPtr->beginArray);
-	TestCase_assert(contextPtr->endStructure == JSONDeserializationContext_endStructure, "Expected %p but got %p", JSONDeserializationContext_endStructure, contextPtr->endStructure);
-	TestCase_assert(contextPtr->endDictionary == JSONDeserializationContext_endDictionary, "Expected %p but got %p", JSONDeserializationContext_endDictionary, contextPtr->endDictionary);
-	TestCase_assert(contextPtr->endArray == JSONDeserializationContext_endArray, "Expected %p but got %p", JSONDeserializationContext_endArray, contextPtr->endArray);
-	TestCase_assert(contextPtr->readInt8 == JSONDeserializationContext_readInt8, "Expected %p but got %p", JSONDeserializationContext_readInt8, contextPtr->readInt8);
-	TestCase_assert(contextPtr->readUInt8 == JSONDeserializationContext_readUInt8, "Expected %p but got %p", JSONDeserializationContext_readUInt8, contextPtr->readUInt8);
-	TestCase_assert(contextPtr->readInt16 == JSONDeserializationContext_readInt16, "Expected %p but got %p", JSONDeserializationContext_readInt16, contextPtr->readInt16);
-	TestCase_assert(contextPtr->readUInt16 == JSONDeserializationContext_readUInt16, "Expected %p but got %p", JSONDeserializationContext_readUInt16, contextPtr->readUInt16);
-	TestCase_assert(contextPtr->readInt32 == JSONDeserializationContext_readInt32, "Expected %p but got %p", JSONDeserializationContext_readInt32, contextPtr->readInt32);
-	TestCase_assert(contextPtr->readUInt32 == JSONDeserializationContext_readUInt32, "Expected %p but got %p", JSONDeserializationContext_readUInt32, contextPtr->readUInt32);
-	TestCase_assert(contextPtr->readInt64 == JSONDeserializationContext_readInt64, "Expected %p but got %p", JSONDeserializationContext_readInt64, contextPtr->readInt64);
-	TestCase_assert(contextPtr->readUInt64 == JSONDeserializationContext_readUInt64, "Expected %p but got %p", JSONDeserializationContext_readUInt64, contextPtr->readUInt64);
-	TestCase_assert(contextPtr->readFloat == JSONDeserializationContext_readFloat, "Expected %p but got %p", JSONDeserializationContext_readFloat, contextPtr->readFloat);
-	TestCase_assert(contextPtr->readDouble == JSONDeserializationContext_readDouble, "Expected %p but got %p", JSONDeserializationContext_readDouble, contextPtr->readDouble);
-	TestCase_assert(contextPtr->readString == JSONDeserializationContext_readString, "Expected %p but got %p", JSONDeserializationContext_readString, contextPtr->readString);
-	TestCase_assert(contextPtr->readBoolean == JSONDeserializationContext_readBoolean, "Expected %p but got %p", JSONDeserializationContext_readBoolean, contextPtr->readBoolean);
-	TestCase_assert(contextPtr->readEnumeration == JSONDeserializationContext_readEnumeration, "Expected %p but got %p", JSONDeserializationContext_readEnumeration, contextPtr->readEnumeration);
-	TestCase_assert(contextPtr->readBitfield8 == JSONDeserializationContext_readBitfield8, "Expected %p but got %p", JSONDeserializationContext_readBitfield8, contextPtr->readBitfield8);
-	TestCase_assert(contextPtr->readBitfield16 == JSONDeserializationContext_readBitfield16, "Expected %p but got %p", JSONDeserializationContext_readBitfield16, contextPtr->readBitfield16);
-	TestCase_assert(contextPtr->readBitfield32 == JSONDeserializationContext_readBitfield32, "Expected %p but got %p", JSONDeserializationContext_readBitfield32, contextPtr->readBitfield32);
-	TestCase_assert(contextPtr->readBitfield64 == JSONDeserializationContext_readBitfield64, "Expected %p but got %p", JSONDeserializationContext_readBitfield64, contextPtr->readBitfield64);
-	TestCase_assert(contextPtr->readNextDictionaryKey == JSONDeserializationContext_readNextDictionaryKey, "Expected %p but got %p", JSONDeserializationContext_readNextDictionaryKey, contextPtr->readNextDictionaryKey);
-	TestCase_assert(contextPtr->hasDictionaryKey == JSONDeserializationContext_hasDictionaryKey, "Expected %p but got %p", JSONDeserializationContext_hasDictionaryKey, contextPtr->hasDictionaryKey);
+	verifyInit(contextPtr);
 	contextPtr->dispose(contextPtr);
 	
 	tempFilePath = temporaryFilePath("tmpXXXXXX", &fd);
@@ -164,69 +85,13 @@ static void testInit() {
 	unlink(tempFilePath);
 	TestCase_assert(contextPtr != NULL, "Expected non-NULL but got NULL");
 	if (contextPtr == NULL) {return;} // Suppress clang warning
-	TestCase_assert(contextPtr->jmpBuf == NULL, "Expected NULL but got %p", contextPtr->jmpBuf);
-	TestCase_assert(contextPtr->status == SERIALIZATION_ERROR_OK, "Expected %d but got %d", SERIALIZATION_ERROR_OK, contextPtr->status);
-	TestCase_assert(contextPtr->dispose == JSONDeserializationContext_dispose, "Expected %p but got %p", JSONDeserializationContext_dispose, contextPtr->dispose);
-	TestCase_assert(contextPtr->errorString == JSONSerialization_errorString, "Expected %p but got %p", JSONSerialization_errorString, contextPtr->errorString);
-	TestCase_assert(contextPtr->beginStructure == JSONDeserializationContext_beginStructure, "Expected %p but got %p", JSONDeserializationContext_beginStructure, contextPtr->beginStructure);
-	TestCase_assert(contextPtr->beginDictionary == JSONDeserializationContext_beginDictionary, "Expected %p but got %p", JSONDeserializationContext_beginDictionary, contextPtr->beginDictionary);
-	TestCase_assert(contextPtr->beginArray == JSONDeserializationContext_beginArray, "Expected %p but got %p", JSONDeserializationContext_beginArray, contextPtr->beginArray);
-	TestCase_assert(contextPtr->endStructure == JSONDeserializationContext_endStructure, "Expected %p but got %p", JSONDeserializationContext_endStructure, contextPtr->endStructure);
-	TestCase_assert(contextPtr->endDictionary == JSONDeserializationContext_endDictionary, "Expected %p but got %p", JSONDeserializationContext_endDictionary, contextPtr->endDictionary);
-	TestCase_assert(contextPtr->endArray == JSONDeserializationContext_endArray, "Expected %p but got %p", JSONDeserializationContext_endArray, contextPtr->endArray);
-	TestCase_assert(contextPtr->readInt8 == JSONDeserializationContext_readInt8, "Expected %p but got %p", JSONDeserializationContext_readInt8, contextPtr->readInt8);
-	TestCase_assert(contextPtr->readUInt8 == JSONDeserializationContext_readUInt8, "Expected %p but got %p", JSONDeserializationContext_readUInt8, contextPtr->readUInt8);
-	TestCase_assert(contextPtr->readInt16 == JSONDeserializationContext_readInt16, "Expected %p but got %p", JSONDeserializationContext_readInt16, contextPtr->readInt16);
-	TestCase_assert(contextPtr->readUInt16 == JSONDeserializationContext_readUInt16, "Expected %p but got %p", JSONDeserializationContext_readUInt16, contextPtr->readUInt16);
-	TestCase_assert(contextPtr->readInt32 == JSONDeserializationContext_readInt32, "Expected %p but got %p", JSONDeserializationContext_readInt32, contextPtr->readInt32);
-	TestCase_assert(contextPtr->readUInt32 == JSONDeserializationContext_readUInt32, "Expected %p but got %p", JSONDeserializationContext_readUInt32, contextPtr->readUInt32);
-	TestCase_assert(contextPtr->readInt64 == JSONDeserializationContext_readInt64, "Expected %p but got %p", JSONDeserializationContext_readInt64, contextPtr->readInt64);
-	TestCase_assert(contextPtr->readUInt64 == JSONDeserializationContext_readUInt64, "Expected %p but got %p", JSONDeserializationContext_readUInt64, contextPtr->readUInt64);
-	TestCase_assert(contextPtr->readFloat == JSONDeserializationContext_readFloat, "Expected %p but got %p", JSONDeserializationContext_readFloat, contextPtr->readFloat);
-	TestCase_assert(contextPtr->readDouble == JSONDeserializationContext_readDouble, "Expected %p but got %p", JSONDeserializationContext_readDouble, contextPtr->readDouble);
-	TestCase_assert(contextPtr->readString == JSONDeserializationContext_readString, "Expected %p but got %p", JSONDeserializationContext_readString, contextPtr->readString);
-	TestCase_assert(contextPtr->readBoolean == JSONDeserializationContext_readBoolean, "Expected %p but got %p", JSONDeserializationContext_readBoolean, contextPtr->readBoolean);
-	TestCase_assert(contextPtr->readEnumeration == JSONDeserializationContext_readEnumeration, "Expected %p but got %p", JSONDeserializationContext_readEnumeration, contextPtr->readEnumeration);
-	TestCase_assert(contextPtr->readBitfield8 == JSONDeserializationContext_readBitfield8, "Expected %p but got %p", JSONDeserializationContext_readBitfield8, contextPtr->readBitfield8);
-	TestCase_assert(contextPtr->readBitfield16 == JSONDeserializationContext_readBitfield16, "Expected %p but got %p", JSONDeserializationContext_readBitfield16, contextPtr->readBitfield16);
-	TestCase_assert(contextPtr->readBitfield32 == JSONDeserializationContext_readBitfield32, "Expected %p but got %p", JSONDeserializationContext_readBitfield32, contextPtr->readBitfield32);
-	TestCase_assert(contextPtr->readBitfield64 == JSONDeserializationContext_readBitfield64, "Expected %p but got %p", JSONDeserializationContext_readBitfield64, contextPtr->readBitfield64);
-	TestCase_assert(contextPtr->readNextDictionaryKey == JSONDeserializationContext_readNextDictionaryKey, "Expected %p but got %p", JSONDeserializationContext_readNextDictionaryKey, contextPtr->readNextDictionaryKey);
-	TestCase_assert(contextPtr->hasDictionaryKey == JSONDeserializationContext_hasDictionaryKey, "Expected %p but got %p", JSONDeserializationContext_hasDictionaryKey, contextPtr->hasDictionaryKey);
+	verifyInit(contextPtr);
 	contextPtr->dispose(contextPtr);
 	
 	contextPtr = JSONDeserializationContext_createWithJSONNode(&node);
 	TestCase_assert(contextPtr != NULL, "Expected non-NULL but got NULL");
 	if (contextPtr == NULL) {return;} // Suppress clang warning
-	TestCase_assert(contextPtr->jmpBuf == NULL, "Expected NULL but got %p", contextPtr->jmpBuf);
-	TestCase_assert(contextPtr->status == SERIALIZATION_ERROR_OK, "Expected %d but got %d", SERIALIZATION_ERROR_OK, contextPtr->status);
-	TestCase_assert(contextPtr->dispose == JSONDeserializationContext_dispose, "Expected %p but got %p", JSONDeserializationContext_dispose, contextPtr->dispose);
-	TestCase_assert(contextPtr->errorString == JSONSerialization_errorString, "Expected %p but got %p", JSONSerialization_errorString, contextPtr->errorString);
-	TestCase_assert(contextPtr->beginStructure == JSONDeserializationContext_beginStructure, "Expected %p but got %p", JSONDeserializationContext_beginStructure, contextPtr->beginStructure);
-	TestCase_assert(contextPtr->beginDictionary == JSONDeserializationContext_beginDictionary, "Expected %p but got %p", JSONDeserializationContext_beginDictionary, contextPtr->beginDictionary);
-	TestCase_assert(contextPtr->beginArray == JSONDeserializationContext_beginArray, "Expected %p but got %p", JSONDeserializationContext_beginArray, contextPtr->beginArray);
-	TestCase_assert(contextPtr->endStructure == JSONDeserializationContext_endStructure, "Expected %p but got %p", JSONDeserializationContext_endStructure, contextPtr->endStructure);
-	TestCase_assert(contextPtr->endDictionary == JSONDeserializationContext_endDictionary, "Expected %p but got %p", JSONDeserializationContext_endDictionary, contextPtr->endDictionary);
-	TestCase_assert(contextPtr->endArray == JSONDeserializationContext_endArray, "Expected %p but got %p", JSONDeserializationContext_endArray, contextPtr->endArray);
-	TestCase_assert(contextPtr->readInt8 == JSONDeserializationContext_readInt8, "Expected %p but got %p", JSONDeserializationContext_readInt8, contextPtr->readInt8);
-	TestCase_assert(contextPtr->readUInt8 == JSONDeserializationContext_readUInt8, "Expected %p but got %p", JSONDeserializationContext_readUInt8, contextPtr->readUInt8);
-	TestCase_assert(contextPtr->readInt16 == JSONDeserializationContext_readInt16, "Expected %p but got %p", JSONDeserializationContext_readInt16, contextPtr->readInt16);
-	TestCase_assert(contextPtr->readUInt16 == JSONDeserializationContext_readUInt16, "Expected %p but got %p", JSONDeserializationContext_readUInt16, contextPtr->readUInt16);
-	TestCase_assert(contextPtr->readInt32 == JSONDeserializationContext_readInt32, "Expected %p but got %p", JSONDeserializationContext_readInt32, contextPtr->readInt32);
-	TestCase_assert(contextPtr->readUInt32 == JSONDeserializationContext_readUInt32, "Expected %p but got %p", JSONDeserializationContext_readUInt32, contextPtr->readUInt32);
-	TestCase_assert(contextPtr->readInt64 == JSONDeserializationContext_readInt64, "Expected %p but got %p", JSONDeserializationContext_readInt64, contextPtr->readInt64);
-	TestCase_assert(contextPtr->readUInt64 == JSONDeserializationContext_readUInt64, "Expected %p but got %p", JSONDeserializationContext_readUInt64, contextPtr->readUInt64);
-	TestCase_assert(contextPtr->readFloat == JSONDeserializationContext_readFloat, "Expected %p but got %p", JSONDeserializationContext_readFloat, contextPtr->readFloat);
-	TestCase_assert(contextPtr->readDouble == JSONDeserializationContext_readDouble, "Expected %p but got %p", JSONDeserializationContext_readDouble, contextPtr->readDouble);
-	TestCase_assert(contextPtr->readString == JSONDeserializationContext_readString, "Expected %p but got %p", JSONDeserializationContext_readString, contextPtr->readString);
-	TestCase_assert(contextPtr->readBoolean == JSONDeserializationContext_readBoolean, "Expected %p but got %p", JSONDeserializationContext_readBoolean, contextPtr->readBoolean);
-	TestCase_assert(contextPtr->readEnumeration == JSONDeserializationContext_readEnumeration, "Expected %p but got %p", JSONDeserializationContext_readEnumeration, contextPtr->readEnumeration);
-	TestCase_assert(contextPtr->readBitfield8 == JSONDeserializationContext_readBitfield8, "Expected %p but got %p", JSONDeserializationContext_readBitfield8, contextPtr->readBitfield8);
-	TestCase_assert(contextPtr->readBitfield16 == JSONDeserializationContext_readBitfield16, "Expected %p but got %p", JSONDeserializationContext_readBitfield16, contextPtr->readBitfield16);
-	TestCase_assert(contextPtr->readBitfield32 == JSONDeserializationContext_readBitfield32, "Expected %p but got %p", JSONDeserializationContext_readBitfield32, contextPtr->readBitfield32);
-	TestCase_assert(contextPtr->readBitfield64 == JSONDeserializationContext_readBitfield64, "Expected %p but got %p", JSONDeserializationContext_readBitfield64, contextPtr->readBitfield64);
-	TestCase_assert(contextPtr->readNextDictionaryKey == JSONDeserializationContext_readNextDictionaryKey, "Expected %p but got %p", JSONDeserializationContext_readNextDictionaryKey, contextPtr->readNextDictionaryKey);
-	TestCase_assert(contextPtr->hasDictionaryKey == JSONDeserializationContext_hasDictionaryKey, "Expected %p but got %p", JSONDeserializationContext_hasDictionaryKey, contextPtr->hasDictionaryKey);
+	verifyInit(contextPtr);
 	contextPtr->dispose(contextPtr);
 }
 
@@ -271,6 +136,15 @@ static void testInit() {
 	const char * value; \
 	value = context->readString(context, KEY); \
 	TestCase_assert(!strcmp(value, (EXPECTED_VALUE)), "Expected \"%s\" but got \"%s\"", (EXPECTED_VALUE), value); \
+	TestCase_assert(context->status == SERIALIZATION_ERROR_OK, "Got error from operation that should have succeeded: %d", context->status); \
+}
+
+#define readAndVerifyBlob(KEY, EXPECTED_VALUE, EXPECTED_LENGTH) { \
+	const void * value; \
+	size_t length; \
+	value = context->readBlob(context, KEY, &length); \
+	TestCase_assert(length == EXPECTED_LENGTH, "Expected " SIZE_T_FORMAT " but got " SIZE_T_FORMAT, EXPECTED_LENGTH, length); \
+	TestCase_assert(!memcmp(value, (EXPECTED_VALUE), EXPECTED_LENGTH), "Expected \"%s\" but got \"%s\"", (char *) (EXPECTED_VALUE), (char *) value); \
 	TestCase_assert(context->status == SERIALIZATION_ERROR_OK, "Got error from operation that should have succeeded: %d", context->status); \
 }
 
@@ -377,6 +251,19 @@ static void testStringValues() {
 	beginAndVerifyArray("", 2)
 	readAndVerifyString("", "foo")
 	readAndVerifyString("", "Hello, world!")
+	context->endArray(context);
+	context->dispose(context);
+}
+
+static void testBlobValues() {
+	JSONDeserializationContext * context;
+	
+	context = JSONDeserializationContext_createWithString(stringAndLength("[\"Zm9v\", \"SGVsbG8sIHdvcmxkIQ==\"]"));
+	TestCase_assert(context != NULL, "Expected non-NULL but got NULL");
+	if (context == NULL) {return;} // Suppress clang warning
+	beginAndVerifyArray("", 2)
+	readAndVerifyBlob("", "foo", 3)
+	readAndVerifyBlob("", "Hello, world!", 13)
 	context->endArray(context);
 	context->dispose(context);
 }
@@ -1566,6 +1453,7 @@ TEST_SUITE(JSONDeserializationContextTest,
            testNumberValues,
            testLargeIntegerRepresentations,
            testStringValues,
+           testBlobValues,
            testBooleanValues,
            testEnumerations,
            testBitfields,

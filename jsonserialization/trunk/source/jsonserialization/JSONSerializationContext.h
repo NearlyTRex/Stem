@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2013 Alex Diener
+  Copyright (c) 2014 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -17,7 +17,7 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
   
-  Alex Diener adiener@sacredsoftware.net
+  Alex Diener alex@ludobloom.com
 */
 
 #ifndef __JSONSerializationContext_H__
@@ -47,11 +47,7 @@ struct JSONSerializationContext_nodeStackItem {
 	struct JSONSerializationContext_nodeStackItem * nodeStack; \
 	size_t nodeStackAllocatedSize; \
 	size_t nodeStackCurrentDepth; \
-	bool rootNodeOwnedBySelf; \
-	\
-	char * (* writeToString)(self_type * self, enum JSONEmitterFormat format, size_t * outLength, struct JSONEmissionError * outError); \
-	bool (* writeToFile)(self_type * self, enum JSONEmitterFormat format, const char * filePath, struct JSONEmissionError * outError); \
-	struct JSONNode * (* writeToJSONNode)(self_type * self);
+	bool rootNodeOwnedBySelf;
 
 stemobject_struct_definition(JSONSerializationContext)
 
@@ -71,6 +67,7 @@ void JSONSerializationContext_beginArray(JSONSerializationContext * self, const 
 void JSONSerializationContext_endStructure(JSONSerializationContext * self);
 void JSONSerializationContext_endDictionary(JSONSerializationContext * self);
 void JSONSerializationContext_endArray(JSONSerializationContext * self);
+void JSONSerializationContext_writeBoolean(JSONSerializationContext * self, const char * key, bool value);
 void JSONSerializationContext_writeInt8(JSONSerializationContext * self, const char * key, int8_t value);
 void JSONSerializationContext_writeUInt8(JSONSerializationContext * self, const char * key, uint8_t value);
 void JSONSerializationContext_writeInt16(JSONSerializationContext * self, const char * key, int16_t value);
@@ -81,13 +78,13 @@ void JSONSerializationContext_writeInt64(JSONSerializationContext * self, const 
 void JSONSerializationContext_writeUInt64(JSONSerializationContext * self, const char * key, uint64_t value);
 void JSONSerializationContext_writeFloat(JSONSerializationContext * self, const char * key, float value);
 void JSONSerializationContext_writeDouble(JSONSerializationContext * self, const char * key, double value);
-void JSONSerializationContext_writeString(JSONSerializationContext * self, const char * key, const char * value);
-void JSONSerializationContext_writeBoolean(JSONSerializationContext * self, const char * key, bool value);
 void JSONSerializationContext_writeEnumeration(JSONSerializationContext * self, const char * key, int value, ...) __attribute__((sentinel));
 void JSONSerializationContext_writeBitfield8(JSONSerializationContext * self, const char * key, uint8_t value, ...) __attribute__((sentinel));
 void JSONSerializationContext_writeBitfield16(JSONSerializationContext * self, const char * key, uint16_t value, ...) __attribute__((sentinel));
 void JSONSerializationContext_writeBitfield32(JSONSerializationContext * self, const char * key, uint32_t value, ...) __attribute__((sentinel));
 void JSONSerializationContext_writeBitfield64(JSONSerializationContext * self, const char * key, uint64_t value, ...) __attribute__((sentinel));
+void JSONSerializationContext_writeString(JSONSerializationContext * self, const char * key, const char * value);
+void JSONSerializationContext_writeBlob(JSONSerializationContext * self, const char * key, const void * value, size_t length);
 
 #ifdef __cplusplus
 }
