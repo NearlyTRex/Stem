@@ -47,7 +47,7 @@ bool DataSerializationContext_init(DataSerializationContext * self);
 void DataSerializationContext_dispose(DataSerializationContext * self);
 
 // Returned value not owned by caller. Copy if you need to keep it around.
-DataValue DataSerializationContext_result(DataSerializationContext * self);
+DataValue * DataSerializationContext_result(DataSerializationContext * self);
 
 void DataSerializationContext_beginStructure(DataSerializationContext * self, const char * key);
 void DataSerializationContext_beginDictionary(DataSerializationContext * self, const char * key);

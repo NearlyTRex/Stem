@@ -78,11 +78,11 @@ void DataSerializationContext_dispose(DataSerializationContext * self) {
 	} \
 	RETURN_CODE
 
-DataValue DataSerializationContext_result(DataSerializationContext * self) {
+DataValue * DataSerializationContext_result(DataSerializationContext * self) {
 	if (!self->finished) {
-		failWithStatus(SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER, return valueCreateBoolean(false));
+		failWithStatus(SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER, return NULL);
 	}
-	return self->rootValue;
+	return &self->rootValue;
 }
 
 static void pushContainer(DataSerializationContext * self, const char * key, DataValue container) {
