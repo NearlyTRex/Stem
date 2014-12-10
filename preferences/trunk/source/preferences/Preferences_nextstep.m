@@ -23,7 +23,7 @@
 #include "preferences/Preferences_private.h"
 #import <Foundation/Foundation.h>
 
-void Preferences_getFilePathPrivate(const char * fileName, char * outFilePath) {
+void Preferences_getFilePathPrivate(const char * fileName, char * outFilePath, size_t maxLength) {
 	NSAutoreleasePool * pool;
 	NSArray * paths;
 	const char * libraryDir;
@@ -31,6 +31,6 @@ void Preferences_getFilePathPrivate(const char * fileName, char * outFilePath) {
 	pool = [[NSAutoreleasePool alloc] init];
 	paths = NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES);
 	libraryDir = [[paths objectAtIndex: 0] UTF8String];
-	snprintf(outFilePath, PATH_MAX, "%s/Preferences/%s", libraryDir, fileName);
+	snprintf(outFilePath, maxLength, "%s/Preferences/%s", libraryDir, fileName);
 	[pool release];
 }

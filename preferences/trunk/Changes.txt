@@ -1,4 +1,9 @@
-1.1.5 (2014-11-17)
+2.0.0 (2014-12-01)
+ * preferences now uses DataValue for everything, allowing hierarchical storage. API simplified accordingly.
+ * Preferences_add(Integer|Float|String|Boolean|Data) functions have been removed. Values no longer need to be registered before being set.
+ * Preferences_loadDefaultValue and Preferences_loadDefaultValues functions have been removed. Preferences no longer tracks a set of default values.
+ * Preferences_load and Preferences_save have been replaced by Preferences_import and Preferences_export, respectively. No file I/O is done in the new functions; use dynamictypes's DataSerializer for I/O with the new API.
+ * Preferences_getFilePath now accepts a maxLength parameter rather than assuming its outFilePath argument is PATH_MAX bytes wide
  * Updated jsonio dependency from 1.2.4 to 1.2.5 (layout of struct JSONParseError changed)
  * Updated utilities dependency from 1.8.1 to 1.9.0 (layout of EventDispatcher changed)
  * Removed method function pointers in preparation for stemobject 4.0.0

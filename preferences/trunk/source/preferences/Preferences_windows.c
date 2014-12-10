@@ -21,9 +21,10 @@
 */
 
 #include "preferences/Preferences_private.h"
+#include "utilities/IOUtilities.h"
 #include <limits.h>
 #include <stdio.h>
 
-void Preferences_getFilePathPrivate(const char * fileName, char * outFilePath) {
-	snprintf(outFilePath, PATH_MAX, "%s/%s", getenv("APPDATA"), fileName);
+void Preferences_getFilePathPrivate(const char * fileName, char * outFilePath, size_t maxLength) {
+	snprintf_safe(outFilePath, maxLength, "%s/%s", getenv("APPDATA"), fileName);
 }

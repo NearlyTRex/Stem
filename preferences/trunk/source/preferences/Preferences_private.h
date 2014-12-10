@@ -28,15 +28,7 @@ extern "C" {
 
 #include "preferences/Preferences.h"
 
-void Preferences_setIntegerPrivate(Preferences * self, const char * name, int value);
-void Preferences_setFloatPrivate(Preferences * self, const char * name, float value);
-void Preferences_setBooleanPrivate(Preferences * self, const char * name, bool value);
-void Preferences_setStringPrivate(Preferences * self, const char * name, const char * value);
-void Preferences_setDataPrivate(Preferences * self, const char * name, const void * value, size_t length);
-
-void Preferences_getFilePathPrivate(const char * fileName, char * outFilePath);
-void Preferences_loadPrivate(Preferences * self);
-void Preferences_savePrivate(Preferences * self);
+void Preferences_getFilePathPrivate(const char * fileName, char * outFilePath, size_t maxLength);
 
 #ifdef __cplusplus
 }

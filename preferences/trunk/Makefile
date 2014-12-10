@@ -1,5 +1,5 @@
 .PHONY: all
-all: library unittest testharness test include
+all: library unittest test include
 
 UNAME = ${shell uname}
 ifeq (${UNAME},Linux)
@@ -30,29 +30,23 @@ TARGET_PLATFORMS_windows = win32 win64
 PROJECT_NAME = preferences
 CODESIGN_IDENTITY ?= "iPhone Developer"
 
-LIBRARY_TARGETS = library library_stub
-EXECUTABLE_TARGETS = unittest testharness
+LIBRARY_TARGETS = library
+EXECUTABLE_TARGETS = unittest
 APPLICATION_TARGETS =
 TARGETS = ${LIBRARY_TARGETS} ${EXECUTABLE_TARGETS} ${APPLICATION_TARGETS}
 PLATFORMS = ${filter ${TARGET_PLATFORMS_${HOST_PLATFORM}},macosx iphonesimulator iphoneos linux32 linux64 win32 win64}
 ANALYZERS = splint clang
 
 TARGET_NAME_library = libstem_${PROJECT_NAME}
-TARGET_NAME_library_stub = libstem_${PROJECT_NAME}_stub
 TARGET_NAME_unittest = ${PROJECT_NAME}_unittest
-TARGET_NAME_testharness = ${PROJECT_NAME}_testharness
 
 #Per-target configurations
 CONFIGURATIONS_library = debug profile release
-CONFIGURATIONS_library_stub = debug
 CONFIGURATIONS_unittest = debug
-CONFIGURATIONS_testharness = debug profile release
 
 #Per-target platforms
 PLATFORMS_library = ${filter ${PLATFORMS},macosx iphonesimulator iphoneos linux32 linux64 win32 win64}
-PLATFORMS_library_stub = ${filter ${PLATFORMS},macosx iphonesimulator linux32 linux64 win32 win64}
 PLATFORMS_unittest = ${filter ${PLATFORMS},macosx iphonesimulator linux32 linux64 win32 win64}
-PLATFORMS_testharness = ${filter ${PLATFORMS},macosx iphonesimulator iphoneos linux32 linux64 win32 win64}
 
 #Per-target analyzer settings
 CLANGFLAGS_unittest = ${CCFLAGS_unittest}
@@ -155,36 +149,27 @@ LINKFLAGS = ${FRAMEWORK_LINKFLAGS} ${LIBRARY_LINKFLAGS} ${OTHER_LINKFLAGS}
 
 LINK_ORDER = \
 	library \
-	library_stub \
 	unittest \
-	jsonio \
+	dynamictypes \
+	serialization \
 	utilities \
-	stubshell \
-	stemobject \
-	stubshell
+	stemobject
 
 #Dependencies (can optionally be per-target or per-target-per-platform)
 
-PROJECT_LIBRARY_DEPENDENCIES_unittest = library_stub
-PROJECT_LIBRARY_DEPENDENCIES_testharness = library
+PROJECT_LIBRARY_DEPENDENCIES_unittest = library
 STEM_LIBRARY_DEPENDENCIES = \
+	dynamictypes/1.0.0 \
 	utilities/1.9.0 \
-	stemobject/3.1.1
-STEM_LIBRARY_DEPENDENCIES_library = \
-	jsonio/1.2.5
+	stemobject/3.1.1 \
+	serialization/1.5.0
 STEM_LIBRARY_DEPENDENCIES_unittest = \
-	stubshell/1.5.0 \
 	unittest/1.1.1
-STEM_LIBRARY_DEPENDENCIES_testharness = \
-	jsonio/1.2.5 \
-	stubshell/1.5.0
 THIRDPARTY_LIBRARY_DEPENDENCIES = 
 
 #Per-target source file lists
 
 SOURCES_library = \
-	source/${PROJECT_NAME}/Preferences_json.c \
-	source/${PROJECT_NAME}/Preferences_private.c \
 	source/${PROJECT_NAME}/Preferences.c
 
 SOURCES_library_macosx = source/preferences/Preferences_nextstep.m
@@ -195,19 +180,12 @@ SOURCES_library_win64 = source/preferences/Preferences_windows.c
 SOURCES_library_linux32 = source/preferences/Preferences_linux.c
 SOURCES_library_linux64 = source/preferences/Preferences_linux.c
 
-SOURCES_library_stub = \
-	source/${PROJECT_NAME}/Preferences_private.c \
-	source/${PROJECT_NAME}/Preferences.c
-
 SOURCES_unittest = \
 	build/intermediate/TestList.c \
 	${SOURCES_unittest_suites}
 
 SOURCES_unittest_suites = \
 	source/unittest/PreferencesTest.c
-
-SOURCES_testharness = \
-	source/testharness/TestHarness_main.c
 
 #Include files to be distributed with library
 
@@ -276,7 +254,9 @@ ${foreach target,${TARGETS}, \
 
 
 define create_directory_target_template #(dir)
+ifneq (${UNAME},Linux)
 .LOW_RESOLUTION_TIME: $1
+endif
 $1:
 	mkdir -p $1
 endef
@@ -371,7 +351,7 @@ ${foreach target,${LIBRARY_TARGETS}, \
 
 define executable_template #(target, configuration, platform, arch, output_file, dependent_libraries)
 build/intermediate/$1-$2-$3-$4/$5: ${call arch_object_list_template,$1,$2,$3,$4} $6
-	${CC_$3_$4} -o $$@ $$^ ${LINKFLAGS} ${LINKFLAGS_$3}
+	${CC_$3_$4} -o $$@ $$^ ${LINKFLAGS} ${LINKFLAGS_$3} ${LINKFLAGS_$1_$3}
 endef
 
 define library_dependency_template #(target, configuration, platform)
@@ -495,14 +475,10 @@ ${foreach target,${EXECUTABLE_TARGETS}, \
 	} \
 }
 
-PLIST_FILE_testharness_macosx = resources/Info_testharness_macosx.plist
-
-PLIST_FILE_testharness_iphonesimulator = resources/Info_testharness_iphone.plist
 PLIST_PLATFORM_CASED_iphonesimulator = iPhoneSimulator
 PLIST_PLATFORM_LOWER_iphonesimulator = iphonesimulator
 PLIST_SDK_NAME_iphonesimulator = iphonesimulator${IPHONESIMULATOR_VERSION_MIN}
 
-PLIST_FILE_testharness_iphoneos = resources/Info_testharness_iphone.plist
 PLIST_PLATFORM_CASED_iphoneos = iPhoneOS
 PLIST_PLATFORM_LOWER_iphoneos = iphoneos
 PLIST_SDK_NAME_iphoneos = iphoneos${IPHONEOS_VERSION_MIN}
@@ -642,7 +618,7 @@ run_unittests_iphonesimulator: unittest
 	#HACK: Invoking iPhone simulator executables that link to system frameworks with DYLD_ROOT_PATH set currently crashes
 	#      with illegal instruction. preferences needs to link to Foundation, but conveniently enough, the Mac OS X
 	#      Foundation works just fine for testing. Not optimal though!
-	#DYLD_ROOT_PATH=${SDKROOT_iphonesimulator} \
+	#DYLD_ROOT_PATH=${SDKROOT_iphonesimulator_unittest} \
 	./build/unittest/debug-iphonesimulator/${TARGET_NAME_unittest} "${CURDIR}/build/unittest/debug-iphonesimulator"
 
 .PHONY: run_unittests_linux32
@@ -730,27 +706,12 @@ include: ${INCLUDES} | ${foreach include_file,${INCLUDES},build/include/${notdir
 clean:
 	rm -rf build
 
-TARGET_SUFFIX_ipad = _ipad
-IPHONESIMULATOR_SDK_VERSION ?= 7.1
-IPHONESIMULATOR_APPLICATIONS_DIR_iphone ?= ${HOME}/Library/Application Support/iPhone Simulator/${IPHONESIMULATOR_SDK_VERSION}/Applications
-IPHONESIMULATOR_APPLICATIONS_DIR_ipad ?= ${HOME}/Library/Application Support/iPhone Simulator/${IPHONESIMULATOR_SDK_VERSION}/Applications
-SIMULATE_DEVICE_iphone = iPhone
-SIMULATE_DEVICE_ipad = iPad
-IPHONE_SIMULATOR_PATH ?= /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Applications/iPhone\ Simulator.app
+IOS_SIM ?= ios-sim
 
-define install_target_iphonesimulator_template #(target, simulate_device)
-.PHONY: install_$1_iphonesimulator${TARGET_SUFFIX_$2}
-install_$1_iphonesimulator${TARGET_SUFFIX_$2}: $1
-	killall "iPhone Simulator"; true
-	rm -rf "${IPHONESIMULATOR_APPLICATIONS_DIR_$2}/${TARGET_NAME_$1}"
-	mkdir -p "${IPHONESIMULATOR_APPLICATIONS_DIR_$2}/${TARGET_NAME_$1}/Documents"
-	mkdir -p "${IPHONESIMULATOR_APPLICATIONS_DIR_$2}/${TARGET_NAME_$1}/Library/Preferences"
-	mkdir -p "${IPHONESIMULATOR_APPLICATIONS_DIR_$2}/${TARGET_NAME_$1}/tmp"
-	cp -r "build/$1/debug-iphonesimulator/${TARGET_NAME_$1}.app" "${IPHONESIMULATOR_APPLICATIONS_DIR_$2}/${TARGET_NAME_$1}"
-	defaults write com.apple.iphonesimulator SimulateDevice -string "${SIMULATE_DEVICE_$2}"
-	defaults write com.apple.iphonesimulator SimulateSDKRoot -string "${SDKROOT_iphonesimulator}"
-	defaults write com.apple.iphonesimulator currentSDKRoot -string "${SDKROOT_iphonesimulator}"
-	open "${IPHONE_SIMULATOR_PATH}"
+define launch_target_iphonesimulator_template #(target)
+.PHONY: launch_$1_iphonesimulator
+launch_$1_iphonesimulator: $1
+	${IOS_SIM} launch "build/$1/debug-iphonesimulator/${TARGET_NAME_$1}.app" ${IOS_SIM_ARGS}
 endef
 
 define add_blob_header #(source_file, target_file)
@@ -772,22 +733,15 @@ codesign_$1_iphoneos: $1
 endef
 
 ${foreach target,${APPLICATION_TARGETS}, \
-	${eval ${call install_target_iphonesimulator_template,${target},iphone}} \
-	${eval ${call install_target_iphonesimulator_template,${target},ipad}} \
+	${eval ${call launch_target_iphonesimulator_template,${target}}} \
 	${eval ${call codesign_target_iphoneos_template,${target}}} \
 }
 
 INSTALL_DIR = ${STEM_SHARED_DIR}/${PROJECT_NAME}/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_TWEAK}
-INSTALL_DIR_STUB = ${STEM_SHARED_DIR}/${PROJECT_NAME}/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_TWEAK}_stub
 
 .PHONY: install
 install:
-	mkdir -p "${INSTALL_DIR}/include" "${INSTALL_DIR}/library" "${INSTALL_DIR}/testharness"
-	mkdir -p "${INSTALL_DIR_STUB}/include" "${INSTALL_DIR_STUB}/library"
+	mkdir -p "${INSTALL_DIR}/include" "${INSTALL_DIR}/library"
 	cp Changes.txt License.txt ReadMe.txt version ${INSTALL_DIR}
-	cp Changes.txt License.txt ReadMe.txt version ${INSTALL_DIR_STUB}
 	cp -r build/include/* ${INSTALL_DIR}/include
-	cp -r build/include/* ${INSTALL_DIR_STUB}/include
 	cp -r build/library/* ${INSTALL_DIR}/library
-	cp -r build/library_stub/* ${INSTALL_DIR_STUB}/library
-	cp -r build/testharness/* ${INSTALL_DIR}/testharness
