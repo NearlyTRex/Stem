@@ -828,8 +828,64 @@ static void testConversions() {
 	valueDispose(&value);
 }
 
+static void testNullTolerance() {
+	bool boolean;
+	int8_t int8;
+	uint8_t uint8;
+	int16_t int16;
+	uint16_t uint16;
+	int32_t int32;
+	uint32_t uint32;
+	int64_t int64;
+	uint64_t uint64;
+	float float32;
+	double float64;
+	void * pointer;
+	const char * string;
+	const void * blob;
+	HashTable * hashTable;
+	DataArray * array;
+	AssociativeArray * assArray;
+	
+	boolean = valueGetBoolean(NULL);
+	TestCase_assert(!boolean, "Expected false but got true");
+	int8 = valueGetInt8(NULL);
+	TestCase_assert(int8 == 0, "Expected 0 but got %d", int8);
+	uint8 = valueGetUInt8(NULL);
+	TestCase_assert(uint8 == 0, "Expected 0 but got %u", uint8);
+	int16 = valueGetInt16(NULL);
+	TestCase_assert(int16 == 0, "Expected 0 but got %d", int16);
+	uint16 = valueGetUInt16(NULL);
+	TestCase_assert(uint16 == 0, "Expected 0 but got %u", uint16);
+	int32 = valueGetInt32(NULL);
+	TestCase_assert(int32 == 0, "Expected 0 but got %d", int32);
+	uint32 = valueGetUInt32(NULL);
+	TestCase_assert(uint32 == 0, "Expected 0 but got %u", uint32);
+	int64 = valueGetInt64(NULL);
+	TestCase_assert(int64 == 0, "Expected 0 but got " INT64_FORMAT, int64);
+	uint64 = valueGetUInt64(NULL);
+	TestCase_assert(uint64 == 0, "Expected 0 but got " UINT64_FORMAT, uint64);
+	float32 = valueGetFloat(NULL);
+	TestCase_assert(float32 == 0.0f, "Expected 0.0 but got %d", float32);
+	float64 = valueGetDouble(NULL);
+	TestCase_assert(float64 == 0.0, "Expected 0.0 but got %u", float64);
+	pointer = valueGetPointer(NULL);
+	TestCase_assert(pointer == NULL, "Expected NULL but got %p", pointer);
+	string = valueGetString(NULL);
+	TestCase_assert(string == NULL, "Expected NULL but got \"%s\"", string);
+	blob = valueGetBlob(NULL, NULL);
+	TestCase_assert(blob == NULL, "Expected NULL but got %p", blob);
+	hashTable = valueGetHashTable(NULL);
+	TestCase_assert(hashTable == NULL, "Expected NULL but got %p", hashTable);
+	array = valueGetArray(NULL);
+	TestCase_assert(array == NULL, "Expected NULL but got %p", array);
+	assArray = valueGetAssociativeArray(NULL);
+	TestCase_assert(assArray == NULL, "Expected NULL but got %p", assArray);
+}
+
 TEST_SUITE(DataValueTest,
            testCreate,
            testGet,
            testCopy,
-           testConversions)
+           testConversions,
+           testNullTolerance)

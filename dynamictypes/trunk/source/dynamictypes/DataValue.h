@@ -122,8 +122,8 @@ DataValue valueCopy(DataValue * value);
 void valueDispose(DataValue * value);
 
 /** Returns the raw value contained by a DataValue, or false/0/NULL if the specified DataValue is of a type
-    that does not match the function being called. Numeric types will be automatically converted if possible,
-    though results are undefined for values too large to be converted to the target type. */
+    that does not match the function being called, or is NULL. Numeric types will be automatically converted
+    if possible, though results are undefined for values too large to be converted to the target type. */
 bool valueGetBoolean(DataValue * value);
 int8_t valueGetInt8(DataValue * value);
 uint8_t valueGetUInt8(DataValue * value);

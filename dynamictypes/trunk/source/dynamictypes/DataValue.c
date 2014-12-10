@@ -196,9 +196,40 @@ DataValue valueCopy(DataValue * value) {
 }
 
 void valueDispose(DataValue * value) {
+	if (value != NULL && value->owned) {
+		switch (value->type) {
+			case DATA_TYPE_STRING:
+				free((char *) value->value.string);
+				break;
+				
+			case DATA_TYPE_BLOB:
+				free((void *) value->value.blob.bytes);
+				break;
+				
+			case DATA_TYPE_HASH_TABLE:
+				hashDispose(value->value.hashTable);
+				break;
+				
+			case DATA_TYPE_ARRAY:
+				arrayDispose(value->value.array);
+				break;
+				
+			case DATA_TYPE_ASSOCIATIVE_ARRAY:
+				associativeArrayDispose(value->value.associativeArray);
+				break;
+				
+			default:
+				break;
+		}
+		value->type = -1;
+		value->owned = false;
+	}
 }
 
 #define returnNumericValue(value, defaultValue) \
+	if (value == NULL) { \
+		return defaultValue; \
+	} \
 	switch (value->type) { \
 		case DATA_TYPE_BOOLEAN: \
 			return value->value.boolean; \
@@ -271,6 +302,9 @@ double valueGetDouble(DataValue * value) {
 }
 
 void * valueGetPointer(DataValue * value) {
+	if (value == NULL) {
+		return NULL;
+	}
 	switch (value->type) {
 		case DATA_TYPE_POINTER:
 			return value->value.pointer;
@@ -290,15 +324,18 @@ void * valueGetPointer(DataValue * value) {
 }
 
 const char * valueGetString(DataValue * value) {
-	if (value->type != DATA_TYPE_STRING) {
+	if (value == NULL || value->type != DATA_TYPE_STRING) {
 		return NULL;
 	}
 	return value->value.string;
 }
 
 const void * valueGetBlob(DataValue * value, size_t * outLength) {
+	if (value == NULL) {
+		return NULL;
+	}
 	if (value->type == DATA_TYPE_STRING) {
-		if (outLength != NULL) {
+		if (outLength != NULL && value != NULL) {
 			*outLength = strlen(value->value.string);
 		}
 		return value->value.string;
@@ -313,21 +350,21 @@ const void * valueGetBlob(DataValue * value, size_t * outLength) {
 }
 
 HashTable * valueGetHashTable(DataValue * value) {
-	if (value->type != DATA_TYPE_HASH_TABLE) {
+	if (value == NULL || value->type != DATA_TYPE_HASH_TABLE) {
 		return NULL;
 	}
 	return value->value.hashTable;
 }
 
 DataArray * valueGetArray(DataValue * value) {
-	if (value->type != DATA_TYPE_ARRAY) {
+	if (value == NULL || value->type != DATA_TYPE_ARRAY) {
 		return NULL;
 	}
 	return value->value.array;
 }
 
 struct AssociativeArray * valueGetAssociativeArray(DataValue * value) {
-	if (value->type != DATA_TYPE_ASSOCIATIVE_ARRAY) {
+	if (value == NULL || value->type != DATA_TYPE_ASSOCIATIVE_ARRAY) {
 		return NULL;
 	}
 	return value->value.associativeArray;
