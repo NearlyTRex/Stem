@@ -54,23 +54,23 @@ static void testSetGet() {
 	
 	value = Preferences_get(preferences, "bool_false");
 	TestCase_assert(value != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(value->type == DATA_TYPE_BOOLEAN, "Expected %d but got %s", DATA_TYPE_BOOLEAN, value->type);
+	TestCase_assert(value->type == DATA_TYPE_BOOLEAN, "Expected %d but got %d", DATA_TYPE_BOOLEAN, value->type);
 	TestCase_assert(!valueGetBoolean(value), "Expected false but got true");
 	
 	value = Preferences_get(preferences, "bool_true");
 	TestCase_assert(value != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(value->type == DATA_TYPE_BOOLEAN, "Expected %d but got %s", DATA_TYPE_BOOLEAN, value->type);
+	TestCase_assert(value->type == DATA_TYPE_BOOLEAN, "Expected %d but got %d", DATA_TYPE_BOOLEAN, value->type);
 	TestCase_assert(valueGetBoolean(value), "Expected true but got false");
 	
 	value = Preferences_get(preferences, "int8");
 	TestCase_assert(value != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(value->type == DATA_TYPE_INT8, "Expected %d but got %s", DATA_TYPE_INT8, value->type);
+	TestCase_assert(value->type == DATA_TYPE_INT8, "Expected %d but got %d", DATA_TYPE_INT8, value->type);
 	TestCase_assert(valueGetInt8(value) == 0, "Expected 0 but got %d", valueGetInt8(value));
 	
 	Preferences_set(preferences, "int8", valueCreateInt8(1));
 	value = Preferences_get(preferences, "int8");
 	TestCase_assert(value != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(value->type == DATA_TYPE_INT8, "Expected %d but got %s", DATA_TYPE_INT8, value->type);
+	TestCase_assert(value->type == DATA_TYPE_INT8, "Expected %d but got %d", DATA_TYPE_INT8, value->type);
 	TestCase_assert(valueGetInt8(value) == 1, "Expected 1 but got %d", valueGetInt8(value));
 	
 	Preferences_dispose(preferences);
