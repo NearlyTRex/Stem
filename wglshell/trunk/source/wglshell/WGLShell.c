@@ -1094,6 +1094,10 @@ static LRESULT CALLBACK windowProc(HWND window, UINT message, WPARAM wParam, LPA
 			return 0;
 		}
 		
+		case WM_SYSCHAR:
+			// Must trap WM_SYSCHAR to prevent beeping from alt+key presses which are handled by WM_SYSKEYDOWN
+			return 0;
+			
 		case WM_KEYUP:
 		case WM_SYSKEYUP: {
 			unsigned int keyCode;
