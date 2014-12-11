@@ -866,9 +866,9 @@ static void testNullTolerance() {
 	uint64 = valueGetUInt64(NULL);
 	TestCase_assert(uint64 == 0, "Expected 0 but got " UINT64_FORMAT, uint64);
 	float32 = valueGetFloat(NULL);
-	TestCase_assert(float32 == 0.0f, "Expected 0.0 but got %d", float32);
+	TestCase_assert(float32 == 0.0f, "Expected 0.0 but got %f", float32);
 	float64 = valueGetDouble(NULL);
-	TestCase_assert(float64 == 0.0, "Expected 0.0 but got %u", float64);
+	TestCase_assert(float64 == 0.0, "Expected 0.0 but got %f", float64);
 	pointer = valueGetPointer(NULL);
 	TestCase_assert(pointer == NULL, "Expected NULL but got %p", pointer);
 	string = valueGetString(NULL);
