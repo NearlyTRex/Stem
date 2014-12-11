@@ -162,12 +162,12 @@ LINK_ORDER = \
 	jsonserialization \
 	jsonio \
 	dynamictypes \
-	utilities \
 	eaglshell \
 	glutshell \
 	nsopenglshell \
 	stubshell \
 	serialization \
+	utilities \
 	stemobject \
 	gamemath \
 	libpng \
