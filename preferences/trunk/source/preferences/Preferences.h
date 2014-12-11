@@ -48,7 +48,6 @@ struct PreferencesEvent {
 #define Preferences_structContents(self_type) \
 	StemObject_structContents(self_type) \
 	\
-	const char * identifier; \
 	HashTable * private_ivar(hashTable); \
 	EventDispatcher * eventDispatcher;
 
@@ -56,8 +55,8 @@ stemobject_struct_definition(Preferences)
 
 void Preferences_getFilePath(const char * fileName, char * outPath, size_t maxLength);
 
-Preferences * Preferences_create(const char * identifier);
-bool Preferences_init(Preferences * self, const char * identifier);
+Preferences * Preferences_create(void);
+bool Preferences_init(Preferences * self);
 void Preferences_dispose(Preferences * self);
 
 void Preferences_set(Preferences * self, const char * key, DataValue value);

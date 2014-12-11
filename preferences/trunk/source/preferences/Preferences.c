@@ -30,15 +30,14 @@ void Preferences_getFilePath(const char * fileName, char * outPath, size_t maxLe
 	Preferences_getFilePathPrivate(fileName, outPath, maxLength);
 }
 
-Preferences * Preferences_create(const char * identifier) {
-	stemobject_create_implementation(Preferences, init, identifier)
+Preferences * Preferences_create(void) {
+	stemobject_create_implementation(Preferences, init)
 }
 
-bool Preferences_init(Preferences * self, const char * identifier) {
+bool Preferences_init(Preferences * self) {
 	call_super(init, self);
 	
 	self->private_ivar(hashTable) = hashCreate();
-	self->identifier = strdup(identifier);
 	self->eventDispatcher = EventDispatcher_create();
 	
 	self->dispose = Preferences_dispose;
@@ -47,7 +46,6 @@ bool Preferences_init(Preferences * self, const char * identifier) {
 
 void Preferences_dispose(Preferences * self) {
 	hashDispose(self->private_ivar(hashTable));
-	free((char *) self->identifier);
 	call_super(dispose, self);
 }
 

@@ -6,32 +6,28 @@
 void Preferences_getFilePathPrivate(const char * fileName, char * outFilePath, size_t maxLength) {
 }
 
-static void verifyInit(Preferences * preferences, const char * identifier) {
+static void verifyInit(Preferences * preferences) {
 	TestCase_assert(preferences->eventDispatcher != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(preferences->identifier != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(!strcmp(preferences->identifier, identifier), "Expected \"%s\" but got \"%s\"", identifier, preferences->identifier);
-	TestCase_assert(preferences->identifier != identifier, "Pointers expected to differ but didn't");
 	TestCase_assert(preferences->dispose == Preferences_dispose, "Expected %p but got %p", Preferences_dispose, preferences->dispose);
 }
 
 static void testInit() {
 	Preferences preferences, * preferencesPtr;
-	const char * identifier1 = "identifier1", * identifier2 = "identifier2";
 	
 	memset(&preferences, 0x00, sizeof(Preferences));
-	Preferences_init(&preferences, identifier1);
-	verifyInit(&preferences, identifier1);
+	Preferences_init(&preferences);
+	verifyInit(&preferences);
 	preferences.dispose(&preferences);
 	
 	memset(&preferences, 0xFF, sizeof(Preferences));
-	Preferences_init(&preferences, identifier2);
-	verifyInit(&preferences, identifier2);
+	Preferences_init(&preferences);
+	verifyInit(&preferences);
 	preferences.dispose(&preferences);
 	
-	preferencesPtr = Preferences_create(identifier1);
+	preferencesPtr = Preferences_create();
 	TestCase_assert(preferencesPtr != NULL, "Expected non-NULL but got NULL");
 	if (preferencesPtr == NULL) {return;} // Suppress clang warning
-	verifyInit(preferencesPtr, identifier1);
+	verifyInit(preferencesPtr);
 	preferencesPtr->dispose(preferencesPtr);
 }
 
@@ -39,7 +35,7 @@ static void testSetGet() {
 	Preferences * preferences;
 	DataValue * value;
 	
-	preferences = Preferences_create("preferences_unittest");
+	preferences = Preferences_create();
 	
 	value = Preferences_get(preferences, "bool_false");
 	TestCase_assert(value == NULL, "Expected NULL but got %p", value);
@@ -81,7 +77,7 @@ static void testImport() {
 	HashTable * hashTable;
 	DataValue * value;
 	
-	preferences = Preferences_create("preferences_unittest");
+	preferences = Preferences_create();
 	
 	hashTable = hashCreateWithKeysAndValues("a", valueCreateBoolean(false), "b", valueCreateInt8(1), NULL);
 	Preferences_import(preferences, hashTable);
@@ -124,7 +120,7 @@ static void testExport() {
 	HashTable * hashTable;
 	DataValue * value;
 	
-	preferences = Preferences_create("preferences_unittest");
+	preferences = Preferences_create();
 	
 	Preferences_set(preferences, "a", valueCreateBoolean(false));
 	Preferences_set(preferences, "b", valueCreateInt8(1));
@@ -218,7 +214,7 @@ static void testEvents() {
 	DataValue * value;
 	
 	valueChangedCalls = 0;
-	preferences = Preferences_create("preferences_unittest");
+	preferences = Preferences_create();
 	EventDispatcher_registerForEvent(preferences->eventDispatcher, Atom_fromString(PREFERENCES_EVENT_VALUE_CHANGED), valueChanged, NULL);
 	
 	expectedKey = "boolean";
