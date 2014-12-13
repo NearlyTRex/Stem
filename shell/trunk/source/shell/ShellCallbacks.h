@@ -26,6 +26,8 @@
 extern "C" {
 #endif
 
+#include <stdbool.h>
+
 /** Main entry point. Called when the shell's bootstrapping has finished, and a valid OpenGL context
     has been created and made active if the shell uses OpenGL. Call Shell_mainLoop from this function
     if you want to continue execution. If you do not, the program will exit after Target_init() returns.
@@ -46,8 +48,10 @@ void Shell_resizeFunc(void (* callback)(unsigned int newWidth, unsigned int newH
 
 /** Sets function to be called when the user presses a key. charCode is a UTF-32 character value.
     keyCode is one of the KEYBOARD_* or KEYPAD_* values defined by ShellKeyCodes.h. modifierFlags
-    is a bitfield containing zero or more of the MODIFIER_* bits defined by ShellKeyCodes.h. */
-void Shell_keyDownFunc(void (* callback)(unsigned int charCode, unsigned int keyCode, unsigned int modifierFlags));
+    is a bitfield containing zero or more of the MODIFIER_* bits defined by ShellKeyCodes.h.
+    isRepeat is false for the initial keypress, and true for retriggered keypresses while the
+    key is continuously held by the user. */
+void Shell_keyDownFunc(void (* callback)(unsigned int charCode, unsigned int keyCode, unsigned int modifierFlags, bool isRepeat));
 
 /** Sets function to be called when the user releases a key. keyCode is one of the KEYBOARD_* or KEYPAD_* values defined
     by ShellKeyCodes.h. modifierFlags is a bitfield containing zero or more of the MODIFIER_* bits
