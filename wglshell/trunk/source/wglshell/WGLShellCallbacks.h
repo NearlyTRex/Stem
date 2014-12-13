@@ -30,7 +30,7 @@ extern "C" {
 
 extern bool (* drawCallback)(void) __asm("drawCallback$WGLShell");
 extern void (* resizeCallback)(unsigned int newWidth, unsigned int newHeight) __asm("resizeCallback$WGLShell");
-extern void (* keyDownCallback)(unsigned int charCode, unsigned int keyCode, unsigned int modifierFlags) __asm("keyDownCallback$WGLShell");
+extern void (* keyDownCallback)(unsigned int charCode, unsigned int keyCode, unsigned int modifierFlags, bool isRepeat) __asm("keyDownCallback$WGLShell");
 extern void (* keyUpCallback)(unsigned int keyCode, unsigned int modifierFlags) __asm("keyUpCallback$WGLShell");
 extern void (* keyModifiersChangedCallback)(unsigned int modifierFlags) __asm("keyModifiersChangedCallback$WGLShell");
 extern void (* mouseDownCallback)(unsigned int buttonNumber, float x, float y) __asm("mouseDownCallback$WGLShell");

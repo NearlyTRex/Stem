@@ -24,7 +24,7 @@
 
 bool (* drawCallback)(void) __asm("drawCallback$WGLShell");
 void (* resizeCallback)(unsigned int newWidth, unsigned int newHeight) __asm("resizeCallback$WGLShell");
-void (* keyDownCallback)(unsigned int charCode, unsigned int keyCode, unsigned int modifierFlags) __asm("keyDownCallback$WGLShell");
+void (* keyDownCallback)(unsigned int charCode, unsigned int keyCode, unsigned int modifierFlags, bool isRepeat) __asm("keyDownCallback$WGLShell");
 void (* keyUpCallback)(unsigned int keyCode, unsigned int modifierFlags) __asm("keyUpCallback$WGLShell");
 void (* keyModifiersChangedCallback)(unsigned int modifierFlags) __asm("keyModifiersChangedCallback$WGLShell");
 void (* mouseDownCallback)(unsigned int buttonNumber, float x, float y) __asm("mouseDownCallback$WGLShell");
@@ -44,7 +44,7 @@ void Shell_resizeFunc(void (* callback)(unsigned int newWidth, unsigned int newH
 	resizeCallback = callback;
 }
 
-void Shell_keyDownFunc(void (* callback)(unsigned int charCode, unsigned int keyCode, unsigned int modifierFlags)) {
+void Shell_keyDownFunc(void (* callback)(unsigned int charCode, unsigned int keyCode, unsigned int modifierFlags, bool isRepeat)) {
 	keyDownCallback = callback;
 }
 

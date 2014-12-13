@@ -1065,7 +1065,7 @@ static LRESULT CALLBACK windowProc(HWND window, UINT message, WPARAM wParam, LPA
 			}
 			
 			if (keyCode != 0 && keyDownCallback != NULL) {
-				keyDownCallback(charCode, keyCode, modifierFlags);
+				keyDownCallback(charCode, keyCode, modifierFlags, false);
 			}
 			if (keyCode == KEYBOARD_LEFT_SHIFT || keyCode == KEYBOARD_RIGHT_SHIFT) {
 				if (!(modifierFlags & MODIFIER_SHIFT_BIT)) {
