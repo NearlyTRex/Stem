@@ -30,7 +30,7 @@ extern "C" {
 
 extern bool (* drawCallback)(void) __asm("drawCallback$GLUTShell");
 extern void (* resizeCallback)(unsigned int newWidth, unsigned int newHeight) __asm("resizeCallback$GLUTShell");
-extern void (* keyDownCallback)(unsigned int charCode, unsigned int keyCode, unsigned int modifierFlags) __asm("keyDownCallback$GLUTShell");
+extern void (* keyDownCallback)(unsigned int charCode, unsigned int keyCode, unsigned int modifierFlags, bool isRepeat) __asm("keyDownCallback$GLUTShell");
 extern void (* keyUpCallback)(unsigned int keyCode, unsigned int modifierFlags) __asm("keyUpCallback$GLUTShell");
 extern void (* keyModifiersChangedCallback)(unsigned int modifierFlags) __asm("keyModifiersChangedCallback$GLUTShell");
 extern void (* mouseDownCallback)(unsigned int buttonNumber, float x, float y) __asm("mouseDownCallback$GLUTShell");

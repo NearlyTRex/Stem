@@ -12,6 +12,8 @@ GLUT does not have an official API for mouse wheel events. The Shell_scrollWheel
 
 GLUT provides no mechanism for confirming before quitting. The Shell_confirmQuitFunc callback will never be invoked.
 
+Key repeats can't be easily detected in GLUT. The isRepeat parameter to the Shell_keyDownFunc callback will always be false.
+
 Shell_openURL() is not implemented by glutshell. Calling it has no effect.
 
 Shell_openFileDialog() and Shell_saveFileDialog() display nothing and always return false. Use a platform-native shell if you want to browse for files.

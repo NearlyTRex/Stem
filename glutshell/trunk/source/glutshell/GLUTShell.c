@@ -674,7 +674,7 @@ static void checkModifierKeys() {
 	if (newModifierMask != modifierMask) {
 		if ((newModifierMask & MODIFIER_SHIFT_BIT) && !(modifierMask & MODIFIER_SHIFT_BIT)) {
 			if (keyDownCallback != NULL) {
-				keyDownCallback(0, KEYBOARD_LEFT_SHIFT, modifierMask);
+				keyDownCallback(0, KEYBOARD_LEFT_SHIFT, modifierMask, false);
 			}
 		} else if (!(newModifierMask & MODIFIER_SHIFT_BIT) && (modifierMask & MODIFIER_SHIFT_BIT)) {
 			if (keyUpCallback != NULL) {
@@ -683,7 +683,7 @@ static void checkModifierKeys() {
 		}
 		if ((newModifierMask & MODIFIER_CONTROL_BIT) && !(modifierMask & MODIFIER_CONTROL_BIT)) {
 			if (keyDownCallback != NULL) {
-				keyDownCallback(0, KEYBOARD_LEFT_CONTROL, modifierMask);
+				keyDownCallback(0, KEYBOARD_LEFT_CONTROL, modifierMask, false);
 			}
 		} else if (!(newModifierMask & MODIFIER_CONTROL_BIT) && (modifierMask & MODIFIER_CONTROL_BIT)) {
 			if (keyUpCallback != NULL) {
@@ -692,7 +692,7 @@ static void checkModifierKeys() {
 		}
 		if ((newModifierMask & MODIFIER_ALT_BIT) && !(modifierMask & MODIFIER_ALT_BIT)) {
 			if (keyDownCallback != NULL) {
-				keyDownCallback(0, KEYBOARD_LEFT_ALT, modifierMask);
+				keyDownCallback(0, KEYBOARD_LEFT_ALT, modifierMask, false);
 			}
 		} else if (!(newModifierMask & MODIFIER_ALT_BIT) && (modifierMask & MODIFIER_ALT_BIT)) {
 			if (keyUpCallback != NULL) {
@@ -709,7 +709,7 @@ static void checkModifierKeys() {
 static void keyDownFunc(unsigned char charCode, int x, int y) {
 	checkModifierKeys();
 	if (keyDownCallback != NULL) {
-		keyDownCallback(charCode, glutCharCodeToShellKeyCode(charCode), modifierMask);
+		keyDownCallback(charCode, glutCharCodeToShellKeyCode(charCode), modifierMask, false);
 	}
 }
 
@@ -776,7 +776,7 @@ static void specialDownFunc(int key, int x, int y) {
 	
 	keyCode = glutSpecialToShellKeyCode(key);
 	if (keyCode != -1 && keyDownCallback != NULL) {
-		keyDownCallback(0, keyCode, modifierMask);
+		keyDownCallback(0, keyCode, modifierMask, false);
 	}
 }
 
