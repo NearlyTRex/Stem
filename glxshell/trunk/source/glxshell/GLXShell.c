@@ -95,6 +95,7 @@ static bool mouseDeltaMode;
 static int restoreMouseX, restoreMouseY;
 static int lastMouseX, lastMouseY;
 static int ignoreX = INT_MAX, ignoreY = INT_MAX;
+static bool nextKeyDownIsRepeat;
 
 static void setEmptyCursor() {
 	static Cursor emptyCursor = None;
@@ -436,8 +437,9 @@ void Shell_mainLoop() {
 					}
 					if (keyCode != 0) {
 						if (keyDownCallback != NULL) {
-							keyDownCallback(charCode, keyCode, modifiers, false);
+							keyDownCallback(charCode, keyCode, modifiers, nextKeyDownIsRepeat);
 						}
+						nextKeyDownIsRepeat = false;
 					}
 					if (modifierMask != modifiers) {
 						modifierMask = modifiers;
@@ -453,7 +455,8 @@ void Shell_mainLoop() {
 					}
 					XQueryKeymap(display, keys);
 					if (keys[event.xkey.keycode >> 3] & 1 << (event.xkey.keycode % 8)) {
-						// Xlib sends key ups for key repeats; this one is a repeat, so skip it
+						// Xlib sends key ups for key repeats; this one is a repeat, so skip it and mark the next keyDown as a repeat
+						nextKeyDownIsRepeat = true;
 						break;
 					}
 					
