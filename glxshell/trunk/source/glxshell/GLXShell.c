@@ -436,7 +436,7 @@ void Shell_mainLoop() {
 					}
 					if (keyCode != 0) {
 						if (keyDownCallback != NULL) {
-							keyDownCallback(charCode, keyCode, modifiers);
+							keyDownCallback(charCode, keyCode, modifiers, false);
 						}
 					}
 					if (modifierMask != modifiers) {

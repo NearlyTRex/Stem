@@ -1,5 +1,5 @@
-2.1.0 (2014-11-29)
- * Updated for shell 2.1.0 (adds Shell_setVSync (which replaces GLXShell_setVSync), Shell_openFileDialog, Shell_saveFileDialog, Shell_systemBeep, Shell_getSafeWindowRect, and Shell_confirmQuitFunc)
+2.1.0 (2014-12-13)
+ * Updated for shell 2.1.0 (adds Shell_setVSync (which replaces GLXShell_setVSync), Shell_openFileDialog, Shell_saveFileDialog, Shell_systemBeep, Shell_getSafeWindowRect, Shell_confirmQuitFunc, and isRepeat argument to Shell_keyDownFunc callback)
 
 2.0.0 (2014-10-24)
  * Updated for shell 2.0.0 (adds multiple display support, scroll wheel events, registered callbacks for input events)
