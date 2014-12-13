@@ -493,7 +493,7 @@ static unsigned int NSEventKeyModifiersToShellKeyModifiers(NSUInteger modifiers)
 		NSString * characters;
 		
 		characters = [event characters];
-		keyDownCallback([characters length] > 0 ? [characters characterAtIndex: 0] : 0, NSEventKeyCodeToShellKeyCode([event keyCode]), NSEventKeyModifiersToShellKeyModifiers([event modifierFlags]));
+		keyDownCallback([characters length] > 0 ? [characters characterAtIndex: 0] : 0, NSEventKeyCodeToShellKeyCode([event keyCode]), NSEventKeyModifiersToShellKeyModifiers([event modifierFlags]), [event isARepeat]);
 	}
 }
 
@@ -510,7 +510,7 @@ static unsigned int NSEventKeyModifiersToShellKeyModifiers(NSUInteger modifiers)
 	if (newModifierMask != modifierMask) {
 		if ((newModifierMask & MODIFIER_SHIFT_BIT) && !(modifierMask & MODIFIER_SHIFT_BIT)) {
 			if (keyDownCallback != NULL) {
-				keyDownCallback(0, KEYBOARD_LEFT_SHIFT, modifierMask);
+				keyDownCallback(0, KEYBOARD_LEFT_SHIFT, modifierMask, false);
 			}
 		} else if (!(newModifierMask & MODIFIER_SHIFT_BIT) && (modifierMask & MODIFIER_SHIFT_BIT)) {
 			if (keyUpCallback != NULL) {
@@ -520,7 +520,7 @@ static unsigned int NSEventKeyModifiersToShellKeyModifiers(NSUInteger modifiers)
 		
 		if ((newModifierMask & MODIFIER_CONTROL_BIT) && !(modifierMask & MODIFIER_CONTROL_BIT)) {
 			if (keyDownCallback != NULL) {
-				keyDownCallback(0, KEYBOARD_LEFT_CONTROL, modifierMask);
+				keyDownCallback(0, KEYBOARD_LEFT_CONTROL, modifierMask, false);
 			}
 		} else if (!(newModifierMask & MODIFIER_CONTROL_BIT) && (modifierMask & MODIFIER_CONTROL_BIT)) {
 			if (keyUpCallback != NULL) {
@@ -530,7 +530,7 @@ static unsigned int NSEventKeyModifiersToShellKeyModifiers(NSUInteger modifiers)
 		
 		if ((newModifierMask & MODIFIER_ALT_BIT) && !(modifierMask & MODIFIER_ALT_BIT)) {
 			if (keyDownCallback != NULL) {
-				keyDownCallback(0, KEYBOARD_LEFT_ALT, modifierMask);
+				keyDownCallback(0, KEYBOARD_LEFT_ALT, modifierMask, false);
 			}
 		} else if (!(newModifierMask & MODIFIER_ALT_BIT) && (modifierMask & MODIFIER_ALT_BIT)) {
 			if (keyUpCallback != NULL) {
@@ -540,7 +540,7 @@ static unsigned int NSEventKeyModifiersToShellKeyModifiers(NSUInteger modifiers)
 		
 		if ((newModifierMask & MODIFIER_COMMAND_BIT) && !(modifierMask & MODIFIER_COMMAND_BIT)) {
 			if (keyDownCallback != NULL) {
-				keyDownCallback(0, KEYBOARD_LEFT_GUI, modifierMask);
+				keyDownCallback(0, KEYBOARD_LEFT_GUI, modifierMask, false);
 			}
 		} else if (!(newModifierMask & MODIFIER_COMMAND_BIT) && (modifierMask & MODIFIER_COMMAND_BIT)) {
 			if (keyUpCallback != NULL) {
@@ -550,7 +550,7 @@ static unsigned int NSEventKeyModifiersToShellKeyModifiers(NSUInteger modifiers)
 		
 		if ((newModifierMask & MODIFIER_CAPS_LOCK_BIT) && !(modifierMask & MODIFIER_CAPS_LOCK_BIT)) {
 			if (keyDownCallback != NULL) {
-				keyDownCallback(0, KEYBOARD_CAPS_LOCK, modifierMask);
+				keyDownCallback(0, KEYBOARD_CAPS_LOCK, modifierMask, false);
 			}
 		} else if (!(newModifierMask & MODIFIER_CAPS_LOCK_BIT) && (modifierMask & MODIFIER_CAPS_LOCK_BIT)) {
 			if (keyUpCallback != NULL) {

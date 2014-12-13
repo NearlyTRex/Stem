@@ -78,8 +78,8 @@ static void restoreCallbacksTimer(unsigned int timerID, void * context) {
 	printf("Restored event callbacks\n");
 }
 
-static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned int modifierFlags) {
-	printf("Target_keyDown(%u, %u, 0x%X)\n", charCode, keyCode, modifierFlags);
+static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned int modifierFlags, bool isRepeat) {
+	printf("Target_keyDown(%u, %u, 0x%X, %s)\n", charCode, keyCode, modifierFlags, isRepeat ? "true" : "false");
 	if (keyCode == KEYBOARD_Q) {
 		ShellThread thread;
 		ShellMutex mutex;

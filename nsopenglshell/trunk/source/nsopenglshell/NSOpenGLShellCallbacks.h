@@ -30,7 +30,7 @@ extern "C" {
 
 extern bool (* drawCallback)(void) __asm("drawCallback$NSOpenGLShell");
 extern void (* resizeCallback)(unsigned int newWidth, unsigned int newHeight) __asm("resizeCallback$NSOpenGLShell");
-extern void (* keyDownCallback)(unsigned int charCode, unsigned int keyCode, unsigned int modifierFlags) __asm("keyDownCallback$NSOpenGLShell");
+extern void (* keyDownCallback)(unsigned int charCode, unsigned int keyCode, unsigned int modifierFlags, bool isRepeat) __asm("keyDownCallback$NSOpenGLShell");
 extern void (* keyUpCallback)(unsigned int keyCode, unsigned int modifierFlags) __asm("keyUpCallback$NSOpenGLShell");
 extern void (* keyModifiersChangedCallback)(unsigned int modifierFlags) __asm("keyModifiersChangedCallback$NSOpenGLShell");
 extern void (* mouseDownCallback)(unsigned int buttonNumber, float x, float y) __asm("mouseDownCallback$NSOpenGLShell");
