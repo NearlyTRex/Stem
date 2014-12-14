@@ -25,5 +25,5 @@
 #include <stdio.h>
 
 void Preferences_getFilePathPrivate(const char * fileName, char * outFilePath, size_t maxLength) {
-	snprintf(outFilePath, maxLength, "%s/.%s", getenv("HOME"), fileName);
+	snprintf(outFilePath, maxLength, "%s/.config/%s", getenv("HOME"), fileName);
 }
