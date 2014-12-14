@@ -753,9 +753,9 @@ const char * Shell_getSupportPath(const char * subdirectory) {
 	static char supportPath[PATH_MAX];
 	
 	if (subdirectory == NULL) {
-		strncpy(supportPath, getenv("HOME"), PATH_MAX);
+		snprintf(supportPath, PATH_MAX, "%s/.config", getenv("HOME"));
 	} else {
-		snprintf(supportPath, PATH_MAX, "%s/.%s", getenv("HOME"), subdirectory);
+		snprintf(supportPath, PATH_MAX, "%s/.config/%s", getenv("HOME"), subdirectory);
 	}
 	mkdir(supportPath, 0777);
 	return supportPath;
