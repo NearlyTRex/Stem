@@ -130,7 +130,7 @@ static void Target_resized(unsigned int newWidth, unsigned int newHeight) {
 	viewportHeight = newHeight;
 }
 
-static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned int keyModifiers) {
+static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned int keyModifiers, bool isRepeat) {
 	if (keyCode == KEYBOARD_DELETE_OR_BACKSPACE && strlen(freeformText) > 0) {
 		freeformText[strlen(freeformText) - 1] = '\x00';
 		Shell_redisplay();
