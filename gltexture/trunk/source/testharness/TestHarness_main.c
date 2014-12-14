@@ -394,7 +394,7 @@ static void updateTextureImage() {
 	Shell_redisplay();
 }
 
-static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned int keyModifiers) {
+static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned int keyModifiers, bool isRepeat) {
 	if (charCode == '[') {
 		cycleTextures(-1);
 		

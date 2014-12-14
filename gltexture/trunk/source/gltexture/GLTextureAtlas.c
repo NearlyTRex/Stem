@@ -21,7 +21,7 @@
 */
 
 #include "dynamictypes/DataArray.h"
-#include "dynamictypes/hashTable.h"
+#include "dynamictypes/HashTable.h"
 #include "gltexture/GLTextureAtlas.h"
 #include <stdlib.h>
 #include <string.h>
