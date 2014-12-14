@@ -1377,7 +1377,7 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prevInstance, PSTR commandLine,
 	}
 	
 	glExtensions = glGetString(GL_EXTENSIONS);
-	if (strstr((char *) glExtensions, "GL_ARB_shader_objects") || strstr((char *) glGetString(GL_RENDERER), "GMA")) {
+	if (!strstr((char *) glExtensions, "GL_ARB_shader_objects") || strstr((char *) glGetString(GL_RENDERER), "GMA")) {
 		GLGraphics_init(GL_API_VERSION_DESKTOP_1);
 	} else {
 		GLGraphics_init(GL_API_VERSION_DESKTOP_2);

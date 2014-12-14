@@ -3,6 +3,7 @@
  * Shell now responds to Alt-F4 and Ctrl-F4
  * Fixed a bug that caused the Shell_resizeFunc callback not to be called as frequently as it should have been during window resizing
  * System beeps will no longer occur on keypresses with alt held
+ * Fixed a bug that caused GLGraphics to be initialized with GL_API_VERSION_DESKTOP_1 when it should have been GL_API_VERSION_DESKTOP_2 and vice versa
 
 2.0.0 (2014-10-21)
  * Updated for shell 2.0.0 (adds multiple display support, scroll wheel events, registered callbacks for input events)
