@@ -1,0 +1,48 @@
+2.1.0 (2014-12-13)
+ * Updated for shell 2.1.0 (adds Shell_setVSync (which replaces NSOpenGLShell_setVSync), Shell_openFileDialog, Shell_saveFileDialog, Shell_systemBeep, Shell_getSafeWindowRect, Shell_confirmQuitFunc, and isRepeat argument to Shell_keyDownFunc callback)
+ * Fixed an oversight that caused the initial call to the Shell_resizeFunc callback (prior to Target_init()) to be passed a size in points instead of pixels
+ * All coordinates of mouse events, window bounds, and screen bounds are now in raw pixels measured from the upper left corner
+ * Added NSOpenGLShell_getDisplayScaleFactor
+ * Improved rendering performance and consistency somewhat
+ * Fixed GL errors/incorrect rendering when closing window or quitting from full screen mode
+
+2.0.0 (2014-10-19)
+ * Updated for shell 2.0.0 (adds multiple display support, scroll wheel events, registered callbacks for input events)
+ * Added configuration option for Enter Full Screen menu item
+
+1.4.1 (2014-06-29)
+ * Added support for modern Xcode versions
+
+1.4.0 (2014-01-19)
+ * Modifier keys now produce Target_keyDown() and Target_keyUp() events
+ * Full screen mode no longer blacks out screens other than the one containing the main window
+ * Added retina support
+ * Updated for shell 1.2.0 (adds Shell_openURL)
+
+1.3.1 (2013-12-27)
+ * Added NSOpenGLShell_setVSync
+
+1.3.1 (2013-12-25)
+ * Updated API for shell 1.1.0 (adds Shell_getSupportPath)
+
+1.3.0 (2013-07-14)
+ * Updated API for shell 1.0.0 (adds threads)
+ * Fixed overrelease of an object allocated during view initialization (had no observable effect, but theoretically could lead to a crash)
+
+1.2.0 (2012-06-10)
+ * Updated API for shell Stable_2012-06-09 (adds cursor management and mouse deltas)
+
+1.1.0 (2012-02-11)
+ * Updated API for shell Stable_2012-02-04 (adds timers, buffer swapping made optional)
+ * Fixed a bug that would cause an NSRangeException on when a dead key was pressed
+
+1.0.2 (2011-10-23)
+ * NSOpenGLShell_getMainScreenDimensions is superseded by Shell_getMainScreenSize and has been removed.
+ * Target_keyUp no longer receives a charCode parameter.
+
+1.0.1 (2011-10-14)
+ * nsopenglshell will no longer chdir to Shell_getResourcePath() at startup; this is now the target's responsibility
+ * Fixed a bug that caused the first mouse event not to fire after entering full screen mode from Target_init()
+
+1.0.0 (2011-07-04)
+ * Initial version
