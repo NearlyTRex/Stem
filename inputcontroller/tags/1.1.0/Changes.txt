@@ -1,0 +1,14 @@
+1.1.0 (2014-11-21)
+ * Added InputMap methods for unbinding all actions for a particular input, and all inputs of one type for a particular action
+ * Updated for utilities 1.9.0
+ * Removed method function pointers in preparation for stemobject 4.0.0 (except for InputController's triggerAction and releaseAction)
+
+1.0.2 (2014-06-29)
+ * Added support for modern Xcode/iOS SDK versions
+
+1.0.1 (2014-02-06)
+ * Fixed a bug in InputPlayback_rewind that caused subsequent input events to be inverted if rewound while an action was triggered
+ * Added InputController_reset()
+
+1.0.0 (2013-12-25)
+ * Initial version
