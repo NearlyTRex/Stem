@@ -1,0 +1,69 @@
+2.1.0 (2014-12-13)
+ * Updated for shell 2.1.0 (adds Shell_setVSync (which replaces GLUTShell_setVSync), Shell_openFileDialog, Shell_saveFileDialog, Shell_systemBeep, Shell_getSafeWindowRect, Shell_confirmQuitFunc, and isRepeat argument to Shell_keyDownFunc callback)
+
+2.0.0 (2014-11-01)
+ * Updated for shell 2.0.0 (adds multiple display support, scroll wheel events, registered callbacks for input events)
+
+1.7.0 (2014-06-29)
+ * Modifier keys now produce Target_keyDown() and Target_keyUp() events (though with the same limitations as before; only detected on other keypresses or mouse movement)
+ * Updated for shell 1.2.0 (adds Shell_openURL, but this function is unimplemented in glutshell)
+ * vsync is now enabled by default on all platforms (disabled in window mode on Linux)
+ * Added GLUTShell_setVSync()
+ * Added support for modern Xcode versions
+
+1.6.0 (2013-12-25)
+ * Update API for shell 1.1.0 (adds threads, Shell_getSupportPath)
+ * Fixed unresponsiveness of mouse delta mode on Mac OS X
+
+1.5.0 (2012-06-10)
+ * Update API for shell Stable_2012-06-09 (adds cursor management and mouse deltas)
+
+1.4.1 (2012-02-12)
+ * Fixed a bug on Mac OS X that caused the working directory to be changed to the application bundle's Resources directory at startup if it contained any files
+
+1.4.0 (2012-02-11)
+ * Updated API for shell Stable_2012-02-04 (adds timers, buffer swapping made optional)
+
+1.3.2 (2011-10-24)
+ * Added Shell_getMainScreenSize implementation
+ * Target_keyUp no longer receives a charCode parameter
+
+1.3.1 (2011-10-16)
+ * glutInit is now called before GLUTTarget_configure() to allow glutGet calls to work
+ * glutshell will no longer chdir to Shell_getResourcePath() at startup; this is now the target's responsibility
+
+1.3.0 (2011-07-04)
+ * Updated API for shell Stable_2011-07-04
+
+1.2.2 (2010-11-14)
+ * Fixed a bug that caused time measurements to be done with less than ideal precision
+ * Synchronized with template_stemlib Stable_2010-11-17
+
+1.2.1 (2010-07-15)
+ * Fixed a bug that caused Target_mouseDragged to be called instead of Target_mouseMoved for mouse movement after having released the mouse button
+ * GL errors are now only printed in the debug configuration
+ * Synced with template_stemlib Stable_2010-07-14
+
+1.2.0 (2010-06-04)
+ * Refreshed Makefile from template_stemlib Stable_2010-06-02
+
+1.1.0 (2010-05-18)
+ * Updated for shell Stable_2010-05-18. Important changes to note:
+  * Target_getName() is no longer defined and will not be called.
+  * argc and argv are no longer passed to Target_init(). They are now passed via shell-specific *Target_configure() functions defined by each shell.
+ * Updated for glgraphics 0.3.0. GLGraphics_init() is now called at startup.
+ * Added GLUTTarget.h. Targets must now implement GLUTTarget_configure(). See GLUTTarget.h for details.
+ * Refreshed Makefile from template_stemlib Stable_2010-05-16
+
+1.0.0 (2010-05-07)
+ * g_openGLAPIVersion (glgraphics/GLInfo.h) is now set to GL_API_VERSION_DESKTOP_1 at startup
+ * Refreshed Makefile from template_stemlib Stable_2010-05-06
+
+0.1.0 (2010-03-31)
+ * Updated shell implementation for newly-defined Shell_isFullScreen(), Shell_setFullScreen(), Shell_getBatteryState(), and Shell_getBatteryLevel()
+ * Updated test harness to expose new shell functions
+ * Updated Makefile to match improvements made to template_stemlib
+ * Added Changes.txt, License.txt, ReadMe.txt
+
+0.0.0 (2009-11-28)
+ * Initial version
