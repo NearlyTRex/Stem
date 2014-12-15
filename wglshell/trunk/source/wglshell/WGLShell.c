@@ -1197,6 +1197,10 @@ static HWND createShellWindow(const char * windowTitle, RECT windowRect, HINSTAN
 	return window;
 }
 
+static void destroyGLContext() {
+	wglDeleteContext(glContext);
+}
+
 int WINAPI WinMain(HINSTANCE instance, HINSTANCE prevInstance, PSTR commandLine, int command) {
 	struct WGLShellConfiguration configuration;
 	WNDCLASSEX windowClass;
@@ -1396,6 +1400,9 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prevInstance, PSTR commandLine,
 			resizeCallback(configuration.windowWidth, configuration.windowHeight);
 		}
 	}
+	
+	atexit(destroyGLContext);
+	
 	Target_init();
 	
 	return EXIT_SUCCESS;
