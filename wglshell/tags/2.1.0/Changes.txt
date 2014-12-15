@@ -1,0 +1,19 @@
+2.1.0 (2014-12-13)
+ * Updated for shell 2.1.0 (adds Shell_setVSync (which replaces WGLShell_setVSync), Shell_openFileDialog, Shell_saveFileDialog, Shell_systemBeep, Shell_getSafeWindowRect, Shell_confirmQuitFunc, and isRepeat argument to Shell_keyDownFunc callback)
+ * Shell now responds to Alt-F4 and Ctrl-F4
+ * Fixed a bug that caused the Shell_resizeFunc callback not to be called as frequently as it should have been during window resizing
+ * System beeps will no longer occur on keypresses with alt held
+ * Fixed a bug that caused GLGraphics to be initialized with GL_API_VERSION_DESKTOP_1 when it should have been GL_API_VERSION_DESKTOP_2 and vice versa
+ * wglshell's GL context is now destroyed at exit, which prevents crash-on-exit after recording game footage with OBS
+
+2.0.0 (2014-10-21)
+ * Updated for shell 2.0.0 (adds multiple display support, scroll wheel events, registered callbacks for input events)
+
+1.1.0 (2014-01-10)
+ * Updated for shell 1.2.0 (adds Shell_openURL)
+ * Added multisampling and accumulation buffer options to WGLShellConfiguration
+ * Modifier keys now produce Target_keyDown() and Target_keyUp() events
+ * Eliminated redundant Target_resized() events
+
+1.0.0 (2013-12-28)
+ * Initial version
