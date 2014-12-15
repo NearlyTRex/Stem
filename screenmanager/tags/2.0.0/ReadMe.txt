@@ -1,0 +1,3 @@
+ScreenManager contains logic for defining and transitioning between modal screens in an application. A screen as defined by ScreenManager is an encapsulation of a unit of application logic, mutually exclusive with other screens.
+
+All Screens are aware of their owning ScreenManager, which serves two specific purposes: It allows them to register for events broadcast by its EventDispatcher, and to reassign control to another state by calling the transition() function. Screen transitions are set up by wiring logic at initialization time. A transition maps a from-screen and a to-screen to a string, so Screens needn't know anything about each other; wiring logic is free to associate any Screen's transition with any other Screen.
