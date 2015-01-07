@@ -17,7 +17,7 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
   
-  Alex Diener adiener@sacredsoftware.net
+  Alex Diener alex@ludobloom.com
 */
 
 #import <UIKit/UIKit.h>
@@ -28,6 +28,7 @@
 #import <OpenGLES/ES2/gl.h>
 #import <OpenGLES/ES2/glext.h>
 #include "eaglshell/EAGLShell.h"
+#include "eaglshell/EAGLTarget.h"
 
 #define ACTIVE_TOUCH_MAX 32
 

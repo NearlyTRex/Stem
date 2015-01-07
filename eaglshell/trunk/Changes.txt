@@ -1,3 +1,6 @@
+3.0.0 (2014-10-20)
+ * Updated for shell 2.0.0 (adds multiple display support, scroll wheel events, registered callbacks for input events)
+
 2.5.2 (2014-06-29)
  * Updated API for shell 1.2.0 (adds Shell_openURL)
  * Added support for modern Xcode/iOS SDK versions

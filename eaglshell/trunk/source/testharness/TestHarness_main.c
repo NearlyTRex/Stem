@@ -1,5 +1,5 @@
 #include "shell/Shell.h"
-#include "shell/Target.h"
+#include "shell/ShellCallbacks.h"
 #include "eaglshell/EAGLShell.h"
 #include "eaglshell/EAGLTarget.h"
 
@@ -40,66 +40,7 @@ static bool deltaMode;
 
 #define VERTEX_ATTRIB_INDEX 0
 
-void Target_init() {
-	printf("Target_init()\n");
-	
-	printf("EAGLShell_getOpenGLAPIVersion(): %d\n", EAGLShell_getOpenGLAPIVersion());
-	
-	if (EAGLShell_getOpenGLAPIVersion() == EAGLShellOpenGLVersion_ES2) {
-		FILE * file;
-		char filePath[PATH_MAX];
-		GLchar * fileContents;
-		GLint fileLength;
-		GLuint vertexShader, fragmentShader;
-		
-		shaderProgram = glCreateProgram();
-		vertexShader = glCreateShader(GL_VERTEX_SHADER);
-		fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-		
-		sprintf(filePath, "%s/%s", Shell_getResourcePath(), "Vertex.vert");
-		file = fopen(filePath, "rb");
-		fseek(file, 0, SEEK_END);
-		fileLength = ftell(file);
-		fseek(file, 0, SEEK_SET);
-		fileContents = malloc(fileLength);
-		fread(fileContents, 1, fileLength, file);
-		fclose(file);
-		glShaderSource(vertexShader, 1, (const GLchar **) &fileContents, &fileLength);
-		free(fileContents);
-		
-		sprintf(filePath, "%s/%s", Shell_getResourcePath(), "Fragment.frag");
-		file = fopen(filePath, "rb");
-		fseek(file, 0, SEEK_END);
-		fileLength = ftell(file);
-		fseek(file, 0, SEEK_SET);
-		fileContents = malloc(fileLength);
-		fread(fileContents, 1, fileLength, file);
-		fclose(file);
-		glShaderSource(fragmentShader, 1, (const GLchar **) &fileContents, &fileLength);
-		free(fileContents);
-		
-		glCompileShader(vertexShader);
-		glCompileShader(fragmentShader);
-		glAttachShader(shaderProgram, vertexShader);
-		glAttachShader(shaderProgram, fragmentShader);
-		glBindAttribLocation(shaderProgram, VERTEX_ATTRIB_INDEX, "vertexPosition");
-		glLinkProgram(shaderProgram);
-		projectionMatrixUniform = glGetUniformLocation(shaderProgram, "projectionMatrix");
-		modelviewMatrixUniform = glGetUniformLocation(shaderProgram, "modelviewMatrix");
-		constantColorUniform = glGetUniformLocation(shaderProgram, "constantColor");
-		glDeleteShader(vertexShader);
-		glDeleteShader(fragmentShader);
-		
-		glEnableVertexAttribArray(VERTEX_ATTRIB_INDEX);
-		
-	} else {
-		glEnableClientState(GL_VERTEX_ARRAY);
-	}
-	
-	Shell_mainLoop();
-}
-
-bool Target_draw() {
+static bool Target_draw() {
 	GLshort vertices[12];
 	unsigned int touchIndex;
 	
@@ -280,7 +221,7 @@ static int threadFunc3(void * context) {
 	return 0;
 }
 
-void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned int modifierFlags) {
+static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned int modifierFlags) {
 	printf("Target_keyDown(%u, %u, 0x%X)\n", charCode, keyCode, modifierFlags);
 	if (keyCode == KEYBOARD_Q) {
 		ShellThread thread;
@@ -326,7 +267,7 @@ void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned int mo
 		Shell_disposeSemaphore(semaphore);
 		
 	} else if (keyCode == KEYBOARD_W) {
-		printf("Shell_setFullScreen(false): %d\n", Shell_setFullScreen(false));
+		Shell_exitFullScreen();
 		
 	} else if (keyCode == KEYBOARD_R) {
 		printf("Shell_getResourcePath(): %s\n", Shell_getResourcePath());
@@ -353,7 +294,8 @@ void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned int mo
 		Shell_redisplay();
 		
 	} else if (keyCode == KEYBOARD_F) {
-		printf("Shell_setFullScreen(true): %d\n", Shell_setFullScreen(true));
+		unsigned int displayIndex = Shell_getDisplayIndexFromWindow();
+		printf("Shell_enterFullScreen(%u): %s\n", displayIndex, Shell_enterFullScreen(displayIndex) ? "true" : "false");
 		
 	} else if (keyCode == KEYBOARD_G) {
 		printf("Shell_isFullScreen(): %d\n", Shell_isFullScreen());
@@ -374,10 +316,17 @@ void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned int mo
 		printf("Shell_getBatteryLevel(): %f\n", Shell_getBatteryLevel());
 		
 	} else if (keyCode == KEYBOARD_X) {
+		int x = 0, y = 0;
 		unsigned int width = 0, height = 0;
+		static unsigned int screenIndex;
 		
-		Shell_getMainScreenSize(&width, &height);
-		printf("Shell_getMainScreenSize(%u, %u)\n", width, height);
+		screenIndex %= Shell_getDisplayCount();
+		Shell_getDisplayBounds(screenIndex, &x, &y, &width, &height);
+		printf("Shell_getDisplayBounds(%u): %d, %d, %u, %u\n", screenIndex, x, y, width, height);
+		screenIndex++;
+		
+	} else if (keyCode == KEYBOARD_E) {
+		printf("Shell_getDisplayCount(): %u\n", Shell_getDisplayCount());
 		
 	} else if (keyCode == KEYBOARD_COMMA) {
 		if (timer1ID == UINT_MAX) {
@@ -427,15 +376,15 @@ void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned int mo
 	}
 }
 
-void Target_keyUp(unsigned int keyCode, unsigned int modifierFlags) {
+static void Target_keyUp(unsigned int keyCode, unsigned int modifierFlags) {
 	printf("Target_keyUp(%u, 0x%X)\n", keyCode, modifierFlags);
 }
 
-void Target_keyModifiersChanged(unsigned int modifierFlags) {
+static void Target_keyModifiersChanged(unsigned int modifierFlags) {
 	printf("Target_keyModifiersChanged(0x%X) (What? This should not have been called!)\n", modifierFlags);
 }
 
-void Target_mouseDown(unsigned int buttonNumber, float x, float y) {
+static void Target_mouseDown(unsigned int buttonNumber, float x, float y) {
 	printf("Target_mouseDown(%d, %f, %f)\n", buttonNumber, x, y);
 	touches[buttonNumber].active = true;
 	touches[buttonNumber].x = x;
@@ -443,7 +392,7 @@ void Target_mouseDown(unsigned int buttonNumber, float x, float y) {
 	Shell_redisplay();
 }
 
-void Target_mouseUp(unsigned int buttonNumber, float x, float y) {
+static void Target_mouseUp(unsigned int buttonNumber, float x, float y) {
 	printf("Target_mouseUp(%d, %f, %f)\n", buttonNumber, x, y);
 	EAGLShell_showKeyboard();
 	touches[buttonNumber].active = false;
@@ -452,7 +401,7 @@ void Target_mouseUp(unsigned int buttonNumber, float x, float y) {
 	Shell_redisplay();
 }
 
-void Target_mouseMoved(float x, float y) {
+static void Target_mouseMoved(float x, float y) {
 	printf("Target_mouseMoved(%f, %f) (What? This should not have been called!)\n", x, y);
 }
 
@@ -467,17 +416,47 @@ static unsigned int lowestBitIndex(unsigned int value) {
 	return mod37BitPosition[(-value & value) % 37];
 }
 
-void Target_mouseDragged(unsigned int buttonMask, float x, float y) {
+static void Target_mouseDragged(unsigned int buttonMask, float x, float y) {
 	printf("Target_mouseDragged(0x%X, %f, %f)\n", buttonMask, x, y);
 	touches[lowestBitIndex(buttonMask)].x = x;
 	touches[lowestBitIndex(buttonMask)].y = y;
 	Shell_redisplay();
 }
 
-void Target_resized(unsigned int newWidth, unsigned int newHeight) {
+static void Target_scrollWheel(int deltaX, int deltaY) {
+	printf("Target_scrollWheel(%d, %d) (What? This should not have been called!)\n", deltaX, deltaY);
+}
+
+static void Target_backgrounded() {
+	printf("Target_backgrounded() (What? This should not have been called!)\n");
+}
+
+static void Target_foregrounded() {
+	printf("Target_foregrounded() (What? This should not have been called!)\n");
+}
+
+static void Target_resized(unsigned int newWidth, unsigned int newHeight) {
 	printf("Target_resized(%d, %d)\n", newWidth, newHeight);
 	viewportWidth = newWidth;
 	viewportHeight = newHeight;
+}
+
+static void EAGLTarget_touchesCancelled(unsigned int buttonMask) {
+	unsigned int buttonNumber;
+	
+	printf("EAGLTarget_touchesCancelled(0x%X)\n", buttonMask);
+	for (buttonNumber = 0; buttonNumber < 32; buttonNumber++) {
+		if (buttonMask & (1 << buttonNumber)) {
+			touches[buttonNumber].active = false;
+		}
+	}
+}
+
+static void EAGLTarget_accelerometer(double x, double y, double z) {
+	lastAccelerometerReading.x = x;
+	lastAccelerometerReading.y = y;
+	lastAccelerometerReading.z = z;
+	Shell_redisplay();
 }
 
 static int preferredOpenGLAPIVersion = EAGLShellOpenGLVersion_ES1 | EAGLShellOpenGLVersion_ES2;
@@ -488,10 +467,15 @@ static int colorPrecision = 32;
 static int depthPrecision = 16;
 static int packedDepthAndStencil = 0;
 
+static void EAGLTarget_openURL(const char * url) {
+	printf("Got URL: %s\n", url);
+	sscanf(url, "eaglshell://%d,%d,%d,%d,%d,%d,%d", &preferredOpenGLAPIVersion, &retainedBacking, &depthAttachment, &stencilAttachment, &colorPrecision, &depthPrecision, &packedDepthAndStencil);
+}
+
 void EAGLTarget_configure(int argc, char ** argv, struct EAGLShellConfiguration * configuration) {
 	int argIndex;
 	
-	EAGLShell_redirectStdoutToFile();
+	setlinebuf(stdout);
 	
 	printf("EAGLTarget_configure(%d", argc);
 	for (argIndex = 0; argIndex < argc; argIndex++) {
@@ -521,27 +505,79 @@ void EAGLTarget_configure(int argc, char ** argv, struct EAGLShellConfiguration 
 	printf("configuration->displayMode.depthPrecision = %d\n", configuration->displayMode.depthPrecision);
 	configuration->displayMode.packedDepthAndStencil = packedDepthAndStencil;
 	printf("configuration->displayMode.packedDepthAndStencil = %d\n", configuration->displayMode.packedDepthAndStencil);
-}
-
-void EAGLTarget_openURL(const char * url) {
-	printf("Got URL: %s\n", url);
-	sscanf(url, "eaglshell://%d,%d,%d,%d,%d,%d,%d", &preferredOpenGLAPIVersion, &retainedBacking, &depthAttachment, &stencilAttachment, &colorPrecision, &depthPrecision, &packedDepthAndStencil);
-}
-
-void EAGLTarget_touchesCancelled(unsigned int buttonMask) {
-	unsigned int buttonNumber;
 	
-	printf("EAGLTarget_touchesCancelled(0x%X)\n", buttonMask);
-	for (buttonNumber = 0; buttonNumber < 32; buttonNumber++) {
-		if (buttonMask & (1 << buttonNumber)) {
-			touches[buttonNumber].active = false;
-		}
-	}
+	Shell_drawFunc(Target_draw);
+	Shell_resizeFunc(Target_resized);
+	Shell_keyDownFunc(Target_keyDown);
+	Shell_keyUpFunc(Target_keyUp);
+	Shell_keyModifiersChangedFunc(Target_keyModifiersChanged);
+	Shell_mouseDownFunc(Target_mouseDown);
+	Shell_mouseUpFunc(Target_mouseUp);
+	Shell_mouseMovedFunc(Target_mouseMoved);
+	Shell_mouseDraggedFunc(Target_mouseDragged);
+	Shell_scrollWheelFunc(Target_scrollWheel);
+	Shell_backgroundedFunc(Target_backgrounded);
+	Shell_foregroundedFunc(Target_foregrounded);
+	EAGLShell_openURLFunc(EAGLTarget_openURL);
+	EAGLShell_touchesCancelledFunc(EAGLTarget_touchesCancelled);
+	EAGLShell_accelerometerFunc(EAGLTarget_accelerometer);
 }
 
-void EAGLTarget_accelerometer(double x, double y, double z) {
-	lastAccelerometerReading.x = x;
-	lastAccelerometerReading.y = y;
-	lastAccelerometerReading.z = z;
-	Shell_redisplay();
+void Target_init() {
+	printf("Target_init()\n");
+	
+	printf("EAGLShell_getOpenGLAPIVersion(): %d\n", EAGLShell_getOpenGLAPIVersion());
+	
+	if (EAGLShell_getOpenGLAPIVersion() == EAGLShellOpenGLVersion_ES2) {
+		FILE * file;
+		char filePath[PATH_MAX];
+		GLchar * fileContents;
+		GLint fileLength;
+		GLuint vertexShader, fragmentShader;
+		
+		shaderProgram = glCreateProgram();
+		vertexShader = glCreateShader(GL_VERTEX_SHADER);
+		fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+		
+		sprintf(filePath, "%s/%s", Shell_getResourcePath(), "Vertex.vert");
+		file = fopen(filePath, "rb");
+		fseek(file, 0, SEEK_END);
+		fileLength = ftell(file);
+		fseek(file, 0, SEEK_SET);
+		fileContents = malloc(fileLength);
+		fread(fileContents, 1, fileLength, file);
+		fclose(file);
+		glShaderSource(vertexShader, 1, (const GLchar **) &fileContents, &fileLength);
+		free(fileContents);
+		
+		sprintf(filePath, "%s/%s", Shell_getResourcePath(), "Fragment.frag");
+		file = fopen(filePath, "rb");
+		fseek(file, 0, SEEK_END);
+		fileLength = ftell(file);
+		fseek(file, 0, SEEK_SET);
+		fileContents = malloc(fileLength);
+		fread(fileContents, 1, fileLength, file);
+		fclose(file);
+		glShaderSource(fragmentShader, 1, (const GLchar **) &fileContents, &fileLength);
+		free(fileContents);
+		
+		glCompileShader(vertexShader);
+		glCompileShader(fragmentShader);
+		glAttachShader(shaderProgram, vertexShader);
+		glAttachShader(shaderProgram, fragmentShader);
+		glBindAttribLocation(shaderProgram, VERTEX_ATTRIB_INDEX, "vertexPosition");
+		glLinkProgram(shaderProgram);
+		projectionMatrixUniform = glGetUniformLocation(shaderProgram, "projectionMatrix");
+		modelviewMatrixUniform = glGetUniformLocation(shaderProgram, "modelviewMatrix");
+		constantColorUniform = glGetUniformLocation(shaderProgram, "constantColor");
+		glDeleteShader(vertexShader);
+		glDeleteShader(fragmentShader);
+		
+		glEnableVertexAttribArray(VERTEX_ATTRIB_INDEX);
+		
+	} else {
+		glEnableClientState(GL_VERTEX_ARRAY);
+	}
+	
+	Shell_mainLoop();
 }

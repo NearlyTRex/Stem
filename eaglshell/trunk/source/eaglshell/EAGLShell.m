@@ -17,7 +17,7 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
   
-  Alex Diener adiener@sacredsoftware.net
+  Alex Diener alex@ludobloom.com
 */
 
 #include "EAGLShell.h"
@@ -96,15 +96,29 @@ bool Shell_isFullScreen() {
 	return isFullScreen;
 }
 
-bool Shell_setFullScreen(bool fullScreen) {
+bool Shell_enterFullScreen(unsigned int displayIndex) {
 	if ([[[UIDevice currentDevice] systemVersion] compare: @"3.2" options: NSNumericSearch] != NSOrderedAscending) {
-		[[UIApplication sharedApplication] setStatusBarHidden: fullScreen withAnimation: UIStatusBarAnimationSlide];
+		[[UIApplication sharedApplication] setStatusBarHidden: YES withAnimation: UIStatusBarAnimationSlide];
+		printf("Called -setStatusBarHidden: YES withAnimation: UIStatusBarAnimationSlide\n");
 	} else {
-		[[UIApplication sharedApplication] setStatusBarHidden: fullScreen animated: YES];
+		[[UIApplication sharedApplication] setStatusBarHidden: YES animated: YES];
+		printf("Called -setStatusBarHidden: YES animated: YES\n");
 	}
 	[(EAGLShellApplication *) [UIApplication sharedApplication] updateViewFrame];
-	isFullScreen = fullScreen;
+	isFullScreen = true;
 	return true;
+}
+
+void Shell_exitFullScreen() {
+	if ([[[UIDevice currentDevice] systemVersion] compare: @"3.2" options: NSNumericSearch] != NSOrderedAscending) {
+		[[UIApplication sharedApplication] setStatusBarHidden: NO withAnimation: UIStatusBarAnimationSlide];
+		printf("Called -setStatusBarHidden: NO withAnimation: UIStatusBarAnimationSlide\n");
+	} else {
+		[[UIApplication sharedApplication] setStatusBarHidden: NO animated: YES];
+		printf("Called -setStatusBarHidden: NO animated: YES\n");
+	}
+	[(EAGLShellApplication *) [UIApplication sharedApplication] updateViewFrame];
+	isFullScreen = false;
 }
 
 double Shell_getCurrentTime() {
@@ -170,15 +184,35 @@ float Shell_getBatteryLevel() {
 	return [UIDevice currentDevice].batteryLevel;
 }
 
-void Shell_getMainScreenSize(unsigned int * outWidth, unsigned int * outHeight) {
-	CGRect bounds;
-	
-	bounds = [UIScreen mainScreen].bounds;
-	if (outWidth != NULL) {
-		*outWidth = bounds.size.width;
+unsigned int Shell_getDisplayCount() {
+	return [[UIScreen screens] count];
+}
+
+unsigned int Shell_getDisplayIndexFromWindow() {
+	NSUInteger screenIndex = [[UIScreen screens] indexOfObject: [UIScreen mainScreen]];
+	if (screenIndex == NSNotFound) {
+		return 0;
 	}
-	if (outHeight != NULL) {
-		*outHeight = bounds.size.height;
+	return screenIndex;
+}
+
+void Shell_getDisplayBounds(unsigned int displayIndex, int * outOffsetX, int * outOffsetY, unsigned int * outWidth, unsigned int * outHeight) {
+	NSArray * screens = [UIScreen screens];
+	
+	if (displayIndex < [screens count]) {
+		CGRect bounds = [[screens objectAtIndex: displayIndex] bounds];
+		if (outOffsetX != NULL) {
+			*outOffsetX = bounds.origin.x;
+		}
+		if (outOffsetY != NULL) {
+			*outOffsetY = bounds.origin.y;
+		}
+		if (outWidth != NULL) {
+			*outWidth = bounds.size.width;
+		}
+		if (outHeight != NULL) {
+			*outHeight = bounds.size.height;
+		}
 	}
 }
 

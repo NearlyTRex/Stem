@@ -2,7 +2,7 @@ EAGLShell is an implementation of a stem shell using EAGL, which builds for iPho
 
 EAGLShell includes some extensions to the standard shell interface. You should #include "eaglshell/EAGLShell.h" to get the extended interface. It provides facilities for working with the iPhone's status bar, keyboard, and accelerometer. See the documentation in EAGLShell.h for details. Some things to note:
 
- - In order to receive keyboard events, you must call EAGLShell_showKeyboard() to bring up the onscreen keyboard. Target_keyUp() is always called immediately after Target_keyDown(), and modifier flags passed to both functions are always 0. Target_keyModifiersChanged is never called. Due to API limitations imposed by Apple, key codes passed to Target_keyDown() are not generally trustworthy for any keyboard other than US English, though character codes are reliable.
+ - In order to receive keyboard events, you must call EAGLShell_showKeyboard() to bring up the onscreen keyboard. The Shell_keyUpFunc callback is always called immediately after the Shell_keyDownFunc callback, and modifier flags passed to both functions are always 0. The Shell_keyModifiersChangedFunc callback is never called. Due to API limitations imposed by Apple, key codes passed to the Shell_keyDownFunc callback are not generally trustworthy for any keyboard other than US English, though character codes are reliable.
 
  - EAGLShell_setOrientation() does not transform your OpenGL coordinate space. It is your responsibility to do so if necessary.
 
@@ -18,11 +18,11 @@ EAGLShell includes some extensions to the standard shell interface. You should #
 
 The target interface has also been extended, with EAGLTarget.h defining the new functions that targets must implement. Details on each function are in EAGLTarget.h. There are some differences in behavior for the standard Target functions, as well:
 
- - Touch events are processed as mouse events. Each finger generates a Target_mouseDown() with a unique ID buttonNumber for multiple fingers at a time. Target_mouseDragged() is called once per finger that moved, with exactly one bit in buttonMask set each time. Target_mouseUp() is called for each finger lifted. Target_mouseMoved() is never called.
+ - Touch events are processed as mouse events. Each finger generates a call to the Shell_mouseDownFunc callback with a unique ID buttonNumber for multiple fingers at a time. The Shell_mouseDraggedFunc callback is called once per finger that moved, with exactly one bit in buttonMask set each time. The Shell_mouseUpFunc callback is called for each finger lifted. The Shell_mouseMovedFunc callback is never called, nor is the Shell_scrollWheelFunc callback.
 
- - Touch events can be cancelled. This means it's possible that you'll get calls to Target_mouseDown() and Target_mouseDragged() without matching calls to Target_mouseUp(). To detect and process cancelled touch events, you must implement EAGLTarget_touchesCancelled().
+ - Touch events can be cancelled. This means it's possible that you'll get calls to the Shell_mouseDownFunc callback and the Shell_mouseDraggedFunc callback without matching calls to the Shell_mouseUpFunc callback. To detect and process cancelled touch events, you must implement a callback for EAGLShell_touchesCancelledFunc.
 
- - Accelerometer events are delivered via EAGLTarget_accelerometer, at the interval specified to EAGLShell_setAccelerometerInterval().
+ - Accelerometer events are delivered via the EAGLShell_accelerometerFunc callback, at the interval specified to EAGLShell_setAccelerometerInterval().
 
 
 
@@ -30,4 +30,4 @@ Other things to be aware of:
  
  - EAGLShell's deployment target is iPhone OS 3.1. This is due only to bugs and instability in iPhone OS 3.0. It doesn't actually use any OS 3.1 features (except CADisplayLink, which is linked in at runtime if available), so if desired, you can safely target the 3.0 SDK.
 
- - Due to an Apple bug, as of iPhone OS 3.1.3, Target_resized() will not be called when the status bar changes size due to a phone call or voice recording starting or ending. See http://openradar.appspot.com/6475681 for details.
+ - Due to an Apple bug, as of iPhone OS 3.1.3, the Shell_resizedFunc callback will not be called when the status bar changes size due to a phone call or voice recording starting or ending. See http://openradar.appspot.com/6475681 for details.

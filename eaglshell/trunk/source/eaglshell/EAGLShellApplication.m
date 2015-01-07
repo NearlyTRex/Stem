@@ -17,14 +17,15 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
   
-  Alex Diener adiener@sacredsoftware.net
+  Alex Diener alex@ludobloom.com
 */
 
 #import "eaglshell/EAGLShellApplication.h"
-#import "eaglshell/EAGLView.h"
-#include "shell/ShellKeyCodes.h"
-#include "shell/Target.h"
+#include "eaglshell/EAGLShellCallbacks.h"
 #include "eaglshell/EAGLTarget.h"
+#import "eaglshell/EAGLView.h"
+#include "shell/ShellCallbacks.h"
+#include "shell/ShellKeyCodes.h"
 
 #ifndef __IPHONE_3_2
 typedef enum {
@@ -54,8 +55,8 @@ extern bool mainLoopCalled;
 	}
 	self.applicationSupportsShakeToEdit = NO;
 	
-	if ([dictionary objectForKey: UIApplicationLaunchOptionsURLKey] != nil) {
-		EAGLTarget_openURL([[[dictionary objectForKey: UIApplicationLaunchOptionsURLKey] absoluteString] UTF8String]);
+	if ([dictionary objectForKey: UIApplicationLaunchOptionsURLKey] != nil && openURLCallback != NULL) {
+		openURLCallback([[[dictionary objectForKey: UIApplicationLaunchOptionsURLKey] absoluteString] UTF8String]);
 	}
 	
 	window = [[UIWindow alloc] initWithFrame: [UIScreen mainScreen].bounds];
@@ -72,7 +73,9 @@ extern bool mainLoopCalled;
 	[window addSubview: view];
 	[window makeKeyAndVisible];
 	
-	Target_resized([UIScreen mainScreen].bounds.size.width, [UIScreen mainScreen].bounds.size.height);
+	if (resizeCallback != NULL) {
+		resizeCallback([UIScreen mainScreen].bounds.size.width, [UIScreen mainScreen].bounds.size.height);
+	}
 	Target_init();
 	
 	if (!mainLoopCalled) {
@@ -142,7 +145,9 @@ extern bool mainLoopCalled;
 }
 
 - (void) accelerometer: (UIAccelerometer *) accelerometer didAccelerate: (UIAcceleration *) acceleration {
-	EAGLTarget_accelerometer(acceleration.x, acceleration.y, acceleration.z);
+	if (accelerometerCallback != NULL) {
+		accelerometerCallback(acceleration.x, acceleration.y, acceleration.z);
+	}
 }
 
 static unsigned int unicharToShellKeyCode(unichar charCode) {
@@ -308,12 +313,20 @@ static unsigned int unicharToShellKeyCode(unichar charCode) {
 	unsigned int charIndex;
 	
 	if (range.length > 0 && [string length] == 0) {
-		Target_keyDown('\b', KEYBOARD_DELETE_OR_BACKSPACE, 0);
-		Target_keyUp(KEYBOARD_DELETE_OR_BACKSPACE, 0);
+		if (keyDownCallback != NULL) {
+			keyDownCallback('\b', KEYBOARD_DELETE_OR_BACKSPACE, 0);
+		}
+		if (keyUpCallback != NULL) {
+			keyUpCallback(KEYBOARD_DELETE_OR_BACKSPACE, 0);
+		}
 	} else {
 		for (charIndex = 0; charIndex < [string length]; charIndex++) {
-			Target_keyDown([string characterAtIndex: charIndex], unicharToShellKeyCode([string characterAtIndex: charIndex]), 0);
-			Target_keyUp(unicharToShellKeyCode([string characterAtIndex: charIndex]), 0);
+			if (keyDownCallback != NULL) {
+				keyDownCallback([string characterAtIndex: charIndex], unicharToShellKeyCode([string characterAtIndex: charIndex]), 0);
+			}
+			if (keyUpCallback != NULL) {
+				keyUpCallback(unicharToShellKeyCode([string characterAtIndex: charIndex]), 0);
+			}
 		}
 	}
 	
@@ -321,8 +334,12 @@ static unsigned int unicharToShellKeyCode(unichar charCode) {
 }
 
 - (BOOL) textFieldShouldReturn: (UITextField *) textField {
-	Target_keyDown('\n', KEYBOARD_RETURN_OR_ENTER, 0);
-	Target_keyUp(KEYBOARD_RETURN_OR_ENTER, 0);
+	if (keyDownCallback != NULL) {
+		keyDownCallback('\n', KEYBOARD_RETURN_OR_ENTER, 0);
+	}
+	if (keyUpCallback != NULL) {
+		keyUpCallback(KEYBOARD_RETURN_OR_ENTER, 0);
+	}
 	return NO;
 }
 

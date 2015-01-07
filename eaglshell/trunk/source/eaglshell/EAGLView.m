@@ -17,15 +17,15 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
   
-  Alex Diener adiener@sacredsoftware.net
+  Alex Diener alex@ludobloom.com
 */
 
 #import "eaglshell/EAGLView.h"
 #import "eaglshell/EAGLShellApplication.h"
+#include "eaglshell/EAGLShellCallbacks.h"
 #import <QuartzCore/QuartzCore.h>
-#include "shell/Target.h"
 #include "shell/Shell.h"
-#include "eaglshell/EAGLTarget.h"
+#include "shell/ShellCallbacks.h"
 #include "glgraphics/GLGraphics.h"
 
 #ifndef __IPHONE_3_1
@@ -203,12 +203,14 @@
 	if (backingWidth != lastResizeWidth || backingHeight != lastResizeHeight) {
 		lastResizeWidth = backingWidth;
 		lastResizeHeight = backingHeight;
-		Target_resized(backingWidth, backingHeight);
+		if (resizeCallback != NULL) {
+			resizeCallback(backingWidth, backingHeight);
+		}
 	}
 	
 	glBindFramebufferOES(GL_FRAMEBUFFER, framebuffer);
 	
-	if (Target_draw()) {
+	if (drawCallback != NULL && drawCallback()) {
 		glBindRenderbufferOES(GL_RENDERBUFFER, renderbuffer);
 		[context presentRenderbuffer: GL_RENDERBUFFER];
 	}
@@ -260,7 +262,7 @@
 	[EAGLContext setCurrentContext: context];
 	glBindFramebufferOES(GL_FRAMEBUFFER, framebuffer);
 	
-	if (Target_draw()) {
+	if (drawCallback != NULL && drawCallback()) {
 		glBindRenderbufferOES(GL_RENDERBUFFER, renderbuffer);
 		[context presentRenderbuffer: GL_RENDERBUFFER];
 	}
@@ -315,7 +317,9 @@ static unsigned int lowestBitIndex(unsigned int value) {
 		activeTouches[activeTouchCount].buttonNumber = [self firstAvailableButtonNumber];
 		activeTouchCount++;
 		
-		Target_mouseDown(activeTouches[activeTouchCount - 1].buttonNumber, activeTouches[activeTouchCount - 1].lastLocation.x, activeTouches[activeTouchCount - 1].lastLocation.y);
+		if (mouseDownCallback != NULL) {
+			mouseDownCallback(activeTouches[activeTouchCount - 1].buttonNumber, activeTouches[activeTouchCount - 1].lastLocation.x, activeTouches[activeTouchCount - 1].lastLocation.y);
+		}
 	}
 }
 
@@ -345,7 +349,9 @@ static unsigned int lowestBitIndex(unsigned int value) {
 			if (activeTouches[activeTouchIndex].touch == touch && !CGPointEqualToPoint(location, activeTouches[activeTouchIndex].lastLocation)) {
 				activeTouches[activeTouchIndex].lastLocation = location;
 				
-				Target_mouseDragged(1 << activeTouches[activeTouchIndex].buttonNumber, location.x, location.y);
+				if (mouseDraggedCallback != NULL) {
+					mouseDraggedCallback(1 << activeTouches[activeTouchIndex].buttonNumber, location.x, location.y);
+				}
 				break;
 			}
 		}
@@ -378,7 +384,9 @@ static unsigned int lowestBitIndex(unsigned int value) {
 					activeTouches[activeTouchIndex] = activeTouches[activeTouchIndex + 1];
 				}
 				
-				Target_mouseUp(buttonNumber, location.x, location.y);
+				if (mouseUpCallback != NULL) {
+					mouseUpCallback(buttonNumber, location.x, location.y);
+				}
 				break;
 			}
 		}
@@ -407,8 +415,8 @@ static unsigned int lowestBitIndex(unsigned int value) {
 		}
 	}
 	
-	if (buttonMask != 0) {
-		EAGLTarget_touchesCancelled(buttonMask);
+	if (buttonMask != 0 && touchesCancelledCallback != NULL) {
+		touchesCancelledCallback(buttonMask);
 	}
 }
 
