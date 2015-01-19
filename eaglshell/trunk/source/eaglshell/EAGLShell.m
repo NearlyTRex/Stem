@@ -216,6 +216,10 @@ void Shell_getDisplayBounds(unsigned int displayIndex, int * outOffsetX, int * o
 	}
 }
 
+void Shell_getSafeWindowRect(unsigned int displayIndex, int * outOffsetX, int * outOffsetY, unsigned int * outWidth, unsigned int * outHeight) {
+	Shell_getDisplayBounds(displayIndex, outOffsetX, outOffsetY, outWidth, outHeight);
+}
+
 unsigned int Shell_setTimer(double interval, bool repeat, void (* callback)(unsigned int timerID, void * context), void * context) {
 	timers = realloc(timers, sizeof(struct EAGLShellTimer) * (timerCount + 1));
 	timers[timerCount].id = nextTimerID++;
@@ -357,6 +361,20 @@ void Shell_waitSemaphore(ShellSemaphore semaphore) {
 
 bool Shell_tryWaitSemaphore(ShellSemaphore semaphore) {
 	return !sem_trywait((sem_t *) semaphore);
+}
+
+void Shell_setVSync(bool sync, bool fullscreen) {
+}
+
+void Shell_systemBeep() {
+}
+
+bool Shell_openFileDialog(const char * basePath, char * outFilePath, unsigned int maxLength) {
+	return false;
+}
+
+bool Shell_saveFileDialog(const char * basePath, const char * baseName, char * outFilePath, unsigned int maxLength) {
+	return false;
 }
 
 enum EAGLShellOpenGLVersion EAGLShell_getOpenGLAPIVersion() {

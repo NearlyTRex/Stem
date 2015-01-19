@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2014 Alex Diener
+  Copyright (c) 2015 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -34,6 +34,7 @@ void (* mouseDraggedCallback)(unsigned int buttonMask, float x, float y) __asm("
 void (* scrollWheelCallback)(int deltaX, int deltaY) __asm("scrollWheelCallback$EAGLShell");
 void (* backgroundedCallback)(void) __asm("backgroundedCallback$EAGLShell");
 void (* foregroundedCallback)(void) __asm("foregroundedCallback$EAGLShell");
+bool (* confirmQuitCallback)(void) __asm("confirmQuitCallback$EAGLShell");
 void (* openURLCallback)(const char * url) __asm("openURLCallback$EAGLShell");
 void (* touchesCancelledCallback)(unsigned int buttonMask) __asm("touchesCancelledCallback$EAGLShell");
 void (* accelerometerCallback)(double x, double y, double z) __asm("accelerometerCallback$EAGLShell");
@@ -84,6 +85,10 @@ void Shell_backgroundedFunc(void (* callback)(void)) {
 
 void Shell_foregroundedFunc(void (* callback)(void)) {
 	foregroundedCallback = callback;
+}
+
+void Shell_confirmQuitFunc(bool (* callback)(void)) {
+	confirmQuitCallback = callback;
 }
 
 void EAGLShell_openURLFunc(void (* callback)(const char * url)) {

@@ -16,6 +16,12 @@
 #include <OpenGLES/ES2/gl.h>
 #include <OpenGLES/ES2/glext.h>
 
+#define msleep(ms) usleep((ms) * 1000)
+
+#define VERTEX_ATTRIB_INDEX 0
+#define VSYNC_DEFAULT_WINDOW true
+#define VSYNC_DEFAULT_FULLSCREEN true
+
 static bool postRedisplayAtEndOfTarget_draw = false;
 static bool darkClearColor = true;
 static unsigned int viewportWidth, viewportHeight;
@@ -33,12 +39,14 @@ static GLuint shaderProgram;
 static GLint projectionMatrixUniform;
 static GLint modelviewMatrixUniform;
 static GLint constantColorUniform;
+
 static unsigned int timer1ID = UINT_MAX, timer2ID = UINT_MAX;
 static bool deltaMode;
+static bool syncFullscreen = VSYNC_DEFAULT_FULLSCREEN, syncWindow = VSYNC_DEFAULT_WINDOW;
+static bool allowQuit = true;
 
-#define msleep(ms) usleep((ms) * 1000)
-
-#define VERTEX_ATTRIB_INDEX 0
+static void registerShellCallbacks();
+static void unregisterShellCallbacks();
 
 static bool Target_draw() {
 	GLshort vertices[12];
@@ -188,6 +196,12 @@ static bool Target_draw() {
 	return true;
 }
 
+static void Target_resized(unsigned int newWidth, unsigned int newHeight) {
+	printf("Target_resized(%d, %d)\n", newWidth, newHeight);
+	viewportWidth = newWidth;
+	viewportHeight = newHeight;
+}
+
 static void timerCallback(unsigned int timerID, void * context) {
 	printf("timerCallback(timerID, \"%s\")\n", (char *) context);
 	if (timerID == timer2ID) {
@@ -221,8 +235,13 @@ static int threadFunc3(void * context) {
 	return 0;
 }
 
-static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned int modifierFlags) {
-	printf("Target_keyDown(%u, %u, 0x%X)\n", charCode, keyCode, modifierFlags);
+static void restoreCallbacksTimer(unsigned int timerID, void * context) {
+	registerShellCallbacks();
+	printf("Restored event callbacks\n");
+}
+
+static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned int modifierFlags, bool isRepeat) {
+	printf("Target_keyDown(%u, %u, 0x%X, %s)\n", charCode, keyCode, modifierFlags, isRepeat ? "true" : "false");
 	if (keyCode == KEYBOARD_Q) {
 		ShellThread thread;
 		ShellMutex mutex;
@@ -266,8 +285,8 @@ static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned
 		Shell_disposeMutex(mutex);
 		Shell_disposeSemaphore(semaphore);
 		
-	} else if (keyCode == KEYBOARD_W) {
-		Shell_exitFullScreen();
+	} else if (keyCode == KEYBOARD_T) {
+		printf("Shell_getCurrentTime(): %f\n", Shell_getCurrentTime());
 		
 	} else if (keyCode == KEYBOARD_R) {
 		printf("Shell_getResourcePath(): %s\n", Shell_getResourcePath());
@@ -278,9 +297,6 @@ static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned
 		
 	} else if (keyCode == KEYBOARD_U) {
 		Shell_openURL("http://ludobloom.com/");
-		
-	} else if (keyCode == KEYBOARD_T) {
-		printf("Shell_getCurrentTime(): %f\n", Shell_getCurrentTime());
 		
 	} else if (keyCode == KEYBOARD_A) {
 		Shell_redisplay();
@@ -293,12 +309,15 @@ static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned
 		darkClearColor = !darkClearColor;
 		Shell_redisplay();
 		
-	} else if (keyCode == KEYBOARD_F) {
+	} else if (keyCode == KEYBOARD_E) {
 		unsigned int displayIndex = Shell_getDisplayIndexFromWindow();
 		printf("Shell_enterFullScreen(%u): %s\n", displayIndex, Shell_enterFullScreen(displayIndex) ? "true" : "false");
 		
+	} else if (keyCode == KEYBOARD_W) {
+		Shell_exitFullScreen();
+		
 	} else if (keyCode == KEYBOARD_G) {
-		printf("Shell_isFullScreen(): %d\n", Shell_isFullScreen());
+		printf("Shell_isFullScreen(): %s\n", Shell_isFullScreen() ? "true" : "false");
 		
 	} else if (keyCode == KEYBOARD_Z) {
 		EAGLShell_setAccelerometerInterval(0);
@@ -315,6 +334,16 @@ static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned
 		printf("Shell_getBatteryState(): %d\n", Shell_getBatteryState());
 		printf("Shell_getBatteryLevel(): %f\n", Shell_getBatteryLevel());
 		
+	} else if (keyCode == KEYBOARD_Z) {
+		int x = 0, y = 0;
+		unsigned int width = 0, height = 0;
+		static unsigned int screenIndex;
+		
+		screenIndex %= Shell_getDisplayCount();
+		Shell_getSafeWindowRect(screenIndex, &x, &y, &width, &height);
+		printf("Shell_getSafeWindowRect(%u): %d, %d, %u, %u\n", screenIndex, x, y, width, height);
+		screenIndex++;
+		
 	} else if (keyCode == KEYBOARD_X) {
 		int x = 0, y = 0;
 		unsigned int width = 0, height = 0;
@@ -325,8 +354,44 @@ static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned
 		printf("Shell_getDisplayBounds(%u): %d, %d, %u, %u\n", screenIndex, x, y, width, height);
 		screenIndex++;
 		
-	} else if (keyCode == KEYBOARD_E) {
+	} else if (keyCode == KEYBOARD_C) {
 		printf("Shell_getDisplayCount(): %u\n", Shell_getDisplayCount());
+		
+	} else if (keyCode == KEYBOARD_V) {
+		bool sync, fullscreen;
+		
+		fullscreen = Shell_isFullScreen();
+		if (fullscreen) {
+			syncFullscreen = !syncFullscreen;
+			sync = syncFullscreen;
+		} else {
+			syncWindow = !syncWindow;
+			sync = syncWindow;
+		}
+		Shell_setVSync(sync, fullscreen);
+		printf("Shell_setVSync(%s, %s)\n", sync ? "true" : "false", fullscreen ? "true" : "false");
+		
+	} else if (keyCode == KEYBOARD_O) {
+		char filePath[PATH_MAX];
+		bool success;
+		
+		success = Shell_openFileDialog(NULL, filePath, PATH_MAX);
+		if (success) {
+			printf("Shell_openFileDialog returned true with path \"%s\"\n", filePath);
+		} else {
+			printf("Shell_openFileDialog returned false\n");
+		}
+		
+	} else if (keyCode == KEYBOARD_P) {
+		char filePath[PATH_MAX];
+		bool success;
+		
+		success = Shell_saveFileDialog(NULL, "test", filePath, PATH_MAX);
+		if (success) {
+			printf("Shell_saveFileDialog returned true with path \"%s\"\n", filePath);
+		} else {
+			printf("Shell_saveFileDialog returned false\n");
+		}
 		
 	} else if (keyCode == KEYBOARD_COMMA) {
 		if (timer1ID == UINT_MAX) {
@@ -352,6 +417,14 @@ static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned
 		deltaMode = !deltaMode;
 		Shell_setMouseDeltaMode(deltaMode);
 		printf("Shell_setMouseDeltaMode(%s)\n", deltaMode ? "true" : "false");
+		
+	} else if (keyCode == KEYBOARD_DELETE_OR_BACKSPACE) {
+		unregisterShellCallbacks();
+		printf("Removed all event callbacks for 5 seconds\n");
+		Shell_setTimer(5.0, false, restoreCallbacksTimer, NULL);
+		
+	} else if (keyCode == KEYBOARD_SPACEBAR) {
+		Shell_systemBeep();
 		
 	} else if (keyCode == KEYBOARD_N) {
 		EAGLShell_setBatteryMonitoringEnabled(false);
@@ -435,10 +508,9 @@ static void Target_foregrounded() {
 	printf("Target_foregrounded() (What? This should not have been called!)\n");
 }
 
-static void Target_resized(unsigned int newWidth, unsigned int newHeight) {
-	printf("Target_resized(%d, %d)\n", newWidth, newHeight);
-	viewportWidth = newWidth;
-	viewportHeight = newHeight;
+static bool Target_confirmQuit() {
+	printf("Target_confirmQuit() (returning %s)\n", allowQuit ? "true" : "false");
+	return allowQuit;
 }
 
 static void EAGLTarget_touchesCancelled(unsigned int buttonMask) {
@@ -470,6 +542,44 @@ static int packedDepthAndStencil = 0;
 static void EAGLTarget_openURL(const char * url) {
 	printf("Got URL: %s\n", url);
 	sscanf(url, "eaglshell://%d,%d,%d,%d,%d,%d,%d", &preferredOpenGLAPIVersion, &retainedBacking, &depthAttachment, &stencilAttachment, &colorPrecision, &depthPrecision, &packedDepthAndStencil);
+}
+
+static void registerShellCallbacks() {
+	Shell_drawFunc(Target_draw);
+	Shell_resizeFunc(Target_resized);
+	Shell_keyDownFunc(Target_keyDown);
+	Shell_keyUpFunc(Target_keyUp);
+	Shell_keyModifiersChangedFunc(Target_keyModifiersChanged);
+	Shell_mouseDownFunc(Target_mouseDown);
+	Shell_mouseUpFunc(Target_mouseUp);
+	Shell_mouseMovedFunc(Target_mouseMoved);
+	Shell_mouseDraggedFunc(Target_mouseDragged);
+	Shell_scrollWheelFunc(Target_scrollWheel);
+	Shell_backgroundedFunc(Target_backgrounded);
+	Shell_foregroundedFunc(Target_foregrounded);
+	Shell_confirmQuitFunc(Target_confirmQuit);
+	EAGLShell_openURLFunc(EAGLTarget_openURL);
+	EAGLShell_touchesCancelledFunc(EAGLTarget_touchesCancelled);
+	EAGLShell_accelerometerFunc(EAGLTarget_accelerometer);
+}
+
+static void unregisterShellCallbacks() {
+	Shell_drawFunc(NULL);
+	Shell_resizeFunc(NULL);
+	Shell_keyDownFunc(NULL);
+	Shell_keyUpFunc(NULL);
+	Shell_keyModifiersChangedFunc(NULL);
+	Shell_mouseDownFunc(NULL);
+	Shell_mouseUpFunc(NULL);
+	Shell_mouseMovedFunc(NULL);
+	Shell_mouseDraggedFunc(NULL);
+	Shell_scrollWheelFunc(NULL);
+	Shell_backgroundedFunc(NULL);
+	Shell_foregroundedFunc(NULL);
+	Shell_confirmQuitFunc(NULL);
+	EAGLShell_openURLFunc(NULL);
+	EAGLShell_touchesCancelledFunc(NULL);
+	EAGLShell_accelerometerFunc(NULL);
 }
 
 void EAGLTarget_configure(int argc, char ** argv, struct EAGLShellConfiguration * configuration) {
@@ -506,21 +616,7 @@ void EAGLTarget_configure(int argc, char ** argv, struct EAGLShellConfiguration 
 	configuration->displayMode.packedDepthAndStencil = packedDepthAndStencil;
 	printf("configuration->displayMode.packedDepthAndStencil = %d\n", configuration->displayMode.packedDepthAndStencil);
 	
-	Shell_drawFunc(Target_draw);
-	Shell_resizeFunc(Target_resized);
-	Shell_keyDownFunc(Target_keyDown);
-	Shell_keyUpFunc(Target_keyUp);
-	Shell_keyModifiersChangedFunc(Target_keyModifiersChanged);
-	Shell_mouseDownFunc(Target_mouseDown);
-	Shell_mouseUpFunc(Target_mouseUp);
-	Shell_mouseMovedFunc(Target_mouseMoved);
-	Shell_mouseDraggedFunc(Target_mouseDragged);
-	Shell_scrollWheelFunc(Target_scrollWheel);
-	Shell_backgroundedFunc(Target_backgrounded);
-	Shell_foregroundedFunc(Target_foregrounded);
-	EAGLShell_openURLFunc(EAGLTarget_openURL);
-	EAGLShell_touchesCancelledFunc(EAGLTarget_touchesCancelled);
-	EAGLShell_accelerometerFunc(EAGLTarget_accelerometer);
+	registerShellCallbacks();
 }
 
 void Target_init() {
