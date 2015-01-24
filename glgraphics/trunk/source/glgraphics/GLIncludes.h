@@ -27,21 +27,16 @@ extern "C" {
 #endif
 
 #ifdef __APPLE__
+	#define GLGRAPHICS_NO_GLEW 1
 	#include <TargetConditionals.h>
 	#if TARGET_OS_IPHONE
 		#define TARGET_OPENGL_ES 1
-		#ifndef GLGRAPHICS_NO_GLEW
-			#define GLGRAPHICS_NO_GLEW
-		#endif
 		#include <OpenGLES/ES1/gl.h>
 		#include <OpenGLES/ES1/glext.h>
 		#include <OpenGLES/ES2/gl.h>
 		#include <OpenGLES/ES2/glext.h>
 	#elif TARGET_OS_MAC
 		#define TARGET_OPENGL_ES 0
-		#ifndef GLGRAPHICS_NO_GLEW
-			#include "GL/glew.h"
-		#endif
 		#include <OpenGL/gl.h>
 		#include <OpenGL/glu.h>
 		#include <OpenGL/glext.h>
@@ -50,18 +45,16 @@ extern "C" {
 	#endif
 #else
 	#define TARGET_OPENGL_ES 0
-	#ifndef GLGRAPHICS_NO_GLEW
-		#include "GL/glew.h"
-		#if defined(WIN32)
-			#include "GL/wglew.h"
-		#elif defined(__linux)
-			// glxew.h includes X.h, which defines Atom and Screen, causing conflicts with the Atom in utilities and the Screen in screenmanager
-			#define Atom Atom_not
-			#define Screen Screen_not
-			#include "GL/glxew.h"
-			#undef Atom
-			#undef Screen
-		#endif
+	#include "GL/glew.h"
+	#if defined(WIN32)
+		#include "GL/wglew.h"
+	#elif defined(__linux)
+		// glxew.h includes X.h, which defines Atom and Screen, causing conflicts with the Atom in utilities and the Screen in screenmanager
+		#define Atom Atom_not
+		#define Screen Screen_not
+		#include "GL/glxew.h"
+		#undef Atom
+		#undef Screen
 	#endif
 	#include <GL/gl.h>
 	#include <GL/glu.h>

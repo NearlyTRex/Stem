@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2014 Alex Diener
+  Copyright (c) 2015 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -22,7 +22,7 @@
 
 #include "glgraphics/GLGraphics.h"
 #include <stdbool.h>
-#ifndef GLGRAPHICS_NO_GLEW
+#ifndef __APPLE__
 #include "glgraphics/GLIncludes.h"
 #include <stdio.h>
 #endif
@@ -30,7 +30,7 @@
 static enum GLAPIVersion openGLAPIVersion = GL_API_VERSION_DESKTOP_1;
 
 void GLGraphics_init(enum GLAPIVersion apiVersion) {
-#ifndef GLGRAPHICS_NO_GLEW
+#ifndef __APPLE__
 	GLenum glewStatus;
 	
 	glewStatus = glewInit();
