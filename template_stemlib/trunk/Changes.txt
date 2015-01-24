@@ -1,3 +1,7 @@
+2.0.0 (2014-12-25)
+ * Stripped Makefile down to its bare project-specific essentials. Shared makefile logic now lives in stemconfig.
+ * Merged version file with Makefile
+
 1.1.0 (2014-06-29)
  * Added support for modern Xcode/iOS SDK versions
  * Removed obsolete source dependency mechanism
