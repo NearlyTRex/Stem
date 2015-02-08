@@ -32,8 +32,8 @@ struct NSOpenGLShellConfiguration {
 	// All coordinate units are pixels, not points. Default sizes for retina displays should be set accordingly.
 	int windowX;
 	int windowY;
-	int windowWidth;
-	int windowHeight;
+	unsigned int windowWidth;
+	unsigned int windowHeight;
 	char * windowTitle;
 	bool fullScreenMenuItem; // If set to true, the Window menu will contain an Enter Full Screen item which calls Shell_enterFullScreen when selected. Default is false.
 	bool vsyncWindowed; // Can be changed after configure by calling NSOpenGLShell_setVSync()

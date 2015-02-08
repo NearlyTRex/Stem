@@ -160,7 +160,7 @@
 - (void) mouseMoved: (NSEvent *) event {
 	if (mouseMovedCallback != NULL) {
 		if (g_mouseDeltaMode) {
-			mouseMovedCallback([event deltaX], -[event deltaY]);
+			mouseMovedCallback([event deltaX], [event deltaY]);
 		} else {
 			NSPoint location = [self pixelLocationForEvent: event];
 			mouseMovedCallback(location.x, location.y);
@@ -179,7 +179,7 @@
 - (void) mouseDragged: (NSEvent *) event {
 	if (mouseDraggedCallback != NULL) {
 		if (g_mouseDeltaMode) {
-			mouseDraggedCallback(buttonMask, [event deltaX], -[event deltaY]);
+			mouseDraggedCallback(buttonMask, [event deltaX], [event deltaY]);
 		} else {
 			NSPoint location = [self pixelLocationForEvent: event];
 			mouseDraggedCallback(buttonMask, location.x, location.y);
