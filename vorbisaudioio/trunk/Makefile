@@ -39,8 +39,8 @@ STEM_LIBRARY_DEPENDENCIES = \
 # Patterns: THIRDPARTY_LIBRARY_DEPENDENCIES, THIRDPARTY_LIBRARY_DEPENDENCIES_${target}, THIRDPARTY_LIBRARY_DEPENDENCIES_${platform}, THIRDPARTY_LIBRARY_DEPENDENCIES_${target}_${platform}
 THIRDPARTY_LIBRARY_DEPENDENCIES = \
 	libogg/1.2.2/libogg.a \
-	libvorbis/1.3.2/libvorbis.a \
-	libvorbis/1.3.2/libvorbisfile.a
+	libvorbis/1.3.2/libvorbisfile.a \
+	libvorbis/1.3.2/libvorbis.a
 
 # Additional build prerequisites per target
 # Patterns: PREREQS, PREREQS_${target}
