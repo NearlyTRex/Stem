@@ -45,6 +45,7 @@ extern "C" {
 	#endif
 #else
 	#define TARGET_OPENGL_ES 0
+	#define GLEW_STATIC 1
 	#include "GL/glew.h"
 	#if defined(WIN32)
 		#include "GL/wglew.h"

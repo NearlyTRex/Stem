@@ -38,10 +38,10 @@ STEM_LIBRARY_DEPENDENCIES_unittest = unittest/latest
 
 # THIRDPARTY_LIBRARY_DEPENDENCIES is specified as ${PROJECT_NAME}/${PROJECT_VERSION} for each thirdparty library to be linked when building
 # Patterns: THIRDPARTY_LIBRARY_DEPENDENCIES, THIRDPARTY_LIBRARY_DEPENDENCIES_${target}, THIRDPARTY_LIBRARY_DEPENDENCIES_${platform}, THIRDPARTY_LIBRARY_DEPENDENCIES_${target}_${platform}
-THIRDPARTY_LIBRARY_DEPENDENCIES_library_win32 = glew/1.5.4/libglew.a
-THIRDPARTY_LIBRARY_DEPENDENCIES_library_win64 = glew/1.5.4/libglew.a
-THIRDPARTY_LIBRARY_DEPENDENCIES_library_linux32 = glew/1.5.4/libglew.a
-THIRDPARTY_LIBRARY_DEPENDENCIES_library_linux64 = glew/1.5.4/libglew.a
+THIRDPARTY_LIBRARY_DEPENDENCIES_win32 = glew/1.5.4/libglew.a
+THIRDPARTY_LIBRARY_DEPENDENCIES_win64 = glew/1.5.4/libglew.a
+THIRDPARTY_LIBRARY_DEPENDENCIES_linux32 = glew/1.5.4/libglew.a
+THIRDPARTY_LIBRARY_DEPENDENCIES_linux64 = glew/1.5.4/libglew.a
 
 # Additional build prerequisites per target
 # Patterns: PREREQS, PREREQS_${target}
