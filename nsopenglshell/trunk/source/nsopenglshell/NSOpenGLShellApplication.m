@@ -80,6 +80,7 @@ static NSScreen * screenForRect(NSRect rect) {
 	[window setDelegate: self];
 	[window setTitle: [NSString stringWithUTF8String: g_configuration.windowTitle]];
 	[window setAcceptsMouseMovedEvents: YES];
+	[window setContentMinSize: NSMakeSize(64, 32)];
 	view = [[NSOpenGLShellView alloc] initWithFrame: NSMakeRect(0, 0, g_configuration.windowWidth, g_configuration.windowHeight) configuration: g_configuration];
 	
 	if (view == nil) {
