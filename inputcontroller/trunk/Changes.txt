@@ -1,3 +1,6 @@
+1.1.1 (2015-02-15)
+ * Added InputController_isActionTriggered
+
 1.1.0 (2014-11-21)
  * Added InputMap methods for unbinding all actions for a particular input, and all inputs of one type for a particular action
  * Updated for utilities 1.9.0

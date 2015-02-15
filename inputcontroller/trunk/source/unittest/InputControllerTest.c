@@ -69,24 +69,34 @@ static void testActionTriggers() {
 	EventDispatcher_registerForEvent(inputController->eventDispatcher, ATOM(INPUT_CONTROLLER_EVENT_ACTION_UP), actionUp, NULL);
 	
 	lastActionID = NULL;
+	TestCase_assert(!InputController_isActionTriggered(inputController, ATOM("a")), "Expected false but got true");
 	inputController->triggerAction(inputController, ATOM("a"));
 	TestCase_assert(actionDownCallCount == 1, "Expected 1 but got %u", actionDownCallCount);
 	TestCase_assert(lastActionID == ATOM("a"), "Expected \"a\" (%p) but got \"%s\" (%p)", ATOM("a"), lastActionID, lastActionID);
+	TestCase_assert(InputController_isActionTriggered(inputController, ATOM("a")), "Expected true but got false");
+	
 	inputController->triggerAction(inputController, ATOM("a"));
 	TestCase_assert(actionDownCallCount == 1, "Expected 1 but got %u", actionDownCallCount);
+	TestCase_assert(InputController_isActionTriggered(inputController, ATOM("a")), "Expected true but got false");
+	
 	lastActionID = NULL;
 	inputController->releaseAction(inputController, ATOM("a"));
 	TestCase_assert(actionUpCallCount == 1, "Expected 1 but got %u", actionUpCallCount);
 	TestCase_assert(lastActionID == ATOM("a"), "Expected \"a\" (%p) but got \"%s\" (%p)", ATOM("a"), lastActionID, lastActionID);
+	TestCase_assert(!InputController_isActionTriggered(inputController, ATOM("a")), "Expected false but got true");
+	
 	lastActionID = NULL;
 	inputController->triggerAction(inputController, ATOM("a"));
 	TestCase_assert(actionDownCallCount == 2, "Expected 2 but got %u", actionDownCallCount);
 	TestCase_assert(lastActionID == ATOM("a"), "Expected \"a\" (%p) but got \"%s\" (%p)", ATOM("a"), lastActionID, lastActionID);
+	TestCase_assert(InputController_isActionTriggered(inputController, ATOM("a")), "Expected true but got false");
 	
 	lastActionID = NULL;
+	TestCase_assert(!InputController_isActionTriggered(inputController, ATOM("b")), "Expected false but got true");
 	inputController->triggerAction(inputController, ATOM("b"));
 	TestCase_assert(actionDownCallCount == 3, "Expected 3 but got %u", actionDownCallCount);
 	TestCase_assert(lastActionID == ATOM("b"), "Expected \"b\" (%p) but got \"%s\" (%p)", ATOM("b"), lastActionID, lastActionID);
+	TestCase_assert(InputController_isActionTriggered(inputController, ATOM("b")), "Expected true but got false");
 	
 	InputController_dispose(inputController);
 }

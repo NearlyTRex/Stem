@@ -251,6 +251,17 @@ bool InputController_releaseAction(InputController * self, Atom actionID) {
 	return false;
 }
 
+bool InputController_isActionTriggered(InputController * self, Atom actionID) {
+	unsigned int actionIndex;
+	
+	for (actionIndex = 0; actionIndex < self->actionCount; actionIndex++) {
+		if (actionID == self->actions[actionIndex].actionID) {
+			return self->actions[actionIndex].triggered;
+		}
+	}
+	return false;
+}
+
 void InputController_reset(InputController * self) {
 	unsigned int actionIndex;
 	

@@ -70,6 +70,7 @@ bool InputController_gamepadButtonUp(InputController * self, int vendorID, int p
 bool InputController_gamepadAxisMoved(InputController * self, int vendorID, int productID, unsigned int axisID, float value, float lastValue);
 bool InputController_triggerAction(InputController * self, Atom actionID);
 bool InputController_releaseAction(InputController * self, Atom actionID);
+bool InputController_isActionTriggered(InputController * self, Atom actionID);
 void InputController_reset(InputController * self);
 
 #ifdef __cplusplus
