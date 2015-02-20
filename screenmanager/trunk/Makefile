@@ -69,7 +69,7 @@ RESOURCES =
 ANALYZER_EXCLUDE_SOURCES_clang = 
 ANALYZER_EXCLUDE_SOURCES_splint = ${SOURCES_unittest_suites}
 
-INSTALLED_TARGETS = library testharness
+INSTALLED_TARGETS = library
 
 # Postamble to invoke stemconfig makefile. Do not modify.
 UNAME = ${shell uname}
