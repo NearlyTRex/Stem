@@ -90,7 +90,7 @@ bool GLBitmapFont_loadSerializedData(GLBitmapFont * self, compat_type(Deserializ
 	size_t kernCharIndex, kernCharIndex2, nchars;
 	unsigned int charIndex;
 	const char * key, * key2;
-	const char * atlasName;
+	const char * atlasName, * atlasKey;
 	
 	sharedInit(self);
 	memset(self->characters, 0x00, sizeof(self->characters));
@@ -117,7 +117,10 @@ bool GLBitmapFont_loadSerializedData(GLBitmapFont * self, compat_type(Deserializ
 		self->characters[key[0] - GLBITMAPFONT_PRINTABLE_MIN].advance = context->readFloat(context, "advance");
 		self->characters[key[0] - GLBITMAPFONT_PRINTABLE_MIN].glyphOffset = context->readFloat(context, "glyph_offset");
 		self->characters[key[0] - GLBITMAPFONT_PRINTABLE_MIN].glyphWidth = context->readFloat(context, "glyph_width");
-		self->characters[key[0] - GLBITMAPFONT_PRINTABLE_MIN].atlasKey = strdup(context->readString(context, "atlas_key"));
+		atlasKey = context->readString(context, "atlas_key");
+		if (atlasKey != NULL) {
+			self->characters[key[0] - GLBITMAPFONT_PRINTABLE_MIN].atlasKey = strdup(atlasKey);
+		}
 		
 		self->characters[key[0] - GLBITMAPFONT_PRINTABLE_MIN].kernCharCount = context->beginDictionary(context, "kerning_table");
 		if (self->characters[key[0] - GLBITMAPFONT_PRINTABLE_MIN].kernCharCount == 0) {

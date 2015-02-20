@@ -1,3 +1,6 @@
+2.0.1 (2015-02-19)
+ * Fixed crash when deserializing malformed GLBitmapFont data
+
 2.0.0 (2014-11-20)
  * GLBitmapFont's texture coordinate storage has been superseded by GLTextureAtlas. Instead of texture coordinates, GLBitmapFont now stores a key for atlas lookup.
  * References to texture have been renamed/repurposed to refer to a texture atlas instead.
