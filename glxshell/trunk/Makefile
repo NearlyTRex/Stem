@@ -20,7 +20,7 @@ HUMAN_READABLE_TARGET_NAME_testharness = GLXShell
 PLATFORMS = linux32 linux64
 
 # Patterns: CCFLAGS, CCFLAGS_${target}, CCFLAGS_${configuration}, CCFLAGS_${platform}, CCFLAGS_${target}_${configuration}, CCFLAGS_${target}_${platform}, CCFLAGS_${configuration}_${platform}, CCFLAGS_${target}_${configuration}_${platform}
-CCFLAGS = ${shell pkg-config --cflags gtk+-3.0}
+CCFLAGS = ${shell pkg-config --cflags gtk+-3.0} -Wno-int-to-pointer-cast -Wno-pointer-to-int-cast
 
 # Patterns: LINKFLAGS, LINKFLAGS_${target}, LINKFLAGS_${configuration}, LINKFLAGS_${platform}, LINKFLAGS_${target}_${configuration}, LINKFLAGS_${target}_${platform}, LINKFLAGS_${configuration}_${platform}
 LINKFLAGS_library = -lrt -lpthread -lX11 -lGLU -lGL -lm ${shell pkg-config --libs gtk+-3.0}
