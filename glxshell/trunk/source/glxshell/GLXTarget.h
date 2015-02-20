@@ -31,8 +31,8 @@ extern "C" {
 struct GLXShellConfiguration {
 	int windowX;
 	int windowY;
-	int windowWidth;
-	int windowHeight;
+	unsigned int windowWidth;
+	unsigned int windowHeight;
 	char * windowTitle;
 	struct {
 		bool doubleBuffer;
