@@ -20,6 +20,8 @@ PLATFORMS = macosx iphonesimulator iphoneos linux32 linux64 win32 win64
 
 # Patterns: CCFLAGS, CCFLAGS_${target}, CCFLAGS_${configuration}, CCFLAGS_${platform}, CCFLAGS_${target}_${configuration}, CCFLAGS_${target}_${platform}, CCFLAGS_${configuration}_${platform}, CCFLAGS_${target}_${configuration}_${platform}
 CCFLAGS = -I build/intermediate/generated
+CCFLAGS_linux32 = -Wno-unused-but-set-variable
+CCFLAGS_linux64 = -Wno-unused-but-set-variable
 
 # Patterns: LINKFLAGS, LINKFLAGS_${target}, LINKFLAGS_${platform}, LINKFLAGS_${target}_${platform}
 LINKFLAGS_library_linux32 = -lm
