@@ -22,6 +22,8 @@ PLATFORMS = macosx iphonesimulator iphoneos linux32 linux64 win32 win64
 # Patterns: CCFLAGS, CCFLAGS_${target}, CCFLAGS_${configuration}, CCFLAGS_${platform}, CCFLAGS_${target}_${configuration}, CCFLAGS_${target}_${platform}, CCFLAGS_${configuration}_${platform}, CCFLAGS_${target}_${configuration}_${platform}
 CCFLAGS_testharness_win32 = -DFREEGLUT_STATIC
 CCFLAGS_testharness_win64 = -DFREEGLUT_STATIC
+CCFLAGS_linux32 = -Wno-unused-result
+CCFLAGS_linux64 = -Wno-unused-result
 
 # Patterns: LINKFLAGS, LINKFLAGS_${target}, LINKFLAGS_${platform}, LINKFLAGS_${target}_${platform}
 LINKFLAGS = 
