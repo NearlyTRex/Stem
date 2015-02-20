@@ -28,6 +28,8 @@ CCFLAGS_testharness_win64 = -DFREEGLUT_STATIC
 
 # Patterns: LINKFLAGS, LINKFLAGS_${target}, LINKFLAGS_${platform}, LINKFLAGS_${target}_${platform}
 LINKFLAGS = 
+LINKFLAGS_unittest_linux32 = -lGL
+LINKFLAGS_unittest_linux64 = -lGL
 
 # PROJECT_LIBRARY_DEPENDENCIES_* refers to entries in LIBRARY_TARGETS to be linked when building the specified target
 # Patterns: PROJECT_LIBRARY_DEPENDENCIES_${target}, PROJECT_LIBRARY_DEPENDENCIES_${target}_${platform}
