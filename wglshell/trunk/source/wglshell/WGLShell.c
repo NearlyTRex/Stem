@@ -895,6 +895,45 @@ static unsigned int lParamToShellKeyCode(LPARAM lParam) {
 	return windowsVKToShellKeyCode(MapVirtualKeyEx(lParam >> 16 & 0x7F, MAPVK_VSC_TO_VK_EX, layout));
 }
 
+static void updateModifierFlags() {
+	bool capsLock, shift, control, alt;
+	unsigned int oldModifierFlags = modifierFlags;
+	
+	capsLock = GetKeyState(VK_CAPITAL) & 0x01;
+	if (capsLock && !(modifierFlags & MODIFIER_CAPS_LOCK_BIT)) {
+		modifierFlags |= MODIFIER_CAPS_LOCK_BIT;
+	} else if (!capsLock && (modifierFlags & MODIFIER_CAPS_LOCK_BIT)) {
+		modifierFlags &= ~MODIFIER_CAPS_LOCK_BIT;
+	}
+	
+	shift = !!(GetKeyState(VK_SHIFT) & 0x8000);
+	if (shift && !(modifierFlags & MODIFIER_SHIFT_BIT)) {
+		modifierFlags |= MODIFIER_SHIFT_BIT;
+	} else if (!shift && (modifierFlags & MODIFIER_SHIFT_BIT)) {
+		modifierFlags &= ~MODIFIER_SHIFT_BIT;
+	}
+	
+	control = !!(GetKeyState(VK_CONTROL) & 0x8000);
+	if (control && !(modifierFlags & MODIFIER_CONTROL_BIT)) {
+		modifierFlags |= MODIFIER_CONTROL_BIT;
+	} else if (!control && (modifierFlags & MODIFIER_CONTROL_BIT)) {
+		modifierFlags &= ~MODIFIER_CONTROL_BIT;
+	}
+	
+	alt = !!(GetKeyState(VK_MENU) & 0x8000);
+	if (alt && !(modifierFlags & MODIFIER_ALT_BIT)) {
+		modifierFlags |= MODIFIER_ALT_BIT;
+	} else if (!alt && (modifierFlags & MODIFIER_ALT_BIT)) {
+		modifierFlags &= ~MODIFIER_ALT_BIT;
+	}
+	
+	if (modifierFlags != oldModifierFlags) {
+		if (keyModifiersChangedCallback != NULL) {
+			keyModifiersChangedCallback(modifierFlags);
+		}
+	}
+}
+
 static LRESULT CALLBACK windowProc(HWND window, UINT message, WPARAM wParam, LPARAM lParam) {
 	switch (message) {
 		case WM_PAINT: {
@@ -1037,21 +1076,8 @@ static LRESULT CALLBACK windowProc(HWND window, UINT message, WPARAM wParam, LPA
 		case WM_SYSKEYDOWN: {
 			MSG msg;
 			unsigned int charCode = 0, keyCode;
-			bool capsLock;
 			
-			capsLock = GetKeyState(VK_CAPITAL) & 0x01;
-			if (capsLock && !(modifierFlags & MODIFIER_CAPS_LOCK_BIT)) {
-				modifierFlags |= MODIFIER_CAPS_LOCK_BIT;
-				if (keyModifiersChangedCallback != NULL) {
-					keyModifiersChangedCallback(modifierFlags);
-				}
-				
-			} else if (!capsLock && (modifierFlags & MODIFIER_CAPS_LOCK_BIT)) {
-				modifierFlags &= ~MODIFIER_CAPS_LOCK_BIT;
-				if (keyModifiersChangedCallback != NULL) {
-					keyModifiersChangedCallback(modifierFlags);
-				}
-			}
+			updateModifierFlags();
 			
 			if (PeekMessage(&msg, window, WM_KEYFIRST, WM_KEYLAST, PM_NOREMOVE) && msg.message == WM_CHAR) {
 				charCode = msg.wParam;
@@ -1101,21 +1127,8 @@ static LRESULT CALLBACK windowProc(HWND window, UINT message, WPARAM wParam, LPA
 		case WM_KEYUP:
 		case WM_SYSKEYUP: {
 			unsigned int keyCode;
-			bool capsLock;
 			
-			capsLock = GetKeyState(VK_CAPITAL) & 0x01;
-			if (capsLock && !(modifierFlags & MODIFIER_CAPS_LOCK_BIT)) {
-				modifierFlags |= MODIFIER_CAPS_LOCK_BIT;
-				if (keyModifiersChangedCallback != NULL) {
-					keyModifiersChangedCallback(modifierFlags);
-				}
-				
-			} else if (!capsLock && (modifierFlags & MODIFIER_CAPS_LOCK_BIT)) {
-				modifierFlags &= ~MODIFIER_CAPS_LOCK_BIT;
-				if (keyModifiersChangedCallback != NULL) {
-					keyModifiersChangedCallback(modifierFlags);
-				}
-			}
+			updateModifierFlags();
 			
 			keyCode = lParamToShellKeyCode(lParam);
 			if (keyCode != 0 && keyUpCallback != NULL) {
