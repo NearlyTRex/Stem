@@ -141,6 +141,29 @@ static void setVSync(bool sync) {
 	}
 }
 
+static void warpPointerAndIgnoreEvent(int x, int y) {
+	POINT point = {x, y};
+	
+	ignoreX = x;
+	ignoreY = y;
+	lastMouseX = x;
+	lastMouseY = y;
+	ClientToScreen(window, &point);
+	SetCursorPos(point.x, point.y);
+}
+
+static int getWindowCenterX() {
+	RECT rect;
+	GetClientRect(window, &rect);
+	return (rect.right - rect.left) / 2;
+}
+
+static int getWindowCenterY() {
+	RECT rect;
+	GetClientRect(window, &rect);
+	return (rect.bottom - rect.top) / 2;
+}
+
 #ifndef MONITOR_DEFAULTTONEAREST
 #define MONITOR_DEFAULTTONEAREST 2
 #endif
@@ -192,6 +215,9 @@ bool Shell_enterFullScreen(unsigned int displayIndex) {
 	SetWindowPos(window, HWND_TOP, screenRect.left, screenRect.top, screenRect.right - screenRect.left, screenRect.bottom - screenRect.top, SWP_NOZORDER | SWP_FRAMECHANGED);
 	isFullScreen = true;
 	setVSync(vsyncFullscreen);
+	if (mouseDeltaMode) {
+		warpPointerAndIgnoreEvent(getWindowCenterX(), getWindowCenterY());
+	}
 	
 	return true;
 }
@@ -204,6 +230,9 @@ void Shell_exitFullScreen() {
 	SetWindowPos(window, HWND_TOP, oldWindowRect.left, oldWindowRect.top, oldWindowRect.right - oldWindowRect.left, oldWindowRect.bottom - oldWindowRect.top, SWP_NOZORDER | SWP_FRAMECHANGED);
 	isFullScreen = false;
 	setVSync(vsyncWindow);
+	if (mouseDeltaMode) {
+		warpPointerAndIgnoreEvent(getWindowCenterX(), getWindowCenterY());
+	}
 }
 
 double Shell_getCurrentTime() {
@@ -460,29 +489,6 @@ void Shell_setCursor(int value) {
 		SetClassLongPtr(window, GCL_HCURSOR, (LONG_PTR) cursor);
 		SetCursor(cursor);
 	}
-}
-
-static void warpPointerAndIgnoreEvent(int x, int y) {
-	POINT point = {x, y};
-	
-	ignoreX = x;
-	ignoreY = y;
-	lastMouseX = x;
-	lastMouseY = y;
-	ClientToScreen(window, &point);
-	SetCursorPos(point.x, point.y);
-}
-
-static int getWindowCenterX() {
-	RECT rect;
-	GetClientRect(window, &rect);
-	return (rect.right - rect.left) / 2;
-}
-
-static int getWindowCenterY() {
-	RECT rect;
-	GetClientRect(window, &rect);
-	return (rect.bottom - rect.top) / 2;
 }
 
 void Shell_setMouseDeltaMode(bool deltaMode) {
