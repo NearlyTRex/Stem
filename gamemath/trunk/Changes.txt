@@ -1,3 +1,6 @@
+2.2.1 (2015-06-16)
+ * Added Vector*_invert() and Vector*_inverted()
+
 2.2.0 (2014-11-02)
  * Renamed project from 3dmath to gamemath to more accurately fit its purpose
  * Added Interpolation module

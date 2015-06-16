@@ -162,6 +162,48 @@ static void testNormalize() {
 	assertVector4fExact(vector4, 0.0f, 0.0f, 0.0f, 0.0f);
 }
 
+static void testInvert() {
+	Vector2f vector2, vector2Inverted;
+	Vector3f vector3, vector3Inverted;
+	Vector4f vector4, vector4Inverted;
+	
+	vector2 = VECTOR2f(1.0f, -1.0f);
+	vector2Inverted = Vector2f_inverted(vector2);
+	Vector2f_invert(&vector2);
+	assertVector2fExact(vector2, -1.0f, 1.0f);
+	assertVector2fExact(vector2Inverted, -1.0f, 1.0f);
+	
+	vector2 = VECTOR2f(-0.25f, 3.0f);
+	vector2Inverted = Vector2f_inverted(vector2);
+	Vector2f_invert(&vector2);
+	assertVector2fExact(vector2, 0.25f, -3.0f);
+	assertVector2fExact(vector2Inverted, 0.25f, -3.0f);
+	
+	vector3 = VECTOR3f(1.0f, -1.0f, 2.0f);
+	vector3Inverted = Vector3f_inverted(vector3);
+	Vector3f_invert(&vector3);
+	assertVector3fExact(vector3, -1.0f, 1.0f, -2.0f);
+	assertVector3fExact(vector3Inverted, -1.0f, 1.0f, -2.0f);
+	
+	vector3 = VECTOR3f(-0.25f, 3.0f, -2.5f);
+	vector3Inverted = Vector3f_inverted(vector3);
+	Vector3f_invert(&vector3);
+	assertVector3fExact(vector3, 0.25f, -3.0f, 2.5f);
+	assertVector3fExact(vector3Inverted, 0.25f, -3.0f, 2.5f);
+	
+	vector4 = VECTOR4f(1.0f, -1.0f, 2.0f, -2.0f);
+	vector4Inverted = Vector4f_inverted(vector4);
+	Vector4f_invert(&vector4);
+	assertVector4fExact(vector4, -1.0f, 1.0f, -2.0f, 2.0f);
+	assertVector4fExact(vector4Inverted, -1.0f, 1.0f, -2.0f, 2.0f);
+	
+	vector4 = VECTOR4f(-0.25f, 3.0f, -2.5f, 2.75f);
+	vector4Inverted = Vector4f_inverted(vector4);
+	Vector4f_invert(&vector4);
+	assertVector4fExact(vector4, 0.25f, -3.0f, 2.5f, -2.75f);
+	assertVector4fExact(vector4Inverted, 0.25f, -3.0f, 2.5f, -2.75f);
+}
+
 static void testMagnitude() {
 	float magnitude;
 	
@@ -403,6 +445,7 @@ TEST_SUITE(VectorTest,
            testInit,
            testPrefabs,
            testNormalize,
+           testInvert,
            testMagnitude,
            testDistance,
            testArithmetic,
