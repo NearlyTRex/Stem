@@ -29,9 +29,22 @@ IntersectionManager * IntersectionManager_create() {
 	stemobject_create_implementation(IntersectionManager, init)
 }
 
-bool IntersectionManager_init(IntersectionManager * self) {
+IntersectionManager * IntersectionManager_createWithStandardHandlers() {
+	stemobject_create_implementation(IntersectionManager, initWithStandardHandlers)
+}
+
+static void sharedInit(IntersectionManager * self) {
 	call_super(init, self);
 	self->dispose = IntersectionManager_dispose;
+}
+
+bool IntersectionManager_init(IntersectionManager * self) {
+	sharedInit(self);
+	return true;
+}
+
+bool IntersectionManager_initWithStandardHandlers(IntersectionManager * self) {
+	sharedInit(self);
 	return true;
 }
 

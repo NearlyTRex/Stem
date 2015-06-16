@@ -50,7 +50,8 @@ PREREQS =
 SOURCES_library = \
 	source/${PROJECT_NAME}/CollisionObject.c \
 	source/${PROJECT_NAME}/CollisionResolver.c \
-	source/${PROJECT_NAME}/IntersectionManager.c
+	source/${PROJECT_NAME}/IntersectionManager.c \
+	source/${PROJECT_NAME}/StandardIntersectionHandlers.c
 
 # Executable targets named "unittest" should usually specify only SOURCES_unittest_suites, which must contain only test suite files.
 # If files other than test suites are required, specify SOURCES_unittest.
@@ -60,7 +61,8 @@ SOURCES_unittest = \
 SOURCES_unittest_suites = \
 	source/unittest/CollisionObjectTest.c \
 	source/unittest/CollisionResolverTest.c \
-	source/unittest/IntersectionManagerTest.c
+	source/unittest/IntersectionManagerTest.c \
+	source/unittest/StandardIntersectionHandlersTest.c
 
 SOURCES_testharness = \
 	source/testharness/TestHarness_main.c
@@ -69,7 +71,8 @@ SOURCES_testharness = \
 INCLUDES = \
 	source/${PROJECT_NAME}/CollisionObject.h \
 	source/${PROJECT_NAME}/CollisionResolver.h \
-	source/${PROJECT_NAME}/IntersectionManager.h
+	source/${PROJECT_NAME}/IntersectionManager.h \
+	source/${PROJECT_NAME}/StandardIntersectionHandlers.h
 
 # Patterns: RESOURCES, RESOURCES_${target}, RESOURCES_${platform}, RESOURCES_${target}_${platform}
 RESOURCES = 

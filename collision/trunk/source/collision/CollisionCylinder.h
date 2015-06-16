@@ -30,18 +30,6 @@ typedef struct CollisionCylinder CollisionCylinder;
 
 #include "collision/CollisionObject.h"
 
-#define SHAPE_TYPE_LINE_2D 1
-#define SHAPE_TYPE_RECT 1
-#define SHAPE_TYPE_CIRCLE 1
-#define SHAPE_TYPE_POLYGON 1
-
-#define SHAPE_TYPE_ALIGNED_BOX 1
-#define SHAPE_TYPE_SPHERE 1
-#define SHAPE_TYPE_CAPSULE 1
-#define SHAPE_TYPE_CYLINDER 1
-#define SHAPE_TYPE_LINE_3D 1
-#define SHAPE_TYPE_TRIMESH 1
-
 #define CollisionCylinder_structContents(self_type) \
 	CollisionObject_structContents(self_type) \
 	\

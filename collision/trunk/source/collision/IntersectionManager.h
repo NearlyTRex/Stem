@@ -41,7 +41,9 @@ typedef bool (* IntersectionHandler)(CollisionObject * object1, CollisionObject 
 stemobject_struct_definition(IntersectionManager)
 
 IntersectionManager * IntersectionManager_create();
+IntersectionManager * IntersectionManager_createWithStandardHandlers();
 bool IntersectionManager_init(IntersectionManager * self);
+bool IntersectionManager_initWithStandardHandlers(IntersectionManager * self);
 void IntersectionManager_dispose(IntersectionManager * self);
 void IntersectionManager_setHandler(IntersectionManager * self, int type1, int type2, IntersectionHandler handler);
 IntersectionHandler IntersectionManager_getHandler(IntersectionManager * self, int type1, int type2);
