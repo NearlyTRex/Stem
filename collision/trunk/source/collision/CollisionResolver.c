@@ -42,6 +42,7 @@ CollisionResolver * CollisionResolver_create(IntersectionManager * intersectionM
 bool CollisionResolver_init(CollisionResolver * self, IntersectionManager * intersectionManager) {
 	call_super(init, self);
 	self->dispose = CollisionResolver_dispose;
+	self->intersectionManager = intersectionManager;
 	self->objectCount = 0;
 	self->objectAllocatedCount = 32;
 	self->objects = malloc(sizeof(CollisionObject *) * self->objectAllocatedCount);
@@ -51,6 +52,14 @@ bool CollisionResolver_init(CollisionResolver * self, IntersectionManager * inte
 void CollisionResolver_dispose(CollisionResolver * self) {
 	free(self->objects);
 	call_super(dispose, self);
+}
+
+CollisionRecord CollisionRecord_inverted(CollisionRecord collision) {
+	CollisionObject * swap = collision.object1;
+	collision.object1 = collision.object2;
+	collision.object2 = swap;
+	Vector3x_invert(&collision.normal);
+	return collision;
 }
 
 void CollisionResolver_addObject(CollisionResolver * self, compat_type(CollisionObject *) object) {
@@ -271,8 +280,4 @@ void CollisionResolver_resolveAll(CollisionResolver * self, size_t maxSimultaneo
 		}
 		timesliceRemaining = xmul(0x10000 - collision.time, timesliceRemaining);
 	}*/
-}
-
-CollisionRecord CollisionRecord_inverse(CollisionRecord collision) {
-	return collision;
 }

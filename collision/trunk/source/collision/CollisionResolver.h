@@ -55,7 +55,7 @@ struct CollisionRecord {
 	
 	// Temporal position within the timeslice being evaluated at which the intersection first occurs, from 0x00000 (beginning
 	// of timeslice) to 0x10000 (end of timeslice).
-	fixed16_16 collisionTimeWithinTimeslice;
+	fixed16_16 time;
 	// TODO: Doesn't this require an interpolate() method on owners of CollisionObjects?
 };
 
@@ -64,6 +64,9 @@ stemobject_struct_definition(CollisionResolver)
 CollisionResolver * CollisionResolver_create(IntersectionManager * intersectionManager);
 bool CollisionResolver_init(CollisionResolver * self, IntersectionManager * intersectionManager);
 void CollisionResolver_dispose(CollisionResolver * self);
+
+// Returns a CollisionRecord with object1 and object2 swapped, and the normal reversed.
+CollisionRecord CollisionRecord_inverted(CollisionRecord collision);
 
 void CollisionResolver_addObject(CollisionResolver * self, compat_type(CollisionObject *) object);
 void CollisionResolver_removeObject(CollisionResolver * self, compat_type(CollisionObject *) object);
@@ -89,9 +92,6 @@ void CollisionResolver_resolveSingle(CollisionResolver * self, CollisionRecord c
 // Collision tests all objects in list against all other objects in list, calling the CollisionCallback for each.
 // Fully resolves one frame.
 void CollisionResolver_resolveAll(CollisionResolver * self, size_t maxSimultaneousCollisions, size_t maxIterations);
-
-// Returns a CollisionRecord with object1 and object2 swapped, and the normal reversed.
-CollisionRecord CollisionRecord_inverse(CollisionRecord collision);
 
 #ifdef __cplusplus
 }
