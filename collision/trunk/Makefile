@@ -1,7 +1,7 @@
-PROJECT_NAME = template_stemlib
+PROJECT_NAME = collision
 
 # VERSION_MAJOR, VERSION_MINOR, and VERSION_TWEAK are available as preprocessor macros for all source files in the project
-VERSION_MAJOR = 2
+VERSION_MAJOR = 0
 VERSION_MINOR = 0
 VERSION_TWEAK = 0
 PROJECT_VERSION = ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_TWEAK}
@@ -14,7 +14,7 @@ APPLICATION_TARGETS = testharness
 #TARGET_NAME_library = libstem_${PROJECT_NAME}
 #TARGET_NAME_unittest = ${PROJECT_NAME}_unittest
 #TARGET_NAME_testharness = ${PROJECT_NAME}_testharness
-HUMAN_READABLE_TARGET_NAME_testharness = Stem\ Template
+HUMAN_READABLE_TARGET_NAME_testharness = Collision\ Resolver
 
 # Patterns: PLATFORMS, PLATFORMS_${target}
 PLATFORMS = macosx iphonesimulator iphoneos linux32 linux64 win32 win64
@@ -32,7 +32,12 @@ PROJECT_LIBRARY_DEPENDENCIES_testharness = library
 
 # STEM_LIBRARY_DEPENDENCIES is specified as ${PROJECT_NAME}/${PROJECT_VERSION} for each stem library to be linked when building
 # Patterns: STEM_LIBRARY_DEPENDENCIES, STEM_LIBRARY_DEPENDENCIES_${target}, STEM_LIBRARY_DEPENDENCIES_${platform}, STEM_LIBRARY_DEPENDENCIES_${target}_${platform}
-STEM_LIBRARY_DEPENDENCIES_unittest = unittest/latest
+STEM_LIBRARY_DEPENDENCIES = \
+	gamemath/latest \
+	stemobject/latest
+STEM_LIBRARY_DEPENDENCIES_unittest = \
+	unittest/latest \
+	utilities/latest
 
 # THIRDPARTY_LIBRARY_DEPENDENCIES is specified as ${PROJECT_NAME}/${PROJECT_VERSION} for each thirdparty library to be linked when building
 # Patterns: THIRDPARTY_LIBRARY_DEPENDENCIES, THIRDPARTY_LIBRARY_DEPENDENCIES_${target}, THIRDPARTY_LIBRARY_DEPENDENCIES_${platform}, THIRDPARTY_LIBRARY_DEPENDENCIES_${target}_${platform}
@@ -43,19 +48,28 @@ THIRDPARTY_LIBRARY_DEPENDENCIES =
 PREREQS = 
 
 SOURCES_library = \
-	source/${PROJECT_NAME}/HelloWorld.c
+	source/${PROJECT_NAME}/CollisionObject.c \
+	source/${PROJECT_NAME}/CollisionResolver.c \
+	source/${PROJECT_NAME}/IntersectionManager.c
 
 # Executable targets named "unittest" should usually specify only SOURCES_unittest_suites, which must contain only test suite files.
 # If files other than test suites are required, specify SOURCES_unittest.
+SOURCES_unittest = \
+	source/unittest/CollisionTestObject.c
+
 SOURCES_unittest_suites = \
-	source/unittest/HelloWorldTest.c
+	source/unittest/CollisionObjectTest.c \
+	source/unittest/CollisionResolverTest.c \
+	source/unittest/IntersectionManagerTest.c
 
 SOURCES_testharness = \
 	source/testharness/TestHarness_main.c
 
 # Public-facing include files to be distributed with the library, if any
 INCLUDES = \
-	source/${PROJECT_NAME}/HelloWorld.h
+	source/${PROJECT_NAME}/CollisionObject.h \
+	source/${PROJECT_NAME}/CollisionResolver.h \
+	source/${PROJECT_NAME}/IntersectionManager.h
 
 # Patterns: RESOURCES, RESOURCES_${target}, RESOURCES_${platform}, RESOURCES_${target}_${platform}
 RESOURCES = 
