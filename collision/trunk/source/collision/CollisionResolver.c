@@ -25,15 +25,7 @@
 #include <stdlib.h>
 
 #define SUPERCLASS StemObject
-/*#define MAX_COLLISION_ITERATIONS 16 //128
-#define INTERSECTION_EPSILON 0x00008
-
-struct collision {
-	CollisionObject * object1;
-	CollisionObject * object2;
-	fixed16_16 time;
-	Vector3x normal;
-};*/
+//#define INTERSECTION_EPSILON 0x00008
 
 CollisionResolver * CollisionResolver_create(IntersectionManager * intersectionManager, bool takeOwnership) {
 	stemobject_create_implementation(CollisionResolver, init, intersectionManager, takeOwnership)
@@ -86,128 +78,6 @@ void CollisionResolver_removeObject(CollisionResolver * self, compat_type(Collis
 		}
 	}
 }
-
-/*
-static bool testPlaneIntersectionX(fixed16_16 x1Start, fixed16_16 x1End,
-                                   fixed16_16 x2Start, fixed16_16 x2End,
-                                   fixed16_16 bottom1Start, fixed16_16 top1Start, fixed16_16 bottom1End, fixed16_16 top1End,
-                                   fixed16_16 bottom2Start, fixed16_16 top2Start, fixed16_16 bottom2End, fixed16_16 top2End,
-                                   fixed16_16 back1Start, fixed16_16 front1Start, fixed16_16 back1End, fixed16_16 front1End,
-                                   fixed16_16 back2Start, fixed16_16 front2Start, fixed16_16 back2End, fixed16_16 front2End,
-                                   fixed16_16 * outTime) {
-	fixed16_16 time;
-	fixed16_16 bottom1, top1, bottom2, top2, back1, front1, back2, front2;
-	
-	time = xdiv(x1Start - x2Start, x2End - x2Start - x1End + x1Start);
-	if (time > 0x10000) {
-		return false;
-	}
-	bottom1 = bottom1Start + xmul(bottom1End - bottom1Start, time);
-	top1    = top1Start    + xmul(top1End    - top1Start,    time);
-	bottom2 = bottom2Start + xmul(bottom2End - bottom2Start, time);
-	top2    = top2Start    + xmul(top2End    - top2Start,    time);
-	back1   = back1Start   + xmul(back1End   - back1Start,   time);
-	front1  = front1Start  + xmul(front1End  - front1Start,  time);
-	back2   = back2Start   + xmul(back2End   - back2Start,   time);
-	front2  = front2Start  + xmul(front2End  - front2Start,  time);
-	if (top1 > bottom2 && bottom1 < top2 && front1 > back2 && back1 < front2) {
-		if (time < 0) {
-			time = 0;
-		}
-		*outTime = time;
-		return true;
-	}
-	return false;
-}
-
-#define collision_test_axis(xLow, xHigh, yLow, yHigh, zLow, zHigh, solidityBitLow, solidityBitHigh, intersectionTimeVar, directionVar) \
-	if ((object1->solidity & solidityBitHigh) && (object2->solidity & solidityBitLow) && \
-	    (object1->lastBounds.xLow != object1->bounds.xLow || object2->lastBounds.xHigh != object2->bounds.xHigh) && \
-	    object1->lastBounds.xLow > object2->bounds.xHigh - INTERSECTION_EPSILON && object1->bounds.xLow <= object2->bounds.xHigh - INTERSECTION_EPSILON) { \
-		if (testPlaneIntersectionX(object1->lastBounds.xLow, object1->bounds.xLow, \
-		                           object2->lastBounds.xHigh, object2->bounds.xHigh, \
-		                           object1->lastBounds.yLow, object1->lastBounds.yHigh, object1->bounds.yLow, object1->bounds.yHigh, \
-		                           object2->lastBounds.yLow, object2->lastBounds.yHigh, object2->bounds.yLow, object2->bounds.yHigh, \
-		                           object1->lastBounds.zLow, object1->lastBounds.zHigh, object1->bounds.zLow, object1->bounds.zHigh, \
-		                           object2->lastBounds.zLow, object2->lastBounds.zHigh, object2->bounds.zLow, object2->bounds.zHigh, \
-		                           &intersectionTimeVar)) { \
-			directionVar = -1; \
-		} \
-		\
-	} else if ((object1->solidity & solidityBitLow) && (object2->solidity & solidityBitHigh) && \
-	           (object1->lastBounds.xHigh != object1->bounds.xHigh || object2->lastBounds.xLow != object2->bounds.xLow) && \
-	           object1->lastBounds.xHigh < object2->lastBounds.xLow + INTERSECTION_EPSILON && object1->bounds.xHigh >= object2->bounds.xLow + INTERSECTION_EPSILON) { \
-		if (testPlaneIntersectionX(object1->lastBounds.xHigh, object1->bounds.xHigh, \
-		                           object2->lastBounds.xLow, object2->bounds.xLow, \
-		                           object1->lastBounds.yLow, object1->lastBounds.yHigh, object1->bounds.yLow, object1->bounds.yHigh, \
-		                           object2->lastBounds.yLow, object2->lastBounds.yHigh, object2->bounds.yLow, object2->bounds.yHigh, \
-		                           object1->lastBounds.zLow, object1->lastBounds.zHigh, object1->bounds.zLow, object1->bounds.zHigh, \
-		                           object2->lastBounds.zLow, object2->lastBounds.zHigh, object2->bounds.zLow, object2->bounds.zHigh, \
-		                           &intersectionTimeVar)) { \
-			directionVar = 1; \
-		} \
-	}
-
-static bool collisionTest(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, CollisionSide * outSide) {
-	fixed16_16 intersectionTimeX = FIXED_16_16_MAX, intersectionTimeY = FIXED_16_16_MAX, intersectionTimeZ = FIXED_16_16_MAX;
-	int directionX = 0, directionY = 0, directionZ = 0;
-	
-	collision_test_axis(left, right, bottom, top, back, front, SOLID_LEFT, SOLID_RIGHT, intersectionTimeX, directionX)
-	collision_test_axis(bottom, top, back, front, left, right, SOLID_BOTTOM, SOLID_TOP, intersectionTimeY, directionY)
-	collision_test_axis(back, front, left, right, bottom, top, SOLID_BACK, SOLID_FRONT, intersectionTimeZ, directionZ)
-	
-	if (directionX != 0 || directionY != 0 || directionZ != 0) {
-		if (intersectionTimeX <= intersectionTimeY && intersectionTimeX <= intersectionTimeZ) {
-			*outTime = intersectionTimeX;
-			*outSide = directionX == -1 ? SIDE_LEFT : SIDE_RIGHT;
-			
-		} else if (intersectionTimeY <= intersectionTimeX && intersectionTimeY <= intersectionTimeZ) {
-			*outTime = intersectionTimeY;
-			*outSide = directionY == -1 ? SIDE_BOTTOM : SIDE_TOP;
-			
-		} else {
-			*outTime = intersectionTimeZ;
-			*outSide = directionZ == -1 ? SIDE_BACK : SIDE_FRONT;
-		}
-		
-		return true;
-	}
-	
-	return false;
-}
-
-static bool findEarliestCollision(CollisionResolver * self, struct collision * outCollision) {
-	size_t objectIndex, objectIndex2;
-	bool isColliding = false;
-	fixed16_16 collisionTime = 0;
-	CollisionSide collisionSide = SIDE_LEFT;
-	struct collision bestCollision;
-	
-	bestCollision.time = FIXED_16_16_MAX;
-	for (objectIndex = 0; objectIndex < self->objectCount; objectIndex++) {
-		if (!self->objects[objectIndex]->moving) {
-			continue;
-		}
-		for (objectIndex2 = 0; objectIndex2 < self->objectCount; objectIndex2++) {
-			if (objectIndex2 == objectIndex) {
-				continue;
-			}
-			isColliding = collisionTest(self->objects[objectIndex], self->objects[objectIndex2], &collisionTime, &collisionSide);
-			if (isColliding && collisionTime < bestCollision.time) {
-				bestCollision.object1 = self->objects[objectIndex];
-				bestCollision.object2 = self->objects[objectIndex2];
-				bestCollision.time = collisionTime;
-				bestCollision.side = collisionSide;
-			}
-		}
-	}
-	if (bestCollision.time < FIXED_16_16_MAX) {
-		*outCollision = bestCollision;
-		return true;
-	}
-	return false;
-}
-*/
 
 bool CollisionResolver_intersectionTest(CollisionResolver * self, compat_type(CollisionObject *) object, compat_type(CollisionObject *) object2, CollisionRecord * outCollision) {
 	return false;

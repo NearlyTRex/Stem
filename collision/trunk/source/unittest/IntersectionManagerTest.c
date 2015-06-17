@@ -145,6 +145,43 @@ static void verifyStandardHandlers(int line, IntersectionManager * intersectionM
 	verifyHandler(COLLISION_SHAPE_CAPSULE, COLLISION_SHAPE_TRIMESH, intersectionHandler_capsule_trimesh)
 	verifyHandler(COLLISION_SHAPE_TRIMESH, COLLISION_SHAPE_TRIMESH, intersectionHandler_trimesh_trimesh)
 }
+
+static void verifyNoStandardHandlers(int line, IntersectionManager * intersectionManager) {
+	IntersectionHandler handler;
+	
+	verifyHandler(COLLISION_SHAPE_RECT, COLLISION_SHAPE_RECT, NULL)
+	verifyHandler(COLLISION_SHAPE_RECT, COLLISION_SHAPE_CIRCLE, NULL)
+	verifyHandler(COLLISION_SHAPE_RECT, COLLISION_SHAPE_LINE_2D, NULL)
+	verifyHandler(COLLISION_SHAPE_RECT, COLLISION_SHAPE_POLYGON, NULL)
+	verifyHandler(COLLISION_SHAPE_CIRCLE, COLLISION_SHAPE_CIRCLE, NULL)
+	verifyHandler(COLLISION_SHAPE_CIRCLE, COLLISION_SHAPE_LINE_2D, NULL)
+	verifyHandler(COLLISION_SHAPE_CIRCLE, COLLISION_SHAPE_POLYGON, NULL)
+	verifyHandler(COLLISION_SHAPE_LINE_2D, COLLISION_SHAPE_LINE_2D, NULL)
+	verifyHandler(COLLISION_SHAPE_LINE_2D, COLLISION_SHAPE_POLYGON, NULL)
+	verifyHandler(COLLISION_SHAPE_POLYGON, COLLISION_SHAPE_POLYGON, NULL)
+	
+	verifyHandler(COLLISION_SHAPE_BOX, COLLISION_SHAPE_BOX, NULL)
+	verifyHandler(COLLISION_SHAPE_BOX, COLLISION_SHAPE_SPHERE, NULL)
+	verifyHandler(COLLISION_SHAPE_BOX, COLLISION_SHAPE_LINE_3D, NULL)
+	verifyHandler(COLLISION_SHAPE_BOX, COLLISION_SHAPE_CYLINDER, NULL)
+	verifyHandler(COLLISION_SHAPE_BOX, COLLISION_SHAPE_CAPSULE, NULL)
+	verifyHandler(COLLISION_SHAPE_BOX, COLLISION_SHAPE_TRIMESH, NULL)
+	verifyHandler(COLLISION_SHAPE_SPHERE, COLLISION_SHAPE_SPHERE, NULL)
+	verifyHandler(COLLISION_SHAPE_SPHERE, COLLISION_SHAPE_LINE_3D, NULL)
+	verifyHandler(COLLISION_SHAPE_SPHERE, COLLISION_SHAPE_CYLINDER, NULL)
+	verifyHandler(COLLISION_SHAPE_SPHERE, COLLISION_SHAPE_CAPSULE, NULL)
+	verifyHandler(COLLISION_SHAPE_SPHERE, COLLISION_SHAPE_TRIMESH, NULL)
+	verifyHandler(COLLISION_SHAPE_LINE_3D, COLLISION_SHAPE_LINE_3D, NULL)
+	verifyHandler(COLLISION_SHAPE_LINE_3D, COLLISION_SHAPE_CYLINDER, NULL)
+	verifyHandler(COLLISION_SHAPE_LINE_3D, COLLISION_SHAPE_CAPSULE, NULL)
+	verifyHandler(COLLISION_SHAPE_LINE_3D, COLLISION_SHAPE_TRIMESH, NULL)
+	verifyHandler(COLLISION_SHAPE_CYLINDER, COLLISION_SHAPE_CYLINDER, NULL)
+	verifyHandler(COLLISION_SHAPE_CYLINDER, COLLISION_SHAPE_CAPSULE, NULL)
+	verifyHandler(COLLISION_SHAPE_CYLINDER, COLLISION_SHAPE_TRIMESH, NULL)
+	verifyHandler(COLLISION_SHAPE_CAPSULE, COLLISION_SHAPE_CAPSULE, NULL)
+	verifyHandler(COLLISION_SHAPE_CAPSULE, COLLISION_SHAPE_TRIMESH, NULL)
+	verifyHandler(COLLISION_SHAPE_TRIMESH, COLLISION_SHAPE_TRIMESH, NULL)
+}
 #undef verifyHandler
 
 static void testInitWithStandardHandlers() {
@@ -152,14 +189,25 @@ static void testInitWithStandardHandlers() {
 	
 	intersectionManagerPtr = IntersectionManager_create();
 	verifyInit(__LINE__, intersectionManagerPtr);
+	verifyNoStandardHandlers(__LINE__, intersectionManagerPtr);
 	IntersectionManager_addStandardHandlers(intersectionManagerPtr);
 	verifyStandardHandlers(__LINE__, intersectionManagerPtr);
 	IntersectionManager_dispose(intersectionManagerPtr);
+	
+	IntersectionManager_init(&intersectionManager);
+	verifyInit(__LINE__, &intersectionManager);
+	verifyNoStandardHandlers(__LINE__, &intersectionManager);
+	IntersectionManager_dispose(&intersectionManager);
 	
 	IntersectionManager_initWithStandardHandlers(&intersectionManager);
 	verifyInit(__LINE__, &intersectionManager);
 	verifyStandardHandlers(__LINE__, &intersectionManager);
 	IntersectionManager_dispose(&intersectionManager);
+	
+	intersectionManagerPtr = IntersectionManager_create();
+	verifyInit(__LINE__, intersectionManagerPtr);
+	verifyNoStandardHandlers(__LINE__, intersectionManagerPtr);
+	IntersectionManager_dispose(intersectionManagerPtr);
 	
 	intersectionManagerPtr = IntersectionManager_createWithStandardHandlers();
 	verifyInit(__LINE__, intersectionManagerPtr);

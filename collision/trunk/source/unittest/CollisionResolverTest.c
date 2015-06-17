@@ -103,6 +103,8 @@ static void testQuerySingle() {
 	IntersectionManager * intersectionManager;
 	
 	intersectionManager = IntersectionManager_create();
+	//IntersectionManager_addHandler(intersectionManager
+	
 	collisionResolver = CollisionResolver_create(intersectionManager, false);
 	
 	CollisionResolver_dispose(collisionResolver);
