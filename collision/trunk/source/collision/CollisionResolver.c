@@ -79,47 +79,48 @@ void CollisionResolver_removeObject(CollisionResolver * self, compat_type(Collis
 	}
 }
 
-bool CollisionResolver_intersectionTest(CollisionResolver * self, compat_type(CollisionObject *) object, compat_type(CollisionObject *) object2, CollisionRecord * outCollision) {
+static bool CollisionResolver_queryPairInternal(CollisionResolver * self, CollisionObject * object1, CollisionObject * object2, CollisionRecord * outCollision) {
+	Vector3x normal;
+	fixed16_16 frameTime;
+	IntersectionHandler handler;
+	bool intersectionFound;
+	
+	intersectionFound = false;
+	handler = IntersectionManager_getHandler(self->intersectionManager, object1->shapeType, object2->shapeType);
+	if (handler == NULL) {
+		handler = IntersectionManager_getHandler(self->intersectionManager, object2->shapeType, object1->shapeType);
+		intersectionFound = handler(object2, object1, &frameTime, &normal);
+		Vector3x_invert(&normal);
+	} else {
+		intersectionFound = handler(object1, object2, &frameTime, &normal);
+	}
+	
+	if (intersectionFound) {
+		outCollision->object1 = object1;
+		outCollision->object2 = object2;
+		outCollision->normal = normal;
+		outCollision->time = frameTime;
+		return true;
+	}
 	return false;
 }
 
 bool CollisionResolver_querySingle(CollisionResolver * self, compat_type(CollisionObject *) object, CollisionRecord * outCollision) {
 	size_t objectIndex;
-	CollisionObject * object1 = object;
-	CollisionObject * object2, * bestObject2 = NULL;
-	Vector3x normal, bestNormal = VECTOR3x_ZERO;
-	fixed16_16 frameTime, bestFrameTime = FIXED_16_16_MAX;
-	IntersectionHandler handler;
-	bool intersectionFound;
+	CollisionRecord collision, bestCollision = {NULL, NULL, {0, 0, 0}, FIXED_16_16_MAX};
 	
 	for (objectIndex = 0; objectIndex < self->objectCount; objectIndex++) {
-		object2 = self->objects[objectIndex];
-		if (object2 == object1) {
+		if (self->objects[objectIndex] == object) {
 			continue;
 		}
 		
-		intersectionFound = false;
-		handler = IntersectionManager_getHandler(self->intersectionManager, object1->shapeType, object2->shapeType);
-		if (handler == NULL) {
-			handler = IntersectionManager_getHandler(self->intersectionManager, object2->shapeType, object1->shapeType);
-			intersectionFound = handler(object2, object1, &frameTime, &normal);
-			Vector3x_invert(&normal);
-		} else {
-			intersectionFound = handler(object1, object2, &frameTime, &normal);
-		}
-		
-		if (intersectionFound && frameTime < bestFrameTime) {
-			bestObject2 = object2;
-			bestNormal = normal;
-			bestFrameTime = frameTime;
+		if (CollisionResolver_queryPairInternal(self, object, self->objects[objectIndex], &collision) && collision.time < bestCollision.time) {
+			bestCollision = collision;
 		}
 	}
 	
-	if (bestObject2 != NULL) {
-		outCollision->object1 = object1;
-		outCollision->object2 = bestObject2;
-		outCollision->time = bestFrameTime;
-		outCollision->normal = bestNormal;
+	if (bestCollision.object2 != NULL) {
+		*outCollision = bestCollision;
 		return true;
 	}
 	
@@ -127,10 +128,33 @@ bool CollisionResolver_querySingle(CollisionResolver * self, compat_type(Collisi
 }
 
 size_t CollisionResolver_findEarliest(CollisionResolver * self, CollisionRecord * outCollisions, size_t collisionCountMax) {
-	return 0;
-}
-
-void CollisionResolver_resolveSingle(CollisionResolver * self, CollisionRecord collision) {
+	unsigned int objectIndex, objectIndex2;
+	bool queryResult;
+	CollisionRecord collision;
+	size_t collisionCount = 0;
+	fixed16_16 bestTime = FIXED_16_16_MAX;
+	
+	if (collisionCountMax == 0) {
+		return 0;
+	}
+	for (objectIndex = 0; objectIndex < self->objectCount; objectIndex++) {
+		for (objectIndex2 = objectIndex + 1; objectIndex2 < self->objectCount; objectIndex2++) {
+			queryResult = CollisionResolver_queryPairInternal(self, self->objects[objectIndex], self->objects[objectIndex2], &collision);
+			if (queryResult && collision.time <= bestTime) {
+				if (collision.time < bestTime) {
+					bestTime = collision.time;
+					outCollisions[0] = collision;
+					collisionCount = 1;
+					
+				} else {
+					if (collisionCount < collisionCountMax) {
+						outCollisions[collisionCount++] = collision;
+					}
+				}
+			}
+		}
+	}
+	return collisionCount;
 }
 
 void CollisionResolver_resolveAll(CollisionResolver * self, size_t maxSimultaneousCollisions, size_t maxIterations) {
