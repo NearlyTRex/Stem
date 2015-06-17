@@ -218,10 +218,6 @@ static void testFindEarliest() {
 	TestCase_assert(false, "Unimplemented");
 }
 
-static void testResolveSingle() {
-	TestCase_assert(false, "Unimplemented");
-}
-
 static void testResolveAll() {
 	TestCase_assert(false, "Unimplemented");
 }
@@ -232,5 +228,4 @@ TEST_SUITE(CollisionResolverTest,
            testRemoveObject,
            testQuerySingle,
            testFindEarliest,
-           testResolveSingle,
            testResolveAll)

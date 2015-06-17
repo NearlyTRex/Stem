@@ -65,10 +65,6 @@ bool CollisionResolver_querySingle(CollisionResolver * self, compat_type(Collisi
 // Does not call CollisionCallback; only returns the information of potential collisions if any exist.
 size_t CollisionResolver_findEarliest(CollisionResolver * self, CollisionRecord * outCollisions, size_t collisionCountMax);
 
-// Calls the appropriate CollisionCallback for object1 and object2 in collision. It is the responsibility of each
-// CollisionCallback to adjust 
-void CollisionResolver_resolveSingle(CollisionResolver * self, CollisionRecord collision);
-
 // Collision tests all objects in list against all other objects in list, calling the CollisionCallback for each.
 // Fully resolves one frame.
 void CollisionResolver_resolveAll(CollisionResolver * self, size_t maxSimultaneousCollisions, size_t maxIterations);

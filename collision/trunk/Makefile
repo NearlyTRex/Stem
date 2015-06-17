@@ -49,6 +49,7 @@ PREREQS =
 
 SOURCES_library = \
 	source/${PROJECT_NAME}/CollisionObject.c \
+	source/${PROJECT_NAME}/CollisionRecord.c \
 	source/${PROJECT_NAME}/CollisionResolver.c \
 	source/${PROJECT_NAME}/IntersectionManager.c \
 	source/${PROJECT_NAME}/StandardIntersectionHandlers.c

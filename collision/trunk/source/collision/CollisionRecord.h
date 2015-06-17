@@ -47,13 +47,11 @@ struct CollisionRecord {
 };
 
 // Returns a CollisionRecord with object1 and object2 swapped, and the normal reversed.
-static inline CollisionRecord CollisionRecord_inverted(CollisionRecord collision) {
-	CollisionObject * swap = collision.object1;
-	collision.object1 = collision.object2;
-	collision.object2 = swap;
-	Vector3x_invert(&collision.normal);
-	return collision;
-}
+CollisionRecord CollisionRecord_inverted(CollisionRecord collision);
+
+// Calls the appropriate CollisionCallback for object1 and object2 in collision. It is the responsibility of each
+// CollisionCallback to adjust the CollisionObject's trajectory to resolve the detected collision.
+void CollisionRecord_resolve(CollisionRecord collision, fixed16_16 timesliceSize);
 
 #ifdef __cplusplus
 }
