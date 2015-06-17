@@ -40,7 +40,7 @@ typedef struct CollisionRecord CollisionRecord;
 	StemObject_structContents(self_type) \
 	\
 	IntersectionManager * intersectionManager; \
-	bool intersectionManagerOwned; \
+	bool private_ivar(intersectionManagerOwned); \
 	CollisionObject ** objects; \
 	size_t objectCount; \
 	size_t objectAllocatedCount;

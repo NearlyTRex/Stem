@@ -35,7 +35,7 @@ bool CollisionResolver_init(CollisionResolver * self, IntersectionManager * inte
 	call_super(init, self);
 	self->dispose = CollisionResolver_dispose;
 	self->intersectionManager = intersectionManager;
-	self->intersectionManagerOwned = takeOwnership;
+	self->private_ivar(intersectionManagerOwned) = takeOwnership;
 	self->objectCount = 0;
 	self->objectAllocatedCount = 32;
 	self->objects = malloc(sizeof(CollisionObject *) * self->objectAllocatedCount);
@@ -44,7 +44,7 @@ bool CollisionResolver_init(CollisionResolver * self, IntersectionManager * inte
 
 void CollisionResolver_dispose(CollisionResolver * self) {
 	free(self->objects);
-	if (self->intersectionManagerOwned) {
+	if (self->private_ivar(intersectionManagerOwned)) {
 		IntersectionManager_dispose(self->intersectionManager);
 	}
 	call_super(dispose, self);
@@ -84,28 +84,46 @@ bool CollisionResolver_intersectionTest(CollisionResolver * self, compat_type(Co
 }
 
 bool CollisionResolver_querySingle(CollisionResolver * self, compat_type(CollisionObject *) object, CollisionRecord * outCollision) {
-	/*size_t objectIndex;
-	CollisionObject * object2, * bestObject = NULL;
+	size_t objectIndex;
+	CollisionObject * object1 = object;
+	CollisionObject * object2, * bestObject2 = NULL;
 	Vector3x normal, bestNormal = VECTOR3x_ZERO;
 	fixed16_16 frameTime, bestFrameTime = FIXED_16_16_MAX;
+	IntersectionHandler handler;
+	bool intersectionFound;
 	
 	for (objectIndex = 0; objectIndex < self->objectCount; objectIndex++) {
 		object2 = self->objects[objectIndex];
-		if (object2 == object) {
+		if (object2 == object1) {
 			continue;
 		}
 		
-		if (CollisionResolver_intersectionTest(self, object, object2, &normal, &frameTime)) {
-			
+		intersectionFound = false;
+		handler = IntersectionManager_getHandler(self->intersectionManager, object1->shapeType, object2->shapeType);
+		if (handler == NULL) {
+			handler = IntersectionManager_getHandler(self->intersectionManager, object2->shapeType, object1->shapeType);
+			intersectionFound = handler(object2, object1, &frameTime, &normal);
+			Vector3x_invert(&normal);
+		} else {
+			intersectionFound = handler(object1, object2, &frameTime, &normal);
+		}
+		
+		if (intersectionFound && frameTime < bestFrameTime) {
+			bestObject2 = object2;
+			bestNormal = normal;
+			bestFrameTime = frameTime;
 		}
 	}
 	
-	*outCollidingObject = self->objects[0];
-	outNormal->x = 0x10000;
-	outNormal->y = 0x00000;
-	outNormal->z = 0x00000;
-	*outFrameTime = 0x00000;*/
-	return true;
+	if (bestObject2 != NULL) {
+		outCollision->object1 = object1;
+		outCollision->object2 = bestObject2;
+		outCollision->time = bestFrameTime;
+		outCollision->normal = bestNormal;
+		return true;
+	}
+	
+	return false;
 }
 
 size_t CollisionResolver_findEarliest(CollisionResolver * self, CollisionRecord * outCollisions, size_t collisionCountMax) {
