@@ -22,9 +22,6 @@
 
 #include "collision/StandardIntersectionHandlers.h"
 
-void StandardIntersectionHandlers_addToIntersectionManager(IntersectionManager * intersectionManager) {
-}
-
 bool intersectionHandler_rect_rect(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal) {
 	return false;
 }

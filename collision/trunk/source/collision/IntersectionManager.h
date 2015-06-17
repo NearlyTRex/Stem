@@ -32,11 +32,21 @@ typedef struct IntersectionManager IntersectionManager;
 #include "gamemath/FixedPoint.h"
 #include "gamemath/Vector3x.h"
 #include "stemobject/StemObject.h"
+#include <stdlib.h>
 
 typedef bool (* IntersectionHandler)(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal);
 
+struct IntersectionHandlerEntry {
+	int type1;
+	int type2;
+	IntersectionHandler handler;
+};
+
 #define IntersectionManager_structContents(self_type) \
-	StemObject_structContents(self_type)
+	StemObject_structContents(self_type) \
+	\
+	size_t private_ivar(handlerCount); \
+	struct IntersectionHandlerEntry * private_ivar(handlers);
 
 stemobject_struct_definition(IntersectionManager)
 
@@ -45,6 +55,7 @@ IntersectionManager * IntersectionManager_createWithStandardHandlers();
 bool IntersectionManager_init(IntersectionManager * self);
 bool IntersectionManager_initWithStandardHandlers(IntersectionManager * self);
 void IntersectionManager_dispose(IntersectionManager * self);
+void IntersectionManager_addStandardHandlers(IntersectionManager * self);
 void IntersectionManager_setHandler(IntersectionManager * self, int type1, int type2, IntersectionHandler handler);
 IntersectionHandler IntersectionManager_getHandler(IntersectionManager * self, int type1, int type2);
 bool IntersectionManager_callHandler(IntersectionManager * self, CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal);

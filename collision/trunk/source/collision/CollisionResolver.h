@@ -30,6 +30,7 @@ typedef struct CollisionResolver CollisionResolver;
 typedef struct CollisionRecord CollisionRecord;
 
 #include "collision/CollisionObject.h"
+#include "collision/CollisionRecord.h"
 #include "collision/IntersectionManager.h"
 #include "gamemath/Vector3x.h"
 #include "stemobject/StemObject.h"
@@ -39,40 +40,19 @@ typedef struct CollisionRecord CollisionRecord;
 	StemObject_structContents(self_type) \
 	\
 	IntersectionManager * intersectionManager; \
+	bool intersectionManagerOwned; \
 	CollisionObject ** objects; \
 	size_t objectCount; \
 	size_t objectAllocatedCount;
 
-struct CollisionRecord {
-	// Target colliding object
-	CollisionObject * object1;
-	
-	// Object with which target collided
-	CollisionObject * object2;
-	
-	// Normal vector of the surface of object2 at the first point of intersection by object1
-	Vector3x normal;
-	
-	// Temporal position within the timeslice being evaluated at which the intersection first occurs, from 0x00000 (beginning
-	// of timeslice) to 0x10000 (end of timeslice).
-	fixed16_16 time;
-	// TODO: Doesn't this require an interpolate() method on owners of CollisionObjects?
-};
-
 stemobject_struct_definition(CollisionResolver)
 
-CollisionResolver * CollisionResolver_create(IntersectionManager * intersectionManager);
-bool CollisionResolver_init(CollisionResolver * self, IntersectionManager * intersectionManager);
+CollisionResolver * CollisionResolver_create(IntersectionManager * intersectionManager, bool takeOwnership);
+bool CollisionResolver_init(CollisionResolver * self, IntersectionManager * intersectionManager, bool takeOwnership);
 void CollisionResolver_dispose(CollisionResolver * self);
-
-// Returns a CollisionRecord with object1 and object2 swapped, and the normal reversed.
-CollisionRecord CollisionRecord_inverted(CollisionRecord collision);
 
 void CollisionResolver_addObject(CollisionResolver * self, compat_type(CollisionObject *) object);
 void CollisionResolver_removeObject(CollisionResolver * self, compat_type(CollisionObject *) object);
-
-// Performs an intersection test between object1 and object2, returning true on intersection.
-bool CollisionResolver_intersectionTest(CollisionResolver * self, compat_type(CollisionObject *) object, compat_type(CollisionObject *) object2, CollisionRecord * outCollision);
 
 // Performs an intersection test between object and all other collidable objects in list, returning true on intersection.
 // Works regardless of whether object has been added to CollisionResolver's list.

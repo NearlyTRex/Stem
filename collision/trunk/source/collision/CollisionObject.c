@@ -25,6 +25,10 @@
 
 #define SUPERCLASS StemObject
 
+CollisionObject * CollisionObject_create(void * owner, int shapeType, CollisionCallback collisionCallback) {
+	stemobject_create_implementation(CollisionObject, init, owner, shapeType, collisionCallback)
+}
+
 bool CollisionObject_init(CollisionObject * self, void * owner, int shapeType, CollisionCallback collisionCallback) {
 	call_super(init, self);
 	self->dispose = CollisionObject_dispose;

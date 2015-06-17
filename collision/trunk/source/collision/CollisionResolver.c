@@ -35,14 +35,15 @@ struct collision {
 	Vector3x normal;
 };*/
 
-CollisionResolver * CollisionResolver_create(IntersectionManager * intersectionManager) {
-	stemobject_create_implementation(CollisionResolver, init, intersectionManager)
+CollisionResolver * CollisionResolver_create(IntersectionManager * intersectionManager, bool takeOwnership) {
+	stemobject_create_implementation(CollisionResolver, init, intersectionManager, takeOwnership)
 }
 
-bool CollisionResolver_init(CollisionResolver * self, IntersectionManager * intersectionManager) {
+bool CollisionResolver_init(CollisionResolver * self, IntersectionManager * intersectionManager, bool takeOwnership) {
 	call_super(init, self);
 	self->dispose = CollisionResolver_dispose;
 	self->intersectionManager = intersectionManager;
+	self->intersectionManagerOwned = takeOwnership;
 	self->objectCount = 0;
 	self->objectAllocatedCount = 32;
 	self->objects = malloc(sizeof(CollisionObject *) * self->objectAllocatedCount);
@@ -51,15 +52,10 @@ bool CollisionResolver_init(CollisionResolver * self, IntersectionManager * inte
 
 void CollisionResolver_dispose(CollisionResolver * self) {
 	free(self->objects);
+	if (self->intersectionManagerOwned) {
+		IntersectionManager_dispose(self->intersectionManager);
+	}
 	call_super(dispose, self);
-}
-
-CollisionRecord CollisionRecord_inverted(CollisionRecord collision) {
-	CollisionObject * swap = collision.object1;
-	collision.object1 = collision.object2;
-	collision.object2 = swap;
-	Vector3x_invert(&collision.normal);
-	return collision;
 }
 
 void CollisionResolver_addObject(CollisionResolver * self, compat_type(CollisionObject *) object) {

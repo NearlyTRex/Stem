@@ -28,19 +28,17 @@ extern "C" {
 
 #include "collision/CollisionResolver.h"
 
-#define SHAPE_TYPE_RECT 1
-#define SHAPE_TYPE_CIRCLE 2
-#define SHAPE_TYPE_LINE_2D 3
-#define SHAPE_TYPE_POLYGON 4
+#define COLLISION_SHAPE_RECT 1
+#define COLLISION_SHAPE_CIRCLE 2
+#define COLLISION_SHAPE_LINE_2D 3
+#define COLLISION_SHAPE_POLYGON 4
 
-#define SHAPE_TYPE_BOX 5
-#define SHAPE_TYPE_SPHERE 6
-#define SHAPE_TYPE_LINE_3D 7
-#define SHAPE_TYPE_CYLINDER 8
-#define SHAPE_TYPE_CAPSULE 9
-#define SHAPE_TYPE_TRIMESH 10
-
-void StandardIntersectionHandlers_addToIntersectionManager(IntersectionManager * intersectionManager);
+#define COLLISION_SHAPE_BOX 5
+#define COLLISION_SHAPE_SPHERE 6
+#define COLLISION_SHAPE_LINE_3D 7
+#define COLLISION_SHAPE_CYLINDER 8
+#define COLLISION_SHAPE_CAPSULE 9
+#define COLLISION_SHAPE_TRIMESH 10
 
 // 2D handlers
 bool intersectionHandler_rect_rect(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal);

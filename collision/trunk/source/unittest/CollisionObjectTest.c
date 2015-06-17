@@ -13,7 +13,7 @@ static void verifyInit(int line, CollisionObject * collisionObject, void * owner
 }
 
 static void testInit() {
-	CollisionObject collisionObject;
+	CollisionObject collisionObject, * collisionObjectPtr;
 	
 	memset(&collisionObject, 0x00, sizeof(collisionObject));
 	CollisionObject_init(&collisionObject, NULL, 0, NULL);
@@ -29,6 +29,14 @@ static void testInit() {
 	CollisionObject_init(&collisionObject, (void *) 0x1234, 2, (CollisionCallback) 0x2345);
 	verifyInit(__LINE__, &collisionObject, (void *) 0x1234, 2, (CollisionCallback) 0x2345);
 	CollisionObject_dispose(&collisionObject);
+	
+	collisionObjectPtr = CollisionObject_create(NULL, 0, NULL);
+	verifyInit(__LINE__, collisionObjectPtr, NULL, 0, NULL);
+	CollisionObject_dispose(collisionObjectPtr);
+	
+	collisionObjectPtr = CollisionObject_create((void *) 0x1234, 2, (CollisionCallback) 0x2345);
+	verifyInit(__LINE__, collisionObjectPtr, (void *) 0x1234, 2, (CollisionCallback) 0x2345);
+	CollisionObject_dispose(collisionObjectPtr);
 }
 
 TEST_SUITE(CollisionObjectTest,

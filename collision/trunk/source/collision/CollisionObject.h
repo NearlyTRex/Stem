@@ -47,6 +47,7 @@ typedef void (* CollisionCallback)(CollisionRecord collision, fixed16_16 timesli
 
 stemobject_struct_definition(CollisionObject)
 
+CollisionObject * CollisionObject_create(void * owner, int shapeType, CollisionCallback collisionCallback);
 bool CollisionObject_init(CollisionObject * self, void * owner, int shapeType, CollisionCallback collisionCallback);
 void CollisionObject_dispose(CollisionObject * self);
 
