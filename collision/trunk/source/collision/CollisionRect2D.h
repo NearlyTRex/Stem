@@ -47,9 +47,9 @@ CollisionRect2D * CollisionRect2D_create(void * owner, CollisionCallback collisi
 bool CollisionRect2D_init(CollisionRect2D * self, void * owner, CollisionCallback collisionCallback);
 void CollisionRect2D_dispose(CollisionRect2D * self);
 
+// Problem (?): updatePosition inside a collision callback will do the wrong thing with lastPosition
 void CollisionRect2D_updatePosition(CollisionRect2D * self, Vector2x newPosition);
 void CollisionRect2D_updateSize(CollisionRect2D * self, Vector2x newSize);
-void CollisionRect2D_updateBounds(CollisionRect2D * self, fixed16_16 left, fixed16_16 bottom, fixed16_16 right, fixed16_16 top);
 void CollisionRect2D_interpolate(CollisionRect2D * self, fixed16_16 amount);
 
 #ifdef __cplusplus
