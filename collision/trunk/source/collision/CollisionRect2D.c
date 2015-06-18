@@ -26,14 +26,15 @@
 
 #define SUPERCLASS CollisionObject
 
-CollisionRect2D * CollisionRect2D_create(void * owner, CollisionCallback collisionCallback) {
-	stemobject_create_implementation(CollisionRect2D, init, owner, collisionCallback)
+CollisionRect2D * CollisionRect2D_create(void * owner, CollisionCallback collisionCallback, bool concave) {
+	stemobject_create_implementation(CollisionRect2D, init, owner, collisionCallback, concave)
 }
 
-bool CollisionRect2D_init(CollisionRect2D * self, void * owner, CollisionCallback collisionCallback) {
+bool CollisionRect2D_init(CollisionRect2D * self, void * owner, CollisionCallback collisionCallback, bool concave) {
 	call_super(init, self, owner, COLLISION_SHAPE_RECT_2D, collisionCallback);
 	self->dispose = CollisionRect2D_dispose;
 	self->interpolate = CollisionRect2D_interpolate;
+	self->concave = concave;
 	self->position = VECTOR2x_ZERO;
 	self->lastPosition = VECTOR2x_ZERO;
 	self->private_ivar(positionInited) = false;

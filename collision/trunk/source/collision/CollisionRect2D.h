@@ -34,6 +34,7 @@ typedef struct CollisionRect2D CollisionRect2D;
 #define CollisionRect2D_structContents(self_type) \
 	CollisionObject_structContents(self_type) \
 	\
+	bool concave; \
 	Vector2x position; \
 	Vector2x lastPosition; \
 	bool private_ivar(positionInited); \
@@ -43,8 +44,12 @@ typedef struct CollisionRect2D CollisionRect2D;
 
 stemobject_struct_definition(CollisionRect2D)
 
-CollisionRect2D * CollisionRect2D_create(void * owner, CollisionCallback collisionCallback);
-bool CollisionRect2D_init(CollisionRect2D * self, void * owner, CollisionCallback collisionCallback);
+// If concave is true, this rect will be considered and enclosed empty space, and collisions will be detected with its inner edges
+// for objects moving outward. Objects moving from outside a concave rect into it will not collide with its edges.
+// If concave is false, this rect will be considered a solid block, and collisions will be detected with its outer edges for
+// objects moving inward. Objects moving out of convex rect from inside it will not collide with its edges.
+CollisionRect2D * CollisionRect2D_create(void * owner, CollisionCallback collisionCallback, bool concave);
+bool CollisionRect2D_init(CollisionRect2D * self, void * owner, CollisionCallback collisionCallback, bool concave);
 void CollisionRect2D_dispose(CollisionRect2D * self);
 
 // Problem (?): updatePosition inside a collision callback will do the wrong thing with lastPosition
