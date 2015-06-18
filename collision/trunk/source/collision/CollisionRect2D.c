@@ -26,21 +26,19 @@
 
 #define SUPERCLASS CollisionObject
 
-CollisionRect2D * CollisionRect2D_create(void * owner, CollisionCallback collisionCallback, bool concave) {
-	stemobject_create_implementation(CollisionRect2D, init, owner, collisionCallback, concave)
+CollisionRect2D * CollisionRect2D_create(void * owner, CollisionCallback collisionCallback, Vector2x position, Vector2x size, bool concave) {
+	stemobject_create_implementation(CollisionRect2D, init, owner, collisionCallback, position, size, concave)
 }
 
-bool CollisionRect2D_init(CollisionRect2D * self, void * owner, CollisionCallback collisionCallback, bool concave) {
+bool CollisionRect2D_init(CollisionRect2D * self, void * owner, CollisionCallback collisionCallback, Vector2x position, Vector2x size, bool concave) {
 	call_super(init, self, owner, COLLISION_SHAPE_RECT_2D, collisionCallback);
 	self->dispose = CollisionRect2D_dispose;
 	self->interpolate = CollisionRect2D_interpolate;
 	self->concave = concave;
-	self->position = VECTOR2x_ZERO;
-	self->lastPosition = VECTOR2x_ZERO;
-	self->private_ivar(positionInited) = false;
-	self->size = VECTOR2x_ZERO;
-	self->lastSize = VECTOR2x_ZERO;
-	self->private_ivar(sizeInited) = false;
+	self->position = position;
+	self->lastPosition = position;
+	self->size = size;
+	self->lastSize = size;
 	return true;
 }
 
@@ -49,22 +47,12 @@ void CollisionRect2D_dispose(CollisionRect2D * self) {
 }
 
 void CollisionRect2D_updatePosition(CollisionRect2D * self, Vector2x newPosition) {
-	if (self->private_ivar(positionInited)) {
-		self->lastPosition = self->position;
-	} else {
-		self->lastPosition = newPosition;
-		self->private_ivar(positionInited) = true;
-	}
+	self->lastPosition = self->position;
 	self->position = newPosition;
 }
 
 void CollisionRect2D_updateSize(CollisionRect2D * self, Vector2x newSize) {
-	if (self->private_ivar(sizeInited)) {
-		self->lastSize = self->size;
-	} else {
-		self->lastSize = newSize;
-		self->private_ivar(sizeInited) = true;
-	}
+	self->lastSize = self->size;
 	self->size = newSize;
 }
 

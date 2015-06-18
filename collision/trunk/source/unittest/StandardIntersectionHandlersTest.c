@@ -1,7 +1,15 @@
+#include "collision/CollisionRect2D.h"
 #include "collision/StandardIntersectionHandlers.h"
 #include "unittest/TestSuite.h"
 
 static void testRect2D_rect2D() {
+	//CollisionRect2D * rect1, * rect2;
+	
+	// Verify basic collision between two convex rects (rect1 moving +x, rect2 stationary)
+	//rect1 = CollisionRect2D_create(NULL, NULL, false);
+	//rect2 = CollisionRect2D_create(NULL, NULL, false);
+	//CollisionRect2D_updateSize(rect1, 
+	
 	TestCase_assert(false, "Unimplemented");
 }
 /*
