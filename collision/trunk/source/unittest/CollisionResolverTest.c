@@ -100,7 +100,7 @@ static void testRemoveObject() {
 
 static CollisionObject * testObjects[4];
 
-static bool querySingleHandler1(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal) {
+static bool querySingleIntersectionHandler(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal) {
 	if (object2 == testObjects[0]) {
 		*outTime = 0x00000;
 		*outNormal = VECTOR3x(0x10000, 0x00000, 0x00000);
@@ -112,7 +112,7 @@ static bool querySingleHandler1(CollisionObject * object1, CollisionObject * obj
 		return true;
 	}
 	if (object2 == testObjects[2]) {
-		*outTime = 0x0B000;
+		*outTime = 0x0C000;
 		*outNormal = VECTOR3x(0x00000, 0x10000, 0x00000);
 		return true;
 	}
@@ -124,7 +124,7 @@ static bool querySingleHandler1(CollisionObject * object1, CollisionObject * obj
 	return false;
 }
 
-static bool querySingleHandler2(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal) {
+static bool nullIntersectionHandler(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal) {
 	return false;
 }
 
@@ -135,8 +135,8 @@ static void testQuerySingle() {
 	CollisionRecord collisionRecord;
 	
 	intersectionManager = IntersectionManager_create();
-	IntersectionManager_setHandler(intersectionManager, 0, 1, querySingleHandler1);
-	IntersectionManager_setHandler(intersectionManager, 1, 1, querySingleHandler2);
+	IntersectionManager_setHandler(intersectionManager, 0, 1, querySingleIntersectionHandler);
+	IntersectionManager_setHandler(intersectionManager, 1, 1, nullIntersectionHandler);
 	
 	testObjects[0] = CollisionObject_create(NULL, 0, NULL);
 	testObjects[1] = CollisionObject_create(NULL, 1, NULL);
@@ -188,7 +188,7 @@ static void testQuerySingle() {
 	TestCase_assert(result, "Expected true but got false");
 	TestCase_assert(collisionRecord.object1 == testObjects[0], "Expected %p but got %p", testObjects[0], collisionRecord.object1);
 	TestCase_assert(collisionRecord.object2 == testObjects[2], "Expected %p but got %p", testObjects[2], collisionRecord.object2);
-	TestCase_assert(collisionRecord.time == 0x0B000, "Expected 0x0B000 but got 0x%05X", collisionRecord.time);
+	TestCase_assert(collisionRecord.time == 0x0C000, "Expected 0x0C000 but got 0x%05X", collisionRecord.time);
 	TestCase_assert(collisionRecord.normal.x == 0x00000 && collisionRecord.normal.y == 0x10000 && collisionRecord.normal.z == 0x00000, "Expected {0x00000, 0x10000, 0x00000} but got {0x%05X, 0x%05X, 0x%05X}", collisionRecord.normal.x, collisionRecord.normal.y, collisionRecord.normal.z);
 	
 	// Verify intersection test shape type order is swapped correctly and normals reversed
@@ -198,10 +198,10 @@ static void testQuerySingle() {
 	TestCase_assert(result, "Expected true but got false");
 	TestCase_assert(collisionRecord.object1 == testObjects[2], "Expected %p but got %p", testObjects[2], collisionRecord.object1);
 	TestCase_assert(collisionRecord.object2 == testObjects[0], "Expected %p but got %p", testObjects[0], collisionRecord.object2);
-	TestCase_assert(collisionRecord.time == 0x0B000, "Expected 0x0B000 but got 0x%05X", collisionRecord.time);
+	TestCase_assert(collisionRecord.time == 0x0C000, "Expected 0x0C000 but got 0x%05X", collisionRecord.time);
 	TestCase_assert(collisionRecord.normal.x == 0x00000 && collisionRecord.normal.y == (fixed16_16) 0xFFFF0000 && collisionRecord.normal.z == 0x00000, "Expected {0x00000, 0xFFFF0000, 0x00000} but got {0x%05X, 0x%05X, 0x%05X}", collisionRecord.normal.x, collisionRecord.normal.y, collisionRecord.normal.z);
 	
-	// Verify no collision occurs using querySingleHandler2 by changing object1's shape type
+	// Verify no collision occurs using nullIntersectionHandler by changing object1's shape type
 	testObjects[0]->shapeType = 1;
 	result = CollisionResolver_querySingle(collisionResolver, testObjects[0], &collisionRecord);
 	TestCase_assert(!result, "Expected false but got true");
@@ -240,8 +240,8 @@ static void testFindEarliest() {
 	CollisionRecord collisionRecords[3], unmodifiedCollisionRecord;
 	
 	intersectionManager = IntersectionManager_create();
-	IntersectionManager_setHandler(intersectionManager, 0, 1, querySingleHandler1);
-	IntersectionManager_setHandler(intersectionManager, 1, 1, querySingleHandler2);
+	IntersectionManager_setHandler(intersectionManager, 0, 1, querySingleIntersectionHandler);
+	IntersectionManager_setHandler(intersectionManager, 1, 1, nullIntersectionHandler);
 	IntersectionManager_setHandler(intersectionManager, 2, 1, findEarliestHandler);
 	
 	testObjects[0] = CollisionObject_create(NULL, 0, NULL);
@@ -294,10 +294,10 @@ static void testFindEarliest() {
 	TestCase_assert(resultCount == 1, "Expected 1 but got " SIZE_T_FORMAT, resultCount);
 	TestCase_assert(collisionRecords[0].object1 == testObjects[0], "Expected %p but got %p", testObjects[0], collisionRecords[0].object1);
 	TestCase_assert(collisionRecords[0].object2 == testObjects[2], "Expected %p but got %p", testObjects[2], collisionRecords[0].object2);
-	TestCase_assert(collisionRecords[0].time == 0x0B000, "Expected 0x0B000 but got 0x%05X", collisionRecords[0].time);
+	TestCase_assert(collisionRecords[0].time == 0x0C000, "Expected 0x0C000 but got 0x%05X", collisionRecords[0].time);
 	TestCase_assert(collisionRecords[0].normal.x == 0x00000 && collisionRecords[0].normal.y == 0x10000 && collisionRecords[0].normal.z == 0x00000, "Expected {0x00000, 0x10000, 0x00000} but got {0x%05X, 0x%05X, 0x%05X}", collisionRecords[0].normal.x, collisionRecords[0].normal.y, collisionRecords[0].normal.z);
 	
-	// Verify no collision occurs using querySingleHandler2 by changing object1's shape type
+	// Verify no collision occurs using nullIntersectionHandler by changing object1's shape type
 	testObjects[0]->shapeType = 1;
 	resultCount = CollisionResolver_findEarliest(collisionResolver, collisionRecords, 3);
 	TestCase_assert(resultCount == 0, "Expected 0 but got " SIZE_T_FORMAT, resultCount);
@@ -354,6 +354,7 @@ static int resolveAllLine;
 static fixed16_16 intersectionTime;
 static fixed16_16 lastTimesliceSizes[3];
 static fixed16_16 lastInterpolationAmounts[3];
+static bool interpolateCalled, resolveCalledAfterInterpolate;
 
 static unsigned int getTestObjectIndex(CollisionObject * object) {
 	unsigned int objectIndex;
@@ -375,8 +376,6 @@ static bool resolveAllIntersectionHandler(CollisionObject * object1, CollisionOb
 	TestCase_assert(object2Index < 3, "Intersection handler called with unknown object2 %p (line %d)", object2, resolveAllLine);
 	
 	if (resolveAllIterations[object1Index] > 0 && resolveAllIterations[object2Index] > 0) {
-		resolveAllIterations[object1Index]--;
-		resolveAllIterations[object2Index]--;
 		*outTime = intersectionTime;
 		return true;
 	}
@@ -390,8 +389,13 @@ static void resolveAllCollisionCallback(CollisionRecord collision, fixed16_16 ti
 	object1Index = getTestObjectIndex(collision.object1);
 	TestCase_assert(object1Index < 3, "Resolve callback called with unknown object1 %p (line %d)", collision.object1, resolveAllLine);
 	
+	resolveAllIterations[object1Index]--;
 	collisionCallbackCalls[object1Index]++;
 	lastTimesliceSizes[object1Index] = timesliceSize;
+	if (interpolateCalled) {
+		resolveCalledAfterInterpolate = true;
+		interpolateCalled = false;
+	}
 }
 
 static void resolveAllTest_CollisionObject_interpolate(CollisionObject * self, fixed16_16 amount) {
@@ -402,6 +406,8 @@ static void resolveAllTest_CollisionObject_interpolate(CollisionObject * self, f
 	
 	interpolateMethodCalls[object1Index]++;
 	lastInterpolationAmounts[object1Index] = amount;
+	interpolateCalled = true;
+	resolveCalledAfterInterpolate = false;
 }
 
 static void testResolveAll() {
@@ -411,6 +417,7 @@ static void testResolveAll() {
 	intersectionManager = IntersectionManager_create();
 	IntersectionManager_setHandler(intersectionManager, 0, 1, resolveAllIntersectionHandler);
 	IntersectionManager_setHandler(intersectionManager, 0, 2, resolveAllIntersectionHandler);
+	IntersectionManager_setHandler(intersectionManager, 1, 2, nullIntersectionHandler);
 	
 	testObjects[0] = CollisionObject_create(NULL, 0, resolveAllCollisionCallback);
 	testObjects[1] = CollisionObject_create(NULL, 1, resolveAllCollisionCallback);
@@ -435,7 +442,7 @@ static void testResolveAll() {
 	resolveAllIterations[2] = 1;
 	memset(collisionCallbackCalls, 0, sizeof(collisionCallbackCalls));
 	resolveAllLine = __LINE__; CollisionResolver_resolveAll(collisionResolver);
-	TestCase_assert(collisionCallbackCalls[0] == 2, "Expected 2 but got %u", collisionCallbackCalls[0]);
+	TestCase_assert(collisionCallbackCalls[0] == 3, "Expected 3 but got %u", collisionCallbackCalls[0]);
 	TestCase_assert(collisionCallbackCalls[1] == 2, "Expected 2 but got %u", collisionCallbackCalls[1]);
 	TestCase_assert(collisionCallbackCalls[2] == 1, "Expected 1 but got %u", collisionCallbackCalls[2]);
 	
@@ -457,8 +464,8 @@ static void testResolveAll() {
 	resolveAllLine = __LINE__; CollisionResolver_resolveAll(collisionResolver);
 	TestCase_assert(collisionCallbackCalls[0] == 2, "Expected 2 but got %u", collisionCallbackCalls[0]);
 	TestCase_assert(collisionCallbackCalls[1] == 2, "Expected 2 but got %u", collisionCallbackCalls[1]);
-	TestCase_assert(lastTimesliceSizes[0] == 0x0B000, "Expected 0x0B000 but got 0x%05X", lastTimesliceSizes[0]);
-	TestCase_assert(lastTimesliceSizes[1] == 0x0B000, "Expected 0x0B000 but got 0x%05X", lastTimesliceSizes[1]);
+	TestCase_assert(lastTimesliceSizes[0] == 0x0C000, "Expected 0x0C000 but got 0x%05X", lastTimesliceSizes[0]);
+	TestCase_assert(lastTimesliceSizes[1] == 0x0C000, "Expected 0x0C000 but got 0x%05X", lastTimesliceSizes[1]);
 	
 	// Verify timesliceSize is passed correctly (three iterations, intersection time 0.5)
 	resolveAllIterations[0] = 3;
@@ -471,18 +478,18 @@ static void testResolveAll() {
 	TestCase_assert(lastTimesliceSizes[0] == 0x04000, "Expected 0x04000 but got 0x%05X", lastTimesliceSizes[0]);
 	TestCase_assert(lastTimesliceSizes[1] == 0x04000, "Expected 0x04000 but got 0x%05X", lastTimesliceSizes[1]);
 	
-	// Verify interpolate is called on CollisionObjects
+	// Verify interpolate is called on CollisionObjects (one iteration)
 	testObjects[0]->interpolate = resolveAllTest_CollisionObject_interpolate;
 	testObjects[1]->interpolate = resolveAllTest_CollisionObject_interpolate;
 	testObjects[2]->interpolate = resolveAllTest_CollisionObject_interpolate;
-	resolveAllIterations[0] = 2;
-	resolveAllIterations[1] = 2;
+	resolveAllIterations[0] = 1;
+	resolveAllIterations[1] = 1;
 	memset(collisionCallbackCalls, 0, sizeof(collisionCallbackCalls));
 	memset(interpolateMethodCalls, 0, sizeof(interpolateMethodCalls));
 	intersectionTime = 0x04000;
 	resolveAllLine = __LINE__; CollisionResolver_resolveAll(collisionResolver);
-	TestCase_assert(collisionCallbackCalls[0] == 2, "Expected 2 but got %u", collisionCallbackCalls[0]);
-	TestCase_assert(collisionCallbackCalls[1] == 2, "Expected 2 but got %u", collisionCallbackCalls[1]);
+	TestCase_assert(collisionCallbackCalls[0] == 1, "Expected 1 but got %u", collisionCallbackCalls[0]);
+	TestCase_assert(collisionCallbackCalls[1] == 1, "Expected 1 but got %u", collisionCallbackCalls[1]);
 	TestCase_assert(collisionCallbackCalls[2] == 0, "Expected 0 but got %u", collisionCallbackCalls[2]);
 	TestCase_assert(interpolateMethodCalls[0] == 1, "Expected 1 but got %u", interpolateMethodCalls[0]);
 	TestCase_assert(interpolateMethodCalls[1] == 1, "Expected 1 but got %u", interpolateMethodCalls[1]);
@@ -490,34 +497,47 @@ static void testResolveAll() {
 	TestCase_assert(lastInterpolationAmounts[0] == 0x04000, "Expected 0x04000 but got 0x%05X", lastInterpolationAmounts[0]);
 	TestCase_assert(lastInterpolationAmounts[1] == 0x04000, "Expected 0x04000 but got 0x%05X", lastInterpolationAmounts[1]);
 	
-	// Verify interpolate is not called for a single iteration
-	resolveAllIterations[0] = 1;
-	resolveAllIterations[1] = 1;
+	// Verify interpolate is called on CollisionObjects (two iterations)
+	resolveAllIterations[0] = 2;
+	resolveAllIterations[1] = 2;
 	memset(collisionCallbackCalls, 0, sizeof(collisionCallbackCalls));
 	memset(interpolateMethodCalls, 0, sizeof(interpolateMethodCalls));
 	resolveAllLine = __LINE__; CollisionResolver_resolveAll(collisionResolver);
-	TestCase_assert(collisionCallbackCalls[0] == 1, "Expected 1 but got %u", collisionCallbackCalls[0]);
-	TestCase_assert(collisionCallbackCalls[1] == 1, "Expected 1 but got %u", collisionCallbackCalls[1]);
+	TestCase_assert(collisionCallbackCalls[0] == 2, "Expected 2 but got %u", collisionCallbackCalls[0]);
+	TestCase_assert(collisionCallbackCalls[1] == 2, "Expected 2 but got %u", collisionCallbackCalls[1]);
 	TestCase_assert(collisionCallbackCalls[2] == 0, "Expected 0 but got %u", collisionCallbackCalls[2]);
-	TestCase_assert(interpolateMethodCalls[0] == 0, "Expected 0 but got %u", interpolateMethodCalls[0]);
-	TestCase_assert(interpolateMethodCalls[1] == 0, "Expected 0 but got %u", interpolateMethodCalls[1]);
-	TestCase_assert(interpolateMethodCalls[2] == 0, "Expected 0 but got %u", interpolateMethodCalls[2]);
+	TestCase_assert(interpolateMethodCalls[0] == 2, "Expected 2 but got %u", interpolateMethodCalls[0]);
+	TestCase_assert(interpolateMethodCalls[1] == 2, "Expected 2 but got %u", interpolateMethodCalls[1]);
+	TestCase_assert(interpolateMethodCalls[2] == 2, "Expected 2 but got %u", interpolateMethodCalls[2]);
+	TestCase_assert(lastInterpolationAmounts[0] == 0x04000, "Expected 0x04000 but got 0x%05X", lastInterpolationAmounts[0]);
+	TestCase_assert(lastInterpolationAmounts[1] == 0x04000, "Expected 0x04000 but got 0x%05X", lastInterpolationAmounts[1]);
 	
-	// Verify interpolate is passed the correct amount parameter
+	// Verify interpolate is called per iteration, not per collision
 	resolveAllIterations[0] = 3;
-	resolveAllIterations[1] = 3;
+	resolveAllIterations[1] = 2;
+	resolveAllIterations[2] = 1;
 	memset(collisionCallbackCalls, 0, sizeof(collisionCallbackCalls));
 	memset(interpolateMethodCalls, 0, sizeof(interpolateMethodCalls));
 	intersectionTime = 0x08000;
 	resolveAllLine = __LINE__; CollisionResolver_resolveAll(collisionResolver);
 	TestCase_assert(collisionCallbackCalls[0] == 3, "Expected 3 but got %u", collisionCallbackCalls[0]);
-	TestCase_assert(collisionCallbackCalls[1] == 3, "Expected 3 but got %u", collisionCallbackCalls[1]);
-	TestCase_assert(collisionCallbackCalls[2] == 0, "Expected 0 but got %u", collisionCallbackCalls[2]);
+	TestCase_assert(collisionCallbackCalls[1] == 2, "Expected 2 but got %u", collisionCallbackCalls[1]);
+	TestCase_assert(collisionCallbackCalls[2] == 1, "Expected 1 but got %u", collisionCallbackCalls[2]);
 	TestCase_assert(interpolateMethodCalls[0] == 2, "Expected 2 but got %u", interpolateMethodCalls[0]);
 	TestCase_assert(interpolateMethodCalls[1] == 2, "Expected 2 but got %u", interpolateMethodCalls[1]);
 	TestCase_assert(interpolateMethodCalls[2] == 2, "Expected 2 but got %u", interpolateMethodCalls[2]);
 	TestCase_assert(lastInterpolationAmounts[0] == 0x08000, "Expected 0x08000 but got 0x%05X", lastInterpolationAmounts[0]);
 	TestCase_assert(lastInterpolationAmounts[1] == 0x08000, "Expected 0x08000 but got 0x%05X", lastInterpolationAmounts[1]);
+	
+	// Verify interpolate is called before resolution, not after
+	resolveAllIterations[0] = 1;
+	resolveAllIterations[1] = 1;
+	memset(collisionCallbackCalls, 0, sizeof(collisionCallbackCalls));
+	memset(interpolateMethodCalls, 0, sizeof(interpolateMethodCalls));
+	interpolateCalled = false;
+	resolveCalledAfterInterpolate = false;
+	resolveAllLine = __LINE__; CollisionResolver_resolveAll(collisionResolver);
+	TestCase_assert(resolveCalledAfterInterpolate, "Expected true but got false");
 	
 	// Verify maxIterations is respected (without simultaneous collisions)
 	CollisionResolver_dispose(collisionResolver);

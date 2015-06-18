@@ -36,6 +36,7 @@ bool CollisionResolver_init(CollisionResolver * self, IntersectionManager * inte
 	self->intersectionManager = intersectionManager;
 	self->private_ivar(intersectionManagerOwned) = takeOwnership;
 	self->private_ivar(maxSimultaneousCollisions) = maxSimultaneousCollisions;
+	self->private_ivar(simultaneousCollisionBuffer) = malloc(sizeof(*self->private_ivar(simultaneousCollisionBuffer)) * self->private_ivar(maxSimultaneousCollisions));
 	self->private_ivar(maxIterations) = maxIterations;
 	self->objectCount = 0;
 	self->objectAllocatedCount = 32;
@@ -45,6 +46,7 @@ bool CollisionResolver_init(CollisionResolver * self, IntersectionManager * inte
 
 void CollisionResolver_dispose(CollisionResolver * self) {
 	free(self->objects);
+	free(self->private_ivar(simultaneousCollisionBuffer));
 	if (self->private_ivar(intersectionManagerOwned)) {
 		IntersectionManager_dispose(self->intersectionManager);
 	}
@@ -90,8 +92,14 @@ static bool CollisionResolver_queryPairInternal(CollisionResolver * self, Collis
 	handler = IntersectionManager_getHandler(self->intersectionManager, object1->shapeType, object2->shapeType);
 	if (handler == NULL) {
 		handler = IntersectionManager_getHandler(self->intersectionManager, object2->shapeType, object1->shapeType);
-		intersectionFound = handler(object2, object1, &frameTime, &normal);
-		Vector3x_invert(&normal);
+		if (handler == NULL) {
+#ifdef DEBUG
+			fprintf(stderr, "Warning: Collision objects of shapeType %d and %d have been added to CollisionResolver %p with no matching intersection handler for those types\n", object1->shapeType, object2->shapeType, self);
+#endif
+		} else {
+			intersectionFound = handler(object2, object1, &frameTime, &normal);
+			Vector3x_invert(&normal);
+		}
 	} else {
 		intersectionFound = handler(object1, object2, &frameTime, &normal);
 	}
@@ -159,34 +167,31 @@ size_t CollisionResolver_findEarliest(CollisionResolver * self, CollisionRecord 
 }
 
 void CollisionResolver_resolveAll(CollisionResolver * self) {
-	/*fixed16_16 timesliceRemaining = 0x10000;
+	size_t collisionCount, collisionIndex;
+	fixed16_16 timesliceRemaining = 0x10000;
+	fixed16_16 collisionTime;
+	size_t objectIndex;
 	unsigned int iterationCount = 0;
-	struct collision collision;
-	bool anyCollisions;
 	
-	while (timesliceRemaining > 0) {
-		anyCollisions = findEarliestCollision(self, &collision);
-		if (!anyCollisions) {
-			break;
+	// TODO: Check for misbehaving intersection handlers that return times outside the 0-1 range?
+	while ((collisionCount = CollisionResolver_findEarliest(self, self->private_ivar(simultaneousCollisionBuffer), self->private_ivar(maxSimultaneousCollisions))) > 0) {
+		collisionTime = self->private_ivar(simultaneousCollisionBuffer)[0].time;
+		
+		for (objectIndex = 0; objectIndex < self->objectCount; objectIndex++) {
+			if (self->objects[objectIndex]->interpolate != NULL) {
+				self->objects[objectIndex]->interpolate(self->objects[objectIndex], collisionTime);
+			}
 		}
 		
-		if (collision.time > 0) {
-			CollisionObject_interpolate(collision.object1, collision.time);
-			CollisionObject_interpolate(collision.object2, collision.time);
+		for (collisionIndex = 0; collisionIndex < collisionCount; collisionIndex++) {
+			CollisionRecord_resolve(self->private_ivar(simultaneousCollisionBuffer)[collisionIndex], timesliceRemaining);
 		}
 		
-		if (collision.object1->collisionCallback != NULL) {
-			collision.object1->collisionCallback(collision.object1, collision.object2, collision.side);
-		}
-		if (collision.object2->collisionCallback != NULL) {
-			collision.object2->collisionCallback(collision.object2, collision.object1, CollisionSide_opposite(collision.side));
-		}
+		timesliceRemaining = xmul(0x10000 - collisionTime, timesliceRemaining);
 		
 		iterationCount++;
-		if (iterationCount >= MAX_COLLISION_ITERATIONS) {
-			fprintf(stderr, "Warning: Incomplete collision resolution after %u iterations\n", MAX_COLLISION_ITERATIONS);
+		if (iterationCount >= self->private_ivar(maxIterations)) {
 			break;
 		}
-		timesliceRemaining = xmul(0x10000 - collision.time, timesliceRemaining);
-	}*/
+	}
 }

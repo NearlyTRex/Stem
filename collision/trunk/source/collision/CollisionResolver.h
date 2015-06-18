@@ -43,6 +43,7 @@ typedef struct CollisionRecord CollisionRecord;
 	bool private_ivar(intersectionManagerOwned); \
 	size_t private_ivar(maxSimultaneousCollisions); \
 	size_t private_ivar(maxIterations); \
+	CollisionRecord * private_ivar(simultaneousCollisionBuffer); \
 	CollisionObject ** objects; \
 	size_t objectCount; \
 	size_t objectAllocatedCount;
