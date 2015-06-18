@@ -3,7 +3,7 @@ Usage example:
 CollisionResolver * collisionResolver;
 IntersectionManager * intersectionManager;
 CollisionCapsule * playerObject;
-CollisionBox * obstacleObject;
+CollisionBox3D * obstacleObject;
 CollisionTrimesh * levelObject;
 
 void init() {
@@ -11,7 +11,7 @@ void init() {
 	collisionResolver = CollisionResolver_create(intersectionManager, true, MAX_SIMULTANEOUS_COLLISIONS_DEFAULT, MAX_ITERATIONS_DEFAULT);
 	
 	playerObject = CollisionCapsule_create(...);
-	obstacleObject = CollisionBox_create(...);
+	obstacleObject = CollisionBox3D_create(...);
 	levelObject = CollisionTrimesh_create(...);
 	CollisionResolver_addObject(collisionResolver, playerObject);
 	CollisionResolver_addObject(collisionResolver, obstacleObject);

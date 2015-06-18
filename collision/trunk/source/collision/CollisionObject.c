@@ -32,7 +32,6 @@ CollisionObject * CollisionObject_create(void * owner, int shapeType, CollisionC
 bool CollisionObject_init(CollisionObject * self, void * owner, int shapeType, CollisionCallback collisionCallback) {
 	call_super(init, self);
 	self->dispose = CollisionObject_dispose;
-	self->updatePosition = NULL;
 	self->interpolate = NULL;
 	self->owner = owner;
 	self->shapeType = shapeType;

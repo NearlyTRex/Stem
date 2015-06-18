@@ -50,6 +50,7 @@ PREREQS =
 SOURCES_library = \
 	source/${PROJECT_NAME}/CollisionObject.c \
 	source/${PROJECT_NAME}/CollisionRecord.c \
+	source/${PROJECT_NAME}/CollisionRect2D.c \
 	source/${PROJECT_NAME}/CollisionResolver.c \
 	source/${PROJECT_NAME}/IntersectionManager.c \
 	source/${PROJECT_NAME}/StandardIntersectionHandlers.c
@@ -59,6 +60,7 @@ SOURCES_library = \
 SOURCES_unittest_suites = \
 	source/unittest/CollisionObjectTest.c \
 	source/unittest/CollisionRecordTest.c \
+	source/unittest/CollisionRect2DTest.c \
 	source/unittest/CollisionResolverTest.c \
 	source/unittest/IntersectionManagerTest.c \
 	source/unittest/StandardIntersectionHandlersTest.c
@@ -70,7 +72,9 @@ SOURCES_testharness = \
 INCLUDES = \
 	source/${PROJECT_NAME}/CollisionObject.h \
 	source/${PROJECT_NAME}/CollisionRecord.h \
+	source/${PROJECT_NAME}/CollisionRect2D.h \
 	source/${PROJECT_NAME}/CollisionResolver.h \
+	source/${PROJECT_NAME}/CollisionShared.h \
 	source/${PROJECT_NAME}/IntersectionManager.h \
 	source/${PROJECT_NAME}/StandardIntersectionHandlers.h
 

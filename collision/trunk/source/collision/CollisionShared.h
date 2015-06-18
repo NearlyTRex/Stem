@@ -20,35 +20,23 @@
   Alex Diener alex@ludobloom.com
 */
 
-#ifndef __CollisionObject_H__
-#define __CollisionObject_H__
+#ifndef __CollisionShared_H__
+#define __CollisionShared_H__
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef struct CollisionObject CollisionObject;
+#define COLLISION_SHAPE_RECT_2D 1
+#define COLLISION_SHAPE_CIRCLE 2
+#define COLLISION_SHAPE_LINE_2D 3
+#define COLLISION_SHAPE_POLYGON 4
 
-#include "collision/CollisionResolver.h"
-#include "gamemath/FixedPoint.h"
-#include "gamemath/Vector3x.h"
-#include "stemobject/StemObject.h"
-
-typedef void (* CollisionCallback)(CollisionRecord collision, fixed16_16 timesliceSize);
-
-#define CollisionObject_structContents(self_type) \
-	StemObject_structContents(self_type) \
-	\
-	void * owner; \
-	int shapeType; \
-	CollisionCallback collisionCallback; \
-	\
-	void (* interpolate)(self_type * self, fixed16_16 amount);
-
-stemobject_struct_definition(CollisionObject)
-
-CollisionObject * CollisionObject_create(void * owner, int shapeType, CollisionCallback collisionCallback);
-bool CollisionObject_init(CollisionObject * self, void * owner, int shapeType, CollisionCallback collisionCallback);
-void CollisionObject_dispose(CollisionObject * self);
+#define COLLISION_SHAPE_BOX_3D 5
+#define COLLISION_SHAPE_SPHERE 6
+#define COLLISION_SHAPE_LINE_3D 7
+#define COLLISION_SHAPE_CYLINDER 8
+#define COLLISION_SHAPE_CAPSULE 9
+#define COLLISION_SHAPE_TRIMESH 10
 
 #ifdef __cplusplus
 }

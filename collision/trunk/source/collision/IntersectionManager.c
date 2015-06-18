@@ -58,10 +58,10 @@ void IntersectionManager_dispose(IntersectionManager * self) {
 }
 
 void IntersectionManager_addStandardHandlers(IntersectionManager * self) {
-	IntersectionManager_setHandler(self, COLLISION_SHAPE_RECT, COLLISION_SHAPE_RECT, intersectionHandler_rect_rect);
-	IntersectionManager_setHandler(self, COLLISION_SHAPE_RECT, COLLISION_SHAPE_CIRCLE, intersectionHandler_rect_circle);
-	IntersectionManager_setHandler(self, COLLISION_SHAPE_RECT, COLLISION_SHAPE_LINE_2D, intersectionHandler_rect_line2D);
-	IntersectionManager_setHandler(self, COLLISION_SHAPE_RECT, COLLISION_SHAPE_POLYGON, intersectionHandler_rect_polygon);
+	IntersectionManager_setHandler(self, COLLISION_SHAPE_RECT_2D, COLLISION_SHAPE_RECT_2D, intersectionHandler_rect2D_rect2D);
+	IntersectionManager_setHandler(self, COLLISION_SHAPE_RECT_2D, COLLISION_SHAPE_CIRCLE, intersectionHandler_rect2D_circle);
+	IntersectionManager_setHandler(self, COLLISION_SHAPE_RECT_2D, COLLISION_SHAPE_LINE_2D, intersectionHandler_rect2D_line2D);
+	IntersectionManager_setHandler(self, COLLISION_SHAPE_RECT_2D, COLLISION_SHAPE_POLYGON, intersectionHandler_rect2D_polygon);
 	IntersectionManager_setHandler(self, COLLISION_SHAPE_CIRCLE, COLLISION_SHAPE_CIRCLE, intersectionHandler_circle_circle);
 	IntersectionManager_setHandler(self, COLLISION_SHAPE_CIRCLE, COLLISION_SHAPE_LINE_2D, intersectionHandler_circle_line2D);
 	IntersectionManager_setHandler(self, COLLISION_SHAPE_CIRCLE, COLLISION_SHAPE_POLYGON, intersectionHandler_circle_polygon);
@@ -69,12 +69,12 @@ void IntersectionManager_addStandardHandlers(IntersectionManager * self) {
 	IntersectionManager_setHandler(self, COLLISION_SHAPE_LINE_2D, COLLISION_SHAPE_POLYGON, intersectionHandler_line2D_polygon);
 	IntersectionManager_setHandler(self, COLLISION_SHAPE_POLYGON, COLLISION_SHAPE_POLYGON, intersectionHandler_polygon_polygon);
 	
-	IntersectionManager_setHandler(self, COLLISION_SHAPE_BOX, COLLISION_SHAPE_BOX, intersectionHandler_box_box);
-	IntersectionManager_setHandler(self, COLLISION_SHAPE_BOX, COLLISION_SHAPE_SPHERE, intersectionHandler_box_sphere);
-	IntersectionManager_setHandler(self, COLLISION_SHAPE_BOX, COLLISION_SHAPE_LINE_3D, intersectionHandler_box_line3D);
-	IntersectionManager_setHandler(self, COLLISION_SHAPE_BOX, COLLISION_SHAPE_CYLINDER, intersectionHandler_box_cylinder);
-	IntersectionManager_setHandler(self, COLLISION_SHAPE_BOX, COLLISION_SHAPE_CAPSULE, intersectionHandler_box_capsule);
-	IntersectionManager_setHandler(self, COLLISION_SHAPE_BOX, COLLISION_SHAPE_TRIMESH, intersectionHandler_box_trimesh);
+	IntersectionManager_setHandler(self, COLLISION_SHAPE_BOX_3D, COLLISION_SHAPE_BOX_3D, intersectionHandler_box3D_box3D);
+	IntersectionManager_setHandler(self, COLLISION_SHAPE_BOX_3D, COLLISION_SHAPE_SPHERE, intersectionHandler_box3D_sphere);
+	IntersectionManager_setHandler(self, COLLISION_SHAPE_BOX_3D, COLLISION_SHAPE_LINE_3D, intersectionHandler_box3D_line3D);
+	IntersectionManager_setHandler(self, COLLISION_SHAPE_BOX_3D, COLLISION_SHAPE_CYLINDER, intersectionHandler_box3D_cylinder);
+	IntersectionManager_setHandler(self, COLLISION_SHAPE_BOX_3D, COLLISION_SHAPE_CAPSULE, intersectionHandler_box3D_capsule);
+	IntersectionManager_setHandler(self, COLLISION_SHAPE_BOX_3D, COLLISION_SHAPE_TRIMESH, intersectionHandler_box3D_trimesh);
 	IntersectionManager_setHandler(self, COLLISION_SHAPE_SPHERE, COLLISION_SHAPE_SPHERE, intersectionHandler_sphere_sphere);
 	IntersectionManager_setHandler(self, COLLISION_SHAPE_SPHERE, COLLISION_SHAPE_LINE_3D, intersectionHandler_sphere_line3D);
 	IntersectionManager_setHandler(self, COLLISION_SHAPE_SPHERE, COLLISION_SHAPE_CYLINDER, intersectionHandler_sphere_cylinder);
