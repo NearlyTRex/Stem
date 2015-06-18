@@ -25,17 +25,18 @@
 #include <stdlib.h>
 
 #define SUPERCLASS StemObject
-//#define INTERSECTION_EPSILON 0x00008
 
-CollisionResolver * CollisionResolver_create(IntersectionManager * intersectionManager, bool takeOwnership) {
-	stemobject_create_implementation(CollisionResolver, init, intersectionManager, takeOwnership)
+CollisionResolver * CollisionResolver_create(IntersectionManager * intersectionManager, bool takeOwnership, size_t maxSimultaneousCollisions, size_t maxIterations) {
+	stemobject_create_implementation(CollisionResolver, init, intersectionManager, takeOwnership, maxSimultaneousCollisions, maxIterations)
 }
 
-bool CollisionResolver_init(CollisionResolver * self, IntersectionManager * intersectionManager, bool takeOwnership) {
+bool CollisionResolver_init(CollisionResolver * self, IntersectionManager * intersectionManager, bool takeOwnership, size_t maxSimultaneousCollisions, size_t maxIterations) {
 	call_super(init, self);
 	self->dispose = CollisionResolver_dispose;
 	self->intersectionManager = intersectionManager;
 	self->private_ivar(intersectionManagerOwned) = takeOwnership;
+	self->private_ivar(maxSimultaneousCollisions) = maxSimultaneousCollisions;
+	self->private_ivar(maxIterations) = maxIterations;
 	self->objectCount = 0;
 	self->objectAllocatedCount = 32;
 	self->objects = malloc(sizeof(CollisionObject *) * self->objectAllocatedCount);
@@ -157,7 +158,7 @@ size_t CollisionResolver_findEarliest(CollisionResolver * self, CollisionRecord 
 	return collisionCount;
 }
 
-void CollisionResolver_resolveAll(CollisionResolver * self, size_t maxSimultaneousCollisions, size_t maxIterations) {
+void CollisionResolver_resolveAll(CollisionResolver * self) {
 	/*fixed16_16 timesliceRemaining = 0x10000;
 	unsigned int iterationCount = 0;
 	struct collision collision;

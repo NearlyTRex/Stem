@@ -41,16 +41,31 @@ typedef struct CollisionRecord CollisionRecord;
 	\
 	IntersectionManager * intersectionManager; \
 	bool private_ivar(intersectionManagerOwned); \
+	size_t private_ivar(maxSimultaneousCollisions); \
+	size_t private_ivar(maxIterations); \
 	CollisionObject ** objects; \
 	size_t objectCount; \
 	size_t objectAllocatedCount;
 
 stemobject_struct_definition(CollisionResolver)
 
-CollisionResolver * CollisionResolver_create(IntersectionManager * intersectionManager, bool takeOwnership);
-bool CollisionResolver_init(CollisionResolver * self, IntersectionManager * intersectionManager, bool takeOwnership);
+#define MAX_SIMULTANEOUS_COLLISIONS_DEFAULT 128
+#define MAX_ITERATIONS_DEFAULT 128
+
+// Creates and initializes a CollisionResolver.
+// intersectionManager will be used for all intersection tests in querySingle, findEarliest, and resolveAll.
+// If takeOwnership is true, intersectionManager will be freed when this CollisionResolver is freed.
+// If takeOwnership is false, the caller retains ownership of intersectionManager and is responsible for freeing it.
+// maxSimultaneousCollisions specifies the number of collisions that can be processed in a single resolveAll iteration.
+// maxIterations specifies the number of iterations resolveAll will attempt before giving up if resolution is incomplete.
+CollisionResolver * CollisionResolver_create(IntersectionManager * intersectionManager, bool takeOwnership, size_t maxSimultaneousCollisions, size_t maxIterations);
+bool CollisionResolver_init(CollisionResolver * self, IntersectionManager * intersectionManager, bool takeOwnership, size_t maxSimultaneousCollisions, size_t maxIterations);
+
+// Disposes the CollisionResolver and all objects owned by it. Objects added with addObject are not owned by CollisionResolver.
 void CollisionResolver_dispose(CollisionResolver * self);
 
+// Adds/removes objects to/from the list of collidable objects tracked by CollisionResolver.
+// Objects in this list are used by querySingle, findEarliest, and resolveAll.
 void CollisionResolver_addObject(CollisionResolver * self, compat_type(CollisionObject *) object);
 void CollisionResolver_removeObject(CollisionResolver * self, compat_type(CollisionObject *) object);
 
@@ -67,7 +82,7 @@ size_t CollisionResolver_findEarliest(CollisionResolver * self, CollisionRecord 
 
 // Collision tests all objects in list against all other objects in list, calling the CollisionCallback for each.
 // Fully resolves one frame.
-void CollisionResolver_resolveAll(CollisionResolver * self, size_t maxSimultaneousCollisions, size_t maxIterations);
+void CollisionResolver_resolveAll(CollisionResolver * self);
 
 #ifdef __cplusplus
 }

@@ -41,13 +41,13 @@ static unsigned int collisionCallback1Calls, collisionCallback2Calls;
 static CollisionRecord lastCollision1, lastCollision2;
 static fixed16_16 lastTimesliceSize1, lastTimesliceSize2;
 
-void resolveCallback1(CollisionRecord collision, fixed16_16 timesliceSize) {
+static void resolveCallback1(CollisionRecord collision, fixed16_16 timesliceSize) {
 	collisionCallback1Calls++;
 	lastCollision1 = collision;
 	lastTimesliceSize1 = timesliceSize;
 }
 
-void resolveCallback2(CollisionRecord collision, fixed16_16 timesliceSize) {
+static void resolveCallback2(CollisionRecord collision, fixed16_16 timesliceSize) {
 	collisionCallback2Calls++;
 	lastCollision2 = collision;
 	lastTimesliceSize2 = timesliceSize;

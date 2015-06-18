@@ -43,7 +43,6 @@ struct CollisionRecord {
 	// Temporal position within the timeslice being evaluated at which the intersection first occurs, from 0x00000 (beginning
 	// of timeslice) to 0x10000 (end of timeslice).
 	fixed16_16 time;
-	// TODO: Doesn't this require an interpolate() method on owners of CollisionObjects?
 };
 
 // Returns a CollisionRecord with object1 and object2 swapped, and the normal reversed.

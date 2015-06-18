@@ -43,7 +43,7 @@ typedef void (* CollisionCallback)(CollisionRecord collision, fixed16_16 timesli
 	CollisionCallback collisionCallback; \
 	\
 	void (* updatePosition)(self_type * self, Vector3x newPosition); \
-	void (* interpolate)(self_type * self, fixed16_16 frameTime);
+	void (* interpolate)(self_type * self, fixed16_16 amount);
 
 stemobject_struct_definition(CollisionObject)
 

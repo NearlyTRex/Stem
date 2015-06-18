@@ -8,7 +8,7 @@ CollisionTrimesh * levelObject;
 
 void init() {
 	intersectionManager = IntersectionManager_createWithStandardHandlers();
-	collisionResolver = CollisionResolver_create(intersectionManager);
+	collisionResolver = CollisionResolver_create(intersectionManager, true, MAX_SIMULTANEOUS_COLLISIONS_DEFAULT, MAX_ITERATIONS_DEFAULT);
 	
 	playerObject = CollisionCapsule_create(...);
 	obstacleObject = CollisionBox_create(...);
@@ -20,5 +20,5 @@ void init() {
 
 void update() {
 	CollisionObject_updatePosition(playerObject, playerPosition);
-	CollisionResolver_resolveAll(collisionResolver, 128, 128);
+	CollisionResolver_resolveAll(collisionResolver);
 }

@@ -44,6 +44,6 @@ void CollisionCylinder_updatePosition(CollisionCylinder * self, Vector3x newPosi
 	//self->shape.cylinder.bottomCenter = newPosition;
 }
 
-void CollisionCylinder_interpolate(CollisionCylinder * self, fixed16_16 frameTime) {
-	//self->shape.cylinder.lastBottomCenter = Vector3x_interpolate(self->shape.cylinder.lastBottomCenter, self->shape.cylinder.bottomCenter, frameTime);
+void CollisionCylinder_interpolate(CollisionCylinder * self, fixed16_16 amount) {
+	//self->shape.cylinder.lastBottomCenter = Vector3x_interpolate(self->shape.cylinder.lastBottomCenter, self->shape.cylinder.bottomCenter, amount);
 }

@@ -44,7 +44,7 @@ CollisionCylinder * CollisionCylinder_create(void * owner, fixed16_16 radius, fi
 bool CollisionCylinder_init(CollisionCylinder * self, void * owner, fixed16_16 radius, fixed16_16 height, Vector3x bottomCenter, CollisionCallback collisionCallback);
 void CollisionCylinder_dispose(CollisionCylinder * self);
 void CollisionCylinder_updatePosition(CollisionCylinder * self, Vector3x newPosition);
-void CollisionCylinder_interpolate(CollisionCylinder * self, fixed16_16 frameTime);
+void CollisionCylinder_interpolate(CollisionCylinder * self, fixed16_16 amount);
 
 #ifdef __cplusplus
 }
