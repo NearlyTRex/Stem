@@ -34,6 +34,12 @@ typedef struct IntersectionManager IntersectionManager;
 #include "stemobject/StemObject.h"
 #include <stdlib.h>
 
+// IntersectionHandler rules:
+// - Return true and write to outTime (if not null) and outNormal (if not null) if an intersection is detected
+// - Return false and do not modify outTime or outNormal if no intersection is detected
+// - Values written to outTime MUST be in the range of [0x00000, 0x10000]; if computed time is outside this range, return false instead
+// - Values written to outNormal must be normalized, and should point away from object1's trajectory
+// - Values written to outNormal for 2D shapes must have the z component set to 0x00000
 typedef bool (* IntersectionHandler)(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal);
 
 struct IntersectionHandlerEntry {

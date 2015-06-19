@@ -20,41 +20,10 @@
   Alex Diener alex@ludobloom.com
 */
 
+#include "collision/CollisionRect2D.h"
 #include "collision/StandardIntersectionHandlers.h"
 
 /*
-static bool testPlaneIntersectionX(fixed16_16 x1Start, fixed16_16 x1End,
-                                   fixed16_16 x2Start, fixed16_16 x2End,
-                                   fixed16_16 bottom1Start, fixed16_16 top1Start, fixed16_16 bottom1End, fixed16_16 top1End,
-                                   fixed16_16 bottom2Start, fixed16_16 top2Start, fixed16_16 bottom2End, fixed16_16 top2End,
-                                   fixed16_16 back1Start, fixed16_16 front1Start, fixed16_16 back1End, fixed16_16 front1End,
-                                   fixed16_16 back2Start, fixed16_16 front2Start, fixed16_16 back2End, fixed16_16 front2End,
-                                   fixed16_16 * outTime) {
-	fixed16_16 time;
-	fixed16_16 bottom1, top1, bottom2, top2, back1, front1, back2, front2;
-	
-	time = xdiv(x1Start - x2Start, x2End - x2Start - x1End + x1Start);
-	if (time > 0x10000) {
-		return false;
-	}
-	bottom1 = bottom1Start + xmul(bottom1End - bottom1Start, time);
-	top1    = top1Start    + xmul(top1End    - top1Start,    time);
-	bottom2 = bottom2Start + xmul(bottom2End - bottom2Start, time);
-	top2    = top2Start    + xmul(top2End    - top2Start,    time);
-	back1   = back1Start   + xmul(back1End   - back1Start,   time);
-	front1  = front1Start  + xmul(front1End  - front1Start,  time);
-	back2   = back2Start   + xmul(back2End   - back2Start,   time);
-	front2  = front2Start  + xmul(front2End  - front2Start,  time);
-	if (top1 > bottom2 && bottom1 < top2 && front1 > back2 && back1 < front2) {
-		if (time < 0) {
-			time = 0;
-		}
-		*outTime = time;
-		return true;
-	}
-	return false;
-}
-
 #define collision_test_axis(xLow, xHigh, yLow, yHigh, zLow, zHigh, solidityBitLow, solidityBitHigh, intersectionTimeVar, directionVar) \
 	if ((object1->solidity & solidityBitHigh) && (object2->solidity & solidityBitLow) && \
 	    (object1->lastBounds.xLow != object1->bounds.xLow || object2->lastBounds.xHigh != object2->bounds.xHigh) && \
@@ -112,7 +81,127 @@ static bool collisionTest(CollisionObject * object1, CollisionObject * object2, 
 }
 */
 
+static bool intersectSweptLineSegments(fixed16_16 x1Start, fixed16_16 x1End,
+                                       fixed16_16 x2Start, fixed16_16 x2End,
+                                       fixed16_16 bottom1Start, fixed16_16 top1Start, fixed16_16 bottom1End, fixed16_16 top1End,
+                                       fixed16_16 bottom2Start, fixed16_16 top2Start, fixed16_16 bottom2End, fixed16_16 top2End,
+                                       fixed16_16 * outTime) {
+	fixed16_16 time;
+	fixed16_16 bottom1, top1, bottom2, top2;
+	
+	time = xdiv(x1Start - x2Start, x2End - x2Start - x1End + x1Start);
+	if (time > 0x10000 || time < 0x00000) {
+		return false;
+	}
+	bottom1 = bottom1Start + xmul(bottom1End - bottom1Start, time);
+	top1    = top1Start    + xmul(top1End    - top1Start,    time);
+	bottom2 = bottom2Start + xmul(bottom2End - bottom2Start, time);
+	top2    = top2Start    + xmul(top2End    - top2Start,    time);
+	if (top1 > bottom2 && bottom1 < top2) {
+		*outTime = time;
+		return true;
+	}
+	return false;
+}
+
+/*
+static bool intersectSweptQuads(fixed16_16 x1Start, fixed16_16 x1End,
+                                fixed16_16 x2Start, fixed16_16 x2End,
+                                fixed16_16 bottom1Start, fixed16_16 top1Start, fixed16_16 bottom1End, fixed16_16 top1End,
+                                fixed16_16 bottom2Start, fixed16_16 top2Start, fixed16_16 bottom2End, fixed16_16 top2End,
+                                fixed16_16 back1Start, fixed16_16 front1Start, fixed16_16 back1End, fixed16_16 front1End,
+                                fixed16_16 back2Start, fixed16_16 front2Start, fixed16_16 back2End, fixed16_16 front2End,
+                                fixed16_16 * outTime) {
+	fixed16_16 time;
+	fixed16_16 bottom1, top1, bottom2, top2, back1, front1, back2, front2;
+	
+	time = xdiv(x1Start - x2Start, x2End - x2Start - x1End + x1Start);
+	if (time > 0x10000) {
+		return false;
+	}
+	bottom1 = bottom1Start + xmul(bottom1End - bottom1Start, time);
+	top1    = top1Start    + xmul(top1End    - top1Start,    time);
+	bottom2 = bottom2Start + xmul(bottom2End - bottom2Start, time);
+	top2    = top2Start    + xmul(top2End    - top2Start,    time);
+	back1   = back1Start   + xmul(back1End   - back1Start,   time);
+	front1  = front1Start  + xmul(front1End  - front1Start,  time);
+	back2   = back2Start   + xmul(back2End   - back2Start,   time);
+	front2  = front2Start  + xmul(front2End  - front2Start,  time);
+	if (top1 > bottom2 && bottom1 < top2 && front1 > back2 && back1 < front2) {
+		if (time < 0) {
+			time = 0;
+		}
+		*outTime = time;
+		return true;
+	}
+	return false;
+}
+*/
+
 bool intersectionHandler_rect2D_rect2D(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal) {
+	fixed16_16 time;
+	CollisionRect2D * rect1 = (CollisionRect2D *) object1, * rect2 = (CollisionRect2D *) object2;
+	
+	// rect1 right vs. rect2 left
+	if (intersectSweptLineSegments(rect1->lastPosition.x + rect1->lastSize.x, rect1->position.x + rect1->size.x,
+	                               rect2->lastPosition.x, rect2->position.x,
+	                               rect1->lastPosition.y, rect1->lastPosition.y + rect1->lastSize.y, rect1->position.y, rect1->position.y + rect1->size.y,
+	                               rect2->lastPosition.y, rect2->lastPosition.y + rect2->lastSize.y, rect2->position.y, rect2->position.y + rect2->size.y,
+	                               &time)) {
+		if (outTime != NULL) {
+			*outTime = time;
+		}
+		if (outNormal != NULL) {
+			*outNormal = VECTOR3x_LEFT;
+		}
+		return true;
+	}
+	
+	// rect1 left vs. rect2 right
+	if (intersectSweptLineSegments(rect1->lastPosition.x, rect1->position.x,
+	                               rect2->lastPosition.x + rect2->lastSize.x, rect2->position.x + rect2->size.x,
+	                               rect1->lastPosition.y, rect1->lastPosition.y + rect1->lastSize.y, rect1->position.y, rect1->position.y + rect1->size.y,
+	                               rect2->lastPosition.y, rect2->lastPosition.y + rect2->lastSize.y, rect2->position.y, rect2->position.y + rect2->size.y,
+	                               &time)) {
+		if (outTime != NULL) {
+			*outTime = time;
+		}
+		if (outNormal != NULL) {
+			*outNormal = VECTOR3x_RIGHT;
+		}
+		return true;
+	}
+	
+	// rect1 top vs. rect2 bottom
+	if (intersectSweptLineSegments(rect1->lastPosition.y + rect1->lastSize.y, rect1->position.y + rect1->size.y,
+	                               rect2->lastPosition.y, rect2->position.y,
+	                               rect1->lastPosition.x, rect1->lastPosition.x + rect1->lastSize.x, rect1->position.x, rect1->position.x + rect1->size.x,
+	                               rect2->lastPosition.x, rect2->lastPosition.x + rect2->lastSize.x, rect2->position.x, rect2->position.x + rect2->size.x,
+	                               &time)) {
+		if (outTime != NULL) {
+			*outTime = time;
+		}
+		if (outNormal != NULL) {
+			*outNormal = VECTOR3x_DOWN;
+		}
+		return true;
+	}
+	
+	// rect1 bottom vs. rect2 top
+	if (intersectSweptLineSegments(rect1->lastPosition.y, rect1->position.y,
+	                               rect2->lastPosition.y + rect2->lastSize.y, rect2->position.y + rect2->size.y,
+	                               rect1->lastPosition.x, rect1->lastPosition.x + rect1->lastSize.x, rect1->position.x, rect1->position.x + rect1->size.x,
+	                               rect2->lastPosition.x, rect2->lastPosition.x + rect2->lastSize.x, rect2->position.x, rect2->position.x + rect2->size.x,
+	                               &time)) {
+		if (outTime != NULL) {
+			*outTime = time;
+		}
+		if (outNormal != NULL) {
+			*outNormal = VECTOR3x_UP;
+		}
+		return true;
+	}
+	
 	return false;
 }
 
