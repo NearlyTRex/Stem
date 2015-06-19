@@ -329,11 +329,11 @@ static void testTrimesh_trimesh() {
 }
 */
 TEST_SUITE(StandardIntersectionHandlersTest,
-           testRect2D_rect2D/*,
+           testRect2D_rect2D,/*
            testRect2D_circle,
            testRect2D_line2D,
            testRect2D_polygon,*/
-           testCircle_circle,/*
+           testCircle_circle/*,
            testCircle_line2D,
            testCircle_polygon,
            testLine2D_line2D,

@@ -44,9 +44,9 @@ stemobject_struct_definition(CollisionRect2D)
 
 // position is the corner of the rect with the lowest x and y axis values.
 // size extends the rect from position in the +x and +y directions.
-// If concave is true, this rect will be considered and enclosed empty space, and collisions will be detected with its inner edges
+// If concave is true, this rect will be considered an enclosed empty space, and collisions will be detected with its inner edges
 // for objects moving outward. Objects moving from outside a concave rect into it will not collide with its edges.
-// If concave is false, this rect will be considered a solid block, and collisions will be detected with its outer edges for
+// If concave is false, this rect will be considered solid, and collisions will be detected with its outer edges for
 // objects moving inward. Objects moving out of convex rect from inside it will not collide with its edges.
 CollisionRect2D * CollisionRect2D_create(void * owner, CollisionCallback collisionCallback, Vector2x position, Vector2x size, bool concave);
 bool CollisionRect2D_init(CollisionRect2D * self, void * owner, CollisionCallback collisionCallback, Vector2x position, Vector2x size, bool concave);
