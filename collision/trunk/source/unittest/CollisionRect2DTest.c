@@ -62,9 +62,9 @@ static void testUpdatePosition() {
 	TestCase_assert(rect->lastPosition.x == 0x10000, "Expected 0x10000 but got 0x%05X", rect->lastPosition.x);
 	TestCase_assert(rect->lastPosition.y == 0x20000, "Expected 0x20000 but got 0x%05X", rect->lastPosition.y);
 	
-	CollisionRect2D_updatePosition(rect, VECTOR2x(0x08000, 0x0B000));
+	CollisionRect2D_updatePosition(rect, VECTOR2x(0x08000, 0x0C000));
 	TestCase_assert(rect->position.x == 0x08000, "Expected 0x08000 but got 0x%05X", rect->position.x);
-	TestCase_assert(rect->position.y == 0x0B000, "Expected 0x0B000 but got 0x%05X", rect->position.y);
+	TestCase_assert(rect->position.y == 0x0C000, "Expected 0x0C000 but got 0x%05X", rect->position.y);
 	TestCase_assert(rect->lastPosition.x == 0x00000, "Expected 0x00000 but got 0x%05X", rect->lastPosition.x);
 	TestCase_assert(rect->lastPosition.y == 0x00000, "Expected 0x00000 but got 0x%05X", rect->lastPosition.y);
 	
@@ -86,9 +86,9 @@ static void testUpdateSize() {
 	TestCase_assert(rect->lastSize.x == 0x10000, "Expected 0x10000 but got 0x%05X", rect->lastSize.x);
 	TestCase_assert(rect->lastSize.y == 0x20000, "Expected 0x20000 but got 0x%05X", rect->lastSize.y);
 	
-	CollisionRect2D_updateSize(rect, VECTOR2x(0x08000, 0x0B000));
+	CollisionRect2D_updateSize(rect, VECTOR2x(0x08000, 0x0C000));
 	TestCase_assert(rect->size.x == 0x08000, "Expected 0x08000 but got 0x%05X", rect->size.x);
-	TestCase_assert(rect->size.y == 0x0B000, "Expected 0x0B000 but got 0x%05X", rect->size.y);
+	TestCase_assert(rect->size.y == 0x0C000, "Expected 0x0C000 but got 0x%05X", rect->size.y);
 	TestCase_assert(rect->lastSize.x == 0x00000, "Expected 0x00000 but got 0x%05X", rect->lastSize.x);
 	TestCase_assert(rect->lastSize.y == 0x00000, "Expected 0x00000 but got 0x%05X", rect->lastSize.y);
 	

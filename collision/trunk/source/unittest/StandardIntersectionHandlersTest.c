@@ -1,3 +1,4 @@
+#include "collision/CollisionCircle.h"
 #include "collision/CollisionRect2D.h"
 #include "collision/StandardIntersectionHandlers.h"
 #include "unittest/TestSuite.h"
@@ -221,6 +222,75 @@ static void testRect2D_polygon() {
 }
 */
 static void testCircle_circle() {
+	CollisionCircle * circle1, * circle2;
+	bool result;
+	fixed16_16 time;
+	Vector3x normal;
+	
+	// No collision for no movement
+	circle1 = CollisionCircle_create(NULL, NULL, VECTOR2x(-0x20000, 0x00000), 0x08000, false);
+	circle2 = CollisionCircle_create(NULL, NULL, VECTOR2x(0x00000, 0x00000), 0x08000, false);
+	result = intersectionHandler_circle_circle((CollisionObject *) circle1, (CollisionObject *) circle2, NULL, NULL);
+	TestCase_assert(!result, "Expected false but got true");
+	
+	// circle1 moving +x (level), circle2 stationary
+	CollisionCircle_updatePosition(circle1, VECTOR2x(-0x20000, 0x00000));
+	CollisionCircle_updatePosition(circle1, VECTOR2x(0x00000, 0x00000));
+	time = -1;
+	memset(&normal, 0xFF, sizeof(normal));
+	result = intersectionHandler_circle_circle((CollisionObject *) circle1, (CollisionObject *) circle2, &time, &normal);
+	TestCase_assert(result, "Expected true but got false");
+	TestCase_assert(time == 0x08000, "Expected 0x08000 but got 0x%05X", time);
+	TestCase_assert(normal.x == -0x10000 && normal.y == 0x00000 && normal.z == 0x00000, "Expected {0xFFFF0000, 0x00000, 0x00000} but got {0x%05X, 0x%05X, 0x%05X}", normal.x, normal.y, normal.z);
+	
+	// circle1 moving +x (level), circle2 stationary (different speed/collision time)
+	CollisionCircle_updatePosition(circle1, VECTOR2x(-0x20000, 0x00000));
+	CollisionCircle_updatePosition(circle1, VECTOR2x(0x20000, 0x00000));
+	time = -1;
+	memset(&normal, 0xFF, sizeof(normal));
+	result = intersectionHandler_circle_circle((CollisionObject *) circle1, (CollisionObject *) circle2, &time, &normal);
+	TestCase_assert(result, "Expected true but got false");
+	TestCase_assert(time == 0x04000, "Expected 0x04000 but got 0x%05X", time);
+	TestCase_assert(normal.x == -0x10000 && normal.y == 0x00000 && normal.z == 0x00000, "Expected {0xFFFF0000, 0x00000, 0x00000} but got {0x%05X, 0x%05X, 0x%05X}", normal.x, normal.y, normal.z);
+	
+	// circle1 moving +x (level), circle2 stationary (circle1 starts butted against circle2)
+	CollisionCircle_updatePosition(circle1, VECTOR2x(-0x10000, 0x00000));
+	CollisionCircle_updatePosition(circle1, VECTOR2x(0x00000, 0x00000));
+	time = -1;
+	memset(&normal, 0xFF, sizeof(normal));
+	result = intersectionHandler_circle_circle((CollisionObject *) circle1, (CollisionObject *) circle2, &time, &normal);
+	TestCase_assert(result, "Expected true but got false");
+	TestCase_assert(time == 0x00000, "Expected 0x00000 but got 0x%05X", time);
+	TestCase_assert(normal.x == -0x10000 && normal.y == 0x00000 && normal.z == 0x00000, "Expected {0xFFFF0000, 0x00000, 0x00000} but got {0x%05X, 0x%05X, 0x%05X}", normal.x, normal.y, normal.z);
+	
+	// circle1 moving +x (45 degrees up), circle2 stationary
+	CollisionCircle_updatePosition(circle1, VECTOR2x(-0x14AFC, 0x0B504));
+	CollisionCircle_updatePosition(circle1, VECTOR2x(0x0B504, 0x0B504));
+	time = -1;
+	memset(&normal, 0xFF, sizeof(normal));
+	result = intersectionHandler_circle_circle((CollisionObject *) circle1, (CollisionObject *) circle2, &time, &normal);
+	TestCase_assert(result, "Expected true but got false");
+	TestCase_assert(time == 0x08000, "Expected 0x08000 but got 0x%05X", time);
+	TestCase_assert(normal.x == -0x0B504 && normal.y == 0x0B504 && normal.z == 0x00000, "Expected {0xFFFF4AFC, 0x0B504, 0x00000} but got {0x%05X, 0x%05X, 0x%05X}", normal.x, normal.y, normal.z);
+	
+	// rect1 stationary, rect2 moving -x
+	// rect1 moving +x, rect2 moving -x
+	// rect1 moving -x, rect2 stationary
+	// rect1 moving +y, rect2 stationary
+	// rect1 moving -y, rect2 stationary
+	// Corner collision (bottom left)
+	// Corner collision (top left)
+	// Corner collision (bottom right)
+	// Corner collision (top right)
+	// Miss (left, above)
+	// Miss (left, below)
+	// Miss (right, above)
+	// Miss (right, below)
+	// Miss (bottom, left)
+	// Miss (bottom, right)
+	// Miss (top, left)
+	// Miss (top, right)
+	
 	TestCase_assert(false, "Unimplemented");
 }
 /*

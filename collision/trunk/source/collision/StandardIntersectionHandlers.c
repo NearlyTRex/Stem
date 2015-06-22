@@ -20,6 +20,7 @@
   Alex Diener alex@ludobloom.com
 */
 
+#include "collision/CollisionCircle.h"
 #include "collision/CollisionRect2D.h"
 #include "collision/StandardIntersectionHandlers.h"
 
@@ -218,6 +219,44 @@ bool intersectionHandler_rect2D_polygon(CollisionObject * object1, CollisionObje
 }
 
 bool intersectionHandler_circle_circle(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal) {
+	CollisionCircle * circle1 = (CollisionCircle *) object1, * circle2 = (CollisionCircle *) object2;
+	fixed16_16 time;
+	fixed16_16 x1Start, y1Start, x1End, y1End;
+	fixed16_16 x2Start, y2Start, x2End, y2End;
+	fixed16_16 radius1, radius2;
+	
+	x1Start = circle1->lastPosition.x;
+	x1End = circle1->lastPosition.y;
+	y1Start = circle1->position.x;
+	y1End = circle1->position.y;
+	x2Start = circle2->lastPosition.x;
+	x2End = circle2->lastPosition.y;
+	y2Start = circle2->position.x;
+	y2End = circle2->position.y;
+	radius1 = circle1->radius;
+	radius2 = circle2->radius;
+	
+	time = /* some mess of algebra on above variables */ -1;
+	if (time > 0x10000 || time < 0x00000) {
+		fixed16_16 x1, y1, x2, y2;
+		Vector3x normal;
+		
+		x1 = x1Start + xmul(x1End - x1Start, time);
+		y1 = y1Start + xmul(y1End - y1Start, time);
+		x2 = x2Start + xmul(x2End - x2Start, time);
+		y2 = y2Start + xmul(y2End - y2Start, time);
+		normal.x = x1 - x2;
+		normal.y = y1 - y2;
+		normal.z = 0x00000;
+		Vector3x_normalize(&normal);
+		if (outNormal != NULL) {
+			*outNormal = normal;
+		}
+		if (outTime != NULL) {
+			*outTime = time;
+		}
+		return true;
+	}
 	return false;
 }
 

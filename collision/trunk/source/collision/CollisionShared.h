@@ -30,7 +30,7 @@ extern "C" {
 #define COLLISION_SHAPE_CIRCLE 2
 #define COLLISION_SHAPE_LINE_2D 3
 #define COLLISION_SHAPE_POLYGON 4
-// Sided axis aligned line? (rect2D is made of 4 of them)
+// Sided axis aligned line? (rect2D is made of 4 of them) (line2D good enough?)
 
 #define COLLISION_SHAPE_BOX_3D 5
 #define COLLISION_SHAPE_SPHERE 6
@@ -38,8 +38,8 @@ extern "C" {
 #define COLLISION_SHAPE_CYLINDER 8
 #define COLLISION_SHAPE_CAPSULE 9
 #define COLLISION_SHAPE_TRIMESH 10
-// Triangle
-// Axis aligned quad
+// Triangle (trimesh is made of n of them)
+// Axis aligned quad (box3D is made of 6 of them)
 
 #ifdef __cplusplus
 }

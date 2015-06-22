@@ -35,9 +35,16 @@ PROJECT_LIBRARY_DEPENDENCIES_testharness = library
 STEM_LIBRARY_DEPENDENCIES = \
 	gamemath/latest \
 	stemobject/latest
+
 STEM_LIBRARY_DEPENDENCIES_unittest = \
 	unittest/latest \
 	utilities/latest
+
+STEM_LIBRARY_DEPENDENCIES_testharness_macosx = nsopenglshell/latest
+STEM_LIBRARY_DEPENDENCIES_testharness_win32 = wglshell/latest
+STEM_LIBRARY_DEPENDENCIES_testharness_win64 = wglshell/latest
+STEM_LIBRARY_DEPENDENCIES_testharness_linux32 = glxshell/latest
+STEM_LIBRARY_DEPENDENCIES_testharness_linux64 = glxshell/latest
 
 # THIRDPARTY_LIBRARY_DEPENDENCIES is specified as ${PROJECT_NAME}/${PROJECT_VERSION} for each thirdparty library to be linked when building
 # Patterns: THIRDPARTY_LIBRARY_DEPENDENCIES, THIRDPARTY_LIBRARY_DEPENDENCIES_${target}, THIRDPARTY_LIBRARY_DEPENDENCIES_${platform}, THIRDPARTY_LIBRARY_DEPENDENCIES_${target}_${platform}

@@ -60,9 +60,9 @@ static void testUpdatePosition() {
 	TestCase_assert(circle->lastPosition.x == 0x10000, "Expected 0x10000 but got 0x%05X", circle->lastPosition.x);
 	TestCase_assert(circle->lastPosition.y == 0x20000, "Expected 0x20000 but got 0x%05X", circle->lastPosition.y);
 	
-	CollisionCircle_updatePosition(circle, VECTOR2x(0x08000, 0x0B000));
+	CollisionCircle_updatePosition(circle, VECTOR2x(0x08000, 0x0C000));
 	TestCase_assert(circle->position.x == 0x08000, "Expected 0x08000 but got 0x%05X", circle->position.x);
-	TestCase_assert(circle->position.y == 0x0B000, "Expected 0x0B000 but got 0x%05X", circle->position.y);
+	TestCase_assert(circle->position.y == 0x0C000, "Expected 0x0C000 but got 0x%05X", circle->position.y);
 	TestCase_assert(circle->lastPosition.x == 0x00000, "Expected 0x00000 but got 0x%05X", circle->lastPosition.x);
 	TestCase_assert(circle->lastPosition.y == 0x00000, "Expected 0x00000 but got 0x%05X", circle->lastPosition.y);
 	
