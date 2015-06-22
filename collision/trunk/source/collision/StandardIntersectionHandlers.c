@@ -24,64 +24,6 @@
 #include "collision/CollisionRect2D.h"
 #include "collision/StandardIntersectionHandlers.h"
 
-/*
-#define collision_test_axis(xLow, xHigh, yLow, yHigh, zLow, zHigh, solidityBitLow, solidityBitHigh, intersectionTimeVar, directionVar) \
-	if ((object1->solidity & solidityBitHigh) && (object2->solidity & solidityBitLow) && \
-	    (object1->lastBounds.xLow != object1->bounds.xLow || object2->lastBounds.xHigh != object2->bounds.xHigh) && \
-	    object1->lastBounds.xLow > object2->bounds.xHigh - INTERSECTION_EPSILON && object1->bounds.xLow <= object2->bounds.xHigh - INTERSECTION_EPSILON) { \
-		if (testPlaneIntersectionX(object1->lastBounds.xLow, object1->bounds.xLow, \
-		                           object2->lastBounds.xHigh, object2->bounds.xHigh, \
-		                           object1->lastBounds.yLow, object1->lastBounds.yHigh, object1->bounds.yLow, object1->bounds.yHigh, \
-		                           object2->lastBounds.yLow, object2->lastBounds.yHigh, object2->bounds.yLow, object2->bounds.yHigh, \
-		                           object1->lastBounds.zLow, object1->lastBounds.zHigh, object1->bounds.zLow, object1->bounds.zHigh, \
-		                           object2->lastBounds.zLow, object2->lastBounds.zHigh, object2->bounds.zLow, object2->bounds.zHigh, \
-		                           &intersectionTimeVar)) { \
-			directionVar = -1; \
-		} \
-		\
-	} else if ((object1->solidity & solidityBitLow) && (object2->solidity & solidityBitHigh) && \
-	           (object1->lastBounds.xHigh != object1->bounds.xHigh || object2->lastBounds.xLow != object2->bounds.xLow) && \
-	           object1->lastBounds.xHigh < object2->lastBounds.xLow + INTERSECTION_EPSILON && object1->bounds.xHigh >= object2->bounds.xLow + INTERSECTION_EPSILON) { \
-		if (testPlaneIntersectionX(object1->lastBounds.xHigh, object1->bounds.xHigh, \
-		                           object2->lastBounds.xLow, object2->bounds.xLow, \
-		                           object1->lastBounds.yLow, object1->lastBounds.yHigh, object1->bounds.yLow, object1->bounds.yHigh, \
-		                           object2->lastBounds.yLow, object2->lastBounds.yHigh, object2->bounds.yLow, object2->bounds.yHigh, \
-		                           object1->lastBounds.zLow, object1->lastBounds.zHigh, object1->bounds.zLow, object1->bounds.zHigh, \
-		                           object2->lastBounds.zLow, object2->lastBounds.zHigh, object2->bounds.zLow, object2->bounds.zHigh, \
-		                           &intersectionTimeVar)) { \
-			directionVar = 1; \
-		} \
-	}
-
-static bool collisionTest(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, CollisionSide * outSide) {
-	fixed16_16 intersectionTimeX = FIXED_16_16_MAX, intersectionTimeY = FIXED_16_16_MAX, intersectionTimeZ = FIXED_16_16_MAX;
-	int directionX = 0, directionY = 0, directionZ = 0;
-	
-	collision_test_axis(left, right, bottom, top, back, front, SOLID_LEFT, SOLID_RIGHT, intersectionTimeX, directionX)
-	collision_test_axis(bottom, top, back, front, left, right, SOLID_BOTTOM, SOLID_TOP, intersectionTimeY, directionY)
-	collision_test_axis(back, front, left, right, bottom, top, SOLID_BACK, SOLID_FRONT, intersectionTimeZ, directionZ)
-	
-	if (directionX != 0 || directionY != 0 || directionZ != 0) {
-		if (intersectionTimeX <= intersectionTimeY && intersectionTimeX <= intersectionTimeZ) {
-			*outTime = intersectionTimeX;
-			*outSide = directionX == -1 ? SIDE_LEFT : SIDE_RIGHT;
-			
-		} else if (intersectionTimeY <= intersectionTimeX && intersectionTimeY <= intersectionTimeZ) {
-			*outTime = intersectionTimeY;
-			*outSide = directionY == -1 ? SIDE_BOTTOM : SIDE_TOP;
-			
-		} else {
-			*outTime = intersectionTimeZ;
-			*outSide = directionZ == -1 ? SIDE_BACK : SIDE_FRONT;
-		}
-		
-		return true;
-	}
-	
-	return false;
-}
-*/
-
 static bool intersectSweptLineSegments(fixed16_16 x1Start, fixed16_16 x1End,
                                        fixed16_16 x2Start, fixed16_16 x2End,
                                        fixed16_16 bottom1Start, fixed16_16 top1Start, fixed16_16 bottom1End, fixed16_16 top1End,
@@ -138,6 +80,22 @@ static bool intersectSweptQuads(fixed16_16 x1Start, fixed16_16 x1End,
 	return false;
 }
 */
+
+static bool intersectSweptPoints(fixed16_16 x1Start, fixed16_16 x1End,
+                                 fixed16_16 y1Start, fixed16_16 y1End,
+                                 fixed16_16 x2Start, fixed16_16 x2End,
+                                 fixed16_16 y2Start, fixed16_16 y2End,
+                                 fixed16_16 * outTime) {
+	fixed16_16 time1, time2;
+	
+	time1 = xdiv(x1Start - x2Start, x2End - x2Start - x1End + x1Start);
+	time2 = xdiv(y1Start - y2Start, y2End - y2Start - y1End + y1Start);
+	if (time1 > 0x10000 || time1 < 0x00000 || time2 > 0x10000 || time2 < 0x00000 || time1 != time2) {
+		return false;
+	}
+	*outTime = time1;
+	return true;
+}
 
 bool intersectionHandler_rect2D_rect2D(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal) {
 	fixed16_16 time;
@@ -199,6 +157,66 @@ bool intersectionHandler_rect2D_rect2D(CollisionObject * object1, CollisionObjec
 		}
 		if (outNormal != NULL) {
 			*outNormal = VECTOR3x_UP;
+		}
+		return true;
+	}
+	
+	// rect1 top right corner vs. rect2 bottom left corner
+	if (intersectSweptPoints(rect1->lastPosition.x + rect1->lastSize.x, rect1->position.x + rect1->size.x,
+	                         rect1->lastPosition.y + rect1->lastSize.y, rect1->position.y + rect1->size.y,
+	                         rect2->lastPosition.x, rect2->position.x,
+	                         rect2->lastPosition.y, rect2->position.y,
+	                         &time)) {
+		if (outTime != NULL) {
+			*outTime = time;
+		}
+		if (outNormal != NULL) {
+			*outNormal = VECTOR3x_LEFT;
+		}
+		return true;
+	}
+	
+	// rect1 bottom right corner vs. rect2 top left corner
+	if (intersectSweptPoints(rect1->lastPosition.x + rect1->lastSize.x, rect1->position.x + rect1->size.x,
+	                         rect1->lastPosition.y, rect1->position.y,
+	                         rect2->lastPosition.x, rect2->position.x,
+	                         rect2->lastPosition.y + rect2->lastSize.y, rect2->position.y + rect2->size.y,
+	                         &time)) {
+		if (outTime != NULL) {
+			*outTime = time;
+		}
+		if (outNormal != NULL) {
+			*outNormal = VECTOR3x_LEFT;
+		}
+		return true;
+	}
+	
+	// rect1 top left corner vs. rect2 bottom right corner
+	if (intersectSweptPoints(rect1->lastPosition.x, rect1->position.x,
+	                         rect1->lastPosition.y + rect1->lastSize.y, rect1->position.y + rect1->size.y,
+	                         rect2->lastPosition.x + rect2->lastSize.x, rect2->position.x + rect2->size.x,
+	                         rect2->lastPosition.y, rect2->position.y,
+	                         &time)) {
+		if (outTime != NULL) {
+			*outTime = time;
+		}
+		if (outNormal != NULL) {
+			*outNormal = VECTOR3x_RIGHT;
+		}
+		return true;
+	}
+	
+	// rect1 bottom left corner vs. rect2 top right corner
+	if (intersectSweptPoints(rect1->lastPosition.x, rect1->position.x,
+	                         rect1->lastPosition.y, rect1->position.y,
+	                         rect2->lastPosition.x + rect2->lastSize.x, rect2->position.x + rect2->size.x,
+	                         rect2->lastPosition.y + rect2->lastSize.y, rect2->position.y + rect2->size.y,
+	                         &time)) {
+		if (outTime != NULL) {
+			*outTime = time;
+		}
+		if (outNormal != NULL) {
+			*outNormal = VECTOR3x_RIGHT;
 		}
 		return true;
 	}
