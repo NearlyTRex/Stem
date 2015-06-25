@@ -162,6 +162,8 @@ static void testSqrt() {
 	TestCase_assert(result == 0xB504, "Expected 0xB504 but got 0x%X", result);
 	result = fixed16_16_sqrt((fixed16_16) 0xFFFF0000);
 	TestCase_assert(result == FIXED_16_16_NAN, "Expected 0x%X but got 0x%X", FIXED_16_16_NAN, result);
+	result = fixed16_16_sqrt(0x40004);
+	TestCase_assert(result == 0x20001, "Expected 0x20001 but got 0x%X", result);
 }
 
 static void testFloor() {

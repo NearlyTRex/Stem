@@ -113,7 +113,7 @@ static inline fixed16_16 fixed16_16_abs(fixed16_16 x) {
 }
 
 static inline fixed16_16 fixed16_16_sqrt(fixed16_16 x) {
-	int64_t estimate = 0x10000, lastEstimate = -1;
+	int64_t estimate = 0x10000, lastEstimate = -1, lastEstimate2 = -1;
 	int64_t x64;
 	
 	if (x < 0) {
@@ -123,7 +123,8 @@ static inline fixed16_16 fixed16_16_sqrt(fixed16_16 x) {
 		return 0;
 	}
 	x64 = x;
-	while (estimate != lastEstimate) {
+	while (estimate != lastEstimate && estimate != lastEstimate2) {
+		lastEstimate2 = lastEstimate;
 		lastEstimate = estimate;
 		estimate = (((x64 << 16) / estimate) + estimate) / 2;
 	}
