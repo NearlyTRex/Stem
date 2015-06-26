@@ -97,6 +97,24 @@ static bool intersectSweptPoints(fixed16_16 x1Start, fixed16_16 x1End,
 	return true;
 }
 
+// Adapted from http://www.gamasutra.com/view/feature/131790/simple_intersection_tests_for_games.php?page=2
+static bool quadraticFormula(fixed16_16 a,
+                             fixed16_16 b,
+                             fixed16_16 c,
+                             fixed16_16 * outR1,
+                             fixed16_16 * outR2) {
+	fixed16_16 q = xmul(b, b) - 4 * xmul(a, c);
+	
+	if (q >= 0) {
+		fixed16_16 sq = xsqrt(q);
+		fixed16_16 d = xdiv(0x10000, a * 2);
+		*outR1 = xmul((-b + sq), d);
+		*outR2 = xmul((-b - sq), d);
+		return true;
+	}
+	return false;
+}
+
 bool intersectionHandler_rect2D_rect2D(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal) {
 	fixed16_16 time;
 	CollisionRect2D * rect1 = (CollisionRect2D *) object1, * rect2 = (CollisionRect2D *) object2;
@@ -236,44 +254,42 @@ bool intersectionHandler_rect2D_polygon(CollisionObject * object1, CollisionObje
 	return false;
 }
 
+// Adapted from http://www.gamasutra.com/view/feature/131790/simple_intersection_tests_for_games.php?page=2
 bool intersectionHandler_circle_circle(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal) {
 	CollisionCircle * circle1 = (CollisionCircle *) object1, * circle2 = (CollisionCircle *) object2;
-	fixed16_16 time;
-	fixed16_16 x1Start, y1Start, x1End, y1End;
-	fixed16_16 x2Start, y2Start, x2End, y2End;
-	fixed16_16 radius1, radius2;
 	
-	x1Start = circle1->lastPosition.x;
-	x1End = circle1->lastPosition.y;
-	y1Start = circle1->position.x;
-	y1End = circle1->position.y;
-	x2Start = circle2->lastPosition.x;
-	x2End = circle2->lastPosition.y;
-	y2Start = circle2->position.x;
-	y2End = circle2->position.y;
-	radius1 = circle1->radius;
-	radius2 = circle2->radius;
+	Vector2x circle1Vector          = Vector2x_subtract(circle1->position, circle1->lastPosition);
+	Vector2x circle2Vector          = Vector2x_subtract(circle2->position, circle2->lastPosition);
+	Vector2x circle1ToCircle2Vector = Vector2x_subtract(circle2->lastPosition, circle1->lastPosition);
+	Vector2x relativeVelocity       = Vector2x_subtract(circle2Vector, circle1Vector);
+	fixed16_16 radiusSum = circle1->radius + circle2->radius;
+	fixed16_16 a = Vector2x_dot(relativeVelocity, relativeVelocity);
+	fixed16_16 b = Vector2x_dot(relativeVelocity, circle1ToCircle2Vector) * 2;
+	fixed16_16 c = Vector2x_dot(circle1ToCircle2Vector, circle1ToCircle2Vector) - xmul(radiusSum, radiusSum);
+	fixed16_16 time1 = -1, time2 = -1;
 	
-	time = /* some mess of algebra on above variables */ -1;
-	if (time > 0x10000 || time < 0x00000) {
-		fixed16_16 x1, y1, x2, y2;
-		Vector3x normal;
-		
-		x1 = x1Start + xmul(x1End - x1Start, time);
-		y1 = y1Start + xmul(y1End - y1Start, time);
-		x2 = x2Start + xmul(x2End - x2Start, time);
-		y2 = y2Start + xmul(y2End - y2Start, time);
-		normal.x = x1 - x2;
-		normal.y = y1 - y2;
-		normal.z = 0x00000;
-		Vector3x_normalize(&normal);
-		if (outNormal != NULL) {
-			*outNormal = normal;
+	if (quadraticFormula(a, b, c, &time1, &time2) && time1 != time2) {
+		if (time2 < time1) {
+			time1 = time2;
 		}
-		if (outTime != NULL) {
-			*outTime = time;
+		if (time1 >= 0x00000 && time1 <= 0x10000) {
+			Vector2x position1, position2;
+			Vector3x normal;
+			
+			position1 = Vector2x_interpolate(circle1->lastPosition, circle1->position, time1);
+			position2 = Vector2x_interpolate(circle2->lastPosition, circle2->position, time1);
+			normal.x = position1.x - position2.x;
+			normal.y = position1.y - position2.y;
+			normal.z = 0x00000;
+			Vector3x_normalize(&normal);
+			if (outNormal != NULL) {
+				*outNormal = normal;
+			}
+			if (outTime != NULL) {
+				*outTime = time1;
+			}
+			return true;
 		}
-		return true;
 	}
 	return false;
 }

@@ -56,6 +56,9 @@ void CollisionRect2D_updateSize(CollisionRect2D * self, Vector2x newSize) {
 	self->size = newSize;
 }
 
+void CollisionRect2D_setSolidity(CollisionRect2D * self, bool solidLeft, bool solidRight, bool solidBottom, bool solidTop) {
+}
+
 void CollisionRect2D_interpolate(CollisionRect2D * self, fixed16_16 amount) {
 	self->lastPosition = Vector2x_interpolate(self->lastPosition, self->position, amount);
 	self->lastSize = Vector2x_interpolate(self->lastSize, self->size, amount);
