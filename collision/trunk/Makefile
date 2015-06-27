@@ -61,6 +61,7 @@ SOURCES_library = \
 	source/${PROJECT_NAME}/CollisionRecord.c \
 	source/${PROJECT_NAME}/CollisionRect2D.c \
 	source/${PROJECT_NAME}/CollisionResolver.c \
+	source/${PROJECT_NAME}/CollisionSphere.c \
 	source/${PROJECT_NAME}/CollisionStaticTrimesh.c \
 	source/${PROJECT_NAME}/IntersectionManager.c \
 	source/${PROJECT_NAME}/StandardIntersectionHandlers.c
@@ -74,6 +75,7 @@ SOURCES_unittest_suites = \
 	source/unittest/CollisionRecordTest.c \
 	source/unittest/CollisionRect2DTest.c \
 	source/unittest/CollisionResolverTest.c \
+	source/unittest/CollisionSphereTest.c \
 	source/unittest/CollisionStaticTrimeshTest.c \
 	source/unittest/IntersectionManagerTest.c \
 	source/unittest/StandardIntersectionHandlersTest.c
@@ -90,6 +92,7 @@ INCLUDES = \
 	source/${PROJECT_NAME}/CollisionRect2D.h \
 	source/${PROJECT_NAME}/CollisionResolver.h \
 	source/${PROJECT_NAME}/CollisionShared.h \
+	source/${PROJECT_NAME}/CollisionSphere.h \
 	source/${PROJECT_NAME}/CollisionStaticTrimesh.h \
 	source/${PROJECT_NAME}/IntersectionManager.h \
 	source/${PROJECT_NAME}/StandardIntersectionHandlers.h
