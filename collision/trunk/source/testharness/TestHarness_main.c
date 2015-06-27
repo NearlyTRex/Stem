@@ -27,6 +27,7 @@
 #include "collision/IntersectionManager.h"
 
 #include "gamemath/Matrix.h"
+#include "gamemath/Vector2f.h"
 #include "glgraphics/GLIncludes.h"
 #include "glgraphics/VertexTypes.h"
 #include "shell/Shell.h"
@@ -62,6 +63,9 @@ static unsigned int viewWidth, viewHeight;
 static float viewRatio;
 static IntersectionManager * intersectionManager;
 static CollisionResolver * resolver;
+static Vector2x dragOrigin;
+static bool dragging;
+static size_t selectedObjectIndex;
 
 static void loadScene1() {
 	if (resolver != NULL) {
@@ -92,8 +96,8 @@ static void getCollisionObjectVertices2D(struct vertex_p2f_c4f * outVertices, GL
 				CollisionRect2D * rect = (CollisionRect2D *) object;
 				
 				if (outVertices != NULL) {
-					vertex.color[0] = 1.0f;
-					vertex.color[1] = 1.0f;
+					vertex.color[0] = 0.5f;
+					vertex.color[1] = 0.25f;
 					vertex.color[2] = 0.0f;
 					vertex.color[3] = 1.0f;
 					vertex.position[0] = xtof(rect->lastPosition.x);
@@ -105,21 +109,41 @@ static void getCollisionObjectVertices2D(struct vertex_p2f_c4f * outVertices, GL
 					outVertices[*ioVertexCount + 2] = vertex;
 					vertex.position[0] = xtof(rect->lastPosition.x);
 					outVertices[*ioVertexCount + 3] = vertex;
+					
+					vertex.color[0] = 1.0f;
+					vertex.color[1] = 1.0f;
+					vertex.color[2] = 0.0f;
+					vertex.color[3] = 1.0f;
+					vertex.position[0] = xtof(rect->position.x);
+					vertex.position[1] = xtof(rect->position.y);
+					outVertices[*ioVertexCount + 4] = vertex;
+					vertex.position[0] = xtof(rect->position.x + rect->size.x);
+					outVertices[*ioVertexCount + 5] = vertex;
+					vertex.position[1] = xtof(rect->position.y + rect->size.y);
+					outVertices[*ioVertexCount + 6] = vertex;
+					vertex.position[0] = xtof(rect->position.x);
+					outVertices[*ioVertexCount + 7] = vertex;
 				}
 				
 				if (outIndexes != NULL) {
-					outIndexes[*ioIndexCount + 0] = *ioVertexCount + 0;
-					outIndexes[*ioIndexCount + 1] = *ioVertexCount + 1;
-					outIndexes[*ioIndexCount + 2] = *ioVertexCount + 1;
-					outIndexes[*ioIndexCount + 3] = *ioVertexCount + 2;
-					outIndexes[*ioIndexCount + 4] = *ioVertexCount + 2;
-					outIndexes[*ioIndexCount + 5] = *ioVertexCount + 3;
-					outIndexes[*ioIndexCount + 6] = *ioVertexCount + 3;
-					outIndexes[*ioIndexCount + 7] = *ioVertexCount + 0;
+					unsigned int vertexIndex;
+					
+					for (vertexIndex = 0; vertexIndex < 4; vertexIndex++) {
+						outIndexes[*ioIndexCount + vertexIndex * 2 + 0] = *ioVertexCount + vertexIndex;
+						outIndexes[*ioIndexCount + vertexIndex * 2 + 1] = *ioVertexCount + (vertexIndex + 1) % 4;
+					}
+					for (vertexIndex = 0; vertexIndex < 4; vertexIndex++) {
+						outIndexes[*ioIndexCount + vertexIndex * 2 + 8] = *ioVertexCount + 0 + vertexIndex;
+						outIndexes[*ioIndexCount + vertexIndex * 2 + 9] = *ioVertexCount + 4 + vertexIndex;
+					}
+					for (vertexIndex = 0; vertexIndex < 4; vertexIndex++) {
+						outIndexes[*ioIndexCount + vertexIndex * 2 + 16] = *ioVertexCount + 4 + vertexIndex;
+						outIndexes[*ioIndexCount + vertexIndex * 2 + 17] = *ioVertexCount + 4 + (vertexIndex + 1) % 4;
+					}
 				}
 				
-				*ioVertexCount += 4;
-				*ioIndexCount += 8;
+				*ioVertexCount += 8;
+				*ioIndexCount += 24;
 				break;
 			}
 			case COLLISION_SHAPE_CIRCLE: {
@@ -128,25 +152,51 @@ static void getCollisionObjectVertices2D(struct vertex_p2f_c4f * outVertices, GL
 				
 				if (outVertices != NULL) {
 					vertex.color[0] = 0.0f;
-					vertex.color[1] = 1.0f;
-					vertex.color[2] = 1.0f;
+					vertex.color[1] = 0.25f;
+					vertex.color[2] = 0.5f;
 					vertex.color[3] = 1.0f;
 					for (tesselationIndex = 0; tesselationIndex < CIRCLE_TESSELATIONS; tesselationIndex++) {
 						vertex.position[0] = xtof(circle->lastPosition.x) + xtof(circle->lastRadius) * cos(tesselationIndex * M_PI * 2 / CIRCLE_TESSELATIONS);
 						vertex.position[1] = xtof(circle->lastPosition.y) + xtof(circle->lastRadius) * sin(tesselationIndex * M_PI * 2 / CIRCLE_TESSELATIONS);
 						outVertices[*ioVertexCount + tesselationIndex] = vertex;
 					}
+					
+					vertex.color[1] = 1.0f;
+					vertex.color[2] = 1.0f;
+					for (tesselationIndex = 0; tesselationIndex < CIRCLE_TESSELATIONS; tesselationIndex++) {
+						vertex.position[0] = xtof(circle->position.x) + xtof(circle->radius) * cos(tesselationIndex * M_PI * 2 / CIRCLE_TESSELATIONS);
+						vertex.position[1] = xtof(circle->position.y) + xtof(circle->radius) * sin(tesselationIndex * M_PI * 2 / CIRCLE_TESSELATIONS);
+						outVertices[*ioVertexCount + CIRCLE_TESSELATIONS + tesselationIndex] = vertex;
+					}
 				}
 				
 				if (outIndexes != NULL) {
+					float angle;
+					int bestEdgeIndex;
+					
 					for (tesselationIndex = 0; tesselationIndex < CIRCLE_TESSELATIONS; tesselationIndex++) {
 						outIndexes[*ioIndexCount + tesselationIndex * 2 + 0] = *ioVertexCount + tesselationIndex;
 						outIndexes[*ioIndexCount + tesselationIndex * 2 + 1] = *ioVertexCount + (tesselationIndex + 1) % CIRCLE_TESSELATIONS;
 					}
+					
+					angle = atan2(circle->position.y - circle->lastPosition.y, circle->position.x - circle->lastPosition.x);
+					bestEdgeIndex = (angle + M_PI / 2) * CIRCLE_TESSELATIONS / (M_PI * 2);
+					bestEdgeIndex = (bestEdgeIndex % CIRCLE_TESSELATIONS + CIRCLE_TESSELATIONS) % CIRCLE_TESSELATIONS;
+					outIndexes[*ioIndexCount + CIRCLE_TESSELATIONS * 2 + 0] = *ioVertexCount + bestEdgeIndex;
+					outIndexes[*ioIndexCount + CIRCLE_TESSELATIONS * 2 + 1] = *ioVertexCount + bestEdgeIndex + CIRCLE_TESSELATIONS;
+					bestEdgeIndex += CIRCLE_TESSELATIONS / 2;
+					bestEdgeIndex %= CIRCLE_TESSELATIONS;
+					outIndexes[*ioIndexCount + CIRCLE_TESSELATIONS * 2 + 2] = *ioVertexCount + bestEdgeIndex;
+					outIndexes[*ioIndexCount + CIRCLE_TESSELATIONS * 2 + 3] = *ioVertexCount + bestEdgeIndex + CIRCLE_TESSELATIONS;
+					
+					for (tesselationIndex = 0; tesselationIndex < CIRCLE_TESSELATIONS; tesselationIndex++) {
+						outIndexes[*ioIndexCount + CIRCLE_TESSELATIONS * 2 + 4 + tesselationIndex * 2] = *ioVertexCount + CIRCLE_TESSELATIONS + tesselationIndex;
+						outIndexes[*ioIndexCount + CIRCLE_TESSELATIONS * 2 + 5 + tesselationIndex * 2] = *ioVertexCount + CIRCLE_TESSELATIONS + (tesselationIndex + 1) % CIRCLE_TESSELATIONS;
+					}
 				}
 				
-				*ioVertexCount += CIRCLE_TESSELATIONS;
-				*ioIndexCount += CIRCLE_TESSELATIONS * 2;
+				*ioVertexCount += CIRCLE_TESSELATIONS * 2;
+				*ioIndexCount += CIRCLE_TESSELATIONS * 4 + 4;
 				break;
 			}
 		}
@@ -166,7 +216,6 @@ static bool Target_draw() {
 		glGenBuffersARB(1, &indexBufferID);
 	}
 	
-	glClearColor(0.0f, 0.25f, 0.5f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 	
 	vertexCount = indexCount = 0;
@@ -200,22 +249,78 @@ static bool Target_draw() {
 	return true;
 }
 
+static Vector2x transformMousePosition(float x, float y) {
+	Vector2x result;
+	
+	result.x = ftox((x - viewWidth / 2) / viewWidth * 2 * 12 * viewRatio);
+	result.y = ftox((viewHeight / 2 - y) / viewHeight * 2 * 12);
+	return result;
+}
+
 static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned int modifiers, bool isRepeat) {
+	if (keyCode == KEYBOARD_RETURN_OR_ENTER && (modifiers & MODIFIER_ALT_BIT)) {
+		if (Shell_isFullScreen()) {
+			Shell_exitFullScreen();
+		} else {
+			Shell_enterFullScreen(Shell_getDisplayIndexFromWindow());
+		}
+		
+	} else if (keyCode == KEYBOARD_TAB && !dragging) {
+		selectedObjectIndex++;
+		selectedObjectIndex %= resolver->objectCount;
+	}
 }
 
 static void Target_keyUp(unsigned int keyCode, unsigned int modifiers) {
 }
 
 static void Target_mouseDown(unsigned int buttonNumber, float x, float y) {
+	CollisionObject * object = resolver->objects[selectedObjectIndex];
+	
+	dragOrigin = transformMousePosition(x, y);
+	switch (object->shapeType) {
+		case COLLISION_SHAPE_RECT_2D: {
+			CollisionRect2D * rect = (CollisionRect2D *) object;
+			dragOrigin.x -= rect->position.x;
+			dragOrigin.y -= rect->position.y;
+			break;
+		}
+		case COLLISION_SHAPE_CIRCLE: {
+			CollisionCircle * circle = (CollisionCircle *) object;
+			dragOrigin.x -= circle->position.x;
+			dragOrigin.y -= circle->position.y;
+			break;
+		}
+	}
+	dragging = true;
 }
 
 static void Target_mouseUp(unsigned int buttonNumber, float x, float y) {
+	dragging = false;
 }
 
 static void Target_mouseMoved(float x, float y) {
 }
 
 static void Target_mouseDragged(unsigned int buttonMask, float x, float y) {
+	Vector2x mousePosition = transformMousePosition(x, y);
+	CollisionObject * object = resolver->objects[selectedObjectIndex];
+	
+	switch (object->shapeType) {
+		case COLLISION_SHAPE_RECT_2D: {
+			CollisionRect2D * rect = (CollisionRect2D *) object;
+			rect->position.x = mousePosition.x - dragOrigin.x;
+			rect->position.y = mousePosition.y - dragOrigin.y;
+			break;
+		}
+		case COLLISION_SHAPE_CIRCLE: {
+			CollisionCircle * circle = (CollisionCircle *) object;
+			circle->position.x = mousePosition.x - dragOrigin.x;
+			circle->position.y = mousePosition.y - dragOrigin.y;
+			break;
+		}
+	}
+	Shell_redisplay();
 }
 
 static void Target_resized(unsigned int newWidth, unsigned int newHeight) {
@@ -246,6 +351,7 @@ static void registerShellCallbacks() {
 
 #if defined(STEM_PLATFORM_macosx)
 void NSOpenGLTarget_configure(int argc, const char ** argv, struct NSOpenGLShellConfiguration * configuration) {
+	configuration->fullScreenMenuItem = true;
 #elif defined(STEM_PLATFORM_win32) || defined(STEM_PLATFORM_win64)
 void WGLTarget_configure(void * instance, void * prevInstance, char * commandLine, int command, int argc, const char ** argv, struct WGLShellConfiguration * configuration) {
 #elif defined(STEM_PLATFORM_linux32) || defined(STEM_PLATFORM_linux64)
@@ -260,5 +366,8 @@ void GLXTarget_configure(int argc, const char ** argv, struct GLXShellConfigurat
 void Target_init() {
 	intersectionManager = IntersectionManager_createWithStandardHandlers();
 	loadScene1();
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	Shell_setVSync(false, false);
+	Shell_setVSync(false, true);
 	Shell_mainLoop();
 }
