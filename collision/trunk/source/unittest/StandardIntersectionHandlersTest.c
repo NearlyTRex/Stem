@@ -195,6 +195,30 @@ static void testRect2D_rect2D() {
 	result = intersectionHandler_rect2D_rect2D((CollisionObject *) rect1, (CollisionObject *) rect2, &time, &normal);
 	TestCase_assert(!result, "Expected false but got true");
 	
+	// rect1 moving -x from inside rect2
+	CollisionRect2D_updatePosition(rect1, VECTOR2x(0x00000, 0x00000));
+	CollisionRect2D_updatePosition(rect1, VECTOR2x(-0x20000, 0x00000));
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) rect1, (CollisionObject *) rect2, &time, &normal);
+	TestCase_assert(!result, "Expected false but got true");
+	
+	// rect1 moving +x from inside rect2
+	CollisionRect2D_updatePosition(rect1, VECTOR2x(0x00000, 0x00000));
+	CollisionRect2D_updatePosition(rect1, VECTOR2x(0x20000, 0x00000));
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) rect1, (CollisionObject *) rect2, &time, &normal);
+	TestCase_assert(!result, "Expected false but got true");
+	
+	// rect1 moving -y from inside rect2
+	CollisionRect2D_updatePosition(rect1, VECTOR2x(0x00000, 0x00000));
+	CollisionRect2D_updatePosition(rect1, VECTOR2x(0x00000, -0x20000));
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) rect1, (CollisionObject *) rect2, &time, &normal);
+	TestCase_assert(!result, "Expected false but got true");
+	
+	// rect1 moving +y from inside rect2
+	CollisionRect2D_updatePosition(rect1, VECTOR2x(0x00000, 0x00000));
+	CollisionRect2D_updatePosition(rect1, VECTOR2x(0x00000, 0x20000));
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) rect1, (CollisionObject *) rect2, &time, &normal);
+	TestCase_assert(!result, "Expected false but got true");
+	
 	// Scrap above; new tests should verify basic functionality and important edge cases without trying to be exhaustive
 	// * rect1 moving +x, rect2 stationary
 	// * rect1 stationary, rect2 moving -x
@@ -204,7 +228,7 @@ static void testRect2D_rect2D() {
 	// * rect1 -y, rect2 stationary
 	// * Corner collision
 	// * Misses that pass through each plane
-	// Start inside and move outward
+	// * Start inside and move outward
 	// Variations: Size, changing size, concavity, side solidity (need API)
 	
 	TestCase_assert(false, "Unimplemented");
