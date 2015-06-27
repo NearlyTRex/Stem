@@ -77,9 +77,10 @@ static void loadScene1() {
 		CollisionResolver_dispose(resolver);
 	}
 	resolver = CollisionResolver_create(intersectionManager, false, MAX_SIMULTANEOUS_COLLISIONS_DEFAULT, MAX_ITERATIONS_DEFAULT);
-	CollisionResolver_addObject(resolver, CollisionRect2D_create(NULL, NULL, VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000), false));
-	CollisionResolver_addObject(resolver, CollisionRect2D_create(NULL, NULL, VECTOR2x(0x20000, -0x40000), VECTOR2x(0x50000, 0x20000), false));
-	CollisionResolver_addObject(resolver, CollisionCircle_create(NULL, NULL, VECTOR2x(-0x30000, 0x00000), 0x10000, false));
+	CollisionResolver_addObject(resolver, (CollisionObject *) CollisionRect2D_create(NULL, NULL, VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000), false));
+	CollisionResolver_addObject(resolver, (CollisionObject *) CollisionRect2D_create(NULL, NULL, VECTOR2x(0x20000, -0x40000), VECTOR2x(0x50000, 0x20000), false));
+	CollisionResolver_addObject(resolver, (CollisionObject *) CollisionCircle_create(NULL, NULL, VECTOR2x(-0x30000, 0x00000), 0x10000, false));
+	CollisionResolver_addObject(resolver, (CollisionObject *) CollisionCircle_create(NULL, NULL, VECTOR2x(-0x20000, 0x50000), 0x08000, false));
 }
 
 #define CIRCLE_TESSELATIONS 64
@@ -88,9 +89,12 @@ static void getCollisionObjectVertices2D(struct vertex_p2f_c4f * outVertices, GL
 	size_t objectIndex;
 	CollisionObject * object;
 	struct vertex_p2f_c4f vertex;
+	bool colliding;
+	CollisionRecord collision;
 	
 	for (objectIndex = 0; objectIndex < resolver->objectCount; objectIndex++) {
 		object = resolver->objects[objectIndex];
+		colliding = CollisionResolver_querySingle(resolver, object, &collision);
 		switch (object->shapeType) {
 			case COLLISION_SHAPE_RECT_2D: {
 				CollisionRect2D * rect = (CollisionRect2D *) object;
@@ -110,10 +114,17 @@ static void getCollisionObjectVertices2D(struct vertex_p2f_c4f * outVertices, GL
 					vertex.position[0] = xtof(rect->lastPosition.x);
 					outVertices[*ioVertexCount + 3] = vertex;
 					
-					vertex.color[0] = 1.0f;
-					vertex.color[1] = 1.0f;
-					vertex.color[2] = 0.0f;
-					vertex.color[3] = 1.0f;
+					if (colliding) {
+						vertex.color[0] = 1.0f;
+						vertex.color[1] = 0.0f;
+						vertex.color[2] = 0.0f;
+						vertex.color[3] = 1.0f;
+					} else {
+						vertex.color[0] = 1.0f;
+						vertex.color[1] = 1.0f;
+						vertex.color[2] = 0.0f;
+						vertex.color[3] = 1.0f;
+					}
 					vertex.position[0] = xtof(rect->position.x);
 					vertex.position[1] = xtof(rect->position.y);
 					outVertices[*ioVertexCount + 4] = vertex;
@@ -161,8 +172,17 @@ static void getCollisionObjectVertices2D(struct vertex_p2f_c4f * outVertices, GL
 						outVertices[*ioVertexCount + tesselationIndex] = vertex;
 					}
 					
-					vertex.color[1] = 1.0f;
-					vertex.color[2] = 1.0f;
+					if (colliding) {
+						vertex.color[0] = 1.0f;
+						vertex.color[1] = 0.0f;
+						vertex.color[2] = 0.0f;
+						vertex.color[3] = 1.0f;
+					} else {
+						vertex.color[0] = 0.0f;
+						vertex.color[1] = 1.0f;
+						vertex.color[2] = 1.0f;
+						vertex.color[3] = 1.0f;
+					}
 					for (tesselationIndex = 0; tesselationIndex < CIRCLE_TESSELATIONS; tesselationIndex++) {
 						vertex.position[0] = xtof(circle->position.x) + xtof(circle->radius) * cos(tesselationIndex * M_PI * 2 / CIRCLE_TESSELATIONS);
 						vertex.position[1] = xtof(circle->position.y) + xtof(circle->radius) * sin(tesselationIndex * M_PI * 2 / CIRCLE_TESSELATIONS);

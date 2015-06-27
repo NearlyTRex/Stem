@@ -53,7 +53,7 @@ void CollisionResolver_dispose(CollisionResolver * self) {
 	call_super(dispose, self);
 }
 
-void CollisionResolver_addObject(CollisionResolver * self, compat_type(CollisionObject *) object) {
+void CollisionResolver_addObject(CollisionResolver * self, CollisionObject * object) {
 	size_t objectIndex;
 	
 	for (objectIndex = 0; objectIndex < self->objectCount; objectIndex++) {
@@ -69,7 +69,7 @@ void CollisionResolver_addObject(CollisionResolver * self, compat_type(Collision
 	self->objects[self->objectCount++] = object;
 }
 
-void CollisionResolver_removeObject(CollisionResolver * self, compat_type(CollisionObject *) object) {
+void CollisionResolver_removeObject(CollisionResolver * self, CollisionObject * object) {
 	size_t objectIndex;
 	
 	for (objectIndex = 0; objectIndex < self->objectCount; objectIndex++) {
@@ -114,7 +114,7 @@ static bool CollisionResolver_queryPairInternal(CollisionResolver * self, Collis
 	return false;
 }
 
-bool CollisionResolver_querySingle(CollisionResolver * self, compat_type(CollisionObject *) object, CollisionRecord * outCollision) {
+bool CollisionResolver_querySingle(CollisionResolver * self, CollisionObject * object, CollisionRecord * outCollision) {
 	size_t objectIndex;
 	CollisionRecord collision, bestCollision = {NULL, NULL, {0, 0, 0}, FIXED_16_16_MAX};
 	

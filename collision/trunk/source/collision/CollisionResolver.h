@@ -67,13 +67,13 @@ void CollisionResolver_dispose(CollisionResolver * self);
 
 // Adds/removes objects to/from the list of collidable objects tracked by CollisionResolver.
 // Objects in this list are used by querySingle, findEarliest, and resolveAll.
-void CollisionResolver_addObject(CollisionResolver * self, compat_type(CollisionObject *) object);
-void CollisionResolver_removeObject(CollisionResolver * self, compat_type(CollisionObject *) object);
+void CollisionResolver_addObject(CollisionResolver * self, CollisionObject * object);
+void CollisionResolver_removeObject(CollisionResolver * self, CollisionObject * object);
 
 // Performs an intersection test between object and all other collidable objects in list, returning true on intersection.
 // Works regardless of whether object has been added to CollisionResolver's list.
 // Does not call CollisionCallback; only returns the information of a potential collision if one exists.
-bool CollisionResolver_querySingle(CollisionResolver * self, compat_type(CollisionObject *) object, CollisionRecord * outCollision);
+bool CollisionResolver_querySingle(CollisionResolver * self, CollisionObject * object, CollisionRecord * outCollision);
 
 // Performs intersection tests on all pairs of objects in list, and returns information about the earliest available
 // collisions, if any. If multiple collisions occur at the same time, this function will write all of them to
