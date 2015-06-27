@@ -64,8 +64,9 @@ static float viewRatio;
 static IntersectionManager * intersectionManager;
 static CollisionResolver * resolver;
 static Vector2x dragOrigin;
-static bool dragging;
+static bool dragging, draggingLastPosition;
 static size_t selectedObjectIndex;
+static bool shiftKeyDown;
 
 static void loadScene1() {
 	if (resolver != NULL) {
@@ -98,6 +99,7 @@ static void getCollisionObjectVertices2D(struct vertex_p2f_c4f * outVertices, GL
 		switch (object->shapeType) {
 			case COLLISION_SHAPE_RECT_2D: {
 				CollisionRect2D * rect = (CollisionRect2D *) object;
+				unsigned int vertexIndex;
 				
 				if (outVertices != NULL) {
 					vertex.color[0] = 0.5f;
@@ -137,8 +139,6 @@ static void getCollisionObjectVertices2D(struct vertex_p2f_c4f * outVertices, GL
 				}
 				
 				if (outIndexes != NULL) {
-					unsigned int vertexIndex;
-					
 					for (vertexIndex = 0; vertexIndex < 4; vertexIndex++) {
 						outIndexes[*ioIndexCount + vertexIndex * 2 + 0] = *ioVertexCount + vertexIndex;
 						outIndexes[*ioIndexCount + vertexIndex * 2 + 1] = *ioVertexCount + (vertexIndex + 1) % 4;
@@ -155,6 +155,36 @@ static void getCollisionObjectVertices2D(struct vertex_p2f_c4f * outVertices, GL
 				
 				*ioVertexCount += 8;
 				*ioIndexCount += 24;
+				
+				if (colliding) {
+					Vector2x collidingPosition = Vector2x_interpolate(rect->lastPosition, rect->position, collision.time);
+					Vector2x collidingSize = Vector2x_interpolate(rect->lastSize, rect->size, collision.time);
+					
+					if (outVertices != NULL) {
+						vertex.color[0] = 1.0f;
+						vertex.color[1] = 1.0f;
+						vertex.color[2] = 0.0f;
+						vertex.color[3] = 1.0f;
+						vertex.position[0] = xtof(collidingPosition.x);
+						vertex.position[1] = xtof(collidingPosition.y);
+						outVertices[*ioVertexCount + 0] = vertex;
+						vertex.position[0] = xtof(collidingPosition.x + collidingSize.x);
+						outVertices[*ioVertexCount + 1] = vertex;
+						vertex.position[1] = xtof(collidingPosition.y + collidingSize.y);
+						outVertices[*ioVertexCount + 2] = vertex;
+						vertex.position[0] = xtof(collidingPosition.x);
+						outVertices[*ioVertexCount + 3] = vertex;
+					}
+					if (outIndexes != NULL) {
+						for (vertexIndex = 0; vertexIndex < 4; vertexIndex++) {
+							outIndexes[*ioIndexCount + vertexIndex * 2 + 0] = *ioVertexCount + vertexIndex;
+							outIndexes[*ioIndexCount + vertexIndex * 2 + 1] = *ioVertexCount + (vertexIndex + 1) % 4;
+						}
+					}
+					
+					*ioVertexCount += 4;
+					*ioIndexCount += 8;
+				}
 				break;
 			}
 			case COLLISION_SHAPE_CIRCLE: {
@@ -217,6 +247,33 @@ static void getCollisionObjectVertices2D(struct vertex_p2f_c4f * outVertices, GL
 				
 				*ioVertexCount += CIRCLE_TESSELATIONS * 2;
 				*ioIndexCount += CIRCLE_TESSELATIONS * 4 + 4;
+				
+				if (colliding) {
+					Vector2x collidingPosition = Vector2x_interpolate(circle->lastPosition, circle->position, collision.time);
+					fixed16_16 collidingRadius = xmul(circle->lastRadius, (0x10000 - collision.time)) + xmul(circle->radius, collision.time);
+					
+					if (outVertices != NULL) {
+						vertex.color[0] = 0.0f;
+						vertex.color[1] = 1.0f;
+						vertex.color[2] = 1.0f;
+						vertex.color[3] = 1.0f;
+						for (tesselationIndex = 0; tesselationIndex < CIRCLE_TESSELATIONS; tesselationIndex++) {
+							vertex.position[0] = xtof(collidingPosition.x) + xtof(collidingRadius) * cos(tesselationIndex * M_PI * 2 / CIRCLE_TESSELATIONS);
+							vertex.position[1] = xtof(collidingPosition.y) + xtof(collidingRadius) * sin(tesselationIndex * M_PI * 2 / CIRCLE_TESSELATIONS);
+							outVertices[*ioVertexCount + tesselationIndex] = vertex;
+						}
+					}
+					
+					if (outIndexes != NULL) {
+						for (tesselationIndex = 0; tesselationIndex < CIRCLE_TESSELATIONS; tesselationIndex++) {
+							outIndexes[*ioIndexCount + tesselationIndex * 2 + 0] = *ioVertexCount + tesselationIndex;
+							outIndexes[*ioIndexCount + tesselationIndex * 2 + 1] = *ioVertexCount + (tesselationIndex + 1) % CIRCLE_TESSELATIONS;
+						}
+					}
+					
+					*ioVertexCount += CIRCLE_TESSELATIONS;
+					*ioIndexCount += CIRCLE_TESSELATIONS * 2;
+				}
 				break;
 			}
 		}
@@ -294,21 +351,36 @@ static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned
 static void Target_keyUp(unsigned int keyCode, unsigned int modifiers) {
 }
 
+static void Target_keyModifiersChanged(unsigned int modifiers) {
+	shiftKeyDown = !!(modifiers & MODIFIER_SHIFT_BIT);
+}
+
 static void Target_mouseDown(unsigned int buttonNumber, float x, float y) {
 	CollisionObject * object = resolver->objects[selectedObjectIndex];
 	
 	dragOrigin = transformMousePosition(x, y);
+	draggingLastPosition = shiftKeyDown;
 	switch (object->shapeType) {
 		case COLLISION_SHAPE_RECT_2D: {
 			CollisionRect2D * rect = (CollisionRect2D *) object;
-			dragOrigin.x -= rect->position.x;
-			dragOrigin.y -= rect->position.y;
+			if (draggingLastPosition) {
+				dragOrigin.x -= rect->lastPosition.x;
+				dragOrigin.y -= rect->lastPosition.y;
+			} else {
+				dragOrigin.x -= rect->position.x;
+				dragOrigin.y -= rect->position.y;
+			}
 			break;
 		}
 		case COLLISION_SHAPE_CIRCLE: {
 			CollisionCircle * circle = (CollisionCircle *) object;
-			dragOrigin.x -= circle->position.x;
-			dragOrigin.y -= circle->position.y;
+			if (draggingLastPosition) {
+				dragOrigin.x -= circle->lastPosition.x;
+				dragOrigin.y -= circle->lastPosition.y;
+			} else {
+				dragOrigin.x -= circle->position.x;
+				dragOrigin.y -= circle->position.y;
+			}
 			break;
 		}
 	}
@@ -329,14 +401,24 @@ static void Target_mouseDragged(unsigned int buttonMask, float x, float y) {
 	switch (object->shapeType) {
 		case COLLISION_SHAPE_RECT_2D: {
 			CollisionRect2D * rect = (CollisionRect2D *) object;
-			rect->position.x = mousePosition.x - dragOrigin.x;
-			rect->position.y = mousePosition.y - dragOrigin.y;
+			if (draggingLastPosition) {
+				rect->lastPosition.x = mousePosition.x - dragOrigin.x;
+				rect->lastPosition.y = mousePosition.y - dragOrigin.y;
+			} else {
+				rect->position.x = mousePosition.x - dragOrigin.x;
+				rect->position.y = mousePosition.y - dragOrigin.y;
+			}
 			break;
 		}
 		case COLLISION_SHAPE_CIRCLE: {
 			CollisionCircle * circle = (CollisionCircle *) object;
-			circle->position.x = mousePosition.x - dragOrigin.x;
-			circle->position.y = mousePosition.y - dragOrigin.y;
+			if (draggingLastPosition) {
+				circle->lastPosition.x = mousePosition.x - dragOrigin.x;
+				circle->lastPosition.y = mousePosition.y - dragOrigin.y;
+			} else {
+				circle->position.x = mousePosition.x - dragOrigin.x;
+				circle->position.y = mousePosition.y - dragOrigin.y;
+			}
 			break;
 		}
 	}
@@ -361,6 +443,7 @@ static void registerShellCallbacks() {
 	Shell_resizeFunc(Target_resized);
 	Shell_keyDownFunc(Target_keyDown);
 	Shell_keyUpFunc(Target_keyUp);
+	Shell_keyModifiersChangedFunc(Target_keyModifiersChanged);
 	Shell_mouseDownFunc(Target_mouseDown);
 	Shell_mouseUpFunc(Target_mouseUp);
 	Shell_mouseMovedFunc(Target_mouseMoved);
