@@ -3,7 +3,7 @@
 #include "unittest/TestSuite.h"
 
 static void verifyInit(int line, CollisionCircle * circle, void * owner, CollisionCallback collisionCallback, Vector2x position, fixed16_16 radius) {
-	TestCase_assert(circle != NULL, "Expected non-NULL but got NULL (line %d)", circle, line);
+	TestCase_assert(circle != NULL, "Expected non-NULL but got NULL (line %d)", line);
 	TestCase_assert(circle->dispose == CollisionCircle_dispose, "Expected %p but got %p (line %d)", CollisionCircle_dispose, circle->dispose, line);
 	TestCase_assert(circle->shapeType == COLLISION_SHAPE_CIRCLE, "Expected %d but got %d (line %d)", COLLISION_SHAPE_CIRCLE, circle->shapeType, line);
 	TestCase_assert(circle->owner == owner, "Expected %p but got %p (line %d)", owner, circle->owner, line);

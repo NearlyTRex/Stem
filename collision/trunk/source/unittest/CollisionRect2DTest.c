@@ -3,7 +3,7 @@
 #include "unittest/TestSuite.h"
 
 static void verifyInit(int line, CollisionRect2D * rect, void * owner, CollisionCallback collisionCallback, Vector2x position, Vector2x size) {
-	TestCase_assert(rect != NULL, "Expected non-NULL but got NULL (line %d)", rect, line);
+	TestCase_assert(rect != NULL, "Expected non-NULL but got NULL (line %d)", line);
 	TestCase_assert(rect->dispose == CollisionRect2D_dispose, "Expected %p but got %p (line %d)", CollisionRect2D_dispose, rect->dispose, line);
 	TestCase_assert(rect->shapeType == COLLISION_SHAPE_RECT_2D, "Expected %d but got %d (line %d)", COLLISION_SHAPE_RECT_2D, rect->shapeType, line);
 	TestCase_assert(rect->owner == owner, "Expected %p but got %p (line %d)", owner, rect->owner, line);
