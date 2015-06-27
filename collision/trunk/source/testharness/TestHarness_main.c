@@ -86,6 +86,12 @@ static void loadScene1() {
 
 #define CIRCLE_TESSELATIONS 64
 
+static void highlightVertexColor(GLfloat * color) {
+	color[0] = 0.5f + color[0] * 0.5f;
+	color[1] = 0.5f + color[1] * 0.5f;
+	color[2] = 0.5f + color[2] * 0.5f;
+}
+
 static void getCollisionObjectVertices2D(struct vertex_p2f_c4f * outVertices, GLuint * outIndexes, size_t * ioVertexCount, size_t * ioIndexCount) {
 	size_t objectIndex;
 	CollisionObject * object;
@@ -106,6 +112,9 @@ static void getCollisionObjectVertices2D(struct vertex_p2f_c4f * outVertices, GL
 					vertex.color[1] = 0.25f;
 					vertex.color[2] = 0.0f;
 					vertex.color[3] = 1.0f;
+					if (objectIndex == selectedObjectIndex) {
+						highlightVertexColor(vertex.color);
+					}
 					vertex.position[0] = xtof(rect->lastPosition.x);
 					vertex.position[1] = xtof(rect->lastPosition.y);
 					outVertices[*ioVertexCount + 0] = vertex;
@@ -126,6 +135,9 @@ static void getCollisionObjectVertices2D(struct vertex_p2f_c4f * outVertices, GL
 						vertex.color[1] = 1.0f;
 						vertex.color[2] = 0.0f;
 						vertex.color[3] = 1.0f;
+					}
+					if (objectIndex == selectedObjectIndex) {
+						highlightVertexColor(vertex.color);
 					}
 					vertex.position[0] = xtof(rect->position.x);
 					vertex.position[1] = xtof(rect->position.y);
@@ -165,6 +177,9 @@ static void getCollisionObjectVertices2D(struct vertex_p2f_c4f * outVertices, GL
 						vertex.color[1] = 1.0f;
 						vertex.color[2] = 0.0f;
 						vertex.color[3] = 1.0f;
+						if (objectIndex == selectedObjectIndex) {
+							highlightVertexColor(vertex.color);
+						}
 						vertex.position[0] = xtof(collidingPosition.x);
 						vertex.position[1] = xtof(collidingPosition.y);
 						outVertices[*ioVertexCount + 0] = vertex;
@@ -196,6 +211,9 @@ static void getCollisionObjectVertices2D(struct vertex_p2f_c4f * outVertices, GL
 					vertex.color[1] = 0.25f;
 					vertex.color[2] = 0.5f;
 					vertex.color[3] = 1.0f;
+					if (objectIndex == selectedObjectIndex) {
+						highlightVertexColor(vertex.color);
+					}
 					for (tesselationIndex = 0; tesselationIndex < CIRCLE_TESSELATIONS; tesselationIndex++) {
 						vertex.position[0] = xtof(circle->lastPosition.x) + xtof(circle->lastRadius) * cos(tesselationIndex * M_PI * 2 / CIRCLE_TESSELATIONS);
 						vertex.position[1] = xtof(circle->lastPosition.y) + xtof(circle->lastRadius) * sin(tesselationIndex * M_PI * 2 / CIRCLE_TESSELATIONS);
@@ -212,6 +230,9 @@ static void getCollisionObjectVertices2D(struct vertex_p2f_c4f * outVertices, GL
 						vertex.color[1] = 1.0f;
 						vertex.color[2] = 1.0f;
 						vertex.color[3] = 1.0f;
+					}
+					if (objectIndex == selectedObjectIndex) {
+						highlightVertexColor(vertex.color);
 					}
 					for (tesselationIndex = 0; tesselationIndex < CIRCLE_TESSELATIONS; tesselationIndex++) {
 						vertex.position[0] = xtof(circle->position.x) + xtof(circle->radius) * cos(tesselationIndex * M_PI * 2 / CIRCLE_TESSELATIONS);
@@ -257,6 +278,9 @@ static void getCollisionObjectVertices2D(struct vertex_p2f_c4f * outVertices, GL
 						vertex.color[1] = 1.0f;
 						vertex.color[2] = 1.0f;
 						vertex.color[3] = 1.0f;
+						if (objectIndex == selectedObjectIndex) {
+							highlightVertexColor(vertex.color);
+						}
 						for (tesselationIndex = 0; tesselationIndex < CIRCLE_TESSELATIONS; tesselationIndex++) {
 							vertex.position[0] = xtof(collidingPosition.x) + xtof(collidingRadius) * cos(tesselationIndex * M_PI * 2 / CIRCLE_TESSELATIONS);
 							vertex.position[1] = xtof(collidingPosition.y) + xtof(collidingRadius) * sin(tesselationIndex * M_PI * 2 / CIRCLE_TESSELATIONS);
@@ -345,6 +369,7 @@ static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned
 	} else if (keyCode == KEYBOARD_TAB && !dragging) {
 		selectedObjectIndex++;
 		selectedObjectIndex %= resolver->objectCount;
+		Shell_redisplay();
 	}
 }
 
