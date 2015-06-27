@@ -120,7 +120,8 @@ bool intersectionHandler_rect2D_rect2D(CollisionObject * object1, CollisionObjec
 	CollisionRect2D * rect1 = (CollisionRect2D *) object1, * rect2 = (CollisionRect2D *) object2;
 	
 	// rect1 right vs. rect2 left
-	if ((rect1->position.x + rect1->size.x) - (rect1->lastPosition.x + rect1->lastSize.x) > rect2->position.x - rect2->lastPosition.x && 
+	if (rect1->solidRight && rect2->solidLeft &&
+	    (rect1->position.x + rect1->size.x) - (rect1->lastPosition.x + rect1->lastSize.x) > rect2->position.x - rect2->lastPosition.x && 
 	    intersectSweptLineSegments(rect1->lastPosition.x + rect1->lastSize.x, rect1->position.x + rect1->size.x,
 	                               rect2->lastPosition.x, rect2->position.x,
 	                               rect1->lastPosition.y, rect1->lastPosition.y + rect1->lastSize.y, rect1->position.y, rect1->position.y + rect1->size.y,
@@ -136,7 +137,8 @@ bool intersectionHandler_rect2D_rect2D(CollisionObject * object1, CollisionObjec
 	}
 	
 	// rect1 left vs. rect2 right
-	if (rect1->position.x - rect1->lastPosition.x < (rect2->position.x + rect2->size.x) - (rect2->lastPosition.x + rect2->lastSize.x) && 
+	if (rect1->solidLeft && rect2->solidRight &&
+	    rect1->position.x - rect1->lastPosition.x < (rect2->position.x + rect2->size.x) - (rect2->lastPosition.x + rect2->lastSize.x) && 
 	    intersectSweptLineSegments(rect1->lastPosition.x, rect1->position.x,
 	                               rect2->lastPosition.x + rect2->lastSize.x, rect2->position.x + rect2->size.x,
 	                               rect1->lastPosition.y, rect1->lastPosition.y + rect1->lastSize.y, rect1->position.y, rect1->position.y + rect1->size.y,
@@ -152,7 +154,8 @@ bool intersectionHandler_rect2D_rect2D(CollisionObject * object1, CollisionObjec
 	}
 	
 	// rect1 top vs. rect2 bottom
-	if ((rect1->position.y + rect1->size.y) - (rect1->lastPosition.y + rect1->lastSize.y) > rect2->position.y - rect2->lastPosition.y && 
+	if (rect1->solidTop && rect2->solidBottom &&
+	    (rect1->position.y + rect1->size.y) - (rect1->lastPosition.y + rect1->lastSize.y) > rect2->position.y - rect2->lastPosition.y && 
 	    intersectSweptLineSegments(rect1->lastPosition.y + rect1->lastSize.y, rect1->position.y + rect1->size.y,
 	                               rect2->lastPosition.y, rect2->position.y,
 	                               rect1->lastPosition.x, rect1->lastPosition.x + rect1->lastSize.x, rect1->position.x, rect1->position.x + rect1->size.x,
@@ -168,7 +171,8 @@ bool intersectionHandler_rect2D_rect2D(CollisionObject * object1, CollisionObjec
 	}
 	
 	// rect1 bottom vs. rect2 top
-	if (rect1->position.y - rect1->lastPosition.y < (rect2->position.y + rect2->size.y) - (rect2->lastPosition.y + rect2->lastSize.y) && 
+	if (rect1->solidBottom && rect2->solidTop &&
+	    rect1->position.y - rect1->lastPosition.y < (rect2->position.y + rect2->size.y) - (rect2->lastPosition.y + rect2->lastSize.y) && 
 	    intersectSweptLineSegments(rect1->lastPosition.y, rect1->position.y,
 	                               rect2->lastPosition.y + rect2->lastSize.y, rect2->position.y + rect2->size.y,
 	                               rect1->lastPosition.x, rect1->lastPosition.x + rect1->lastSize.x, rect1->position.x, rect1->position.x + rect1->size.x,
@@ -184,7 +188,10 @@ bool intersectionHandler_rect2D_rect2D(CollisionObject * object1, CollisionObjec
 	}
 	
 	// rect1 top right corner vs. rect2 bottom left corner
-	if (intersectSweptPoints(rect1->lastPosition.x + rect1->lastSize.x, rect1->position.x + rect1->size.x,
+	if (rect1->solidRight && rect1->solidTop && rect2->solidLeft && rect2->solidBottom &&
+	    (rect1->position.x + rect1->size.x) - (rect1->lastPosition.x + rect1->lastSize.x) > rect2->position.x - rect2->lastPosition.x && 
+	    (rect1->position.y + rect1->size.y) - (rect1->lastPosition.y + rect1->lastSize.y) > rect2->position.y - rect2->lastPosition.y && 
+	    intersectSweptPoints(rect1->lastPosition.x + rect1->lastSize.x, rect1->position.x + rect1->size.x,
 	                         rect1->lastPosition.y + rect1->lastSize.y, rect1->position.y + rect1->size.y,
 	                         rect2->lastPosition.x, rect2->position.x,
 	                         rect2->lastPosition.y, rect2->position.y,
@@ -199,7 +206,10 @@ bool intersectionHandler_rect2D_rect2D(CollisionObject * object1, CollisionObjec
 	}
 	
 	// rect1 bottom right corner vs. rect2 top left corner
-	if (intersectSweptPoints(rect1->lastPosition.x + rect1->lastSize.x, rect1->position.x + rect1->size.x,
+	if (rect1->solidRight && rect1->solidBottom && rect2->solidLeft && rect2->solidTop &&
+	    (rect1->position.x + rect1->size.x) - (rect1->lastPosition.x + rect1->lastSize.x) > rect2->position.x - rect2->lastPosition.x && 
+	    rect1->position.y - rect1->lastPosition.y < (rect2->position.y + rect2->size.y) - (rect2->lastPosition.y + rect2->lastSize.y) && 
+	    intersectSweptPoints(rect1->lastPosition.x + rect1->lastSize.x, rect1->position.x + rect1->size.x,
 	                         rect1->lastPosition.y, rect1->position.y,
 	                         rect2->lastPosition.x, rect2->position.x,
 	                         rect2->lastPosition.y + rect2->lastSize.y, rect2->position.y + rect2->size.y,
@@ -214,7 +224,10 @@ bool intersectionHandler_rect2D_rect2D(CollisionObject * object1, CollisionObjec
 	}
 	
 	// rect1 top left corner vs. rect2 bottom right corner
-	if (intersectSweptPoints(rect1->lastPosition.x, rect1->position.x,
+	if (rect1->solidLeft && rect1->solidTop && rect2->solidRight && rect2->solidBottom &&
+	    rect1->position.x - rect1->lastPosition.x < (rect2->position.x + rect2->size.x) - (rect2->lastPosition.x + rect2->lastSize.x) && 
+	    (rect1->position.y + rect1->size.y) - (rect1->lastPosition.y + rect1->lastSize.y) > rect2->position.y - rect2->lastPosition.y && 
+	    intersectSweptPoints(rect1->lastPosition.x, rect1->position.x,
 	                         rect1->lastPosition.y + rect1->lastSize.y, rect1->position.y + rect1->size.y,
 	                         rect2->lastPosition.x + rect2->lastSize.x, rect2->position.x + rect2->size.x,
 	                         rect2->lastPosition.y, rect2->position.y,
@@ -229,7 +242,10 @@ bool intersectionHandler_rect2D_rect2D(CollisionObject * object1, CollisionObjec
 	}
 	
 	// rect1 bottom left corner vs. rect2 top right corner
-	if (intersectSweptPoints(rect1->lastPosition.x, rect1->position.x,
+	if (rect1->solidLeft && rect1->solidBottom && rect2->solidRight && rect2->solidTop &&
+	    rect1->position.x - rect1->lastPosition.x < (rect2->position.x + rect2->size.x) - (rect2->lastPosition.x + rect2->lastSize.x) && 
+	    rect1->position.y - rect1->lastPosition.y < (rect2->position.y + rect2->size.y) - (rect2->lastPosition.y + rect2->lastSize.y) && 
+	    intersectSweptPoints(rect1->lastPosition.x, rect1->position.x,
 	                         rect1->lastPosition.y, rect1->position.y,
 	                         rect2->lastPosition.x + rect2->lastSize.x, rect2->position.x + rect2->size.x,
 	                         rect2->lastPosition.y + rect2->lastSize.y, rect2->position.y + rect2->size.y,
