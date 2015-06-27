@@ -55,6 +55,7 @@ THIRDPARTY_LIBRARY_DEPENDENCIES =
 PREREQS = 
 
 SOURCES_library = \
+	source/${PROJECT_NAME}/CollisionBox3D.c \
 	source/${PROJECT_NAME}/CollisionCapsule.c \
 	source/${PROJECT_NAME}/CollisionCircle.c \
 	source/${PROJECT_NAME}/CollisionObject.c \
@@ -69,6 +70,7 @@ SOURCES_library = \
 # Executable targets named "unittest" should usually specify only SOURCES_unittest_suites, which must contain only test suite files.
 # If files other than test suites are required, specify SOURCES_unittest.
 SOURCES_unittest_suites = \
+	source/unittest/CollisionBox3DTest.c \
 	source/unittest/CollisionCapsuleTest.c \
 	source/unittest/CollisionCircleTest.c \
 	source/unittest/CollisionObjectTest.c \
@@ -85,6 +87,7 @@ SOURCES_testharness = \
 
 # Public-facing include files to be distributed with the library, if any
 INCLUDES = \
+	source/${PROJECT_NAME}/CollisionBox3D.h \
 	source/${PROJECT_NAME}/CollisionCapsule.h \
 	source/${PROJECT_NAME}/CollisionCircle.h \
 	source/${PROJECT_NAME}/CollisionObject.h \

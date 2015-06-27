@@ -20,38 +20,38 @@
   Alex Diener alex@ludobloom.com
 */
 
-#ifndef __CollisionRect2D_H__
-#define __CollisionRect2D_H__
+#ifndef __CollisionBox3D_H__
+#define __CollisionBox3D_H__
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef struct CollisionRect2D CollisionRect2D;
+typedef struct CollisionBox3D CollisionBox3D;
 
 #include "collision/CollisionObject.h"
-#include "gamemath/Vector2x.h"
+#include "gamemath/Vector3x.h"
 
-#define CollisionRect2D_structContents(self_type) \
+#define CollisionBox3D_structContents(self_type) \
 	CollisionObject_structContents(self_type) \
 	\
-	Vector2x position; \
-	Vector2x lastPosition; \
-	Vector2x size; \
-	Vector2x lastSize;
+	Vector3x position; \
+	Vector3x lastPosition; \
+	Vector3x size; \
+	Vector3x lastSize;
 
-stemobject_struct_definition(CollisionRect2D)
+stemobject_struct_definition(CollisionBox3D)
 
 // position is the corner of the rect with the lowest x and y axis values.
 // size extends the rect from position in the +x and +y directions.
-CollisionRect2D * CollisionRect2D_create(void * owner, CollisionCallback collisionCallback, Vector2x position, Vector2x size);
-bool CollisionRect2D_init(CollisionRect2D * self, void * owner, CollisionCallback collisionCallback, Vector2x position, Vector2x size);
-void CollisionRect2D_dispose(CollisionRect2D * self);
+CollisionBox3D * CollisionBox3D_create(void * owner, CollisionCallback collisionCallback, Vector3x position, Vector3x size);
+bool CollisionBox3D_init(CollisionBox3D * self, void * owner, CollisionCallback collisionCallback, Vector3x position, Vector3x size);
+void CollisionBox3D_dispose(CollisionBox3D * self);
 
 // Problem (?): updatePosition inside a collision callback will do the wrong thing with lastPosition
-void CollisionRect2D_setSolidity(CollisionRect2D * self, bool solidLeft, bool solidRight, bool solidBottom, bool solidTop);
-void CollisionRect2D_updatePosition(CollisionRect2D * self, Vector2x newPosition);
-void CollisionRect2D_updateSize(CollisionRect2D * self, Vector2x newSize);
-void CollisionRect2D_interpolate(CollisionRect2D * self, fixed16_16 amount);
+void CollisionBox3D_setSolidity(CollisionBox3D * self, bool solidLeft, bool solidRight, bool solidBottom, bool solidTop);
+void CollisionBox3D_updatePosition(CollisionBox3D * self, Vector3x newPosition);
+void CollisionBox3D_updateSize(CollisionBox3D * self, Vector3x newSize);
+void CollisionBox3D_interpolate(CollisionBox3D * self, fixed16_16 amount);
 
 #ifdef __cplusplus
 }
