@@ -26,15 +26,14 @@
 
 #define SUPERCLASS CollisionObject
 
-CollisionCircle * CollisionCircle_create(void * owner, CollisionCallback collisionCallback, Vector2x position, fixed16_16 radius, bool concave) {
-	stemobject_create_implementation(CollisionCircle, init, owner, collisionCallback, position, radius, concave)
+CollisionCircle * CollisionCircle_create(void * owner, CollisionCallback collisionCallback, Vector2x position, fixed16_16 radius) {
+	stemobject_create_implementation(CollisionCircle, init, owner, collisionCallback, position, radius)
 }
 
-bool CollisionCircle_init(CollisionCircle * self, void * owner, CollisionCallback collisionCallback, Vector2x position, fixed16_16 radius, bool concave) {
+bool CollisionCircle_init(CollisionCircle * self, void * owner, CollisionCallback collisionCallback, Vector2x position, fixed16_16 radius) {
 	call_super(init, self, owner, COLLISION_SHAPE_CIRCLE, collisionCallback);
 	self->dispose = CollisionCircle_dispose;
 	self->interpolate = CollisionCircle_interpolate;
-	self->concave = concave;
 	self->position = position;
 	self->lastPosition = position;
 	self->radius = radius;

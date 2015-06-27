@@ -78,10 +78,10 @@ static void loadScene1() {
 		CollisionResolver_dispose(resolver);
 	}
 	resolver = CollisionResolver_create(intersectionManager, false, MAX_SIMULTANEOUS_COLLISIONS_DEFAULT, MAX_ITERATIONS_DEFAULT);
-	CollisionResolver_addObject(resolver, (CollisionObject *) CollisionRect2D_create(NULL, NULL, VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000), false));
-	CollisionResolver_addObject(resolver, (CollisionObject *) CollisionRect2D_create(NULL, NULL, VECTOR2x(0x20000, -0x40000), VECTOR2x(0x50000, 0x20000), false));
-	CollisionResolver_addObject(resolver, (CollisionObject *) CollisionCircle_create(NULL, NULL, VECTOR2x(-0x30000, 0x00000), 0x10000, false));
-	CollisionResolver_addObject(resolver, (CollisionObject *) CollisionCircle_create(NULL, NULL, VECTOR2x(-0x20000, 0x50000), 0x08000, false));
+	CollisionResolver_addObject(resolver, (CollisionObject *) CollisionRect2D_create(NULL, NULL, VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000)));
+	CollisionResolver_addObject(resolver, (CollisionObject *) CollisionRect2D_create(NULL, NULL, VECTOR2x(0x20000, -0x40000), VECTOR2x(0x50000, 0x20000)));
+	CollisionResolver_addObject(resolver, (CollisionObject *) CollisionCircle_create(NULL, NULL, VECTOR2x(-0x30000, 0x00000), 0x10000));
+	CollisionResolver_addObject(resolver, (CollisionObject *) CollisionCircle_create(NULL, NULL, VECTOR2x(-0x20000, 0x50000), 0x08000));
 }
 
 #define ARROW_RADIUS 0.375f
