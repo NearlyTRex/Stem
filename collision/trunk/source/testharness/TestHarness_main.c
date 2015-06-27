@@ -256,8 +256,8 @@ static void getCollisionObjectVertices2D(struct vertex_p2f_c4f * outVertices, GL
 						highlightVertexColor(vertex.color);
 					}
 					for (tesselationIndex = 0; tesselationIndex < CIRCLE_TESSELATIONS; tesselationIndex++) {
-						vertex.position[0] = xtof(circle->lastPosition.x) + xtof(circle->lastRadius) * cos(tesselationIndex * M_PI * 2 / CIRCLE_TESSELATIONS);
-						vertex.position[1] = xtof(circle->lastPosition.y) + xtof(circle->lastRadius) * sin(tesselationIndex * M_PI * 2 / CIRCLE_TESSELATIONS);
+						vertex.position[0] = xtof(circle->lastPosition.x) + xtof(circle->radius) * cos(tesselationIndex * M_PI * 2 / CIRCLE_TESSELATIONS);
+						vertex.position[1] = xtof(circle->lastPosition.y) + xtof(circle->radius) * sin(tesselationIndex * M_PI * 2 / CIRCLE_TESSELATIONS);
 						outVertices[*ioVertexCount + tesselationIndex] = vertex;
 					}
 					
@@ -312,7 +312,6 @@ static void getCollisionObjectVertices2D(struct vertex_p2f_c4f * outVertices, GL
 				
 				if (colliding) {
 					Vector2x collidingPosition = Vector2x_interpolate(circle->lastPosition, circle->position, collision.time);
-					fixed16_16 collidingRadius = xmul(circle->lastRadius, (0x10000 - collision.time)) + xmul(circle->radius, collision.time);
 					
 					if (outVertices != NULL) {
 						vertex.color[0] = 0.0f;
@@ -323,8 +322,8 @@ static void getCollisionObjectVertices2D(struct vertex_p2f_c4f * outVertices, GL
 							highlightVertexColor(vertex.color);
 						}
 						for (tesselationIndex = 0; tesselationIndex < CIRCLE_TESSELATIONS; tesselationIndex++) {
-							vertex.position[0] = xtof(collidingPosition.x) + xtof(collidingRadius) * cos(tesselationIndex * M_PI * 2 / CIRCLE_TESSELATIONS);
-							vertex.position[1] = xtof(collidingPosition.y) + xtof(collidingRadius) * sin(tesselationIndex * M_PI * 2 / CIRCLE_TESSELATIONS);
+							vertex.position[0] = xtof(collidingPosition.x) + xtof(circle->radius) * cos(tesselationIndex * M_PI * 2 / CIRCLE_TESSELATIONS);
+							vertex.position[1] = xtof(collidingPosition.y) + xtof(circle->radius) * sin(tesselationIndex * M_PI * 2 / CIRCLE_TESSELATIONS);
 							outVertices[*ioVertexCount + tesselationIndex] = vertex;
 						}
 					}
@@ -443,7 +442,6 @@ static void Target_mouseDown(unsigned int buttonNumber, float x, float y) {
 			case COLLISION_SHAPE_CIRCLE: {
 				CollisionCircle * circle = (CollisionCircle *) object;
 				circle->position = circle->lastPosition;
-				circle->radius = circle->lastRadius;
 				break;
 			}
 		}

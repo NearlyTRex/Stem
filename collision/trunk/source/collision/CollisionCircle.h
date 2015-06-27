@@ -36,8 +36,7 @@ typedef struct CollisionCircle CollisionCircle;
 	\
 	Vector2x position; \
 	Vector2x lastPosition; \
-	fixed16_16 radius; \
-	fixed16_16 lastRadius;
+	fixed16_16 radius;
 
 stemobject_struct_definition(CollisionCircle)
 
@@ -48,7 +47,6 @@ bool CollisionCircle_init(CollisionCircle * self, void * owner, CollisionCallbac
 void CollisionCircle_dispose(CollisionCircle * self);
 
 void CollisionCircle_updatePosition(CollisionCircle * self, Vector2x newPosition);
-void CollisionCircle_updateRadius(CollisionCircle * self, fixed16_16 newRadius);
 void CollisionCircle_interpolate(CollisionCircle * self, fixed16_16 amount);
 
 #ifdef __cplusplus

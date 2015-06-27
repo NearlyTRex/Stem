@@ -37,7 +37,6 @@ bool CollisionCircle_init(CollisionCircle * self, void * owner, CollisionCallbac
 	self->position = position;
 	self->lastPosition = position;
 	self->radius = radius;
-	self->lastRadius = radius;
 	return true;
 }
 
@@ -50,12 +49,6 @@ void CollisionCircle_updatePosition(CollisionCircle * self, Vector2x newPosition
 	self->position = newPosition;
 }
 
-void CollisionCircle_updateRadius(CollisionCircle * self, fixed16_16 newRadius) {
-	self->lastRadius = self->radius;
-	self->radius = newRadius;
-}
-
 void CollisionCircle_interpolate(CollisionCircle * self, fixed16_16 amount) {
 	self->lastPosition = Vector2x_interpolate(self->lastPosition, self->position, amount);
-	self->lastRadius = xmul(self->lastRadius, (0x10000 - amount)) + xmul(self->radius, amount);
 }
