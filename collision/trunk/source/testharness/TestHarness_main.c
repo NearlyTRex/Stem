@@ -180,7 +180,7 @@ static void getCollisionObjectVertices2D(struct vertex_p2f_c4f * outVertices, GL
 					}
 					
 					angle = atan2(circle->position.y - circle->lastPosition.y, circle->position.x - circle->lastPosition.x);
-					bestEdgeIndex = (angle + M_PI / 2) * CIRCLE_TESSELATIONS / (M_PI * 2);
+					bestEdgeIndex = round((angle + M_PI / 2) * CIRCLE_TESSELATIONS / (M_PI * 2));
 					bestEdgeIndex = (bestEdgeIndex % CIRCLE_TESSELATIONS + CIRCLE_TESSELATIONS) % CIRCLE_TESSELATIONS;
 					outIndexes[*ioIndexCount + CIRCLE_TESSELATIONS * 2 + 0] = *ioVertexCount + bestEdgeIndex;
 					outIndexes[*ioIndexCount + CIRCLE_TESSELATIONS * 2 + 1] = *ioVertexCount + bestEdgeIndex + CIRCLE_TESSELATIONS;
