@@ -423,36 +423,65 @@ static void Target_keyModifiersChanged(unsigned int modifiers) {
 	shiftKeyDown = !!(modifiers & MODIFIER_SHIFT_BIT);
 }
 
+#define DOUBLE_CLICK_INTERVAL 0.25
+#define DOUBLE_CLICK_MAX_DISTANCE 4.0f
+
 static void Target_mouseDown(unsigned int buttonNumber, float x, float y) {
+	static double lastClickTime;
+	static Vector2f lastClickPosition;
 	CollisionObject * object = resolver->objects[selectedObjectIndex];
+	double clickTime = Shell_getCurrentTime();
 	
-	dragOrigin = transformMousePosition(x, y);
-	draggingLastPosition = shiftKeyDown;
-	switch (object->shapeType) {
-		case COLLISION_SHAPE_RECT_2D: {
-			CollisionRect2D * rect = (CollisionRect2D *) object;
-			if (draggingLastPosition) {
-				dragOrigin.x -= rect->lastPosition.x;
-				dragOrigin.y -= rect->lastPosition.y;
-			} else {
-				dragOrigin.x -= rect->position.x;
-				dragOrigin.y -= rect->position.y;
+	if (clickTime - lastClickTime < DOUBLE_CLICK_INTERVAL && fabs(x - lastClickPosition.x) <= DOUBLE_CLICK_MAX_DISTANCE && fabs(y - lastClickPosition.y) <= DOUBLE_CLICK_MAX_DISTANCE) {
+		switch (object->shapeType) {
+			case COLLISION_SHAPE_RECT_2D: {
+				CollisionRect2D * rect = (CollisionRect2D *) object;
+				rect->position = rect->lastPosition;
+				rect->size = rect->lastSize;
+				break;
 			}
-			break;
-		}
-		case COLLISION_SHAPE_CIRCLE: {
-			CollisionCircle * circle = (CollisionCircle *) object;
-			if (draggingLastPosition) {
-				dragOrigin.x -= circle->lastPosition.x;
-				dragOrigin.y -= circle->lastPosition.y;
-			} else {
-				dragOrigin.x -= circle->position.x;
-				dragOrigin.y -= circle->position.y;
+			case COLLISION_SHAPE_CIRCLE: {
+				CollisionCircle * circle = (CollisionCircle *) object;
+				circle->position = circle->lastPosition;
+				circle->radius = circle->lastRadius;
+				break;
 			}
-			break;
 		}
+		Shell_redisplay();
+		dragging = false;
+		
+	} else {
+		dragOrigin = transformMousePosition(x, y);
+		draggingLastPosition = shiftKeyDown;
+		switch (object->shapeType) {
+			case COLLISION_SHAPE_RECT_2D: {
+				CollisionRect2D * rect = (CollisionRect2D *) object;
+				if (draggingLastPosition) {
+					dragOrigin.x -= rect->lastPosition.x;
+					dragOrigin.y -= rect->lastPosition.y;
+				} else {
+					dragOrigin.x -= rect->position.x;
+					dragOrigin.y -= rect->position.y;
+				}
+				break;
+			}
+			case COLLISION_SHAPE_CIRCLE: {
+				CollisionCircle * circle = (CollisionCircle *) object;
+				if (draggingLastPosition) {
+					dragOrigin.x -= circle->lastPosition.x;
+					dragOrigin.y -= circle->lastPosition.y;
+				} else {
+					dragOrigin.x -= circle->position.x;
+					dragOrigin.y -= circle->position.y;
+				}
+				break;
+			}
+		}
+		dragging = true;
 	}
-	dragging = true;
+	
+	lastClickTime = clickTime;
+	lastClickPosition = VECTOR2f(x, y);
 }
 
 static void Target_mouseUp(unsigned int buttonNumber, float x, float y) {
