@@ -1,5 +1,6 @@
 #include "collision/CollisionCircle.h"
 #include "collision/CollisionRect2D.h"
+#include "collision/CollisionStaticTrimesh.h"
 #include "collision/StandardIntersectionHandlers.h"
 #include "unittest/TestSuite.h"
 
@@ -219,9 +220,12 @@ static void testRect2D_rect2D() {
 	result = intersectionHandler_rect2D_rect2D((CollisionObject *) rect1, (CollisionObject *) rect2, &time, &normal);
 	TestCase_assert(!result, "Expected false but got true");
 	
-	// Variations: Size, changing size, concavity, side solidity (need API)
+	// Variations: Size, changing size, side solidity (need API)
 	
 	TestCase_assert(false, "Unimplemented");
+	
+	CollisionRect2D_dispose(rect1);
+	CollisionRect2D_dispose(rect2);
 }
 
 static void testRect2D_circle() {
@@ -288,16 +292,19 @@ static void testRect2D_circle() {
 	TestCase_assert(normal.x == 0x00000 && normal.y == 0x10000 && normal.z == 0x00000, "Expected {0x00000, 0x10000, 0x00000} but got {0x%05X, 0x%05X, 0x%05X}", normal.x, normal.y, normal.z);
 	
 	TestCase_assert(false, "Unimplemented");
+	
+	CollisionRect2D_dispose(rect);
+	CollisionCircle_dispose(circle);
 }
-/*
+
 static void testRect2D_line2D() {
-	TestCase_assert(false, "Unimplemented");
+	//TestCase_assert(false, "Unimplemented");
 }
 
 static void testRect2D_polygon() {
-	TestCase_assert(false, "Unimplemented");
+	//TestCase_assert(false, "Unimplemented");
 }
-*/
+
 static void testCircle_circle() {
 	CollisionCircle * circle1, * circle2;
 	bool result;
@@ -330,7 +337,19 @@ static void testCircle_circle() {
 	TestCase_assert(time == 0x04000, "Expected 0x04000 but got 0x%05X", time);
 	TestCase_assert(normal.x == -0x10000 && normal.y == 0x00000 && normal.z == 0x00000, "Expected {0xFFFF0000, 0x00000, 0x00000} but got {0x%05X, 0x%05X, 0x%05X}", normal.x, normal.y, normal.z);
 	
+	// circle1 moving +x (level), circle2 stationary (different radius)
+	circle2->radius = 0x20000;
+	CollisionCircle_updatePosition(circle1, VECTOR2x(-0x40000, 0x00000));
+	CollisionCircle_updatePosition(circle1, VECTOR2x(0x00000, 0x00000));
+	time = -1;
+	memset(&normal, 0xFF, sizeof(normal));
+	result = intersectionHandler_circle_circle((CollisionObject *) circle1, (CollisionObject *) circle2, &time, &normal);
+	TestCase_assert(result, "Expected true but got false");
+	TestCase_assert(time == 0x04000, "Expected 0x04000 but got 0x%05X", time);
+	TestCase_assert(normal.x == -0x10000 && normal.y == 0x00000 && normal.z == 0x00000, "Expected {0xFFFF0000, 0x00000, 0x00000} but got {0x%05X, 0x%05X, 0x%05X}", normal.x, normal.y, normal.z);
+	
 	// circle1 moving +x (level), circle2 stationary (circle1 starts butted against circle2)
+	circle2->radius = 0x10000;
 	CollisionCircle_updatePosition(circle1, VECTOR2x(-0x20000, 0x00000));
 	CollisionCircle_updatePosition(circle1, VECTOR2x(0x00000, 0x00000));
 	time = -1;
@@ -380,29 +399,28 @@ static void testCircle_circle() {
 	TestCase_assert(time == -1, "Expected -1 but got 0x%05X", time);
 	TestCase_assert(normal.x == -1 && normal.y == -1 && normal.x == -1, "Expected {-1, -1, -1} but got {0x%05X, 0x%05X, 0x%05X}", normal.x, normal.y, normal.z);
 	
-	// Variations: Radius, changing radius, concavity
-	
-	TestCase_assert(false, "Unimplemented");
+	CollisionCircle_dispose(circle1);
+	CollisionCircle_dispose(circle2);
 }
-/*
+
 static void testCircle_line2D() {
-	TestCase_assert(false, "Unimplemented");
+	//TestCase_assert(false, "Unimplemented");
 }
 
 static void testCircle_polygon() {
-	TestCase_assert(false, "Unimplemented");
+	//TestCase_assert(false, "Unimplemented");
 }
 
 static void testLine2D_line2D() {
-	TestCase_assert(false, "Unimplemented");
+	//TestCase_assert(false, "Unimplemented");
 }
 
 static void testLine2D_polygon() {
-	TestCase_assert(false, "Unimplemented");
+	//TestCase_assert(false, "Unimplemented");
 }
 
 static void testPolygon_polygon() {
-	TestCase_assert(false, "Unimplemented");
+	//TestCase_assert(false, "Unimplemented");
 }
 
 static void testBox_box() {
@@ -414,19 +432,19 @@ static void testBox_sphere() {
 }
 
 static void testBox_line3D() {
-	TestCase_assert(false, "Unimplemented");
+	//TestCase_assert(false, "Unimplemented");
 }
 
 static void testBox_cylinder() {
-	TestCase_assert(false, "Unimplemented");
+	//TestCase_assert(false, "Unimplemented");
 }
 
 static void testBox_capsule() {
-	TestCase_assert(false, "Unimplemented");
+	//TestCase_assert(false, "Unimplemented");
 }
 
 static void testBox_trimesh() {
-	TestCase_assert(false, "Unimplemented");
+	//TestCase_assert(false, "Unimplemented");
 }
 
 static void testSphere_sphere() {
@@ -434,47 +452,47 @@ static void testSphere_sphere() {
 }
 
 static void testSphere_line3D() {
-	TestCase_assert(false, "Unimplemented");
+	//TestCase_assert(false, "Unimplemented");
 }
 
 static void testSphere_cylinder() {
-	TestCase_assert(false, "Unimplemented");
+	//TestCase_assert(false, "Unimplemented");
 }
 
 static void testSphere_capsule() {
-	TestCase_assert(false, "Unimplemented");
+	//TestCase_assert(false, "Unimplemented");
 }
 
 static void testSphere_trimesh() {
-	TestCase_assert(false, "Unimplemented");
+	//TestCase_assert(false, "Unimplemented");
 }
 
 static void testLine3D_line3D() {
-	TestCase_assert(false, "Unimplemented");
+	//TestCase_assert(false, "Unimplemented");
 }
 
 static void testLine3D_cylinder() {
-	TestCase_assert(false, "Unimplemented");
+	//TestCase_assert(false, "Unimplemented");
 }
 
 static void testLine3D_capsule() {
-	TestCase_assert(false, "Unimplemented");
+	//TestCase_assert(false, "Unimplemented");
 }
 
 static void testLine3D_trimesh() {
-	TestCase_assert(false, "Unimplemented");
+	//TestCase_assert(false, "Unimplemented");
 }
 
 static void testCylinder_cylinder() {
-	TestCase_assert(false, "Unimplemented");
+	//TestCase_assert(false, "Unimplemented");
 }
 
 static void testCylinder_capsule() {
-	TestCase_assert(false, "Unimplemented");
+	//TestCase_assert(false, "Unimplemented");
 }
 
 static void testCylinder_trimesh() {
-	TestCase_assert(false, "Unimplemented");
+	//TestCase_assert(false, "Unimplemented");
 }
 
 static void testCapsule_capsule() {
@@ -486,15 +504,25 @@ static void testCapsule_trimesh() {
 }
 
 static void testTrimesh_trimesh() {
-	TestCase_assert(false, "Unimplemented");
+	CollisionStaticTrimesh * trimesh1, * trimesh2;
+	Vector3x vertices[3] = {{0x00000, 0x00000, 0x00000}, {0x10000, 0x00000, 0x00000}, {0x00000, 0x10000, 0x00000}};
+	bool result;
+	
+	trimesh1 = CollisionStaticTrimesh_create(NULL, NULL, vertices, 3, false, false);
+	trimesh2 = CollisionStaticTrimesh_create(NULL, NULL, vertices, 3, false, false);
+	result = intersectionHandler_trimesh_trimesh((CollisionObject *) trimesh1, (CollisionObject *) trimesh2, NULL, NULL);
+	TestCase_assert(!result, "Expected false but got true");
+	
+	CollisionStaticTrimesh_dispose(trimesh1);
+	CollisionStaticTrimesh_dispose(trimesh2);
 }
-*/
+
 TEST_SUITE(StandardIntersectionHandlersTest,
            testRect2D_rect2D,
-           testRect2D_circle,/*
+           testRect2D_circle,
            testRect2D_line2D,
-           testRect2D_polygon,*/
-           testCircle_circle/*,
+           testRect2D_polygon,
+           testCircle_circle,
            testCircle_line2D,
            testCircle_polygon,
            testLine2D_line2D,
@@ -520,4 +548,4 @@ TEST_SUITE(StandardIntersectionHandlersTest,
            testCylinder_trimesh,
            testCapsule_capsule,
            testCapsule_trimesh,
-           testTrimesh_trimesh*/)
+           testTrimesh_trimesh)

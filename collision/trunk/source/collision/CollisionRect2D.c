@@ -38,6 +38,10 @@ bool CollisionRect2D_init(CollisionRect2D * self, void * owner, CollisionCallbac
 	self->lastPosition = position;
 	self->size = size;
 	self->lastSize = size;
+	self->solidLeft = true;
+	self->solidRight = true;
+	self->solidBottom = true;
+	self->solidTop = true;
 	return true;
 }
 
@@ -56,6 +60,10 @@ void CollisionRect2D_updateSize(CollisionRect2D * self, Vector2x newSize) {
 }
 
 void CollisionRect2D_setSolidity(CollisionRect2D * self, bool solidLeft, bool solidRight, bool solidBottom, bool solidTop) {
+	self->solidLeft = solidLeft;
+	self->solidRight = solidRight;
+	self->solidBottom = solidBottom;
+	self->solidTop = solidTop;
 }
 
 void CollisionRect2D_interpolate(CollisionRect2D * self, fixed16_16 amount) {

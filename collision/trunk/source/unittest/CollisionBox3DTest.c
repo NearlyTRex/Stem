@@ -21,6 +21,12 @@ static void verifyInit(int line, CollisionBox3D * box, void * owner, CollisionCa
 	TestCase_assert(box->lastSize.x == size.x, "Expected 0x%05X but got 0x%05X (line %d)", size.x, box->lastSize.x, line);
 	TestCase_assert(box->lastSize.y == size.y, "Expected 0x%05X but got 0x%05X (line %d)", size.y, box->lastSize.y, line);
 	TestCase_assert(box->lastSize.z == size.z, "Expected 0x%05X but got 0x%05X (line %d)", size.z, box->lastSize.z, line);
+	TestCase_assert(box->solidLeft, "Expected true but got false");
+	TestCase_assert(box->solidRight, "Expected true but got false");
+	TestCase_assert(box->solidBottom, "Expected true but got false");
+	TestCase_assert(box->solidTop, "Expected true but got false");
+	TestCase_assert(box->solidBack, "Expected true but got false");
+	TestCase_assert(box->solidFront, "Expected true but got false");
 }
 
 static void testInit() {
@@ -110,6 +116,29 @@ static void testUpdateSize() {
 	CollisionBox3D_dispose(box);
 }
 
+static void testSetSolidity() {
+	CollisionBox3D * box;
+	
+	box = CollisionBox3D_create(NULL, NULL, VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x00000, 0x00000, 0x00000));
+	CollisionBox3D_setSolidity(box, true, false, true, false, true, false);
+	TestCase_assert(box->solidLeft, "Expected true but got false");
+	TestCase_assert(!box->solidRight, "Expected false but got true");
+	TestCase_assert(box->solidBottom, "Expected true but got false");
+	TestCase_assert(!box->solidTop, "Expected false but got true");
+	TestCase_assert(box->solidBack, "Expected true but got false");
+	TestCase_assert(!box->solidFront, "Expected false but got true");
+	
+	CollisionBox3D_setSolidity(box, false, true, false, true, false, true);
+	TestCase_assert(!box->solidLeft, "Expected false but got true");
+	TestCase_assert(box->solidRight, "Expected true but got false");
+	TestCase_assert(!box->solidBottom, "Expected false but got true");
+	TestCase_assert(box->solidTop, "Expected true but got false");
+	TestCase_assert(!box->solidBack, "Expected false but got true");
+	TestCase_assert(box->solidFront, "Expected true but got false");
+	
+	CollisionBox3D_dispose(box);
+}
+
 static void testInterpolate() {
 	CollisionBox3D * box;
 	
@@ -155,4 +184,5 @@ TEST_SUITE(CollisionBox3DTest,
            testInit,
            testUpdatePosition,
            testUpdateSize,
+           testSetSolidity,
            testInterpolate)

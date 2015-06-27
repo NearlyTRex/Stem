@@ -37,7 +37,13 @@ typedef struct CollisionBox3D CollisionBox3D;
 	Vector3x position; \
 	Vector3x lastPosition; \
 	Vector3x size; \
-	Vector3x lastSize;
+	Vector3x lastSize; \
+	bool solidLeft; \
+	bool solidRight; \
+	bool solidBottom; \
+	bool solidTop; \
+	bool solidBack; \
+	bool solidFront;
 
 stemobject_struct_definition(CollisionBox3D)
 
@@ -47,10 +53,9 @@ CollisionBox3D * CollisionBox3D_create(void * owner, CollisionCallback collision
 bool CollisionBox3D_init(CollisionBox3D * self, void * owner, CollisionCallback collisionCallback, Vector3x position, Vector3x size);
 void CollisionBox3D_dispose(CollisionBox3D * self);
 
-// Problem (?): updatePosition inside a collision callback will do the wrong thing with lastPosition
-void CollisionBox3D_setSolidity(CollisionBox3D * self, bool solidLeft, bool solidRight, bool solidBottom, bool solidTop);
 void CollisionBox3D_updatePosition(CollisionBox3D * self, Vector3x newPosition);
 void CollisionBox3D_updateSize(CollisionBox3D * self, Vector3x newSize);
+void CollisionBox3D_setSolidity(CollisionBox3D * self, bool solidLeft, bool solidRight, bool solidBottom, bool solidTop, bool solidBack, bool solidFront);
 void CollisionBox3D_interpolate(CollisionBox3D * self, fixed16_16 amount);
 
 #ifdef __cplusplus

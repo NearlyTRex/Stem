@@ -38,6 +38,12 @@ bool CollisionBox3D_init(CollisionBox3D * self, void * owner, CollisionCallback 
 	self->lastPosition = position;
 	self->size = size;
 	self->lastSize = size;
+	self->solidLeft = true;
+	self->solidRight = true;
+	self->solidBottom = true;
+	self->solidTop = true;
+	self->solidBack = true;
+	self->solidFront = true;
 	return true;
 }
 
@@ -55,7 +61,13 @@ void CollisionBox3D_updateSize(CollisionBox3D * self, Vector3x newSize) {
 	self->size = newSize;
 }
 
-void CollisionBox3D_setSolidity(CollisionBox3D * self, bool solidLeft, bool solidRight, bool solidBottom, bool solidTop) {
+void CollisionBox3D_setSolidity(CollisionBox3D * self, bool solidLeft, bool solidRight, bool solidBottom, bool solidTop, bool solidBack, bool solidFront) {
+	self->solidLeft = solidLeft;
+	self->solidRight = solidRight;
+	self->solidBottom = solidBottom;
+	self->solidTop = solidTop;
+	self->solidBack = solidBack;
+	self->solidFront = solidFront;
 }
 
 void CollisionBox3D_interpolate(CollisionBox3D * self, fixed16_16 amount) {

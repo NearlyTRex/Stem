@@ -17,6 +17,10 @@ static void verifyInit(int line, CollisionRect2D * rect, void * owner, Collision
 	TestCase_assert(rect->size.y == size.y, "Expected 0x%05X but got 0x%05X (line %d)", size.y, rect->size.y, line);
 	TestCase_assert(rect->lastSize.x == size.x, "Expected 0x%05X but got 0x%05X (line %d)", size.x, rect->lastSize.x, line);
 	TestCase_assert(rect->lastSize.y == size.y, "Expected 0x%05X but got 0x%05X (line %d)", size.y, rect->lastSize.y, line);
+	TestCase_assert(rect->solidLeft, "Expected true but got false");
+	TestCase_assert(rect->solidRight, "Expected true but got false");
+	TestCase_assert(rect->solidBottom, "Expected true but got false");
+	TestCase_assert(rect->solidTop, "Expected true but got false");
 }
 
 static void testInit() {
@@ -94,6 +98,25 @@ static void testUpdateSize() {
 	CollisionRect2D_dispose(rect);
 }
 
+static void testSetSolidity() {
+	CollisionRect2D * rect;
+	
+	rect = CollisionRect2D_create(NULL, NULL, VECTOR2x(0x00000, 0x00000), VECTOR2x(0x00000, 0x00000));
+	CollisionRect2D_setSolidity(rect, true, false, true, false);
+	TestCase_assert(rect->solidLeft, "Expected true but got false");
+	TestCase_assert(!rect->solidRight, "Expected false but got true");
+	TestCase_assert(rect->solidBottom, "Expected true but got false");
+	TestCase_assert(!rect->solidTop, "Expected false but got true");
+	
+	CollisionRect2D_setSolidity(rect, false, true, false, true);
+	TestCase_assert(!rect->solidLeft, "Expected false but got true");
+	TestCase_assert(rect->solidRight, "Expected true but got false");
+	TestCase_assert(!rect->solidBottom, "Expected false but got true");
+	TestCase_assert(rect->solidTop, "Expected true but got false");
+	
+	CollisionRect2D_dispose(rect);
+}
+
 static void testInterpolate() {
 	CollisionRect2D * rect;
 	
@@ -131,4 +154,5 @@ TEST_SUITE(CollisionRect2DTest,
            testInit,
            testUpdatePosition,
            testUpdateSize,
+           testSetSolidity,
            testInterpolate)
