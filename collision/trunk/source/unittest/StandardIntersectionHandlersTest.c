@@ -219,25 +219,21 @@ static void testRect2D_rect2D() {
 	result = intersectionHandler_rect2D_rect2D((CollisionObject *) rect1, (CollisionObject *) rect2, &time, &normal);
 	TestCase_assert(!result, "Expected false but got true");
 	
-	// Scrap above; new tests should verify basic functionality and important edge cases without trying to be exhaustive
-	// * rect1 moving +x, rect2 stationary
-	// * rect1 stationary, rect2 moving -x
-	// * rect1 moving +x, rect2 moving -x
-	// * rect1 -x, rect2 stationary
-	// * rect1 +y, rect2 stationary
-	// * rect1 -y, rect2 stationary
-	// * Corner collision
-	// * Misses that pass through each plane
-	// * Start inside and move outward
 	// Variations: Size, changing size, concavity, side solidity (need API)
 	
 	TestCase_assert(false, "Unimplemented");
 }
-/*
+
 static void testRect2D_circle() {
+	/*CollisionRect2D * rect;
+	CollisionCircle * circle;
+	bool result;
+	fixed16_16 time;
+	Vector2x normal;*/
+	
 	TestCase_assert(false, "Unimplemented");
 }
-
+/*
 static void testRect2D_line2D() {
 	TestCase_assert(false, "Unimplemented");
 }
@@ -438,8 +434,8 @@ static void testTrimesh_trimesh() {
 }
 */
 TEST_SUITE(StandardIntersectionHandlersTest,
-           testRect2D_rect2D,/*
-           testRect2D_circle,
+           testRect2D_rect2D,
+           testRect2D_circle,/*
            testRect2D_line2D,
            testRect2D_polygon,*/
            testCircle_circle/*,

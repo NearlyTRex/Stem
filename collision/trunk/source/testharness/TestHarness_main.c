@@ -84,6 +84,45 @@ static void loadScene1() {
 	CollisionResolver_addObject(resolver, (CollisionObject *) CollisionCircle_create(NULL, NULL, VECTOR2x(-0x20000, 0x50000), 0x08000, false));
 }
 
+#define ARROW_RADIUS 0.375f
+
+static void getArrowVertices2D(Vector2x position, Vector3x normal, struct vertex_p2f_c4f * outVertices, GLuint * outIndexes, size_t * ioVertexCount, size_t * ioIndexCount) {
+	if (outVertices != NULL) {
+		struct vertex_p2f_c4f vertex;
+		Vector2f positionf = VECTOR2f(xtof(position.x), xtof(position.y));
+		Vector2f normalf = VECTOR2f(xtof(normal.x), xtof(normal.y));
+		
+		vertex.color[0] = 1.0f;
+		vertex.color[1] = 0.0f;
+		vertex.color[2] = 0.0f;
+		vertex.color[3] = 1.0f;
+		vertex.position[0] = positionf.x - normalf.x * ARROW_RADIUS;
+		vertex.position[1] = positionf.y - normalf.y * ARROW_RADIUS;
+		outVertices[*ioVertexCount + 0] = vertex;
+		vertex.position[0] = positionf.x + normalf.x * ARROW_RADIUS;
+		vertex.position[1] = positionf.y + normalf.y * ARROW_RADIUS;
+		outVertices[*ioVertexCount + 1] = vertex;
+		vertex.position[0] = positionf.x + normalf.y * ARROW_RADIUS * 0.5f;
+		vertex.position[1] = positionf.y - normalf.x * ARROW_RADIUS * 0.5f;
+		outVertices[*ioVertexCount + 2] = vertex;
+		vertex.position[0] = positionf.x - normalf.y * ARROW_RADIUS * 0.5f;
+		vertex.position[1] = positionf.y + normalf.x * ARROW_RADIUS * 0.5f;
+		outVertices[*ioVertexCount + 3] = vertex;
+	}
+	
+	if (outIndexes != NULL) {
+		outIndexes[*ioIndexCount + 0] = *ioVertexCount + 0;
+		outIndexes[*ioIndexCount + 1] = *ioVertexCount + 1;
+		outIndexes[*ioIndexCount + 2] = *ioVertexCount + 1;
+		outIndexes[*ioIndexCount + 3] = *ioVertexCount + 2;
+		outIndexes[*ioIndexCount + 4] = *ioVertexCount + 1;
+		outIndexes[*ioIndexCount + 5] = *ioVertexCount + 3;
+	}
+	
+	*ioVertexCount += 4;
+	*ioIndexCount += 6;
+}
+
 #define CIRCLE_TESSELATIONS 64
 
 static void highlightVertexColor(GLfloat * color) {
@@ -135,9 +174,9 @@ static void getCollisionObjectVertices2D(struct vertex_p2f_c4f * outVertices, GL
 						vertex.color[1] = 1.0f;
 						vertex.color[2] = 0.0f;
 						vertex.color[3] = 1.0f;
-					}
-					if (objectIndex == selectedObjectIndex) {
-						highlightVertexColor(vertex.color);
+						if (objectIndex == selectedObjectIndex) {
+							highlightVertexColor(vertex.color);
+						}
 					}
 					vertex.position[0] = xtof(rect->position.x);
 					vertex.position[1] = xtof(rect->position.y);
@@ -199,6 +238,8 @@ static void getCollisionObjectVertices2D(struct vertex_p2f_c4f * outVertices, GL
 					
 					*ioVertexCount += 4;
 					*ioIndexCount += 8;
+					
+					getArrowVertices2D(VECTOR2x(collidingPosition.x + collidingSize.x / 2, collidingPosition.y + collidingSize.y / 2), collision.normal, outVertices, outIndexes, ioVertexCount, ioIndexCount);
 				}
 				break;
 			}
@@ -230,9 +271,9 @@ static void getCollisionObjectVertices2D(struct vertex_p2f_c4f * outVertices, GL
 						vertex.color[1] = 1.0f;
 						vertex.color[2] = 1.0f;
 						vertex.color[3] = 1.0f;
-					}
-					if (objectIndex == selectedObjectIndex) {
-						highlightVertexColor(vertex.color);
+						if (objectIndex == selectedObjectIndex) {
+							highlightVertexColor(vertex.color);
+						}
 					}
 					for (tesselationIndex = 0; tesselationIndex < CIRCLE_TESSELATIONS; tesselationIndex++) {
 						vertex.position[0] = xtof(circle->position.x) + xtof(circle->radius) * cos(tesselationIndex * M_PI * 2 / CIRCLE_TESSELATIONS);
@@ -297,6 +338,8 @@ static void getCollisionObjectVertices2D(struct vertex_p2f_c4f * outVertices, GL
 					
 					*ioVertexCount += CIRCLE_TESSELATIONS;
 					*ioIndexCount += CIRCLE_TESSELATIONS * 2;
+					
+					getArrowVertices2D(collidingPosition, collision.normal, outVertices, outIndexes, ioVertexCount, ioIndexCount);
 				}
 				break;
 			}
