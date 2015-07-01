@@ -346,10 +346,6 @@ bool intersectionHandler_box3D_line3D(CollisionObject * object1, CollisionObject
 	return false;
 }
 
-bool intersectionHandler_box3D_cylinder(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal) {
-	return false;
-}
-
 bool intersectionHandler_box3D_capsule(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal) {
 	return false;
 }
@@ -366,10 +362,6 @@ bool intersectionHandler_sphere_line3D(CollisionObject * object1, CollisionObjec
 	return false;
 }
 
-bool intersectionHandler_sphere_cylinder(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal) {
-	return false;
-}
-
 bool intersectionHandler_sphere_capsule(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal) {
 	return false;
 }
@@ -382,27 +374,11 @@ bool intersectionHandler_line3D_line3D(CollisionObject * object1, CollisionObjec
 	return false;
 }
 
-bool intersectionHandler_line3D_cylinder(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal) {
-	return false;
-}
-
 bool intersectionHandler_line3D_capsule(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal) {
 	return false;
 }
 
 bool intersectionHandler_line3D_trimesh(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal) {
-	return false;
-}
-
-bool intersectionHandler_cylinder_cylinder(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal) {
-	return false;
-}
-
-bool intersectionHandler_cylinder_capsule(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal) {
-	return false;
-}
-
-bool intersectionHandler_cylinder_trimesh(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal) {
 	return false;
 }
 

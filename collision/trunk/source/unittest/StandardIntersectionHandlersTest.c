@@ -420,9 +420,8 @@ static void testRect2D_circle() {
 	// rect moving +x, circle stationary
 	CollisionCircle_updatePosition(circle, VECTOR2x(0x00000, 0x00000));
 	CollisionCircle_updatePosition(circle, VECTOR2x(0x00000, 0x00000));
-	// TODO: These numbers are wrong!
-	CollisionRect2D_updatePosition(rect, VECTOR2x(-0x20000, 0x08000));
-	CollisionRect2D_updatePosition(rect, VECTOR2x(0x00000, 0x08000));
+	CollisionRect2D_updatePosition(rect, VECTOR2x(-0x30000, -0x08000));
+	CollisionRect2D_updatePosition(rect, VECTOR2x(-0x10000, -0x08000));
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
 	result = intersectionHandler_rect2D_circle((CollisionObject *) rect, (CollisionObject *) circle, &time, &normal);
@@ -431,8 +430,8 @@ static void testRect2D_circle() {
 	TestCase_assert(normal.x == -0x10000 && normal.y == 0x00000 && normal.z == 0x00000, "Expected {0xFFFF0000, 0x00000, 0x00000} but got {0x%05X, 0x%05X, 0x%05X}", normal.x, normal.y, normal.z);
 	
 	// rect moving -x, circle stationary
-	CollisionRect2D_updatePosition(rect, VECTOR2x(0x20000, 0x08000));
-	CollisionRect2D_updatePosition(rect, VECTOR2x(0x00000, 0x08000));
+	CollisionRect2D_updatePosition(rect, VECTOR2x(0x20000, -0x08000));
+	CollisionRect2D_updatePosition(rect, VECTOR2x(0x00000, -0x08000));
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
 	result = intersectionHandler_rect2D_circle((CollisionObject *) rect, (CollisionObject *) circle, &time, &normal);
@@ -441,8 +440,8 @@ static void testRect2D_circle() {
 	TestCase_assert(normal.x == 0x10000 && normal.y == 0x00000 && normal.z == 0x00000, "Expected {0x10000, 0x00000, 0x00000} but got {0x%05X, 0x%05X, 0x%05X}", normal.x, normal.y, normal.z);
 	
 	// rect moving +y, circle stationary
-	CollisionRect2D_updatePosition(rect, VECTOR2x(0x08000, -0x28000));
-	CollisionRect2D_updatePosition(rect, VECTOR2x(0x08000, 0x08000));
+	CollisionRect2D_updatePosition(rect, VECTOR2x(-0x08000, -0x30000));
+	CollisionRect2D_updatePosition(rect, VECTOR2x(-0x08000, -0x10000));
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
 	result = intersectionHandler_rect2D_circle((CollisionObject *) rect, (CollisionObject *) circle, &time, &normal);
@@ -451,8 +450,8 @@ static void testRect2D_circle() {
 	TestCase_assert(normal.x == 0x00000 && normal.y == -0x10000 && normal.z == 0x00000, "Expected {0x00000, 0xFFFF0000, 0x00000} but got {0x%05X, 0x%05X, 0x%05X}", normal.x, normal.y, normal.z);
 	
 	// rect moving -y, circle stationary
-	CollisionRect2D_updatePosition(rect, VECTOR2x(0x08000, 0x28000));
-	CollisionRect2D_updatePosition(rect, VECTOR2x(0x08000, 0x08000));
+	CollisionRect2D_updatePosition(rect, VECTOR2x(-0x08000, 0x20000));
+	CollisionRect2D_updatePosition(rect, VECTOR2x(-0x08000, 0x00000));
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
 	result = intersectionHandler_rect2D_circle((CollisionObject *) rect, (CollisionObject *) circle, &time, &normal);
@@ -460,10 +459,48 @@ static void testRect2D_circle() {
 	TestCase_assert(time == 0x08000, "Expected 0x08000 but got 0x%05X", time);
 	TestCase_assert(normal.x == 0x00000 && normal.y == 0x10000 && normal.z == 0x00000, "Expected {0x00000, 0x10000, 0x00000} but got {0x%05X, 0x%05X, 0x%05X}", normal.x, normal.y, normal.z);
 	
+	// rect bottom left corner collision
+	CollisionRect2D_updatePosition(rect, VECTOR2x(0x10000, 0x10000));
+	CollisionRect2D_updatePosition(rect, VECTOR2x(0x00000, 0x00000));
+	time = -1;
+	memset(&normal, 0xFF, sizeof(normal));
+	result = intersectionHandler_rect2D_circle((CollisionObject *) rect, (CollisionObject *) circle, &time, &normal);
+	TestCase_assert(result, "Expected true but got false");
+	TestCase_assert(time == 0x04AFC, "Expected 0x04AFC but got 0x%05X", time);
+	TestCase_assert(normal.x == 0x0B504 && normal.y == 0x0B504 && normal.z == 0x00000, "Expected {0x0B504, 0x0B504, 0x00000} but got {0x%05X, 0x%05X, 0x%05X}", normal.x, normal.y, normal.z);
+	
+	// rect bottom right corner collision
+	CollisionRect2D_updatePosition(rect, VECTOR2x(-0x10000, 0x10000));
+	CollisionRect2D_updatePosition(rect, VECTOR2x(0x00000, 0x00000));
+	time = -1;
+	memset(&normal, 0xFF, sizeof(normal));
+	result = intersectionHandler_rect2D_circle((CollisionObject *) rect, (CollisionObject *) circle, &time, &normal);
+	TestCase_assert(result, "Expected true but got false");
+	TestCase_assert(time == 0x04AFC, "Expected 0x04AFC but got 0x%05X", time);
+	TestCase_assert(normal.x == -0x0B504 && normal.y == 0x0B504 && normal.z == 0x00000, "Expected {0xFFFF4AFC, 0x0B504, 0x00000} but got {0x%05X, 0x%05X, 0x%05X}", normal.x, normal.y, normal.z);
+	
+	// rect top left corner collision
+	CollisionRect2D_updatePosition(rect, VECTOR2x(0x10000, -0x10000));
+	CollisionRect2D_updatePosition(rect, VECTOR2x(0x00000, 0x00000));
+	time = -1;
+	memset(&normal, 0xFF, sizeof(normal));
+	result = intersectionHandler_rect2D_circle((CollisionObject *) rect, (CollisionObject *) circle, &time, &normal);
+	TestCase_assert(result, "Expected true but got false");
+	TestCase_assert(time == 0x04AFC, "Expected 0x04AFC but got 0x%05X", time);
+	TestCase_assert(normal.x == 0x0B504 && normal.y == -0x0B504 && normal.z == 0x00000, "Expected {0x0B504, 0xFFFF4AFC, 0x00000} but got {0x%05X, 0x%05X, 0x%05X}", normal.x, normal.y, normal.z);
+	
+	// rect top right corner collision
+	CollisionRect2D_updatePosition(rect, VECTOR2x(-0x10000, -0x10000));
+	CollisionRect2D_updatePosition(rect, VECTOR2x(0x00000, 0x00000));
+	time = -1;
+	memset(&normal, 0xFF, sizeof(normal));
+	result = intersectionHandler_rect2D_circle((CollisionObject *) rect, (CollisionObject *) circle, &time, &normal);
+	TestCase_assert(result, "Expected true but got false");
+	TestCase_assert(time == 0x04AFC, "Expected 0x04AFC but got 0x%05X", time);
+	TestCase_assert(normal.x == -0x0B504 && normal.y == -0x0B504 && normal.z == 0x00000, "Expected {0xFFFF4AFC, 0xFFFF4AFC, 0x00000} but got {0x%05X, 0x%05X, 0x%05X}", normal.x, normal.y, normal.z);
+	
 	CollisionRect2D_dispose(rect);
 	CollisionCircle_dispose(circle);
-	
-	TestCase_assert(false, "Unimplemented");
 }
 
 static void testRect2D_line2D() {
@@ -604,10 +641,6 @@ static void testBox_line3D() {
 	//TestCase_assert(false, "Unimplemented");
 }
 
-static void testBox_cylinder() {
-	//TestCase_assert(false, "Unimplemented");
-}
-
 static void testBox_capsule() {
 	//TestCase_assert(false, "Unimplemented");
 }
@@ -624,10 +657,6 @@ static void testSphere_line3D() {
 	//TestCase_assert(false, "Unimplemented");
 }
 
-static void testSphere_cylinder() {
-	//TestCase_assert(false, "Unimplemented");
-}
-
 static void testSphere_capsule() {
 	//TestCase_assert(false, "Unimplemented");
 }
@@ -640,27 +669,11 @@ static void testLine3D_line3D() {
 	//TestCase_assert(false, "Unimplemented");
 }
 
-static void testLine3D_cylinder() {
-	//TestCase_assert(false, "Unimplemented");
-}
-
 static void testLine3D_capsule() {
 	//TestCase_assert(false, "Unimplemented");
 }
 
 static void testLine3D_trimesh() {
-	//TestCase_assert(false, "Unimplemented");
-}
-
-static void testCylinder_cylinder() {
-	//TestCase_assert(false, "Unimplemented");
-}
-
-static void testCylinder_capsule() {
-	//TestCase_assert(false, "Unimplemented");
-}
-
-static void testCylinder_trimesh() {
 	//TestCase_assert(false, "Unimplemented");
 }
 
@@ -700,21 +713,15 @@ TEST_SUITE(StandardIntersectionHandlersTest,
            testBox_box,
            testBox_sphere,
            testBox_line3D,
-           testBox_cylinder,
            testBox_capsule,
            testBox_trimesh,
            testSphere_sphere,
            testSphere_line3D,
-           testSphere_cylinder,
            testSphere_capsule,
            testSphere_trimesh,
            testLine3D_line3D,
-           testLine3D_cylinder,
            testLine3D_capsule,
            testLine3D_trimesh,
-           testCylinder_cylinder,
-           testCylinder_capsule,
-           testCylinder_trimesh,
            testCapsule_capsule,
            testCapsule_trimesh,
            testTrimesh_trimesh)
