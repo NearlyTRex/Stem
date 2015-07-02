@@ -467,6 +467,52 @@ static void testMulDivOverflowReturnsInf() {
 	TestCase_assert(result == FIXED_16_16_NINF, "Expected 0x%X but got 0x%X", FIXED_16_16_NINF, result);
 }
 
+static void testMulDivInfReturnsInf() {
+	fixed16_16 result;
+	
+	result = xmul(FIXED_16_16_INF, 0x08000);
+	TestCase_assert(result == FIXED_16_16_INF, "Expected 0x%X but got 0x%X", FIXED_16_16_INF, result);
+	result = xmul(0x08000, FIXED_16_16_INF);
+	TestCase_assert(result == FIXED_16_16_INF, "Expected 0x%X but got 0x%X", FIXED_16_16_INF, result);
+	result = xmul(FIXED_16_16_INF, -0x08000);
+	TestCase_assert(result == FIXED_16_16_NINF, "Expected 0x%X but got 0x%X", FIXED_16_16_NINF, result);
+	
+	result = xmul(FIXED_16_16_NINF, 0x08000);
+	TestCase_assert(result == FIXED_16_16_NINF, "Expected 0x%X but got 0x%X", FIXED_16_16_NINF, result);
+	result = xmul(0x08000, FIXED_16_16_NINF);
+	TestCase_assert(result == FIXED_16_16_NINF, "Expected 0x%X but got 0x%X", FIXED_16_16_NINF, result);
+	result = xmul(FIXED_16_16_NINF, -0x08000);
+	TestCase_assert(result == FIXED_16_16_INF, "Expected 0x%X but got 0x%X", FIXED_16_16_INF, result);
+	
+	result = xdiv(FIXED_16_16_INF, 0x20000);
+	TestCase_assert(result == FIXED_16_16_INF, "Expected 0x%X but got 0x%X", FIXED_16_16_INF, result);
+	result = xdiv(0x20000, FIXED_16_16_INF);
+	TestCase_assert(result == FIXED_16_16_INF, "Expected 0x%X but got 0x%X", FIXED_16_16_INF, result);
+	result = xdiv(FIXED_16_16_INF, -0x20000);
+	TestCase_assert(result == FIXED_16_16_NINF, "Expected 0x%X but got 0x%X", FIXED_16_16_NINF, result);
+	
+	result = xdiv(FIXED_16_16_NINF, 0x20000);
+	TestCase_assert(result == FIXED_16_16_NINF, "Expected 0x%X but got 0x%X", FIXED_16_16_NINF, result);
+	result = xdiv(0x20000, FIXED_16_16_NINF);
+	TestCase_assert(result == FIXED_16_16_NINF, "Expected 0x%X but got 0x%X", FIXED_16_16_NINF, result);
+	result = xdiv(FIXED_16_16_NINF, -0x20000);
+	TestCase_assert(result == FIXED_16_16_INF, "Expected 0x%X but got 0x%X", FIXED_16_16_INF, result);
+}
+
+static void testMulDivNaNReturnsNaN() {
+	fixed16_16 result;
+	
+	result = xmul(FIXED_16_16_NAN, 0x08000);
+	TestCase_assert(result == FIXED_16_16_NAN, "Expected 0x%X but got 0x%X", FIXED_16_16_NAN, result);
+	result = xmul(0x08000, FIXED_16_16_NAN);
+	TestCase_assert(result == FIXED_16_16_NAN, "Expected 0x%X but got 0x%X", FIXED_16_16_NAN, result);
+	
+	result = xdiv(FIXED_16_16_NAN, 0x20000);
+	TestCase_assert(result == FIXED_16_16_NAN, "Expected 0x%X but got 0x%X", FIXED_16_16_NAN, result);
+	result = xdiv(0x20000, FIXED_16_16_NAN);
+	TestCase_assert(result == FIXED_16_16_NAN, "Expected 0x%X but got 0x%X", FIXED_16_16_NAN, result);
+}
+
 TEST_SUITE(FixedPointTest,
            testFloatToFixed,
            testFixedToFloat,
@@ -491,4 +537,6 @@ TEST_SUITE(FixedPointTest,
            testAtan2,
            testIsinf,
            testIsnan,
-           testMulDivOverflowReturnsInf)
+           testMulDivOverflowReturnsInf,
+           testMulDivInfReturnsInf,
+           testMulDivNaNReturnsNaN)
