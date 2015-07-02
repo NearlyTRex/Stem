@@ -466,38 +466,38 @@ static void testRect2D_circle() {
 	memset(&normal, 0xFF, sizeof(normal));
 	result = intersectionHandler_rect2D_circle((CollisionObject *) rect, (CollisionObject *) circle, &time, &normal);
 	TestCase_assert(result, "Expected true but got false");
-	TestCase_assert(time == 0x04AFC, "Expected 0x04AFC but got 0x%05X", time);
-	TestCase_assert(normal.x == 0x0B504 && normal.y == 0x0B504 && normal.z == 0x00000, "Expected {0x0B504, 0x0B504, 0x00000} but got {0x%05X, 0x%05X, 0x%05X}", normal.x, normal.y, normal.z);
+	TestCase_assert(time == 0x04AFB, "Expected 0x04AFB but got 0x%05X", time);
+	TestCase_assert(normal.x == 0x0B505 && normal.y == 0x0B505 && normal.z == 0x00000, "Expected {0x0B505, 0x0B505, 0x00000} but got {0x%05X, 0x%05X, 0x%05X}", normal.x, normal.y, normal.z);
 	
 	// rect bottom right corner collision
-	CollisionRect2D_updatePosition(rect, VECTOR2x(-0x10000, 0x10000));
-	CollisionRect2D_updatePosition(rect, VECTOR2x(0x00000, 0x00000));
+	CollisionRect2D_updatePosition(rect, VECTOR2x(-0x20000, 0x10000));
+	CollisionRect2D_updatePosition(rect, VECTOR2x(-0x10000, 0x00000));
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
 	result = intersectionHandler_rect2D_circle((CollisionObject *) rect, (CollisionObject *) circle, &time, &normal);
 	TestCase_assert(result, "Expected true but got false");
-	TestCase_assert(time == 0x04AFC, "Expected 0x04AFC but got 0x%05X", time);
-	TestCase_assert(normal.x == -0x0B504 && normal.y == 0x0B504 && normal.z == 0x00000, "Expected {0xFFFF4AFC, 0x0B504, 0x00000} but got {0x%05X, 0x%05X, 0x%05X}", normal.x, normal.y, normal.z);
+	TestCase_assert(time == 0x04AFB, "Expected 0x04AFB but got 0x%05X", time);
+	TestCase_assert(normal.x == -0x0B505 && normal.y == 0x0B505 && normal.z == 0x00000, "Expected {0xFFFF4AFB, 0x0B505, 0x00000} but got {0x%05X, 0x%05X, 0x%05X}", normal.x, normal.y, normal.z);
 	
 	// rect top left corner collision
-	CollisionRect2D_updatePosition(rect, VECTOR2x(0x10000, -0x10000));
-	CollisionRect2D_updatePosition(rect, VECTOR2x(0x00000, 0x00000));
+	CollisionRect2D_updatePosition(rect, VECTOR2x(0x10000, -0x20000));
+	CollisionRect2D_updatePosition(rect, VECTOR2x(0x00000, -0x10000));
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
 	result = intersectionHandler_rect2D_circle((CollisionObject *) rect, (CollisionObject *) circle, &time, &normal);
 	TestCase_assert(result, "Expected true but got false");
-	TestCase_assert(time == 0x04AFC, "Expected 0x04AFC but got 0x%05X", time);
-	TestCase_assert(normal.x == 0x0B504 && normal.y == -0x0B504 && normal.z == 0x00000, "Expected {0x0B504, 0xFFFF4AFC, 0x00000} but got {0x%05X, 0x%05X, 0x%05X}", normal.x, normal.y, normal.z);
+	TestCase_assert(time == 0x04AFB, "Expected 0x04AFB but got 0x%05X", time);
+	TestCase_assert(normal.x == 0x0B505 && normal.y == -0x0B505 && normal.z == 0x00000, "Expected {0x0B505, 0xFFFF4AFB, 0x00000} but got {0x%05X, 0x%05X, 0x%05X}", normal.x, normal.y, normal.z);
 	
 	// rect top right corner collision
+	CollisionRect2D_updatePosition(rect, VECTOR2x(-0x20000, -0x20000));
 	CollisionRect2D_updatePosition(rect, VECTOR2x(-0x10000, -0x10000));
-	CollisionRect2D_updatePosition(rect, VECTOR2x(0x00000, 0x00000));
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
 	result = intersectionHandler_rect2D_circle((CollisionObject *) rect, (CollisionObject *) circle, &time, &normal);
 	TestCase_assert(result, "Expected true but got false");
-	TestCase_assert(time == 0x04AFC, "Expected 0x04AFC but got 0x%05X", time);
-	TestCase_assert(normal.x == -0x0B504 && normal.y == -0x0B504 && normal.z == 0x00000, "Expected {0xFFFF4AFC, 0xFFFF4AFC, 0x00000} but got {0x%05X, 0x%05X, 0x%05X}", normal.x, normal.y, normal.z);
+	TestCase_assert(time == 0x04AFB, "Expected 0x04AFB but got 0x%05X", time);
+	TestCase_assert(normal.x == -0x0B505 && normal.y == -0x0B505 && normal.z == 0x00000, "Expected {0xFFFF4AFB, 0xFFFF4AFB, 0x00000} but got {0x%05X, 0x%05X, 0x%05X}", normal.x, normal.y, normal.z);
 	
 	CollisionRect2D_dispose(rect);
 	CollisionCircle_dispose(circle);
