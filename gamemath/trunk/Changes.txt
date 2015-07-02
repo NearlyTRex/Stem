@@ -1,6 +1,7 @@
-2.2.1 (2015-06-25)
+2.2.1 (2015-07-02)
  * Added Vector*_invert() and Vector*_inverted()
  * Fixed a bug that caused xsqrt to be nonterminating for some inputs
+ * xmul and xdiv now return FIXED_16_16_INF or FIXED_16_16_NINF if the result overflows a 32-bit type
 
 2.2.0 (2014-11-02)
  * Renamed project from 3dmath to gamemath to more accurately fit its purpose

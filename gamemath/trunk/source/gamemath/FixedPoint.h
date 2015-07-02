@@ -87,10 +87,19 @@ static inline double fixed16_16ToDouble(fixed16_16 x) {
 
 static inline fixed16_16 fixed16_16_multiply(fixed16_16 lhs, fixed16_16 rhs) {
 	int64_t product = (int64_t) lhs * (int64_t) rhs;
+	
 	if (product < 0) {
-		return -((-product >> 16) + ((-product >> 15) % 2));
+		product = -((-product >> 16) + ((-product >> 15) % 2));
+	} else {
+		product = (product >> 16) + ((product >> 15) % 2);
 	}
-	return (product >> 16) + ((product >> 15) % 2);
+	if (product > FIXED_16_16_MAX) {
+		return FIXED_16_16_INF;
+	}
+	if (product < FIXED_16_16_MIN) {
+		return FIXED_16_16_NINF;
+	}
+	return product;
 }
 
 static inline fixed16_16 fixed16_16_divide(fixed16_16 lhs, fixed16_16 rhs) {
@@ -101,7 +110,15 @@ static inline fixed16_16 fixed16_16_divide(fixed16_16 lhs, fixed16_16 rhs) {
 	}
 	lhs64 = (int64_t) lhs << 16;
 	rhs64 = rhs;
-	return (fixed16_16) (lhs64 / rhs64 + (((lhs64 << 1) / rhs64) % 2));
+	lhs64 = lhs64 / rhs64 + (((lhs64 << 1) / rhs64) % 2);
+	
+	if (lhs64 > FIXED_16_16_MAX) {
+		return FIXED_16_16_INF;
+	}
+	if (lhs64 < FIXED_16_16_MIN) {
+		return FIXED_16_16_NINF;
+	}
+	return lhs64;
 }
 
 static inline fixed16_16 fixed16_16_round(fixed16_16 x) {

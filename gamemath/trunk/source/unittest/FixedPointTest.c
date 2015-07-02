@@ -75,8 +75,8 @@ static void testMultiply() {
 	TestCase_assert(result == 0x10000, "Expected 0x10000 but got 0x%X", result);
 	result = fixed16_16_multiply(0x20000, 0x4000);
 	TestCase_assert(result == 0x8000, "Expected 0x8000 but got 0x%X", result);
-	result = fixed16_16_multiply(0x0FFFFFFF, 0x00100000);
-	TestCase_assert(result == (fixed16_16) 0xFFFFFFF0, "Expected 0xFFFFFFF0 but got 0x%X", result);
+	result = fixed16_16_multiply(0x00FFFFFF, 0x00100000);
+	TestCase_assert(result == (fixed16_16) 0x0FFFFFF0, "Expected 0x0FFFFFF0 but got 0x%X", result);
 	result = fixed16_16_multiply((fixed16_16) 0xFFFFFFF0, 0x00000100);
 	TestCase_assert(result == (fixed16_16) 0x0, "Expected 0x0 but got 0x%X", result);
 	result = fixed16_16_multiply((fixed16_16) 0xFFFFFFFD, 0x8000);
@@ -445,6 +445,28 @@ static void testIsnan() {
 	TestCase_assert(fixed16_16_isnan(FIXED_16_16_NAN), "Expected true but got false");
 }
 
+static void testMulDivOverflowReturnsInf() {
+	fixed16_16 result;
+	
+	result = xmul(FIXED_16_16_MAX, FIXED_16_16_MAX);
+	TestCase_assert(result == FIXED_16_16_INF, "Expected 0x%X but got 0x%X", FIXED_16_16_INF, result);
+	result = xmul(0x00800000, 0x03000000);
+	TestCase_assert(result == FIXED_16_16_INF, "Expected 0x%X but got 0x%X", FIXED_16_16_INF, result);
+	result = xmul(FIXED_16_16_MIN, FIXED_16_16_MAX);
+	TestCase_assert(result == FIXED_16_16_NINF, "Expected 0x%X but got 0x%X", FIXED_16_16_NINF, result);
+	result = xmul(-0x00800000, 0x03000000);
+	TestCase_assert(result == FIXED_16_16_NINF, "Expected 0x%X but got 0x%X", FIXED_16_16_NINF, result);
+	
+	result = xdiv(0x1000000, 0x1);
+	TestCase_assert(result == FIXED_16_16_INF, "Expected 0x%X but got 0x%X", FIXED_16_16_INF, result);
+	result = xdiv(FIXED_16_16_MAX, 0x08000);
+	TestCase_assert(result == FIXED_16_16_INF, "Expected 0x%X but got 0x%X", FIXED_16_16_INF, result);
+	result = xdiv(0x1000000, -0x1);
+	TestCase_assert(result == FIXED_16_16_NINF, "Expected 0x%X but got 0x%X", FIXED_16_16_NINF, result);
+	result = xdiv(FIXED_16_16_MIN, 0x08000);
+	TestCase_assert(result == FIXED_16_16_NINF, "Expected 0x%X but got 0x%X", FIXED_16_16_NINF, result);
+}
+
 TEST_SUITE(FixedPointTest,
            testFloatToFixed,
            testFixedToFloat,
@@ -468,4 +490,5 @@ TEST_SUITE(FixedPointTest,
            testAtan,
            testAtan2,
            testIsinf,
-           testIsnan)
+           testIsnan,
+           testMulDivOverflowReturnsInf)
