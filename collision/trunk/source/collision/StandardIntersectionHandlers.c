@@ -263,6 +263,78 @@ bool intersectionHandler_rect2D_rect2D(CollisionObject * object1, CollisionObjec
 }
 
 bool intersectionHandler_rect2D_circle(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal) {
+	fixed16_16 time;
+	CollisionRect2D * rect = (CollisionRect2D *) object1;
+	CollisionCircle * circle = (CollisionCircle *) object2;
+	
+	// rect right vs. circle left
+	if (rect->solidRight &&
+	    (rect->position.x + rect->size.x) - (rect->lastPosition.x - rect->lastSize.x) > (circle->position.x - circle->radius) - (circle->lastPosition.x - circle->radius) && 
+	    intersectSweptLineSegments(rect->lastPosition.x + rect->lastSize.x, rect->position.x + rect->size.x,
+	                               circle->lastPosition.x - circle->radius, circle->position.x - circle->radius,
+	                               rect->lastPosition.y, rect->lastPosition.y + rect->lastSize.y, rect->position.y, rect->position.y + rect->size.y,
+	                               circle->lastPosition.y, circle->lastPosition.y, circle->position.y, circle->position.y,
+	                               &time)) {
+		if (outTime != NULL) {
+			*outTime = time;
+		}
+		if (outNormal != NULL) {
+			*outNormal = VECTOR3x_LEFT;
+		}
+		return true;
+	}
+	
+	// rect left vs. circle right
+	if (rect->solidLeft &&
+	    rect->position.x - rect->lastPosition.x < (circle->position.x + circle->radius) - (circle->lastPosition.x + circle->radius) && 
+	    intersectSweptLineSegments(rect->lastPosition.x, rect->position.x,
+	                               circle->lastPosition.x + circle->radius, circle->position.x + circle->radius,
+	                               rect->lastPosition.y, rect->lastPosition.y + rect->lastSize.y, rect->position.y, rect->position.y + rect->size.y,
+	                               circle->lastPosition.y, circle->lastPosition.y, circle->position.y, circle->position.y,
+	                               &time)) {
+		if (outTime != NULL) {
+			*outTime = time;
+		}
+		if (outNormal != NULL) {
+			*outNormal = VECTOR3x_RIGHT;
+		}
+		return true;
+	}
+	
+	// rect top vs. circle bottom
+	if (rect->solidTop &&
+	    (rect->position.y + rect->size.y) - (rect->lastPosition.y + rect->lastSize.y) > (circle->position.y - circle->radius) - (circle->lastPosition.y - circle->radius) && 
+	    intersectSweptLineSegments(rect->lastPosition.y + rect->lastSize.y, rect->position.y + rect->size.y,
+	                               circle->lastPosition.y - circle->radius, circle->position.y - circle->radius,
+	                               rect->lastPosition.x, rect->lastPosition.x + rect->lastSize.x, rect->position.x, rect->position.x + rect->size.x,
+	                               circle->lastPosition.x, circle->lastPosition.x, circle->position.x, circle->position.x,
+	                               &time)) {
+		if (outTime != NULL) {
+			*outTime = time;
+		}
+		if (outNormal != NULL) {
+			*outNormal = VECTOR3x_DOWN;
+		}
+		return true;
+	}
+	
+	// rect bottom vs. circle top
+	if (rect->solidBottom &&
+	    rect->position.y - rect->lastPosition.y < (circle->position.y + circle->radius) - (circle->lastPosition.y + circle->radius) && 
+	    intersectSweptLineSegments(rect->lastPosition.y, rect->position.y,
+	                               circle->lastPosition.y + circle->radius, circle->position.y + circle->radius,
+	                               rect->lastPosition.x, rect->lastPosition.x + rect->lastSize.x, rect->position.x, rect->position.x + rect->size.x,
+	                               circle->lastPosition.x, circle->lastPosition.x, circle->position.x, circle->position.x,
+	                               &time)) {
+		if (outTime != NULL) {
+			*outTime = time;
+		}
+		if (outNormal != NULL) {
+			*outNormal = VECTOR3x_UP;
+		}
+		return true;
+	}
+	
 	return false;
 }
 
