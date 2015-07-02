@@ -23,6 +23,7 @@
 #include "collision/CollisionCircle.h"
 #include "collision/CollisionRect2D.h"
 #include "collision/StandardIntersectionHandlers.h"
+#include <stdio.h>
 
 static bool intersectSweptLineSegments(fixed16_16 x1Start, fixed16_16 x1End,
                                        fixed16_16 x2Start, fixed16_16 x2End,
@@ -97,19 +98,58 @@ static bool intersectSweptPoints(fixed16_16 x1Start, fixed16_16 x1End,
 	return true;
 }
 
+static inline int64_t fixed48_16_multiply(int64_t lhs, int64_t rhs) {
+	int64_t product = lhs * rhs;
+	
+	if (product < 0) {
+		product = -((-product >> 16) + ((-product >> 15) % 2));
+	} else {
+		product = (product >> 16) + ((product >> 15) % 2);
+	}
+	return product;
+}
+
+static inline int64_t fixed48_16_divide(int64_t lhs, int64_t rhs) {
+	if (rhs == 0) {
+		return FIXED_16_16_INF;
+	}
+	lhs <<= 16;
+	lhs = lhs / rhs + (((lhs << 1) / rhs) % 2);
+	
+	return lhs;
+}
+
+static inline int64_t fixed48_16_sqrt(int64_t x) {
+	int64_t estimate = 0x10000, lastEstimate = -1, lastEstimate2 = -1;
+	
+	if (x < 0) {
+		return FIXED_16_16_NAN;
+	}
+	if (x == 0) {
+		return 0;
+	}
+	while (estimate != lastEstimate && estimate != lastEstimate2) {
+		lastEstimate2 = lastEstimate;
+		lastEstimate = estimate;
+		estimate = (((x << 16) / estimate) + estimate) / 2;
+	}
+	return estimate;
+}
+
 // Adapted from http://www.gamasutra.com/view/feature/131790/simple_intersection_tests_for_games.php?page=2
 static bool quadraticFormula(fixed16_16 a,
                              fixed16_16 b,
                              fixed16_16 c,
                              fixed16_16 * outR1,
                              fixed16_16 * outR2) {
-	fixed16_16 q = xmul(b, b) - 4 * xmul(a, c);
+	// fixed16_16 doesn't have enough range for the quadratic formula. Need fixed48_16.
+	int64_t q = fixed48_16_multiply(b, b) - 4 * fixed48_16_multiply(a, c);
 	
 	if (q >= 0) {
-		fixed16_16 sq = xsqrt(q);
-		fixed16_16 d = xdiv(0x10000, a * 2);
-		*outR1 = xmul((-b + sq), d);
-		*outR2 = xmul((-b - sq), d);
+		int64_t sq = fixed48_16_sqrt(q);
+		int64_t d = fixed48_16_divide(0x10000, (int64_t) a * 2);
+		*outR1 = fixed48_16_multiply(-b + sq, d);
+		*outR2 = fixed48_16_multiply(-b - sq, d);
 		return true;
 	}
 	return false;
