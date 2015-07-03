@@ -47,4 +47,6 @@
 #define XLONG_LONG_FORMAT "%llX"
 #endif
 
+#define FIXED_16_16_FORMAT "0x%05X"
+
 #endif

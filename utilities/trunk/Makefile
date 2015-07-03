@@ -3,7 +3,7 @@ PROJECT_NAME = utilities
 # VERSION_MAJOR, VERSION_MINOR, and VERSION_TWEAK are available as preprocessor macros for all source files in the project
 VERSION_MAJOR = 1
 VERSION_MINOR = 9
-VERSION_TWEAK = 0
+VERSION_TWEAK = 1
 PROJECT_VERSION = ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_TWEAK}
 
 LIBRARY_TARGETS = library
