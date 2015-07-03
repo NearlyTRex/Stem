@@ -142,14 +142,15 @@ static bool quadraticFormula(fixed16_16 a,
                              fixed16_16 c,
                              fixed16_16 * outR1,
                              fixed16_16 * outR2) {
-	// fixed16_16 doesn't have enough range for the quadratic formula. Need fixed48_16.
+	// fixed16_16 doesn't have enough range for the quadratic formula
 	int64_t q = fixed48_16_multiply(b, b) - 4 * fixed48_16_multiply(a, c);
 	
 	if (q >= 0) {
 		int64_t sq = fixed48_16_sqrt(q);
-		int64_t d = fixed48_16_divide(0x10000, (int64_t) a * 2);
-		*outR1 = fixed48_16_multiply(-b + sq, d);
-		*outR2 = fixed48_16_multiply(-b - sq, d);
+		// d would normally be xdiv(0x10000, a * 2), but 1/a*2 doesn't have enough precision with only 16 mantissa bits; use 32 and shift instead
+		int64_t d = fixed48_16_divide(0x100000000ll, (int64_t) a * 2);
+		*outR1 = fixed48_16_multiply(-b + sq, d) >> 16;
+		*outR2 = fixed48_16_multiply(-b - sq, d) >> 16;
 		return true;
 	}
 	return false;

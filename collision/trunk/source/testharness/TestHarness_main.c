@@ -71,9 +71,11 @@ static float viewRatio;
 static IntersectionManager * intersectionManager;
 static CollisionResolver * resolver;
 static Vector2x dragOrigin;
-static bool dragging, draggingLastPosition;
+static bool dragging, draggingLastPosition, draggingBoth, draggingSize;
 static size_t selectedObjectIndex;
-static bool shiftKeyDown;
+static bool shiftKeyDown, altKeyDown, controlKeyDown;
+static Vector2x dragStartPosition, dragStartLastPosition, dragStartSize, dragStartLastSize;
+static fixed16_16 dragStartRadius;
 
 static void loadScene1() {
 	if (resolver != NULL) {
@@ -427,6 +429,8 @@ static void Target_keyUp(unsigned int keyCode, unsigned int modifiers) {
 
 static void Target_keyModifiersChanged(unsigned int modifiers) {
 	shiftKeyDown = !!(modifiers & MODIFIER_SHIFT_BIT);
+	altKeyDown = !!(modifiers & MODIFIER_ALT_BIT);
+	controlKeyDown = !!(modifiers & MODIFIER_CONTROL_BIT);
 }
 
 #define DOUBLE_CLICK_INTERVAL 0.25
@@ -458,27 +462,22 @@ static void Target_mouseDown(unsigned int buttonNumber, float x, float y) {
 	} else {
 		dragOrigin = transformMousePosition(x, y);
 		draggingLastPosition = shiftKeyDown;
+		draggingBoth = controlKeyDown;
+		draggingSize = altKeyDown;
 		switch (object->shapeType) {
 			case COLLISION_SHAPE_RECT_2D: {
 				CollisionRect2D * rect = (CollisionRect2D *) object;
-				if (draggingLastPosition) {
-					dragOrigin.x -= rect->lastPosition.x;
-					dragOrigin.y -= rect->lastPosition.y;
-				} else {
-					dragOrigin.x -= rect->position.x;
-					dragOrigin.y -= rect->position.y;
-				}
+				dragStartPosition = rect->position;
+				dragStartLastPosition = rect->lastPosition;
+				dragStartSize = rect->size;
+				dragStartLastSize = rect->lastSize;
 				break;
 			}
 			case COLLISION_SHAPE_CIRCLE: {
 				CollisionCircle * circle = (CollisionCircle *) object;
-				if (draggingLastPosition) {
-					dragOrigin.x -= circle->lastPosition.x;
-					dragOrigin.y -= circle->lastPosition.y;
-				} else {
-					dragOrigin.x -= circle->position.x;
-					dragOrigin.y -= circle->position.y;
-				}
+				dragStartPosition = circle->position;
+				dragStartLastPosition = circle->lastPosition;
+				dragStartRadius = circle->radius;
 				break;
 			}
 		}
@@ -503,23 +502,39 @@ static void Target_mouseDragged(unsigned int buttonMask, float x, float y) {
 	switch (object->shapeType) {
 		case COLLISION_SHAPE_RECT_2D: {
 			CollisionRect2D * rect = (CollisionRect2D *) object;
-			if (draggingLastPosition) {
-				rect->lastPosition.x = mousePosition.x - dragOrigin.x;
-				rect->lastPosition.y = mousePosition.y - dragOrigin.y;
-			} else {
-				rect->position.x = mousePosition.x - dragOrigin.x;
-				rect->position.y = mousePosition.y - dragOrigin.y;
+			if (draggingLastPosition || draggingBoth) {
+				if (draggingSize) {
+					rect->lastSize.x = dragStartLastSize.x + mousePosition.x - dragOrigin.x;
+					rect->lastSize.y = dragStartLastSize.y + mousePosition.y - dragOrigin.y;
+				} else {
+					rect->lastPosition.x = dragStartLastPosition.x + mousePosition.x - dragOrigin.x;
+					rect->lastPosition.y = dragStartLastPosition.y + mousePosition.y - dragOrigin.y;
+				}
+			}
+			if (!draggingLastPosition || draggingBoth) {
+				if (draggingSize) {
+					rect->size.x = dragStartSize.x + mousePosition.x - dragOrigin.x;
+					rect->size.y = dragStartSize.y + mousePosition.y - dragOrigin.y;
+				} else {
+					rect->position.x = dragStartPosition.x + mousePosition.x - dragOrigin.x;
+					rect->position.y = dragStartPosition.y + mousePosition.y - dragOrigin.y;
+				}
 			}
 			break;
 		}
 		case COLLISION_SHAPE_CIRCLE: {
 			CollisionCircle * circle = (CollisionCircle *) object;
-			if (draggingLastPosition) {
-				circle->lastPosition.x = mousePosition.x - dragOrigin.x;
-				circle->lastPosition.y = mousePosition.y - dragOrigin.y;
+			if (draggingSize) {
+				circle->radius = dragStartRadius + mousePosition.y - dragOrigin.y;
 			} else {
-				circle->position.x = mousePosition.x - dragOrigin.x;
-				circle->position.y = mousePosition.y - dragOrigin.y;
+				if (draggingLastPosition || draggingBoth) {
+					circle->lastPosition.x = dragStartLastPosition.x + mousePosition.x - dragOrigin.x;
+					circle->lastPosition.y = dragStartLastPosition.y + mousePosition.y - dragOrigin.y;
+				}
+				if (!draggingLastPosition || draggingBoth) {
+					circle->position.x = dragStartPosition.x + mousePosition.x - dragOrigin.x;
+					circle->position.y = dragStartPosition.y + mousePosition.y - dragOrigin.y;
+				}
 			}
 			break;
 		}
