@@ -51,9 +51,7 @@
 #include <stdlib.h>
 
 // TODO:
-// - Change rect solidity (1 2 3 4 with rect selected)
 // - Animate mode (interpolate all shapes to first collision, resolve, continue until all resolved)
-// - Clearer shape highlights
 // - Display numbers for all relevant properties of selected object
 
 // Feature wishlist:
@@ -133,10 +131,25 @@ static void getArrowVertices2D(Vector2x position, Vector3x normal, struct vertex
 
 #define CIRCLE_TESSELATIONS 64
 
-static void highlightVertexColor(GLfloat * color) {
-	color[0] = 0.5f + color[0] * 0.5f;
-	color[1] = 0.5f + color[1] * 0.5f;
-	color[2] = 0.5f + color[2] * 0.5f;
+#define COLOR_RECT_LAST_POSITION                COLOR4f(0.5f, 0.25f, 0.0f, 1.0f)
+#define COLOR_RECT_LAST_POSITION_HIGHLIGHT      COLOR4f(0.75f, 0.625f, 0.125f, 1.0f)
+#define COLOR_RECT_POSITION                     COLOR4f(1.0f, 1.0f, 0.0f, 1.0f)
+#define COLOR_RECT_POSITION_HIGHLIGHT           COLOR4f(1.0f, 1.0f, 0.875f, 1.0f)
+#define COLOR_RECT_POSITION_COLLIDING           COLOR4f(1.0f, 0.0f, 0.0f, 1.0f)
+#define COLOR_RECT_POSITION_COLLIDING_HIGHLIGHT COLOR4f(1.0f, 0.75f, 0.75f, 1.0f)
+
+#define COLOR_CIRCLE_LAST_POSITION                COLOR4f(0.0f, 0.25f, 0.5f, 1.0f)
+#define COLOR_CIRCLE_LAST_POSITION_HIGHLIGHT      COLOR4f(0.125f, 0.625f, 0.75f, 1.0f)
+#define COLOR_CIRCLE_POSITION                     COLOR4f(0.0f, 1.0f, 1.0f, 1.0f)
+#define COLOR_CIRCLE_POSITION_HIGHLIGHT           COLOR4f(0.875f, 1.0f, 1.0f, 1.0f)
+#define COLOR_CIRCLE_POSITION_COLLIDING           COLOR4f(1.0f, 0.0f, 0.0f, 1.0f)
+#define COLOR_CIRCLE_POSITION_COLLIDING_HIGHLIGHT COLOR4f(1.0f, 0.75f, 0.75f, 1.0f)
+
+static void setVertexColor(struct vertex_p2f_c4f * vertex, Color4f color) {
+	vertex->color[0] = color.red;
+	vertex->color[1] = color.green;
+	vertex->color[2] = color.blue;
+	vertex->color[3] = color.alpha;
 }
 
 static void getCollisionObjectVertices2D(struct vertex_p2f_c4f * outVertices, GLuint * outIndexes, size_t * ioVertexCount, size_t * ioIndexCount) {
@@ -155,12 +168,10 @@ static void getCollisionObjectVertices2D(struct vertex_p2f_c4f * outVertices, GL
 				unsigned int vertexIndex;
 				
 				if (outVertices != NULL) {
-					vertex.color[0] = 0.5f;
-					vertex.color[1] = 0.25f;
-					vertex.color[2] = 0.0f;
-					vertex.color[3] = 1.0f;
 					if (objectIndex == selectedObjectIndex) {
-						highlightVertexColor(vertex.color);
+						setVertexColor(&vertex, COLOR_RECT_LAST_POSITION_HIGHLIGHT);
+					} else {
+						setVertexColor(&vertex, COLOR_RECT_LAST_POSITION);
 					}
 					vertex.position[0] = xtof(rect->lastPosition.x);
 					vertex.position[1] = xtof(rect->lastPosition.y);
@@ -173,17 +184,16 @@ static void getCollisionObjectVertices2D(struct vertex_p2f_c4f * outVertices, GL
 					outVertices[*ioVertexCount + 3] = vertex;
 					
 					if (colliding) {
-						vertex.color[0] = 1.0f;
-						vertex.color[1] = 0.0f;
-						vertex.color[2] = 0.0f;
-						vertex.color[3] = 1.0f;
-					} else {
-						vertex.color[0] = 1.0f;
-						vertex.color[1] = 1.0f;
-						vertex.color[2] = 0.0f;
-						vertex.color[3] = 1.0f;
 						if (objectIndex == selectedObjectIndex) {
-							highlightVertexColor(vertex.color);
+							setVertexColor(&vertex, COLOR_RECT_POSITION_COLLIDING_HIGHLIGHT);
+						} else {
+							setVertexColor(&vertex, COLOR_RECT_POSITION_COLLIDING);
+						}
+					} else {
+						if (objectIndex == selectedObjectIndex) {
+							setVertexColor(&vertex, COLOR_RECT_POSITION_HIGHLIGHT);
+						} else {
+							setVertexColor(&vertex, COLOR_RECT_POSITION);
 						}
 					}
 					vertex.position[0] = xtof(rect->position.x);
@@ -198,34 +208,39 @@ static void getCollisionObjectVertices2D(struct vertex_p2f_c4f * outVertices, GL
 				}
 				
 				if (outIndexes != NULL) {
+					bool solid[4] = {rect->solidBottom, rect->solidRight, rect->solidTop, rect->solidLeft};
+					
 					for (vertexIndex = 0; vertexIndex < 4; vertexIndex++) {
-						outIndexes[*ioIndexCount + vertexIndex * 2 + 0] = *ioVertexCount + vertexIndex;
-						outIndexes[*ioIndexCount + vertexIndex * 2 + 1] = *ioVertexCount + (vertexIndex + 1) % 4;
+						if (solid[vertexIndex]) {
+							outIndexes[(*ioIndexCount)++] = *ioVertexCount + vertexIndex;
+							outIndexes[(*ioIndexCount)++] = *ioVertexCount + (vertexIndex + 1) % 4;
+						}
 					}
 					for (vertexIndex = 0; vertexIndex < 4; vertexIndex++) {
-						outIndexes[*ioIndexCount + vertexIndex * 2 + 8] = *ioVertexCount + 0 + vertexIndex;
-						outIndexes[*ioIndexCount + vertexIndex * 2 + 9] = *ioVertexCount + 4 + vertexIndex;
+						outIndexes[(*ioIndexCount)++] = *ioVertexCount + 0 + vertexIndex;
+						outIndexes[(*ioIndexCount)++] = *ioVertexCount + 4 + vertexIndex;
 					}
 					for (vertexIndex = 0; vertexIndex < 4; vertexIndex++) {
-						outIndexes[*ioIndexCount + vertexIndex * 2 + 16] = *ioVertexCount + 4 + vertexIndex;
-						outIndexes[*ioIndexCount + vertexIndex * 2 + 17] = *ioVertexCount + 4 + (vertexIndex + 1) % 4;
+						if (solid[vertexIndex]) {
+							outIndexes[(*ioIndexCount)++] = *ioVertexCount + 4 + vertexIndex;
+							outIndexes[(*ioIndexCount)++] = *ioVertexCount + 4 + (vertexIndex + 1) % 4;
+						}
 					}
+					
+				} else {
+					*ioIndexCount += 8 + 4 * rect->solidLeft + 4 * rect->solidRight + 4 * rect->solidBottom + 4 * rect->solidTop;
 				}
-				
 				*ioVertexCount += 8;
-				*ioIndexCount += 24;
 				
 				if (colliding) {
 					Vector2x collidingPosition = Vector2x_interpolate(rect->lastPosition, rect->position, collision.time);
 					Vector2x collidingSize = Vector2x_interpolate(rect->lastSize, rect->size, collision.time);
 					
 					if (outVertices != NULL) {
-						vertex.color[0] = 1.0f;
-						vertex.color[1] = 1.0f;
-						vertex.color[2] = 0.0f;
-						vertex.color[3] = 1.0f;
 						if (objectIndex == selectedObjectIndex) {
-							highlightVertexColor(vertex.color);
+							setVertexColor(&vertex, COLOR_RECT_POSITION_HIGHLIGHT);
+						} else {
+							setVertexColor(&vertex, COLOR_RECT_POSITION);
 						}
 						vertex.position[0] = xtof(collidingPosition.x);
 						vertex.position[1] = xtof(collidingPosition.y);
@@ -238,14 +253,19 @@ static void getCollisionObjectVertices2D(struct vertex_p2f_c4f * outVertices, GL
 						outVertices[*ioVertexCount + 3] = vertex;
 					}
 					if (outIndexes != NULL) {
+						bool solid[4] = {rect->solidBottom, rect->solidRight, rect->solidTop, rect->solidLeft};
+						
 						for (vertexIndex = 0; vertexIndex < 4; vertexIndex++) {
-							outIndexes[*ioIndexCount + vertexIndex * 2 + 0] = *ioVertexCount + vertexIndex;
-							outIndexes[*ioIndexCount + vertexIndex * 2 + 1] = *ioVertexCount + (vertexIndex + 1) % 4;
+							if (solid[vertexIndex]) {
+								outIndexes[(*ioIndexCount)++] = *ioVertexCount + vertexIndex;
+								outIndexes[(*ioIndexCount)++] = *ioVertexCount + (vertexIndex + 1) % 4;
+							}
 						}
+						
+					} else {
+						*ioIndexCount += 2 * rect->solidLeft + 2 * rect->solidRight + 2 * rect->solidBottom + 2 * rect->solidTop;
 					}
-					
 					*ioVertexCount += 4;
-					*ioIndexCount += 8;
 					
 					getArrowVertices2D(VECTOR2x(collidingPosition.x + collidingSize.x / 2, collidingPosition.y + collidingSize.y / 2), collision.normal, outVertices, outIndexes, ioVertexCount, ioIndexCount);
 				}
@@ -256,12 +276,10 @@ static void getCollisionObjectVertices2D(struct vertex_p2f_c4f * outVertices, GL
 				unsigned int tesselationIndex;
 				
 				if (outVertices != NULL) {
-					vertex.color[0] = 0.0f;
-					vertex.color[1] = 0.25f;
-					vertex.color[2] = 0.5f;
-					vertex.color[3] = 1.0f;
 					if (objectIndex == selectedObjectIndex) {
-						highlightVertexColor(vertex.color);
+						setVertexColor(&vertex, COLOR_CIRCLE_LAST_POSITION_HIGHLIGHT);
+					} else {
+						setVertexColor(&vertex, COLOR_CIRCLE_LAST_POSITION);
 					}
 					for (tesselationIndex = 0; tesselationIndex < CIRCLE_TESSELATIONS; tesselationIndex++) {
 						vertex.position[0] = xtof(circle->lastPosition.x) + xtof(circle->radius) * cos(tesselationIndex * M_PI * 2 / CIRCLE_TESSELATIONS);
@@ -270,17 +288,16 @@ static void getCollisionObjectVertices2D(struct vertex_p2f_c4f * outVertices, GL
 					}
 					
 					if (colliding) {
-						vertex.color[0] = 1.0f;
-						vertex.color[1] = 0.0f;
-						vertex.color[2] = 0.0f;
-						vertex.color[3] = 1.0f;
-					} else {
-						vertex.color[0] = 0.0f;
-						vertex.color[1] = 1.0f;
-						vertex.color[2] = 1.0f;
-						vertex.color[3] = 1.0f;
 						if (objectIndex == selectedObjectIndex) {
-							highlightVertexColor(vertex.color);
+							setVertexColor(&vertex, COLOR_CIRCLE_POSITION_COLLIDING_HIGHLIGHT);
+						} else {
+							setVertexColor(&vertex, COLOR_CIRCLE_POSITION_COLLIDING);
+						}
+					} else {
+						if (objectIndex == selectedObjectIndex) {
+							setVertexColor(&vertex, COLOR_CIRCLE_POSITION_HIGHLIGHT);
+						} else {
+							setVertexColor(&vertex, COLOR_CIRCLE_POSITION);
 						}
 					}
 					for (tesselationIndex = 0; tesselationIndex < CIRCLE_TESSELATIONS; tesselationIndex++) {
@@ -322,12 +339,10 @@ static void getCollisionObjectVertices2D(struct vertex_p2f_c4f * outVertices, GL
 					Vector2x collidingPosition = Vector2x_interpolate(circle->lastPosition, circle->position, collision.time);
 					
 					if (outVertices != NULL) {
-						vertex.color[0] = 0.0f;
-						vertex.color[1] = 1.0f;
-						vertex.color[2] = 1.0f;
-						vertex.color[3] = 1.0f;
 						if (objectIndex == selectedObjectIndex) {
-							highlightVertexColor(vertex.color);
+							setVertexColor(&vertex, COLOR_CIRCLE_POSITION_HIGHLIGHT);
+						} else {
+							setVertexColor(&vertex, COLOR_CIRCLE_POSITION);
 						}
 						for (tesselationIndex = 0; tesselationIndex < CIRCLE_TESSELATIONS; tesselationIndex++) {
 							vertex.position[0] = xtof(collidingPosition.x) + xtof(circle->radius) * cos(tesselationIndex * M_PI * 2 / CIRCLE_TESSELATIONS);
@@ -409,17 +424,43 @@ static Vector2x transformMousePosition(float x, float y) {
 }
 
 static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned int modifiers, bool isRepeat) {
-	if (keyCode == KEYBOARD_RETURN_OR_ENTER && (modifiers & MODIFIER_ALT_BIT)) {
-		if (Shell_isFullScreen()) {
-			Shell_exitFullScreen();
-		} else {
-			Shell_enterFullScreen(Shell_getDisplayIndexFromWindow());
-		}
-		
-	} else if (keyCode == KEYBOARD_TAB && !dragging) {
-		selectedObjectIndex++;
-		selectedObjectIndex %= resolver->objectCount;
-		Shell_redisplay();
+	switch (keyCode) {
+		case KEYBOARD_RETURN_OR_ENTER:
+			if (modifiers & MODIFIER_ALT_BIT) {
+				if (Shell_isFullScreen()) {
+					Shell_exitFullScreen();
+				} else {
+					Shell_enterFullScreen(Shell_getDisplayIndexFromWindow());
+				}
+			}
+			break;
+			
+		case KEYBOARD_TAB:
+			if (!dragging) {
+				if (modifiers & MODIFIER_SHIFT_BIT) {
+					selectedObjectIndex += resolver->objectCount - 1;
+				} else {
+					selectedObjectIndex++;
+				}
+				selectedObjectIndex %= resolver->objectCount;
+				Shell_redisplay();
+			}
+			break;
+			
+		case KEYBOARD_I:
+		case KEYBOARD_J:
+		case KEYBOARD_K:
+		case KEYBOARD_L:
+			if (resolver->objects[selectedObjectIndex]->shapeType == COLLISION_SHAPE_RECT_2D) {
+				CollisionRect2D * rect = (CollisionRect2D *) resolver->objects[selectedObjectIndex];
+				CollisionRect2D_setSolidity(rect,
+				                            keyCode == KEYBOARD_J ? !rect->solidLeft   : rect->solidLeft,
+				                            keyCode == KEYBOARD_L ? !rect->solidRight  : rect->solidRight,
+				                            keyCode == KEYBOARD_K ? !rect->solidBottom : rect->solidBottom,
+				                            keyCode == KEYBOARD_I ? !rect->solidTop    : rect->solidTop);
+				Shell_redisplay();
+			}
+			break;
 	}
 }
 
