@@ -51,9 +51,8 @@
 #include <stdlib.h>
 
 // TODO:
+// - Change rect solidity (1 2 3 4 with rect selected)
 // - Animate mode (interpolate all shapes to first collision, resolve, continue until all resolved)
-// - Alt-drag to change rect size and circle radius
-// - Control-drag to move both last and current position at the same time
 // - Clearer shape highlights
 // - Display numbers for all relevant properties of selected object
 
