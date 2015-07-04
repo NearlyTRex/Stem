@@ -569,7 +569,7 @@ static void testRect2D_circle() {
 	assertNoCollision(result);
 	
 	// Miss unsolid rect top right corner
-	rect = initStationaryRect2DWithSolidity(VECTOR2x(-0x10000, -0x10000), VECTOR2x(0x20000, 0x20000), true, true, false, false);
+	rect = initStationaryRect2DWithSolidity(VECTOR2x(-0x10000, -0x10000), VECTOR2x(0x20000, 0x20000), true, false, true, false);
 	circle = initMovingCircle(VECTOR2x(0x30000, 0x30000), VECTOR2x(0x00000, 0x00000), 0x10000);
 	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
 	assertNoCollision(result);
@@ -581,7 +581,7 @@ static void testRect2D_circle() {
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
 	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
-	assertCollision(result, time, normal, 0x04AFB /* incorrect value */, VECTOR3x(-0x0B505, -0x0B505, 0x00000));
+	assertCollision(result, time, normal, 0x06E53, VECTOR3x(0x0B506, 0x0B506, 0x00000));
 	
 	// Miss left-unsolid rect bottom left corner (negative dot product)
 	rect = initStationaryRect2DWithSolidity(VECTOR2x(-0x10000, -0x10000), VECTOR2x(0x20000, 0x20000), false, true, true, true);
@@ -595,7 +595,7 @@ static void testRect2D_circle() {
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
 	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
-	assertCollision(result, time, normal, 0x04AFB /* incorrect value */, VECTOR3x(-0x0B505, -0x0B505, 0x00000));
+	assertCollision(result, time, normal, 0x06E53, VECTOR3x(0x0B506, 0x0B506, 0x00000));
 	
 	// Miss bottom-unsolid rect bottom left corner (negative dot product)
 	rect = initStationaryRect2DWithSolidity(VECTOR2x(-0x10000, -0x10000), VECTOR2x(0x20000, 0x20000), true, true, false, true);
@@ -610,7 +610,7 @@ static void testRect2D_circle() {
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
 	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
-	assertCollision(result, time, normal, 0x04AFB /* incorrect value */, VECTOR3x(0x0B505, -0x0B505, 0x00000));
+	assertCollision(result, time, normal, 0x06E53, VECTOR3x(-0x0B506, 0x0B506, 0x00000));
 	
 	// Miss right-unsolid rect bottom right corner (negative dot product)
 	rect = initStationaryRect2DWithSolidity(VECTOR2x(-0x10000, -0x10000), VECTOR2x(0x20000, 0x20000), true, false, true, true);
@@ -624,7 +624,7 @@ static void testRect2D_circle() {
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
 	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
-	assertCollision(result, time, normal, 0x04AFB /* incorrect value */, VECTOR3x(0x0B505, -0x0B505, 0x00000));
+	assertCollision(result, time, normal, 0x06E53, VECTOR3x(-0x0B506, 0x0B506, 0x00000));
 	
 	// Miss bottom-unsolid rect bottom right corner (negative dot product)
 	rect = initStationaryRect2DWithSolidity(VECTOR2x(-0x10000, -0x10000), VECTOR2x(0x20000, 0x20000), true, true, false, true);
@@ -639,7 +639,7 @@ static void testRect2D_circle() {
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
 	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
-	assertCollision(result, time, normal, 0x04AFB /* incorrect value */, VECTOR3x(-0x0B505, 0x0B505, 0x00000));
+	assertCollision(result, time, normal, 0x06E53, VECTOR3x(0x0B506, -0x0B506, 0x00000));
 	
 	// Miss left-unsolid rect top left corner (negative dot product)
 	rect = initStationaryRect2DWithSolidity(VECTOR2x(-0x10000, -0x10000), VECTOR2x(0x20000, 0x20000), false, true, true, true);
@@ -653,7 +653,7 @@ static void testRect2D_circle() {
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
 	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
-	assertCollision(result, time, normal, 0x04AFB /* incorrect value */, VECTOR3x(-0x0B505, 0x0B505, 0x00000));
+	assertCollision(result, time, normal, 0x06E53, VECTOR3x(0x0B506, -0x0B506, 0x00000));
 	
 	// Miss bottom-unsolid rect top left corner (negative dot product)
 	rect = initStationaryRect2DWithSolidity(VECTOR2x(-0x10000, -0x10000), VECTOR2x(0x20000, 0x20000), true, true, true, false);
@@ -668,7 +668,7 @@ static void testRect2D_circle() {
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
 	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
-	assertCollision(result, time, normal, 0x04AFB /* incorrect value */, VECTOR3x(0x0B505, 0x0B505, 0x00000));
+	assertCollision(result, time, normal, 0x06E53, VECTOR3x(-0x0B506, -0x0B506, 0x00000));
 	
 	// Miss right-unsolid rect top right corner (negative dot product)
 	rect = initStationaryRect2DWithSolidity(VECTOR2x(-0x10000, -0x10000), VECTOR2x(0x20000, 0x20000), true, false, true, true);
@@ -682,13 +682,15 @@ static void testRect2D_circle() {
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
 	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
-	assertCollision(result, time, normal, 0x04AFB /* incorrect value */, VECTOR3x(0x0B505, 0x0B505, 0x00000));
+	assertCollision(result, time, normal, 0x06E53, VECTOR3x(-0x0B506, -0x0B506, 0x00000));
 	
 	// Miss bottom-unsolid rect top right corner (negative dot product)
 	rect = initStationaryRect2DWithSolidity(VECTOR2x(-0x10000, -0x10000), VECTOR2x(0x20000, 0x20000), true, true, true, false);
 	circle = initMovingCircle(VECTOR2x(0x00000, 0x20000), VECTOR2x(0x20000, 0x00000), 0x10000);
 	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
 	assertNoCollision(result);
+	
+	// TODO: Above tests don't cover a degenerate case where circle is already intersecting an unsolid side of the rect, moving inward, and the clipping the solid corner with a positive direction dot product but negative normal dot product
 }
 
 static void testRect2D_line2D() {

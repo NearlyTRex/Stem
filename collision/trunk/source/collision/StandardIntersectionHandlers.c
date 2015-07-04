@@ -348,7 +348,7 @@ bool intersectionHandler_rect2D_circle(CollisionObject * object1, CollisionObjec
 	
 	// rect right vs. circle left
 	if (rect->solidRight &&
-	    (rect->position.x + rect->size.x) - (rect->lastPosition.x - rect->lastSize.x) > (circle->position.x - circle->radius) - (circle->lastPosition.x - circle->radius) && 
+	    (rect->position.x + rect->size.x) - (rect->lastPosition.x + rect->lastSize.x) > circle->position.x - circle->lastPosition.x && 
 	    intersectSweptLineSegments(rect->lastPosition.x + rect->lastSize.x, rect->position.x + rect->size.x,
 	                               circle->lastPosition.x - circle->radius, circle->position.x - circle->radius,
 	                               rect->lastPosition.y, rect->lastPosition.y + rect->lastSize.y, rect->position.y, rect->position.y + rect->size.y,
@@ -365,7 +365,7 @@ bool intersectionHandler_rect2D_circle(CollisionObject * object1, CollisionObjec
 	
 	// rect left vs. circle right
 	if (rect->solidLeft &&
-	    rect->position.x - rect->lastPosition.x < (circle->position.x + circle->radius) - (circle->lastPosition.x + circle->radius) && 
+	    rect->position.x - rect->lastPosition.x < circle->position.x - circle->lastPosition.x && 
 	    intersectSweptLineSegments(rect->lastPosition.x, rect->position.x,
 	                               circle->lastPosition.x + circle->radius, circle->position.x + circle->radius,
 	                               rect->lastPosition.y, rect->lastPosition.y + rect->lastSize.y, rect->position.y, rect->position.y + rect->size.y,
@@ -382,7 +382,7 @@ bool intersectionHandler_rect2D_circle(CollisionObject * object1, CollisionObjec
 	
 	// rect top vs. circle bottom
 	if (rect->solidTop &&
-	    (rect->position.y + rect->size.y) - (rect->lastPosition.y + rect->lastSize.y) > (circle->position.y - circle->radius) - (circle->lastPosition.y - circle->radius) && 
+	    (rect->position.y + rect->size.y) - (rect->lastPosition.y + rect->lastSize.y) > circle->position.y - circle->lastPosition.y && 
 	    intersectSweptLineSegments(rect->lastPosition.y + rect->lastSize.y, rect->position.y + rect->size.y,
 	                               circle->lastPosition.y - circle->radius, circle->position.y - circle->radius,
 	                               rect->lastPosition.x, rect->lastPosition.x + rect->lastSize.x, rect->position.x, rect->position.x + rect->size.x,
@@ -399,7 +399,7 @@ bool intersectionHandler_rect2D_circle(CollisionObject * object1, CollisionObjec
 	
 	// rect bottom vs. circle top
 	if (rect->solidBottom &&
-	    rect->position.y - rect->lastPosition.y < (circle->position.y + circle->radius) - (circle->lastPosition.y + circle->radius) && 
+	    rect->position.y - rect->lastPosition.y < circle->position.y - circle->lastPosition.y && 
 	    intersectSweptLineSegments(rect->lastPosition.y, rect->position.y,
 	                               circle->lastPosition.y + circle->radius, circle->position.y + circle->radius,
 	                               rect->lastPosition.x, rect->lastPosition.x + rect->lastSize.x, rect->position.x, rect->position.x + rect->size.x,
@@ -415,40 +415,44 @@ bool intersectionHandler_rect2D_circle(CollisionObject * object1, CollisionObjec
 	}
 	
 	// rect bottom left corner vs. circle
-	if (intersectSweptCircles(rect->lastPosition, rect->position, 0x00000,
+	if ((rect->solidLeft || rect->solidBottom) &&
+	    intersectSweptCircles(rect->lastPosition, rect->position, 0x00000,
 	                          circle->lastPosition, circle->position, circle->radius,
 	                          &time, &normal)) {
-		if (time < bestCornerTime) {
+		if (normal.x >= 0 && normal.y >= 0 && time < bestCornerTime) {
 			bestCornerTime = time;
 			bestCornerNormal = normal;
 		}
 	}
 	
 	// rect bottom right corner vs. circle
-	if (intersectSweptCircles(VECTOR2x(rect->lastPosition.x + rect->lastSize.x, rect->lastPosition.y), VECTOR2x(rect->position.x + rect->size.x, rect->position.y), 0x00000,
+	if ((rect->solidRight || rect->solidBottom) &&
+	    intersectSweptCircles(VECTOR2x(rect->lastPosition.x + rect->lastSize.x, rect->lastPosition.y), VECTOR2x(rect->position.x + rect->size.x, rect->position.y), 0x00000,
 	                          circle->lastPosition, circle->position, circle->radius,
 	                          &time, &normal)) {
-		if (time < bestCornerTime) {
+		if (normal.x <= 0 && normal.y >= 0 && time < bestCornerTime) {
 			bestCornerTime = time;
 			bestCornerNormal = normal;
 		}
 	}
 	
 	// rect top left corner vs. circle
-	if (intersectSweptCircles(VECTOR2x(rect->lastPosition.x, rect->lastPosition.y + rect->lastSize.y), VECTOR2x(rect->position.x, rect->position.y + rect->size.y), 0x00000,
+	if ((rect->solidLeft || rect->solidTop) &&
+	    intersectSweptCircles(VECTOR2x(rect->lastPosition.x, rect->lastPosition.y + rect->lastSize.y), VECTOR2x(rect->position.x, rect->position.y + rect->size.y), 0x00000,
 	                          circle->lastPosition, circle->position, circle->radius,
 	                          &time, &normal)) {
-		if (time < bestCornerTime) {
+		if (normal.x >= 0 && normal.y <= 0 && time < bestCornerTime) {
 			bestCornerTime = time;
 			bestCornerNormal = normal;
 		}
 	}
 	
-	// rect top left corner vs. circle
-	if (intersectSweptCircles(VECTOR2x(rect->lastPosition.x + rect->lastSize.x, rect->lastPosition.y + rect->lastSize.y), VECTOR2x(rect->position.x + rect->size.x, rect->position.y + rect->size.y), 0x00000,
+	// rect top right corner vs. circle
+	if ((rect->solidRight || rect->solidTop) &&
+	    intersectSweptCircles(VECTOR2x(rect->lastPosition.x + rect->lastSize.x, rect->lastPosition.y + rect->lastSize.y), VECTOR2x(rect->position.x + rect->size.x, rect->position.y + rect->size.y), 0x00000,
 	                          circle->lastPosition, circle->position, circle->radius,
 	                          &time, &normal)) {
-		if (time < bestCornerTime) {
+		if (normal.x <= 0 && normal.y <= 0 && time < bestCornerTime) {
 			bestCornerTime = time;
 			bestCornerNormal = normal;
 		}
