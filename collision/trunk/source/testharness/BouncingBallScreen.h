@@ -53,7 +53,9 @@ struct bouncingBall {
 	unsigned int timerID; \
 	double lastDrawTime; \
 	bool backgrounded; \
-	struct bouncingBall balls[BOUNCING_BALL_COUNT];
+	bool paused; \
+	struct bouncingBall balls[BOUNCING_BALL_COUNT]; \
+	struct bouncingBall lastBalls[BOUNCING_BALL_COUNT];
 
 stemobject_struct_definition(BouncingBallScreen)
 

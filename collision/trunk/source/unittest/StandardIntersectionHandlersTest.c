@@ -969,24 +969,35 @@ static void testCircle_circle() {
 }
 
 static void testCircle_circle_farawayBug()  {
-	// Circles far away from each other moving at certain angles gave false positives once
+	// The limits of fixed point precision and range can cause circles far away from each other moving at certain angles
+	// to give false positives (or false negatives) if not accounted for. Each test case here uses real numbers from a
+	// false positive (or negative) that occurred.
 	CollisionCircle circle1, circle2;
 	bool result;
 	
+	// Inadequate numeric precision in quadraticFormula
 	circle1 = initMovingCircle(VECTOR2x(0xF7047, 0x47479), VECTOR2x(0xF6EE9, 0x003E0), 0x08000);
 	circle2 = initStationaryCircle(VECTOR2x(0xFFF2CBEC, 0xFFFFDD8E), 0x10000);
 	result = intersectionHandler_circle_circle((CollisionObject *) &circle1, (CollisionObject *) &circle2, NULL, NULL);
 	assertNoCollision(result);
 	
+	// Inadequate numeric precision in quadraticFormula
 	circle1 = initMovingCircle(VECTOR2x(0x3060A, 0x69C85), VECTOR2x(0x30751, 0xFFF6F20C), 0x08000);
 	circle2 = initStationaryCircle(VECTOR2x(0xFFFD0000, 0x00000), 0x10000);
 	result = intersectionHandler_circle_circle((CollisionObject *) &circle1, (CollisionObject *) &circle2, NULL, NULL);
 	assertNoCollision(result);
 	
+	// Inadequate numeric range in quadraticFormula
 	circle1 = initMovingCircle(VECTOR2x(-0x80000, 0x00000), VECTOR2x(0x80000, 0x00000), 0x08000);
 	circle2 = initStationaryCircle(VECTOR2x(0x00000, 0x00000), 0x10000);
 	result = intersectionHandler_circle_circle((CollisionObject *) &circle1, (CollisionObject *) &circle2, NULL, NULL);
 	TestCase_assert(result, "Expected true but got false");
+	
+	// Inadequate numeric precision in calculations for arguments to quadraticFormula
+	circle1 = initMovingCircle(VECTOR2x(0x31744, 0xFFF5DD0C), VECTOR2x(0x317C8, 0xFFF5DDA3), 0x0D2E8);
+	circle2 = initStationaryCircle(VECTOR2x(-0x30000, 0x00000), 0x10000);
+	result = intersectionHandler_circle_circle((CollisionObject *) &circle1, (CollisionObject *) &circle2, NULL, NULL);
+	assertNoCollision(result);
 }
 
 static void testCircle_line2D() {

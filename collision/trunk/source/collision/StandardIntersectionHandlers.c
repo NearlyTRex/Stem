@@ -188,6 +188,10 @@ static bool intersectSweptCircles(Vector2x circle1LastPosition, Vector2x circle1
 	fixed16_16 c = Vector2x_dot(circle1ToCircle2Vector, circle1ToCircle2Vector) - xmul(radiusSum, radiusSum);
 	fixed16_16 time1 = -1, time2 = -1;
 	
+	// Very small values of relativeVelocity will evaluate to a = 0 && b != 0, which throws off the calculation
+	if (a == 0) {
+		return false;
+	}
 	if (quadraticFormula(a, b, c, &time1, &time2) && time1 != time2) {
 		if (time2 < time1) {
 			time1 = time2;

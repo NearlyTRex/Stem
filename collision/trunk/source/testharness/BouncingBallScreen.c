@@ -35,6 +35,7 @@
 #include <math.h>
 #include <stddef.h>
 #include <stdlib.h>
+#include <string.h>
 #include <stdio.h>
 
 #define SUPERCLASS Screen
@@ -46,7 +47,7 @@
 #define RADIUS_MIN 0x02000
 #define RADIUS_MAX 0x10000
 #define INITIAL_VELOCITY_MAX 0x08000
-#define COLLISION_DURATION 0.5
+#define COLLISION_DURATION 0.25
 
 BouncingBallScreen * BouncingBallScreen_create() {
 	stemobject_create_implementation(BouncingBallScreen, init)
@@ -58,6 +59,7 @@ bool BouncingBallScreen_init(BouncingBallScreen * self) {
 	self->activate = BouncingBallScreen_activate;
 	self->deactivate = BouncingBallScreen_deactivate;
 	self->intersectionManager = IntersectionManager_createWithStandardHandlers();
+	self->backgrounded = false;
 	return true;
 }
 
@@ -69,8 +71,7 @@ void BouncingBallScreen_dispose(BouncingBallScreen * self) {
 	call_super(dispose, self);
 }
 
-static void run(void * context) {
-	BouncingBallScreen * self = context;
+static void stepSimulation(BouncingBallScreen * self) {
 	unsigned int ballIndex;
 	double currentTime = Shell_getCurrentTime();
 	
@@ -81,17 +82,43 @@ static void run(void * context) {
 		self->balls[ballIndex].velocity.y -= GRAVITY;
 		CollisionCircle_updatePosition(&self->balls[ballIndex].circle, Vector2x_add(self->balls[ballIndex].circle.position, self->balls[ballIndex].velocity));
 	}
+	memcpy(self->lastBalls, self->balls, sizeof(self->balls));
 	CollisionResolver_resolveAll(self->resolver);
+}
+
+static void run(void * context) {
+	stepSimulation(context);
 }
 
 void ballCollision(CollisionRecord collision, fixed16_16 timesliceSize) {
 	CollisionCircle * circle = (CollisionCircle *) collision.object1;
 	struct bouncingBall * ball = (struct bouncingBall *) circle->owner;
+	BouncingBallScreen * self = ball->owner;
 	Vector2x reflectedVelocity;
 	
 	ball->lastCollisionTime = Shell_getCurrentTime();
 	if (collision.object2->shapeType == COLLISION_SHAPE_CIRCLE) {
 		ball->lastCollisionCircle = (CollisionCircle *) collision.object2;
+		
+		if (Vector2x_magnitude(Vector2x_subtract(circle->lastPosition, ball->lastCollisionCircle->lastPosition)) > circle->radius + ball->lastCollisionCircle->radius + 0x10000) {
+			unsigned int ballIndex1, ballIndex2;
+			
+			printf("Suspicious circle collision!\n");
+			for (ballIndex1 = 0; ballIndex1 < BOUNCING_BALL_COUNT; ballIndex1++) {
+				if (&self->balls[ballIndex1].circle == circle) {
+					break;
+				}
+			}
+			for (ballIndex2 = 0; ballIndex2 < BOUNCING_BALL_COUNT; ballIndex2++) {
+				if (&self->balls[ballIndex2].circle == ball->lastCollisionCircle) {
+					break;
+				}
+			}
+			if (ballIndex1 < BOUNCING_BALL_COUNT && ballIndex2 < BOUNCING_BALL_COUNT) {
+				printf("  circle1: {0x%05X, 0x%05X} -> {0x%05X, 0x%05X}, 0x%05X\n", self->lastBalls[ballIndex1].circle.lastPosition.x, self->lastBalls[ballIndex1].circle.lastPosition.y, self->lastBalls[ballIndex1].circle.position.x, self->lastBalls[ballIndex1].circle.position.y, self->lastBalls[ballIndex1].circle.radius);
+				printf("  circle2: {0x%05X, 0x%05X} -> {0x%05X, 0x%05X}, 0x%05X\n", self->lastBalls[ballIndex2].circle.lastPosition.x, self->lastBalls[ballIndex2].circle.lastPosition.y, self->lastBalls[ballIndex2].circle.position.x, self->lastBalls[ballIndex2].circle.position.y, self->lastBalls[ballIndex2].circle.radius);
+			}
+		}
 	} else {
 		ball->lastCollisionCircle = NULL;
 	}
@@ -102,8 +129,9 @@ void ballCollision(CollisionRecord collision, fixed16_16 timesliceSize) {
 
 #define CIRCLE_TESSELATIONS 64
 
-#define COLOR_RECT   COLOR4f(1.0f, 1.0f, 0.0f, 1.0f)
-#define COLOR_CIRCLE COLOR4f(0.0f, 1.0f, 1.0f, 1.0f)
+#define COLOR_RECT        COLOR4f(1.0f, 1.0f, 0.0f, 1.0f)
+#define COLOR_CIRCLE_LAST COLOR4f(0.0f, 0.25f, 0.5f, 1.0f)
+#define COLOR_CIRCLE      COLOR4f(0.0f, 1.0f, 1.0f, 1.0f)
 
 static void setVertexColor(struct vertex_p2f_c4f * vertex, Color4f color) {
 	vertex->color[0] = color.red;
@@ -159,28 +187,54 @@ static void getCollisionObjectVertices2D(BouncingBallScreen * self, struct verte
 				struct bouncingBall * ball = circle->owner;
 				
 				if (outVertices != NULL) {
-					setVertexColor(&vertex, COLOR_CIRCLE);
+					setVertexColor(&vertex, COLOR_CIRCLE_LAST);
+					for (tesselationIndex = 0; tesselationIndex < CIRCLE_TESSELATIONS; tesselationIndex++) {
+						vertex.position[0] = xtof(circle->lastPosition.x) + xtof(circle->radius) * cos(tesselationIndex * M_PI * 2 / CIRCLE_TESSELATIONS);
+						vertex.position[1] = xtof(circle->lastPosition.y) + xtof(circle->radius) * sin(tesselationIndex * M_PI * 2 / CIRCLE_TESSELATIONS);
+						outVertices[*ioVertexCount + tesselationIndex] = vertex;
+					}
+					
 					if (currentTime - ball->lastCollisionTime < COLLISION_DURATION) {
 						vertex.color[0] = 1.0f - (currentTime - ball->lastCollisionTime) / COLLISION_DURATION;
 						vertex.color[1] = (currentTime - ball->lastCollisionTime) / COLLISION_DURATION;
 						vertex.color[2] = (currentTime - ball->lastCollisionTime) / COLLISION_DURATION;
+					} else {
+						setVertexColor(&vertex, COLOR_CIRCLE);
 					}
 					for (tesselationIndex = 0; tesselationIndex < CIRCLE_TESSELATIONS; tesselationIndex++) {
 						vertex.position[0] = xtof(circle->position.x) + xtof(circle->radius) * cos(tesselationIndex * M_PI * 2 / CIRCLE_TESSELATIONS);
 						vertex.position[1] = xtof(circle->position.y) + xtof(circle->radius) * sin(tesselationIndex * M_PI * 2 / CIRCLE_TESSELATIONS);
-						outVertices[*ioVertexCount + tesselationIndex] = vertex;
+						outVertices[*ioVertexCount + CIRCLE_TESSELATIONS + tesselationIndex] = vertex;
 					}
 				}
 				
 				if (outIndexes != NULL) {
+					float angle;
+					int bestEdgeIndex;
+					
 					for (tesselationIndex = 0; tesselationIndex < CIRCLE_TESSELATIONS; tesselationIndex++) {
 						outIndexes[*ioIndexCount + tesselationIndex * 2 + 0] = *ioVertexCount + tesselationIndex;
 						outIndexes[*ioIndexCount + tesselationIndex * 2 + 1] = *ioVertexCount + (tesselationIndex + 1) % CIRCLE_TESSELATIONS;
 					}
+					
+					angle = atan2(circle->position.y - circle->lastPosition.y, circle->position.x - circle->lastPosition.x);
+					bestEdgeIndex = round((angle + M_PI / 2) * CIRCLE_TESSELATIONS / (M_PI * 2));
+					bestEdgeIndex = (bestEdgeIndex % CIRCLE_TESSELATIONS + CIRCLE_TESSELATIONS) % CIRCLE_TESSELATIONS;
+					outIndexes[*ioIndexCount + CIRCLE_TESSELATIONS * 2 + 0] = *ioVertexCount + bestEdgeIndex;
+					outIndexes[*ioIndexCount + CIRCLE_TESSELATIONS * 2 + 1] = *ioVertexCount + bestEdgeIndex + CIRCLE_TESSELATIONS;
+					bestEdgeIndex += CIRCLE_TESSELATIONS / 2;
+					bestEdgeIndex %= CIRCLE_TESSELATIONS;
+					outIndexes[*ioIndexCount + CIRCLE_TESSELATIONS * 2 + 2] = *ioVertexCount + bestEdgeIndex;
+					outIndexes[*ioIndexCount + CIRCLE_TESSELATIONS * 2 + 3] = *ioVertexCount + bestEdgeIndex + CIRCLE_TESSELATIONS;
+					
+					for (tesselationIndex = 0; tesselationIndex < CIRCLE_TESSELATIONS; tesselationIndex++) {
+						outIndexes[*ioIndexCount + CIRCLE_TESSELATIONS * 2 + 4 + tesselationIndex * 2] = *ioVertexCount + CIRCLE_TESSELATIONS + tesselationIndex;
+						outIndexes[*ioIndexCount + CIRCLE_TESSELATIONS * 2 + 5 + tesselationIndex * 2] = *ioVertexCount + CIRCLE_TESSELATIONS + (tesselationIndex + 1) % CIRCLE_TESSELATIONS;
+					}
 				}
 				
-				*ioVertexCount += CIRCLE_TESSELATIONS;
-				*ioIndexCount += CIRCLE_TESSELATIONS * 2;
+				*ioVertexCount += CIRCLE_TESSELATIONS * 2;
+				*ioIndexCount += CIRCLE_TESSELATIONS * 4 + 4;
 				
 				if (ball->lastCollisionCircle != NULL) {
 					if (outVertices != NULL) {
@@ -252,8 +306,33 @@ static bool draw(Atom eventID, void * eventData, void * context) {
 	glBindBufferARB(GL_ARRAY_BUFFER, 0);
 	glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER, 0);
 	
-	if (!self->backgrounded) {
+	if (!self->paused && !self->backgrounded) {
 		Shell_redisplay();
+	}
+	return true;
+}
+
+static bool keyDown(Atom eventID, void * eventData, void * context) {
+	BouncingBallScreen * self = context;
+	struct keyEvent * event = eventData;
+	
+	switch (event->keyCode) {
+		case KEYBOARD_P:
+			self->paused = !self->paused;
+			if (self->paused) {
+				FixedIntervalRunLoop_pause(self->runLoop);
+			} else {
+				FixedIntervalRunLoop_resume(self->runLoop);
+				Shell_redisplay();
+			}
+			break;
+			
+		case KEYBOARD_CLOSE_BRACKET:
+			if (self->paused) {
+				stepSimulation(self);
+				Shell_redisplay();
+			}
+			break;
 	}
 	return true;
 }
@@ -270,8 +349,10 @@ static bool foregrounded(Atom eventID, void * eventData, void * context) {
 	BouncingBallScreen * self = context;
 	
 	self->backgrounded = false;
-	FixedIntervalRunLoop_resume(self->runLoop);
-	Shell_redisplay();
+	if (!self->paused) {
+		FixedIntervalRunLoop_resume(self->runLoop);
+		Shell_redisplay();
+	}
 	return true;
 }
 
@@ -297,9 +378,11 @@ void BouncingBallScreen_activate(BouncingBallScreen * self) {
 		CollisionResolver_addObject(self->resolver, (CollisionObject *) &self->balls[ballIndex].circle);
 	}
 	
+	self->paused = false;
 	self->runLoop = FixedIntervalRunLoop_create(Shell_getCurrentTime, FRAME_INTERVAL, run, self);
 	FixedIntervalRunLoop_setTolerance(self->runLoop, FRAME_INTERVAL * 0.375f);
 	
+	EventDispatcher_registerForEvent(self->screenManager->eventDispatcher, ATOM(EVENT_KEY_DOWN), keyDown, self);
 	EventDispatcher_registerForEvent(self->screenManager->eventDispatcher, ATOM(EVENT_BACKGROUNDED), backgrounded, self);
 	EventDispatcher_registerForEvent(self->screenManager->eventDispatcher, ATOM(EVENT_FOREGROUNDED), foregrounded, self);
 	EventDispatcher_registerForEvent(self->screenManager->eventDispatcher, ATOM(EVENT_RESIZED), resized, self);
