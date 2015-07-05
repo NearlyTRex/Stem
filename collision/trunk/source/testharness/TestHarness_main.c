@@ -31,7 +31,6 @@
 #include "shell/Shell.h"
 #include "shell/ShellCallbacks.h"
 #include "shell/ShellKeyCodes.h"
-#include "utilities/Ranrot.h"
 
 #if defined(STEM_PLATFORM_macosx)
 #include "nsopenglshell/NSOpenGLShell.h"
@@ -46,7 +45,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
 
 // TODO:
 // - Animate mode (interpolate all shapes to first collision, resolve, continue until all resolved)
@@ -205,6 +203,11 @@ void GLXTarget_configure(int argc, const char ** argv, struct GLXShellConfigurat
 	Vector2i preferredSizes[] = {{2560, 1440}, {1920, 1080}, {1280, 720}, {853, 480}};
 	unsigned int preferredSizeIndex;
 	
+	if (argc > 1 && sscanf(argv[1], "%d", &g_randomSeed)) {
+		g_fixedRandomSeed = true;
+		printf("Using fixed random seed: %d\n", g_randomSeed);
+	}
+	
 	Shell_getSafeWindowRect(0, &displayX, &displayY, &displayWidth, &displayHeight);
 	for (preferredSizeIndex = 0; preferredSizeIndex < sizeof(preferredSizes) / sizeof(Vector2i); preferredSizeIndex++) {
 		if ((int) displayWidth >= preferredSizes[preferredSizeIndex].x && (int) displayHeight >= preferredSizes[preferredSizeIndex].y) {
@@ -227,9 +230,6 @@ void GLXTarget_configure(int argc, const char ** argv, struct GLXShellConfigurat
 }
 
 void Target_init() {
-	sdrand(time(NULL));
-	stirrand(50);
-	
 	screenManager = ScreenManager_create();
 	singleFrameScreen = SingleFrameScreen_create();
 	bouncingBallScreen = BouncingBallScreen_create();

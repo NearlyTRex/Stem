@@ -37,6 +37,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <time.h>
 
 #define SUPERCLASS Screen
 #define FRAME_INTERVAL (1.0 / 60.0)
@@ -60,6 +61,7 @@ bool BouncingBallScreen_init(BouncingBallScreen * self) {
 	self->deactivate = BouncingBallScreen_deactivate;
 	self->intersectionManager = IntersectionManager_createWithStandardHandlers();
 	self->backgrounded = false;
+	self->paused = false;
 	return true;
 }
 
@@ -184,13 +186,21 @@ static void getCollisionObjectVertices2D(BouncingBallScreen * self, struct verte
 			case COLLISION_SHAPE_CIRCLE: {
 				CollisionCircle * circle = (CollisionCircle *) object;
 				unsigned int tesselationIndex;
-				struct bouncingBall * ball = circle->owner;
+				struct bouncingBall * ball = circle->owner, * lastBall = NULL;
+				unsigned int ballIndex;
+				
+				for (ballIndex = 0; ballIndex < BOUNCING_BALL_COUNT - 1; ballIndex++) {
+					if (&self->balls[ballIndex].circle == circle) {
+						break;
+					}
+				}
+				lastBall = &self->lastBalls[ballIndex];
 				
 				if (outVertices != NULL) {
 					setVertexColor(&vertex, COLOR_CIRCLE_LAST);
 					for (tesselationIndex = 0; tesselationIndex < CIRCLE_TESSELATIONS; tesselationIndex++) {
-						vertex.position[0] = xtof(circle->lastPosition.x) + xtof(circle->radius) * cos(tesselationIndex * M_PI * 2 / CIRCLE_TESSELATIONS);
-						vertex.position[1] = xtof(circle->lastPosition.y) + xtof(circle->radius) * sin(tesselationIndex * M_PI * 2 / CIRCLE_TESSELATIONS);
+						vertex.position[0] = xtof(lastBall->circle.lastPosition.x) + xtof(lastBall->circle.radius) * cos(tesselationIndex * M_PI * 2 / CIRCLE_TESSELATIONS);
+						vertex.position[1] = xtof(lastBall->circle.lastPosition.y) + xtof(lastBall->circle.radius) * sin(tesselationIndex * M_PI * 2 / CIRCLE_TESSELATIONS);
 						outVertices[*ioVertexCount + tesselationIndex] = vertex;
 					}
 					
@@ -363,9 +373,18 @@ static bool resized(Atom eventID, void * eventData, void * context) {
 
 void BouncingBallScreen_activate(BouncingBallScreen * self) {
 	unsigned int ballIndex;
+	int randomSeed;
 	
 	self->resolver = CollisionResolver_create(self->intersectionManager, false, MAX_SIMULTANEOUS_COLLISIONS_DEFAULT, MAX_ITERATIONS_DEFAULT);
 	CollisionResolver_addObject(self->resolver, (CollisionObject *) CollisionRect2D_create(NULL, NULL, VECTOR2x(BALL_AREA_X, BALL_AREA_Y), VECTOR2x(BALL_AREA_X * -2, BALL_AREA_Y * -2)));
+	
+	if (g_fixedRandomSeed) {
+		randomSeed = g_randomSeed;
+	} else {
+		randomSeed = time(NULL);
+		printf("Random seed: %d\n", randomSeed);
+	}
+	sdrand(randomSeed);
 	
 	for (ballIndex = 0; ballIndex < BOUNCING_BALL_COUNT; ballIndex++) {
 		self->balls[ballIndex].owner = self;
@@ -377,10 +396,14 @@ void BouncingBallScreen_activate(BouncingBallScreen * self) {
 		CollisionCircle_updatePosition(&self->balls[ballIndex].circle, Vector2x_add(self->balls[ballIndex].circle.position, self->balls[ballIndex].velocity));
 		CollisionResolver_addObject(self->resolver, (CollisionObject *) &self->balls[ballIndex].circle);
 	}
+	memcpy(self->lastBalls, self->balls, sizeof(self->balls));
+	CollisionResolver_resolveAll(self->resolver);
 	
-	self->paused = false;
 	self->runLoop = FixedIntervalRunLoop_create(Shell_getCurrentTime, FRAME_INTERVAL, run, self);
 	FixedIntervalRunLoop_setTolerance(self->runLoop, FRAME_INTERVAL * 0.375f);
+	if (self->paused) {
+		FixedIntervalRunLoop_pause(self->runLoop);
+	}
 	
 	EventDispatcher_registerForEvent(self->screenManager->eventDispatcher, ATOM(EVENT_KEY_DOWN), keyDown, self);
 	EventDispatcher_registerForEvent(self->screenManager->eventDispatcher, ATOM(EVENT_BACKGROUNDED), backgrounded, self);
@@ -397,6 +420,7 @@ void BouncingBallScreen_deactivate(BouncingBallScreen * self) {
 	FixedIntervalRunLoop_dispose(self->runLoop);
 	self->runLoop = NULL;
 	
+	EventDispatcher_unregisterForEvent(self->screenManager->eventDispatcher, ATOM(EVENT_KEY_DOWN), keyDown, self);
 	EventDispatcher_unregisterForEvent(self->screenManager->eventDispatcher, ATOM(EVENT_BACKGROUNDED), backgrounded, self);
 	EventDispatcher_unregisterForEvent(self->screenManager->eventDispatcher, ATOM(EVENT_FOREGROUNDED), foregrounded, self);
 	EventDispatcher_unregisterForEvent(self->screenManager->eventDispatcher, ATOM(EVENT_RESIZED), resized, self);

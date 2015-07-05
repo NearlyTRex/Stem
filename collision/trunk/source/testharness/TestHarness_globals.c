@@ -25,3 +25,5 @@
 unsigned int g_viewWidth = 1280.0f, g_viewHeight = 720.0f;
 float g_viewRatio = 16.0f / 9.0f;
 bool shiftKeyDown = false, altKeyDown = false, controlKeyDown = false;
+bool g_fixedRandomSeed = false;
+int g_randomSeed = 0;

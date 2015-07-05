@@ -31,6 +31,8 @@ extern "C" {
 extern unsigned int g_viewWidth, g_viewHeight;
 extern float g_viewRatio;
 extern bool shiftKeyDown, altKeyDown, controlKeyDown;
+extern bool g_fixedRandomSeed;
+extern int g_randomSeed;
 
 #ifdef __cplusplus
 }
