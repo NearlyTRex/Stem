@@ -373,6 +373,104 @@ static void testRect2D_rect2D() {
 	rect2 = initStationaryRect2DWithSolidity(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000), false, false, false, false);
 	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal);
 	assertNoCollision(result);
+	
+#pragma mark Concavity
+	// rect2 moving -x from inside concave rect1
+	rect1 = initStationaryRect2D(VECTOR2x(0x10000, 0x10000), VECTOR2x(-0x20000, -0x20000));
+	rect2 = initMovingRect2D(VECTOR2x(-0x08000, -0x08000), VECTOR2x(-0x18000, -0x08000), VECTOR2x(0x10000, 0x10000));
+	time = -1;
+	memset(&normal, 0xFF, sizeof(normal));
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(-0x10000, 0x00000, 0x00000));
+	
+	// rect2 moving +x from inside concave rect1
+	rect1 = initStationaryRect2D(VECTOR2x(0x10000, 0x10000), VECTOR2x(-0x20000, -0x20000));
+	rect2 = initMovingRect2D(VECTOR2x(-0x08000, -0x08000), VECTOR2x(0x08000, -0x08000), VECTOR2x(0x10000, 0x10000));
+	time = -1;
+	memset(&normal, 0xFF, sizeof(normal));
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x10000, 0x00000, 0x00000));
+	
+	// rect1 moving -y from inside concave rect2
+	rect1 = initMovingRect2D(VECTOR2x(-0x08000, -0x08000), VECTOR2x(-0x08000, -0x18000), VECTOR2x(0x10000, 0x10000));
+	rect2 = initStationaryRect2D(VECTOR2x(0x10000, 0x10000), VECTOR2x(-0x20000, -0x20000));
+	time = -1;
+	memset(&normal, 0xFF, sizeof(normal));
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x00000, 0x10000, 0x00000));
+	
+	// rect1 moving +y from inside concave rect2
+	rect1 = initMovingRect2D(VECTOR2x(-0x08000, -0x08000), VECTOR2x(-0x08000, 0x08000), VECTOR2x(0x10000, 0x10000));
+	rect2 = initStationaryRect2D(VECTOR2x(0x10000, 0x10000), VECTOR2x(-0x20000, -0x20000));
+	time = -1;
+	memset(&normal, 0xFF, sizeof(normal));
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x00000, -0x10000, 0x00000));
+	
+#pragma mark Concave side priority
+	// rect1 moving -x -y from inside concave rect2 (left collision)
+	rect1 = initMovingRect2D(VECTOR2x(-0x08000, -0x08000), VECTOR2x(-0x18000, -0x17000), VECTOR2x(0x10000, 0x10000));
+	rect2 = initStationaryRect2D(VECTOR2x(0x10000, 0x10000), VECTOR2x(-0x20000, -0x20000));
+	time = -1;
+	memset(&normal, 0xFF, sizeof(normal));
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x10000, 0x00000, 0x00000));
+	
+	// rect1 moving -x -y from inside concave rect2 (bottom collision)
+	rect1 = initMovingRect2D(VECTOR2x(-0x08000, -0x08000), VECTOR2x(-0x17000, -0x18000), VECTOR2x(0x10000, 0x10000));
+	rect2 = initStationaryRect2D(VECTOR2x(0x10000, 0x10000), VECTOR2x(-0x20000, -0x20000));
+	time = -1;
+	memset(&normal, 0xFF, sizeof(normal));
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x00000, 0x10000, 0x00000));
+	
+	// rect1 moving +x -y from inside concave rect2 (right collision)
+	rect1 = initMovingRect2D(VECTOR2x(-0x08000, -0x08000), VECTOR2x(0x08000, -0x17000), VECTOR2x(0x10000, 0x10000));
+	rect2 = initStationaryRect2D(VECTOR2x(0x10000, 0x10000), VECTOR2x(-0x20000, -0x20000));
+	time = -1;
+	memset(&normal, 0xFF, sizeof(normal));
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(-0x10000, 0x00000, 0x00000));
+	
+	// rect1 moving +x -y from inside concave rect2 (bottom collision)
+	rect1 = initMovingRect2D(VECTOR2x(-0x08000, -0x08000), VECTOR2x(0x07000, -0x18000), VECTOR2x(0x10000, 0x10000));
+	rect2 = initStationaryRect2D(VECTOR2x(0x10000, 0x10000), VECTOR2x(-0x20000, -0x20000));
+	time = -1;
+	memset(&normal, 0xFF, sizeof(normal));
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x00000, 0x10000, 0x00000));
+	
+	// rect1 moving -x +y from inside concave rect2 (left collision)
+	rect1 = initMovingRect2D(VECTOR2x(-0x08000, -0x08000), VECTOR2x(-0x18000, 0x07000), VECTOR2x(0x10000, 0x10000));
+	rect2 = initStationaryRect2D(VECTOR2x(0x10000, 0x10000), VECTOR2x(-0x20000, -0x20000));
+	time = -1;
+	memset(&normal, 0xFF, sizeof(normal));
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x10000, 0x00000, 0x00000));
+	
+	// rect1 moving -x +y from inside concave rect2 (top collision)
+	rect1 = initMovingRect2D(VECTOR2x(-0x08000, -0x08000), VECTOR2x(-0x17000, 0x08000), VECTOR2x(0x10000, 0x10000));
+	rect2 = initStationaryRect2D(VECTOR2x(0x10000, 0x10000), VECTOR2x(-0x20000, -0x20000));
+	time = -1;
+	memset(&normal, 0xFF, sizeof(normal));
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x00000, -0x10000, 0x00000));
+	
+	// rect1 moving +x +y from inside concave rect2 (right collision)
+	rect1 = initMovingRect2D(VECTOR2x(-0x08000, -0x08000), VECTOR2x(0x08000, 0x07000), VECTOR2x(0x10000, 0x10000));
+	rect2 = initStationaryRect2D(VECTOR2x(0x10000, 0x10000), VECTOR2x(-0x20000, -0x20000));
+	time = -1;
+	memset(&normal, 0xFF, sizeof(normal));
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(-0x10000, 0x00000, 0x00000));
+	
+	// rect1 moving +x +y from inside concave rect2 (top collision)
+	rect1 = initMovingRect2D(VECTOR2x(-0x08000, -0x08000), VECTOR2x(0x07000, 0x08000), VECTOR2x(0x10000, 0x10000));
+	rect2 = initStationaryRect2D(VECTOR2x(0x10000, 0x10000), VECTOR2x(-0x20000, -0x20000));
+	time = -1;
+	memset(&normal, 0xFF, sizeof(normal));
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x00000, -0x10000, 0x00000));
 }
 
 static void testRect2D_circle() {
@@ -690,7 +788,103 @@ static void testRect2D_circle() {
 	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
 	assertNoCollision(result);
 	
-	// TODO: Above tests don't cover a degenerate case where circle is already intersecting an unsolid side of the rect, moving inward, and the clipping the solid corner with a positive direction dot product but negative normal dot product
+#pragma mark Concavity (rect)
+	// circle moving -x from inside concave rect
+	rect = initStationaryRect2D(VECTOR2x(0x10000, 0x10000), VECTOR2x(-0x20000, -0x20000));
+	circle = initMovingCircle(VECTOR2x(0x00000, 0x00000), VECTOR2x(-0x10000, 0x00000), 0x08000);
+	time = -1;
+	memset(&normal, 0xFF, sizeof(normal));
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(-0x10000, 0x00000, 0x00000));
+	
+	// circle moving +x from inside concave rect
+	rect = initStationaryRect2D(VECTOR2x(0x10000, 0x10000), VECTOR2x(-0x20000, -0x20000));
+	circle = initMovingCircle(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x00000), 0x08000);
+	time = -1;
+	memset(&normal, 0xFF, sizeof(normal));
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x10000, 0x00000, 0x00000));
+	
+	// circle moving -y from inside concave rect
+	rect = initStationaryRect2D(VECTOR2x(0x10000, 0x10000), VECTOR2x(-0x20000, -0x20000));
+	circle = initMovingCircle(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x00000, -0x10000), 0x08000);
+	time = -1;
+	memset(&normal, 0xFF, sizeof(normal));
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x00000, -0x10000, 0x00000));
+	
+	// circle moving +y from inside concave rect
+	rect = initStationaryRect2D(VECTOR2x(0x10000, 0x10000), VECTOR2x(-0x20000, -0x20000));
+	circle = initMovingCircle(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x00000, 0x10000), 0x08000);
+	time = -1;
+	memset(&normal, 0xFF, sizeof(normal));
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x00000, 0x10000, 0x00000));
+	
+#pragma mark Concave side priority
+	// circle moving -x -y from inside concave rect (left collision)
+	rect = initStationaryRect2D(VECTOR2x(0x10000, 0x10000), VECTOR2x(-0x20000, -0x20000));
+	circle = initMovingCircle(VECTOR2x(0x00000, 0x00000), VECTOR2x(-0x10000, -0x0F000), 0x08000);
+	time = -1;
+	memset(&normal, 0xFF, sizeof(normal));
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(-0x10000, 0x00000, 0x00000));
+	
+	// circle moving -x -y from inside concave rect (bottom collision)
+	rect = initStationaryRect2D(VECTOR2x(0x10000, 0x10000), VECTOR2x(-0x20000, -0x20000));
+	circle = initMovingCircle(VECTOR2x(0x00000, 0x00000), VECTOR2x(-0x0F000, -0x10000), 0x08000);
+	time = -1;
+	memset(&normal, 0xFF, sizeof(normal));
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x00000, -0x10000, 0x00000));
+	
+	// circle moving +x -y from inside concave rect (right collision)
+	rect = initStationaryRect2D(VECTOR2x(0x10000, 0x10000), VECTOR2x(-0x20000, -0x20000));
+	circle = initMovingCircle(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, -0x0F000), 0x08000);
+	time = -1;
+	memset(&normal, 0xFF, sizeof(normal));
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x10000, 0x00000, 0x00000));
+	
+	// circle moving +x -y from inside concave rect (bottom collision)
+	rect = initStationaryRect2D(VECTOR2x(0x10000, 0x10000), VECTOR2x(-0x20000, -0x20000));
+	circle = initMovingCircle(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x0F000, -0x10000), 0x08000);
+	time = -1;
+	memset(&normal, 0xFF, sizeof(normal));
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x00000, -0x10000, 0x00000));
+	
+	// circle moving -x +y from inside concave rect (left collision)
+	rect = initStationaryRect2D(VECTOR2x(0x10000, 0x10000), VECTOR2x(-0x20000, -0x20000));
+	circle = initMovingCircle(VECTOR2x(0x00000, 0x00000), VECTOR2x(-0x10000, 0x0F000), 0x08000);
+	time = -1;
+	memset(&normal, 0xFF, sizeof(normal));
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(-0x10000, 0x00000, 0x00000));
+	
+	// circle moving -x +y from inside concave rect (top collision)
+	rect = initStationaryRect2D(VECTOR2x(0x10000, 0x10000), VECTOR2x(-0x20000, -0x20000));
+	circle = initMovingCircle(VECTOR2x(0x00000, 0x00000), VECTOR2x(-0x0F000, 0x10000), 0x08000);
+	time = -1;
+	memset(&normal, 0xFF, sizeof(normal));
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x00000, 0x10000, 0x00000));
+	
+	// circle moving +x +y from inside concave rect (right collision)
+	rect = initStationaryRect2D(VECTOR2x(0x10000, 0x10000), VECTOR2x(-0x20000, -0x20000));
+	circle = initMovingCircle(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x0F000), 0x08000);
+	time = -1;
+	memset(&normal, 0xFF, sizeof(normal));
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x10000, 0x00000, 0x00000));
+	
+	// circle moving +x +y from inside concave rect (top collision)
+	rect = initStationaryRect2D(VECTOR2x(0x10000, 0x10000), VECTOR2x(-0x20000, -0x20000));
+	circle = initMovingCircle(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x0F000, 0x10000), 0x08000);
+	time = -1;
+	memset(&normal, 0xFF, sizeof(normal));
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x00000, 0x10000, 0x00000));
 }
 
 static void testRect2D_line2D() {
