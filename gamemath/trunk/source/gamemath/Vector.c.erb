@@ -125,7 +125,7 @@ void <%= class_name %>_invert(<%= class_name %> * vector) {
 }
 
 <%= numeric_type %> <%= class_name %>_magnitudeSquared(<%= class_name %> vector) {
-	return vector.x * vector.x<% 1.upto(axis_count - 1) do |axis| %> + vector.<%= axis_names[axis] %> * vector.<%= axis_names[axis] %><% end %>;
+	return <%= multiply("vector.x", "vector.x") %><% 1.upto(axis_count - 1) do |axis| %> + <%= multiply("vector.#{axis_names[axis]}", "vector.#{axis_names[axis]}") %><% end %>;
 }
 
 <%= numeric_type %> <%= class_name %>_distance(<%= class_name %> vector1, <%= class_name %> vector2) {
@@ -177,9 +177,9 @@ bool <%= class_name %>_scaleTo(<%= class_name %> * vector, <%= numeric_type %> m
 	<%= numeric_type %> dot;
 	
 	dot = <%= class_name %>_dot(vector, normal);
-	result.x = vector.x - <%= c2 %> * <%= multiply("dot", "normal.x") %>;
+	result.x = vector.x - <%= multiply(c2, multiply("dot", "normal.x")) %>;
 <% 1.upto(axis_count - 1) do |axis| -%>
-	result.<%= axis_names[axis] %> = vector.<%= axis_names[axis] %> - <%= c2 %> * <%= multiply("dot", "normal.#{axis_names[axis]}") %>;
+	result.<%= axis_names[axis] %> = vector.<%= axis_names[axis] %> - <%= multiply(c2, multiply("dot", "normal.#{axis_names[axis]}")) %>;
 <% end -%>
 	return result;
 }
