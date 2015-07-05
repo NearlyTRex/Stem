@@ -132,8 +132,11 @@ static inline int64_t fixed48_16_divide(int64_t lhs, int64_t rhs) {
 	return lhs;
 }
 
+#define MAX_ITERATIONS 128
+
 static inline int64_t fixed48_16_sqrt(int64_t x) {
 	int64_t estimate = 0x10000, lastEstimate = -1, lastEstimate2 = -1;
+	unsigned int iteration = 0;
 	
 	if (x < 0) {
 		return FIXED_16_16_NAN;
@@ -141,10 +144,11 @@ static inline int64_t fixed48_16_sqrt(int64_t x) {
 	if (x == 0) {
 		return 0;
 	}
-	while (estimate != lastEstimate && estimate != lastEstimate2) {
+	while (estimate != lastEstimate && estimate != lastEstimate2 && iteration < MAX_ITERATIONS) {
 		lastEstimate2 = lastEstimate;
 		lastEstimate = estimate;
 		estimate = (((x << 16) / estimate) + estimate) / 2;
+		iteration++;
 	}
 	return estimate;
 }

@@ -86,6 +86,7 @@ SOURCES_unittest_suites = \
 	source/unittest/StandardIntersectionHandlersTest.c
 
 SOURCES_testharness = \
+	source/testharness/BouncingBallScreen.c \
 	source/testharness/SingleFrameScreen.c \
 	source/testharness/TestHarness_globals.c \
 	source/testharness/TestHarness_main.c

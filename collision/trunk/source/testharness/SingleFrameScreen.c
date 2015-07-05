@@ -414,7 +414,7 @@ static bool keyDown(Atom eventID, void * eventData, void * context) {
 			}
 			break;
 	}
-	return false;
+	return true;
 }
 
 static Vector2x transformMousePosition(float x, float y) {
@@ -567,6 +567,8 @@ void SingleFrameScreen_activate(SingleFrameScreen * self) {
 	EventDispatcher_registerForEvent(self->screenManager->eventDispatcher, ATOM(EVENT_MOUSE_DRAGGED), mouseDragged, self);
 	EventDispatcher_registerForEvent(self->screenManager->eventDispatcher, ATOM(EVENT_RESIZED), resized, self);
 	EventDispatcher_registerForEvent(self->screenManager->eventDispatcher, ATOM(EVENT_DRAW), draw, self);
+	
+	Shell_redisplay();
 }
 
 void SingleFrameScreen_deactivate(SingleFrameScreen * self) {

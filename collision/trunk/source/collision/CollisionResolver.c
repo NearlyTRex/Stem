@@ -173,7 +173,6 @@ void CollisionResolver_resolveAll(CollisionResolver * self) {
 	size_t objectIndex;
 	unsigned int iterationCount = 0;
 	
-	// TODO: Check for misbehaving intersection handlers that return times outside the 0-1 range?
 	// TODO: Sort findEarliest's list to handle seam collisions? By what criteria?
 	while ((collisionCount = CollisionResolver_findEarliest(self, self->private_ivar(simultaneousCollisionBuffer), self->private_ivar(maxSimultaneousCollisions))) > 0) {
 		collisionTime = self->private_ivar(simultaneousCollisionBuffer)[0].time;

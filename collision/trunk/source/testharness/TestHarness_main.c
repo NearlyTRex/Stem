@@ -20,6 +20,7 @@
   Alex Diener alex@ludobloom.com
 */
 
+#include "testharness/BouncingBallScreen.h"
 #include "testharness/SingleFrameScreen.h"
 #include "testharness/SharedEvents.h"
 #include "testharness/TestHarness_globals.h"
@@ -30,6 +31,7 @@
 #include "shell/Shell.h"
 #include "shell/ShellCallbacks.h"
 #include "shell/ShellKeyCodes.h"
+#include "utilities/Ranrot.h"
 
 #if defined(STEM_PLATFORM_macosx)
 #include "nsopenglshell/NSOpenGLShell.h"
@@ -44,6 +46,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 // TODO:
 // - Animate mode (interpolate all shapes to first collision, resolve, continue until all resolved)
@@ -59,6 +62,8 @@
 // - Stress test (control number/speed of collisiding objects with performance metrics)
 
 static ScreenManager * screenManager;
+static SingleFrameScreen * singleFrameScreen;
+static BouncingBallScreen * bouncingBallScreen;
 
 static bool Target_draw() {
 	return EventDispatcher_dispatchEvent(screenManager->eventDispatcher, ATOM(EVENT_DRAW), NULL);
@@ -72,6 +77,12 @@ static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned
 			Shell_enterFullScreen(Shell_getDisplayIndexFromWindow());
 		}
 		EventDispatcher_dispatchEvent(screenManager->eventDispatcher, ATOM(Shell_isFullScreen() ? EVENT_FULLSCREENED : EVENT_WINDOWED), NULL);
+		
+	} else if (keyCode == KEYBOARD_1) {
+		ScreenManager_setScreen(screenManager, singleFrameScreen);
+		
+	} else if (keyCode == KEYBOARD_2) {
+		ScreenManager_setScreen(screenManager, bouncingBallScreen);
 		
 	} else {
 		struct keyEvent event;
@@ -216,11 +227,14 @@ void GLXTarget_configure(int argc, const char ** argv, struct GLXShellConfigurat
 }
 
 void Target_init() {
-	SingleFrameScreen * singleFrameScreen;
+	sdrand(time(NULL));
+	stirrand(50);
 	
 	screenManager = ScreenManager_create();
 	singleFrameScreen = SingleFrameScreen_create();
+	bouncingBallScreen = BouncingBallScreen_create();
 	ScreenManager_addScreen(screenManager, singleFrameScreen);
+	ScreenManager_addScreen(screenManager, bouncingBallScreen);
 	ScreenManager_setScreen(screenManager, singleFrameScreen);
 	
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
