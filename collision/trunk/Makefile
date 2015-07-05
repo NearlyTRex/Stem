@@ -40,6 +40,9 @@ STEM_LIBRARY_DEPENDENCIES_unittest = \
 	unittest/latest \
 	utilities/latest
 
+STEM_LIBRARY_DEPENDENCIES_testharness = \
+	screenmanager/latest
+
 STEM_LIBRARY_DEPENDENCIES_testharness_macosx = nsopenglshell/latest
 STEM_LIBRARY_DEPENDENCIES_testharness_win32 = wglshell/latest
 STEM_LIBRARY_DEPENDENCIES_testharness_win64 = wglshell/latest
@@ -83,6 +86,8 @@ SOURCES_unittest_suites = \
 	source/unittest/StandardIntersectionHandlersTest.c
 
 SOURCES_testharness = \
+	source/testharness/SingleFrameScreen.c \
+	source/testharness/TestHarness_globals.c \
 	source/testharness/TestHarness_main.c
 
 # Public-facing include files to be distributed with the library, if any

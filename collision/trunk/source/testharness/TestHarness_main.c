@@ -20,16 +20,13 @@
   Alex Diener alex@ludobloom.com
 */
 
-#include "collision/CollisionCircle.h"
-#include "collision/CollisionRect2D.h"
-#include "collision/CollisionResolver.h"
-#include "collision/CollisionShared.h"
-#include "collision/IntersectionManager.h"
+#include "testharness/SingleFrameScreen.h"
+#include "testharness/SharedEvents.h"
+#include "testharness/TestHarness_globals.h"
 
-#include "gamemath/Matrix.h"
-#include "gamemath/Vector2f.h"
+#include "gamemath/Vector2i.h"
 #include "glgraphics/GLIncludes.h"
-#include "glgraphics/VertexTypes.h"
+#include "screenmanager/ScreenManager.h"
 #include "shell/Shell.h"
 #include "shell/ShellCallbacks.h"
 #include "shell/ShellKeyCodes.h"
@@ -45,8 +42,6 @@
 #include "glxshell/GLXTarget.h"
 #endif
 
-#include <math.h>
-#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -63,536 +58,110 @@
 // - Place arbitrary shapes into a simulation and allow them to intercollide
 // - Stress test (control number/speed of collisiding objects with performance metrics)
 
-static unsigned int viewWidth, viewHeight;
-static float viewRatio;
-static IntersectionManager * intersectionManager;
-static CollisionResolver * resolver;
-static Vector2x dragOrigin;
-static bool dragging, draggingLastPosition, draggingBoth, draggingSize;
-static size_t selectedObjectIndex;
-static bool shiftKeyDown, altKeyDown, controlKeyDown;
-static Vector2x dragStartPosition, dragStartLastPosition, dragStartSize, dragStartLastSize;
-static fixed16_16 dragStartRadius;
-
-static void loadScene1() {
-	if (resolver != NULL) {
-		size_t objectIndex;
-		
-		for (objectIndex = 0; objectIndex < resolver->objectCount; objectIndex++) {
-			resolver->objects[objectIndex]->dispose(resolver->objects[objectIndex]);
-		}
-		CollisionResolver_dispose(resolver);
-	}
-	resolver = CollisionResolver_create(intersectionManager, false, MAX_SIMULTANEOUS_COLLISIONS_DEFAULT, MAX_ITERATIONS_DEFAULT);
-	CollisionResolver_addObject(resolver, (CollisionObject *) CollisionRect2D_create(NULL, NULL, VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000)));
-	CollisionResolver_addObject(resolver, (CollisionObject *) CollisionRect2D_create(NULL, NULL, VECTOR2x(0x20000, -0x40000), VECTOR2x(0x50000, 0x20000)));
-	CollisionResolver_addObject(resolver, (CollisionObject *) CollisionCircle_create(NULL, NULL, VECTOR2x(-0x30000, 0x00000), 0x10000));
-	CollisionResolver_addObject(resolver, (CollisionObject *) CollisionCircle_create(NULL, NULL, VECTOR2x(-0x20000, 0x50000), 0x08000));
-}
-
-#define ARROW_RADIUS 0.375f
-
-static void getArrowVertices2D(Vector2x position, Vector3x normal, struct vertex_p2f_c4f * outVertices, GLuint * outIndexes, size_t * ioVertexCount, size_t * ioIndexCount) {
-	if (outVertices != NULL) {
-		struct vertex_p2f_c4f vertex;
-		Vector2f positionf = VECTOR2f(xtof(position.x), xtof(position.y));
-		Vector2f normalf = VECTOR2f(xtof(normal.x), xtof(normal.y));
-		
-		vertex.color[0] = 1.0f;
-		vertex.color[1] = 0.0f;
-		vertex.color[2] = 0.0f;
-		vertex.color[3] = 1.0f;
-		vertex.position[0] = positionf.x - normalf.x * ARROW_RADIUS;
-		vertex.position[1] = positionf.y - normalf.y * ARROW_RADIUS;
-		outVertices[*ioVertexCount + 0] = vertex;
-		vertex.position[0] = positionf.x + normalf.x * ARROW_RADIUS;
-		vertex.position[1] = positionf.y + normalf.y * ARROW_RADIUS;
-		outVertices[*ioVertexCount + 1] = vertex;
-		vertex.position[0] = positionf.x + normalf.y * ARROW_RADIUS * 0.5f;
-		vertex.position[1] = positionf.y - normalf.x * ARROW_RADIUS * 0.5f;
-		outVertices[*ioVertexCount + 2] = vertex;
-		vertex.position[0] = positionf.x - normalf.y * ARROW_RADIUS * 0.5f;
-		vertex.position[1] = positionf.y + normalf.x * ARROW_RADIUS * 0.5f;
-		outVertices[*ioVertexCount + 3] = vertex;
-	}
-	
-	if (outIndexes != NULL) {
-		outIndexes[*ioIndexCount + 0] = *ioVertexCount + 0;
-		outIndexes[*ioIndexCount + 1] = *ioVertexCount + 1;
-		outIndexes[*ioIndexCount + 2] = *ioVertexCount + 1;
-		outIndexes[*ioIndexCount + 3] = *ioVertexCount + 2;
-		outIndexes[*ioIndexCount + 4] = *ioVertexCount + 1;
-		outIndexes[*ioIndexCount + 5] = *ioVertexCount + 3;
-	}
-	
-	*ioVertexCount += 4;
-	*ioIndexCount += 6;
-}
-
-#define CIRCLE_TESSELATIONS 64
-
-#define COLOR_RECT_LAST_POSITION                COLOR4f(0.5f, 0.25f, 0.0f, 1.0f)
-#define COLOR_RECT_LAST_POSITION_HIGHLIGHT      COLOR4f(0.75f, 0.625f, 0.125f, 1.0f)
-#define COLOR_RECT_POSITION                     COLOR4f(1.0f, 1.0f, 0.0f, 1.0f)
-#define COLOR_RECT_POSITION_HIGHLIGHT           COLOR4f(1.0f, 1.0f, 0.875f, 1.0f)
-#define COLOR_RECT_POSITION_COLLIDING           COLOR4f(1.0f, 0.0f, 0.0f, 1.0f)
-#define COLOR_RECT_POSITION_COLLIDING_HIGHLIGHT COLOR4f(1.0f, 0.75f, 0.75f, 1.0f)
-
-#define COLOR_CIRCLE_LAST_POSITION                COLOR4f(0.0f, 0.25f, 0.5f, 1.0f)
-#define COLOR_CIRCLE_LAST_POSITION_HIGHLIGHT      COLOR4f(0.125f, 0.625f, 0.75f, 1.0f)
-#define COLOR_CIRCLE_POSITION                     COLOR4f(0.0f, 1.0f, 1.0f, 1.0f)
-#define COLOR_CIRCLE_POSITION_HIGHLIGHT           COLOR4f(0.875f, 1.0f, 1.0f, 1.0f)
-#define COLOR_CIRCLE_POSITION_COLLIDING           COLOR4f(1.0f, 0.0f, 0.0f, 1.0f)
-#define COLOR_CIRCLE_POSITION_COLLIDING_HIGHLIGHT COLOR4f(1.0f, 0.75f, 0.75f, 1.0f)
-
-static void setVertexColor(struct vertex_p2f_c4f * vertex, Color4f color) {
-	vertex->color[0] = color.red;
-	vertex->color[1] = color.green;
-	vertex->color[2] = color.blue;
-	vertex->color[3] = color.alpha;
-}
-
-static void getCollisionObjectVertices2D(struct vertex_p2f_c4f * outVertices, GLuint * outIndexes, size_t * ioVertexCount, size_t * ioIndexCount) {
-	size_t objectIndex;
-	CollisionObject * object;
-	struct vertex_p2f_c4f vertex;
-	bool colliding;
-	CollisionRecord collision;
-	
-	for (objectIndex = 0; objectIndex < resolver->objectCount; objectIndex++) {
-		object = resolver->objects[objectIndex];
-		colliding = CollisionResolver_querySingle(resolver, object, &collision);
-		switch (object->shapeType) {
-			case COLLISION_SHAPE_RECT_2D: {
-				CollisionRect2D * rect = (CollisionRect2D *) object;
-				unsigned int vertexIndex;
-				
-				if (outVertices != NULL) {
-					if (objectIndex == selectedObjectIndex) {
-						setVertexColor(&vertex, COLOR_RECT_LAST_POSITION_HIGHLIGHT);
-					} else {
-						setVertexColor(&vertex, COLOR_RECT_LAST_POSITION);
-					}
-					vertex.position[0] = xtof(rect->lastPosition.x);
-					vertex.position[1] = xtof(rect->lastPosition.y);
-					outVertices[*ioVertexCount + 0] = vertex;
-					vertex.position[0] = xtof(rect->lastPosition.x + rect->lastSize.x);
-					outVertices[*ioVertexCount + 1] = vertex;
-					vertex.position[1] = xtof(rect->lastPosition.y + rect->lastSize.y);
-					outVertices[*ioVertexCount + 2] = vertex;
-					vertex.position[0] = xtof(rect->lastPosition.x);
-					outVertices[*ioVertexCount + 3] = vertex;
-					
-					if (colliding) {
-						if (objectIndex == selectedObjectIndex) {
-							setVertexColor(&vertex, COLOR_RECT_POSITION_COLLIDING_HIGHLIGHT);
-						} else {
-							setVertexColor(&vertex, COLOR_RECT_POSITION_COLLIDING);
-						}
-					} else {
-						if (objectIndex == selectedObjectIndex) {
-							setVertexColor(&vertex, COLOR_RECT_POSITION_HIGHLIGHT);
-						} else {
-							setVertexColor(&vertex, COLOR_RECT_POSITION);
-						}
-					}
-					vertex.position[0] = xtof(rect->position.x);
-					vertex.position[1] = xtof(rect->position.y);
-					outVertices[*ioVertexCount + 4] = vertex;
-					vertex.position[0] = xtof(rect->position.x + rect->size.x);
-					outVertices[*ioVertexCount + 5] = vertex;
-					vertex.position[1] = xtof(rect->position.y + rect->size.y);
-					outVertices[*ioVertexCount + 6] = vertex;
-					vertex.position[0] = xtof(rect->position.x);
-					outVertices[*ioVertexCount + 7] = vertex;
-				}
-				
-				if (outIndexes != NULL) {
-					bool solid[4] = {rect->solidBottom, rect->solidRight, rect->solidTop, rect->solidLeft};
-					
-					for (vertexIndex = 0; vertexIndex < 4; vertexIndex++) {
-						if (solid[vertexIndex]) {
-							outIndexes[(*ioIndexCount)++] = *ioVertexCount + vertexIndex;
-							outIndexes[(*ioIndexCount)++] = *ioVertexCount + (vertexIndex + 1) % 4;
-						}
-					}
-					for (vertexIndex = 0; vertexIndex < 4; vertexIndex++) {
-						outIndexes[(*ioIndexCount)++] = *ioVertexCount + 0 + vertexIndex;
-						outIndexes[(*ioIndexCount)++] = *ioVertexCount + 4 + vertexIndex;
-					}
-					for (vertexIndex = 0; vertexIndex < 4; vertexIndex++) {
-						if (solid[vertexIndex]) {
-							outIndexes[(*ioIndexCount)++] = *ioVertexCount + 4 + vertexIndex;
-							outIndexes[(*ioIndexCount)++] = *ioVertexCount + 4 + (vertexIndex + 1) % 4;
-						}
-					}
-					
-				} else {
-					*ioIndexCount += 8 + 4 * rect->solidLeft + 4 * rect->solidRight + 4 * rect->solidBottom + 4 * rect->solidTop;
-				}
-				*ioVertexCount += 8;
-				
-				if (colliding) {
-					Vector2x collidingPosition = Vector2x_interpolate(rect->lastPosition, rect->position, collision.time);
-					Vector2x collidingSize = Vector2x_interpolate(rect->lastSize, rect->size, collision.time);
-					
-					if (outVertices != NULL) {
-						if (objectIndex == selectedObjectIndex) {
-							setVertexColor(&vertex, COLOR_RECT_POSITION_HIGHLIGHT);
-						} else {
-							setVertexColor(&vertex, COLOR_RECT_POSITION);
-						}
-						vertex.position[0] = xtof(collidingPosition.x);
-						vertex.position[1] = xtof(collidingPosition.y);
-						outVertices[*ioVertexCount + 0] = vertex;
-						vertex.position[0] = xtof(collidingPosition.x + collidingSize.x);
-						outVertices[*ioVertexCount + 1] = vertex;
-						vertex.position[1] = xtof(collidingPosition.y + collidingSize.y);
-						outVertices[*ioVertexCount + 2] = vertex;
-						vertex.position[0] = xtof(collidingPosition.x);
-						outVertices[*ioVertexCount + 3] = vertex;
-					}
-					if (outIndexes != NULL) {
-						bool solid[4] = {rect->solidBottom, rect->solidRight, rect->solidTop, rect->solidLeft};
-						
-						for (vertexIndex = 0; vertexIndex < 4; vertexIndex++) {
-							if (solid[vertexIndex]) {
-								outIndexes[(*ioIndexCount)++] = *ioVertexCount + vertexIndex;
-								outIndexes[(*ioIndexCount)++] = *ioVertexCount + (vertexIndex + 1) % 4;
-							}
-						}
-						
-					} else {
-						*ioIndexCount += 2 * rect->solidLeft + 2 * rect->solidRight + 2 * rect->solidBottom + 2 * rect->solidTop;
-					}
-					*ioVertexCount += 4;
-					
-					getArrowVertices2D(VECTOR2x(collidingPosition.x + collidingSize.x / 2, collidingPosition.y + collidingSize.y / 2), collision.normal, outVertices, outIndexes, ioVertexCount, ioIndexCount);
-				}
-				break;
-			}
-			case COLLISION_SHAPE_CIRCLE: {
-				CollisionCircle * circle = (CollisionCircle *) object;
-				unsigned int tesselationIndex;
-				
-				if (outVertices != NULL) {
-					if (objectIndex == selectedObjectIndex) {
-						setVertexColor(&vertex, COLOR_CIRCLE_LAST_POSITION_HIGHLIGHT);
-					} else {
-						setVertexColor(&vertex, COLOR_CIRCLE_LAST_POSITION);
-					}
-					for (tesselationIndex = 0; tesselationIndex < CIRCLE_TESSELATIONS; tesselationIndex++) {
-						vertex.position[0] = xtof(circle->lastPosition.x) + xtof(circle->radius) * cos(tesselationIndex * M_PI * 2 / CIRCLE_TESSELATIONS);
-						vertex.position[1] = xtof(circle->lastPosition.y) + xtof(circle->radius) * sin(tesselationIndex * M_PI * 2 / CIRCLE_TESSELATIONS);
-						outVertices[*ioVertexCount + tesselationIndex] = vertex;
-					}
-					
-					if (colliding) {
-						if (objectIndex == selectedObjectIndex) {
-							setVertexColor(&vertex, COLOR_CIRCLE_POSITION_COLLIDING_HIGHLIGHT);
-						} else {
-							setVertexColor(&vertex, COLOR_CIRCLE_POSITION_COLLIDING);
-						}
-					} else {
-						if (objectIndex == selectedObjectIndex) {
-							setVertexColor(&vertex, COLOR_CIRCLE_POSITION_HIGHLIGHT);
-						} else {
-							setVertexColor(&vertex, COLOR_CIRCLE_POSITION);
-						}
-					}
-					for (tesselationIndex = 0; tesselationIndex < CIRCLE_TESSELATIONS; tesselationIndex++) {
-						vertex.position[0] = xtof(circle->position.x) + xtof(circle->radius) * cos(tesselationIndex * M_PI * 2 / CIRCLE_TESSELATIONS);
-						vertex.position[1] = xtof(circle->position.y) + xtof(circle->radius) * sin(tesselationIndex * M_PI * 2 / CIRCLE_TESSELATIONS);
-						outVertices[*ioVertexCount + CIRCLE_TESSELATIONS + tesselationIndex] = vertex;
-					}
-				}
-				
-				if (outIndexes != NULL) {
-					float angle;
-					int bestEdgeIndex;
-					
-					for (tesselationIndex = 0; tesselationIndex < CIRCLE_TESSELATIONS; tesselationIndex++) {
-						outIndexes[*ioIndexCount + tesselationIndex * 2 + 0] = *ioVertexCount + tesselationIndex;
-						outIndexes[*ioIndexCount + tesselationIndex * 2 + 1] = *ioVertexCount + (tesselationIndex + 1) % CIRCLE_TESSELATIONS;
-					}
-					
-					angle = atan2(circle->position.y - circle->lastPosition.y, circle->position.x - circle->lastPosition.x);
-					bestEdgeIndex = round((angle + M_PI / 2) * CIRCLE_TESSELATIONS / (M_PI * 2));
-					bestEdgeIndex = (bestEdgeIndex % CIRCLE_TESSELATIONS + CIRCLE_TESSELATIONS) % CIRCLE_TESSELATIONS;
-					outIndexes[*ioIndexCount + CIRCLE_TESSELATIONS * 2 + 0] = *ioVertexCount + bestEdgeIndex;
-					outIndexes[*ioIndexCount + CIRCLE_TESSELATIONS * 2 + 1] = *ioVertexCount + bestEdgeIndex + CIRCLE_TESSELATIONS;
-					bestEdgeIndex += CIRCLE_TESSELATIONS / 2;
-					bestEdgeIndex %= CIRCLE_TESSELATIONS;
-					outIndexes[*ioIndexCount + CIRCLE_TESSELATIONS * 2 + 2] = *ioVertexCount + bestEdgeIndex;
-					outIndexes[*ioIndexCount + CIRCLE_TESSELATIONS * 2 + 3] = *ioVertexCount + bestEdgeIndex + CIRCLE_TESSELATIONS;
-					
-					for (tesselationIndex = 0; tesselationIndex < CIRCLE_TESSELATIONS; tesselationIndex++) {
-						outIndexes[*ioIndexCount + CIRCLE_TESSELATIONS * 2 + 4 + tesselationIndex * 2] = *ioVertexCount + CIRCLE_TESSELATIONS + tesselationIndex;
-						outIndexes[*ioIndexCount + CIRCLE_TESSELATIONS * 2 + 5 + tesselationIndex * 2] = *ioVertexCount + CIRCLE_TESSELATIONS + (tesselationIndex + 1) % CIRCLE_TESSELATIONS;
-					}
-				}
-				
-				*ioVertexCount += CIRCLE_TESSELATIONS * 2;
-				*ioIndexCount += CIRCLE_TESSELATIONS * 4 + 4;
-				
-				if (colliding) {
-					Vector2x collidingPosition = Vector2x_interpolate(circle->lastPosition, circle->position, collision.time);
-					
-					if (outVertices != NULL) {
-						if (objectIndex == selectedObjectIndex) {
-							setVertexColor(&vertex, COLOR_CIRCLE_POSITION_HIGHLIGHT);
-						} else {
-							setVertexColor(&vertex, COLOR_CIRCLE_POSITION);
-						}
-						for (tesselationIndex = 0; tesselationIndex < CIRCLE_TESSELATIONS; tesselationIndex++) {
-							vertex.position[0] = xtof(collidingPosition.x) + xtof(circle->radius) * cos(tesselationIndex * M_PI * 2 / CIRCLE_TESSELATIONS);
-							vertex.position[1] = xtof(collidingPosition.y) + xtof(circle->radius) * sin(tesselationIndex * M_PI * 2 / CIRCLE_TESSELATIONS);
-							outVertices[*ioVertexCount + tesselationIndex] = vertex;
-						}
-					}
-					
-					if (outIndexes != NULL) {
-						for (tesselationIndex = 0; tesselationIndex < CIRCLE_TESSELATIONS; tesselationIndex++) {
-							outIndexes[*ioIndexCount + tesselationIndex * 2 + 0] = *ioVertexCount + tesselationIndex;
-							outIndexes[*ioIndexCount + tesselationIndex * 2 + 1] = *ioVertexCount + (tesselationIndex + 1) % CIRCLE_TESSELATIONS;
-						}
-					}
-					
-					*ioVertexCount += CIRCLE_TESSELATIONS;
-					*ioIndexCount += CIRCLE_TESSELATIONS * 2;
-					
-					getArrowVertices2D(collidingPosition, collision.normal, outVertices, outIndexes, ioVertexCount, ioIndexCount);
-				}
-				break;
-			}
-		}
-	}
-}
+static ScreenManager * screenManager;
 
 static bool Target_draw() {
-	static GLuint vertexBufferID, indexBufferID;
-	struct vertex_p2f_c4f * vertices;
-	size_t vertexCount;
-	GLuint * indexes;
-	size_t indexCount;
-	Matrix matrix;
-	
-	if (vertexBufferID == 0) {
-		glGenBuffersARB(1, &vertexBufferID);
-		glGenBuffersARB(1, &indexBufferID);
-	}
-	
-	glClear(GL_COLOR_BUFFER_BIT);
-	
-	vertexCount = indexCount = 0;
-	getCollisionObjectVertices2D(NULL, NULL, &vertexCount, &indexCount);
-	glBindBufferARB(GL_ARRAY_BUFFER, vertexBufferID);
-	glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER, indexBufferID);
-	glBufferDataARB(GL_ARRAY_BUFFER, sizeof(struct vertex_p2f_c4f) * vertexCount, NULL, GL_STREAM_DRAW);
-	glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint) * indexCount, NULL, GL_STREAM_DRAW);
-	vertices = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
-	indexes = glMapBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_WRITE_ONLY);
-	vertexCount = indexCount = 0;
-	getCollisionObjectVertices2D(vertices, indexes, &vertexCount, &indexCount);
-	glUnmapBuffer(GL_ARRAY_BUFFER);
-	glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
-	
-	matrix = Matrix_ortho(MATRIX_IDENTITY, -12.0f * viewRatio, 12.0f * viewRatio, -12.0f, 12.0f, -1.0f, 1.0f);
-	glLoadMatrixf(matrix.m);
-	
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glEnableClientState(GL_COLOR_ARRAY);
-	
-	glVertexPointer(2, GL_FLOAT, sizeof(struct vertex_p2f_c4f), (void *) offsetof(struct vertex_p2f_c4f, position));
-	glColorPointer(4, GL_FLOAT, sizeof(struct vertex_p2f_c4f), (void *) offsetof(struct vertex_p2f_c4f, color));
-	glDrawElements(GL_LINES, indexCount, GL_UNSIGNED_INT, 0);
-	
-	glDisableClientState(GL_VERTEX_ARRAY);
-	glDisableClientState(GL_COLOR_ARRAY);
-	glBindBufferARB(GL_ARRAY_BUFFER, 0);
-	glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER, 0);
-	
-	return true;
-}
-
-static Vector2x transformMousePosition(float x, float y) {
-	Vector2x result;
-	
-	result.x = ftox((x - viewWidth / 2) / viewWidth * 2 * 12 * viewRatio);
-	result.y = ftox((viewHeight / 2 - y) / viewHeight * 2 * 12);
-	return result;
+	return EventDispatcher_dispatchEvent(screenManager->eventDispatcher, ATOM(EVENT_DRAW), NULL);
 }
 
 static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned int modifiers, bool isRepeat) {
-	switch (keyCode) {
-		case KEYBOARD_RETURN_OR_ENTER:
-			if (modifiers & MODIFIER_ALT_BIT) {
-				if (Shell_isFullScreen()) {
-					Shell_exitFullScreen();
-				} else {
-					Shell_enterFullScreen(Shell_getDisplayIndexFromWindow());
-				}
-			}
-			break;
-			
-		case KEYBOARD_TAB:
-			if (!dragging) {
-				if (modifiers & MODIFIER_SHIFT_BIT) {
-					selectedObjectIndex += resolver->objectCount - 1;
-				} else {
-					selectedObjectIndex++;
-				}
-				selectedObjectIndex %= resolver->objectCount;
-				Shell_redisplay();
-			}
-			break;
-			
-		case KEYBOARD_I:
-		case KEYBOARD_J:
-		case KEYBOARD_K:
-		case KEYBOARD_L:
-			if (resolver->objects[selectedObjectIndex]->shapeType == COLLISION_SHAPE_RECT_2D) {
-				CollisionRect2D * rect = (CollisionRect2D *) resolver->objects[selectedObjectIndex];
-				CollisionRect2D_setSolidity(rect,
-				                            keyCode == KEYBOARD_J ? !rect->solidLeft   : rect->solidLeft,
-				                            keyCode == KEYBOARD_L ? !rect->solidRight  : rect->solidRight,
-				                            keyCode == KEYBOARD_K ? !rect->solidBottom : rect->solidBottom,
-				                            keyCode == KEYBOARD_I ? !rect->solidTop    : rect->solidTop);
-				Shell_redisplay();
-			}
-			break;
+	if (keyCode == KEYBOARD_RETURN_OR_ENTER && (modifiers & MODIFIER_ALT_BIT)) {
+		if (Shell_isFullScreen()) {
+			Shell_exitFullScreen();
+		} else {
+			Shell_enterFullScreen(Shell_getDisplayIndexFromWindow());
+		}
+		EventDispatcher_dispatchEvent(screenManager->eventDispatcher, ATOM(Shell_isFullScreen() ? EVENT_FULLSCREENED : EVENT_WINDOWED), NULL);
+		
+	} else {
+		struct keyEvent event;
+		
+		event.keyCode = keyCode;
+		event.charCode = charCode;
+		event.modifiers = modifiers;
+		event.isRepeat = isRepeat;
+		EventDispatcher_dispatchEvent(screenManager->eventDispatcher, ATOM(EVENT_KEY_DOWN), &event);
 	}
 }
 
 static void Target_keyUp(unsigned int keyCode, unsigned int modifiers) {
+	struct keyEvent event;
+	
+	event.keyCode = keyCode;
+	event.modifiers = modifiers;
+	EventDispatcher_dispatchEvent(screenManager->eventDispatcher, ATOM(EVENT_KEY_UP), &event);
 }
 
 static void Target_keyModifiersChanged(unsigned int modifiers) {
+	struct keyEvent event;
+	
 	shiftKeyDown = !!(modifiers & MODIFIER_SHIFT_BIT);
 	altKeyDown = !!(modifiers & MODIFIER_ALT_BIT);
 	controlKeyDown = !!(modifiers & MODIFIER_CONTROL_BIT);
+	
+	event.modifiers = modifiers;
+	EventDispatcher_dispatchEvent(screenManager->eventDispatcher, ATOM(EVENT_KEY_MODIFIERS_CHANGED), &event);
 }
 
-#define DOUBLE_CLICK_INTERVAL 0.25
-#define DOUBLE_CLICK_MAX_DISTANCE 4.0f
-
 static void Target_mouseDown(unsigned int buttonNumber, float x, float y) {
-	static double lastClickTime;
-	static Vector2f lastClickPosition;
-	CollisionObject * object = resolver->objects[selectedObjectIndex];
-	double clickTime = Shell_getCurrentTime();
+	struct mouseEvent event;
 	
-	if (clickTime - lastClickTime < DOUBLE_CLICK_INTERVAL && fabs(x - lastClickPosition.x) <= DOUBLE_CLICK_MAX_DISTANCE && fabs(y - lastClickPosition.y) <= DOUBLE_CLICK_MAX_DISTANCE) {
-		switch (object->shapeType) {
-			case COLLISION_SHAPE_RECT_2D: {
-				CollisionRect2D * rect = (CollisionRect2D *) object;
-				rect->position = rect->lastPosition;
-				rect->size = rect->lastSize;
-				break;
-			}
-			case COLLISION_SHAPE_CIRCLE: {
-				CollisionCircle * circle = (CollisionCircle *) object;
-				circle->position = circle->lastPosition;
-				break;
-			}
-		}
-		Shell_redisplay();
-		dragging = false;
-		
-	} else {
-		dragOrigin = transformMousePosition(x, y);
-		draggingLastPosition = shiftKeyDown;
-		draggingBoth = controlKeyDown;
-		draggingSize = altKeyDown;
-		switch (object->shapeType) {
-			case COLLISION_SHAPE_RECT_2D: {
-				CollisionRect2D * rect = (CollisionRect2D *) object;
-				dragStartPosition = rect->position;
-				dragStartLastPosition = rect->lastPosition;
-				dragStartSize = rect->size;
-				dragStartLastSize = rect->lastSize;
-				break;
-			}
-			case COLLISION_SHAPE_CIRCLE: {
-				CollisionCircle * circle = (CollisionCircle *) object;
-				dragStartPosition = circle->position;
-				dragStartLastPosition = circle->lastPosition;
-				dragStartRadius = circle->radius;
-				break;
-			}
-		}
-		dragging = true;
-	}
-	
-	lastClickTime = clickTime;
-	lastClickPosition = VECTOR2f(x, y);
+	event.button = buttonNumber;
+	event.position = VECTOR2f(x, y);
+	EventDispatcher_dispatchEvent(screenManager->eventDispatcher, ATOM(EVENT_MOUSE_DOWN), &event);
 }
 
 static void Target_mouseUp(unsigned int buttonNumber, float x, float y) {
-	dragging = false;
+	struct mouseEvent event;
+	
+	event.button = buttonNumber;
+	event.position = VECTOR2f(x, y);
+	EventDispatcher_dispatchEvent(screenManager->eventDispatcher, ATOM(EVENT_MOUSE_UP), &event);
 }
 
 static void Target_mouseMoved(float x, float y) {
+	struct mouseEvent event;
+	
+	event.position = VECTOR2f(x, y);
+	EventDispatcher_dispatchEvent(screenManager->eventDispatcher, ATOM(EVENT_MOUSE_MOVED), &event);
 }
 
 static void Target_mouseDragged(unsigned int buttonMask, float x, float y) {
-	Vector2x mousePosition = transformMousePosition(x, y);
-	CollisionObject * object = resolver->objects[selectedObjectIndex];
+	struct mouseEvent event;
 	
-	switch (object->shapeType) {
-		case COLLISION_SHAPE_RECT_2D: {
-			CollisionRect2D * rect = (CollisionRect2D *) object;
-			if (draggingLastPosition || draggingBoth) {
-				if (draggingSize) {
-					rect->lastSize.x = dragStartLastSize.x + mousePosition.x - dragOrigin.x;
-					rect->lastSize.y = dragStartLastSize.y + mousePosition.y - dragOrigin.y;
-				} else {
-					rect->lastPosition.x = dragStartLastPosition.x + mousePosition.x - dragOrigin.x;
-					rect->lastPosition.y = dragStartLastPosition.y + mousePosition.y - dragOrigin.y;
-				}
-			}
-			if (!draggingLastPosition || draggingBoth) {
-				if (draggingSize) {
-					rect->size.x = dragStartSize.x + mousePosition.x - dragOrigin.x;
-					rect->size.y = dragStartSize.y + mousePosition.y - dragOrigin.y;
-				} else {
-					rect->position.x = dragStartPosition.x + mousePosition.x - dragOrigin.x;
-					rect->position.y = dragStartPosition.y + mousePosition.y - dragOrigin.y;
-				}
-			}
-			break;
-		}
-		case COLLISION_SHAPE_CIRCLE: {
-			CollisionCircle * circle = (CollisionCircle *) object;
-			if (draggingSize) {
-				circle->radius = dragStartRadius + mousePosition.y - dragOrigin.y;
-			} else {
-				if (draggingLastPosition || draggingBoth) {
-					circle->lastPosition.x = dragStartLastPosition.x + mousePosition.x - dragOrigin.x;
-					circle->lastPosition.y = dragStartLastPosition.y + mousePosition.y - dragOrigin.y;
-				}
-				if (!draggingLastPosition || draggingBoth) {
-					circle->position.x = dragStartPosition.x + mousePosition.x - dragOrigin.x;
-					circle->position.y = dragStartPosition.y + mousePosition.y - dragOrigin.y;
-				}
-			}
-			break;
-		}
-	}
-	Shell_redisplay();
+	event.button = buttonMask;
+	event.position = VECTOR2f(x, y);
+	EventDispatcher_dispatchEvent(screenManager->eventDispatcher, ATOM(EVENT_MOUSE_DRAGGED), &event);
+}
+
+static void Target_scrollWheel(int deltaX, int deltaY) {
+	struct mouseWheelEvent event;
+	
+	event.deltaX = deltaX;
+	event.deltaY = deltaY;
+	EventDispatcher_dispatchEvent(screenManager->eventDispatcher, ATOM(EVENT_MOUSE_SCROLL_WHEEL), &event);
 }
 
 static void Target_resized(unsigned int newWidth, unsigned int newHeight) {
-	viewWidth = newWidth;
-	viewHeight = newHeight;
-	viewRatio = (float) newWidth / newHeight;
+	g_viewWidth = newWidth;
+	g_viewHeight = newHeight;
+	g_viewRatio = (float) newWidth / newHeight;
 	glViewport(0, 0, newWidth, newHeight);
+	if (screenManager != NULL) {
+		EventDispatcher_dispatchEvent(screenManager->eventDispatcher, ATOM(EVENT_RESIZED), NULL);
+	}
 }
 
 static void Target_backgrounded() {
+	if (screenManager != NULL) {
+		EventDispatcher_dispatchEvent(screenManager->eventDispatcher, ATOM(EVENT_BACKGROUNDED), NULL);
+	}
 }
 
 static void Target_foregrounded() {
+	if (screenManager != NULL) {
+		EventDispatcher_dispatchEvent(screenManager->eventDispatcher, ATOM(EVENT_FOREGROUNDED), NULL);
+	}
 }
 
 static void registerShellCallbacks() {
@@ -605,6 +174,7 @@ static void registerShellCallbacks() {
 	Shell_mouseUpFunc(Target_mouseUp);
 	Shell_mouseMovedFunc(Target_mouseMoved);
 	Shell_mouseDraggedFunc(Target_mouseDragged);
+	Shell_scrollWheelFunc(Target_scrollWheel);
 	Shell_backgroundedFunc(Target_backgrounded);
 	Shell_foregroundedFunc(Target_foregrounded);
 }
@@ -619,13 +189,40 @@ void GLXTarget_configure(int argc, const char ** argv, struct GLXShellConfigurat
 #else
 #error Unsupported platform
 #endif
+	int displayX, displayY;
+	unsigned int displayWidth, displayHeight, windowWidth = 1280, windowHeight = 720;
+	Vector2i preferredSizes[] = {{2560, 1440}, {1920, 1080}, {1280, 720}, {853, 480}};
+	unsigned int preferredSizeIndex;
+	
+	Shell_getSafeWindowRect(0, &displayX, &displayY, &displayWidth, &displayHeight);
+	for (preferredSizeIndex = 0; preferredSizeIndex < sizeof(preferredSizes) / sizeof(Vector2i); preferredSizeIndex++) {
+		if ((int) displayWidth >= preferredSizes[preferredSizeIndex].x && (int) displayHeight >= preferredSizes[preferredSizeIndex].y) {
+			windowWidth = preferredSizes[preferredSizeIndex].x;
+			windowHeight = preferredSizes[preferredSizeIndex].y;
+			break;
+		}
+	}
+	if (preferredSizeIndex >= sizeof(preferredSizes) / sizeof(Vector2i)) {
+		windowWidth = displayWidth;
+		windowHeight = displayHeight;
+	}
+	configuration->windowX = displayX + (displayWidth - windowWidth) / 2;
+	configuration->windowY = displayY + (displayHeight - windowHeight) / 2;
+	configuration->windowWidth = g_viewWidth = windowWidth;
+	configuration->windowHeight = g_viewHeight = windowHeight;
 	configuration->windowTitle = "Collision Test Harness";
+	
 	registerShellCallbacks();
 }
 
 void Target_init() {
-	intersectionManager = IntersectionManager_createWithStandardHandlers();
-	loadScene1();
+	SingleFrameScreen * singleFrameScreen;
+	
+	screenManager = ScreenManager_create();
+	singleFrameScreen = SingleFrameScreen_create();
+	ScreenManager_addScreen(screenManager, singleFrameScreen);
+	ScreenManager_setScreen(screenManager, singleFrameScreen);
+	
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	Shell_setVSync(false, false);
 	Shell_setVSync(false, true);
