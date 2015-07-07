@@ -37,14 +37,18 @@ struct CollisionRecord {
 	// Object with which target collided
 	CollisionObject * object2;
 	
-	// Normal vector of the surface of object2 at the first point of intersection by object1
-	Vector3x normal;
-	
 	// Temporal position within the timeslice being evaluated at which the intersection first occurs, from 0x00000 (beginning
 	// of timeslice) to 0x10000 (end of timeslice).
 	fixed16_16 time;
 	
-	// TODO: Need some form of object2 velocity. Bleh.
+	// Normal vector of the surface of object2 at the first point of intersection by object1
+	Vector3x normal;
+	
+	// Calculated vector of motion of the point on object1 that contacted object2. Relative to timeslice size.
+	Vector3x object1Vector;
+	
+	// Calculated vector of motion of the point on object2 that contacted object1. Relative to timeslice size.
+	Vector3x object2Vector;
 };
 
 // Returns a CollisionRecord with object1 and object2 swapped, and the normal reversed.

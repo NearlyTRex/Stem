@@ -116,7 +116,7 @@ static bool CollisionResolver_queryPairInternal(CollisionResolver * self, Collis
 
 bool CollisionResolver_querySingle(CollisionResolver * self, CollisionObject * object, CollisionRecord * outCollision) {
 	size_t objectIndex;
-	CollisionRecord collision, bestCollision = {NULL, NULL, {0, 0, 0}, FIXED_16_16_MAX};
+	CollisionRecord collision, bestCollision = {NULL, NULL, FIXED_16_16_MAX, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}};
 	
 	for (objectIndex = 0; objectIndex < self->objectCount; objectIndex++) {
 		if (self->objects[objectIndex] == object) {

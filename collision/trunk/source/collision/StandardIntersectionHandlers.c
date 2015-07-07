@@ -25,6 +25,8 @@
 #include "collision/StandardIntersectionHandlers.h"
 #include <stdio.h>
 
+#define SPATIAL_EPSILON 0x00008
+
 static bool intersectSweptLineSegments(fixed16_16 x1Start, fixed16_16 x1End,
                                        fixed16_16 x2Start, fixed16_16 x2End,
                                        fixed16_16 bottom1Start, fixed16_16 top1Start, fixed16_16 bottom1End, fixed16_16 top1End,
@@ -195,6 +197,12 @@ static bool intersectSweptCircles(Vector2x circle1LastPosition, Vector2x circle1
 	if (quadraticFormula(a, b, c, &time1, &time2) && time1 != time2) {
 		if (time2 < time1) {
 			time1 = time2;
+		}
+		if (time1 < 0x00000) {
+			fixed16_16 temporalEpsilon = xdiv(SPATIAL_EPSILON, xsqrt(a));
+			if (time1 >= -temporalEpsilon) {
+				time1 = 0x00000;
+			}
 		}
 		if (time1 >= 0x00000 && time1 <= 0x10000) {
 			Vector2x position1, position2;
