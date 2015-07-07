@@ -1,0 +1,766 @@
+{
+	"format_version": 2,
+	"atlas_name": "verdana_atlas.json",
+	"characters": {
+		" ": {
+			"advance": 0.2376760542392730712890625,
+			"glyph_offset": 0,
+			"glyph_width": 0.2376760542392730712890625,
+			"atlas_key": " ",
+			"kerning_table": {
+			}
+		},
+		"!": {
+			"advance": 0.2660651504993438720703125,
+			"glyph_offset": 0,
+			"glyph_width": 0.2660651504993438720703125,
+			"atlas_key": "!",
+			"kerning_table": {
+			}
+		},
+		"\"": {
+			"advance": 0.3102993071079254150390625,
+			"glyph_offset": 0,
+			"glyph_width": 0.3102993071079254150390625,
+			"atlas_key": "\"",
+			"kerning_table": {
+			}
+		},
+		"#": {
+			"advance": 0.553257048130035400390625,
+			"glyph_offset": 0,
+			"glyph_width": 0.553257048130035400390625,
+			"atlas_key": "#",
+			"kerning_table": {
+			}
+		},
+		"$": {
+			"advance": 0.42979753017425537109375,
+			"glyph_offset": 0,
+			"glyph_width": 0.42979753017425537109375,
+			"atlas_key": "$",
+			"kerning_table": {
+			}
+		},
+		"%": {
+			"advance": 0.727552831172943115234375,
+			"glyph_offset": 0,
+			"glyph_width": 0.727552831172943115234375,
+			"atlas_key": "%",
+			"kerning_table": {
+			}
+		},
+		"&": {
+			"advance": 0.491197168827056884765625,
+			"glyph_offset": 0,
+			"glyph_width": 0.491197168827056884765625,
+			"atlas_key": "&",
+			"kerning_table": {
+			}
+		},
+		"'": {
+			"advance": 0.1815581023693084716796875,
+			"glyph_offset": 0,
+			"glyph_width": 0.1815581023693084716796875,
+			"atlas_key": "'",
+			"kerning_table": {
+			}
+		},
+		"(": {
+			"advance": 0.30699825286865234375,
+			"glyph_offset": 0,
+			"glyph_width": 0.30699825286865234375,
+			"atlas_key": "(",
+			"kerning_table": {
+			}
+		},
+		")": {
+			"advance": 0.30699825286865234375,
+			"glyph_offset": 0,
+			"glyph_width": 0.30699825286865234375,
+			"atlas_key": ")",
+			"kerning_table": {
+			}
+		},
+		"*": {
+			"advance": 0.42979753017425537109375,
+			"glyph_offset": 0,
+			"glyph_width": 0.42979753017425537109375,
+			"atlas_key": "*",
+			"kerning_table": {
+			}
+		},
+		"+": {
+			"advance": 0.553257048130035400390625,
+			"glyph_offset": 0,
+			"glyph_width": 0.553257048130035400390625,
+			"atlas_key": "+",
+			"kerning_table": {
+			}
+		},
+		",": {
+			"advance": 0.24592868983745574951171875,
+			"glyph_offset": 0,
+			"glyph_width": 0.24592868983745574951171875,
+			"atlas_key": ",",
+			"kerning_table": {
+			}
+		},
+		"-": {
+			"advance": 0.30699825286865234375,
+			"glyph_offset": 0,
+			"glyph_width": 0.30699825286865234375,
+			"atlas_key": "-",
+			"kerning_table": {
+			}
+		},
+		".": {
+			"advance": 0.24592868983745574951171875,
+			"glyph_offset": 0,
+			"glyph_width": 0.24592868983745574951171875,
+			"atlas_key": ".",
+			"kerning_table": {
+			}
+		},
+		"/": {
+			"advance": 0.30699825286865234375,
+			"glyph_offset": 0,
+			"glyph_width": 0.30699825286865234375,
+			"atlas_key": "/",
+			"kerning_table": {
+			}
+		},
+		"0": {
+			"advance": 0.42979753017425537109375,
+			"glyph_offset": 0,
+			"glyph_width": 0.42979753017425537109375,
+			"atlas_key": "0",
+			"kerning_table": {
+			}
+		},
+		"1": {
+			"advance": 0.42979753017425537109375,
+			"glyph_offset": 0,
+			"glyph_width": 0.42979753017425537109375,
+			"atlas_key": "1",
+			"kerning_table": {
+			}
+		},
+		"2": {
+			"advance": 0.42979753017425537109375,
+			"glyph_offset": 0,
+			"glyph_width": 0.42979753017425537109375,
+			"atlas_key": "2",
+			"kerning_table": {
+			}
+		},
+		"3": {
+			"advance": 0.42979753017425537109375,
+			"glyph_offset": 0,
+			"glyph_width": 0.42979753017425537109375,
+			"atlas_key": "3",
+			"kerning_table": {
+			}
+		},
+		"4": {
+			"advance": 0.42979753017425537109375,
+			"glyph_offset": 0,
+			"glyph_width": 0.42979753017425537109375,
+			"atlas_key": "4",
+			"kerning_table": {
+			}
+		},
+		"5": {
+			"advance": 0.42979753017425537109375,
+			"glyph_offset": 0,
+			"glyph_width": 0.42979753017425537109375,
+			"atlas_key": "5",
+			"kerning_table": {
+			}
+		},
+		"6": {
+			"advance": 0.42979753017425537109375,
+			"glyph_offset": 0,
+			"glyph_width": 0.42979753017425537109375,
+			"atlas_key": "6",
+			"kerning_table": {
+			}
+		},
+		"7": {
+			"advance": 0.42979753017425537109375,
+			"glyph_offset": 0,
+			"glyph_width": 0.42979753017425537109375,
+			"atlas_key": "7",
+			"kerning_table": {
+			}
+		},
+		"8": {
+			"advance": 0.42979753017425537109375,
+			"glyph_offset": 0,
+			"glyph_width": 0.42979753017425537109375,
+			"atlas_key": "8",
+			"kerning_table": {
+			}
+		},
+		"9": {
+			"advance": 0.42979753017425537109375,
+			"glyph_offset": 0,
+			"glyph_width": 0.42979753017425537109375,
+			"atlas_key": "9",
+			"kerning_table": {
+			}
+		},
+		":": {
+			"advance": 0.30699825286865234375,
+			"glyph_offset": 0,
+			"glyph_width": 0.30699825286865234375,
+			"atlas_key": ":",
+			"kerning_table": {
+			}
+		},
+		";": {
+			"advance": 0.30699825286865234375,
+			"glyph_offset": 0,
+			"glyph_width": 0.30699825286865234375,
+			"atlas_key": ";",
+			"kerning_table": {
+			}
+		},
+		"<": {
+			"advance": 0.553257048130035400390625,
+			"glyph_offset": 0,
+			"glyph_width": 0.553257048130035400390625,
+			"atlas_key": "<",
+			"kerning_table": {
+			}
+		},
+		"=": {
+			"advance": 0.553257048130035400390625,
+			"glyph_offset": 0,
+			"glyph_width": 0.553257048130035400390625,
+			"atlas_key": "=",
+			"kerning_table": {
+			}
+		},
+		">": {
+			"advance": 0.553257048130035400390625,
+			"glyph_offset": 0,
+			"glyph_width": 0.553257048130035400390625,
+			"atlas_key": ">",
+			"kerning_table": {
+			}
+		},
+		"?": {
+			"advance": 0.368727982044219970703125,
+			"glyph_offset": 0,
+			"glyph_width": 0.368727982044219970703125,
+			"atlas_key": "?",
+			"kerning_table": {
+			}
+		},
+		"@": {
+			"advance": 0.676056325435638427734375,
+			"glyph_offset": 0,
+			"glyph_width": 0.676056325435638427734375,
+			"atlas_key": "@",
+			"kerning_table": {
+			}
+		},
+		"A": {
+			"advance": 0.462147891521453857421875,
+			"glyph_offset": 0,
+			"glyph_width": 0.462147891521453857421875,
+			"atlas_key": "A",
+			"kerning_table": {
+			}
+		},
+		"B": {
+			"advance": 0.4634683132171630859375,
+			"glyph_offset": 0,
+			"glyph_width": 0.4634683132171630859375,
+			"atlas_key": "B",
+			"kerning_table": {
+			}
+		},
+		"C": {
+			"advance": 0.4720510542392730712890625,
+			"glyph_offset": 0,
+			"glyph_width": 0.4720510542392730712890625,
+			"atlas_key": "C",
+			"kerning_table": {
+			}
+		},
+		"D": {
+			"advance": 0.5209066867828369140625,
+			"glyph_offset": 0,
+			"glyph_width": 0.5209066867828369140625,
+			"atlas_key": "D",
+			"kerning_table": {
+			}
+		},
+		"E": {
+			"advance": 0.4274868071079254150390625,
+			"glyph_offset": 0,
+			"glyph_width": 0.4274868071079254150390625,
+			"atlas_key": "E",
+			"kerning_table": {
+			}
+		},
+		"F": {
+			"advance": 0.3885343372821807861328125,
+			"glyph_offset": 0,
+			"glyph_width": 0.3885343372821807861328125,
+			"atlas_key": "F",
+			"kerning_table": {
+			}
+		},
+		"G": {
+			"advance": 0.524207770824432373046875,
+			"glyph_offset": 0,
+			"glyph_width": 0.524207770824432373046875,
+			"atlas_key": "G",
+			"kerning_table": {
+			}
+		},
+		"H": {
+			"advance": 0.5080325603485107421875,
+			"glyph_offset": 0,
+			"glyph_width": 0.5080325603485107421875,
+			"atlas_key": "H",
+			"kerning_table": {
+			}
+		},
+		"I": {
+			"advance": 0.2845510542392730712890625,
+			"glyph_offset": 0,
+			"glyph_width": 0.2845510542392730712890625,
+			"atlas_key": "I",
+			"kerning_table": {
+			}
+		},
+		"J": {
+			"advance": 0.30732834339141845703125,
+			"glyph_offset": 0,
+			"glyph_width": 0.30732834339141845703125,
+			"atlas_key": "J",
+			"kerning_table": {
+			}
+		},
+		"K": {
+			"advance": 0.4684198796749114990234375,
+			"glyph_offset": 0,
+			"glyph_width": 0.4684198796749114990234375,
+			"atlas_key": "K",
+			"kerning_table": {
+			}
+		},
+		"L": {
+			"advance": 0.376320421695709228515625,
+			"glyph_offset": 0,
+			"glyph_width": 0.376320421695709228515625,
+			"atlas_key": "L",
+			"kerning_table": {
+			}
+		},
+		"M": {
+			"advance": 0.56976234912872314453125,
+			"glyph_offset": 0,
+			"glyph_width": 0.56976234912872314453125,
+			"atlas_key": "M",
+			"kerning_table": {
+			}
+		},
+		"N": {
+			"advance": 0.5057218074798583984375,
+			"glyph_offset": 0,
+			"glyph_width": 0.5057218074798583984375,
+			"atlas_key": "N",
+			"kerning_table": {
+			}
+		},
+		"O": {
+			"advance": 0.532130300998687744140625,
+			"glyph_offset": 0,
+			"glyph_width": 0.532130300998687744140625,
+			"atlas_key": "O",
+			"kerning_table": {
+			}
+		},
+		"P": {
+			"advance": 0.407680451869964599609375,
+			"glyph_offset": 0,
+			"glyph_width": 0.407680451869964599609375,
+			"atlas_key": "P",
+			"kerning_table": {
+			}
+		},
+		"Q": {
+			"advance": 0.532130300998687744140625,
+			"glyph_offset": 0,
+			"glyph_width": 0.532130300998687744140625,
+			"atlas_key": "Q",
+			"kerning_table": {
+			}
+		},
+		"R": {
+			"advance": 0.470070421695709228515625,
+			"glyph_offset": 0,
+			"glyph_width": 0.470070421695709228515625,
+			"atlas_key": "R",
+			"kerning_table": {
+			}
+		},
+		"S": {
+			"advance": 0.462147891521453857421875,
+			"glyph_offset": 0,
+			"glyph_width": 0.462147891521453857421875,
+			"atlas_key": "S",
+			"kerning_table": {
+			}
+		},
+		"T": {
+			"advance": 0.4165933132171630859375,
+			"glyph_offset": 0,
+			"glyph_width": 0.4165933132171630859375,
+			"atlas_key": "T",
+			"kerning_table": {
+			}
+		},
+		"U": {
+			"advance": 0.49482834339141845703125,
+			"glyph_offset": 0,
+			"glyph_width": 0.49482834339141845703125,
+			"atlas_key": "U",
+			"kerning_table": {
+			}
+		},
+		"V": {
+			"advance": 0.462147891521453857421875,
+			"glyph_offset": 0,
+			"glyph_width": 0.462147891521453857421875,
+			"atlas_key": "V",
+			"kerning_table": {
+			}
+		},
+		"W": {
+			"advance": 0.668463885784149169921875,
+			"glyph_offset": 0,
+			"glyph_width": 0.668463885784149169921875,
+			"atlas_key": "W",
+			"kerning_table": {
+			}
+		},
+		"X": {
+			"advance": 0.4631381928920745849609375,
+			"glyph_offset": 0,
+			"glyph_width": 0.4631381928920745849609375,
+			"atlas_key": "X",
+			"kerning_table": {
+			}
+		},
+		"Y": {
+			"advance": 0.4159331023693084716796875,
+			"glyph_offset": 0,
+			"glyph_width": 0.4159331023693084716796875,
+			"atlas_key": "Y",
+			"kerning_table": {
+			}
+		},
+		"Z": {
+			"advance": 0.4631381928920745849609375,
+			"glyph_offset": 0,
+			"glyph_width": 0.4631381928920745849609375,
+			"atlas_key": "Z",
+			"kerning_table": {
+			}
+		},
+		"[": {
+			"advance": 0.30699825286865234375,
+			"glyph_offset": 0,
+			"glyph_width": 0.30699825286865234375,
+			"atlas_key": "[",
+			"kerning_table": {
+			}
+		},
+		"\\": {
+			"advance": 0.30699825286865234375,
+			"glyph_offset": 0,
+			"glyph_width": 0.30699825286865234375,
+			"atlas_key": "\\",
+			"kerning_table": {
+			}
+		},
+		"]": {
+			"advance": 0.30699825286865234375,
+			"glyph_offset": 0,
+			"glyph_width": 0.30699825286865234375,
+			"atlas_key": "]",
+			"kerning_table": {
+			}
+		},
+		"^": {
+			"advance": 0.553257048130035400390625,
+			"glyph_offset": 0,
+			"glyph_width": 0.553257048130035400390625,
+			"atlas_key": "^",
+			"kerning_table": {
+			}
+		},
+		"_": {
+			"advance": 0.42979753017425537109375,
+			"glyph_offset": 0,
+			"glyph_width": 0.42979753017425537109375,
+			"atlas_key": "_",
+			"kerning_table": {
+			}
+		},
+		"`": {
+			"advance": 0.42979753017425537109375,
+			"glyph_offset": 0,
+			"glyph_width": 0.42979753017425537109375,
+			"atlas_key": "`",
+			"kerning_table": {
+			}
+		},
+		"a": {
+			"advance": 0.4060299396514892578125,
+			"glyph_offset": 0,
+			"glyph_width": 0.4060299396514892578125,
+			"atlas_key": "a",
+			"kerning_table": {
+			}
+		},
+		"b": {
+			"advance": 0.4212147891521453857421875,
+			"glyph_offset": 0,
+			"glyph_width": 0.4212147891521453857421875,
+			"atlas_key": "b",
+			"kerning_table": {
+			}
+		},
+		"c": {
+			"advance": 0.3522227108478546142578125,
+			"glyph_offset": 0,
+			"glyph_width": 0.3522227108478546142578125,
+			"atlas_key": "c",
+			"kerning_table": {
+			}
+		},
+		"d": {
+			"advance": 0.4212147891521453857421875,
+			"glyph_offset": 0,
+			"glyph_width": 0.4212147891521453857421875,
+			"atlas_key": "d",
+			"kerning_table": {
+			}
+		},
+		"e": {
+			"advance": 0.4027288854122161865234375,
+			"glyph_offset": 0,
+			"glyph_width": 0.4027288854122161865234375,
+			"atlas_key": "e",
+			"kerning_table": {
+			}
+		},
+		"f": {
+			"advance": 0.2376760542392730712890625,
+			"glyph_offset": 0,
+			"glyph_width": 0.2376760542392730712890625,
+			"atlas_key": "f",
+			"kerning_table": {
+			}
+		},
+		"g": {
+			"advance": 0.4212147891521453857421875,
+			"glyph_offset": 0,
+			"glyph_width": 0.4212147891521453857421875,
+			"atlas_key": "g",
+			"kerning_table": {
+			}
+		},
+		"h": {
+			"advance": 0.4278168976306915283203125,
+			"glyph_offset": 0,
+			"glyph_width": 0.4278168976306915283203125,
+			"atlas_key": "h",
+			"kerning_table": {
+			}
+		},
+		"i": {
+			"advance": 0.1855193674564361572265625,
+			"glyph_offset": 0,
+			"glyph_width": 0.1855193674564361572265625,
+			"atlas_key": "i",
+			"kerning_table": {
+			}
+		},
+		"j": {
+			"advance": 0.23272447288036346435546875,
+			"glyph_offset": 0,
+			"glyph_width": 0.23272447288036346435546875,
+			"atlas_key": "j",
+			"kerning_table": {
+			}
+		},
+		"k": {
+			"advance": 0.4000880420207977294921875,
+			"glyph_offset": 0,
+			"glyph_width": 0.4000880420207977294921875,
+			"atlas_key": "k",
+			"kerning_table": {
+			}
+		},
+		"l": {
+			"advance": 0.1855193674564361572265625,
+			"glyph_offset": 0,
+			"glyph_width": 0.1855193674564361572265625,
+			"atlas_key": "l",
+			"kerning_table": {
+			}
+		},
+		"m": {
+			"advance": 0.657570421695709228515625,
+			"glyph_offset": 0,
+			"glyph_width": 0.657570421695709228515625,
+			"atlas_key": "m",
+			"kerning_table": {
+			}
+		},
+		"n": {
+			"advance": 0.4278168976306915283203125,
+			"glyph_offset": 0,
+			"glyph_width": 0.4278168976306915283203125,
+			"atlas_key": "n",
+			"kerning_table": {
+			}
+		},
+		"o": {
+			"advance": 0.410321295261383056640625,
+			"glyph_offset": 0,
+			"glyph_width": 0.410321295261383056640625,
+			"atlas_key": "o",
+			"kerning_table": {
+			}
+		},
+		"p": {
+			"advance": 0.4212147891521453857421875,
+			"glyph_offset": 0,
+			"glyph_width": 0.4212147891521453857421875,
+			"atlas_key": "p",
+			"kerning_table": {
+			}
+		},
+		"q": {
+			"advance": 0.4212147891521453857421875,
+			"glyph_offset": 0,
+			"glyph_width": 0.4212147891521453857421875,
+			"atlas_key": "q",
+			"kerning_table": {
+			}
+		},
+		"r": {
+			"advance": 0.2885123193264007568359375,
+			"glyph_offset": 0,
+			"glyph_width": 0.2885123193264007568359375,
+			"atlas_key": "r",
+			"kerning_table": {
+			}
+		},
+		"s": {
+			"advance": 0.3522227108478546142578125,
+			"glyph_offset": 0,
+			"glyph_width": 0.3522227108478546142578125,
+			"atlas_key": "s",
+			"kerning_table": {
+			}
+		},
+		"t": {
+			"advance": 0.2663952410221099853515625,
+			"glyph_offset": 0,
+			"glyph_width": 0.2663952410221099853515625,
+			"atlas_key": "t",
+			"kerning_table": {
+			}
+		},
+		"u": {
+			"advance": 0.4278168976306915283203125,
+			"glyph_offset": 0,
+			"glyph_width": 0.4278168976306915283203125,
+			"atlas_key": "u",
+			"kerning_table": {
+			}
+		},
+		"v": {
+			"advance": 0.4000880420207977294921875,
+			"glyph_offset": 0,
+			"glyph_width": 0.4000880420207977294921875,
+			"atlas_key": "v",
+			"kerning_table": {
+			}
+		},
+		"w": {
+			"advance": 0.553257048130035400390625,
+			"glyph_offset": 0,
+			"glyph_width": 0.553257048130035400390625,
+			"atlas_key": "w",
+			"kerning_table": {
+			}
+		},
+		"x": {
+			"advance": 0.4000880420207977294921875,
+			"glyph_offset": 0,
+			"glyph_width": 0.4000880420207977294921875,
+			"atlas_key": "x",
+			"kerning_table": {
+			}
+		},
+		"y": {
+			"advance": 0.4000880420207977294921875,
+			"glyph_offset": 0,
+			"glyph_width": 0.4000880420207977294921875,
+			"atlas_key": "y",
+			"kerning_table": {
+			}
+		},
+		"z": {
+			"advance": 0.355193674564361572265625,
+			"glyph_offset": 0,
+			"glyph_width": 0.355193674564361572265625,
+			"atlas_key": "z",
+			"kerning_table": {
+			}
+		},
+		"{": {
+			"advance": 0.4291373193264007568359375,
+			"glyph_offset": 0,
+			"glyph_width": 0.4291373193264007568359375,
+			"atlas_key": "{",
+			"kerning_table": {
+			}
+		},
+		"|": {
+			"advance": 0.30699825286865234375,
+			"glyph_offset": 0,
+			"glyph_width": 0.30699825286865234375,
+			"atlas_key": "|",
+			"kerning_table": {
+			}
+		},
+		"}": {
+			"advance": 0.4291373193264007568359375,
+			"glyph_offset": 0,
+			"glyph_width": 0.4291373193264007568359375,
+			"atlas_key": "}",
+			"kerning_table": {
+			}
+		},
+		"~": {
+			"advance": 0.553257048130035400390625,
+			"glyph_offset": 0,
+			"glyph_width": 0.553257048130035400390625,
+			"atlas_key": "~",
+			"kerning_table": {
+			}
+		}
+	}
+}

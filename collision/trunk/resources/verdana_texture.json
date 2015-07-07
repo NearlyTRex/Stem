@@ -1,0 +1,13 @@
+{
+	"format_version": 1,
+	"image_name": "verdana.png",
+	"bitmap_data_format": "GL_RGBA",
+	"bitmap_data_type": "GL_UNSIGNED_BYTE",
+	"min_filter": "GL_LINEAR_MIPMAP_LINEAR",
+	"mag_filter": "GL_LINEAR",
+	"wrap_s": "GL_CLAMP_TO_EDGE",
+	"wrap_t": "GL_CLAMP_TO_EDGE",
+	"auto_blend_mode": "AUTO_BLEND_MODE_TRANSPARENT_NONPREMULTIPLIED",
+	"auto_mipmap": true,
+	"anisotropic_filter": false
+}

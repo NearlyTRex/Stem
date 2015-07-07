@@ -31,6 +31,7 @@ typedef struct SingleFrameScreen SingleFrameScreen;
 #include "collision/CollisionResolver.h"
 #include "collision/IntersectionManager.h"
 #include "gamemath/Vector2x.h"
+#include "resourcemanager/ResourceManager.h"
 #include "screenmanager/Screen.h"
 
 #define SingleFrameScreen_structContents(self_type) \
@@ -52,8 +53,8 @@ typedef struct SingleFrameScreen SingleFrameScreen;
 
 stemobject_struct_definition(SingleFrameScreen)
 
-SingleFrameScreen * SingleFrameScreen_create();
-bool SingleFrameScreen_init(SingleFrameScreen * self);
+SingleFrameScreen * SingleFrameScreen_create(ResourceManager * resourceManager);
+bool SingleFrameScreen_init(SingleFrameScreen * self, ResourceManager * resourceManager);
 void SingleFrameScreen_dispose(SingleFrameScreen * self);
 
 void SingleFrameScreen_activate(SingleFrameScreen * self);

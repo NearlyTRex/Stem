@@ -31,6 +31,8 @@ typedef struct BouncingBallScreen BouncingBallScreen;
 #include "collision/CollisionCircle.h"
 #include "collision/CollisionResolver.h"
 #include "collision/IntersectionManager.h"
+#include "glbitmapfont/GLBitmapFont.h"
+#include "resourcemanager/ResourceManager.h"
 #include "screenmanager/Screen.h"
 #include "utilities/FixedIntervalRunLoop.h"
 
@@ -47,6 +49,8 @@ struct bouncingBall {
 #define BouncingBallScreen_structContents(self_type) \
 	Screen_structContents(self_type) \
 	\
+	ResourceManager * resourceManager; \
+	GLBitmapFont * font; \
 	IntersectionManager * intersectionManager; \
 	CollisionResolver * resolver; \
 	FixedIntervalRunLoop * runLoop; \
@@ -59,8 +63,8 @@ struct bouncingBall {
 
 stemobject_struct_definition(BouncingBallScreen)
 
-BouncingBallScreen * BouncingBallScreen_create();
-bool BouncingBallScreen_init(BouncingBallScreen * self);
+BouncingBallScreen * BouncingBallScreen_create(ResourceManager * resourceManager);
+bool BouncingBallScreen_init(BouncingBallScreen * self, ResourceManager * resourceManager);
 void BouncingBallScreen_dispose(BouncingBallScreen * self);
 
 void BouncingBallScreen_activate(BouncingBallScreen * self);

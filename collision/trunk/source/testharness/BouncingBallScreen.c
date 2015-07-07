@@ -31,6 +31,8 @@
 #include "testharness/BouncingBallScreen.h"
 #include "testharness/SharedEvents.h"
 #include "testharness/TestHarness_globals.h"
+#include "utilities/IOUtilities.h"
+#include "utilities/printfFormats.h"
 #include "utilities/Ranrot.h"
 #include <math.h>
 #include <stddef.h>
@@ -50,15 +52,17 @@
 #define INITIAL_VELOCITY_MAX 0x08000
 #define COLLISION_DURATION 0.25
 
-BouncingBallScreen * BouncingBallScreen_create() {
-	stemobject_create_implementation(BouncingBallScreen, init)
+BouncingBallScreen * BouncingBallScreen_create(ResourceManager * resourceManager) {
+	stemobject_create_implementation(BouncingBallScreen, init, resourceManager)
 }
 
-bool BouncingBallScreen_init(BouncingBallScreen * self) {
+bool BouncingBallScreen_init(BouncingBallScreen * self, ResourceManager * resourceManager) {
 	call_super(init, self);
 	self->dispose = BouncingBallScreen_dispose;
 	self->activate = BouncingBallScreen_activate;
 	self->deactivate = BouncingBallScreen_deactivate;
+	self->resourceManager = resourceManager;
+	self->font = ResourceManager_referenceResource(self->resourceManager, "bitmap_font", "verdana_font.json");
 	self->intersectionManager = IntersectionManager_createWithStandardHandlers();
 	self->backgrounded = false;
 	self->paused = false;
@@ -70,6 +74,7 @@ void BouncingBallScreen_dispose(BouncingBallScreen * self) {
 		FixedIntervalRunLoop_dispose(self->runLoop);
 	}
 	IntersectionManager_dispose(self->intersectionManager);
+	ResourceManager_releaseResource(self->resourceManager, "bitmap_font", "verdana_font.json");
 	call_super(dispose, self);
 }
 
@@ -142,23 +147,21 @@ static void setVertexColor(struct vertex_p2f_c4f * vertex, Color4f color) {
 	vertex->color[3] = color.alpha;
 }
 
-static void getCollisionObjectVertices2D(BouncingBallScreen * self, struct vertex_p2f_c4f * outVertices, GLuint * outIndexes, size_t * ioVertexCount, size_t * ioIndexCount) {
+static void getCollisionObjectVertices2D(BouncingBallScreen * self, struct vertex_p2f_c4f * outVertices, GLuint * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount) {
 	size_t objectIndex;
-	CollisionObject * object;
-	struct vertex_p2f_c4f vertex;
-	bool colliding;
-	CollisionRecord collision;
 	double currentTime = Shell_getCurrentTime();
 	
 	for (objectIndex = 0; objectIndex < self->resolver->objectCount; objectIndex++) {
-		object = self->resolver->objects[objectIndex];
-		colliding = CollisionResolver_querySingle(self->resolver, object, &collision);
+		CollisionObject * object = self->resolver->objects[objectIndex];
+		
 		switch (object->shapeType) {
 			case COLLISION_SHAPE_RECT_2D: {
 				CollisionRect2D * rect = (CollisionRect2D *) object;
 				unsigned int vertexIndex;
 				
 				if (outVertices != NULL) {
+					struct vertex_p2f_c4f vertex;
+					
 					setVertexColor(&vertex, COLOR_RECT);
 					vertex.position[0] = xtof(rect->position.x);
 					vertex.position[1] = xtof(rect->position.y);
@@ -197,6 +200,8 @@ static void getCollisionObjectVertices2D(BouncingBallScreen * self, struct verte
 				lastBall = &self->lastBalls[ballIndex];
 				
 				if (outVertices != NULL) {
+					struct vertex_p2f_c4f vertex;
+					
 					setVertexColor(&vertex, COLOR_CIRCLE_LAST);
 					for (tesselationIndex = 0; tesselationIndex < CIRCLE_TESSELATIONS; tesselationIndex++) {
 						vertex.position[0] = xtof(lastBall->circle.lastPosition.x) + xtof(lastBall->circle.radius) * cos(tesselationIndex * M_PI * 2 / CIRCLE_TESSELATIONS);
@@ -248,6 +253,8 @@ static void getCollisionObjectVertices2D(BouncingBallScreen * self, struct verte
 				
 				if (ball->lastCollisionCircle != NULL) {
 					if (outVertices != NULL) {
+						struct vertex_p2f_c4f vertex;
+						
 						setVertexColor(&vertex, COLOR4f(1.0f - (currentTime - ball->lastCollisionTime) / COLLISION_DURATION, 0.0f, 0.0f, 1.0f));
 						vertex.position[0] = xtof(ball->circle.position.x);
 						vertex.position[1] = xtof(ball->circle.position.y);
@@ -270,13 +277,28 @@ static void getCollisionObjectVertices2D(BouncingBallScreen * self, struct verte
 	}
 }
 
+static void getLabelVertices(BouncingBallScreen * self, struct vertex_p2f_t2f_c4f * outVertices, GLuint * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount) {
+	size_t objectIndex;
+	char labelString[3];
+	
+	for (objectIndex = 0; objectIndex < self->resolver->objectCount; objectIndex++) {
+		CollisionObject * object = self->resolver->objects[objectIndex];
+		if (object->shapeType == COLLISION_SHAPE_CIRCLE) {
+			CollisionCircle * circle = (CollisionCircle *) object;
+			snprintf_safe(labelString, 3, SIZE_T_FORMAT, objectIndex);
+			GLBitmapFont_getStringVerticesWithColor(self->font, labelString, GLBITMAPFONT_USE_STRLEN, 0.5f, VECTOR2f(xtof(circle->position.x), xtof(circle->position.y)), VECTOR2f(0.5f, 0.375f), COLOR4f(1.0f, 1.0f, 1.0f, 1.0f), GL_UNSIGNED_INT, outVertices, outIndexes, ioVertexCount, ioIndexCount);
+		}
+	}
+}
+
 static bool draw(Atom eventID, void * eventData, void * context) {
 	BouncingBallScreen * self = context;
-	static GLuint vertexBufferID, indexBufferID;
+	static GLuint vertexBufferID, indexBufferID, labelVertexBufferID, labelIndexBufferID;
 	struct vertex_p2f_c4f * vertices;
-	size_t vertexCount;
+	struct vertex_p2f_t2f_c4f * labelVertices;
+	unsigned int vertexCount;
 	GLuint * indexes;
-	size_t indexCount;
+	unsigned int indexCount;
 	Matrix matrix;
 	
 	FixedIntervalRunLoop_run(self->runLoop);
@@ -284,9 +306,15 @@ static bool draw(Atom eventID, void * eventData, void * context) {
 	if (vertexBufferID == 0) {
 		glGenBuffersARB(1, &vertexBufferID);
 		glGenBuffersARB(1, &indexBufferID);
+		glGenBuffersARB(1, &labelVertexBufferID);
+		glGenBuffersARB(1, &labelIndexBufferID);
 	}
 	
 	glClear(GL_COLOR_BUFFER_BIT);
+	matrix = Matrix_ortho(MATRIX_IDENTITY, -12.0f * g_viewRatio, 12.0f * g_viewRatio, -12.0f, 12.0f, -1.0f, 1.0f);
+	glLoadMatrixf(matrix.m);
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glEnableClientState(GL_COLOR_ARRAY);
 	
 	vertexCount = indexCount = 0;
 	getCollisionObjectVertices2D(self, NULL, NULL, &vertexCount, &indexCount);
@@ -300,19 +328,34 @@ static bool draw(Atom eventID, void * eventData, void * context) {
 	getCollisionObjectVertices2D(self, vertices, indexes, &vertexCount, &indexCount);
 	glUnmapBuffer(GL_ARRAY_BUFFER);
 	glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
-	
-	matrix = Matrix_ortho(MATRIX_IDENTITY, -12.0f * g_viewRatio, 12.0f * g_viewRatio, -12.0f, 12.0f, -1.0f, 1.0f);
-	glLoadMatrixf(matrix.m);
-	
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glEnableClientState(GL_COLOR_ARRAY);
-	
 	glVertexPointer(2, GL_FLOAT, sizeof(struct vertex_p2f_c4f), (void *) offsetof(struct vertex_p2f_c4f, position));
 	glColorPointer(4, GL_FLOAT, sizeof(struct vertex_p2f_c4f), (void *) offsetof(struct vertex_p2f_c4f, color));
 	glDrawElements(GL_LINES, indexCount, GL_UNSIGNED_INT, 0);
 	
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	
+	vertexCount = indexCount = 0;
+	getLabelVertices(self, NULL, NULL, &vertexCount, &indexCount);
+	glBindBufferARB(GL_ARRAY_BUFFER, labelVertexBufferID);
+	glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER, labelIndexBufferID);
+	glBufferDataARB(GL_ARRAY_BUFFER, sizeof(struct vertex_p2f_t2f_c4f) * vertexCount, NULL, GL_STREAM_DRAW);
+	glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint) * indexCount, NULL, GL_STREAM_DRAW);
+	labelVertices = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+	indexes = glMapBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_WRITE_ONLY);
+	vertexCount = indexCount = 0;
+	getLabelVertices(self, labelVertices, indexes, &vertexCount, &indexCount);
+	glUnmapBuffer(GL_ARRAY_BUFFER);
+	glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
+	glVertexPointer(2, GL_FLOAT, sizeof(struct vertex_p2f_t2f_c4f), (void *) offsetof(struct vertex_p2f_t2f_c4f, position));
+	glColorPointer(4, GL_FLOAT, sizeof(struct vertex_p2f_t2f_c4f), (void *) offsetof(struct vertex_p2f_t2f_c4f, color));
+	glTexCoordPointer(2, GL_FLOAT, sizeof(struct vertex_p2f_t2f_c4f), (void *) offsetof(struct vertex_p2f_t2f_c4f, texCoords));
+	GLTexture_activate(self->font->atlas->texture);
+	glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, 0);
+	GLTexture_deactivate(self->font->atlas->texture);
+	
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_COLOR_ARRAY);
+	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	glBindBufferARB(GL_ARRAY_BUFFER, 0);
 	glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER, 0);
 	

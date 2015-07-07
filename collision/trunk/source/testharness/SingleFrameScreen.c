@@ -38,11 +38,11 @@
 
 #define SUPERCLASS Screen
 
-SingleFrameScreen * SingleFrameScreen_create() {
-	stemobject_create_implementation(SingleFrameScreen, init)
+SingleFrameScreen * SingleFrameScreen_create(ResourceManager * resourceManager) {
+	stemobject_create_implementation(SingleFrameScreen, init, resourceManager)
 }
 
-bool SingleFrameScreen_init(SingleFrameScreen * self) {
+bool SingleFrameScreen_init(SingleFrameScreen * self, ResourceManager * resourceManager) {
 	call_super(init, self);
 	self->dispose = SingleFrameScreen_dispose;
 	self->activate = SingleFrameScreen_activate;
@@ -58,7 +58,7 @@ void SingleFrameScreen_dispose(SingleFrameScreen * self) {
 
 #define ARROW_RADIUS 0.375f
 
-static void getArrowVertices2D(Vector2x position, Vector3x normal, struct vertex_p2f_c4f * outVertices, GLuint * outIndexes, size_t * ioVertexCount, size_t * ioIndexCount) {
+static void getArrowVertices2D(Vector2x position, Vector3x normal, struct vertex_p2f_c4f * outVertices, GLuint * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount) {
 	if (outVertices != NULL) {
 		struct vertex_p2f_c4f vertex;
 		Vector2f positionf = VECTOR2f(xtof(position.x), xtof(position.y));
@@ -118,7 +118,7 @@ static void setVertexColor(struct vertex_p2f_c4f * vertex, Color4f color) {
 	vertex->color[3] = color.alpha;
 }
 
-static void getCollisionObjectVertices2D(SingleFrameScreen * self, struct vertex_p2f_c4f * outVertices, GLuint * outIndexes, size_t * ioVertexCount, size_t * ioIndexCount) {
+static void getCollisionObjectVertices2D(SingleFrameScreen * self, struct vertex_p2f_c4f * outVertices, GLuint * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount) {
 	size_t objectIndex;
 	CollisionObject * object;
 	struct vertex_p2f_c4f vertex;
@@ -339,9 +339,9 @@ static bool draw(Atom eventID, void * eventData, void * context) {
 	SingleFrameScreen * self = context;
 	static GLuint vertexBufferID, indexBufferID;
 	struct vertex_p2f_c4f * vertices;
-	size_t vertexCount;
+	unsigned int vertexCount;
 	GLuint * indexes;
-	size_t indexCount;
+	unsigned int indexCount;
 	Matrix matrix;
 	
 	if (vertexBufferID == 0) {

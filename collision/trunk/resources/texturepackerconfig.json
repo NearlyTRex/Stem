@@ -1,0 +1,16 @@
+{
+	"output": {
+		"png": "verdana.png",
+		"json": "verdana_atlas.json"
+	},
+	"texture": "verdana_texture.json",
+	"pixel_format": "rgba",
+	"margin": 1,
+	"npot": false,
+	"images": [],
+	"font": "Verdana",
+	"font_size": 48,
+	"ascii": {
+		"output": "verdana_font.json"
+	}
+}

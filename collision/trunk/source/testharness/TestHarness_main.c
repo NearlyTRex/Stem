@@ -21,12 +21,14 @@
 */
 
 #include "testharness/BouncingBallScreen.h"
+#include "testharness/ResourceWiring.h"
 #include "testharness/SingleFrameScreen.h"
 #include "testharness/SharedEvents.h"
 #include "testharness/TestHarness_globals.h"
 
 #include "gamemath/Vector2i.h"
 #include "glgraphics/GLIncludes.h"
+#include "resourcemanager/ResourceManager.h"
 #include "screenmanager/ScreenManager.h"
 #include "shell/Shell.h"
 #include "shell/ShellCallbacks.h"
@@ -45,6 +47,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 // TODO:
 // - Animate mode (interpolate all shapes to first collision, resolve, continue until all resolved)
@@ -62,6 +65,7 @@
 static ScreenManager * screenManager;
 static SingleFrameScreen * singleFrameScreen;
 static BouncingBallScreen * bouncingBallScreen;
+static ResourceManager * resourceManager;
 
 static bool Target_draw() {
 	return EventDispatcher_dispatchEvent(screenManager->eventDispatcher, ATOM(EVENT_DRAW), NULL);
@@ -230,9 +234,14 @@ void GLXTarget_configure(int argc, const char ** argv, struct GLXShellConfigurat
 }
 
 void Target_init() {
+	chdir(Shell_getResourcePath());
+	
+	resourceManager = ResourceManager_create();
+	ResourceWiring_addTypeHandlers(resourceManager);
+	
 	screenManager = ScreenManager_create();
-	singleFrameScreen = SingleFrameScreen_create();
-	bouncingBallScreen = BouncingBallScreen_create();
+	singleFrameScreen = SingleFrameScreen_create(resourceManager);
+	bouncingBallScreen = BouncingBallScreen_create(resourceManager);
 	ScreenManager_addScreen(screenManager, singleFrameScreen);
 	ScreenManager_addScreen(screenManager, bouncingBallScreen);
 	ScreenManager_setScreen(screenManager, singleFrameScreen);

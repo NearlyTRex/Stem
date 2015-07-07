@@ -41,6 +41,10 @@ STEM_LIBRARY_DEPENDENCIES_unittest = \
 	utilities/latest
 
 STEM_LIBRARY_DEPENDENCIES_testharness = \
+	glbitmapfont/latest \
+	jsonserialization/latest \
+	pngimageio/latest \
+	resourcemanager/latest \
 	screenmanager/latest
 
 STEM_LIBRARY_DEPENDENCIES_testharness_macosx = nsopenglshell/latest
@@ -87,6 +91,7 @@ SOURCES_unittest_suites = \
 
 SOURCES_testharness = \
 	source/testharness/BouncingBallScreen.c \
+	source/testharness/ResourceWiring.c \
 	source/testharness/SingleFrameScreen.c \
 	source/testharness/TestHarness_globals.c \
 	source/testharness/TestHarness_main.c
@@ -107,7 +112,11 @@ INCLUDES = \
 	source/${PROJECT_NAME}/StandardIntersectionHandlers.h
 
 # Patterns: RESOURCES, RESOURCES_${target}, RESOURCES_${platform}, RESOURCES_${target}_${platform}
-RESOURCES = 
+RESOURCES_testharness = \
+	resources/verdana_atlas.json \
+	resources/verdana_font.json \
+	resources/verdana_texture.json \
+	resources/verdana.png
 
 # Pattern: ANALYZER_EXCLUDE_SOURCES_${analyzer}
 ANALYZER_EXCLUDE_SOURCES_clang = 
