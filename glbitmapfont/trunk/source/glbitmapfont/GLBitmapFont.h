@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2014 Alex Diener
+  Copyright (c) 2015 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -101,11 +101,10 @@ size_t GLBitmapFont_indexAtWidth(GLBitmapFont * self, const char * string, size_
 // - offset: Drawing origin. These values are added to all returned vertex positions.
 // - relativeOrigin: Sprite's origin point in normalized coordinates. A value of {0, 0} will place the lower left vertex at the position specified by offset; {0.5, 0.5} will place the center at offset; {1, 1} will place the upper right corner at offset, and so on.
 // - indexType: Data type of outIndexes. Must be one of GL_UNSIGNED_BYTE, GL_UNSIGNED_SHORT, or GL_UNSIGNED_INT.
-// - baseIndex: Numeric offset to be applied to all returned indexes. If multiple objects are being drawn with the same vertex/index array, pass the number of vertices that have been written prior to calling this function.
 // - outVertices: If not NULL, vertex data will be written to this pointer.
 // - outIndexes: If not NULL, vertex index data of the type specified by indexType will be written to this pointer.
-// - ioVertexCount: Returns the number of vertices written to outVertices, or if outVertices is NULL, the amount of space required to write to it. If this value is nonzero when called, the number of vertices written is added to it.
-// - ioIndexCount: Returns the number of indexes written to outIndexes, or if outIndexes is NULL, the amount of space required to write to it. If this value is nonzero when called, the number of indexes written is added to it.
+// - ioVertexCount: Returns the number of vertices written to outVertices, or if outVertices is NULL, the amount of space required to write to it. If this value is nonzero when called, the number of vertices written is added to it. Also used as the base value for any indexes written to outIndexes. Must be nonnull.
+// - ioIndexCount: Returns the number of indexes written to outIndexes, or if outIndexes is NULL, the amount of space required to write to it. If this value is nonzero when called, the number of indexes written is added to it. Must be nonnull.
 // 
 // Typical usage: Call this function once with outVertices and outIndexes set to NULL in order to determine how much space
 // is needed, by using ioVertexCount and ioIndexCount. Allocate the necessary space with glBufferData, use glMapBuffer to
@@ -119,7 +118,6 @@ void GLBitmapFont_getStringVertices(GLBitmapFont * self,
                                     Vector2f offset,
                                     Vector2f relativeOrigin,
                                     GLenum indexType,
-                                    unsigned int baseIndex,
                                     struct vertex_p2f_t2f * outVertices,
                                     void * outIndexes,
                                     unsigned int * ioVertexCount,
@@ -135,7 +133,6 @@ void GLBitmapFont_getStringVerticesWithColor(GLBitmapFont * self,
                                              Vector2f relativeOrigin,
                                              Color4f color,
                                              GLenum indexType,
-                                             unsigned int baseIndex,
                                              struct vertex_p2f_t2f_c4f * outVertices,
                                              void * outIndexes,
                                              unsigned int * ioVertexCount,

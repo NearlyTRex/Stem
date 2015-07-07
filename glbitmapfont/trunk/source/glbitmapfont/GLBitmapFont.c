@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2014 Alex Diener
+  Copyright (c) 2015 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -24,6 +24,7 @@
 #include "glgraphics/GLGraphics.h"
 #include <string.h>
 #include <stddef.h>
+#include <stdio.h>
 
 #define SUPERCLASS StemObject
 
@@ -367,12 +368,12 @@ unsigned int GLBitmapFont_getStringIndexes(GLBitmapFont * self,
 	outVertices[vertexCount + 3].color[3] = color.alpha
 
 #define getVertices_writeTypedIndexes(indexes) \
-	indexes[indexCount + 0] = baseIndex + vertexCount; \
-	indexes[indexCount + 1] = baseIndex + vertexCount + 1; \
-	indexes[indexCount + 2] = baseIndex + vertexCount + 2; \
-	indexes[indexCount + 3] = baseIndex + vertexCount + 2; \
-	indexes[indexCount + 4] = baseIndex + vertexCount + 3; \
-	indexes[indexCount + 5] = baseIndex + vertexCount;
+	indexes[indexCount + 0] = vertexCount; \
+	indexes[indexCount + 1] = vertexCount + 1; \
+	indexes[indexCount + 2] = vertexCount + 2; \
+	indexes[indexCount + 3] = vertexCount + 2; \
+	indexes[indexCount + 4] = vertexCount + 3; \
+	indexes[indexCount + 5] = vertexCount;
 
 #define getVertices_writeIndexes() \
 	switch (indexType) { \
@@ -400,7 +401,6 @@ void GLBitmapFont_getStringVertices(GLBitmapFont * self,
                                     Vector2f offset,
                                     Vector2f relativeOrigin,
                                     GLenum indexType,
-                                    unsigned int baseIndex,
                                     struct vertex_p2f_t2f * outVertices,
                                     void * outIndexes,
                                     unsigned int * ioVertexCount,
@@ -408,7 +408,7 @@ void GLBitmapFont_getStringVertices(GLBitmapFont * self,
 	size_t charIndex, kernCharIndex;
 	float positionX = 0.0f;
 	unsigned int charEntryIndex;
-	unsigned int vertexCount = 0, indexCount = 0;
+	unsigned int vertexCount = *ioVertexCount, indexCount = *ioIndexCount;
 	struct GLTextureAtlas_entry atlasEntry;
 	
 	if (length == GLBITMAPFONT_USE_STRLEN) {
@@ -433,12 +433,8 @@ void GLBitmapFont_getStringVertices(GLBitmapFont * self,
 			indexCount += 6;
 		}
 	}
-	if (ioVertexCount != NULL) {
-		*ioVertexCount += vertexCount;
-	}
-	if (ioIndexCount != NULL) {
-		*ioIndexCount += indexCount;
-	}
+	*ioVertexCount += vertexCount;
+	*ioIndexCount += indexCount;
 }
 
 void GLBitmapFont_getStringVerticesWithColor(GLBitmapFont * self,
@@ -449,7 +445,6 @@ void GLBitmapFont_getStringVerticesWithColor(GLBitmapFont * self,
                                              Vector2f relativeOrigin,
                                              Color4f color,
                                              GLenum indexType,
-                                             unsigned int baseIndex,
                                              struct vertex_p2f_t2f_c4f * outVertices,
                                              void * outIndexes,
                                              unsigned int * ioVertexCount,
@@ -457,7 +452,7 @@ void GLBitmapFont_getStringVerticesWithColor(GLBitmapFont * self,
 	size_t charIndex, kernCharIndex;
 	float positionX = 0.0f;
 	unsigned int charEntryIndex;
-	unsigned int vertexCount = 0, indexCount = 0;
+	unsigned int vertexCount = *ioVertexCount, indexCount = *ioIndexCount;
 	struct GLTextureAtlas_entry atlasEntry;
 	
 	if (length == GLBITMAPFONT_USE_STRLEN) {
@@ -483,10 +478,6 @@ void GLBitmapFont_getStringVerticesWithColor(GLBitmapFont * self,
 			indexCount += 6;
 		}
 	}
-	if (ioVertexCount != NULL) {
-		*ioVertexCount += vertexCount;
-	}
-	if (ioIndexCount != NULL) {
-		*ioIndexCount += indexCount;
-	}
+	*ioVertexCount = vertexCount;
+	*ioIndexCount = indexCount;
 }
