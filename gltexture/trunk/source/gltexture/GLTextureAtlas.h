@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2014 Alex Diener
+  Copyright (c) 2015 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -89,10 +89,9 @@ Vector2f GLTextureAtlas_getEntryDimensions(GLTextureAtlas * self, const char * k
 // - relativeOrigin: Sprite's origin point in normalized coordinates. A value of {0, 0} will place the lower left vertex at the position specified by offset; {0.5, 0.5} will place the center at offset; {1, 1} will place the upper right corner at offset, and so on.
 // - size: Dimensions of the sprite. GLTextureAtlas_getEntryDimensions() returns values appropriate for this parameter.
 // - indexType: Data type of outIndexes. Must be one of GL_UNSIGNED_BYTE, GL_UNSIGNED_SHORT, or GL_UNSIGNED_INT.
-// - baseIndex: Numeric offset to be applied to all returned indexes. If multiple objects are being drawn with the same vertex/index array, pass the number of vertices that have been written prior to calling this function.
 // - outVertices: If not NULL, vertex data will be written to this pointer.
 // - outIndexes: If not NULL, vertex index data of the type specified by indexType will be written to this pointer.
-// - ioVertexCount: Returns the number of vertices written to outVertices, or if outVertices is NULL, the amount of space required to write to it. If this value is nonzero when called, the number of vertices written is added to it.
+// - ioVertexCount: Returns the number of vertices written to outVertices, or if outVertices is NULL, the amount of space required to write to it. If this value is nonzero when called, the number of vertices written is added to it. Also used as the base value for any indexes written to outIndexes.
 // - ioIndexCount: Returns the number of indexes written to outIndexes, or if outIndexes is NULL, the amount of space required to write to it. If this value is nonzero when called, the number of indexes written is added to it.
 // 
 // Typical usage: Call this function once with outVertices and outIndexes set to NULL in order to determine how much space
@@ -104,7 +103,6 @@ void GLTextureAtlas_getVertices(GLTextureAtlas * self,
                                 Vector2f relativeOrigin,
                                 Vector2f size,
                                 GLenum indexType,
-                                unsigned int baseIndex,
                                 struct vertex_p2f_t2f * outVertices,
                                 void * outIndexes,
                                 unsigned int * ioVertexCount,
@@ -119,7 +117,6 @@ void GLTextureAtlas_getVerticesWithColor(GLTextureAtlas * self,
                                          Vector2f size,
                                          Color4f color,
                                          GLenum indexType,
-                                         unsigned int baseIndex,
                                          struct vertex_p2f_t2f_c4f * outVertices,
                                          void * outIndexes,
                                          unsigned int * ioVertexCount,

@@ -4,7 +4,7 @@ A GLTexture object can be created directly, or loaded from a serialized represen
 
 For performance and/or fine-grained control over texturing, you may not want to use activate() and deactivate(). They're provided only for convenience, and have some properties that may be undesirable in large applications; for example, if autoBlendMode is set to anything other than AUTO_BLEND_MODE_NONE, GL_BLEND will be enabled and/or disabled every time a texture is activated or deactivated. Accessing the textureName directly to bind it yourself is perfectly normal usage of the GLTexture API.
 
-GLTextureAtlas data can be generated using the texturepacker tool. After deserializing a GLTextureAtlas, use the lookup() method to get the bounds of a particular entry, or the getVertices() and getIndexes() methods to retrieve GL data suitable for drawing.
+GLTextureAtlas data can be generated using the texturepacker tool. After deserializing a GLTextureAtlas, use the lookup() or getEntryDimensions() method to get the bounds of a particular entry, or the getVertices() or getVerticesWithColor() method to retrieve GL data suitable for drawing.
 
 GLTexture serialization schema:
 structure "gltexture" {

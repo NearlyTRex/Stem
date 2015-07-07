@@ -3,7 +3,7 @@ PROJECT_NAME = gltexture
 # VERSION_MAJOR, VERSION_MINOR, and VERSION_TWEAK are available as preprocessor macros for all source files in the project
 VERSION_MAJOR = 1
 VERSION_MINOR = 2
-VERSION_TWEAK = 0
+VERSION_TWEAK = 1
 PROJECT_VERSION = ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_TWEAK}
 
 LIBRARY_TARGETS = library
@@ -28,6 +28,7 @@ CCFLAGS_testharness_win64 = -DFREEGLUT_STATIC
 
 # Patterns: LINKFLAGS, LINKFLAGS_${target}, LINKFLAGS_${platform}, LINKFLAGS_${target}_${platform}
 LINKFLAGS = 
+LINKFLAGS_unittest_macosx = -framework OpenGL
 LINKFLAGS_unittest_linux32 = -lGL
 LINKFLAGS_unittest_linux64 = -lGL
 

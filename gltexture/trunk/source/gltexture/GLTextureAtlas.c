@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2014 Alex Diener
+  Copyright (c) 2015 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -213,50 +213,50 @@ Vector2f GLTextureAtlas_getEntryDimensions(GLTextureAtlas * self, const char * k
 }
 
 #define getVertices_writePosition() \
-	outVertices[0].position[0] = \
-	outVertices[3].position[0] = offset.x - size.x * relativeOrigin.x; \
-	outVertices[0].position[1] = \
-	outVertices[1].position[1] = offset.y - size.y * relativeOrigin.y; \
-	outVertices[1].position[0] = \
-	outVertices[2].position[0] = offset.x + size.x * (1.0f - relativeOrigin.x); \
-	outVertices[2].position[1] = \
-	outVertices[3].position[1] = offset.y + size.y * (1.0f - relativeOrigin.y)
+	outVertices[*ioVertexCount + 0].position[0] = \
+	outVertices[*ioVertexCount + 3].position[0] = offset.x - size.x * relativeOrigin.x; \
+	outVertices[*ioVertexCount + 0].position[1] = \
+	outVertices[*ioVertexCount + 1].position[1] = offset.y - size.y * relativeOrigin.y; \
+	outVertices[*ioVertexCount + 1].position[0] = \
+	outVertices[*ioVertexCount + 2].position[0] = offset.x + size.x * (1.0f - relativeOrigin.x); \
+	outVertices[*ioVertexCount + 2].position[1] = \
+	outVertices[*ioVertexCount + 3].position[1] = offset.y + size.y * (1.0f - relativeOrigin.y)
 
 #define getVertices_writeTexCoords() \
-	outVertices[0].texCoords[0] = entry.left; \
-	outVertices[0].texCoords[1] = entry.bottom; \
-	outVertices[1].texCoords[0] = entry.right; \
-	outVertices[1].texCoords[1] = entry.bottom; \
-	outVertices[2].texCoords[0] = entry.right; \
-	outVertices[2].texCoords[1] = entry.top; \
-	outVertices[3].texCoords[0] = entry.left; \
-	outVertices[3].texCoords[1] = entry.top
+	outVertices[*ioVertexCount + 0].texCoords[0] = entry.left; \
+	outVertices[*ioVertexCount + 0].texCoords[1] = entry.bottom; \
+	outVertices[*ioVertexCount + 1].texCoords[0] = entry.right; \
+	outVertices[*ioVertexCount + 1].texCoords[1] = entry.bottom; \
+	outVertices[*ioVertexCount + 2].texCoords[0] = entry.right; \
+	outVertices[*ioVertexCount + 2].texCoords[1] = entry.top; \
+	outVertices[*ioVertexCount + 3].texCoords[0] = entry.left; \
+	outVertices[*ioVertexCount + 3].texCoords[1] = entry.top
 
 #define getVertices_writeColor() \
-	outVertices[0].color[0] = \
-	outVertices[1].color[0] = \
-	outVertices[2].color[0] = \
-	outVertices[3].color[0] = color.red; \
-	outVertices[0].color[1] = \
-	outVertices[1].color[1] = \
-	outVertices[2].color[1] = \
-	outVertices[3].color[1] = color.green; \
-	outVertices[0].color[2] = \
-	outVertices[1].color[2] = \
-	outVertices[2].color[2] = \
-	outVertices[3].color[2] = color.blue; \
-	outVertices[0].color[3] = \
-	outVertices[1].color[3] = \
-	outVertices[2].color[3] = \
-	outVertices[3].color[3] = color.alpha
+	outVertices[*ioVertexCount + 0].color[0] = \
+	outVertices[*ioVertexCount + 1].color[0] = \
+	outVertices[*ioVertexCount + 2].color[0] = \
+	outVertices[*ioVertexCount + 3].color[0] = color.red; \
+	outVertices[*ioVertexCount + 0].color[1] = \
+	outVertices[*ioVertexCount + 1].color[1] = \
+	outVertices[*ioVertexCount + 2].color[1] = \
+	outVertices[*ioVertexCount + 3].color[1] = color.green; \
+	outVertices[*ioVertexCount + 0].color[2] = \
+	outVertices[*ioVertexCount + 1].color[2] = \
+	outVertices[*ioVertexCount + 2].color[2] = \
+	outVertices[*ioVertexCount + 3].color[2] = color.blue; \
+	outVertices[*ioVertexCount + 0].color[3] = \
+	outVertices[*ioVertexCount + 1].color[3] = \
+	outVertices[*ioVertexCount + 2].color[3] = \
+	outVertices[*ioVertexCount + 3].color[3] = color.alpha
 
 #define getVertices_writeTypedIndexes(indexes) \
-	indexes[0] = baseIndex; \
-	indexes[1] = baseIndex + 1; \
-	indexes[2] = baseIndex + 2; \
-	indexes[3] = baseIndex + 2; \
-	indexes[4] = baseIndex + 3; \
-	indexes[5] = baseIndex;
+	indexes[*ioIndexCount + 0] = *ioVertexCount; \
+	indexes[*ioIndexCount + 1] = *ioVertexCount + 1; \
+	indexes[*ioIndexCount + 2] = *ioVertexCount + 2; \
+	indexes[*ioIndexCount + 3] = *ioVertexCount + 2; \
+	indexes[*ioIndexCount + 4] = *ioVertexCount + 3; \
+	indexes[*ioIndexCount + 5] = *ioVertexCount;
 
 #define getVertices_writeIndexes() \
 	switch (indexType) { \
@@ -277,7 +277,7 @@ Vector2f GLTextureAtlas_getEntryDimensions(GLTextureAtlas * self, const char * k
 		} \
 	}
 
-void GLTextureAtlas_getVertices(GLTextureAtlas * self, const char * key, Vector2f offset, Vector2f relativeOrigin, Vector2f size, GLenum indexType, unsigned int baseIndex, struct vertex_p2f_t2f * outVertices, void * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount) {
+void GLTextureAtlas_getVertices(GLTextureAtlas * self, const char * key, Vector2f offset, Vector2f relativeOrigin, Vector2f size, GLenum indexType, struct vertex_p2f_t2f * outVertices, void * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount) {
 	if (outVertices != NULL) {
 		struct GLTextureAtlas_entry entry;
 		
@@ -296,7 +296,7 @@ void GLTextureAtlas_getVertices(GLTextureAtlas * self, const char * key, Vector2
 	}
 }
 
-void GLTextureAtlas_getVerticesWithColor(GLTextureAtlas * self, const char * key, Vector2f offset, Vector2f relativeOrigin, Vector2f size, Color4f color, GLenum indexType, unsigned int baseIndex, struct vertex_p2f_t2f_c4f * outVertices, void * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount) {
+void GLTextureAtlas_getVerticesWithColor(GLTextureAtlas * self, const char * key, Vector2f offset, Vector2f relativeOrigin, Vector2f size, Color4f color, GLenum indexType, struct vertex_p2f_t2f_c4f * outVertices, void * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount) {
 	if (outVertices != NULL) {
 		struct GLTextureAtlas_entry entry;
 		
