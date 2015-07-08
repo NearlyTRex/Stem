@@ -180,14 +180,31 @@ static bool intersectSweptCircles(Vector2x circle1LastPosition, Vector2x circle1
                                   Vector2x circle2LastPosition, Vector2x circle2Position, fixed16_16 circle2Radius,
                                   fixed16_16 * outTime, Vector3x * outNormal) {
 	
+	fixed16_16 radiusSum = circle1Radius + circle2Radius;
+	fixed16_16 radiusSumSquare = xmul(radiusSum, radiusSum);
+	fixed16_16 lastDistanceSquare = Vector2x_distanceSquared(circle1LastPosition, circle2LastPosition);
+	fixed16_16 distanceSquare = Vector2x_distanceSquared(circle1Position, circle2Position);
+	
+	if (lastDistanceSquare < radiusSumSquare && distanceSquare < radiusSumSquare && lastDistanceSquare > distanceSquare) {
+		// If already penetrating and trying to penetrate deeper, put a stop to it early
+		Vector3x normal;
+		
+		normal.x = circle1LastPosition.x - circle2LastPosition.x;
+		normal.y = circle1LastPosition.y - circle2LastPosition.y;
+		normal.z = 0x00000;
+		Vector3x_normalize(&normal);
+		*outNormal = normal;
+		*outTime = 0x00000;
+		return true;
+	}
+	
 	Vector2x circle1Vector          = Vector2x_subtract(circle1Position, circle1LastPosition);
 	Vector2x circle2Vector          = Vector2x_subtract(circle2Position, circle2LastPosition);
 	Vector2x circle1ToCircle2Vector = Vector2x_subtract(circle2LastPosition, circle1LastPosition);
 	Vector2x relativeVelocity       = Vector2x_subtract(circle2Vector, circle1Vector);
-	fixed16_16 radiusSum = circle1Radius + circle2Radius;
 	fixed16_16 a = Vector2x_dot(relativeVelocity, relativeVelocity);
 	fixed16_16 b = Vector2x_dot(relativeVelocity, circle1ToCircle2Vector) * 2;
-	fixed16_16 c = Vector2x_dot(circle1ToCircle2Vector, circle1ToCircle2Vector) - xmul(radiusSum, radiusSum);
+	fixed16_16 c = Vector2x_dot(circle1ToCircle2Vector, circle1ToCircle2Vector) - radiusSumSquare;
 	fixed16_16 time1 = -1, time2 = -1;
 	
 	// Very small values of relativeVelocity will evaluate to a = 0 && b != 0, which throws off the calculation
@@ -219,6 +236,7 @@ static bool intersectSweptCircles(Vector2x circle1LastPosition, Vector2x circle1
 			return true;
 		}
 	}
+	
 	return false;
 }
 

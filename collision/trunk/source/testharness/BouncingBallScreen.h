@@ -58,6 +58,7 @@ struct bouncingBall {
 	double lastDrawTime; \
 	bool backgrounded; \
 	bool paused; \
+	bool drawLabels; \
 	struct bouncingBall balls[BOUNCING_BALL_COUNT]; \
 	struct bouncingBall lastBalls[BOUNCING_BALL_COUNT];
 

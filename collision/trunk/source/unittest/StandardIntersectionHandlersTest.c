@@ -967,16 +967,16 @@ static void testCircle_circle() {
 	result = intersectionHandler_circle_circle((CollisionObject *) &circle1, (CollisionObject *) &circle2, &time, &normal);
 	assertNoCollision(result);
 	
-	// circle1 moving +x (level), circle2 stationary (circle1 starts penetrating circle2 by less than epsilon)
-	circle1 = initMovingCircle(VECTOR2x(-0x1FFFC, 0x00000), VECTOR2x(0x00000, 0x00000), 0x10000);
+	// circle1 moving +x (level), circle2 stationary (circle1 starts penetrating circle2 by less than half)
+	circle1 = initMovingCircle(VECTOR2x(-0x08000, 0x00000), VECTOR2x(0x00000, 0x00000), 0x10000);
 	circle2 = initStationaryCircle(VECTOR2x(0x00000, 0x00000), 0x10000);
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
 	result = intersectionHandler_circle_circle((CollisionObject *) &circle1, (CollisionObject *) &circle2, &time, &normal);
-	assertCollision(result, time, normal, 0x00000, VECTOR3x(-0x10001, 0x00000, 0x00000));
+	assertCollision(result, time, normal, 0x00000, VECTOR3x(-0x10000, 0x00000, 0x00000));
 	
-	// circle1 moving +x (level), circle2 stationary (circle1 starts penetrating circle2 by more than epsilon)
-	circle1 = initMovingCircle(VECTOR2x(-0x1FFF4, 0x00000), VECTOR2x(0x00000, 0x00000), 0x10000);
+	// circle1 moving +x (level), circle2 stationary (circle1 starts penetrating circle2 by more than half)
+	circle1 = initMovingCircle(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x08000, 0x00000), 0x10000);
 	circle2 = initStationaryCircle(VECTOR2x(0x00000, 0x00000), 0x10000);
 	result = intersectionHandler_circle_circle((CollisionObject *) &circle1, (CollisionObject *) &circle2, &time, &normal);
 	assertNoCollision(result);

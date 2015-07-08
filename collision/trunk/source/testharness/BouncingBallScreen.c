@@ -66,6 +66,7 @@ bool BouncingBallScreen_init(BouncingBallScreen * self, ResourceManager * resour
 	self->intersectionManager = IntersectionManager_createWithStandardHandlers();
 	self->backgrounded = false;
 	self->paused = false;
+	self->drawLabels = false;
 	return true;
 }
 
@@ -295,7 +296,6 @@ static bool draw(Atom eventID, void * eventData, void * context) {
 	BouncingBallScreen * self = context;
 	static GLuint vertexBufferID, indexBufferID, labelVertexBufferID, labelIndexBufferID;
 	struct vertex_p2f_c4f * vertices;
-	struct vertex_p2f_t2f_c4f * labelVertices;
 	unsigned int vertexCount;
 	GLuint * indexes;
 	unsigned int indexCount;
@@ -332,30 +332,35 @@ static bool draw(Atom eventID, void * eventData, void * context) {
 	glColorPointer(4, GL_FLOAT, sizeof(struct vertex_p2f_c4f), (void *) offsetof(struct vertex_p2f_c4f, color));
 	glDrawElements(GL_LINES, indexCount, GL_UNSIGNED_INT, 0);
 	
-	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	
-	vertexCount = indexCount = 0;
-	getLabelVertices(self, NULL, NULL, &vertexCount, &indexCount);
-	glBindBufferARB(GL_ARRAY_BUFFER, labelVertexBufferID);
-	glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER, labelIndexBufferID);
-	glBufferDataARB(GL_ARRAY_BUFFER, sizeof(struct vertex_p2f_t2f_c4f) * vertexCount, NULL, GL_STREAM_DRAW);
-	glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint) * indexCount, NULL, GL_STREAM_DRAW);
-	labelVertices = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
-	indexes = glMapBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_WRITE_ONLY);
-	vertexCount = indexCount = 0;
-	getLabelVertices(self, labelVertices, indexes, &vertexCount, &indexCount);
-	glUnmapBuffer(GL_ARRAY_BUFFER);
-	glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
-	glVertexPointer(2, GL_FLOAT, sizeof(struct vertex_p2f_t2f_c4f), (void *) offsetof(struct vertex_p2f_t2f_c4f, position));
-	glColorPointer(4, GL_FLOAT, sizeof(struct vertex_p2f_t2f_c4f), (void *) offsetof(struct vertex_p2f_t2f_c4f, color));
-	glTexCoordPointer(2, GL_FLOAT, sizeof(struct vertex_p2f_t2f_c4f), (void *) offsetof(struct vertex_p2f_t2f_c4f, texCoords));
-	GLTexture_activate(self->font->atlas->texture);
-	glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, 0);
-	GLTexture_deactivate(self->font->atlas->texture);
+	if (self->drawLabels) {
+		struct vertex_p2f_t2f_c4f * labelVertices;
+		
+		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		
+		vertexCount = indexCount = 0;
+		getLabelVertices(self, NULL, NULL, &vertexCount, &indexCount);
+		glBindBufferARB(GL_ARRAY_BUFFER, labelVertexBufferID);
+		glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER, labelIndexBufferID);
+		glBufferDataARB(GL_ARRAY_BUFFER, sizeof(struct vertex_p2f_t2f_c4f) * vertexCount, NULL, GL_STREAM_DRAW);
+		glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint) * indexCount, NULL, GL_STREAM_DRAW);
+		labelVertices = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+		indexes = glMapBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_WRITE_ONLY);
+		vertexCount = indexCount = 0;
+		getLabelVertices(self, labelVertices, indexes, &vertexCount, &indexCount);
+		glUnmapBuffer(GL_ARRAY_BUFFER);
+		glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
+		glVertexPointer(2, GL_FLOAT, sizeof(struct vertex_p2f_t2f_c4f), (void *) offsetof(struct vertex_p2f_t2f_c4f, position));
+		glColorPointer(4, GL_FLOAT, sizeof(struct vertex_p2f_t2f_c4f), (void *) offsetof(struct vertex_p2f_t2f_c4f, color));
+		glTexCoordPointer(2, GL_FLOAT, sizeof(struct vertex_p2f_t2f_c4f), (void *) offsetof(struct vertex_p2f_t2f_c4f, texCoords));
+		GLTexture_activate(self->font->atlas->texture);
+		glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, 0);
+		GLTexture_deactivate(self->font->atlas->texture);
+		
+		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	}
 	
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_COLOR_ARRAY);
-	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	glBindBufferARB(GL_ARRAY_BUFFER, 0);
 	glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER, 0);
 	
@@ -385,6 +390,11 @@ static bool keyDown(Atom eventID, void * eventData, void * context) {
 				stepSimulation(self);
 				Shell_redisplay();
 			}
+			break;
+			
+		case KEYBOARD_TAB:
+			self->drawLabels = !self->drawLabels;
+			Shell_redisplay();
 			break;
 	}
 	return true;
