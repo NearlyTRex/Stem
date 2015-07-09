@@ -108,9 +108,9 @@ static void Target_keyUp(unsigned int keyCode, unsigned int modifiers) {
 static void Target_keyModifiersChanged(unsigned int modifiers) {
 	struct keyEvent event;
 	
-	shiftKeyDown = !!(modifiers & MODIFIER_SHIFT_BIT);
-	altKeyDown = !!(modifiers & MODIFIER_ALT_BIT);
-	controlKeyDown = !!(modifiers & MODIFIER_CONTROL_BIT);
+	g_shiftKeyDown = !!(modifiers & MODIFIER_SHIFT_BIT);
+	g_altKeyDown = !!(modifiers & MODIFIER_ALT_BIT);
+	g_controlKeyDown = !!(modifiers & MODIFIER_CONTROL_BIT);
 	
 	event.modifiers = modifiers;
 	EventDispatcher_dispatchEvent(screenManager->eventDispatcher, ATOM(EVENT_KEY_MODIFIERS_CHANGED), &event);

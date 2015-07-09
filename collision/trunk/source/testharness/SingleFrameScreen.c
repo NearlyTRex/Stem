@@ -455,9 +455,9 @@ static bool mouseDown(Atom eventID, void * eventData, void * context) {
 		
 	} else {
 		self->dragOrigin = transformMousePosition(event->position.x, event->position.y);
-		self->draggingLastPosition = shiftKeyDown;
-		self->draggingBoth = controlKeyDown;
-		self->draggingSize = altKeyDown;
+		self->draggingLastPosition = g_shiftKeyDown;
+		self->draggingBoth = g_controlKeyDown;
+		self->draggingSize = g_altKeyDown;
 		switch (object->shapeType) {
 			case COLLISION_SHAPE_RECT_2D: {
 				CollisionRect2D * rect = (CollisionRect2D *) object;

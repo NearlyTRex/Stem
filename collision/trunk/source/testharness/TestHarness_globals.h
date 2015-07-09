@@ -28,9 +28,12 @@ extern "C" {
 
 #include <stdbool.h>
 
-extern unsigned int g_viewWidth, g_viewHeight;
+extern unsigned int g_viewWidth;
+extern unsigned int g_viewHeight;
 extern float g_viewRatio;
-extern bool shiftKeyDown, altKeyDown, controlKeyDown;
+extern bool g_shiftKeyDown;
+extern bool g_altKeyDown;
+extern bool g_controlKeyDown;
 extern bool g_fixedRandomSeed;
 extern int g_randomSeed;
 

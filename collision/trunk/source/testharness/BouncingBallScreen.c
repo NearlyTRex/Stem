@@ -92,6 +92,7 @@ static void stepSimulation(BouncingBallScreen * self) {
 	}
 	memcpy(self->lastBalls, self->balls, sizeof(self->balls));
 	CollisionResolver_resolveAll(self->resolver);
+	self->frameCount++;
 }
 
 static void run(void * context) {
@@ -101,32 +102,11 @@ static void run(void * context) {
 void ballCollision(CollisionRecord collision, fixed16_16 timesliceSize) {
 	CollisionCircle * circle = (CollisionCircle *) collision.object1;
 	struct bouncingBall * ball = (struct bouncingBall *) circle->owner;
-	BouncingBallScreen * self = ball->owner;
 	Vector2x reflectedVelocity;
 	
 	ball->lastCollisionTime = Shell_getCurrentTime();
 	if (collision.object2->shapeType == COLLISION_SHAPE_CIRCLE) {
 		ball->lastCollisionCircle = (CollisionCircle *) collision.object2;
-		
-		if (Vector2x_magnitude(Vector2x_subtract(circle->lastPosition, ball->lastCollisionCircle->lastPosition)) > circle->radius + ball->lastCollisionCircle->radius + 0x10000) {
-			unsigned int ballIndex1, ballIndex2;
-			
-			printf("Suspicious circle collision!\n");
-			for (ballIndex1 = 0; ballIndex1 < BOUNCING_BALL_COUNT; ballIndex1++) {
-				if (&self->balls[ballIndex1].circle == circle) {
-					break;
-				}
-			}
-			for (ballIndex2 = 0; ballIndex2 < BOUNCING_BALL_COUNT; ballIndex2++) {
-				if (&self->balls[ballIndex2].circle == ball->lastCollisionCircle) {
-					break;
-				}
-			}
-			if (ballIndex1 < BOUNCING_BALL_COUNT && ballIndex2 < BOUNCING_BALL_COUNT) {
-				printf("  circle1: {0x%05X, 0x%05X} -> {0x%05X, 0x%05X}, 0x%05X\n", self->lastBalls[ballIndex1].circle.lastPosition.x, self->lastBalls[ballIndex1].circle.lastPosition.y, self->lastBalls[ballIndex1].circle.position.x, self->lastBalls[ballIndex1].circle.position.y, self->lastBalls[ballIndex1].circle.radius);
-				printf("  circle2: {0x%05X, 0x%05X} -> {0x%05X, 0x%05X}, 0x%05X\n", self->lastBalls[ballIndex2].circle.lastPosition.x, self->lastBalls[ballIndex2].circle.lastPosition.y, self->lastBalls[ballIndex2].circle.position.x, self->lastBalls[ballIndex2].circle.position.y, self->lastBalls[ballIndex2].circle.radius);
-			}
-		}
 	} else {
 		ball->lastCollisionCircle = NULL;
 	}
@@ -396,6 +376,10 @@ static bool keyDown(Atom eventID, void * eventData, void * context) {
 			self->drawLabels = !self->drawLabels;
 			Shell_redisplay();
 			break;
+			
+		case KEYBOARD_F:
+			printf("Frame %u\n", self->frameCount);
+			break;
 	}
 	return true;
 }
@@ -457,6 +441,7 @@ void BouncingBallScreen_activate(BouncingBallScreen * self) {
 	if (self->paused) {
 		FixedIntervalRunLoop_pause(self->runLoop);
 	}
+	self->frameCount = 0;
 	
 	EventDispatcher_registerForEvent(self->screenManager->eventDispatcher, ATOM(EVENT_KEY_DOWN), keyDown, self);
 	EventDispatcher_registerForEvent(self->screenManager->eventDispatcher, ATOM(EVENT_BACKGROUNDED), backgrounded, self);

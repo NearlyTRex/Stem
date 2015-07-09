@@ -22,8 +22,11 @@
 
 #include "testharness/TestHarness_globals.h"
 
-unsigned int g_viewWidth = 1280.0f, g_viewHeight = 720.0f;
+unsigned int g_viewWidth = 1280;
+unsigned int g_viewHeight = 720;
 float g_viewRatio = 16.0f / 9.0f;
-bool shiftKeyDown = false, altKeyDown = false, controlKeyDown = false;
+bool g_shiftKeyDown = false;
+bool g_altKeyDown = false;
+bool g_controlKeyDown = false;
 bool g_fixedRandomSeed = false;
 int g_randomSeed = 0;
