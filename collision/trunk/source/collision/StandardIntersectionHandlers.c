@@ -178,7 +178,7 @@ static bool quadraticFormula(fixed16_16 a,
 // Adapted from http://www.gamasutra.com/view/feature/131790/simple_intersection_tests_for_games.php?page=2
 static bool intersectSweptCircles(Vector2x circle1LastPosition, Vector2x circle1Position, fixed16_16 circle1Radius,
                                   Vector2x circle2LastPosition, Vector2x circle2Position, fixed16_16 circle2Radius,
-                                  fixed16_16 * outTime, Vector3x * outNormal) {
+                                  fixed16_16 * outTime, Vector3x * outNormal, Vector3x * outObject1Vector, Vector3x * outObject2Vector) {
 	
 	fixed16_16 radiusSum = circle1Radius + circle2Radius;
 	fixed16_16 radiusSumSquare = xmul(radiusSum, radiusSum);
@@ -240,7 +240,7 @@ static bool intersectSweptCircles(Vector2x circle1LastPosition, Vector2x circle1
 	return false;
 }
 
-bool intersectionHandler_rect2D_rect2D(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal) {
+bool intersectionHandler_rect2D_rect2D(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal, Vector3x * outObject1Vector, Vector3x * outObject2Vector, fixed16_16 * outContactArea) {
 	fixed16_16 time, bestTime = FIXED_16_16_MAX;
 	Vector3x bestNormal = VECTOR3x_ZERO;
 	CollisionRect2D * rect1 = (CollisionRect2D *) object1, * rect2 = (CollisionRect2D *) object2;
@@ -386,7 +386,7 @@ bool intersectionHandler_rect2D_rect2D(CollisionObject * object1, CollisionObjec
 	return false;
 }
 
-bool intersectionHandler_rect2D_circle(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal) {
+bool intersectionHandler_rect2D_circle(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal, Vector3x * outObject1Vector, Vector3x * outObject2Vector, fixed16_16 * outContactArea) {
 	CollisionRect2D * rect = (CollisionRect2D *) object1;
 	CollisionCircle * circle = (CollisionCircle *) object2;
 	fixed16_16 time, bestTime = FIXED_16_16_MAX;
@@ -462,7 +462,7 @@ bool intersectionHandler_rect2D_circle(CollisionObject * object1, CollisionObjec
 	if ((rect->solidLeft || rect->solidBottom) &&
 	    intersectSweptCircles(rect->lastPosition, rect->position, 0x00000,
 	                          circle->lastPosition, circle->position, circle->radius,
-	                          &time, &normal)) {
+	                          &time, &normal, NULL, NULL)) {
 		if (normal.x >= 0 && normal.y >= 0 && time < bestTime) {
 			bestTime = time;
 			bestNormal = normal;
@@ -473,7 +473,7 @@ bool intersectionHandler_rect2D_circle(CollisionObject * object1, CollisionObjec
 	if ((rect->solidRight || rect->solidBottom) &&
 	    intersectSweptCircles(VECTOR2x(rect->lastPosition.x + rect->lastSize.x, rect->lastPosition.y), VECTOR2x(rect->position.x + rect->size.x, rect->position.y), 0x00000,
 	                          circle->lastPosition, circle->position, circle->radius,
-	                          &time, &normal)) {
+	                          &time, &normal, NULL, NULL)) {
 		if (normal.x <= 0 && normal.y >= 0 && time < bestTime) {
 			bestTime = time;
 			bestNormal = normal;
@@ -484,7 +484,7 @@ bool intersectionHandler_rect2D_circle(CollisionObject * object1, CollisionObjec
 	if ((rect->solidLeft || rect->solidTop) &&
 	    intersectSweptCircles(VECTOR2x(rect->lastPosition.x, rect->lastPosition.y + rect->lastSize.y), VECTOR2x(rect->position.x, rect->position.y + rect->size.y), 0x00000,
 	                          circle->lastPosition, circle->position, circle->radius,
-	                          &time, &normal)) {
+	                          &time, &normal, NULL, NULL)) {
 		if (normal.x >= 0 && normal.y <= 0 && time < bestTime) {
 			bestTime = time;
 			bestNormal = normal;
@@ -495,7 +495,7 @@ bool intersectionHandler_rect2D_circle(CollisionObject * object1, CollisionObjec
 	if ((rect->solidRight || rect->solidTop) &&
 	    intersectSweptCircles(VECTOR2x(rect->lastPosition.x + rect->lastSize.x, rect->lastPosition.y + rect->lastSize.y), VECTOR2x(rect->position.x + rect->size.x, rect->position.y + rect->size.y), 0x00000,
 	                          circle->lastPosition, circle->position, circle->radius,
-	                          &time, &normal)) {
+	                          &time, &normal, NULL, NULL)) {
 		if (normal.x <= 0 && normal.y <= 0 && time < bestTime) {
 			bestTime = time;
 			bestNormal = normal;
@@ -515,22 +515,22 @@ bool intersectionHandler_rect2D_circle(CollisionObject * object1, CollisionObjec
 	return false;
 }
 
-bool intersectionHandler_rect2D_line2D(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal) {
+bool intersectionHandler_rect2D_line2D(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal, Vector3x * outObject1Vector, Vector3x * outObject2Vector, fixed16_16 * outContactArea) {
 	return false;
 }
 
-bool intersectionHandler_rect2D_polygon(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal) {
+bool intersectionHandler_rect2D_polygon(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal, Vector3x * outObject1Vector, Vector3x * outObject2Vector, fixed16_16 * outContactArea) {
 	return false;
 }
 
-bool intersectionHandler_circle_circle(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal) {
+bool intersectionHandler_circle_circle(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal, Vector3x * outObject1Vector, Vector3x * outObject2Vector, fixed16_16 * outContactArea) {
 	CollisionCircle * circle1 = (CollisionCircle *) object1, * circle2 = (CollisionCircle *) object2;
 	fixed16_16 time;
 	Vector3x normal;
 	
 	if (intersectSweptCircles(circle1->lastPosition, circle1->position, circle1->radius,
 	                          circle2->lastPosition, circle2->position, circle2->radius,
-	                          &time, &normal)) {
+	                          &time, &normal, NULL, NULL)) {
 		if (outNormal != NULL) {
 			*outNormal = normal;
 		}
@@ -542,82 +542,82 @@ bool intersectionHandler_circle_circle(CollisionObject * object1, CollisionObjec
 	return false;
 }
 
-bool intersectionHandler_circle_line2D(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal) {
+bool intersectionHandler_circle_line2D(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal, Vector3x * outObject1Vector, Vector3x * outObject2Vector, fixed16_16 * outContactArea) {
 	return false;
 }
 
-bool intersectionHandler_circle_polygon(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal) {
+bool intersectionHandler_circle_polygon(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal, Vector3x * outObject1Vector, Vector3x * outObject2Vector, fixed16_16 * outContactArea) {
 	return false;
 }
 
-bool intersectionHandler_line2D_line2D(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal) {
+bool intersectionHandler_line2D_line2D(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal, Vector3x * outObject1Vector, Vector3x * outObject2Vector, fixed16_16 * outContactArea) {
 	return false;
 }
 
-bool intersectionHandler_line2D_polygon(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal) {
+bool intersectionHandler_line2D_polygon(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal, Vector3x * outObject1Vector, Vector3x * outObject2Vector, fixed16_16 * outContactArea) {
 	return false;
 }
 
-bool intersectionHandler_polygon_polygon(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal) {
+bool intersectionHandler_polygon_polygon(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal, Vector3x * outObject1Vector, Vector3x * outObject2Vector, fixed16_16 * outContactArea) {
 	return false;
 }
 
-bool intersectionHandler_box3D_box3D(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal) {
+bool intersectionHandler_box3D_box3D(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal, Vector3x * outObject1Vector, Vector3x * outObject2Vector, fixed16_16 * outContactArea) {
 	return false;
 }
 
-bool intersectionHandler_box3D_sphere(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal) {
+bool intersectionHandler_box3D_sphere(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal, Vector3x * outObject1Vector, Vector3x * outObject2Vector, fixed16_16 * outContactArea) {
 	return false;
 }
 
-bool intersectionHandler_box3D_line3D(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal) {
+bool intersectionHandler_box3D_line3D(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal, Vector3x * outObject1Vector, Vector3x * outObject2Vector, fixed16_16 * outContactArea) {
 	return false;
 }
 
-bool intersectionHandler_box3D_capsule(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal) {
+bool intersectionHandler_box3D_capsule(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal, Vector3x * outObject1Vector, Vector3x * outObject2Vector, fixed16_16 * outContactArea) {
 	return false;
 }
 
-bool intersectionHandler_box3D_trimesh(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal) {
+bool intersectionHandler_box3D_trimesh(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal, Vector3x * outObject1Vector, Vector3x * outObject2Vector, fixed16_16 * outContactArea) {
 	return false;
 }
 
-bool intersectionHandler_sphere_sphere(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal) {
+bool intersectionHandler_sphere_sphere(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal, Vector3x * outObject1Vector, Vector3x * outObject2Vector, fixed16_16 * outContactArea) {
 	return false;
 }
 
-bool intersectionHandler_sphere_line3D(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal) {
+bool intersectionHandler_sphere_line3D(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal, Vector3x * outObject1Vector, Vector3x * outObject2Vector, fixed16_16 * outContactArea) {
 	return false;
 }
 
-bool intersectionHandler_sphere_capsule(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal) {
+bool intersectionHandler_sphere_capsule(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal, Vector3x * outObject1Vector, Vector3x * outObject2Vector, fixed16_16 * outContactArea) {
 	return false;
 }
 
-bool intersectionHandler_sphere_trimesh(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal) {
+bool intersectionHandler_sphere_trimesh(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal, Vector3x * outObject1Vector, Vector3x * outObject2Vector, fixed16_16 * outContactArea) {
 	return false;
 }
 
-bool intersectionHandler_line3D_line3D(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal) {
+bool intersectionHandler_line3D_line3D(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal, Vector3x * outObject1Vector, Vector3x * outObject2Vector, fixed16_16 * outContactArea) {
 	return false;
 }
 
-bool intersectionHandler_line3D_capsule(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal) {
+bool intersectionHandler_line3D_capsule(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal, Vector3x * outObject1Vector, Vector3x * outObject2Vector, fixed16_16 * outContactArea) {
 	return false;
 }
 
-bool intersectionHandler_line3D_trimesh(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal) {
+bool intersectionHandler_line3D_trimesh(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal, Vector3x * outObject1Vector, Vector3x * outObject2Vector, fixed16_16 * outContactArea) {
 	return false;
 }
 
-bool intersectionHandler_capsule_capsule(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal) {
+bool intersectionHandler_capsule_capsule(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal, Vector3x * outObject1Vector, Vector3x * outObject2Vector, fixed16_16 * outContactArea) {
 	return false;
 }
 
-bool intersectionHandler_capsule_trimesh(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal) {
+bool intersectionHandler_capsule_trimesh(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal, Vector3x * outObject1Vector, Vector3x * outObject2Vector, fixed16_16 * outContactArea) {
 	return false;
 }
 
-bool intersectionHandler_trimesh_trimesh(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal) {
+bool intersectionHandler_trimesh_trimesh(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal, Vector3x * outObject1Vector, Vector3x * outObject2Vector, fixed16_16 * outContactArea) {
 	return false;
 }

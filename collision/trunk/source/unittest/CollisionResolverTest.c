@@ -100,7 +100,7 @@ static void testRemoveObject() {
 
 static CollisionObject * testObjects[4];
 
-static bool querySingleIntersectionHandler(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal) {
+static bool querySingleIntersectionHandler(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal, Vector3x * outObject1Vector, Vector3x * outObject2Vector, fixed16_16 * outContactArea) {
 	if (object2 == testObjects[0]) {
 		*outTime = 0x00000;
 		*outNormal = VECTOR3x(0x10000, 0x00000, 0x00000);
@@ -124,7 +124,7 @@ static bool querySingleIntersectionHandler(CollisionObject * object1, CollisionO
 	return false;
 }
 
-static bool nullIntersectionHandler(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal) {
+static bool nullIntersectionHandler(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal, Vector3x * outObject1Vector, Vector3x * outObject2Vector, fixed16_16 * outContactArea) {
 	return false;
 }
 
@@ -214,7 +214,7 @@ static void testQuerySingle() {
 	CollisionObject_dispose(testObjects[3]);
 }
 
-static bool findEarliestHandler(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal) {
+static bool findEarliestIntersectionHandler(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal, Vector3x * outObject1Vector, Vector3x * outObject2Vector, fixed16_16 * outContactArea) {
 	if (object2 == testObjects[1]) {
 		*outTime = 0x08000;
 		*outNormal = VECTOR3x(0x10000, 0x00000, 0x00000);
@@ -242,7 +242,7 @@ static void testFindEarliest() {
 	intersectionManager = IntersectionManager_create();
 	IntersectionManager_setHandler(intersectionManager, 0, 1, querySingleIntersectionHandler);
 	IntersectionManager_setHandler(intersectionManager, 1, 1, nullIntersectionHandler);
-	IntersectionManager_setHandler(intersectionManager, 2, 1, findEarliestHandler);
+	IntersectionManager_setHandler(intersectionManager, 2, 1, findEarliestIntersectionHandler);
 	
 	testObjects[0] = CollisionObject_create(NULL, 0, NULL);
 	testObjects[1] = CollisionObject_create(NULL, 1, NULL);
@@ -367,7 +367,7 @@ static unsigned int getTestObjectIndex(CollisionObject * object) {
 	return objectIndex;
 }
 
-static bool resolveAllIntersectionHandler(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal) {
+static bool resolveAllIntersectionHandler(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal, Vector3x * outObject1Vector, Vector3x * outObject2Vector, fixed16_16 * outContactArea) {
 	unsigned int object1Index, object2Index;
 	
 	object1Index = getTestObjectIndex(object1);
@@ -605,10 +605,81 @@ static void testResolveAll() {
 	CollisionObject_dispose(testObjects[2]);
 }
 
+static unsigned int unresolvableCollisionCallbackCalls;
+
+static bool unresolvableIntersectionHandler(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal, Vector3x * outObject1Vector, Vector3x * outObject2Vector, fixed16_16 * outContactArea) {
+	unsigned int object1Index, object2Index;
+	
+	object1Index = getTestObjectIndex(object1);
+	TestCase_assert(object1Index < 3, "Intersection handler called with unknown object1 %p (line %d)", object1, resolveAllLine);
+	object2Index = getTestObjectIndex(object2);
+	TestCase_assert(object2Index < 3, "Intersection handler called with unknown object2 %p (line %d)", object2, resolveAllLine);
+	
+	if (object1Index == 0 && object2Index == 1) {
+		*outTime = 0x00000;
+		return true;
+	}
+	if (object1Index == 0 && object2Index == 2 && unresolvableCollisionCallbackCalls == 0) {
+		*outTime = 0x08000;
+		return true;
+	}
+	return false;
+}
+
+static void unresolvableCollisionCallback(CollisionRecord collision, fixed16_16 timesliceSize) {
+	unsigned int object1Index;
+	
+	object1Index = getTestObjectIndex(collision.object1);
+	TestCase_assert(object1Index < 3, "Resolve callback called with unknown object1 %p (line %d)", collision.object1, resolveAllLine);
+	
+	resolveAllIterations[object1Index]--;
+	collisionCallbackCalls[object1Index]++;
+	lastTimesliceSizes[object1Index] = timesliceSize;
+	if (interpolateCalled) {
+		resolveCalledAfterInterpolate = true;
+		interpolateCalled = false;
+	}
+}
+
+static void testUnresolvableDetection() {
+	CollisionResolver * collisionResolver;
+	IntersectionManager * intersectionManager;
+	
+	intersectionManager = IntersectionManager_create();
+	IntersectionManager_setHandler(intersectionManager, 0, 1, unresolvableIntersectionHandler);
+	IntersectionManager_setHandler(intersectionManager, 0, 2, unresolvableIntersectionHandler);
+	IntersectionManager_setHandler(intersectionManager, 1, 2, nullIntersectionHandler);
+	
+	testObjects[0] = CollisionObject_create(NULL, 0, NULL);
+	testObjects[1] = CollisionObject_create(NULL, 1, unresolvableCollisionCallback);
+	testObjects[2] = CollisionObject_create(NULL, 2, unresolvableCollisionCallback);
+	
+	collisionResolver = CollisionResolver_create(intersectionManager, false, MAX_SIMULTANEOUS_COLLISIONS_DEFAULT, MAX_ITERATIONS_DEFAULT);
+	CollisionResolver_addObject(collisionResolver, testObjects[0]);
+	CollisionResolver_addObject(collisionResolver, testObjects[1]);
+	CollisionResolver_addObject(collisionResolver, testObjects[2]);
+	
+	// Objects 0 and 1 collide at time 0 and don't resolve themselves. Objects 0 and 2 want to collide at time 0.5, but won't get a chance if 0 and 1 use all the iterations.
+	unresolvableCollisionCallbackCalls = 0;
+	resolveAllLine = __LINE__; CollisionResolver_resolveAll(collisionResolver);
+	TestCase_assert(unresolvableCollisionCallbackCalls == 1, "Expected 1 but got %u", unresolvableCollisionCallbackCalls);
+}
+
+static void testListMutationDuringResolution() {
+	TestCase_assert(false, "Unimplemented");
+}
+
+static void testSeamCollisions() {
+	TestCase_assert(false, "Unimplemented");
+}
+
 TEST_SUITE(CollisionResolverTest,
            testInit,
            testAddObject,
            testRemoveObject,
            testQuerySingle,
            testFindEarliest,
-           testResolveAll)
+           testResolveAll,
+           testUnresolvableDetection,
+           testListMutationDuringResolution,
+           testSeamCollisions)

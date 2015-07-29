@@ -114,12 +114,12 @@ IntersectionHandler IntersectionManager_getHandler(IntersectionManager * self, i
 	return NULL;
 }
 
-bool IntersectionManager_callHandler(IntersectionManager * self, CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal) {
+bool IntersectionManager_callHandler(IntersectionManager * self, CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal, Vector3x * outObject1Vector, Vector3x * outObject2Vector, fixed16_16 * outContactArea) {
 	IntersectionHandler handler;
 	
 	handler = IntersectionManager_getHandler(self, object1->shapeType, object2->shapeType);
 	if (handler == NULL) {
 		return false;
 	}
-	return handler(object1, object2, outTime, outNormal);
+	return handler(object1, object2, outTime, outNormal, outObject1Vector, outObject2Vector, outContactArea);
 }

@@ -35,12 +35,13 @@ typedef struct IntersectionManager IntersectionManager;
 #include <stdlib.h>
 
 // IntersectionHandler rules:
-// - Return true and write to outTime (if not null) and outNormal (if not null) if an intersection is detected
-// - Return false and do not modify outTime or outNormal if no intersection is detected
+// - Return true and write to outTime, outNormal, outObject1Vector, outObject2Vector, and outCollisionArea if an intersection is detected
+// - Return false and do not modify out parameters if no intersection is detected
+// - Any of outTime, outNormal, outObject1Vector, outObject2Vector, and outCollisionArea may be NULL; check before writing to them
 // - Values written to outTime MUST be in the range of [0x00000, 0x10000]; if computed time is outside this range, return false instead
 // - Values written to outNormal must be normalized, and should point away from object1's trajectory
 // - Values written to outNormal for 2D shapes must have the z component set to 0x00000
-typedef bool (* IntersectionHandler)(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal);
+typedef bool (* IntersectionHandler)(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal, Vector3x * outObject1Vector, Vector3x * outObject2Vector, fixed16_16 * outContactArea);
 
 struct IntersectionHandlerEntry {
 	int type1;
@@ -64,7 +65,7 @@ void IntersectionManager_dispose(IntersectionManager * self);
 void IntersectionManager_addStandardHandlers(IntersectionManager * self);
 void IntersectionManager_setHandler(IntersectionManager * self, int type1, int type2, IntersectionHandler handler);
 IntersectionHandler IntersectionManager_getHandler(IntersectionManager * self, int type1, int type2);
-bool IntersectionManager_callHandler(IntersectionManager * self, CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal);
+bool IntersectionManager_callHandler(IntersectionManager * self, CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal, Vector3x * outObject1Vector, Vector3x * outObject2Vector, fixed16_16 * outContactArea);
 
 #ifdef __cplusplus
 }

@@ -97,11 +97,11 @@ static bool CollisionResolver_queryPairInternal(CollisionResolver * self, Collis
 			fprintf(stderr, "Warning: Collision objects of shapeType %d and %d have been added to CollisionResolver %p with no matching intersection handler for those types\n", object1->shapeType, object2->shapeType, self);
 #endif
 		} else {
-			intersectionFound = handler(object2, object1, &frameTime, &normal);
+			intersectionFound = handler(object2, object1, &frameTime, &normal, NULL, NULL, NULL);
 			Vector3x_invert(&normal);
 		}
 	} else {
-		intersectionFound = handler(object1, object2, &frameTime, &normal);
+		intersectionFound = handler(object1, object2, &frameTime, &normal, NULL, NULL, NULL);
 	}
 	
 	if (intersectionFound) {

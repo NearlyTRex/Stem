@@ -77,7 +77,7 @@ static void testRect2D_rect2D() {
 	// No collision for no movement
 	rect1 = initStationaryRect2D(VECTOR2x(-0x20000, 0x00000), VECTOR2x(0x10000, 0x10000));
 	rect2 = initStationaryRect2D(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000));
-	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, NULL, NULL);
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, NULL, NULL, NULL, NULL, NULL);
 	assertNoCollision(result);
 	
 #pragma mark Side collisions
@@ -86,7 +86,7 @@ static void testRect2D_rect2D() {
 	rect2 = initStationaryRect2D(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000));
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
-	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal);
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, NULL, NULL, NULL);
 	assertCollision(result, time, normal, 0x08000, VECTOR3x(-0x10000, 0x00000, 0x00000));
 	
 	// rect1 moving +x, rect2 stationary (different speed/collision time)
@@ -94,7 +94,7 @@ static void testRect2D_rect2D() {
 	rect2 = initStationaryRect2D(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000));
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
-	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal);
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, NULL, NULL, NULL);
 	assertCollision(result, time, normal, 0x04000, VECTOR3x(-0x10000, 0x00000, 0x00000));
 	
 	// rect1 moving +x, rect2 stationary (rect1 starts butted against rect2)
@@ -102,13 +102,13 @@ static void testRect2D_rect2D() {
 	rect2 = initStationaryRect2D(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000));
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
-	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal);
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, NULL, NULL, NULL);
 	assertCollision(result, time, normal, 0x00000, VECTOR3x(-0x10000, 0x00000, 0x00000));
 	
 	// rect1 moving +x, rect2 stationary (rect1 starts barely inside rect2, so passes through)
 	rect1 = initMovingRect2D(VECTOR2x(-0x0FFFF, 0x00000), VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000));
 	rect2 = initStationaryRect2D(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000));
-	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal);
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, NULL, NULL, NULL);
 	assertNoCollision(result);
 	
 	// rect1 stationary, rect2 moving -x
@@ -116,7 +116,7 @@ static void testRect2D_rect2D() {
 	rect2 = initMovingRect2D(VECTOR2x(0x20000, 0x00000), VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000));
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
-	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal);
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, NULL, NULL, NULL);
 	assertCollision(result, time, normal, 0x08000, VECTOR3x(-0x10000, 0x00000, 0x00000));
 	
 	// rect1 moving +x, rect2 moving -x
@@ -124,7 +124,7 @@ static void testRect2D_rect2D() {
 	rect2 = initMovingRect2D(VECTOR2x(0x20000, 0x00000), VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000));
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
-	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal);
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, NULL, NULL, NULL);
 	assertCollision(result, time, normal, 0x0C000, VECTOR3x(-0x10000, 0x00000, 0x00000));
 	
 	// rect1 moving -x, rect2 stationary
@@ -132,7 +132,7 @@ static void testRect2D_rect2D() {
 	rect2 = initStationaryRect2D(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000));
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
-	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal);
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, NULL, NULL, NULL);
 	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x10000, 0x00000, 0x00000));
 	
 	// rect1 moving +y, rect2 stationary
@@ -140,7 +140,7 @@ static void testRect2D_rect2D() {
 	rect2 = initStationaryRect2D(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000));
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
-	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal);
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, NULL, NULL, NULL);
 	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x00000, -0x10000, 0x00000));
 	
 	// rect1 moving -y, rect2 stationary
@@ -148,7 +148,7 @@ static void testRect2D_rect2D() {
 	rect2 = initStationaryRect2D(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000));
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
-	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal);
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, NULL, NULL, NULL);
 	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x00000, 0x10000, 0x00000));
 	
 #pragma mark Corner collisions
@@ -157,7 +157,7 @@ static void testRect2D_rect2D() {
 	rect2 = initStationaryRect2D(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000));
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
-	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal);
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, NULL, NULL, NULL);
 	assertCollision(result, time, normal, 0x08000, VECTOR3x(-0x10000, 0x00000, 0x00000));
 	
 	// Corner collision (top left)
@@ -165,7 +165,7 @@ static void testRect2D_rect2D() {
 	rect2 = initStationaryRect2D(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000));
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
-	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal);
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, NULL, NULL, NULL);
 	assertCollision(result, time, normal, 0x08000, VECTOR3x(-0x10000, 0x00000, 0x00000));
 	
 	// Corner collision (bottom right)
@@ -173,7 +173,7 @@ static void testRect2D_rect2D() {
 	rect2 = initStationaryRect2D(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000));
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
-	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal);
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, NULL, NULL, NULL);
 	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x10000, 0x00000, 0x00000));
 	
 	// Corner collision (top right)
@@ -181,106 +181,106 @@ static void testRect2D_rect2D() {
 	rect2 = initStationaryRect2D(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000));
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
-	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal);
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, NULL, NULL, NULL);
 	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x10000, 0x00000, 0x00000));
 	
 #pragma mark Outer non-collisions
 	// Miss (left, above)
 	rect1 = initMovingRect2D(VECTOR2x(-0x20000, 0x10000), VECTOR2x(0x00000, 0x10000), VECTOR2x(0x10000, 0x10000));
 	rect2 = initStationaryRect2D(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000));
-	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal);
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, NULL, NULL, NULL);
 	assertNoCollision(result);
 	
 	// Miss (left, below)
 	rect1 = initMovingRect2D(VECTOR2x(-0x20000, -0x10000), VECTOR2x(0x00000, -0x10000), VECTOR2x(0x10000, 0x10000));
 	rect2 = initStationaryRect2D(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000));
-	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal);
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, NULL, NULL, NULL);
 	assertNoCollision(result);
 	
 	// Miss (right, above)
 	rect1 = initMovingRect2D(VECTOR2x(0x20000, 0x10000), VECTOR2x(0x00000, 0x10000), VECTOR2x(0x10000, 0x10000));
 	rect2 = initStationaryRect2D(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000));
-	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal);
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, NULL, NULL, NULL);
 	assertNoCollision(result);
 	
 	// Miss (right, below)
 	rect1 = initMovingRect2D(VECTOR2x(0x20000, -0x10000), VECTOR2x(0x00000, -0x10000), VECTOR2x(0x10000, 0x10000));
 	rect2 = initStationaryRect2D(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000));
-	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal);
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, NULL, NULL, NULL);
 	assertNoCollision(result);
 	
 	// Miss (bottom, left)
 	rect1 = initMovingRect2D(VECTOR2x(-0x10000, -0x20000), VECTOR2x(-0x10000, 0x00000), VECTOR2x(0x10000, 0x10000));
 	rect2 = initStationaryRect2D(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000));
-	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal);
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, NULL, NULL, NULL);
 	assertNoCollision(result);
 	
 	// Miss (bottom, right)
 	rect1 = initMovingRect2D(VECTOR2x(0x10000, -0x20000), VECTOR2x(0x10000, 0x00000), VECTOR2x(0x10000, 0x10000));
 	rect2 = initStationaryRect2D(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000));
-	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal);
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, NULL, NULL, NULL);
 	assertNoCollision(result);
 	
 	// Miss (top, left)
 	rect1 = initMovingRect2D(VECTOR2x(-0x10000, 0x20000), VECTOR2x(-0x10000, 0x00000), VECTOR2x(0x10000, 0x10000));
 	rect2 = initStationaryRect2D(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000));
-	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal);
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, NULL, NULL, NULL);
 	assertNoCollision(result);
 	
 	// Miss (top, right)
 	rect1 = initMovingRect2D(VECTOR2x(0x10000, 0x20000), VECTOR2x(0x10000, 0x00000), VECTOR2x(0x10000, 0x10000));
 	rect2 = initStationaryRect2D(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000));
-	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal);
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, NULL, NULL, NULL);
 	assertNoCollision(result);
 	
 #pragma mark Inner non-collisions (sides)
 	// rect1 moving -x from inside rect2
 	rect1 = initMovingRect2D(VECTOR2x(0x00000, 0x00000), VECTOR2x(-0x20000, 0x00000), VECTOR2x(0x10000, 0x10000));
 	rect2 = initStationaryRect2D(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000));
-	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal);
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, NULL, NULL, NULL);
 	assertNoCollision(result);
 	
 	// rect1 moving +x from inside rect2
 	rect1 = initMovingRect2D(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x20000, 0x00000), VECTOR2x(0x10000, 0x10000));
 	rect2 = initStationaryRect2D(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000));
-	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal);
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, NULL, NULL, NULL);
 	assertNoCollision(result);
 	
 	// rect1 moving -y from inside rect2
 	rect1 = initMovingRect2D(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x00000, -0x20000), VECTOR2x(0x10000, 0x10000));
 	rect2 = initStationaryRect2D(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000));
-	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal);
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, NULL, NULL, NULL);
 	assertNoCollision(result);
 	
 	// rect1 moving +y from inside rect2
 	rect1 = initMovingRect2D(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x00000, 0x20000), VECTOR2x(0x10000, 0x10000));
 	rect2 = initStationaryRect2D(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000));
-	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal);
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, NULL, NULL, NULL);
 	assertNoCollision(result);
 	
 #pragma mark Inner non-collisions (corners)
 	// Corner collision (bottom left, from inside)
 	rect1 = initMovingRect2D(VECTOR2x(0x00000, 0x00000), VECTOR2x(-0x20000, -0x20000), VECTOR2x(0x10000, 0x10000));
 	rect2 = initStationaryRect2D(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000));
-	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal);
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, NULL, NULL, NULL);
 	TestCase_assert(!result, "Expected true but got false");
 	
 	// Corner collision (top left, from inside)
 	rect1 = initMovingRect2D(VECTOR2x(0x00000, 0x00000), VECTOR2x(-0x20000, 0x20000), VECTOR2x(0x10000, 0x10000));
 	rect2 = initStationaryRect2D(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000));
-	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal);
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, NULL, NULL, NULL);
 	TestCase_assert(!result, "Expected true but got false");
 	
 	// Corner collision (bottom right, from inside)
 	rect1 = initMovingRect2D(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x20000, -0x20000), VECTOR2x(0x10000, 0x10000));
 	rect2 = initStationaryRect2D(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000));
-	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal);
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, NULL, NULL, NULL);
 	TestCase_assert(!result, "Expected true but got false");
 	
 	// Corner collision (top right, from inside)
 	rect1 = initMovingRect2D(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x20000, 0x20000), VECTOR2x(0x10000, 0x10000));
 	rect2 = initStationaryRect2D(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000));
-	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal);
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, NULL, NULL, NULL);
 	TestCase_assert(!result, "Expected true but got false");
 	
 #pragma mark Size-changing collisions
@@ -289,7 +289,7 @@ static void testRect2D_rect2D() {
 	rect2 = initStationaryRect2D(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000));
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
-	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal);
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, NULL, NULL, NULL);
 	assertCollision(result, time, normal, 0x08000, VECTOR3x(-0x10000, 0x00000, 0x00000));
 	
 	// rect1 stationary, rect2 size increasing
@@ -297,81 +297,81 @@ static void testRect2D_rect2D() {
 	rect2 = initResizingRect2D(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000), VECTOR2x(0x30000, 0x10000));
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
-	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal);
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, NULL, NULL, NULL);
 	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x10000, 0x00000, 0x00000));
 	
 #pragma mark Solidity (sides)
 	// rect1 moving +x, rect2 stationary (unsolid left)
 	rect1 = initMovingRect2D(VECTOR2x(-0x20000, 0x00000), VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000));
 	rect2 = initStationaryRect2DWithSolidity(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000), false, true, true, true);
-	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal);
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, NULL, NULL, NULL);
 	assertNoCollision(result);
 	
 	// rect1 moving +x (unsolid right), rect2 stationary
 	rect1 = initMovingRect2DWithSolidity(VECTOR2x(-0x20000, 0x00000), VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000), true, false, true, true);
 	rect2 = initStationaryRect2D(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000));
-	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal);
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, NULL, NULL, NULL);
 	assertNoCollision(result);
 	
 	// rect1 moving -x, rect2 stationary (unsolid right)
 	rect1 = initMovingRect2D(VECTOR2x(0x20000, 0x00000), VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000));
 	rect2 = initStationaryRect2DWithSolidity(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000), true, false, true, true);
-	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal);
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, NULL, NULL, NULL);
 	assertNoCollision(result);
 	
 	// rect1 moving -x (unsolid left), rect2 stationary
 	rect1 = initMovingRect2DWithSolidity(VECTOR2x(0x20000, 0x00000), VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000), false, true, true, true);
 	rect2 = initStationaryRect2D(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000));
-	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal);
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, NULL, NULL, NULL);
 	assertNoCollision(result);
 	
 	// rect1 moving +y, rect2 stationary (unsolid bottom)
 	rect1 = initMovingRect2D(VECTOR2x(0x00000, -0x20000), VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000));
 	rect2 = initStationaryRect2DWithSolidity(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000), true, true, false, true);
-	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal);
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, NULL, NULL, NULL);
 	assertNoCollision(result);
 	
 	// rect1 moving +y (unsolid top), rect2 stationary
 	rect1 = initMovingRect2DWithSolidity(VECTOR2x(0x00000, -0x20000), VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000), true, true, true, false);
 	rect2 = initStationaryRect2D(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000));
-	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal);
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, NULL, NULL, NULL);
 	assertNoCollision(result);
 	
 	// rect1 moving -y, rect2 stationary (unsolid top)
 	rect1 = initMovingRect2D(VECTOR2x(0x00000, 0x20000), VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000));
 	rect2 = initStationaryRect2DWithSolidity(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000), true, true, true, false);
-	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal);
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, NULL, NULL, NULL);
 	assertNoCollision(result);
 	
 	// rect1 moving -y (unsolid bottom), rect2 stationary
 	rect1 = initMovingRect2DWithSolidity(VECTOR2x(0x00000, 0x20000), VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000), true, true, false, true);
 	rect2 = initStationaryRect2D(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000));
-	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal);
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, NULL, NULL, NULL);
 	assertNoCollision(result);
 	
 #pragma mark Solidity (corners)
 	// Corner collision (bottom left, not solid)
 	rect1 = initMovingRect2D(VECTOR2x(-0x20000, -0x20000), VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000));
 	rect2 = initStationaryRect2DWithSolidity(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000), false, false, false, false);
-	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal);
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, NULL, NULL, NULL);
 	assertNoCollision(result);
 	
 	// Corner collision (top left, not solid)
 	rect1 = initMovingRect2D(VECTOR2x(-0x20000, 0x20000), VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000));
 	rect2 = initStationaryRect2DWithSolidity(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000), false, false, false, false);
-	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal);
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, NULL, NULL, NULL);
 	assertNoCollision(result);
 	
 	// Corner collision (bottom right, not solid)
 	rect1 = initMovingRect2D(VECTOR2x(0x20000, -0x20000), VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000));
 	rect2 = initStationaryRect2DWithSolidity(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000), false, false, false, false);
-	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal);
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, NULL, NULL, NULL);
 	assertNoCollision(result);
 	
 	// Corner collision (top right, not solid)
 	rect1 = initMovingRect2D(VECTOR2x(0x20000, 0x20000), VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000));
 	rect2 = initStationaryRect2DWithSolidity(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000), false, false, false, false);
-	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal);
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, NULL, NULL, NULL);
 	assertNoCollision(result);
 	
 #pragma mark Concavity
@@ -380,7 +380,7 @@ static void testRect2D_rect2D() {
 	rect2 = initMovingRect2D(VECTOR2x(-0x08000, -0x08000), VECTOR2x(-0x18000, -0x08000), VECTOR2x(0x10000, 0x10000));
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
-	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal);
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, NULL, NULL, NULL);
 	assertCollision(result, time, normal, 0x08000, VECTOR3x(-0x10000, 0x00000, 0x00000));
 	
 	// rect2 moving +x from inside concave rect1
@@ -388,7 +388,7 @@ static void testRect2D_rect2D() {
 	rect2 = initMovingRect2D(VECTOR2x(-0x08000, -0x08000), VECTOR2x(0x08000, -0x08000), VECTOR2x(0x10000, 0x10000));
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
-	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal);
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, NULL, NULL, NULL);
 	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x10000, 0x00000, 0x00000));
 	
 	// rect1 moving -y from inside concave rect2
@@ -396,7 +396,7 @@ static void testRect2D_rect2D() {
 	rect2 = initStationaryRect2D(VECTOR2x(0x10000, 0x10000), VECTOR2x(-0x20000, -0x20000));
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
-	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal);
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, NULL, NULL, NULL);
 	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x00000, 0x10000, 0x00000));
 	
 	// rect1 moving +y from inside concave rect2
@@ -404,7 +404,7 @@ static void testRect2D_rect2D() {
 	rect2 = initStationaryRect2D(VECTOR2x(0x10000, 0x10000), VECTOR2x(-0x20000, -0x20000));
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
-	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal);
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, NULL, NULL, NULL);
 	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x00000, -0x10000, 0x00000));
 	
 #pragma mark Concave side priority
@@ -413,7 +413,7 @@ static void testRect2D_rect2D() {
 	rect2 = initStationaryRect2D(VECTOR2x(0x10000, 0x10000), VECTOR2x(-0x20000, -0x20000));
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
-	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal);
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, NULL, NULL, NULL);
 	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x10000, 0x00000, 0x00000));
 	
 	// rect1 moving -x -y from inside concave rect2 (bottom collision)
@@ -421,7 +421,7 @@ static void testRect2D_rect2D() {
 	rect2 = initStationaryRect2D(VECTOR2x(0x10000, 0x10000), VECTOR2x(-0x20000, -0x20000));
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
-	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal);
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, NULL, NULL, NULL);
 	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x00000, 0x10000, 0x00000));
 	
 	// rect1 moving +x -y from inside concave rect2 (right collision)
@@ -429,7 +429,7 @@ static void testRect2D_rect2D() {
 	rect2 = initStationaryRect2D(VECTOR2x(0x10000, 0x10000), VECTOR2x(-0x20000, -0x20000));
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
-	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal);
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, NULL, NULL, NULL);
 	assertCollision(result, time, normal, 0x08000, VECTOR3x(-0x10000, 0x00000, 0x00000));
 	
 	// rect1 moving +x -y from inside concave rect2 (bottom collision)
@@ -437,7 +437,7 @@ static void testRect2D_rect2D() {
 	rect2 = initStationaryRect2D(VECTOR2x(0x10000, 0x10000), VECTOR2x(-0x20000, -0x20000));
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
-	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal);
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, NULL, NULL, NULL);
 	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x00000, 0x10000, 0x00000));
 	
 	// rect1 moving -x +y from inside concave rect2 (left collision)
@@ -445,7 +445,7 @@ static void testRect2D_rect2D() {
 	rect2 = initStationaryRect2D(VECTOR2x(0x10000, 0x10000), VECTOR2x(-0x20000, -0x20000));
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
-	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal);
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, NULL, NULL, NULL);
 	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x10000, 0x00000, 0x00000));
 	
 	// rect1 moving -x +y from inside concave rect2 (top collision)
@@ -453,7 +453,7 @@ static void testRect2D_rect2D() {
 	rect2 = initStationaryRect2D(VECTOR2x(0x10000, 0x10000), VECTOR2x(-0x20000, -0x20000));
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
-	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal);
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, NULL, NULL, NULL);
 	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x00000, -0x10000, 0x00000));
 	
 	// rect1 moving +x +y from inside concave rect2 (right collision)
@@ -461,7 +461,7 @@ static void testRect2D_rect2D() {
 	rect2 = initStationaryRect2D(VECTOR2x(0x10000, 0x10000), VECTOR2x(-0x20000, -0x20000));
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
-	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal);
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, NULL, NULL, NULL);
 	assertCollision(result, time, normal, 0x08000, VECTOR3x(-0x10000, 0x00000, 0x00000));
 	
 	// rect1 moving +x +y from inside concave rect2 (top collision)
@@ -469,8 +469,10 @@ static void testRect2D_rect2D() {
 	rect2 = initStationaryRect2D(VECTOR2x(0x10000, 0x10000), VECTOR2x(-0x20000, -0x20000));
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
-	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal);
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, NULL, NULL, NULL);
 	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x00000, -0x10000, 0x00000));
+	
+	TestCase_assert(false, "Testing last 3 parameters unimplemented");
 }
 
 static void testRect2D_circle() {
@@ -483,7 +485,7 @@ static void testRect2D_circle() {
 	// No collision for no movement
 	rect = initStationaryRect2D(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000));
 	circle = initStationaryCircle(VECTOR2x(-0x20000, 0x00000), 0x10000);
-	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, NULL, NULL);
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, NULL, NULL, NULL, NULL, NULL);
 	assertNoCollision(result);
 	
 #pragma mark Side collisions
@@ -492,7 +494,7 @@ static void testRect2D_circle() {
 	circle = initMovingCircle(VECTOR2x(-0x20000, 0x08000), VECTOR2x(0x00000, 0x08000), 0x10000);
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
-	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal, NULL, NULL, NULL);
 	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x10000, 0x00000, 0x00000));
 	
 	// circle moving +x, rect stationary (different speed/collision time)
@@ -500,7 +502,7 @@ static void testRect2D_circle() {
 	circle = initMovingCircle(VECTOR2x(-0x20000, 0x08000), VECTOR2x(0x20000, 0x08000), 0x10000);
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
-	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal, NULL, NULL, NULL);
 	assertCollision(result, time, normal, 0x04000, VECTOR3x(0x10000, 0x00000, 0x00000));
 	
 	// circle moving -x, rect stationary
@@ -508,7 +510,7 @@ static void testRect2D_circle() {
 	circle = initMovingCircle(VECTOR2x(0x30000, 0x08000), VECTOR2x(0x10000, 0x08000), 0x10000);
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
-	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal, NULL, NULL, NULL);
 	assertCollision(result, time, normal, 0x08000, VECTOR3x(-0x10000, 0x00000, 0x00000));
 	
 	// circle moving +y, rect stationary
@@ -516,7 +518,7 @@ static void testRect2D_circle() {
 	circle = initMovingCircle(VECTOR2x(0x08000, -0x20000), VECTOR2x(0x08000, 0x00000), 0x10000);
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
-	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal, NULL, NULL, NULL);
 	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x00000, 0x10000, 0x00000));
 	
 	// circle moving -y, rect stationary
@@ -524,7 +526,7 @@ static void testRect2D_circle() {
 	circle = initMovingCircle(VECTOR2x(0x08000, 0x30000), VECTOR2x(0x08000, 0x10000), 0x10000);
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
-	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal, NULL, NULL, NULL);
 	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x00000, -0x10000, 0x00000));
 	
 	// rect moving +x, circle stationary
@@ -532,7 +534,7 @@ static void testRect2D_circle() {
 	circle = initStationaryCircle(VECTOR2x(0x00000, 0x00000), 0x10000);
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
-	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal, NULL, NULL, NULL);
 	assertCollision(result, time, normal, 0x08000, VECTOR3x(-0x10000, 0x00000, 0x00000));
 	
 	// rect moving -x, circle stationary
@@ -540,7 +542,7 @@ static void testRect2D_circle() {
 	circle = initStationaryCircle(VECTOR2x(0x00000, 0x00000), 0x10000);
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
-	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal, NULL, NULL, NULL);
 	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x10000, 0x00000, 0x00000));
 	
 	// rect moving +y, circle stationary
@@ -548,7 +550,7 @@ static void testRect2D_circle() {
 	circle = initStationaryCircle(VECTOR2x(0x00000, 0x00000), 0x10000);
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
-	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal, NULL, NULL, NULL);
 	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x00000, -0x10000, 0x00000));
 	
 	// rect moving -y, circle stationary
@@ -556,7 +558,7 @@ static void testRect2D_circle() {
 	circle = initStationaryCircle(VECTOR2x(0x00000, 0x00000), 0x10000);
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
-	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal, NULL, NULL, NULL);
 	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x00000, 0x10000, 0x00000));
 	
 #pragma mark Corner collisions
@@ -565,7 +567,7 @@ static void testRect2D_circle() {
 	circle = initStationaryCircle(VECTOR2x(0x00000, 0x00000), 0x10000);
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
-	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal, NULL, NULL, NULL);
 	assertCollision(result, time, normal, 0x04AFB, VECTOR3x(0x0B505, 0x0B505, 0x00000));
 	
 	// rect bottom right corner collision
@@ -573,7 +575,7 @@ static void testRect2D_circle() {
 	circle = initStationaryCircle(VECTOR2x(0x00000, 0x00000), 0x10000);
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
-	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal, NULL, NULL, NULL);
 	assertCollision(result, time, normal, 0x04AFB, VECTOR3x(-0x0B505, 0x0B505, 0x00000));
 	
 	// rect top left corner collision
@@ -581,7 +583,7 @@ static void testRect2D_circle() {
 	circle = initStationaryCircle(VECTOR2x(0x00000, 0x00000), 0x10000);
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
-	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal, NULL, NULL, NULL);
 	assertCollision(result, time, normal, 0x04AFB, VECTOR3x(0x0B505, -0x0B505, 0x00000));
 	
 	// rect top right corner collision
@@ -589,32 +591,32 @@ static void testRect2D_circle() {
 	circle = initStationaryCircle(VECTOR2x(0x00000, 0x00000), 0x10000);
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
-	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal, NULL, NULL, NULL);
 	assertCollision(result, time, normal, 0x04AFB, VECTOR3x(-0x0B505, -0x0B505, 0x00000));
 	
 #pragma mark Inner non-collisions (corner)
 	// circle inside rect moving -x -y (miss inner bottom left corner)
 	rect = initStationaryRect2D(VECTOR2x(-0x10000, -0x10000), VECTOR2x(0x20000, 0x20000));
 	circle = initMovingCircle(VECTOR2x(0x00000, 0x00000), VECTOR2x(-0x20000, -0x20000), 0x10000);
-	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal, NULL, NULL, NULL);
 	assertNoCollision(result);
 	
 	// circle inside rect moving +x -y (miss inner bottom right corner)
 	rect = initStationaryRect2D(VECTOR2x(-0x10000, -0x10000), VECTOR2x(0x20000, 0x20000));
 	circle = initMovingCircle(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x20000, -0x20000), 0x10000);
-	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal, NULL, NULL, NULL);
 	assertNoCollision(result);
 	
 	// circle inside rect moving -x -y (miss inner top left corner)
 	rect = initStationaryRect2D(VECTOR2x(-0x10000, -0x10000), VECTOR2x(0x20000, 0x20000));
 	circle = initMovingCircle(VECTOR2x(0x00000, 0x00000), VECTOR2x(-0x20000, 0x20000), 0x10000);
-	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal, NULL, NULL, NULL);
 	assertNoCollision(result);
 	
 	// circle inside rect moving +x -y (miss inner top right corner)
 	rect = initStationaryRect2D(VECTOR2x(-0x10000, -0x10000), VECTOR2x(0x20000, 0x20000));
 	circle = initMovingCircle(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x20000, 0x20000), 0x10000);
-	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal, NULL, NULL, NULL);
 	assertNoCollision(result);
 	
 	// SOLIDITY BEHAVIOR:
@@ -626,50 +628,50 @@ static void testRect2D_circle() {
 	// Miss unsolid rect left
 	rect = initStationaryRect2DWithSolidity(VECTOR2x(-0x10000, -0x10000), VECTOR2x(0x20000, 0x20000), false, true, true, true);
 	circle = initMovingCircle(VECTOR2x(-0x30000, 0x00000), VECTOR2x(-0x18000, 0x00000), 0x10000);
-	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal, NULL, NULL, NULL);
 	assertNoCollision(result);
 	
 	// Miss unsolid rect right
 	rect = initStationaryRect2DWithSolidity(VECTOR2x(-0x10000, -0x10000), VECTOR2x(0x20000, 0x20000), true, false, true, true);
 	circle = initMovingCircle(VECTOR2x(0x30000, 0x00000), VECTOR2x(0x18000, 0x00000), 0x10000);
-	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal, NULL, NULL, NULL);
 	assertNoCollision(result);
 	
 	// Miss unsolid rect bottom
 	rect = initStationaryRect2DWithSolidity(VECTOR2x(-0x10000, -0x10000), VECTOR2x(0x20000, 0x20000), true, true, false, true);
 	circle = initMovingCircle(VECTOR2x(0x00000, -0x30000), VECTOR2x(0x00000, -0x08000), 0x10000);
-	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal, NULL, NULL, NULL);
 	assertNoCollision(result);
 	
 	// Miss unsolid rect top
 	rect = initStationaryRect2DWithSolidity(VECTOR2x(-0x10000, -0x10000), VECTOR2x(0x20000, 0x20000), true, true, true, false);
 	circle = initMovingCircle(VECTOR2x(0x00000, 0x30000), VECTOR2x(0x00000, 0x08000), 0x10000);
-	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal, NULL, NULL, NULL);
 	assertNoCollision(result);
 	
 #pragma mark Solidity (corners)
 	// Miss unsolid rect bottom left corner
 	rect = initStationaryRect2DWithSolidity(VECTOR2x(-0x10000, -0x10000), VECTOR2x(0x20000, 0x20000), false, true, false, true);
 	circle = initMovingCircle(VECTOR2x(-0x30000, -0x30000), VECTOR2x(0x00000, 0x00000), 0x10000);
-	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal, NULL, NULL, NULL);
 	assertNoCollision(result);
 	
 	// Miss unsolid rect bottom right corner
 	rect = initStationaryRect2DWithSolidity(VECTOR2x(-0x10000, -0x10000), VECTOR2x(0x20000, 0x20000), true, false, false, true);
 	circle = initMovingCircle(VECTOR2x(0x30000, -0x30000), VECTOR2x(0x00000, 0x00000), 0x10000);
-	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal, NULL, NULL, NULL);
 	assertNoCollision(result);
 	
 	// Miss unsolid rect top left corner
 	rect = initStationaryRect2DWithSolidity(VECTOR2x(-0x10000, -0x10000), VECTOR2x(0x20000, 0x20000), false, true, true, false);
 	circle = initMovingCircle(VECTOR2x(-0x30000, 0x30000), VECTOR2x(0x00000, 0x00000), 0x10000);
-	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal, NULL, NULL, NULL);
 	assertNoCollision(result);
 	
 	// Miss unsolid rect top right corner
 	rect = initStationaryRect2DWithSolidity(VECTOR2x(-0x10000, -0x10000), VECTOR2x(0x20000, 0x20000), true, false, true, false);
 	circle = initMovingCircle(VECTOR2x(0x30000, 0x30000), VECTOR2x(0x00000, 0x00000), 0x10000);
-	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal, NULL, NULL, NULL);
 	assertNoCollision(result);
 	
 #pragma mark Partial corner solidity (bottom left)
@@ -678,13 +680,13 @@ static void testRect2D_circle() {
 	circle = initMovingCircle(VECTOR2x(-0x30000, -0x30000), VECTOR2x(0x00000, 0x00000), 0x10000);
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
-	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal, NULL, NULL, NULL);
 	assertCollision(result, time, normal, 0x06E53, VECTOR3x(0x0B506, 0x0B506, 0x00000));
 	
 	// Miss left-unsolid rect bottom left corner (negative dot product)
 	rect = initStationaryRect2DWithSolidity(VECTOR2x(-0x10000, -0x10000), VECTOR2x(0x20000, 0x20000), false, true, true, true);
 	circle = initMovingCircle(VECTOR2x(-0x20000, 0x00000), VECTOR2x(0x00000, -0x20000), 0x10000);
-	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal, NULL, NULL, NULL);
 	assertNoCollision(result);
 	
 	// Hit bottom-unsolid rect bottom left corner (positive dot product)
@@ -692,13 +694,13 @@ static void testRect2D_circle() {
 	circle = initMovingCircle(VECTOR2x(-0x30000, -0x30000), VECTOR2x(0x00000, 0x00000), 0x10000);
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
-	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal, NULL, NULL, NULL);
 	assertCollision(result, time, normal, 0x06E53, VECTOR3x(0x0B506, 0x0B506, 0x00000));
 	
 	// Miss bottom-unsolid rect bottom left corner (negative dot product)
 	rect = initStationaryRect2DWithSolidity(VECTOR2x(-0x10000, -0x10000), VECTOR2x(0x20000, 0x20000), true, true, false, true);
 	circle = initMovingCircle(VECTOR2x(0x00000, -0x20000), VECTOR2x(-0x20000, 0x00000), 0x10000);
-	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal, NULL, NULL, NULL);
 	assertNoCollision(result);
 	
 #pragma mark Partial corner solidity (bottom right)
@@ -707,13 +709,13 @@ static void testRect2D_circle() {
 	circle = initMovingCircle(VECTOR2x(0x30000, -0x30000), VECTOR2x(0x00000, 0x00000), 0x10000);
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
-	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal, NULL, NULL, NULL);
 	assertCollision(result, time, normal, 0x06E53, VECTOR3x(-0x0B506, 0x0B506, 0x00000));
 	
 	// Miss right-unsolid rect bottom right corner (negative dot product)
 	rect = initStationaryRect2DWithSolidity(VECTOR2x(-0x10000, -0x10000), VECTOR2x(0x20000, 0x20000), true, false, true, true);
 	circle = initMovingCircle(VECTOR2x(0x20000, 0x00000), VECTOR2x(0x00000, -0x20000), 0x10000);
-	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal, NULL, NULL, NULL);
 	assertNoCollision(result);
 	
 	// Hit bottom-unsolid rect bottom right corner (positive dot product)
@@ -721,13 +723,13 @@ static void testRect2D_circle() {
 	circle = initMovingCircle(VECTOR2x(0x30000, -0x30000), VECTOR2x(0x00000, 0x00000), 0x10000);
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
-	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal, NULL, NULL, NULL);
 	assertCollision(result, time, normal, 0x06E53, VECTOR3x(-0x0B506, 0x0B506, 0x00000));
 	
 	// Miss bottom-unsolid rect bottom right corner (negative dot product)
 	rect = initStationaryRect2DWithSolidity(VECTOR2x(-0x10000, -0x10000), VECTOR2x(0x20000, 0x20000), true, true, false, true);
 	circle = initMovingCircle(VECTOR2x(0x00000, -0x20000), VECTOR2x(0x20000, 0x00000), 0x10000);
-	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal, NULL, NULL, NULL);
 	assertNoCollision(result);
 	
 #pragma mark Partial corner solidity (top left)
@@ -736,13 +738,13 @@ static void testRect2D_circle() {
 	circle = initMovingCircle(VECTOR2x(-0x30000, 0x30000), VECTOR2x(0x00000, 0x00000), 0x10000);
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
-	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal, NULL, NULL, NULL);
 	assertCollision(result, time, normal, 0x06E53, VECTOR3x(0x0B506, -0x0B506, 0x00000));
 	
 	// Miss left-unsolid rect top left corner (negative dot product)
 	rect = initStationaryRect2DWithSolidity(VECTOR2x(-0x10000, -0x10000), VECTOR2x(0x20000, 0x20000), false, true, true, true);
 	circle = initMovingCircle(VECTOR2x(-0x20000, 0x00000), VECTOR2x(0x00000, 0x20000), 0x10000);
-	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal, NULL, NULL, NULL);
 	assertNoCollision(result);
 	
 	// Hit bottom-unsolid rect top left corner (positive dot product)
@@ -750,13 +752,13 @@ static void testRect2D_circle() {
 	circle = initMovingCircle(VECTOR2x(-0x30000, 0x30000), VECTOR2x(0x00000, 0x00000), 0x10000);
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
-	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal, NULL, NULL, NULL);
 	assertCollision(result, time, normal, 0x06E53, VECTOR3x(0x0B506, -0x0B506, 0x00000));
 	
 	// Miss bottom-unsolid rect top left corner (negative dot product)
 	rect = initStationaryRect2DWithSolidity(VECTOR2x(-0x10000, -0x10000), VECTOR2x(0x20000, 0x20000), true, true, true, false);
 	circle = initMovingCircle(VECTOR2x(0x00000, 0x20000), VECTOR2x(-0x20000, 0x00000), 0x10000);
-	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal, NULL, NULL, NULL);
 	assertNoCollision(result);
 	
 #pragma mark Partial corner solidity (top right)
@@ -765,13 +767,13 @@ static void testRect2D_circle() {
 	circle = initMovingCircle(VECTOR2x(0x30000, 0x30000), VECTOR2x(0x00000, 0x00000), 0x10000);
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
-	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal, NULL, NULL, NULL);
 	assertCollision(result, time, normal, 0x06E53, VECTOR3x(-0x0B506, -0x0B506, 0x00000));
 	
 	// Miss right-unsolid rect top right corner (negative dot product)
 	rect = initStationaryRect2DWithSolidity(VECTOR2x(-0x10000, -0x10000), VECTOR2x(0x20000, 0x20000), true, false, true, true);
 	circle = initMovingCircle(VECTOR2x(0x20000, 0x00000), VECTOR2x(0x00000, 0x20000), 0x10000);
-	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal, NULL, NULL, NULL);
 	assertNoCollision(result);
 	
 	// Hit bottom-unsolid rect top right corner (positive dot product)
@@ -779,13 +781,13 @@ static void testRect2D_circle() {
 	circle = initMovingCircle(VECTOR2x(0x30000, 0x30000), VECTOR2x(0x00000, 0x00000), 0x10000);
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
-	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal, NULL, NULL, NULL);
 	assertCollision(result, time, normal, 0x06E53, VECTOR3x(-0x0B506, -0x0B506, 0x00000));
 	
 	// Miss bottom-unsolid rect top right corner (negative dot product)
 	rect = initStationaryRect2DWithSolidity(VECTOR2x(-0x10000, -0x10000), VECTOR2x(0x20000, 0x20000), true, true, true, false);
 	circle = initMovingCircle(VECTOR2x(0x00000, 0x20000), VECTOR2x(0x20000, 0x00000), 0x10000);
-	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal, NULL, NULL, NULL);
 	assertNoCollision(result);
 	
 #pragma mark Concavity (rect)
@@ -794,7 +796,7 @@ static void testRect2D_circle() {
 	circle = initMovingCircle(VECTOR2x(0x00000, 0x00000), VECTOR2x(-0x10000, 0x00000), 0x08000);
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
-	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal, NULL, NULL, NULL);
 	assertCollision(result, time, normal, 0x08000, VECTOR3x(-0x10000, 0x00000, 0x00000));
 	
 	// circle moving +x from inside concave rect
@@ -802,7 +804,7 @@ static void testRect2D_circle() {
 	circle = initMovingCircle(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x00000), 0x08000);
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
-	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal, NULL, NULL, NULL);
 	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x10000, 0x00000, 0x00000));
 	
 	// circle moving -y from inside concave rect
@@ -810,7 +812,7 @@ static void testRect2D_circle() {
 	circle = initMovingCircle(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x00000, -0x10000), 0x08000);
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
-	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal, NULL, NULL, NULL);
 	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x00000, -0x10000, 0x00000));
 	
 	// circle moving +y from inside concave rect
@@ -818,7 +820,7 @@ static void testRect2D_circle() {
 	circle = initMovingCircle(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x00000, 0x10000), 0x08000);
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
-	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal, NULL, NULL, NULL);
 	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x00000, 0x10000, 0x00000));
 	
 #pragma mark Concave side priority
@@ -827,7 +829,7 @@ static void testRect2D_circle() {
 	circle = initMovingCircle(VECTOR2x(0x00000, 0x00000), VECTOR2x(-0x10000, -0x0F000), 0x08000);
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
-	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal, NULL, NULL, NULL);
 	assertCollision(result, time, normal, 0x08000, VECTOR3x(-0x10000, 0x00000, 0x00000));
 	
 	// circle moving -x -y from inside concave rect (bottom collision)
@@ -835,7 +837,7 @@ static void testRect2D_circle() {
 	circle = initMovingCircle(VECTOR2x(0x00000, 0x00000), VECTOR2x(-0x0F000, -0x10000), 0x08000);
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
-	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal, NULL, NULL, NULL);
 	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x00000, -0x10000, 0x00000));
 	
 	// circle moving +x -y from inside concave rect (right collision)
@@ -843,7 +845,7 @@ static void testRect2D_circle() {
 	circle = initMovingCircle(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, -0x0F000), 0x08000);
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
-	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal, NULL, NULL, NULL);
 	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x10000, 0x00000, 0x00000));
 	
 	// circle moving +x -y from inside concave rect (bottom collision)
@@ -851,7 +853,7 @@ static void testRect2D_circle() {
 	circle = initMovingCircle(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x0F000, -0x10000), 0x08000);
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
-	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal, NULL, NULL, NULL);
 	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x00000, -0x10000, 0x00000));
 	
 	// circle moving -x +y from inside concave rect (left collision)
@@ -859,7 +861,7 @@ static void testRect2D_circle() {
 	circle = initMovingCircle(VECTOR2x(0x00000, 0x00000), VECTOR2x(-0x10000, 0x0F000), 0x08000);
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
-	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal, NULL, NULL, NULL);
 	assertCollision(result, time, normal, 0x08000, VECTOR3x(-0x10000, 0x00000, 0x00000));
 	
 	// circle moving -x +y from inside concave rect (top collision)
@@ -867,7 +869,7 @@ static void testRect2D_circle() {
 	circle = initMovingCircle(VECTOR2x(0x00000, 0x00000), VECTOR2x(-0x0F000, 0x10000), 0x08000);
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
-	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal, NULL, NULL, NULL);
 	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x00000, 0x10000, 0x00000));
 	
 	// circle moving +x +y from inside concave rect (right collision)
@@ -875,7 +877,7 @@ static void testRect2D_circle() {
 	circle = initMovingCircle(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x0F000), 0x08000);
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
-	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal, NULL, NULL, NULL);
 	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x10000, 0x00000, 0x00000));
 	
 	// circle moving +x +y from inside concave rect (top collision)
@@ -883,8 +885,10 @@ static void testRect2D_circle() {
 	circle = initMovingCircle(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x0F000, 0x10000), 0x08000);
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
-	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal);
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal, NULL, NULL, NULL);
 	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x00000, 0x10000, 0x00000));
+	
+	TestCase_assert(false, "Testing last 3 parameters unimplemented");
 }
 
 static void testRect2D_line2D() {
@@ -904,7 +908,7 @@ static void testCircle_circle() {
 	// No collision for no movement (no contact)
 	circle1 = initStationaryCircle(VECTOR2x(-0x40000, 0x00000), 0x10000);
 	circle2 = initStationaryCircle(VECTOR2x(0x00000, 0x00000), 0x10000);
-	result = intersectionHandler_circle_circle((CollisionObject *) &circle1, (CollisionObject *) &circle2, NULL, NULL);
+	result = intersectionHandler_circle_circle((CollisionObject *) &circle1, (CollisionObject *) &circle2, NULL, NULL, NULL, NULL, NULL);
 	assertNoCollision(result);
 	
 	// circle1 moving +x (level), circle2 stationary
@@ -912,7 +916,7 @@ static void testCircle_circle() {
 	circle2 = initStationaryCircle(VECTOR2x(0x00000, 0x00000), 0x10000);
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
-	result = intersectionHandler_circle_circle((CollisionObject *) &circle1, (CollisionObject *) &circle2, &time, &normal);
+	result = intersectionHandler_circle_circle((CollisionObject *) &circle1, (CollisionObject *) &circle2, &time, &normal, NULL, NULL, NULL);
 	assertCollision(result, time, normal, 0x08000, VECTOR3x(-0x10000, 0x00000, 0x00000));
 	
 	// circle1 moving +x (level), circle2 stationary (different speed/collision time)
@@ -920,7 +924,7 @@ static void testCircle_circle() {
 	circle2 = initStationaryCircle(VECTOR2x(0x00000, 0x00000), 0x10000);
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
-	result = intersectionHandler_circle_circle((CollisionObject *) &circle1, (CollisionObject *) &circle2, &time, &normal);
+	result = intersectionHandler_circle_circle((CollisionObject *) &circle1, (CollisionObject *) &circle2, &time, &normal, NULL, NULL, NULL);
 	assertCollision(result, time, normal, 0x04000, VECTOR3x(-0x10000, 0x00000, 0x00000));
 	
 	// circle1 moving +x (level), circle2 stationary (different radius)
@@ -928,7 +932,7 @@ static void testCircle_circle() {
 	circle2 = initStationaryCircle(VECTOR2x(0x00000, 0x00000), 0x20000);
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
-	result = intersectionHandler_circle_circle((CollisionObject *) &circle1, (CollisionObject *) &circle2, &time, &normal);
+	result = intersectionHandler_circle_circle((CollisionObject *) &circle1, (CollisionObject *) &circle2, &time, &normal, NULL, NULL, NULL);
 	assertCollision(result, time, normal, 0x04000, VECTOR3x(-0x10000, 0x00000, 0x00000));
 	
 	// circle1 moving +x (level), circle2 stationary (circle1 starts butted against circle2)
@@ -936,7 +940,7 @@ static void testCircle_circle() {
 	circle2 = initStationaryCircle(VECTOR2x(0x00000, 0x00000), 0x10000);
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
-	result = intersectionHandler_circle_circle((CollisionObject *) &circle1, (CollisionObject *) &circle2, &time, &normal);
+	result = intersectionHandler_circle_circle((CollisionObject *) &circle1, (CollisionObject *) &circle2, &time, &normal, NULL, NULL, NULL);
 	assertCollision(result, time, normal, 0x00000, VECTOR3x(-0x10000, 0x00000, 0x00000));
 	
 	// circle1 moving +x (45 degrees up), circle2 stationary
@@ -944,7 +948,7 @@ static void testCircle_circle() {
 	circle2 = initStationaryCircle(VECTOR2x(0x00000, 0x00000), 0x10000);
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
-	result = intersectionHandler_circle_circle((CollisionObject *) &circle1, (CollisionObject *) &circle2, &time, &normal);
+	result = intersectionHandler_circle_circle((CollisionObject *) &circle1, (CollisionObject *) &circle2, &time, &normal, NULL, NULL, NULL);
 	assertCollision(result, time, normal, 0x0A57D, VECTOR3x(-0x0B506, 0x0B505, 0x00000));
 	
 	// circle1 moving -y, circle2 moving +x
@@ -952,19 +956,19 @@ static void testCircle_circle() {
 	circle2 = initMovingCircle(VECTOR2x(-0x20000, 0x00000), VECTOR2x(0x20000, 0x00000), 0x10000);
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
-	result = intersectionHandler_circle_circle((CollisionObject *) &circle1, (CollisionObject *) &circle2, &time, &normal);
+	result = intersectionHandler_circle_circle((CollisionObject *) &circle1, (CollisionObject *) &circle2, &time, &normal, NULL, NULL, NULL);
 	assertCollision(result, time, normal, 0x0257D, VECTOR3x(0x0B505, 0x0B505, 0x00000));
 	
 	// No collision for no movement (contact)
 	circle1 = initStationaryCircle(VECTOR2x(-0x10000, 0x00000), 0x10000);
 	circle2 = initStationaryCircle(VECTOR2x(0x00000, 0x00000), 0x10000);
-	result = intersectionHandler_circle_circle((CollisionObject *) &circle1, (CollisionObject *) &circle2, NULL, NULL);
+	result = intersectionHandler_circle_circle((CollisionObject *) &circle1, (CollisionObject *) &circle2, NULL, NULL, NULL, NULL, NULL);
 	assertNoCollision(result);
 	
 	// Miss (circle1 above moving +x, circle2 below moving -x)
 	circle1 = initMovingCircle(VECTOR2x(-0x10000, 0x10000), VECTOR2x(0x10000, 0x10000), 0x10000);
 	circle2 = initMovingCircle(VECTOR2x(0x10000, -0x10000), VECTOR2x(-0x10000, -0x10000), 0x10000);
-	result = intersectionHandler_circle_circle((CollisionObject *) &circle1, (CollisionObject *) &circle2, &time, &normal);
+	result = intersectionHandler_circle_circle((CollisionObject *) &circle1, (CollisionObject *) &circle2, &time, &normal, NULL, NULL, NULL);
 	assertNoCollision(result);
 	
 	// circle1 moving +x (level), circle2 stationary (circle1 starts penetrating circle2 by less than half)
@@ -972,14 +976,16 @@ static void testCircle_circle() {
 	circle2 = initStationaryCircle(VECTOR2x(0x00000, 0x00000), 0x10000);
 	time = -1;
 	memset(&normal, 0xFF, sizeof(normal));
-	result = intersectionHandler_circle_circle((CollisionObject *) &circle1, (CollisionObject *) &circle2, &time, &normal);
+	result = intersectionHandler_circle_circle((CollisionObject *) &circle1, (CollisionObject *) &circle2, &time, &normal, NULL, NULL, NULL);
 	assertCollision(result, time, normal, 0x00000, VECTOR3x(-0x10000, 0x00000, 0x00000));
 	
 	// circle1 moving +x (level), circle2 stationary (circle1 starts penetrating circle2 by more than half)
 	circle1 = initMovingCircle(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x08000, 0x00000), 0x10000);
 	circle2 = initStationaryCircle(VECTOR2x(0x00000, 0x00000), 0x10000);
-	result = intersectionHandler_circle_circle((CollisionObject *) &circle1, (CollisionObject *) &circle2, &time, &normal);
+	result = intersectionHandler_circle_circle((CollisionObject *) &circle1, (CollisionObject *) &circle2, &time, &normal, NULL, NULL, NULL);
 	assertNoCollision(result);
+	
+	TestCase_assert(false, "Testing last 3 parameters unimplemented");
 }
 
 static void testCircle_circle_farawayBug()  {
@@ -992,25 +998,25 @@ static void testCircle_circle_farawayBug()  {
 	// Inadequate numeric precision in quadraticFormula
 	circle1 = initMovingCircle(VECTOR2x(0xF7047, 0x47479), VECTOR2x(0xF6EE9, 0x003E0), 0x08000);
 	circle2 = initStationaryCircle(VECTOR2x(0xFFF2CBEC, 0xFFFFDD8E), 0x10000);
-	result = intersectionHandler_circle_circle((CollisionObject *) &circle1, (CollisionObject *) &circle2, NULL, NULL);
+	result = intersectionHandler_circle_circle((CollisionObject *) &circle1, (CollisionObject *) &circle2, NULL, NULL, NULL, NULL, NULL);
 	assertNoCollision(result);
 	
 	// Inadequate numeric precision in quadraticFormula
 	circle1 = initMovingCircle(VECTOR2x(0x3060A, 0x69C85), VECTOR2x(0x30751, 0xFFF6F20C), 0x08000);
 	circle2 = initStationaryCircle(VECTOR2x(0xFFFD0000, 0x00000), 0x10000);
-	result = intersectionHandler_circle_circle((CollisionObject *) &circle1, (CollisionObject *) &circle2, NULL, NULL);
+	result = intersectionHandler_circle_circle((CollisionObject *) &circle1, (CollisionObject *) &circle2, NULL, NULL, NULL, NULL, NULL);
 	assertNoCollision(result);
 	
 	// Inadequate numeric range in quadraticFormula
 	circle1 = initMovingCircle(VECTOR2x(-0x80000, 0x00000), VECTOR2x(0x80000, 0x00000), 0x08000);
 	circle2 = initStationaryCircle(VECTOR2x(0x00000, 0x00000), 0x10000);
-	result = intersectionHandler_circle_circle((CollisionObject *) &circle1, (CollisionObject *) &circle2, NULL, NULL);
+	result = intersectionHandler_circle_circle((CollisionObject *) &circle1, (CollisionObject *) &circle2, NULL, NULL, NULL, NULL, NULL);
 	TestCase_assert(result, "Expected true but got false");
 	
 	// Inadequate numeric precision in calculations for arguments to quadraticFormula
 	circle1 = initMovingCircle(VECTOR2x(0x31744, 0xFFF5DD0C), VECTOR2x(0x317C8, 0xFFF5DDA3), 0x0D2E8);
 	circle2 = initStationaryCircle(VECTOR2x(-0x30000, 0x00000), 0x10000);
-	result = intersectionHandler_circle_circle((CollisionObject *) &circle1, (CollisionObject *) &circle2, NULL, NULL);
+	result = intersectionHandler_circle_circle((CollisionObject *) &circle1, (CollisionObject *) &circle2, NULL, NULL, NULL, NULL, NULL);
 	assertNoCollision(result);
 }
 
@@ -1097,7 +1103,7 @@ static void testTrimesh_trimesh() {
 	
 	trimesh1 = CollisionStaticTrimesh_create(NULL, NULL, vertices, 3, false, false);
 	trimesh2 = CollisionStaticTrimesh_create(NULL, NULL, vertices, 3, false, false);
-	result = intersectionHandler_trimesh_trimesh((CollisionObject *) trimesh1, (CollisionObject *) trimesh2, NULL, NULL);
+	result = intersectionHandler_trimesh_trimesh((CollisionObject *) trimesh1, (CollisionObject *) trimesh2, NULL, NULL, NULL, NULL, NULL);
 	assertNoCollision(result);
 	
 	CollisionStaticTrimesh_dispose(trimesh1);
