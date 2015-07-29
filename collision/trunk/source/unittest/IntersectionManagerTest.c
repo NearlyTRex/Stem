@@ -36,6 +36,9 @@ static bool testHandler2(CollisionObject * object1, CollisionObject * object2, f
 	handler2Calls++;
 	*outTime = 1;
 	*outNormal = VECTOR3x(2, 3, 4);
+	*outObject1Vector = VECTOR3x(5, 6, 7);
+	*outObject2Vector = VECTOR3x(8, 9, 10);
+	*outContactArea = 11;
 	return true;
 }
 
@@ -70,8 +73,8 @@ static void testGetHandler() {
 static void testCallHandler() {
 	IntersectionManager * intersectionManager;
 	CollisionObject * object1, * object2;
-	fixed16_16 time;
-	Vector3x normal;
+	fixed16_16 time, contactArea;
+	Vector3x normal, object1Vector, object2Vector;
 	bool result;
 	
 	intersectionManager = IntersectionManager_create();
@@ -81,30 +84,40 @@ static void testCallHandler() {
 	object2 = CollisionObject_create(NULL, 0, NULL);
 	time = 0;
 	normal = VECTOR3x_ZERO;
-	result = IntersectionManager_callHandler(intersectionManager, object1, object2, &time, &normal, NULL, NULL, NULL);
+	object1Vector = VECTOR3x_ZERO;
+	object2Vector = VECTOR3x_ZERO;
+	contactArea = 0;
+	result = IntersectionManager_callHandler(intersectionManager, object1, object2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
 	TestCase_assert(!result, "Expected false but got true", result);
 	TestCase_assert(time == 0, "Expected 0x00000 but got 0x%05X", time);
 	TestCase_assert(normal.x == 0 && normal.y == 0 && normal.z == 0, "Expected {0x00000, 0x00000, 0x00000} but got {0x%05X, 0x%05X, 0x%05X}", normal.x, normal.y, normal.z);
+	TestCase_assert(object1Vector.x == 0 && object1Vector.y == 0 && object1Vector.z == 0, "Expected {0x00000, 0x00000, 0x00000} but got {0x%05X, 0x%05X, 0x%05X}", object1Vector.x, object1Vector.y, object1Vector.z);
+	TestCase_assert(object2Vector.x == 0 && object2Vector.y == 0 && object2Vector.z == 0, "Expected {0x00000, 0x00000, 0x00000} but got {0x%05X, 0x%05X, 0x%05X}", object2Vector.x, object2Vector.y, object2Vector.z);
+	TestCase_assert(contactArea == 0, "Expected 0x00000 but got 0x%05X", contactArea);
 	
 	IntersectionManager_setHandler(intersectionManager, 0, 0, testHandler1);
 	IntersectionManager_setHandler(intersectionManager, 0, 1, testHandler2);
 	
-	result = IntersectionManager_callHandler(intersectionManager, object1, object2, &time, &normal, NULL, NULL, NULL);
+	result = IntersectionManager_callHandler(intersectionManager, object1, object2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
 	TestCase_assert(handler1Calls == 1, "Expected 1 but got %u", handler1Calls);
 	TestCase_assert(!result, "Expected false but got true", result);
 	TestCase_assert(time == 0, "Expected 0x00000 but got 0x%05X", time);
 	TestCase_assert(normal.x == 0 && normal.y == 0 && normal.z == 0, "Expected {0x00000, 0x00000, 0x00000} but got {0x%05X, 0x%05X, 0x%05X}", normal.x, normal.y, normal.z);
+	TestCase_assert(object1Vector.x == 0 && object1Vector.y == 0 && object1Vector.z == 0, "Expected {0x00000, 0x00000, 0x00000} but got {0x%05X, 0x%05X, 0x%05X}", object1Vector.x, object1Vector.y, object1Vector.z);
+	TestCase_assert(object2Vector.x == 0 && object2Vector.y == 0 && object2Vector.z == 0, "Expected {0x00000, 0x00000, 0x00000} but got {0x%05X, 0x%05X, 0x%05X}", object2Vector.x, object2Vector.y, object2Vector.z);
+	TestCase_assert(contactArea == 0, "Expected 0x00000 but got 0x%05X", contactArea);
 	
 	object2->shapeType = 1;
-	result = IntersectionManager_callHandler(intersectionManager, object1, object2, &time, &normal, NULL, NULL, NULL);
+	result = IntersectionManager_callHandler(intersectionManager, object1, object2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
 	TestCase_assert(handler2Calls == 1, "Expected 1 but got %u", handler2Calls);
 	TestCase_assert(result, "Expected true but got false", result);
 	TestCase_assert(time == 1, "Expected 0x00001 but got 0x%05X", time);
 	TestCase_assert(normal.x == 2 && normal.y == 3 && normal.z == 4, "Expected {0x00002, 0x00003, 0x00004} but got {0x%05X, 0x%05X, 0x%05X}", normal.x, normal.y, normal.z);
+	TestCase_assert(object1Vector.x == 5 && object1Vector.y == 6 && object1Vector.z == 7, "Expected {0x00005, 0x00006, 0x00007} but got {0x%05X, 0x%05X, 0x%05X}", object1Vector.x, object1Vector.y, object1Vector.z);
+	TestCase_assert(object2Vector.x == 8 && object2Vector.y == 9 && object2Vector.z == 10, "Expected {0x00008, 0x00009, 0x0000A} but got {0x%05X, 0x%05X, 0x%05X}", object2Vector.x, object2Vector.y, object2Vector.z);
+	TestCase_assert(contactArea == 11, "Expected 0x0000B but got 0x%05X", contactArea);
 	
 	IntersectionManager_dispose(intersectionManager);
-	
-	TestCase_assert(false, "Testing last 3 parameters unimplemented");
 }
 
 #define verifyHandler(type1, type2, expectedHandler) \
