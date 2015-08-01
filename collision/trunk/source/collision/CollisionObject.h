@@ -41,6 +41,7 @@ typedef void (* CollisionCallback)(CollisionRecord collision, fixed16_16 timesli
 	void * owner; \
 	int shapeType; \
 	CollisionCallback collisionCallback; \
+	bool private_ivar(markedForRemoval); \
 	\
 	void (* interpolate)(self_type * self, fixed16_16 amount);
 

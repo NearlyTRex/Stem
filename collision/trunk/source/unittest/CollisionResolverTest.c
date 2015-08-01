@@ -104,21 +104,33 @@ static bool querySingleIntersectionHandler(CollisionObject * object1, CollisionO
 	if (object2 == testObjects[0]) {
 		*outTime = 0x00000;
 		*outNormal = VECTOR3x(0x10000, 0x00000, 0x00000);
+		if (outContactArea != NULL) {
+			*outContactArea = 0x00000;
+		}
 		return true;
 	}
 	if (object2 == testObjects[1]) {
 		*outTime = 0x08000;
 		*outNormal = VECTOR3x(0x10000, 0x00000, 0x00000);
+		if (outContactArea != NULL) {
+			*outContactArea = 0x00000;
+		}
 		return true;
 	}
 	if (object2 == testObjects[2]) {
 		*outTime = 0x0C000;
 		*outNormal = VECTOR3x(0x00000, 0x10000, 0x00000);
+		if (outContactArea != NULL) {
+			*outContactArea = 0x00000;
+		}
 		return true;
 	}
 	if (object2 == testObjects[3]) {
 		*outTime = 0x04000;
 		*outNormal = VECTOR3x(0x00000, 0x00000, 0x10000);
+		if (outContactArea != NULL) {
+			*outContactArea = 0x00000;
+		}
 		return true;
 	}
 	return false;
@@ -218,16 +230,25 @@ static bool findEarliestIntersectionHandler(CollisionObject * object1, Collision
 	if (object2 == testObjects[1]) {
 		*outTime = 0x08000;
 		*outNormal = VECTOR3x(0x10000, 0x00000, 0x00000);
+		if (outContactArea != NULL) {
+			*outContactArea = 0x00000;
+		}
 		return true;
 	}
 	if (object2 == testObjects[2]) {
 		*outTime = 0x08000;
 		*outNormal = VECTOR3x(0x10000, 0x00000, 0x00000);
+		if (outContactArea != NULL) {
+			*outContactArea = 0x00000;
+		}
 		return true;
 	}
 	if (object2 == testObjects[3]) {
 		*outTime = 0x08001;
 		*outNormal = VECTOR3x(0x10000, 0x00000, 0x00000);
+		if (outContactArea != NULL) {
+			*outContactArea = 0x00000;
+		}
 		return true;
 	}
 	return false;
@@ -377,6 +398,9 @@ static bool resolveAllIntersectionHandler(CollisionObject * object1, CollisionOb
 	
 	if (resolveAllIterations[object1Index] > 0 && resolveAllIterations[object2Index] > 0) {
 		*outTime = intersectionTime;
+		if (outContactArea != NULL) {
+			*outContactArea = 0x00000;
+		}
 		return true;
 	}
 	
@@ -617,10 +641,16 @@ static bool unresolvableIntersectionHandler(CollisionObject * object1, Collision
 	
 	if (object1Index == 0 && object2Index == 1) {
 		*outTime = 0x00000;
+		if (outContactArea != NULL) {
+			*outContactArea = 0x00000;
+		}
 		return true;
 	}
 	if (object1Index == 0 && object2Index == 2 && unresolvableCollisionCallbackCalls == 0) {
 		*outTime = 0x08000;
+		if (outContactArea != NULL) {
+			*outContactArea = 0x00000;
+		}
 		return true;
 	}
 	return false;
@@ -665,8 +695,70 @@ static void testUnresolvableDetection() {
 	TestCase_assert(unresolvableCollisionCallbackCalls == 1, "Expected 1 but got %u", unresolvableCollisionCallbackCalls);
 }
 
+static unsigned int mutateListCollisionCallbackCalls[2];
+
+static bool mutateListIntersectionHandler(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal, Vector3x * outObject1Vector, Vector3x * outObject2Vector, fixed16_16 * outContactArea) {
+	if (object2->shapeType == 1) {
+		*outTime = 0x08000;
+		if (outContactArea != NULL) {
+			*outContactArea = 0x00000;
+		}
+		return true;
+		
+	} else if (object2->shapeType == 2 && mutateListCollisionCallbackCalls[1] < 2) {
+		*outTime = 0x00000;
+		if (outContactArea != NULL) {
+			*outContactArea = 0x00000;
+		}
+		return true;
+	}
+	
+	return false;
+}
+
+static void mutateListCollisionCallback(CollisionRecord collision, fixed16_16 timesliceSize) {
+	if (collision.object2->shapeType == 1) {
+		CollisionResolver_addObject(collision.object1->owner, testObjects[2]);
+		mutateListCollisionCallbackCalls[0]++;
+		
+	} else if (collision.object2->shapeType == 2) {
+		if (mutateListCollisionCallbackCalls[1] == 0) {
+			CollisionResolver_removeObject(collision.object1->owner, testObjects[1]);
+		} else {
+			TestCase_assert(((CollisionResolver *) collision.object1->owner)->objectCount == 3, "Expected 3 but got " SIZE_T_FORMAT, ((CollisionResolver *) collision.object1->owner)->objectCount);
+		}
+		mutateListCollisionCallbackCalls[1]++;
+	}
+}
+
 static void testListMutationDuringResolution() {
-	TestCase_assert(false, "Unimplemented");
+	CollisionResolver * collisionResolver;
+	IntersectionManager * intersectionManager;
+	
+	intersectionManager = IntersectionManager_create();
+	IntersectionManager_setHandler(intersectionManager, 0, 1, mutateListIntersectionHandler);
+	IntersectionManager_setHandler(intersectionManager, 0, 2, mutateListIntersectionHandler);
+	IntersectionManager_setHandler(intersectionManager, 1, 2, nullIntersectionHandler);
+	
+	collisionResolver = CollisionResolver_create(intersectionManager, false, MAX_SIMULTANEOUS_COLLISIONS_DEFAULT, MAX_ITERATIONS_DEFAULT);
+	testObjects[0] = CollisionObject_create(collisionResolver, 0, mutateListCollisionCallback);
+	testObjects[1] = CollisionObject_create(collisionResolver, 1, NULL);
+	testObjects[2] = CollisionObject_create(collisionResolver, 2, NULL);
+	CollisionResolver_addObject(collisionResolver, testObjects[0]);
+	CollisionResolver_addObject(collisionResolver, testObjects[1]);
+	
+	// Collision 0<->1 adds 2
+	// Collision 0<->2 removes 1
+	// Test 0<->2 returns false
+	
+	mutateListCollisionCallbackCalls[0] = 0;
+	mutateListCollisionCallbackCalls[1] = 0;
+	resolveAllLine = __LINE__; CollisionResolver_resolveAll(collisionResolver);
+	TestCase_assert(collisionResolver->objectCount == 2, "Expected 2 but got " SIZE_T_FORMAT, collisionResolver->objectCount);
+	TestCase_assert(collisionResolver->objects[0] == testObjects[0], "Expected %p but got %p", testObjects[0], collisionResolver->objects[0]);
+	TestCase_assert(collisionResolver->objects[1] == testObjects[2], "Expected %p but got %p", testObjects[2], collisionResolver->objects[1]);
+	TestCase_assert(mutateListCollisionCallbackCalls[0] == 1, "Expected 1 but got %u", mutateListCollisionCallbackCalls[0]);
+	TestCase_assert(mutateListCollisionCallbackCalls[1] == 2, "Expected 2 but got %u", mutateListCollisionCallbackCalls[1]);
 }
 
 static void testSeamCollisions() {

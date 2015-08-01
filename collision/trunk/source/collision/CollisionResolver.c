@@ -35,6 +35,7 @@ bool CollisionResolver_init(CollisionResolver * self, IntersectionManager * inte
 	self->dispose = CollisionResolver_dispose;
 	self->intersectionManager = intersectionManager;
 	self->private_ivar(intersectionManagerOwned) = takeOwnership;
+	self->private_ivar(inResolveAll) = false;
 	self->private_ivar(maxSimultaneousCollisions) = maxSimultaneousCollisions;
 	self->private_ivar(simultaneousCollisionBuffer) = malloc(sizeof(*self->private_ivar(simultaneousCollisionBuffer)) * self->private_ivar(maxSimultaneousCollisions));
 	self->private_ivar(maxIterations) = maxIterations;
@@ -74,9 +75,14 @@ void CollisionResolver_removeObject(CollisionResolver * self, CollisionObject * 
 	
 	for (objectIndex = 0; objectIndex < self->objectCount; objectIndex++) {
 		if (self->objects[objectIndex] == object) {
-			self->objectCount--;
-			for (; objectIndex < self->objectCount; objectIndex++) {
-				self->objects[objectIndex] = self->objects[objectIndex + 1];
+			if (self->private_ivar(inResolveAll)) {
+				self->objects[objectIndex]->private_ivar(markedForRemoval) = true;
+				
+			} else {
+				self->objectCount--;
+				for (; objectIndex < self->objectCount; objectIndex++) {
+					self->objects[objectIndex] = self->objects[objectIndex + 1];
+				}
 			}
 		}
 	}
@@ -87,6 +93,10 @@ static bool CollisionResolver_queryPairInternal(CollisionResolver * self, Collis
 	fixed16_16 frameTime;
 	IntersectionHandler handler;
 	bool intersectionFound;
+	
+	if (object1->private_ivar(markedForRemoval) || object2->private_ivar(markedForRemoval)) {
+		return false;
+	}
 	
 	intersectionFound = false;
 	handler = IntersectionManager_getHandler(self->intersectionManager, object1->shapeType, object2->shapeType);
@@ -173,7 +183,7 @@ void CollisionResolver_resolveAll(CollisionResolver * self) {
 	size_t objectIndex;
 	unsigned int iterationCount = 0;
 	
-	// TODO: Sort findEarliest's list to handle seam collisions? By what criteria?
+	self->private_ivar(inResolveAll) = true;
 	while ((collisionCount = CollisionResolver_findEarliest(self, self->private_ivar(simultaneousCollisionBuffer), self->private_ivar(maxSimultaneousCollisions))) > 0) {
 		collisionTime = self->private_ivar(simultaneousCollisionBuffer)[0].time;
 		
@@ -192,6 +202,19 @@ void CollisionResolver_resolveAll(CollisionResolver * self) {
 		iterationCount++;
 		if (iterationCount >= self->private_ivar(maxIterations)) {
 			break;
+		}
+	}
+	self->private_ivar(inResolveAll) = false;
+	
+	size_t removedObjectCount = 0;
+	for (objectIndex = 0; objectIndex < self->objectCount; objectIndex++) {
+		self->objects[objectIndex] = self->objects[objectIndex + removedObjectCount];
+		while (objectIndex < self->objectCount && self->objects[objectIndex]->private_ivar(markedForRemoval)) {
+			self->objectCount--;
+			removedObjectCount++;
+			if (objectIndex < self->objectCount) {
+				self->objects[objectIndex] = self->objects[objectIndex + removedObjectCount];
+			}
 		}
 	}
 }

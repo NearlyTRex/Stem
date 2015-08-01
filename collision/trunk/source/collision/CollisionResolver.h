@@ -41,6 +41,7 @@ typedef struct CollisionRecord CollisionRecord;
 	\
 	IntersectionManager * intersectionManager; \
 	bool private_ivar(intersectionManagerOwned); \
+	bool private_ivar(inResolveAll); \
 	size_t private_ivar(maxSimultaneousCollisions); \
 	size_t private_ivar(maxIterations); \
 	CollisionRecord * private_ivar(simultaneousCollisionBuffer); \
@@ -67,6 +68,10 @@ void CollisionResolver_dispose(CollisionResolver * self);
 
 // Adds/removes objects to/from the list of collidable objects tracked by CollisionResolver.
 // Objects in this list are used by querySingle, findEarliest, and resolveAll.
+// If addObject is called in a collision callback during resolveAll, it will be included immediately and tested against
+// in the next iteration.
+// If removeObject is called in a collision callback during resolveAll, the removed object will immediately be ignored
+// for the rest of resolveAll, but will not actually be removed from the list until resolveAll has completed.
 void CollisionResolver_addObject(CollisionResolver * self, CollisionObject * object);
 void CollisionResolver_removeObject(CollisionResolver * self, CollisionObject * object);
 
@@ -82,7 +87,7 @@ bool CollisionResolver_querySingle(CollisionResolver * self, CollisionObject * o
 size_t CollisionResolver_findEarliest(CollisionResolver * self, CollisionRecord * outCollisions, size_t collisionCountMax);
 
 // Collision tests all objects in list against all other objects in list, calling the CollisionCallback for each.
-// Fully resolves one frame.
+// Fully resolves one frame. Not reentrant (but should never need to be).
 void CollisionResolver_resolveAll(CollisionResolver * self);
 
 #ifdef __cplusplus
