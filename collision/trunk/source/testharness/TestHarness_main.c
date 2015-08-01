@@ -50,6 +50,7 @@
 #include <unistd.h>
 
 // TODO:
+// - Show contact area (and vectors?) in scene 1
 // - Animate mode (interpolate all shapes to first collision, resolve, continue until all resolved)
 // - Display numbers for all relevant properties of selected object
 

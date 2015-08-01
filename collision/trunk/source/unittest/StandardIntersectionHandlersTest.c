@@ -69,7 +69,7 @@ static CollisionCircle initMovingCircle(Vector2x lastPosition, Vector2x position
 	TestCase_assert(normal.x == expectedNormal.x && normal.y == expectedNormal.y && normal.z == expectedNormal.z, "Expected intersection normal {" FIXED_16_16_FORMAT ", " FIXED_16_16_FORMAT ", " FIXED_16_16_FORMAT "} but got {" FIXED_16_16_FORMAT ", " FIXED_16_16_FORMAT ", " FIXED_16_16_FORMAT "}", expectedNormal.x, expectedNormal.y, expectedNormal.z, normal.x, normal.y, normal.z); \
 	TestCase_assert(object1Vector.x == expectedObject1Vector.x && object1Vector.y == expectedObject1Vector.y && object1Vector.z == expectedObject1Vector.z, "Expected object1 vector {" FIXED_16_16_FORMAT ", " FIXED_16_16_FORMAT ", " FIXED_16_16_FORMAT "} but got {" FIXED_16_16_FORMAT ", " FIXED_16_16_FORMAT ", " FIXED_16_16_FORMAT "}", expectedObject1Vector.x, expectedObject1Vector.y, expectedObject1Vector.z, object1Vector.x, object1Vector.y, object1Vector.z); \
 	TestCase_assert(object2Vector.x == expectedObject2Vector.x && object2Vector.y == expectedObject2Vector.y && object2Vector.z == expectedObject2Vector.z, "Expected object2 vector {" FIXED_16_16_FORMAT ", " FIXED_16_16_FORMAT ", " FIXED_16_16_FORMAT "} but got {" FIXED_16_16_FORMAT ", " FIXED_16_16_FORMAT ", " FIXED_16_16_FORMAT "}", expectedObject2Vector.x, expectedObject2Vector.y, expectedObject2Vector.z, object2Vector.x, object2Vector.y, object2Vector.z); \
-	TestCase_assert(contactArea == expectedContactArea, "Expected contact area " FIXED_16_16_FORMAT ", but got " FIXED_16_16_FORMAT, expectedContactArea, contactArea);
+	TestCase_assert(contactArea == expectedContactArea, "Expected contact area " FIXED_16_16_FORMAT ", but got " FIXED_16_16_FORMAT, expectedContactArea, contactArea)
 
 #define resetOutParameters() \
 	time = -1; \
@@ -110,7 +110,7 @@ static void testRect2D_rect2D() {
 	rect2 = initStationaryRect2D(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000));
 	resetOutParameters();
 	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
-	assertCollision(result, time, normal, 0x00000, VECTOR3x(-0x10000, 0x00000, 0x00000), VECTOR3x(0x20000, 0x00000, 0x00000), VECTOR3x_ZERO, 0x10000);
+	assertCollision(result, time, normal, 0x00000, VECTOR3x(-0x10000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x00000, 0x00000), VECTOR3x_ZERO, 0x10000);
 	
 	// rect1 moving +x, rect2 stationary (rect1 starts barely inside rect2, so passes through)
 	rect1 = initMovingRect2D(VECTOR2x(-0x0FFFF, 0x00000), VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000));
@@ -457,8 +457,40 @@ static void testRect2D_rect2D() {
 	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x00000, -0x10000, 0x00000), VECTOR3x(0x0F000, 0x10000, 0x00000), VECTOR3x_ZERO, 0x10000);
 	
 #pragma mark Contact area
-	// Differing areas from same size partial contact, different size full contact, changing size
-	TestCase_assert(false, "Contact area unimplemented");
+	// rect1 moving +x at small size, rect2 stationary at normal size
+	rect1 = initMovingRect2D(VECTOR2x(-0x20000, 0x00000), VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x08000));
+	rect2 = initStationaryRect2D(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000));
+	resetOutParameters();
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(-0x10000, 0x00000, 0x00000), VECTOR3x(0x20000, 0x00000, 0x00000), VECTOR3x_ZERO, 0x08000);
+	
+	// rect1 moving +x at normal size, rect2 stationary at small size
+	rect1 = initMovingRect2D(VECTOR2x(-0x20000, 0x00000), VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000));
+	rect2 = initStationaryRect2D(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x06000));
+	resetOutParameters();
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(-0x10000, 0x00000, 0x00000), VECTOR3x(0x20000, 0x00000, 0x00000), VECTOR3x_ZERO, 0x06000);
+	
+	// rect1 moving +x at normal size, rect2 stationary at normal size (half contact bottom)
+	rect1 = initMovingRect2D(VECTOR2x(-0x20000, 0x00000), VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000));
+	rect2 = initStationaryRect2D(VECTOR2x(0x00000, 0x08000), VECTOR2x(0x10000, 0x10000));
+	resetOutParameters();
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(-0x10000, 0x00000, 0x00000), VECTOR3x(0x20000, 0x00000, 0x00000), VECTOR3x_ZERO, 0x08000);
+	
+	// rect1 moving +x at normal size, rect2 stationary at normal size (quarter contact top)
+	rect1 = initMovingRect2D(VECTOR2x(-0x20000, 0x00000), VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000));
+	rect2 = initStationaryRect2D(VECTOR2x(0x00000, -0x0C000), VECTOR2x(0x10000, 0x10000));
+	resetOutParameters();
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(-0x10000, 0x00000, 0x00000), VECTOR3x(0x20000, 0x00000, 0x00000), VECTOR3x_ZERO, 0x04000);
+	
+	// rect1 resizing +x, rect2 stationary at normal size
+	rect1 = initResizingRect2D(VECTOR2x(-0x08000, 0x00000), VECTOR2x(0x04000, 0x04000), VECTOR2x(0x0C000, 0x0C000));
+	rect2 = initStationaryRect2D(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000));
+	resetOutParameters();
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(-0x10000, 0x00000, 0x00000), VECTOR3x(0x08000, 0x00000, 0x00000), VECTOR3x_ZERO, 0x08000);
 }
 
 static void testRect2D_circle() {
@@ -928,8 +960,6 @@ static void testCircle_circle() {
 	circle2 = initStationaryCircle(VECTOR2x(0x00000, 0x00000), 0x10000);
 	result = intersectionHandler_circle_circle((CollisionObject *) &circle1, (CollisionObject *) &circle2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
 	assertNoCollision(result);
-	
-	TestCase_assert(false, "Testing last 3 parameters unimplemented");
 }
 
 static void testCircle_circle_farawayBug()  {

@@ -31,7 +31,7 @@ static bool intersectSweptLineSegments(fixed16_16 x1Start, fixed16_16 x1End,
                                        fixed16_16 x2Start, fixed16_16 x2End,
                                        fixed16_16 bottom1Start, fixed16_16 top1Start, fixed16_16 bottom1End, fixed16_16 top1End,
                                        fixed16_16 bottom2Start, fixed16_16 top2Start, fixed16_16 bottom2End, fixed16_16 top2End,
-                                       fixed16_16 * outTime) {
+                                       fixed16_16 * outTime, fixed16_16 * outContactArea) {
 	fixed16_16 time;
 	fixed16_16 bottom1, top1, bottom2, top2;
 	
@@ -58,6 +58,7 @@ static bool intersectSweptLineSegments(fixed16_16 x1Start, fixed16_16 x1End,
 	
 	if (top1 > bottom2 && bottom1 < top2) {
 		*outTime = time;
+		*outContactArea = (top1 < top2 ? top1 : top2) - (bottom1 > bottom2 ? bottom1 : bottom2);
 		return true;
 	}
 	return false;
@@ -242,7 +243,8 @@ static bool intersectSweptCircles(Vector2x circle1LastPosition, Vector2x circle1
 
 bool intersectionHandler_rect2D_rect2D(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal, Vector3x * outObject1Vector, Vector3x * outObject2Vector, fixed16_16 * outContactArea) {
 	fixed16_16 time, bestTime = FIXED_16_16_MAX;
-	Vector3x bestNormal = VECTOR3x_ZERO;
+	fixed16_16 contactArea, bestContactArea = 0x00000;
+	Vector3x bestNormal = VECTOR3x_ZERO, bestObject1Vector = VECTOR3x_ZERO, bestObject2Vector = VECTOR3x_ZERO;
 	CollisionRect2D * rect1 = (CollisionRect2D *) object1, * rect2 = (CollisionRect2D *) object2;
 	
 	// rect1 right vs. rect2 left
@@ -252,10 +254,13 @@ bool intersectionHandler_rect2D_rect2D(CollisionObject * object1, CollisionObjec
 	                               rect2->lastPosition.x, rect2->position.x,
 	                               rect1->lastPosition.y, rect1->lastPosition.y + rect1->lastSize.y, rect1->position.y, rect1->position.y + rect1->size.y,
 	                               rect2->lastPosition.y, rect2->lastPosition.y + rect2->lastSize.y, rect2->position.y, rect2->position.y + rect2->size.y,
-	                               &time)) {
+	                               &time, &contactArea)) {
 		if (time < bestTime) {
 			bestTime = time;
 			bestNormal = VECTOR3x_LEFT;
+			bestObject1Vector = VECTOR3x((rect1->position.x + rect1->size.x) - (rect1->lastPosition.x + rect1->lastSize.x), rect1->position.y - rect1->lastPosition.y, 0x00000);
+			bestObject2Vector = VECTOR3x(rect2->position.x - rect2->lastPosition.x, rect2->position.y - rect2->lastPosition.y, 0x00000);
+			bestContactArea = contactArea;
 		}
 	}
 	
@@ -266,10 +271,13 @@ bool intersectionHandler_rect2D_rect2D(CollisionObject * object1, CollisionObjec
 	                               rect2->lastPosition.x + rect2->lastSize.x, rect2->position.x + rect2->size.x,
 	                               rect1->lastPosition.y, rect1->lastPosition.y + rect1->lastSize.y, rect1->position.y, rect1->position.y + rect1->size.y,
 	                               rect2->lastPosition.y, rect2->lastPosition.y + rect2->lastSize.y, rect2->position.y, rect2->position.y + rect2->size.y,
-	                               &time)) {
+	                               &time, &contactArea)) {
 		if (time < bestTime) {
 			bestTime = time;
 			bestNormal = VECTOR3x_RIGHT;
+			bestObject1Vector = VECTOR3x(rect1->position.x - rect1->lastPosition.x, rect1->position.y - rect1->lastPosition.y, 0x00000);
+			bestObject2Vector = VECTOR3x((rect2->position.x + rect2->size.x) - (rect2->lastPosition.x + rect2->lastSize.x), rect2->position.y - rect2->lastPosition.y, 0x00000);
+			bestContactArea = contactArea;
 		}
 	}
 	
@@ -280,10 +288,13 @@ bool intersectionHandler_rect2D_rect2D(CollisionObject * object1, CollisionObjec
 	                               rect2->lastPosition.y, rect2->position.y,
 	                               rect1->lastPosition.x, rect1->lastPosition.x + rect1->lastSize.x, rect1->position.x, rect1->position.x + rect1->size.x,
 	                               rect2->lastPosition.x, rect2->lastPosition.x + rect2->lastSize.x, rect2->position.x, rect2->position.x + rect2->size.x,
-	                               &time)) {
+	                               &time, &contactArea)) {
 		if (time < bestTime) {
 			bestTime = time;
 			bestNormal = VECTOR3x_DOWN;
+			bestObject1Vector = VECTOR3x(rect1->position.x - rect1->lastPosition.x, (rect1->position.y + rect1->size.y) - (rect1->lastPosition.y + rect1->lastSize.y), 0x00000);
+			bestObject2Vector = VECTOR3x(rect2->position.x - rect2->lastPosition.x, rect2->position.y - rect2->lastPosition.y, 0x00000);
+			bestContactArea = contactArea;
 		}
 	}
 	
@@ -294,19 +305,31 @@ bool intersectionHandler_rect2D_rect2D(CollisionObject * object1, CollisionObjec
 	                               rect2->lastPosition.y + rect2->lastSize.y, rect2->position.y + rect2->size.y,
 	                               rect1->lastPosition.x, rect1->lastPosition.x + rect1->lastSize.x, rect1->position.x, rect1->position.x + rect1->size.x,
 	                               rect2->lastPosition.x, rect2->lastPosition.x + rect2->lastSize.x, rect2->position.x, rect2->position.x + rect2->size.x,
-	                               &time)) {
+	                               &time, &contactArea)) {
 		if (time < bestTime) {
 			bestTime = time;
 			bestNormal = VECTOR3x_UP;
+			bestObject1Vector = VECTOR3x(rect1->position.x - rect1->lastPosition.x, rect1->position.y - rect1->lastPosition.y, 0x00000);
+			bestObject2Vector = VECTOR3x(rect2->position.x - rect2->lastPosition.x, (rect2->position.y + rect2->size.y) - (rect2->lastPosition.y + rect2->lastSize.y), 0x00000);
+			bestContactArea = contactArea;
 		}
 	}
 	
 	if (bestTime < FIXED_16_16_MAX) {
+		if (outTime != NULL) {
+			*outTime = bestTime;
+		}
 		if (outNormal != NULL) {
 			*outNormal = bestNormal;
 		}
-		if (outTime != NULL) {
-			*outTime = bestTime;
+		if (outObject1Vector != NULL) {
+			*outObject1Vector = bestObject1Vector;
+		}
+		if (outObject2Vector != NULL) {
+			*outObject2Vector = bestObject2Vector;
+		}
+		if (outContactArea != NULL) {
+			*outContactArea = bestContactArea;
 		}
 		return true;
 	}
@@ -326,6 +349,15 @@ bool intersectionHandler_rect2D_rect2D(CollisionObject * object1, CollisionObjec
 		if (outNormal != NULL) {
 			*outNormal = VECTOR3x_LEFT;
 		}
+		if (outObject1Vector != NULL) {
+			*outObject1Vector = VECTOR3x((rect1->position.x + rect1->size.x) - (rect1->lastPosition.x + rect1->lastSize.x), (rect1->position.y + rect1->size.y) - (rect1->lastPosition.y + rect1->lastSize.y), 0x00000);
+		}
+		if (outObject2Vector != NULL) {
+			*outObject2Vector = VECTOR3x(rect2->position.x - rect2->lastPosition.x, rect2->position.y - rect2->lastPosition.y, 0x00000);
+		}
+		if (outContactArea != NULL) {
+			*outContactArea = 0x00000;
+		}
 		return true;
 	}
 	
@@ -343,6 +375,15 @@ bool intersectionHandler_rect2D_rect2D(CollisionObject * object1, CollisionObjec
 		}
 		if (outNormal != NULL) {
 			*outNormal = VECTOR3x_LEFT;
+		}
+		if (outObject1Vector != NULL) {
+			*outObject1Vector = VECTOR3x((rect1->position.x + rect1->size.x) - (rect1->lastPosition.x + rect1->lastSize.x), rect1->position.y - rect1->lastPosition.y, 0x00000);
+		}
+		if (outObject2Vector != NULL) {
+			*outObject2Vector = VECTOR3x(rect2->position.x - rect2->lastPosition.x, (rect2->position.y + rect2->size.y) - (rect2->lastPosition.y + rect2->lastSize.y), 0x00000);
+		}
+		if (outContactArea != NULL) {
+			*outContactArea = 0x00000;
 		}
 		return true;
 	}
@@ -362,6 +403,15 @@ bool intersectionHandler_rect2D_rect2D(CollisionObject * object1, CollisionObjec
 		if (outNormal != NULL) {
 			*outNormal = VECTOR3x_RIGHT;
 		}
+		if (outObject1Vector != NULL) {
+			*outObject1Vector = VECTOR3x(rect1->position.x - rect1->lastPosition.x, (rect1->position.y + rect1->size.y) - (rect1->lastPosition.y + rect1->lastSize.y), 0x00000);
+		}
+		if (outObject2Vector != NULL) {
+			*outObject2Vector = VECTOR3x((rect2->position.x + rect2->size.x) - (rect2->lastPosition.x + rect2->lastSize.x), rect2->position.y - rect2->lastPosition.y, 0x00000);
+		}
+		if (outContactArea != NULL) {
+			*outContactArea = 0x00000;
+		}
 		return true;
 	}
 	
@@ -380,6 +430,15 @@ bool intersectionHandler_rect2D_rect2D(CollisionObject * object1, CollisionObjec
 		if (outNormal != NULL) {
 			*outNormal = VECTOR3x_RIGHT;
 		}
+		if (outObject1Vector != NULL) {
+			*outObject1Vector = VECTOR3x(rect1->position.x - rect1->lastPosition.x, rect1->position.y - rect1->lastPosition.y, 0x00000);
+		}
+		if (outObject2Vector != NULL) {
+			*outObject2Vector = VECTOR3x((rect2->position.x + rect2->size.x) - (rect2->lastPosition.x + rect2->lastSize.x), (rect2->position.y + rect2->size.y) - (rect2->lastPosition.y + rect2->lastSize.y), 0x00000);
+		}
+		if (outContactArea != NULL) {
+			*outContactArea = 0x00000;
+		}
 		return true;
 	}
 	
@@ -390,6 +449,7 @@ bool intersectionHandler_rect2D_circle(CollisionObject * object1, CollisionObjec
 	CollisionRect2D * rect = (CollisionRect2D *) object1;
 	CollisionCircle * circle = (CollisionCircle *) object2;
 	fixed16_16 time, bestTime = FIXED_16_16_MAX;
+	fixed16_16 contactArea;
 	Vector3x normal, bestNormal = VECTOR3x_ZERO;
 	
 	// rect right vs. circle left
@@ -399,7 +459,7 @@ bool intersectionHandler_rect2D_circle(CollisionObject * object1, CollisionObjec
 	                               circle->lastPosition.x - circle->radius, circle->position.x - circle->radius,
 	                               rect->lastPosition.y, rect->lastPosition.y + rect->lastSize.y, rect->position.y, rect->position.y + rect->size.y,
 	                               circle->lastPosition.y, circle->lastPosition.y, circle->position.y, circle->position.y,
-	                               &time)) {
+	                               &time, &contactArea)) {
 		if (time < bestTime) {
 			bestTime = time;
 			bestNormal = VECTOR3x_LEFT;
@@ -413,7 +473,7 @@ bool intersectionHandler_rect2D_circle(CollisionObject * object1, CollisionObjec
 	                               circle->lastPosition.x + circle->radius, circle->position.x + circle->radius,
 	                               rect->lastPosition.y, rect->lastPosition.y + rect->lastSize.y, rect->position.y, rect->position.y + rect->size.y,
 	                               circle->lastPosition.y, circle->lastPosition.y, circle->position.y, circle->position.y,
-	                               &time)) {
+	                               &time, &contactArea)) {
 		if (time < bestTime) {
 			bestTime = time;
 			bestNormal = VECTOR3x_RIGHT;
@@ -427,7 +487,7 @@ bool intersectionHandler_rect2D_circle(CollisionObject * object1, CollisionObjec
 	                               circle->lastPosition.y - circle->radius, circle->position.y - circle->radius,
 	                               rect->lastPosition.x, rect->lastPosition.x + rect->lastSize.x, rect->position.x, rect->position.x + rect->size.x,
 	                               circle->lastPosition.x, circle->lastPosition.x, circle->position.x, circle->position.x,
-	                               &time)) {
+	                               &time, &contactArea)) {
 		if (time < bestTime) {
 			bestTime = time;
 			bestNormal = VECTOR3x_DOWN;
@@ -441,7 +501,7 @@ bool intersectionHandler_rect2D_circle(CollisionObject * object1, CollisionObjec
 	                               circle->lastPosition.y + circle->radius, circle->position.y + circle->radius,
 	                               rect->lastPosition.x, rect->lastPosition.x + rect->lastSize.x, rect->position.x, rect->position.x + rect->size.x,
 	                               circle->lastPosition.x, circle->lastPosition.x, circle->position.x, circle->position.x,
-	                               &time)) {
+	                               &time, &contactArea)) {
 		if (time < bestTime) {
 			bestTime = time;
 			bestNormal = VECTOR3x_UP;
