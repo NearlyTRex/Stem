@@ -23,10 +23,13 @@
 #include "collision/CollisionRecord.h"
 
 CollisionRecord CollisionRecord_inverted(CollisionRecord collision) {
-	CollisionObject * swap = collision.object1;
+	CollisionObject * swapObject = collision.object1;
 	collision.object1 = collision.object2;
-	collision.object2 = swap;
+	collision.object2 = swapObject;
 	Vector3x_invert(&collision.normal);
+	Vector3x swapVector = collision.object1Vector;
+	collision.object1Vector = collision.object2Vector;
+	collision.object2Vector = swapVector;
 	return collision;
 }
 
