@@ -99,7 +99,7 @@ static void run(void * context) {
 	stepSimulation(context);
 }
 
-void ballCollision(CollisionRecord collision, fixed16_16 timesliceSize) {
+void ballCollision(CollisionRecord collision, fixed16_16 timesliceSize, fixed16_16 subframeTime) {
 	CollisionCircle * circle = (CollisionCircle *) collision.object1;
 	struct bouncingBall * ball = (struct bouncingBall *) circle->owner;
 	Vector2x reflectedVelocity;

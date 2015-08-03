@@ -33,11 +33,11 @@ CollisionRecord CollisionRecord_inverted(CollisionRecord collision) {
 	return collision;
 }
 
-void CollisionRecord_resolve(CollisionRecord collision, fixed16_16 timesliceSize) {
+void CollisionRecord_resolve(CollisionRecord collision, fixed16_16 timesliceSize, fixed16_16 subframeTime) {
 	if (collision.object1->collisionCallback != NULL) {
-		collision.object1->collisionCallback(collision, timesliceSize);
+		collision.object1->collisionCallback(collision, timesliceSize, subframeTime);
 	}
 	if (collision.object2->collisionCallback != NULL) {
-		collision.object2->collisionCallback(CollisionRecord_inverted(collision), timesliceSize);
+		collision.object2->collisionCallback(CollisionRecord_inverted(collision), timesliceSize, subframeTime);
 	}
 }

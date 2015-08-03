@@ -374,6 +374,7 @@ static unsigned int resolveAllIterations[4];
 static int resolveAllLine;
 static fixed16_16 intersectionTime;
 static fixed16_16 lastTimesliceSizes[4];
+static fixed16_16 lastSubframeTimes[4];
 static fixed16_16 lastInterpolationAmounts[4];
 static bool interpolateCalled, resolveCalledAfterInterpolate;
 
@@ -407,7 +408,7 @@ static bool resolveAllIntersectionHandler(CollisionObject * object1, CollisionOb
 	return false;
 }
 
-static void resolveAllCollisionCallback(CollisionRecord collision, fixed16_16 timesliceSize) {
+static void resolveAllCollisionCallback(CollisionRecord collision, fixed16_16 timesliceSize, fixed16_16 subframeTime) {
 	unsigned int object1Index;
 	
 	object1Index = getTestObjectIndex(collision.object1);
@@ -416,6 +417,7 @@ static void resolveAllCollisionCallback(CollisionRecord collision, fixed16_16 ti
 	resolveAllIterations[object1Index]--;
 	collisionCallbackCalls[object1Index]++;
 	lastTimesliceSizes[object1Index] = timesliceSize;
+	lastSubframeTimes[object1Index] = subframeTime;
 	if (interpolateCalled) {
 		resolveCalledAfterInterpolate = true;
 		interpolateCalled = false;
@@ -475,17 +477,20 @@ static void testResolveAll() {
 	TestCase_assert(collisionCallbackCalls[1] == 2, "Expected 2 but got %u", collisionCallbackCalls[1]);
 	TestCase_assert(collisionCallbackCalls[2] == 1, "Expected 1 but got %u", collisionCallbackCalls[2]);
 	
-	// Verify timesliceSize is passed correctly (one iteration, any intersection time)
+	// Verify timesliceSize and subframeTime are passed correctly (one iteration, any intersection time)
 	resolveAllIterations[0] = 1;
 	resolveAllIterations[1] = 1;
+	intersectionTime = 0x00000;
 	memset(collisionCallbackCalls, 0, sizeof(collisionCallbackCalls));
 	resolveAllLine = __LINE__; CollisionResolver_resolveAll(collisionResolver);
 	TestCase_assert(collisionCallbackCalls[0] == 1, "Expected 1 but got %u", collisionCallbackCalls[0]);
 	TestCase_assert(collisionCallbackCalls[1] == 1, "Expected 1 but got %u", collisionCallbackCalls[1]);
 	TestCase_assert(lastTimesliceSizes[0] == 0x10000, "Expected 0x10000 but got 0x%05X", lastTimesliceSizes[0]);
 	TestCase_assert(lastTimesliceSizes[1] == 0x10000, "Expected 0x10000 but got 0x%05X", lastTimesliceSizes[1]);
+	TestCase_assert(lastSubframeTimes[0] == 0x00000, "Expected 0x00000 but got 0x%05X", lastSubframeTimes[0]);
+	TestCase_assert(lastSubframeTimes[1] == 0x00000, "Expected 0x00000 but got 0x%05X", lastSubframeTimes[1]);
 	
-	// Verify timesliceSize is passed correctly (two iterations, intersection time 0.25)
+	// Verify timesliceSize and subframeTime are passed correctly (two iterations, intersection time 0.25)
 	resolveAllIterations[0] = 2;
 	resolveAllIterations[1] = 2;
 	intersectionTime = 0x04000;
@@ -495,8 +500,10 @@ static void testResolveAll() {
 	TestCase_assert(collisionCallbackCalls[1] == 2, "Expected 2 but got %u", collisionCallbackCalls[1]);
 	TestCase_assert(lastTimesliceSizes[0] == 0x0C000, "Expected 0x0C000 but got 0x%05X", lastTimesliceSizes[0]);
 	TestCase_assert(lastTimesliceSizes[1] == 0x0C000, "Expected 0x0C000 but got 0x%05X", lastTimesliceSizes[1]);
+	TestCase_assert(lastSubframeTimes[0] == 0x07000, "Expected 0x07000 but got 0x%05X", lastSubframeTimes[0]);
+	TestCase_assert(lastSubframeTimes[1] == 0x07000, "Expected 0x07000 but got 0x%05X", lastSubframeTimes[1]);
 	
-	// Verify timesliceSize is passed correctly (three iterations, intersection time 0.5)
+	// Verify timesliceSize and subframeTime are passed correctly (three iterations, intersection time 0.5)
 	resolveAllIterations[0] = 3;
 	resolveAllIterations[1] = 3;
 	intersectionTime = 0x08000;
@@ -506,6 +513,8 @@ static void testResolveAll() {
 	TestCase_assert(collisionCallbackCalls[1] == 3, "Expected 3 but got %u", collisionCallbackCalls[1]);
 	TestCase_assert(lastTimesliceSizes[0] == 0x04000, "Expected 0x04000 but got 0x%05X", lastTimesliceSizes[0]);
 	TestCase_assert(lastTimesliceSizes[1] == 0x04000, "Expected 0x04000 but got 0x%05X", lastTimesliceSizes[1]);
+	TestCase_assert(lastSubframeTimes[0] == 0x0E000, "Expected 0x0E000 but got 0x%05X", lastSubframeTimes[0]);
+	TestCase_assert(lastSubframeTimes[1] == 0x0E000, "Expected 0x0E000 but got 0x%05X", lastSubframeTimes[1]);
 	
 	// Verify interpolate is called on CollisionObjects (one iteration)
 	testObjects[0]->interpolate = resolveAllTest_CollisionObject_interpolate;
@@ -602,7 +611,7 @@ static bool mutateListIntersectionHandler(CollisionObject * object1, CollisionOb
 	return false;
 }
 
-static void mutateListCollisionCallback(CollisionRecord collision, fixed16_16 timesliceSize) {
+static void mutateListCollisionCallback(CollisionRecord collision, fixed16_16 timesliceSize, fixed16_16 subframeTime) {
 	if (collision.object2->shapeType == 1) {
 		CollisionResolver_addObject(collision.object1->owner, testObjects[2]);
 		mutateListCollisionCallbackCalls[0]++;
@@ -661,7 +670,7 @@ static bool simultaneousRetestIntersectionHandler(CollisionObject * object1, Col
 	return false;
 }
 
-static void simultaneousRetestCollisionCallback(CollisionRecord collision, fixed16_16 timesliceSize) {
+static void simultaneousRetestCollisionCallback(CollisionRecord collision, fixed16_16 timesliceSize, fixed16_16 subframeTime) {
 	if (collision.object2->shapeType == 1) {
 		simultaneousRetestCollisionCallbackCalls[0]++;
 		
@@ -726,19 +735,8 @@ static bool unresolvableIntersectionHandler(CollisionObject * object1, Collision
 	return false;
 }
 
-static void unresolvableCollisionCallback(CollisionRecord collision, fixed16_16 timesliceSize) {
-	unsigned int object1Index;
-	
-	object1Index = getTestObjectIndex(collision.object1);
-	TestCase_assert(object1Index < 3, "Resolve callback called with unknown object1 %p (line %d)", collision.object1, resolveAllLine);
-	
-	resolveAllIterations[object1Index]--;
-	collisionCallbackCalls[object1Index]++;
-	lastTimesliceSizes[object1Index] = timesliceSize;
-	if (interpolateCalled) {
-		resolveCalledAfterInterpolate = true;
-		interpolateCalled = false;
-	}
+static void unresolvableCollisionCallback(CollisionRecord collision, fixed16_16 timesliceSize, fixed16_16 subframeTime) {
+	unresolvableCollisionCallbackCalls++;
 }
 
 static void testUnresolvableDetection() {

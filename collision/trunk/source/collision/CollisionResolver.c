@@ -180,13 +180,13 @@ size_t CollisionResolver_findEarliest(CollisionResolver * self, CollisionRecord 
 void CollisionResolver_resolveAll(CollisionResolver * self) {
 	size_t collisionCount, collisionIndex, collisionIndex2;
 	fixed16_16 timesliceRemaining = 0x10000;
-	fixed16_16 collisionTime;
 	size_t objectIndex;
 	unsigned int iterationCount = 0;
 	
 	self->private_ivar(inResolveAll) = true;
 	while ((collisionCount = CollisionResolver_findEarliest(self, self->private_ivar(simultaneousCollisionBuffer), MAX_SIMULTANEOUS_COLLISIONS)) > 0) {
-		collisionTime = self->private_ivar(simultaneousCollisionBuffer)[0].time;
+		fixed16_16 collisionTime = self->private_ivar(simultaneousCollisionBuffer)[0].time;
+		fixed16_16 nextTimeslice = xmul(0x10000 - collisionTime, timesliceRemaining);
 		
 		for (objectIndex = 0; objectIndex < self->objectCount; objectIndex++) {
 			if (self->objects[objectIndex]->interpolate != NULL) {
@@ -209,11 +209,11 @@ void CollisionResolver_resolveAll(CollisionResolver * self) {
 			}
 			
 			if (!objectAlreadyCollided) {
-				CollisionRecord_resolve(self->private_ivar(simultaneousCollisionBuffer)[collisionIndex], timesliceRemaining);
+				CollisionRecord_resolve(self->private_ivar(simultaneousCollisionBuffer)[collisionIndex], timesliceRemaining, 0x10000 - nextTimeslice);
 			}
 		}
 		
-		timesliceRemaining = xmul(0x10000 - collisionTime, timesliceRemaining);
+		timesliceRemaining = nextTimeslice;
 		
 		iterationCount++;
 		if (iterationCount >= MAX_ITERATIONS_TEMP) {

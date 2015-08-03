@@ -56,7 +56,8 @@ CollisionRecord CollisionRecord_inverted(CollisionRecord collision);
 
 // Calls the appropriate CollisionCallback for object1 and object2 in collision. It is the responsibility of each
 // CollisionCallback to adjust the CollisionObject's trajectory to resolve the detected collision.
-void CollisionRecord_resolve(CollisionRecord collision, fixed16_16 timesliceSize);
+// See CollisionObject.h for more details.
+void CollisionRecord_resolve(CollisionRecord collision, fixed16_16 timesliceSize, fixed16_16 subframeTime);
 
 #ifdef __cplusplus
 }

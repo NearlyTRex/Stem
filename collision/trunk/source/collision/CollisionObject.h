@@ -33,7 +33,22 @@ typedef struct CollisionObject CollisionObject;
 #include "gamemath/Vector3x.h"
 #include "stemobject/StemObject.h"
 
-typedef void (* CollisionCallback)(CollisionRecord collision, fixed16_16 timesliceSize);
+// Callback to be invoked when a collision has been detected and needs to be resolved. This callback is responsible for
+// updating the CollisionObject's trajectory or other parameters in some way to resolve the specified collision and ensure
+// it would not be detected again immediately. For example, if two CollisionCircles collide, the CollisionCallback on both
+// could set their position field to the value of their lastPosition field, which would stop the motion of both and prevent
+// further collisions between them.
+// 
+// timesliceSize specifies the scale of the timeslice that was being evaluated when this collision was detected. This may
+// include some amount of time before and/or after the collision occurred. CollisionRecord's time, object1Vector, and
+// object2Vector fields are relative to timeslice size, so you may want to divide by this value if you need to rescale any
+// of those values to whole-frame time.
+// 
+// subframeTime specifies the temporal position within the whole frame being evaluated at which the collision occurs. This
+// is in contrast to CollisionRecord's time field, which is relative to the size of the timeslice, not the entire frame.
+// At the time a CollisionCallback is called, its CollisionObject will have been interpolated to this position, so the
+// remaining trajectory is relative to the remaining time in the frame.
+typedef void (* CollisionCallback)(CollisionRecord collision, fixed16_16 timesliceSize, fixed16_16 subframeTime);
 
 #define CollisionObject_structContents(self_type) \
 	StemObject_structContents(self_type) \
