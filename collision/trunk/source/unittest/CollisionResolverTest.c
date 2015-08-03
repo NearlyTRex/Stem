@@ -368,19 +368,19 @@ static void testFindEarliest() {
 	CollisionObject_dispose(testObjects[3]);
 }
 
-static unsigned int collisionCallbackCalls[3];
-static unsigned int interpolateMethodCalls[3];
-static unsigned int resolveAllIterations[3];
+static unsigned int collisionCallbackCalls[4];
+static unsigned int interpolateMethodCalls[4];
+static unsigned int resolveAllIterations[4];
 static int resolveAllLine;
 static fixed16_16 intersectionTime;
-static fixed16_16 lastTimesliceSizes[3];
-static fixed16_16 lastInterpolationAmounts[3];
+static fixed16_16 lastTimesliceSizes[4];
+static fixed16_16 lastInterpolationAmounts[4];
 static bool interpolateCalled, resolveCalledAfterInterpolate;
 
 static unsigned int getTestObjectIndex(CollisionObject * object) {
 	unsigned int objectIndex;
 	
-	for (objectIndex = 0; objectIndex < 3; objectIndex++) {
+	for (objectIndex = 0; objectIndex < 4; objectIndex++) {
 		if (object == testObjects[objectIndex]) {
 			break;
 		}
@@ -392,9 +392,9 @@ static bool resolveAllIntersectionHandler(CollisionObject * object1, CollisionOb
 	unsigned int object1Index, object2Index;
 	
 	object1Index = getTestObjectIndex(object1);
-	TestCase_assert(object1Index < 3, "Intersection handler called with unknown object1 %p (line %d)", object1, resolveAllLine);
+	TestCase_assert(object1Index < 4, "Intersection handler called with unknown object1 %p (line %d)", object1, resolveAllLine);
 	object2Index = getTestObjectIndex(object2);
-	TestCase_assert(object2Index < 3, "Intersection handler called with unknown object2 %p (line %d)", object2, resolveAllLine);
+	TestCase_assert(object2Index < 4, "Intersection handler called with unknown object2 %p (line %d)", object2, resolveAllLine);
 	
 	if (resolveAllIterations[object1Index] > 0 && resolveAllIterations[object2Index] > 0) {
 		*outTime = intersectionTime;
@@ -411,7 +411,7 @@ static void resolveAllCollisionCallback(CollisionRecord collision, fixed16_16 ti
 	unsigned int object1Index;
 	
 	object1Index = getTestObjectIndex(collision.object1);
-	TestCase_assert(object1Index < 3, "Resolve callback called with unknown object1 %p (line %d)", collision.object1, resolveAllLine);
+	TestCase_assert(object1Index < 4, "Resolve callback called with unknown object1 %p (line %d)", collision.object1, resolveAllLine);
 	
 	resolveAllIterations[object1Index]--;
 	collisionCallbackCalls[object1Index]++;
@@ -426,7 +426,7 @@ static void resolveAllTest_CollisionObject_interpolate(CollisionObject * self, f
 	unsigned int object1Index;
 	
 	object1Index = getTestObjectIndex(self);
-	TestCase_assert(object1Index < 3, "Interpolate method called with unknown self %p (line %d)", self, resolveAllLine);
+	TestCase_assert(object1Index < 4, "Interpolate method called with unknown self %p (line %d)", self, resolveAllLine);
 	
 	interpolateMethodCalls[object1Index]++;
 	lastInterpolationAmounts[object1Index] = amount;
@@ -442,15 +442,20 @@ static void testResolveAll() {
 	IntersectionManager_setHandler(intersectionManager, 0, 1, resolveAllIntersectionHandler);
 	IntersectionManager_setHandler(intersectionManager, 0, 2, resolveAllIntersectionHandler);
 	IntersectionManager_setHandler(intersectionManager, 1, 2, nullIntersectionHandler);
+	IntersectionManager_setHandler(intersectionManager, 0, 3, nullIntersectionHandler);
+	IntersectionManager_setHandler(intersectionManager, 1, 3, nullIntersectionHandler);
+	IntersectionManager_setHandler(intersectionManager, 2, 3, resolveAllIntersectionHandler);
 	
 	testObjects[0] = CollisionObject_create(NULL, 0, resolveAllCollisionCallback);
 	testObjects[1] = CollisionObject_create(NULL, 1, resolveAllCollisionCallback);
 	testObjects[2] = CollisionObject_create(NULL, 2, resolveAllCollisionCallback);
+	testObjects[3] = CollisionObject_create(NULL, 3, resolveAllCollisionCallback);
 	
 	collisionResolver = CollisionResolver_create(intersectionManager, false, MAX_SIMULTANEOUS_COLLISIONS_DEFAULT, MAX_ITERATIONS_DEFAULT);
 	CollisionResolver_addObject(collisionResolver, testObjects[0]);
 	CollisionResolver_addObject(collisionResolver, testObjects[1]);
 	CollisionResolver_addObject(collisionResolver, testObjects[2]);
+	CollisionResolver_addObject(collisionResolver, testObjects[3]);
 	
 	// Verify simplest case (two objects, one collision, one iteration)
 	resolveAllIterations[0] = 1;
@@ -506,6 +511,7 @@ static void testResolveAll() {
 	testObjects[0]->interpolate = resolveAllTest_CollisionObject_interpolate;
 	testObjects[1]->interpolate = resolveAllTest_CollisionObject_interpolate;
 	testObjects[2]->interpolate = resolveAllTest_CollisionObject_interpolate;
+	testObjects[3]->interpolate = resolveAllTest_CollisionObject_interpolate;
 	resolveAllIterations[0] = 1;
 	resolveAllIterations[1] = 1;
 	memset(collisionCallbackCalls, 0, sizeof(collisionCallbackCalls));
@@ -537,21 +543,26 @@ static void testResolveAll() {
 	TestCase_assert(lastInterpolationAmounts[1] == 0x04000, "Expected 0x04000 but got 0x%05X", lastInterpolationAmounts[1]);
 	
 	// Verify interpolate is called per iteration, not per collision
-	resolveAllIterations[0] = 3;
+	IntersectionManager_setHandler(intersectionManager, 0, 2, nullIntersectionHandler);
+	resolveAllIterations[0] = 2;
 	resolveAllIterations[1] = 2;
-	resolveAllIterations[2] = 1;
+	resolveAllIterations[2] = 2;
+	resolveAllIterations[3] = 2;
 	memset(collisionCallbackCalls, 0, sizeof(collisionCallbackCalls));
 	memset(interpolateMethodCalls, 0, sizeof(interpolateMethodCalls));
 	intersectionTime = 0x08000;
 	resolveAllLine = __LINE__; CollisionResolver_resolveAll(collisionResolver);
-	TestCase_assert(collisionCallbackCalls[0] == 3, "Expected 3 but got %u", collisionCallbackCalls[0]);
+	TestCase_assert(collisionCallbackCalls[0] == 2, "Expected 2 but got %u", collisionCallbackCalls[0]);
 	TestCase_assert(collisionCallbackCalls[1] == 2, "Expected 2 but got %u", collisionCallbackCalls[1]);
-	TestCase_assert(collisionCallbackCalls[2] == 1, "Expected 1 but got %u", collisionCallbackCalls[2]);
+	TestCase_assert(collisionCallbackCalls[2] == 2, "Expected 2 but got %u", collisionCallbackCalls[2]);
+	TestCase_assert(collisionCallbackCalls[3] == 2, "Expected 2 but got %u", collisionCallbackCalls[3]);
 	TestCase_assert(interpolateMethodCalls[0] == 2, "Expected 2 but got %u", interpolateMethodCalls[0]);
 	TestCase_assert(interpolateMethodCalls[1] == 2, "Expected 2 but got %u", interpolateMethodCalls[1]);
 	TestCase_assert(interpolateMethodCalls[2] == 2, "Expected 2 but got %u", interpolateMethodCalls[2]);
+	TestCase_assert(interpolateMethodCalls[3] == 2, "Expected 2 but got %u", interpolateMethodCalls[3]);
 	TestCase_assert(lastInterpolationAmounts[0] == 0x08000, "Expected 0x08000 but got 0x%05X", lastInterpolationAmounts[0]);
 	TestCase_assert(lastInterpolationAmounts[1] == 0x08000, "Expected 0x08000 but got 0x%05X", lastInterpolationAmounts[1]);
+	IntersectionManager_setHandler(intersectionManager, 0, 2, resolveAllIntersectionHandler);
 	
 	// Verify interpolate is called before resolution, not after
 	resolveAllIterations[0] = 1;
@@ -563,136 +574,11 @@ static void testResolveAll() {
 	resolveAllLine = __LINE__; CollisionResolver_resolveAll(collisionResolver);
 	TestCase_assert(resolveCalledAfterInterpolate, "Expected true but got false");
 	
-	// Verify maxIterations is respected (without simultaneous collisions)
-	CollisionResolver_dispose(collisionResolver);
-	collisionResolver = CollisionResolver_create(intersectionManager, false, MAX_SIMULTANEOUS_COLLISIONS_DEFAULT, 1);
-	CollisionResolver_addObject(collisionResolver, testObjects[0]);
-	CollisionResolver_addObject(collisionResolver, testObjects[1]);
-	CollisionResolver_addObject(collisionResolver, testObjects[2]);
-	resolveAllIterations[0] = 2;
-	resolveAllIterations[1] = 2;
-	resolveAllIterations[2] = 0;
-	memset(collisionCallbackCalls, 0, sizeof(collisionCallbackCalls));
-	resolveAllLine = __LINE__; CollisionResolver_resolveAll(collisionResolver);
-	TestCase_assert(collisionCallbackCalls[0] == 1, "Expected 1 but got %u", collisionCallbackCalls[0]);
-	TestCase_assert(collisionCallbackCalls[1] == 1, "Expected 1 but got %u", collisionCallbackCalls[1]);
-	TestCase_assert(collisionCallbackCalls[2] == 0, "Expected 0 but got %u", collisionCallbackCalls[2]);
-	
-	// Verify maxIterations is respected (with simultaneous collisions)
-	resolveAllIterations[0] = 3;
-	resolveAllIterations[1] = 2;
-	resolveAllIterations[2] = 1;
-	memset(collisionCallbackCalls, 0, sizeof(collisionCallbackCalls));
-	resolveAllLine = __LINE__; CollisionResolver_resolveAll(collisionResolver);
-	TestCase_assert(collisionCallbackCalls[0] == 2, "Expected 2 but got %u", collisionCallbackCalls[0]);
-	TestCase_assert(collisionCallbackCalls[1] == 1, "Expected 1 but got %u", collisionCallbackCalls[1]);
-	TestCase_assert(collisionCallbackCalls[2] == 1, "Expected 1 but got %u", collisionCallbackCalls[2]);
-	
-	// Verify maxSimultaneousCollisions is respected (maxIterations = 1)
-	CollisionResolver_dispose(collisionResolver);
-	collisionResolver = CollisionResolver_create(intersectionManager, false, 1, 1);
-	CollisionResolver_addObject(collisionResolver, testObjects[0]);
-	CollisionResolver_addObject(collisionResolver, testObjects[1]);
-	CollisionResolver_addObject(collisionResolver, testObjects[2]);
-	resolveAllIterations[0] = 3;
-	resolveAllIterations[1] = 2;
-	resolveAllIterations[2] = 1;
-	memset(collisionCallbackCalls, 0, sizeof(collisionCallbackCalls));
-	resolveAllLine = __LINE__; CollisionResolver_resolveAll(collisionResolver);
-	TestCase_assert(collisionCallbackCalls[0] == 1, "Expected 1 but got %u", collisionCallbackCalls[0]);
-	TestCase_assert(collisionCallbackCalls[1] == 1, "Expected 1 but got %u", collisionCallbackCalls[1]);
-	TestCase_assert(collisionCallbackCalls[2] == 0, "Expected 0 but got %u", collisionCallbackCalls[2]);
-	
-	// Verify maxSimultaneousCollisions is respected (maxIterations = 2)
-	CollisionResolver_dispose(collisionResolver);
-	collisionResolver = CollisionResolver_create(intersectionManager, false, 1, 2);
-	CollisionResolver_addObject(collisionResolver, testObjects[0]);
-	CollisionResolver_addObject(collisionResolver, testObjects[1]);
-	CollisionResolver_addObject(collisionResolver, testObjects[2]);
-	resolveAllIterations[0] = 3;
-	resolveAllIterations[1] = 2;
-	resolveAllIterations[2] = 1;
-	memset(collisionCallbackCalls, 0, sizeof(collisionCallbackCalls));
-	resolveAllLine = __LINE__; CollisionResolver_resolveAll(collisionResolver);
-	TestCase_assert(collisionCallbackCalls[0] == 2, "Expected 2 but got %u", collisionCallbackCalls[0]);
-	TestCase_assert(collisionCallbackCalls[1] == 1 || collisionCallbackCalls[1] == 2, "Expected 1 or 2 but got %u", collisionCallbackCalls[1]);
-	if (collisionCallbackCalls[1] == 1) {
-		TestCase_assert(collisionCallbackCalls[2] == 1, "Expected 1 but got %u", collisionCallbackCalls[2]);
-	} else {
-		TestCase_assert(collisionCallbackCalls[2] == 0, "Expected 0 but got %u", collisionCallbackCalls[2]);
-	}
-	
 	CollisionResolver_dispose(collisionResolver);
 	IntersectionManager_dispose(intersectionManager);
 	CollisionObject_dispose(testObjects[0]);
 	CollisionObject_dispose(testObjects[1]);
 	CollisionObject_dispose(testObjects[2]);
-}
-
-static unsigned int unresolvableCollisionCallbackCalls;
-
-static bool unresolvableIntersectionHandler(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal, Vector3x * outObject1Vector, Vector3x * outObject2Vector, fixed16_16 * outContactArea) {
-	unsigned int object1Index, object2Index;
-	
-	object1Index = getTestObjectIndex(object1);
-	TestCase_assert(object1Index < 3, "Intersection handler called with unknown object1 %p (line %d)", object1, resolveAllLine);
-	object2Index = getTestObjectIndex(object2);
-	TestCase_assert(object2Index < 3, "Intersection handler called with unknown object2 %p (line %d)", object2, resolveAllLine);
-	
-	if (object1Index == 0 && object2Index == 1) {
-		*outTime = 0x00000;
-		if (outContactArea != NULL) {
-			*outContactArea = 0x00000;
-		}
-		return true;
-	}
-	if (object1Index == 0 && object2Index == 2 && unresolvableCollisionCallbackCalls == 0) {
-		*outTime = 0x08000;
-		if (outContactArea != NULL) {
-			*outContactArea = 0x00000;
-		}
-		return true;
-	}
-	return false;
-}
-
-static void unresolvableCollisionCallback(CollisionRecord collision, fixed16_16 timesliceSize) {
-	unsigned int object1Index;
-	
-	object1Index = getTestObjectIndex(collision.object1);
-	TestCase_assert(object1Index < 3, "Resolve callback called with unknown object1 %p (line %d)", collision.object1, resolveAllLine);
-	
-	resolveAllIterations[object1Index]--;
-	collisionCallbackCalls[object1Index]++;
-	lastTimesliceSizes[object1Index] = timesliceSize;
-	if (interpolateCalled) {
-		resolveCalledAfterInterpolate = true;
-		interpolateCalled = false;
-	}
-}
-
-static void testUnresolvableDetection() {
-	CollisionResolver * collisionResolver;
-	IntersectionManager * intersectionManager;
-	
-	intersectionManager = IntersectionManager_create();
-	IntersectionManager_setHandler(intersectionManager, 0, 1, unresolvableIntersectionHandler);
-	IntersectionManager_setHandler(intersectionManager, 0, 2, unresolvableIntersectionHandler);
-	IntersectionManager_setHandler(intersectionManager, 1, 2, nullIntersectionHandler);
-	
-	testObjects[0] = CollisionObject_create(NULL, 0, NULL);
-	testObjects[1] = CollisionObject_create(NULL, 1, unresolvableCollisionCallback);
-	testObjects[2] = CollisionObject_create(NULL, 2, unresolvableCollisionCallback);
-	
-	collisionResolver = CollisionResolver_create(intersectionManager, false, MAX_SIMULTANEOUS_COLLISIONS_DEFAULT, MAX_ITERATIONS_DEFAULT);
-	CollisionResolver_addObject(collisionResolver, testObjects[0]);
-	CollisionResolver_addObject(collisionResolver, testObjects[1]);
-	CollisionResolver_addObject(collisionResolver, testObjects[2]);
-	
-	// Objects 0 and 1 collide at time 0 and don't resolve themselves. Objects 0 and 2 want to collide at time 0.5, but won't get a chance if 0 and 1 use all the iterations.
-	unresolvableCollisionCallbackCalls = 0;
-	resolveAllLine = __LINE__; CollisionResolver_resolveAll(collisionResolver);
-	TestCase_assert(unresolvableCollisionCallbackCalls == 1, "Expected 1 but got %u", unresolvableCollisionCallbackCalls);
 }
 
 static unsigned int mutateListCollisionCallbackCalls[2];
@@ -761,8 +647,122 @@ static void testListMutationDuringResolution() {
 	TestCase_assert(mutateListCollisionCallbackCalls[1] == 2, "Expected 2 but got %u", mutateListCollisionCallbackCalls[1]);
 }
 
-static void testSeamCollisions() {
+static unsigned int simultaneousRetestCollisionCallbackCalls[2];
+
+static bool simultaneousRetestIntersectionHandler(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal, Vector3x * outObject1Vector, Vector3x * outObject2Vector, fixed16_16 * outContactArea) {
+	if (simultaneousRetestCollisionCallbackCalls[0] == 0) {
+		*outTime = 0x08000;
+		if (outContactArea != NULL) {
+			*outContactArea = 0x00000;
+		}
+		return true;
+	}
+	
+	return false;
+}
+
+static void simultaneousRetestCollisionCallback(CollisionRecord collision, fixed16_16 timesliceSize) {
+	if (collision.object2->shapeType == 1) {
+		simultaneousRetestCollisionCallbackCalls[0]++;
+		
+	} else if (collision.object2->shapeType == 2) {
+		simultaneousRetestCollisionCallbackCalls[1]++;
+	}
+}
+
+static void testSimultaneousCollisionRetestsObjectsAlreadyResolvedInSameIteration() {
+	CollisionResolver * collisionResolver;
+	IntersectionManager * intersectionManager;
+	
+	intersectionManager = IntersectionManager_create();
+	IntersectionManager_setHandler(intersectionManager, 0, 1, simultaneousRetestIntersectionHandler);
+	IntersectionManager_setHandler(intersectionManager, 0, 2, simultaneousRetestIntersectionHandler);
+	IntersectionManager_setHandler(intersectionManager, 1, 2, nullIntersectionHandler);
+	
+	testObjects[0] = CollisionObject_create(NULL, 0, simultaneousRetestCollisionCallback);
+	testObjects[1] = CollisionObject_create(NULL, 1, NULL);
+	testObjects[2] = CollisionObject_create(NULL, 2, NULL);
+	
+	collisionResolver = CollisionResolver_create(intersectionManager, false, MAX_SIMULTANEOUS_COLLISIONS_DEFAULT, MAX_ITERATIONS_DEFAULT);
+	CollisionResolver_addObject(collisionResolver, testObjects[0]);
+	CollisionResolver_addObject(collisionResolver, testObjects[1]);
+	CollisionResolver_addObject(collisionResolver, testObjects[2]);
+	
+	simultaneousRetestCollisionCallbackCalls[0] = 0;
+	simultaneousRetestCollisionCallbackCalls[1] = 0;
+	resolveAllLine = __LINE__; CollisionResolver_resolveAll(collisionResolver);
+	TestCase_assert(simultaneousRetestCollisionCallbackCalls[0] == 1, "Expected 1 but got %u", simultaneousRetestCollisionCallbackCalls[0]);
+	TestCase_assert(simultaneousRetestCollisionCallbackCalls[1] == 0, "Expected 0 but got %u", simultaneousRetestCollisionCallbackCalls[1]);
+}
+
+static void testContactAreaSubsorting() {
 	TestCase_assert(false, "Unimplemented");
+}
+
+static unsigned int unresolvableCollisionCallbackCalls;
+
+static bool unresolvableIntersectionHandler(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal, Vector3x * outObject1Vector, Vector3x * outObject2Vector, fixed16_16 * outContactArea) {
+	unsigned int object1Index, object2Index;
+	
+	object1Index = getTestObjectIndex(object1);
+	TestCase_assert(object1Index < 3, "Intersection handler called with unknown object1 %p (line %d)", object1, resolveAllLine);
+	object2Index = getTestObjectIndex(object2);
+	TestCase_assert(object2Index < 3, "Intersection handler called with unknown object2 %p (line %d)", object2, resolveAllLine);
+	
+	if (object1Index == 0 && object2Index == 1) {
+		*outTime = 0x00000;
+		if (outContactArea != NULL) {
+			*outContactArea = 0x00000;
+		}
+		return true;
+	}
+	if (object1Index == 0 && object2Index == 2 && unresolvableCollisionCallbackCalls == 0) {
+		*outTime = 0x08000;
+		if (outContactArea != NULL) {
+			*outContactArea = 0x00000;
+		}
+		return true;
+	}
+	return false;
+}
+
+static void unresolvableCollisionCallback(CollisionRecord collision, fixed16_16 timesliceSize) {
+	unsigned int object1Index;
+	
+	object1Index = getTestObjectIndex(collision.object1);
+	TestCase_assert(object1Index < 3, "Resolve callback called with unknown object1 %p (line %d)", collision.object1, resolveAllLine);
+	
+	resolveAllIterations[object1Index]--;
+	collisionCallbackCalls[object1Index]++;
+	lastTimesliceSizes[object1Index] = timesliceSize;
+	if (interpolateCalled) {
+		resolveCalledAfterInterpolate = true;
+		interpolateCalled = false;
+	}
+}
+
+static void testUnresolvableDetection() {
+	CollisionResolver * collisionResolver;
+	IntersectionManager * intersectionManager;
+	
+	intersectionManager = IntersectionManager_create();
+	IntersectionManager_setHandler(intersectionManager, 0, 1, unresolvableIntersectionHandler);
+	IntersectionManager_setHandler(intersectionManager, 0, 2, unresolvableIntersectionHandler);
+	IntersectionManager_setHandler(intersectionManager, 1, 2, nullIntersectionHandler);
+	
+	testObjects[0] = CollisionObject_create(NULL, 0, NULL);
+	testObjects[1] = CollisionObject_create(NULL, 1, unresolvableCollisionCallback);
+	testObjects[2] = CollisionObject_create(NULL, 2, unresolvableCollisionCallback);
+	
+	collisionResolver = CollisionResolver_create(intersectionManager, false, MAX_SIMULTANEOUS_COLLISIONS_DEFAULT, MAX_ITERATIONS_DEFAULT);
+	CollisionResolver_addObject(collisionResolver, testObjects[0]);
+	CollisionResolver_addObject(collisionResolver, testObjects[1]);
+	CollisionResolver_addObject(collisionResolver, testObjects[2]);
+	
+	// Objects 0 and 1 collide at time 0 and don't resolve themselves. Objects 0 and 2 want to collide at time 0.5, but won't get a chance if 0 and 1 use all the iterations.
+	unresolvableCollisionCallbackCalls = 0;
+	resolveAllLine = __LINE__; CollisionResolver_resolveAll(collisionResolver);
+	TestCase_assert(unresolvableCollisionCallbackCalls == 1, "Expected 1 but got %u", unresolvableCollisionCallbackCalls);
 }
 
 TEST_SUITE(CollisionResolverTest,
@@ -772,6 +772,7 @@ TEST_SUITE(CollisionResolverTest,
            testQuerySingle,
            testFindEarliest,
            testResolveAll,
-           testUnresolvableDetection,
            testListMutationDuringResolution,
-           testSeamCollisions)
+           testSimultaneousCollisionRetestsObjectsAlreadyResolvedInSameIteration,
+           testContactAreaSubsorting,
+           testUnresolvableDetection)

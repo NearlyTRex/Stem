@@ -177,7 +177,7 @@ size_t CollisionResolver_findEarliest(CollisionResolver * self, CollisionRecord 
 }
 
 void CollisionResolver_resolveAll(CollisionResolver * self) {
-	size_t collisionCount, collisionIndex;
+	size_t collisionCount, collisionIndex, collisionIndex2;
 	fixed16_16 timesliceRemaining = 0x10000;
 	fixed16_16 collisionTime;
 	size_t objectIndex;
@@ -194,7 +194,22 @@ void CollisionResolver_resolveAll(CollisionResolver * self) {
 		}
 		
 		for (collisionIndex = 0; collisionIndex < collisionCount; collisionIndex++) {
-			CollisionRecord_resolve(self->private_ivar(simultaneousCollisionBuffer)[collisionIndex], timesliceRemaining);
+			bool objectAlreadyCollided = false;
+			
+			// If an object has already been resolved during a higher-priority simultaneous collision at this timepoint, boot it to the next iteration
+			for (collisionIndex2 = 0; collisionIndex2 < collisionIndex; collisionIndex2++) {
+				if (self->private_ivar(simultaneousCollisionBuffer)[collisionIndex2].object1 == self->private_ivar(simultaneousCollisionBuffer)[collisionIndex].object1 ||
+				    self->private_ivar(simultaneousCollisionBuffer)[collisionIndex2].object1 == self->private_ivar(simultaneousCollisionBuffer)[collisionIndex].object2 ||
+				    self->private_ivar(simultaneousCollisionBuffer)[collisionIndex2].object2 == self->private_ivar(simultaneousCollisionBuffer)[collisionIndex].object1 ||
+				    self->private_ivar(simultaneousCollisionBuffer)[collisionIndex2].object2 == self->private_ivar(simultaneousCollisionBuffer)[collisionIndex].object2) {
+					objectAlreadyCollided = true;
+					break;
+				}
+			}
+			
+			if (!objectAlreadyCollided) {
+				CollisionRecord_resolve(self->private_ivar(simultaneousCollisionBuffer)[collisionIndex], timesliceRemaining);
+			}
 		}
 		
 		timesliceRemaining = xmul(0x10000 - collisionTime, timesliceRemaining);
