@@ -42,8 +42,6 @@ typedef struct CollisionRecord CollisionRecord;
 	IntersectionManager * intersectionManager; \
 	bool private_ivar(intersectionManagerOwned); \
 	bool private_ivar(inResolveAll); \
-	size_t private_ivar(maxSimultaneousCollisions); \
-	size_t private_ivar(maxIterations); \
 	CollisionRecord * private_ivar(simultaneousCollisionBuffer); \
 	CollisionObject ** objects; \
 	size_t objectCount; \
@@ -51,17 +49,12 @@ typedef struct CollisionRecord CollisionRecord;
 
 stemobject_struct_definition(CollisionResolver)
 
-#define MAX_SIMULTANEOUS_COLLISIONS_DEFAULT 128
-#define MAX_ITERATIONS_DEFAULT 128
-
 // Creates and initializes a CollisionResolver.
 // intersectionManager will be used for all intersection tests in querySingle, findEarliest, and resolveAll.
 // If takeOwnership is true, intersectionManager will be freed when this CollisionResolver is freed.
 // If takeOwnership is false, the caller retains ownership of intersectionManager and is responsible for freeing it.
-// maxSimultaneousCollisions specifies the number of collisions that can be processed in a single resolveAll iteration.
-// maxIterations specifies the number of iterations resolveAll will attempt before giving up if resolution is incomplete.
-CollisionResolver * CollisionResolver_create(IntersectionManager * intersectionManager, bool takeOwnership, size_t maxSimultaneousCollisions, size_t maxIterations);
-bool CollisionResolver_init(CollisionResolver * self, IntersectionManager * intersectionManager, bool takeOwnership, size_t maxSimultaneousCollisions, size_t maxIterations);
+CollisionResolver * CollisionResolver_create(IntersectionManager * intersectionManager, bool takeOwnership);
+bool CollisionResolver_init(CollisionResolver * self, IntersectionManager * intersectionManager, bool takeOwnership);
 
 // Disposes the CollisionResolver and all objects owned by it. Objects added with addObject are not owned by CollisionResolver.
 void CollisionResolver_dispose(CollisionResolver * self);

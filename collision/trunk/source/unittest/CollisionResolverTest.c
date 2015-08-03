@@ -15,21 +15,21 @@ static void testInit() {
 	IntersectionManager * intersectionManager;
 	
 	memset(&collisionResolver, 0x00, sizeof(collisionResolver));
-	CollisionResolver_init(&collisionResolver, NULL, false, MAX_SIMULTANEOUS_COLLISIONS_DEFAULT, MAX_ITERATIONS_DEFAULT);
+	CollisionResolver_init(&collisionResolver, NULL, false);
 	verifyInit(__LINE__, &collisionResolver, NULL);
 	CollisionResolver_dispose(&collisionResolver);
 	
 	memset(&collisionResolver, 0xFF, sizeof(collisionResolver));
-	CollisionResolver_init(&collisionResolver, NULL, false, MAX_SIMULTANEOUS_COLLISIONS_DEFAULT, MAX_ITERATIONS_DEFAULT);
+	CollisionResolver_init(&collisionResolver, NULL, false);
 	verifyInit(__LINE__, &collisionResolver, NULL);
 	CollisionResolver_dispose(&collisionResolver);
 	
-	collisionResolverPtr = CollisionResolver_create(NULL, false, MAX_SIMULTANEOUS_COLLISIONS_DEFAULT, MAX_ITERATIONS_DEFAULT);
+	collisionResolverPtr = CollisionResolver_create(NULL, false);
 	verifyInit(__LINE__, collisionResolverPtr, NULL);
 	CollisionResolver_dispose(collisionResolverPtr);
 	
 	intersectionManager = IntersectionManager_create();
-	collisionResolverPtr = CollisionResolver_create(intersectionManager, false, MAX_SIMULTANEOUS_COLLISIONS_DEFAULT, MAX_ITERATIONS_DEFAULT);
+	collisionResolverPtr = CollisionResolver_create(intersectionManager, false);
 	verifyInit(__LINE__, collisionResolverPtr, intersectionManager);
 	CollisionResolver_dispose(collisionResolverPtr);
 	IntersectionManager_dispose(intersectionManager);
@@ -42,7 +42,7 @@ static void testAddObject() {
 	object1 = CollisionObject_create(NULL, 0, NULL);
 	object2 = CollisionObject_create(NULL, 1, NULL);
 	
-	collisionResolver = CollisionResolver_create(NULL, false, MAX_SIMULTANEOUS_COLLISIONS_DEFAULT, MAX_ITERATIONS_DEFAULT);
+	collisionResolver = CollisionResolver_create(NULL, false);
 	verifyInit(__LINE__, collisionResolver, NULL);
 	CollisionResolver_addObject(collisionResolver, object1);
 	TestCase_assert(collisionResolver->objectCount == 1, "Expected 1 but got " SIZE_T_FORMAT, collisionResolver->objectCount);
@@ -70,7 +70,7 @@ static void testRemoveObject() {
 	object2 = CollisionObject_create(NULL, 1, NULL);
 	object3 = CollisionObject_create(NULL, 2, NULL);
 	
-	collisionResolver = CollisionResolver_create(NULL, false, MAX_SIMULTANEOUS_COLLISIONS_DEFAULT, MAX_ITERATIONS_DEFAULT);
+	collisionResolver = CollisionResolver_create(NULL, false);
 	verifyInit(__LINE__, collisionResolver, NULL);
 	CollisionResolver_addObject(collisionResolver, object1);
 	CollisionResolver_addObject(collisionResolver, object2);
@@ -155,7 +155,7 @@ static void testQuerySingle() {
 	testObjects[2] = CollisionObject_create(NULL, 1, NULL);
 	testObjects[3] = CollisionObject_create(NULL, 1, NULL);
 	
-	collisionResolver = CollisionResolver_create(intersectionManager, false, MAX_SIMULTANEOUS_COLLISIONS_DEFAULT, MAX_ITERATIONS_DEFAULT);
+	collisionResolver = CollisionResolver_create(intersectionManager, false);
 	
 	// Verify no collision with only object1 added
 	CollisionResolver_addObject(collisionResolver, testObjects[0]);
@@ -270,7 +270,7 @@ static void testFindEarliest() {
 	testObjects[2] = CollisionObject_create(NULL, 1, NULL);
 	testObjects[3] = CollisionObject_create(NULL, 1, NULL);
 	
-	collisionResolver = CollisionResolver_create(intersectionManager, false, MAX_SIMULTANEOUS_COLLISIONS_DEFAULT, MAX_ITERATIONS_DEFAULT);
+	collisionResolver = CollisionResolver_create(intersectionManager, false);
 	
 	// Verify no collision with only object1 added
 	CollisionResolver_addObject(collisionResolver, testObjects[0]);
@@ -451,7 +451,7 @@ static void testResolveAll() {
 	testObjects[2] = CollisionObject_create(NULL, 2, resolveAllCollisionCallback);
 	testObjects[3] = CollisionObject_create(NULL, 3, resolveAllCollisionCallback);
 	
-	collisionResolver = CollisionResolver_create(intersectionManager, false, MAX_SIMULTANEOUS_COLLISIONS_DEFAULT, MAX_ITERATIONS_DEFAULT);
+	collisionResolver = CollisionResolver_create(intersectionManager, false);
 	CollisionResolver_addObject(collisionResolver, testObjects[0]);
 	CollisionResolver_addObject(collisionResolver, testObjects[1]);
 	CollisionResolver_addObject(collisionResolver, testObjects[2]);
@@ -626,7 +626,7 @@ static void testListMutationDuringResolution() {
 	IntersectionManager_setHandler(intersectionManager, 0, 2, mutateListIntersectionHandler);
 	IntersectionManager_setHandler(intersectionManager, 1, 2, nullIntersectionHandler);
 	
-	collisionResolver = CollisionResolver_create(intersectionManager, false, MAX_SIMULTANEOUS_COLLISIONS_DEFAULT, MAX_ITERATIONS_DEFAULT);
+	collisionResolver = CollisionResolver_create(intersectionManager, false);
 	testObjects[0] = CollisionObject_create(collisionResolver, 0, mutateListCollisionCallback);
 	testObjects[1] = CollisionObject_create(collisionResolver, 1, NULL);
 	testObjects[2] = CollisionObject_create(collisionResolver, 2, NULL);
@@ -683,7 +683,7 @@ static void testSimultaneousCollisionRetestsObjectsAlreadyResolvedInSameIteratio
 	testObjects[1] = CollisionObject_create(NULL, 1, NULL);
 	testObjects[2] = CollisionObject_create(NULL, 2, NULL);
 	
-	collisionResolver = CollisionResolver_create(intersectionManager, false, MAX_SIMULTANEOUS_COLLISIONS_DEFAULT, MAX_ITERATIONS_DEFAULT);
+	collisionResolver = CollisionResolver_create(intersectionManager, false);
 	CollisionResolver_addObject(collisionResolver, testObjects[0]);
 	CollisionResolver_addObject(collisionResolver, testObjects[1]);
 	CollisionResolver_addObject(collisionResolver, testObjects[2]);
@@ -754,7 +754,7 @@ static void testUnresolvableDetection() {
 	testObjects[1] = CollisionObject_create(NULL, 1, unresolvableCollisionCallback);
 	testObjects[2] = CollisionObject_create(NULL, 2, unresolvableCollisionCallback);
 	
-	collisionResolver = CollisionResolver_create(intersectionManager, false, MAX_SIMULTANEOUS_COLLISIONS_DEFAULT, MAX_ITERATIONS_DEFAULT);
+	collisionResolver = CollisionResolver_create(intersectionManager, false);
 	CollisionResolver_addObject(collisionResolver, testObjects[0]);
 	CollisionResolver_addObject(collisionResolver, testObjects[1]);
 	CollisionResolver_addObject(collisionResolver, testObjects[2]);

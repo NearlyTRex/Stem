@@ -412,7 +412,7 @@ void BouncingBallScreen_activate(BouncingBallScreen * self) {
 	unsigned int ballIndex;
 	int randomSeed;
 	
-	self->resolver = CollisionResolver_create(self->intersectionManager, false, MAX_SIMULTANEOUS_COLLISIONS_DEFAULT, MAX_ITERATIONS_DEFAULT);
+	self->resolver = CollisionResolver_create(self->intersectionManager, false);
 	CollisionResolver_addObject(self->resolver, (CollisionObject *) CollisionRect2D_create(NULL, NULL, VECTOR2x(BALL_AREA_X, BALL_AREA_Y), VECTOR2x(BALL_AREA_X * -2, BALL_AREA_Y * -2)));
 	
 	if (g_fixedRandomSeed) {

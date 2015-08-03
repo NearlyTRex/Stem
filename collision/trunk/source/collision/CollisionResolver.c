@@ -26,19 +26,20 @@
 
 #define SUPERCLASS StemObject
 
-CollisionResolver * CollisionResolver_create(IntersectionManager * intersectionManager, bool takeOwnership, size_t maxSimultaneousCollisions, size_t maxIterations) {
-	stemobject_create_implementation(CollisionResolver, init, intersectionManager, takeOwnership, maxSimultaneousCollisions, maxIterations)
+#define MAX_ITERATIONS_TEMP 128
+#define MAX_SIMULTANEOUS_COLLISIONS 128
+
+CollisionResolver * CollisionResolver_create(IntersectionManager * intersectionManager, bool takeOwnership) {
+	stemobject_create_implementation(CollisionResolver, init, intersectionManager, takeOwnership)
 }
 
-bool CollisionResolver_init(CollisionResolver * self, IntersectionManager * intersectionManager, bool takeOwnership, size_t maxSimultaneousCollisions, size_t maxIterations) {
+bool CollisionResolver_init(CollisionResolver * self, IntersectionManager * intersectionManager, bool takeOwnership) {
 	call_super(init, self);
 	self->dispose = CollisionResolver_dispose;
 	self->intersectionManager = intersectionManager;
 	self->private_ivar(intersectionManagerOwned) = takeOwnership;
 	self->private_ivar(inResolveAll) = false;
-	self->private_ivar(maxSimultaneousCollisions) = maxSimultaneousCollisions;
-	self->private_ivar(simultaneousCollisionBuffer) = malloc(sizeof(*self->private_ivar(simultaneousCollisionBuffer)) * self->private_ivar(maxSimultaneousCollisions));
-	self->private_ivar(maxIterations) = maxIterations;
+	self->private_ivar(simultaneousCollisionBuffer) = malloc(sizeof(*self->private_ivar(simultaneousCollisionBuffer)) * MAX_SIMULTANEOUS_COLLISIONS);
 	self->objectCount = 0;
 	self->objectAllocatedCount = 32;
 	self->objects = malloc(sizeof(CollisionObject *) * self->objectAllocatedCount);
@@ -184,7 +185,7 @@ void CollisionResolver_resolveAll(CollisionResolver * self) {
 	unsigned int iterationCount = 0;
 	
 	self->private_ivar(inResolveAll) = true;
-	while ((collisionCount = CollisionResolver_findEarliest(self, self->private_ivar(simultaneousCollisionBuffer), self->private_ivar(maxSimultaneousCollisions))) > 0) {
+	while ((collisionCount = CollisionResolver_findEarliest(self, self->private_ivar(simultaneousCollisionBuffer), MAX_SIMULTANEOUS_COLLISIONS)) > 0) {
 		collisionTime = self->private_ivar(simultaneousCollisionBuffer)[0].time;
 		
 		for (objectIndex = 0; objectIndex < self->objectCount; objectIndex++) {
@@ -215,7 +216,8 @@ void CollisionResolver_resolveAll(CollisionResolver * self) {
 		timesliceRemaining = xmul(0x10000 - collisionTime, timesliceRemaining);
 		
 		iterationCount++;
-		if (iterationCount >= self->private_ivar(maxIterations)) {
+		if (iterationCount >= MAX_ITERATIONS_TEMP) {
+			fprintf(stderr, "Warning: Max iterations (%u) exceeded\n", MAX_ITERATIONS_TEMP);
 			break;
 		}
 	}
