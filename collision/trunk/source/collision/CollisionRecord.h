@@ -41,6 +41,9 @@ struct CollisionRecord {
 	// of timeslice) to 0x10000 (end of timeslice).
 	fixed16_16 time;
 	
+	// Amount of contact between the two objects. This is used internally by CollisionResolver to sort simultaneous collisions.
+	fixed16_16 contactArea;
+	
 	// Normal vector of the surface of object2 at the first point of intersection by object1
 	Vector3x normal;
 	

@@ -91,7 +91,7 @@ void CollisionResolver_removeObject(CollisionResolver * self, CollisionObject * 
 
 static bool CollisionResolver_queryPairInternal(CollisionResolver * self, CollisionObject * object1, CollisionObject * object2, CollisionRecord * outCollision) {
 	Vector3x normal;
-	fixed16_16 frameTime;
+	fixed16_16 frameTime, contactArea;
 	IntersectionHandler handler;
 	bool intersectionFound;
 	
@@ -108,11 +108,11 @@ static bool CollisionResolver_queryPairInternal(CollisionResolver * self, Collis
 			fprintf(stderr, "Warning: Collision objects of shapeType %d and %d have been added to CollisionResolver %p with no matching intersection handler for those types\n", object1->shapeType, object2->shapeType, self);
 #endif
 		} else {
-			intersectionFound = handler(object2, object1, &frameTime, &normal, NULL, NULL, NULL);
+			intersectionFound = handler(object2, object1, &frameTime, &normal, NULL, NULL, &contactArea);
 			Vector3x_invert(&normal);
 		}
 	} else {
-		intersectionFound = handler(object1, object2, &frameTime, &normal, NULL, NULL, NULL);
+		intersectionFound = handler(object1, object2, &frameTime, &normal, NULL, NULL, &contactArea);
 	}
 	
 	if (intersectionFound) {
@@ -120,6 +120,7 @@ static bool CollisionResolver_queryPairInternal(CollisionResolver * self, Collis
 		outCollision->object2 = object2;
 		outCollision->normal = normal;
 		outCollision->time = frameTime;
+		outCollision->contactArea = contactArea;
 		return true;
 	}
 	return false;
@@ -127,7 +128,7 @@ static bool CollisionResolver_queryPairInternal(CollisionResolver * self, Collis
 
 bool CollisionResolver_querySingle(CollisionResolver * self, CollisionObject * object, CollisionRecord * outCollision) {
 	size_t objectIndex;
-	CollisionRecord collision, bestCollision = {NULL, NULL, FIXED_16_16_MAX, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}};
+	CollisionRecord collision, bestCollision = {NULL, NULL, FIXED_16_16_MAX, 0, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}};
 	
 	for (objectIndex = 0; objectIndex < self->objectCount; objectIndex++) {
 		if (self->objects[objectIndex] == object) {
@@ -151,7 +152,7 @@ size_t CollisionResolver_findEarliest(CollisionResolver * self, CollisionRecord 
 	unsigned int objectIndex, objectIndex2;
 	bool queryResult;
 	CollisionRecord collision;
-	size_t collisionCount = 0;
+	size_t collisionCount = 0, collisionIndex, collisionIndex2;
 	fixed16_16 bestTime = FIXED_16_16_MAX;
 	
 	if (collisionCountMax == 0) {
@@ -174,6 +175,15 @@ size_t CollisionResolver_findEarliest(CollisionResolver * self, CollisionRecord 
 			}
 		}
 	}
+	
+	for (collisionIndex = 1; collisionIndex < collisionCount; collisionIndex++) {
+		collision = outCollisions[collisionIndex];
+		for (collisionIndex2 = collisionIndex; collisionIndex2 > 0 && outCollisions[collisionIndex2 - 1].contactArea < collision.contactArea; collisionIndex2--) {
+			outCollisions[collisionIndex2] = outCollisions[collisionIndex2 - 1];
+			outCollisions[collisionIndex2 - 1] = collision;
+		}
+	}
+	
 	return collisionCount;
 }
 

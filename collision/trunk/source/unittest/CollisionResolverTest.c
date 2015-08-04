@@ -100,37 +100,40 @@ static void testRemoveObject() {
 
 static CollisionObject * testObjects[4];
 
+static unsigned int getTestObjectIndex(CollisionObject * object) {
+	unsigned int objectIndex;
+	
+	for (objectIndex = 0; objectIndex < sizeof(testObjects) / sizeof(testObjects[0]); objectIndex++) {
+		if (object == testObjects[objectIndex]) {
+			break;
+		}
+	}
+	return objectIndex;
+}
+
 static bool querySingleIntersectionHandler(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal, Vector3x * outObject1Vector, Vector3x * outObject2Vector, fixed16_16 * outContactArea) {
 	if (object2 == testObjects[0]) {
 		*outTime = 0x00000;
 		*outNormal = VECTOR3x(0x10000, 0x00000, 0x00000);
-		if (outContactArea != NULL) {
-			*outContactArea = 0x00000;
-		}
+		*outContactArea = 0x00000;
 		return true;
 	}
 	if (object2 == testObjects[1]) {
 		*outTime = 0x08000;
 		*outNormal = VECTOR3x(0x10000, 0x00000, 0x00000);
-		if (outContactArea != NULL) {
-			*outContactArea = 0x00000;
-		}
+		*outContactArea = 0x00000;
 		return true;
 	}
 	if (object2 == testObjects[2]) {
 		*outTime = 0x0C000;
 		*outNormal = VECTOR3x(0x00000, 0x10000, 0x00000);
-		if (outContactArea != NULL) {
-			*outContactArea = 0x00000;
-		}
+		*outContactArea = 0x00000;
 		return true;
 	}
 	if (object2 == testObjects[3]) {
 		*outTime = 0x04000;
 		*outNormal = VECTOR3x(0x00000, 0x00000, 0x10000);
-		if (outContactArea != NULL) {
-			*outContactArea = 0x00000;
-		}
+		*outContactArea = 0x00000;
 		return true;
 	}
 	return false;
@@ -227,28 +230,16 @@ static void testQuerySingle() {
 }
 
 static bool findEarliestIntersectionHandler(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal, Vector3x * outObject1Vector, Vector3x * outObject2Vector, fixed16_16 * outContactArea) {
-	if (object2 == testObjects[1]) {
+	if (object2 == testObjects[1] || object2 == testObjects[2]) {
 		*outTime = 0x08000;
 		*outNormal = VECTOR3x(0x10000, 0x00000, 0x00000);
-		if (outContactArea != NULL) {
-			*outContactArea = 0x00000;
-		}
-		return true;
-	}
-	if (object2 == testObjects[2]) {
-		*outTime = 0x08000;
-		*outNormal = VECTOR3x(0x10000, 0x00000, 0x00000);
-		if (outContactArea != NULL) {
-			*outContactArea = 0x00000;
-		}
+		*outContactArea = 0x00000;
 		return true;
 	}
 	if (object2 == testObjects[3]) {
 		*outTime = 0x08001;
 		*outNormal = VECTOR3x(0x10000, 0x00000, 0x00000);
-		if (outContactArea != NULL) {
-			*outContactArea = 0x00000;
-		}
+		*outContactArea = 0x00000;
 		return true;
 	}
 	return false;
@@ -368,6 +359,63 @@ static void testFindEarliest() {
 	CollisionObject_dispose(testObjects[3]);
 }
 
+static fixed16_16 contactAreas[2];
+
+static bool contactAreaIntersectionHandler(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal, Vector3x * outObject1Vector, Vector3x * outObject2Vector, fixed16_16 * outContactArea) {
+	if (object2 == testObjects[1]) {
+		*outTime = 0x08000;
+		*outNormal = VECTOR3x(0x10000, 0x00000, 0x00000);
+		*outContactArea = contactAreas[0];
+		return true;
+	}
+	if (object2 == testObjects[2]) {
+		*outTime = 0x08000;
+		*outNormal = VECTOR3x(0x10000, 0x00000, 0x00000);
+		*outContactArea = contactAreas[1];
+		return true;
+	}
+	return false;
+}
+
+static void testFindEarliestSortsByContactArea() {
+	CollisionResolver * collisionResolver;
+	IntersectionManager * intersectionManager;
+	size_t resultCount;
+	CollisionRecord collisionRecords[2];
+	
+	intersectionManager = IntersectionManager_create();
+	IntersectionManager_setHandler(intersectionManager, 0, 1, contactAreaIntersectionHandler);
+	IntersectionManager_setHandler(intersectionManager, 0, 2, contactAreaIntersectionHandler);
+	IntersectionManager_setHandler(intersectionManager, 1, 2, nullIntersectionHandler);
+	
+	testObjects[0] = CollisionObject_create(NULL, 0, NULL);
+	testObjects[1] = CollisionObject_create(NULL, 1, NULL);
+	testObjects[2] = CollisionObject_create(NULL, 2, NULL);
+	
+	collisionResolver = CollisionResolver_create(intersectionManager, false);
+	CollisionResolver_addObject(collisionResolver, testObjects[0]);
+	CollisionResolver_addObject(collisionResolver, testObjects[1]);
+	CollisionResolver_addObject(collisionResolver, testObjects[2]);
+	
+	contactAreas[0] = 1;
+	contactAreas[1] = 0;
+	resultCount = CollisionResolver_findEarliest(collisionResolver, collisionRecords, 2);
+	TestCase_assert(resultCount == 2, "Expected 2 but got " SIZE_T_FORMAT, resultCount);
+	TestCase_assert(collisionRecords[0].object1 == testObjects[0], "Expected %p but got %p", testObjects[0], collisionRecords[0].object1);
+	TestCase_assert(collisionRecords[0].object2 == testObjects[1], "Expected %p but got %p", testObjects[1], collisionRecords[0].object2);
+	TestCase_assert(collisionRecords[1].object1 == testObjects[0], "Expected %p but got %p", testObjects[0], collisionRecords[1].object1);
+	TestCase_assert(collisionRecords[1].object2 == testObjects[2], "Expected %p but got %p", testObjects[2], collisionRecords[1].object2);
+	
+	contactAreas[0] = 0;
+	contactAreas[1] = 1;
+	resultCount = CollisionResolver_findEarliest(collisionResolver, collisionRecords, 2);
+	TestCase_assert(resultCount == 2, "Expected 2 but got " SIZE_T_FORMAT, resultCount);
+	TestCase_assert(collisionRecords[0].object1 == testObjects[0], "Expected %p but got %p", testObjects[0], collisionRecords[0].object1);
+	TestCase_assert(collisionRecords[0].object2 == testObjects[2], "Expected %p but got %p", testObjects[2], collisionRecords[0].object2);
+	TestCase_assert(collisionRecords[1].object1 == testObjects[0], "Expected %p but got %p", testObjects[0], collisionRecords[1].object1);
+	TestCase_assert(collisionRecords[1].object2 == testObjects[1], "Expected %p but got %p", testObjects[1], collisionRecords[1].object2);
+}
+
 static unsigned int collisionCallbackCalls[4];
 static unsigned int interpolateMethodCalls[4];
 static unsigned int resolveAllIterations[4];
@@ -377,17 +425,6 @@ static fixed16_16 lastTimesliceSizes[4];
 static fixed16_16 lastSubframeTimes[4];
 static fixed16_16 lastInterpolationAmounts[4];
 static bool interpolateCalled, resolveCalledAfterInterpolate;
-
-static unsigned int getTestObjectIndex(CollisionObject * object) {
-	unsigned int objectIndex;
-	
-	for (objectIndex = 0; objectIndex < 4; objectIndex++) {
-		if (object == testObjects[objectIndex]) {
-			break;
-		}
-	}
-	return objectIndex;
-}
 
 static bool resolveAllIntersectionHandler(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal, Vector3x * outObject1Vector, Vector3x * outObject2Vector, fixed16_16 * outContactArea) {
 	unsigned int object1Index, object2Index;
@@ -399,9 +436,7 @@ static bool resolveAllIntersectionHandler(CollisionObject * object1, CollisionOb
 	
 	if (resolveAllIterations[object1Index] > 0 && resolveAllIterations[object2Index] > 0) {
 		*outTime = intersectionTime;
-		if (outContactArea != NULL) {
-			*outContactArea = 0x00000;
-		}
+		*outContactArea = 0x00000;
 		return true;
 	}
 	
@@ -595,16 +630,12 @@ static unsigned int mutateListCollisionCallbackCalls[2];
 static bool mutateListIntersectionHandler(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal, Vector3x * outObject1Vector, Vector3x * outObject2Vector, fixed16_16 * outContactArea) {
 	if (object2->shapeType == 1) {
 		*outTime = 0x08000;
-		if (outContactArea != NULL) {
-			*outContactArea = 0x00000;
-		}
+		*outContactArea = 0x00000;
 		return true;
 		
 	} else if (object2->shapeType == 2 && mutateListCollisionCallbackCalls[1] < 2) {
 		*outTime = 0x00000;
-		if (outContactArea != NULL) {
-			*outContactArea = 0x00000;
-		}
+		*outContactArea = 0x00000;
 		return true;
 	}
 	
@@ -661,9 +692,7 @@ static unsigned int simultaneousRetestCollisionCallbackCalls[2];
 static bool simultaneousRetestIntersectionHandler(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal, Vector3x * outObject1Vector, Vector3x * outObject2Vector, fixed16_16 * outContactArea) {
 	if (simultaneousRetestCollisionCallbackCalls[0] == 0) {
 		*outTime = 0x08000;
-		if (outContactArea != NULL) {
-			*outContactArea = 0x00000;
-		}
+		*outContactArea = 0x00000;
 		return true;
 	}
 	
@@ -704,10 +733,6 @@ static void testSimultaneousCollisionRetestsObjectsAlreadyResolvedInSameIteratio
 	TestCase_assert(simultaneousRetestCollisionCallbackCalls[1] == 0, "Expected 0 but got %u", simultaneousRetestCollisionCallbackCalls[1]);
 }
 
-static void testContactAreaSubsorting() {
-	TestCase_assert(false, "Unimplemented");
-}
-
 static unsigned int unresolvableCollisionCallbackCalls;
 
 static bool unresolvableIntersectionHandler(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal, Vector3x * outObject1Vector, Vector3x * outObject2Vector, fixed16_16 * outContactArea) {
@@ -720,16 +745,12 @@ static bool unresolvableIntersectionHandler(CollisionObject * object1, Collision
 	
 	if (object1Index == 0 && object2Index == 1) {
 		*outTime = 0x00000;
-		if (outContactArea != NULL) {
-			*outContactArea = 0x00000;
-		}
+		*outContactArea = 0x00000;
 		return true;
 	}
 	if (object1Index == 0 && object2Index == 2 && unresolvableCollisionCallbackCalls == 0) {
 		*outTime = 0x08000;
-		if (outContactArea != NULL) {
-			*outContactArea = 0x00000;
-		}
+		*outContactArea = 0x00000;
 		return true;
 	}
 	return false;
@@ -769,8 +790,8 @@ TEST_SUITE(CollisionResolverTest,
            testRemoveObject,
            testQuerySingle,
            testFindEarliest,
+           testFindEarliestSortsByContactArea,
            testResolveAll,
            testListMutationDuringResolution,
            testSimultaneousCollisionRetestsObjectsAlreadyResolvedInSameIteration,
-           testContactAreaSubsorting,
            testUnresolvableDetection)
