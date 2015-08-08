@@ -40,6 +40,9 @@ bool CollisionResolver_init(CollisionResolver * self, IntersectionManager * inte
 	self->private_ivar(intersectionManagerOwned) = takeOwnership;
 	self->private_ivar(inResolveAll) = false;
 	self->private_ivar(simultaneousCollisionBuffer) = malloc(sizeof(*self->private_ivar(simultaneousCollisionBuffer)) * MAX_SIMULTANEOUS_COLLISIONS);
+	self->private_ivar(cycleDetectionBufferSize) = 128;
+	self->private_ivar(cycleDetectionBufferCount) = 0;
+	self->private_ivar(cycleDetectionBuffer) = malloc(sizeof(*self->private_ivar(cycleDetectionBuffer)) * self->private_ivar(cycleDetectionBufferSize) * 2);
 	self->objectCount = 0;
 	self->objectAllocatedCount = 32;
 	self->objects = malloc(sizeof(CollisionObject *) * self->objectAllocatedCount);
@@ -95,7 +98,8 @@ static bool CollisionResolver_queryPairInternal(CollisionResolver * self, Collis
 	IntersectionHandler handler;
 	bool intersectionFound;
 	
-	if (object1->private_ivar(markedForRemoval) || object2->private_ivar(markedForRemoval)) {
+	if (object1->private_ivar(markedForRemoval) || object2->private_ivar(markedForRemoval) ||
+	    (object1->private_ivar(unresolvable) && object2->private_ivar(unresolvable))) {
 		return false;
 	}
 	
@@ -187,6 +191,50 @@ size_t CollisionResolver_findEarliest(CollisionResolver * self, CollisionRecord 
 	return collisionCount;
 }
 
+static void resetCycleDetection(CollisionResolver * self) {
+	self->private_ivar(cycleDetectionBufferCount) = 0;
+}
+
+static void resetObjectsMarkedUnresolvable(CollisionResolver * self) {
+	size_t objectIndex;
+	
+	for (objectIndex = 0; objectIndex < self->objectCount; objectIndex++) {
+		self->objects[objectIndex]->private_ivar(unresolvable) = false;
+	}
+}
+
+static void pushObjectPairToCycleBuffer(CollisionResolver * self, CollisionObject * object1, CollisionObject * object2) {
+	if (self->private_ivar(cycleDetectionBufferSize) <= self->private_ivar(cycleDetectionBufferCount)) {
+		self->private_ivar(cycleDetectionBufferSize) *= 2;
+		self->private_ivar(cycleDetectionBuffer) = realloc(self->private_ivar(cycleDetectionBuffer), sizeof(*self->private_ivar(cycleDetectionBuffer)) * self->private_ivar(cycleDetectionBufferSize) * 2);
+	}
+	self->private_ivar(cycleDetectionBuffer)[self->private_ivar(cycleDetectionBufferCount) * 2] = object1;
+	self->private_ivar(cycleDetectionBuffer)[self->private_ivar(cycleDetectionBufferCount) * 2 + 1] = object2;
+	self->private_ivar(cycleDetectionBufferCount)++;
+}
+
+static void checkForCycles(CollisionResolver * self) {
+	unsigned int objectPairIndex, objectPairIndex2;
+	
+	for (objectPairIndex = 0; objectPairIndex < self->private_ivar(cycleDetectionBufferCount); objectPairIndex++) {
+		bool matchFound = false;
+		
+		for (objectPairIndex2 = objectPairIndex + 1; objectPairIndex2 < self->private_ivar(cycleDetectionBufferCount); objectPairIndex2++) {
+			if (self->private_ivar(cycleDetectionBuffer)[objectPairIndex * 2 + 0] == self->private_ivar(cycleDetectionBuffer)[objectPairIndex2 * 2 + 0] &&
+			    self->private_ivar(cycleDetectionBuffer)[objectPairIndex * 2 + 1] == self->private_ivar(cycleDetectionBuffer)[objectPairIndex2 * 2 + 1]) {
+				matchFound = true;
+				break;
+			}
+		}
+		
+		if (matchFound) {
+			self->private_ivar(cycleDetectionBuffer)[objectPairIndex * 2 + 0]->private_ivar(unresolvable) = true;
+			self->private_ivar(cycleDetectionBuffer)[objectPairIndex * 2 + 1]->private_ivar(unresolvable) = true;
+			continue;
+		}
+	}
+}
+
 void CollisionResolver_resolveAll(CollisionResolver * self) {
 	size_t collisionCount, collisionIndex, collisionIndex2;
 	fixed16_16 timesliceRemaining = 0x10000;
@@ -197,6 +245,13 @@ void CollisionResolver_resolveAll(CollisionResolver * self) {
 	while ((collisionCount = CollisionResolver_findEarliest(self, self->private_ivar(simultaneousCollisionBuffer), MAX_SIMULTANEOUS_COLLISIONS)) > 0) {
 		fixed16_16 collisionTime = self->private_ivar(simultaneousCollisionBuffer)[0].time;
 		fixed16_16 nextTimeslice = xmul(0x10000 - collisionTime, timesliceRemaining);
+		
+		if (collisionTime > 0) {
+			resetCycleDetection(self);
+			resetObjectsMarkedUnresolvable(self);
+		} else {
+			checkForCycles(self);
+		}
 		
 		for (objectIndex = 0; objectIndex < self->objectCount; objectIndex++) {
 			if (self->objects[objectIndex]->interpolate != NULL) {
@@ -219,6 +274,9 @@ void CollisionResolver_resolveAll(CollisionResolver * self) {
 			}
 			
 			if (!objectAlreadyCollided) {
+				if (collisionTime == 0) {
+					pushObjectPairToCycleBuffer(self, self->private_ivar(simultaneousCollisionBuffer)[collisionIndex].object1, self->private_ivar(simultaneousCollisionBuffer)[collisionIndex].object2);
+				}
 				CollisionRecord_resolve(self->private_ivar(simultaneousCollisionBuffer)[collisionIndex], timesliceRemaining, 0x10000 - nextTimeslice);
 			}
 		}
@@ -231,6 +289,8 @@ void CollisionResolver_resolveAll(CollisionResolver * self) {
 			break;
 		}
 	}
+	resetCycleDetection(self);
+	resetObjectsMarkedUnresolvable(self);
 	self->private_ivar(inResolveAll) = false;
 	
 	size_t removedObjectCount = 0;

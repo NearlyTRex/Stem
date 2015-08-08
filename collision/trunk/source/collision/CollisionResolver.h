@@ -40,12 +40,16 @@ typedef struct CollisionRecord CollisionRecord;
 	StemObject_structContents(self_type) \
 	\
 	IntersectionManager * intersectionManager; \
+	CollisionObject ** objects; \
+	size_t objectCount; \
+	size_t objectAllocatedCount; \
+	\
 	bool private_ivar(intersectionManagerOwned); \
 	bool private_ivar(inResolveAll); \
 	CollisionRecord * private_ivar(simultaneousCollisionBuffer); \
-	CollisionObject ** objects; \
-	size_t objectCount; \
-	size_t objectAllocatedCount;
+	CollisionObject ** private_ivar(cycleDetectionBuffer); \
+	size_t private_ivar(cycleDetectionBufferSize); \
+	size_t private_ivar(cycleDetectionBufferCount);
 
 stemobject_struct_definition(CollisionResolver)
 

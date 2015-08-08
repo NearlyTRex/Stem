@@ -37,6 +37,7 @@ bool CollisionObject_init(CollisionObject * self, void * owner, int shapeType, C
 	self->shapeType = shapeType;
 	self->collisionCallback = collisionCallback;
 	self->private_ivar(markedForRemoval) = false;
+	self->private_ivar(unresolvable) = false;
 	return true;
 }
 
