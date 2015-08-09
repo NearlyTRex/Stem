@@ -60,6 +60,8 @@ struct bouncingBall {
 	bool paused; \
 	bool drawLabels; \
 	unsigned int frameCount; \
+	float speedMultiplier; \
+	float runFraction; \
 	struct bouncingBall balls[BOUNCING_BALL_COUNT]; \
 	struct bouncingBall lastBalls[BOUNCING_BALL_COUNT];
 

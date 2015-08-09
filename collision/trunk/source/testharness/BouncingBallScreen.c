@@ -67,6 +67,7 @@ bool BouncingBallScreen_init(BouncingBallScreen * self, ResourceManager * resour
 	self->backgrounded = false;
 	self->paused = false;
 	self->drawLabels = false;
+	self->speedMultiplier = 1;
 	return true;
 }
 
@@ -96,7 +97,13 @@ static void stepSimulation(BouncingBallScreen * self) {
 }
 
 static void run(void * context) {
-	stepSimulation(context);
+	BouncingBallScreen * self = context;
+	
+	self->runFraction += self->speedMultiplier;
+	while (self->runFraction > 1.0f) {
+		stepSimulation(self);
+		self->runFraction -= 1.0f;
+	}
 }
 
 void ballCollision(CollisionRecord collision, fixed16_16 timesliceSize, fixed16_16 subframeTime) {
@@ -261,7 +268,7 @@ static void getCollisionObjectVertices2D(BouncingBallScreen * self, struct verte
 static void getLabelVertices(BouncingBallScreen * self, struct vertex_p2f_t2f_c4f * outVertices, GLuint * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount) {
 	size_t objectIndex;
 	char labelString[3];
-	char frameString[16];
+	char infoString[32];
 	
 	for (objectIndex = 0; objectIndex < self->resolver->objectCount; objectIndex++) {
 		CollisionObject * object = self->resolver->objects[objectIndex];
@@ -271,8 +278,8 @@ static void getLabelVertices(BouncingBallScreen * self, struct vertex_p2f_t2f_c4
 			GLBitmapFont_getStringVerticesWithColor(self->font, labelString, GLBITMAPFONT_USE_STRLEN, 0.5f, VECTOR2f(xtof(circle->position.x), xtof(circle->position.y)), VECTOR2f(0.5f, 0.375f), COLOR4f(1.0f, 1.0f, 1.0f, 1.0f), GL_UNSIGNED_INT, outVertices, outIndexes, ioVertexCount, ioIndexCount);
 		}
 	}
-	snprintf_safe(frameString, sizeof(frameString), "Frame %u", self->frameCount);
-	GLBitmapFont_getStringVerticesWithColor(self->font, frameString, GLBITMAPFONT_USE_STRLEN, 0.5f, VECTOR2f(0.0f, -11.5f), VECTOR2f(0.5f, 0.5f), COLOR4f(1.0f, 1.0f, 1.0f, 1.0f), GL_UNSIGNED_INT, outVertices, outIndexes, ioVertexCount, ioIndexCount);
+	snprintf_safe(infoString, sizeof(infoString), "Frame %u (%gx speed)", self->frameCount, self->speedMultiplier);
+	GLBitmapFont_getStringVerticesWithColor(self->font, infoString, GLBITMAPFONT_USE_STRLEN, 0.5f, VECTOR2f(0.0f, -11.5f), VECTOR2f(0.5f, 0.5f), COLOR4f(1.0f, 1.0f, 1.0f, 1.0f), GL_UNSIGNED_INT, outVertices, outIndexes, ioVertexCount, ioIndexCount);
 }
 
 static bool draw(Atom eventID, void * eventData, void * context) {
@@ -368,10 +375,18 @@ static bool keyDown(Atom eventID, void * eventData, void * context) {
 			}
 			break;
 			
+		case KEYBOARD_OPEN_BRACKET:
+			if (!self->paused && !event->isRepeat) {
+				self->speedMultiplier /= 2;
+			}
+			break;
+			
 		case KEYBOARD_CLOSE_BRACKET:
 			if (self->paused) {
 				stepSimulation(self);
 				Shell_redisplay();
+			} else if (!event->isRepeat) {
+				self->speedMultiplier *= 2;
 			}
 			break;
 			
