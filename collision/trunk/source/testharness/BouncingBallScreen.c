@@ -261,15 +261,18 @@ static void getCollisionObjectVertices2D(BouncingBallScreen * self, struct verte
 static void getLabelVertices(BouncingBallScreen * self, struct vertex_p2f_t2f_c4f * outVertices, GLuint * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount) {
 	size_t objectIndex;
 	char labelString[3];
+	char frameString[16];
 	
 	for (objectIndex = 0; objectIndex < self->resolver->objectCount; objectIndex++) {
 		CollisionObject * object = self->resolver->objects[objectIndex];
 		if (object->shapeType == COLLISION_SHAPE_CIRCLE) {
 			CollisionCircle * circle = (CollisionCircle *) object;
-			snprintf_safe(labelString, 3, SIZE_T_FORMAT, objectIndex);
+			snprintf_safe(labelString, sizeof(labelString), SIZE_T_FORMAT, objectIndex);
 			GLBitmapFont_getStringVerticesWithColor(self->font, labelString, GLBITMAPFONT_USE_STRLEN, 0.5f, VECTOR2f(xtof(circle->position.x), xtof(circle->position.y)), VECTOR2f(0.5f, 0.375f), COLOR4f(1.0f, 1.0f, 1.0f, 1.0f), GL_UNSIGNED_INT, outVertices, outIndexes, ioVertexCount, ioIndexCount);
 		}
 	}
+	snprintf_safe(frameString, sizeof(frameString), "Frame %u", self->frameCount);
+	GLBitmapFont_getStringVerticesWithColor(self->font, frameString, GLBITMAPFONT_USE_STRLEN, 0.5f, VECTOR2f(0.0f, -11.5f), VECTOR2f(0.5f, 0.5f), COLOR4f(1.0f, 1.0f, 1.0f, 1.0f), GL_UNSIGNED_INT, outVertices, outIndexes, ioVertexCount, ioIndexCount);
 }
 
 static bool draw(Atom eventID, void * eventData, void * context) {
@@ -375,10 +378,6 @@ static bool keyDown(Atom eventID, void * eventData, void * context) {
 		case KEYBOARD_TAB:
 			self->drawLabels = !self->drawLabels;
 			Shell_redisplay();
-			break;
-			
-		case KEYBOARD_F:
-			printf("Frame %u\n", self->frameCount);
 			break;
 	}
 	return true;
