@@ -1334,11 +1334,11 @@ static void testOffset() {
 	                rect4d.bottom,
 	                rect4d.top);
 	rect4d = Rect4d_offset(RECT4d(3.0, 5.0, 1.0, 2.0), VECTOR2d(2.0, -1.0));
-	TestCase_assert(rect4d.left == 4.0 &&
-	                rect4d.right == 6.0 &&
+	TestCase_assert(rect4d.left == 5.0 &&
+	                rect4d.right == 7.0 &&
 	                rect4d.bottom == 0.0 &&
 	                rect4d.top == 1.0,
-	                "Expected {4.0, 6.0, 0.0, 1.0} but got {%f, %f, %f, %f}",
+	                "Expected {5.0, 7.0, 0.0, 1.0} but got {%f, %f, %f, %f}",
 	                rect4d.left,
 	                rect4d.right,
 	                rect4d.bottom,
@@ -1355,11 +1355,11 @@ static void testOffset() {
 	                rect4f.bottom,
 	                rect4f.top);
 	rect4f = Rect4f_offset(RECT4f(3.0f, 5.0f, 1.0f, 2.0f), VECTOR2f(2.0f, -1.0f));
-	TestCase_assert(rect4f.left == 4.0f &&
-	                rect4f.right == 6.0f &&
+	TestCase_assert(rect4f.left == 5.0f &&
+	                rect4f.right == 7.0f &&
 	                rect4f.bottom == 0.0f &&
 	                rect4f.top == 1.0f,
-	                "Expected {4.0, 6.0, 0.0, 1.0} but got {%f, %f, %f, %f}",
+	                "Expected {5.0, 7.0, 0.0, 1.0} but got {%f, %f, %f, %f}",
 	                rect4f.left,
 	                rect4f.right,
 	                rect4f.bottom,
@@ -1376,11 +1376,11 @@ static void testOffset() {
 	                rect4i.bottom,
 	                rect4i.top);
 	rect4i = Rect4i_offset(RECT4i(3, 5, 1, 2), VECTOR2i(2, -1));
-	TestCase_assert(rect4i.left == 4 &&
-	                rect4i.right == 6 &&
+	TestCase_assert(rect4i.left == 5 &&
+	                rect4i.right == 7 &&
 	                rect4i.bottom == 0 &&
 	                rect4i.top == 1,
-	                "Expected {4, 6, 0, 1} but got {%d, %d, %d, %d}",
+	                "Expected {5, 7, 0, 1} but got {%d, %d, %d, %d}",
 	                rect4i.left,
 	                rect4i.right,
 	                rect4i.bottom,
@@ -1397,11 +1397,11 @@ static void testOffset() {
 	                rect4x.bottom,
 	                rect4x.top);
 	rect4x = Rect4x_offset(RECT4x(0x30000, 0x50000, 0x10000, 0x20000), VECTOR2x(0x20000, -0x10000));
-	TestCase_assert(rect4x.left == 0x40000 &&
-	                rect4x.right == 0x60000 &&
+	TestCase_assert(rect4x.left == 0x50000 &&
+	                rect4x.right == 0x70000 &&
 	                rect4x.bottom == 0x00000 &&
 	                rect4x.top == 0x10000,
-	                "Expected {0x40000, 0x60000, 0x00000, 0x10000} but got {0x%05X, 0x%05X, 0x%05X, 0x%05X}",
+	                "Expected {0x50000, 0x70000, 0x00000, 0x10000} but got {0x%05X, 0x%05X, 0x%05X, 0x%05X}",
 	                rect4x.left,
 	                rect4x.right,
 	                rect4x.bottom,
@@ -1422,13 +1422,13 @@ static void testOffset() {
 	                box6d.back,
 	                box6d.front);
 	box6d = Box6d_offset(BOX6d(3.0, 5.0, 1.0, 2.0, 6.0, 7.0), VECTOR3d(2.0, -1.0, 1.0));
-	TestCase_assert(box6d.left == 4.0 &&
-	                box6d.right == 6.0 &&
+	TestCase_assert(box6d.left == 5.0 &&
+	                box6d.right == 7.0 &&
 	                box6d.bottom == 0.0 &&
 	                box6d.top == 1.0 &&
 	                box6d.back == 7.0 &&
 	                box6d.front == 8.0,
-	                "Expected {4.0, 6.0, 0.0, 1.0, 7.0, 8.0} but got {%f, %f, %f, %f, %f, %f}",
+	                "Expected {5.0, 7.0, 0.0, 1.0, 7.0, 8.0} but got {%f, %f, %f, %f, %f, %f}",
 	                box6d.left,
 	                box6d.right,
 	                box6d.bottom,
@@ -1451,13 +1451,13 @@ static void testOffset() {
 	                box6f.back,
 	                box6f.front);
 	box6f = Box6f_offset(BOX6f(3.0f, 5.0f, 1.0f, 2.0f, 6.0f, 7.0f), VECTOR3f(2.0f, -1.0f, 1.0f));
-	TestCase_assert(box6f.left == 4.0f &&
-	                box6f.right == 6.0f &&
+	TestCase_assert(box6f.left == 5.0f &&
+	                box6f.right == 7.0f &&
 	                box6f.bottom == 0.0f &&
 	                box6f.top == 1.0f &&
 	                box6f.back == 7.0f &&
 	                box6f.front == 8.0f,
-	                "Expected {4.0, 6.0, 0.0, 1.0, 7.0, 8.0} but got {%f, %f, %f, %f, %f, %f}",
+	                "Expected {5.0, 7.0, 0.0, 1.0, 7.0, 8.0} but got {%f, %f, %f, %f, %f, %f}",
 	                box6f.left,
 	                box6f.right,
 	                box6f.bottom,
@@ -1480,13 +1480,13 @@ static void testOffset() {
 	                box6i.back,
 	                box6i.front);
 	box6i = Box6i_offset(BOX6i(3, 5, 1, 2, 6, 7), VECTOR3i(2, -1, 1));
-	TestCase_assert(box6i.left == 4 &&
-	                box6i.right == 6 &&
+	TestCase_assert(box6i.left == 5 &&
+	                box6i.right == 7 &&
 	                box6i.bottom == 0 &&
 	                box6i.top == 1 &&
 	                box6i.back == 7 &&
 	                box6i.front == 8,
-	                "Expected {4, 6, 0, 1, 7, 8} but got {%d, %d, %d, %d, %d, %d}",
+	                "Expected {5, 7, 0, 1, 7, 8} but got {%d, %d, %d, %d, %d, %d}",
 	                box6i.left,
 	                box6i.right,
 	                box6i.bottom,
@@ -1499,8 +1499,8 @@ static void testOffset() {
 	                box6x.right == 0x20000 &&
 	                box6x.bottom == 0x20000 &&
 	                box6x.top == 0x30000 &&
-	                box6x.bottom == 0x30000 &&
-	                box6x.top == 0x40000,
+	                box6x.back == 0x30000 &&
+	                box6x.front == 0x40000,
 	                "Expected {0x10000, 0x20000, 0x20000, 0x30000, 0x30000, 0x40000} but got {0x%05X, 0x%05X, 0x%05X, 0x%05X, 0x%05X, 0x%05X}",
 	                box6x.left,
 	                box6x.right,
@@ -1509,13 +1509,13 @@ static void testOffset() {
 	                box6x.back,
 	                box6x.front);
 	box6x = Box6x_offset(BOX6x(0x30000, 0x50000, 0x10000, 0x20000, 0x60000, 0x70000), VECTOR3x(0x20000, -0x10000, 0x10000));
-	TestCase_assert(box6x.left == 0x40000 &&
-	                box6x.right == 0x60000 &&
+	TestCase_assert(box6x.left == 0x50000 &&
+	                box6x.right == 0x70000 &&
 	                box6x.bottom == 0x00000 &&
 	                box6x.top == 0x10000 &&
 	                box6x.back == 0x70000 &&
 	                box6x.front == 0x80000,
-	                "Expected {0x40000, 0x60000, 0x00000, 0x10000, 0x70000, 0x80000} but got {0x%05X, 0x%05X, 0x%05X, 0x%05X, 0x%05X, 0x%05X}",
+	                "Expected {0x50000, 0x70000, 0x00000, 0x10000, 0x70000, 0x80000} but got {0x%05X, 0x%05X, 0x%05X, 0x%05X, 0x%05X, 0x%05X}",
 	                box6x.left,
 	                box6x.right,
 	                box6x.bottom,
@@ -1710,8 +1710,8 @@ static void testInset() {
 	                box6x.right == 0x50000 &&
 	                box6x.bottom == 0x20000 &&
 	                box6x.top == 0x40000 &&
-	                box6x.bottom == 0x30000 &&
-	                box6x.top == 0x30000,
+	                box6x.back == 0x30000 &&
+	                box6x.front == 0x30000,
 	                "Expected {0x10000, 0x50000, 0x20000, 0x40000, 0x30000, 0x30000} but got {0x%05X, 0x%05X, 0x%05X, 0x%05X, 0x%05X, 0x%05X}",
 	                box6x.left,
 	                box6x.right,
@@ -2018,6 +2018,8 @@ static void testContainsVector() {
 	TestCase_assert(!contains, "Expected false but got true");
 	contains = Rect4d_containsVector2d(RECT4d(-1.0, 1.0, 2.0, 4.0), VECTOR2d(0.0, 3.0));
 	TestCase_assert(contains, "Expected true but got false");
+	contains = Rect4d_containsVector2d(RECT4d(4.0, 2.0, 4.0, 2.0), VECTOR2d(3.0, 3.0));
+	TestCase_assert(!contains, "Expected false but got true");
 	
 	contains = Rect4f_containsVector2f(RECT4f(2.0f, 4.0f, 2.0f, 4.0f), VECTOR2f(3.0f, 3.0f));
 	TestCase_assert(contains, "Expected true but got false");
@@ -2031,6 +2033,8 @@ static void testContainsVector() {
 	TestCase_assert(!contains, "Expected false but got true");
 	contains = Rect4f_containsVector2f(RECT4f(-1.0f, 1.0f, 2.0f, 4.0f), VECTOR2f(0.0f, 3.0f));
 	TestCase_assert(contains, "Expected true but got false");
+	contains = Rect4f_containsVector2f(RECT4f(4.0f, 2.0f, 4.0f, 2.0f), VECTOR2f(3.0f, 3.0f));
+	TestCase_assert(!contains, "Expected false but got true");
 	
 	contains = Rect4i_containsVector2i(RECT4i(2, 4, 2, 4), VECTOR2i(3, 3));
 	TestCase_assert(contains, "Expected true but got false");
@@ -2044,6 +2048,8 @@ static void testContainsVector() {
 	TestCase_assert(!contains, "Expected false but got true");
 	contains = Rect4i_containsVector2i(RECT4i(-1, 1, 2, 4), VECTOR2i(0, 3));
 	TestCase_assert(contains, "Expected true but got false");
+	contains = Rect4i_containsVector2i(RECT4i(4, 2, 4, 2), VECTOR2i(3, 3));
+	TestCase_assert(!contains, "Expected false but got true");
 	
 	contains = Rect4x_containsVector2x(RECT4x(0x20000, 0x40000, 0x20000, 0x40000), VECTOR2x(0x30000, 0x30000));
 	TestCase_assert(contains, "Expected true but got false");
@@ -2057,6 +2063,8 @@ static void testContainsVector() {
 	TestCase_assert(!contains, "Expected false but got true");
 	contains = Rect4x_containsVector2x(RECT4x(-0x10000, 0x10000, 0x20000, 0x40000), VECTOR2x(0x00000, 0x30000));
 	TestCase_assert(contains, "Expected true but got false");
+	contains = Rect4x_containsVector2x(RECT4x(0x40000, 0x20000, 0x40000, 0x20000), VECTOR2x(0x30000, 0x30000));
+	TestCase_assert(!contains, "Expected false but got true");
 	
 	contains = Box6d_containsVector3d(BOX6d(2.0, 4.0, 2.0, 4.0, 2.0, 4.0), VECTOR3d(3.0, 3.0, 3.0));
 	TestCase_assert(contains, "Expected true but got false");
@@ -2074,6 +2082,8 @@ static void testContainsVector() {
 	TestCase_assert(!contains, "Expected false but got true");
 	contains = Box6d_containsVector3d(BOX6d(-1.0, 1.0, 2.0, 4.0, 2.0, 4.0), VECTOR3d(0.0, 3.0, 3.0));
 	TestCase_assert(contains, "Expected true but got false");
+	contains = Box6d_containsVector3d(BOX6d(4.0, 2.0, 4.0, 2.0, 4.0, 2.0), VECTOR3d(3.0, 3.0, 3.0));
+	TestCase_assert(!contains, "Expected false but got true");
 	
 	contains = Box6f_containsVector3f(BOX6f(2.0f, 4.0f, 2.0f, 4.0f, 2.0f, 4.0f), VECTOR3f(3.0f, 3.0f, 3.0f));
 	TestCase_assert(contains, "Expected true but got false");
@@ -2091,6 +2101,8 @@ static void testContainsVector() {
 	TestCase_assert(!contains, "Expected false but got true");
 	contains = Box6f_containsVector3f(BOX6f(-1.0f, 1.0f, 2.0f, 4.0f, 2.0f, 4.0f), VECTOR3f(0.0f, 3.0f, 3.0f));
 	TestCase_assert(contains, "Expected true but got false");
+	contains = Box6f_containsVector3f(BOX6f(4.0f, 2.0f, 4.0f, 2.0f, 4.0f, 2.0f), VECTOR3f(3.0f, 3.0f, 3.0f));
+	TestCase_assert(!contains, "Expected false but got true");
 	
 	contains = Box6i_containsVector3i(BOX6i(2, 4, 2, 4, 2, 4), VECTOR3i(3, 3, 3));
 	TestCase_assert(contains, "Expected true but got false");
@@ -2108,6 +2120,8 @@ static void testContainsVector() {
 	TestCase_assert(!contains, "Expected false but got true");
 	contains = Box6i_containsVector3i(BOX6i(-1, 1, 2, 4, 2, 4), VECTOR3i(0, 3, 3));
 	TestCase_assert(contains, "Expected true but got false");
+	contains = Box6i_containsVector3i(BOX6i(4, 2, 4, 2, 4, 2), VECTOR3i(3, 3, 3));
+	TestCase_assert(!contains, "Expected false but got true");
 	
 	contains = Box6x_containsVector3x(BOX6x(0x20000, 0x40000, 0x20000, 0x40000, 0x20000, 0x40000), VECTOR3x(0x30000, 0x30000, 0x30000));
 	TestCase_assert(contains, "Expected true but got false");
@@ -2125,6 +2139,8 @@ static void testContainsVector() {
 	TestCase_assert(!contains, "Expected false but got true");
 	contains = Box6x_containsVector3x(BOX6x(-0x10000, 0x10000, 0x20000, 0x40000, 0x20000, 0x40000), VECTOR3x(0x00000, 0x30000, 0x30000));
 	TestCase_assert(contains, "Expected true but got false");
+	contains = Box6x_containsVector3x(BOX6x(0x40000, 0x20000, 0x40000, 0x20000, 0x40000, 0x20000), VECTOR3x(0x30000, 0x30000, 0x30000));
+	TestCase_assert(!contains, "Expected false but got true");
 }
 
 TEST_SUITE(RectBoxTest,

@@ -7,9 +7,16 @@ numeric_type_suffixes = {
 	"fixed16_16" => "x",
 	"int" => "i"
 }
+const_zero = {
+	"float" => "0.0f",
+	"double" => "0.0",
+	"fixed16_16" => "0x00000",
+	"int" => "0"
+}
 class_name = "#{shape_name}#{numeric_type_suffixes[numeric_type]}"
 class_name_upper = "#{shape_name.upcase}#{numeric_type_suffixes[numeric_type]}"
 class_argument_name = "#{shape_name.downcase.chop}"
+c0 = const_zero[numeric_type]
 if (shape_name == "Rect4")
 	vector_type = "Vector2#{numeric_type_suffixes[numeric_type]}"
 else
@@ -41,33 +48,111 @@ end
 #include "gamemath/<%= class_name %>.h"
 
 <%= class_name %> <%= class_name %>_intersection(<%= class_name %> lhs, <%= class_name %> rhs) {
-	return <%= class_name_upper %>(0, 0, 0, 0<% if shape_name == "Box6" %>, 0, 0<% end %>);
+	<%= class_name %> result;
+	
+	if (!<%= class_name %>_intersects<%= class_name %>(lhs, rhs)) {
+		return <%= class_name_upper %>(<%= c0 %>, <%= c0 %>, <%= c0 %>, <%= c0 %><% if shape_name == "Box6" %>, <%= c0 %>, <%= c0 %><% end %>);
+	}
+	
+	result.left   = lhs.left   < rhs.left   ? rhs.left   : lhs.left;
+	result.right  = lhs.right  > rhs.right  ? rhs.right  : lhs.right;
+	result.bottom = lhs.bottom < rhs.bottom ? rhs.bottom : lhs.bottom;
+	result.top    = lhs.top    > rhs.top    ? rhs.top    : lhs.top;
+<% if shape_name == "Box6" -%>
+	result.back   = lhs.back   < rhs.back   ? rhs.back   : lhs.back;
+	result.front  = lhs.front  > rhs.front  ? rhs.front  : lhs.front;
+<% end -%>
+	
+	return result;
 }
 
 <%= class_name %> <%= class_name %>_union(<%= class_name %> lhs, <%= class_name %> rhs) {
-	return <%= class_name_upper %>(0, 0, 0, 0<% if shape_name == "Box6" %>, 0, 0<% end %>);
+	<%= class_name %> result;
+	
+	if (<%= class_name %>_isEmpty(lhs)) {
+		if (<%= class_name %>_isEmpty(rhs)) {
+			return <%= class_name_upper %>(<%= c0 %>, <%= c0 %>, <%= c0 %>, <%= c0 %><% if shape_name == "Box6" %>, <%= c0 %>, <%= c0 %><% end %>);
+		}
+		return rhs;
+	}
+	if (<%= class_name %>_isEmpty(rhs)) {
+		return lhs;
+	}
+	
+	result.left   = lhs.left   < rhs.left   ? lhs.left   : rhs.left;
+	result.right  = lhs.right  > rhs.right  ? lhs.right  : rhs.right;
+	result.bottom = lhs.bottom < rhs.bottom ? lhs.bottom : rhs.bottom;
+	result.top    = lhs.top    > rhs.top    ? lhs.top    : rhs.top;
+<% if shape_name == "Box6" -%>
+	result.back   = lhs.back   < rhs.back   ? lhs.back   : rhs.back;
+	result.front  = lhs.front  > rhs.front  ? lhs.front  : rhs.front;
+<% end -%>
+	
+	return result;
 }
 
 <%= class_name %> <%= class_name %>_offset(<%= class_name %> <%= class_argument_name %>, <%= vector_type %> offset) {
-	return <%= class_name_upper %>(0, 0, 0, 0<% if shape_name == "Box6" %>, 0, 0<% end %>);
+	<%= class_argument_name %>.left   += offset.x;
+	<%= class_argument_name %>.right  += offset.x;
+	<%= class_argument_name %>.bottom += offset.y;
+	<%= class_argument_name %>.top    += offset.y;
+<% if shape_name == "Box6" -%>
+	<%= class_argument_name %>.back   += offset.z;
+	<%= class_argument_name %>.front  += offset.z;
+<% end -%>
+	return <%= class_argument_name %>;
 }
 
 <%= class_name %> <%= class_name %>_inset(<%= class_name %> <%= class_argument_name %>, <%= vector_type %> inset) {
-	return <%= class_name_upper %>(0, 0, 0, 0<% if shape_name == "Box6" %>, 0, 0<% end %>);
+	<%= class_argument_name %>.left   += inset.x;
+	<%= class_argument_name %>.right  -= inset.x;
+	<%= class_argument_name %>.bottom += inset.y;
+	<%= class_argument_name %>.top    -= inset.y;
+<% if shape_name == "Box6" -%>
+	<%= class_argument_name %>.back   += inset.z;
+	<%= class_argument_name %>.front  -= inset.z;
+<% end -%>
+	return <%= class_argument_name %>;
 }
 
 bool <%= class_name %>_isEmpty(<%= class_name %> <%= class_argument_name %>) {
+	if (<%= class_argument_name %>.left   >= <%= class_argument_name %>.right ||
+	    <%= class_argument_name %>.bottom >= <%= class_argument_name %>.top<% if shape_name == "Box6" %> ||
+	    <%= class_argument_name %>.back   >= <%= class_argument_name %>.front<% end %>) {
+		return true;
+	}
 	return false;
 }
 
 bool <%= class_name %>_intersects<%= class_name %>(<%= class_name %> lhs, <%= class_name %> rhs) {
+	if (<%= class_name %>_isEmpty(lhs) || <%= class_name %>_isEmpty(rhs)) {
+		return false;
+	}
+	if (lhs.right > rhs.left   && lhs.left   < rhs.right &&
+	    lhs.top   > rhs.bottom && lhs.bottom < rhs.top<% if shape_name == "Box6" %> &&
+	    lhs.front > rhs.back   && lhs.back   < rhs.front<% end %>) {
+		return true;
+	}
 	return false;
 }
 
 bool <%= class_name %>_contains<%= class_name %>(<%= class_name %> lhs, <%= class_name %> rhs) {
+	if (<%= class_name %>_isEmpty(lhs) || <%= class_name %>_isEmpty(rhs)) {
+		return false;
+	}
+	if (lhs.right >= rhs.right && lhs.left   <= rhs.left &&
+	    lhs.top   >= rhs.top   && lhs.bottom <= rhs.bottom<% if shape_name == "Box6" %> &&
+	    lhs.front >= rhs.front && lhs.back   <= rhs.back<% end %>) {
+		return true;
+	}
 	return false;
 }
 
 bool <%= class_name %>_contains<%= vector_type %>(<%= class_name %> <%= class_argument_name %>, <%= vector_type %> vector) {
+	if (vector.x < <%= class_argument_name %>.right && vector.x > <%= class_argument_name %>.left &&
+	    vector.y < <%= class_argument_name %>.top   && vector.y > <%= class_argument_name %>.bottom<% if shape_name == "Box6" %> &&
+	    vector.z < <%= class_argument_name %>.front && vector.z > <%= class_argument_name %>.back<% end %>) {
+		return true;
+	}
 	return false;
 }
