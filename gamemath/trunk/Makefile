@@ -2,8 +2,8 @@ PROJECT_NAME = gamemath
 
 # VERSION_MAJOR, VERSION_MINOR, and VERSION_TWEAK are available as preprocessor macros for all source files in the project
 VERSION_MAJOR = 2
-VERSION_MINOR = 2
-VERSION_TWEAK = 1
+VERSION_MINOR = 3
+VERSION_TWEAK = 0
 PROJECT_VERSION = ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_TWEAK}
 
 LIBRARY_TARGETS = library
@@ -45,11 +45,15 @@ TYPE_SUFFIX_double = d
 TYPE_SUFFIX_int = i
 TYPE_SUFFIX_fixed16_16 = x
 
-GENERATED_SOURCES = ${foreach axis_count,2 3 4, \
-	${foreach type_suffix,f d i x, \
+GENERATED_SOURCES = ${foreach type_suffix,f d i x, \
+	${foreach axis_count,2 3 4, \
 		build/intermediate/generated/${PROJECT_NAME}/Vector${axis_count}${type_suffix}.h \
 		build/intermediate/generated/${PROJECT_NAME}/Vector${axis_count}${type_suffix}.c \
 	} \
+	build/intermediate/generated/${PROJECT_NAME}/Rect4${type_suffix}.h \
+	build/intermediate/generated/${PROJECT_NAME}/Rect4${type_suffix}.c \
+	build/intermediate/generated/${PROJECT_NAME}/Box6${type_suffix}.h \
+	build/intermediate/generated/${PROJECT_NAME}/Box6${type_suffix}.c \
 }
 
 # Additional build prerequisites per target
@@ -61,12 +65,20 @@ SOURCES_library = \
 	source/${PROJECT_NAME}/Interpolation.c \
 	source/${PROJECT_NAME}/Matrix.c \
 	source/${PROJECT_NAME}/Quaternion.c \
-	build/intermediate/generated/${PROJECT_NAME}/Vector2f.c \
-	build/intermediate/generated/${PROJECT_NAME}/Vector3f.c \
-	build/intermediate/generated/${PROJECT_NAME}/Vector4f.c \
+	build/intermediate/generated/${PROJECT_NAME}/Box6d.c \
+	build/intermediate/generated/${PROJECT_NAME}/Box6f.c \
+	build/intermediate/generated/${PROJECT_NAME}/Box6i.c \
+	build/intermediate/generated/${PROJECT_NAME}/Box6x.c \
+	build/intermediate/generated/${PROJECT_NAME}/Rect4d.c \
+	build/intermediate/generated/${PROJECT_NAME}/Rect4f.c \
+	build/intermediate/generated/${PROJECT_NAME}/Rect4i.c \
+	build/intermediate/generated/${PROJECT_NAME}/Rect4x.c \
 	build/intermediate/generated/${PROJECT_NAME}/Vector2d.c \
 	build/intermediate/generated/${PROJECT_NAME}/Vector3d.c \
 	build/intermediate/generated/${PROJECT_NAME}/Vector4d.c \
+	build/intermediate/generated/${PROJECT_NAME}/Vector2f.c \
+	build/intermediate/generated/${PROJECT_NAME}/Vector3f.c \
+	build/intermediate/generated/${PROJECT_NAME}/Vector4f.c \
 	build/intermediate/generated/${PROJECT_NAME}/Vector2i.c \
 	build/intermediate/generated/${PROJECT_NAME}/Vector3i.c \
 	build/intermediate/generated/${PROJECT_NAME}/Vector4i.c \
@@ -80,6 +92,7 @@ SOURCES_unittest_suites = \
 	source/unittest/FixedPointTest.c \
 	source/unittest/InterpolationTest.c \
 	source/unittest/MatrixTest.c \
+	source/unittest/RectBoxTest.c \
 	source/unittest/QuaternionTest.c \
 	source/unittest/VectorTest.c
 
@@ -92,12 +105,20 @@ INCLUDES = \
 	source/${PROJECT_NAME}/Interpolation.h \
 	source/${PROJECT_NAME}/Matrix.h \
 	source/${PROJECT_NAME}/Quaternion.h \
-	build/intermediate/generated/${PROJECT_NAME}/Vector2f.h \
-	build/intermediate/generated/${PROJECT_NAME}/Vector3f.h \
-	build/intermediate/generated/${PROJECT_NAME}/Vector4f.h \
+	build/intermediate/generated/${PROJECT_NAME}/Box6d.h \
+	build/intermediate/generated/${PROJECT_NAME}/Box6f.h \
+	build/intermediate/generated/${PROJECT_NAME}/Box6i.h \
+	build/intermediate/generated/${PROJECT_NAME}/Box6x.h \
+	build/intermediate/generated/${PROJECT_NAME}/Rect4d.h \
+	build/intermediate/generated/${PROJECT_NAME}/Rect4f.h \
+	build/intermediate/generated/${PROJECT_NAME}/Rect4i.h \
+	build/intermediate/generated/${PROJECT_NAME}/Rect4x.h \
 	build/intermediate/generated/${PROJECT_NAME}/Vector2d.h \
 	build/intermediate/generated/${PROJECT_NAME}/Vector3d.h \
 	build/intermediate/generated/${PROJECT_NAME}/Vector4d.h \
+	build/intermediate/generated/${PROJECT_NAME}/Vector2f.h \
+	build/intermediate/generated/${PROJECT_NAME}/Vector3f.h \
+	build/intermediate/generated/${PROJECT_NAME}/Vector4f.h \
 	build/intermediate/generated/${PROJECT_NAME}/Vector2i.h \
 	build/intermediate/generated/${PROJECT_NAME}/Vector3i.h \
 	build/intermediate/generated/${PROJECT_NAME}/Vector4i.h \
@@ -115,7 +136,10 @@ ANALYZER_EXCLUDE_SOURCES_splint = ${SOURCES_unittest}
 CLANGFLAGS = -I build/intermediate/generated
 SPLINTFLAGS = -I build/intermediate/generated
 
-DEPENDENCY_SED_COMMANDS = s,source/${PROJECT_NAME}/Vector\(\\d\),build/intermediate/generated/${PROJECT_NAME}/Vector\\1,g
+DEPENDENCY_SED_COMMANDS = \
+	s,source/${PROJECT_NAME}/Vector\(\\d\),build/intermediate/generated/${PROJECT_NAME}/Vector\\1,g; \
+	s,source/${PROJECT_NAME}/Rect\(\\d\),build/intermediate/generated/${PROJECT_NAME}/Rect\\1,g; \
+	s,source/${PROJECT_NAME}/Box\(\\d\),build/intermediate/generated/${PROJECT_NAME}/Box\\1,g
 
 # Pattern: PLIST_FILE_${target}_${platform}
 
@@ -136,14 +160,23 @@ build/intermediate/generated/${PROJECT_NAME}:
 	mkdir -p $@
 
 define generated_vector_template #(axis_count, numeric_type)
-build/intermediate/generated/${PROJECT_NAME}/Vector${axis_count}${TYPE_SUFFIX_${numeric_type}}.h: source/${PROJECT_NAME}/Vector.h.erb | build/intermediate/generated/${PROJECT_NAME}
-	axis_count=${axis_count} numeric_type=${numeric_type} erb -T - $$^ > $$@
-build/intermediate/generated/${PROJECT_NAME}/Vector${axis_count}${TYPE_SUFFIX_${numeric_type}}.c: source/${PROJECT_NAME}/Vector.c.erb | build/intermediate/generated/${PROJECT_NAME}
-	axis_count=${axis_count} numeric_type=${numeric_type} erb -T - $$^ > $$@
+build/intermediate/generated/${PROJECT_NAME}/Vector$1${TYPE_SUFFIX_$2}.h: source/${PROJECT_NAME}/Vector.h.erb | build/intermediate/generated/${PROJECT_NAME}
+	axis_count=$1 numeric_type=$2 erb -T - $$^ > $$@
+build/intermediate/generated/${PROJECT_NAME}/Vector$1${TYPE_SUFFIX_$2}.c: source/${PROJECT_NAME}/Vector.c.erb | build/intermediate/generated/${PROJECT_NAME}
+	axis_count=$1 numeric_type=$2 erb -T - $$^ > $$@
 endef
 
-${foreach axis_count,2 3 4, \
-	${foreach numeric_type,float double int fixed16_16, \
+define generated_rectbox_template #(shape_name, numeric_type)
+build/intermediate/generated/${PROJECT_NAME}/$1${TYPE_SUFFIX_$2}.h: source/${PROJECT_NAME}/RectBox.h.erb | build/intermediate/generated/${PROJECT_NAME}
+	shape_name=$1 numeric_type=$2 erb -T - $$^ > $$@
+build/intermediate/generated/${PROJECT_NAME}/$1${TYPE_SUFFIX_$2}.c: source/${PROJECT_NAME}/RectBox.c.erb | build/intermediate/generated/${PROJECT_NAME}
+	shape_name=$1 numeric_type=$2 erb -T - $$^ > $$@
+endef
+
+${foreach numeric_type,float double int fixed16_16, \
+	${foreach axis_count,2 3 4, \
 		${eval ${call generated_vector_template,${axis_count},${numeric_type}}} \
 	} \
+	${eval ${call generated_rectbox_template,Rect4,${numeric_type}}} \
+	${eval ${call generated_rectbox_template,Box6,${numeric_type}}} \
 }

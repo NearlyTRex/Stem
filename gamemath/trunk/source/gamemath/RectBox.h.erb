@@ -1,0 +1,81 @@
+<%
+shape_name = ENV["shape_name"]
+numeric_type = ENV["numeric_type"]
+numeric_type_suffixes = {
+	"float" => "f",
+	"double" => "d",
+	"fixed16_16" => "x",
+	"int" => "i"
+}
+class_name = "#{shape_name}#{numeric_type_suffixes[numeric_type]}"
+class_name_upper = "#{shape_name.upcase}#{numeric_type_suffixes[numeric_type]}"
+class_argument_name = "#{shape_name.downcase.chop}"
+if (shape_name == "Rect4")
+	vector_type = "Vector2#{numeric_type_suffixes[numeric_type]}"
+else
+	vector_type = "Vector3#{numeric_type_suffixes[numeric_type]}"
+end
+-%>
+/*
+  Copyright (c) 2015 Alex Diener
+  
+  This software is provided 'as-is', without any express or implied
+  warranty. In no event will the authors be held liable for any damages
+  arising from the use of this software.
+  
+  Permission is granted to anyone to use this software for any purpose,
+  including commercial applications, and to alter it and redistribute it
+  freely, subject to the following restrictions:
+  
+  1. The origin of this software must not be misrepresented; you must not
+     claim that you wrote the original software. If you use this software
+     in a product, an acknowledgment in the product documentation would be
+     appreciated but is not required.
+  2. Altered source versions must be plainly marked as such, and must not be
+     misrepresented as being the original software.
+  3. This notice may not be removed or altered from any source distribution.
+  
+  Alex Diener alex@ludobloom.com
+*/
+
+#ifndef __<%= class_name %>_H__
+#define __<%= class_name %>_H__
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+typedef struct <%= class_name %> <%= class_name %>;
+<% if numeric_type == "fixed16_16" -%>
+
+#include "gamemath/FixedPoint.h"
+<% end -%>
+#include "gamemath/<%= vector_type %>.h"
+#include <stdbool.h>
+
+struct <%= class_name %> {
+	<%= numeric_type %> left;
+	<%= numeric_type %> right;
+	<%= numeric_type %> bottom;
+	<%= numeric_type %> top;
+<% if shape_name == "Box6" -%>
+	<%= numeric_type %> back;
+	<%= numeric_type %> front;
+<% end -%>
+};
+
+#define <%= class_name_upper %>(left, right, bottom, top<% if shape_name == "Box6" %>, back, front<% end %>) ((<%= class_name %>) {left, right, bottom, top<% if shape_name == "Box6" %>, back, front<% end %>})
+
+<%= class_name %> <%= class_name %>_intersection(<%= class_name %> lhs, <%= class_name %> rhs);
+<%= class_name %> <%= class_name %>_union(<%= class_name %> lhs, <%= class_name %> rhs);
+<%= class_name %> <%= class_name %>_offset(<%= class_name %> <%= class_argument_name %>, <%= vector_type %> offset);
+<%= class_name %> <%= class_name %>_inset(<%= class_name %> <%= class_argument_name %>, <%= vector_type %> inset);
+
+bool <%= class_name %>_isEmpty(<%= class_name %> <%= class_argument_name %>);
+bool <%= class_name %>_intersects<%= class_name %>(<%= class_name %> lhs, <%= class_name %> rhs);
+bool <%= class_name %>_contains<%= class_name %>(<%= class_name %> lhs, <%= class_name %> rhs);
+bool <%= class_name %>_contains<%= vector_type %>(<%= class_name %> <%= class_argument_name %>, <%= vector_type %> vector);
+
+#ifdef __cplusplus
+}
+#endif
+#endif

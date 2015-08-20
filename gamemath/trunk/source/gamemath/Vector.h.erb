@@ -26,7 +26,7 @@ c0 = const_zero[numeric_type]
 c1 = const_one[numeric_type]
 -%>
 /*
-  Copyright (c) 2014 Alex Diener
+  Copyright (c) 2015 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -80,7 +80,7 @@ struct <%= class_name %> {
 #define <%= class_name_upper %>_ANA   ((<%= class_name %>) { <%= c0 %>,  <%= c0 %>,  <%= c0 %>,  <%= c1 %>})
 <% end -%>
 
-#define <%= class_name_upper %>(x<% 1.upto(axis_count - 1) do |axis| %>, <%= axis_names[axis] %><% end -%>) ((<%= class_name %>) {x<% 1.upto(axis_count - 1) do |axis| %>, <%= axis_names[axis] %><% end -%>})
+#define <%= class_name_upper %>(x<% 1.upto(axis_count - 1) do |axis| %>, <%= axis_names[axis] %><% end %>) ((<%= class_name %>) {x<% 1.upto(axis_count - 1) do |axis| %>, <%= axis_names[axis] %><% end %>})
 <% if numeric_type != "int" -%>
 
 bool <%= class_name %>_normalize(<%= class_name %> * vector);

@@ -1,4 +1,5 @@
-2.2.1 (2015-07-02)
+2.3.0 (2015-07-02)
+ * Added Rect4* and Box6* for 2D and 3D bounaries, with numeric types matching those provided by Vector*
  * Added Vector*_invert() and Vector*_inverted()
  * Fixed multiplications in Vector*x_reflect() and Vector*x_magnitude() giving wildly incorrect results
  * Fixed a bug that caused xsqrt to be nonterminating for some inputs
