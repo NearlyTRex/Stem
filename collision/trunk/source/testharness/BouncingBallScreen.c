@@ -88,7 +88,14 @@ static void stepSimulation(BouncingBallScreen * self) {
 		if (currentTime - self->balls[ballIndex].lastCollisionTime > COLLISION_DURATION) {
 			self->balls[ballIndex].lastCollisionCircle = NULL;
 		}
-		self->balls[ballIndex].velocity.y -= GRAVITY;
+		
+		if (self->balls[ballIndex].circle.position.x < -BALL_AREA_X || self->balls[ballIndex].circle.position.x > BALL_AREA_X ||
+		    self->balls[ballIndex].circle.position.y < -BALL_AREA_Y || self->balls[ballIndex].circle.position.y > BALL_AREA_Y) {
+			self->balls[ballIndex].velocity = VECTOR2x_ZERO;
+		} else {
+			self->balls[ballIndex].velocity.y -= GRAVITY;
+		}
+		
 		CollisionCircle_updatePosition(&self->balls[ballIndex].circle, Vector2x_add(self->balls[ballIndex].circle.position, self->balls[ballIndex].velocity));
 	}
 	memcpy(self->lastBalls, self->balls, sizeof(self->balls));
@@ -385,6 +392,7 @@ static bool keyDown(Atom eventID, void * eventData, void * context) {
 			if (self->paused) {
 				stepSimulation(self);
 				Shell_redisplay();
+				
 			} else if (!event->isRepeat) {
 				self->speedMultiplier *= 2;
 			}

@@ -452,6 +452,7 @@ bool intersectionHandler_rect2D_circle(CollisionObject * object1, CollisionObjec
 	fixed16_16 contactArea;
 	Vector3x normal, bestNormal = VECTOR3x_ZERO, bestObject1Vector = VECTOR3x_ZERO;
 	
+	// TODO: Change definition of solidity to include entire span of circle from edge to center
 	// rect right vs. circle left
 	if (rect->solidRight &&
 	    (rect->position.x + rect->size.x) - (rect->lastPosition.x + rect->lastSize.x) > circle->position.x - circle->lastPosition.x && 
@@ -613,6 +614,10 @@ bool intersectionHandler_circle_circle(CollisionObject * object1, CollisionObjec
 	CollisionCircle * circle1 = (CollisionCircle *) object1, * circle2 = (CollisionCircle *) object2;
 	fixed16_16 time;
 	Vector3x normal;
+	
+	if (!Rect4x_intersectsRect4x(CollisionCircle_getCollisionBounds(circle1), CollisionCircle_getCollisionBounds(circle2))) {
+		return false;
+	}
 	
 	if (intersectSweptCircles(circle1->lastPosition, circle1->position, circle1->radius,
 	                          circle2->lastPosition, circle2->position, circle2->radius,

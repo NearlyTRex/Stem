@@ -52,3 +52,7 @@ void CollisionCircle_updatePosition(CollisionCircle * self, Vector2x newPosition
 void CollisionCircle_interpolate(CollisionCircle * self, fixed16_16 amount) {
 	self->lastPosition = Vector2x_interpolate(self->lastPosition, self->position, amount);
 }
+
+Rect4x CollisionCircle_getCollisionBounds(CollisionCircle * self) {
+	return Rect4x_union(RECT4x(self->lastPosition.x - self->radius, self->lastPosition.x + self->radius, self->lastPosition.y - self->radius, self->lastPosition.y + self->radius), RECT4x(self->position.x - self->radius, self->position.x + self->radius, self->position.y - self->radius, self->position.y + self->radius));
+}

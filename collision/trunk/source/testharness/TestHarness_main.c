@@ -210,9 +210,9 @@ void GLXTarget_configure(int argc, const char ** argv, struct GLXShellConfigurat
 	
 	// Seed 1436319720:
 	// frame 1878 is unresolvable (fixed)
-	// At frame 2400, ball 17 falls through floor. Why?
-	// At frame 2727, ball 11 falls through floor
-	// At frame 2953, simulation explodes and prints unresolvable warnings
+	// At frame 2403, ball 17 falls through floor (interpolated too far)
+	// At frame 2727, ball 11 falls through floor (interpolated too far)
+	// At frame 2953, simulation explodes and prints unresolvable warnings (balls 11/17 fell too far and positions overflowed)
 	
 	if (argc > 1 && sscanf(argv[1], "%d", &g_randomSeed)) {
 		g_fixedRandomSeed = true;

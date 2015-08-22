@@ -29,6 +29,7 @@ extern "C" {
 typedef struct CollisionCircle CollisionCircle;
 
 #include "collision/CollisionObject.h"
+#include "gamemath/Rect4x.h"
 #include "gamemath/Vector2x.h"
 
 #define CollisionCircle_structContents(self_type) \
@@ -48,6 +49,7 @@ void CollisionCircle_dispose(CollisionCircle * self);
 
 void CollisionCircle_updatePosition(CollisionCircle * self, Vector2x newPosition);
 void CollisionCircle_interpolate(CollisionCircle * self, fixed16_16 amount);
+Rect4x CollisionCircle_getCollisionBounds(CollisionCircle * self);
 
 #ifdef __cplusplus
 }
