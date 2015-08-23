@@ -208,12 +208,6 @@ void GLXTarget_configure(int argc, const char ** argv, struct GLXShellConfigurat
 	Vector2i preferredSizes[] = {{2560, 1440}, {1920, 1080}, {1280, 720}, {853, 480}};
 	unsigned int preferredSizeIndex;
 	
-	// Seed 1436319720:
-	// frame 1878 is unresolvable (fixed)
-	// At frame 2403, ball 17 falls through floor (interpolated too far)
-	// At frame 2727, ball 11 falls through floor (interpolated too far)
-	// At frame 2953, simulation explodes and prints unresolvable warnings (balls 11/17 fell too far and positions overflowed)
-	
 	if (argc > 1 && sscanf(argv[1], "%d", &g_randomSeed)) {
 		g_fixedRandomSeed = true;
 		printf("Using fixed random seed: %d\n", g_randomSeed);

@@ -124,6 +124,7 @@ void ballCollision(CollisionRecord collision, fixed16_16 timesliceSize, fixed16_
 	} else {
 		ball->lastCollisionCircle = NULL;
 	}
+	//averageVector = (object1Vector + object2Vector) / timesliceSize / 2; //???
 	reflectedVelocity = Vector2x_reflect(ball->velocity, VECTOR2x(collision.normal.x, collision.normal.y));
 	ball->velocity = Vector2x_interpolate(ball->velocity, reflectedVelocity, 0x08000 + ELASTICITY / 2);
 	circle->position = Vector2x_add(circle->lastPosition, Vector2x_multiplyScalar(ball->velocity, timesliceSize));

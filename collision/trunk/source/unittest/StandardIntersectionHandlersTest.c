@@ -872,6 +872,120 @@ static void testRect2D_circle() {
 	resetOutParameters();
 	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal, &object1Vector, &object2Vector, &contactArea);
 	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x00000, 0x10000, 0x00000), VECTOR3x_ZERO, VECTOR3x(0x0F000, 0x10000, 0x00000), 0x00000);
+	
+#pragma mark Inner solidity (edges)
+	// circle moving +x partially inside rect (less than half)
+	rect = initStationaryRect2D(VECTOR2x(-0x10000, -0x10000), VECTOR2x(0x20000, 0x20000));
+	circle = initMovingCircle(VECTOR2x(-0x14000, 0x00000), VECTOR2x(-0x04000, 0x00000), 0x10000);
+	resetOutParameters();
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x00000, VECTOR3x(0x10000, 0x00000, 0x00000), VECTOR3x_ZERO, VECTOR3x(0x10000, 0x00000, 0x00000), 0x00000);
+	
+	// circle moving +x partially inside rect (more than half)
+	rect = initStationaryRect2D(VECTOR2x(-0x10000, -0x10000), VECTOR2x(0x20000, 0x20000));
+	circle = initMovingCircle(VECTOR2x(-0x0C000, 0x00000), VECTOR2x(0x04000, 0x00000), 0x10000);
+	resetOutParameters();
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// circle moving -x partially inside rect (less than half)
+	rect = initStationaryRect2D(VECTOR2x(-0x10000, -0x10000), VECTOR2x(0x20000, 0x20000));
+	circle = initMovingCircle(VECTOR2x(0x14000, 0x00000), VECTOR2x(0x04000, 0x00000), 0x10000);
+	resetOutParameters();
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x00000, VECTOR3x(-0x10000, 0x00000, 0x00000), VECTOR3x_ZERO, VECTOR3x(-0x10000, 0x00000, 0x00000), 0x00000);
+	
+	// circle moving -x partially inside rect (more than half)
+	rect = initStationaryRect2D(VECTOR2x(-0x10000, -0x10000), VECTOR2x(0x20000, 0x20000));
+	circle = initMovingCircle(VECTOR2x(0x0C000, 0x00000), VECTOR2x(-0x04000, 0x00000), 0x10000);
+	resetOutParameters();
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// circle moving +y partially inside rect (less than half)
+	rect = initStationaryRect2D(VECTOR2x(-0x10000, -0x10000), VECTOR2x(0x20000, 0x20000));
+	circle = initMovingCircle(VECTOR2x(0x00000, -0x14000), VECTOR2x(0x00000, -0x04000), 0x10000);
+	resetOutParameters();
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x00000, VECTOR3x(0x00000, 0x10000, 0x00000), VECTOR3x_ZERO, VECTOR3x(0x00000, 0x10000, 0x00000), 0x00000);
+	
+	// circle moving +y partially inside rect (more than half)
+	rect = initStationaryRect2D(VECTOR2x(-0x10000, -0x10000), VECTOR2x(0x20000, 0x20000));
+	circle = initMovingCircle(VECTOR2x(0x00000, -0x0C000), VECTOR2x(0x00000, 0x04000), 0x10000);
+	resetOutParameters();
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// circle moving -y partially inside rect (less than half)
+	rect = initStationaryRect2D(VECTOR2x(-0x10000, -0x10000), VECTOR2x(0x20000, 0x20000));
+	circle = initMovingCircle(VECTOR2x(0x00000, 0x14000), VECTOR2x(0x00000, 0x04000), 0x10000);
+	resetOutParameters();
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x00000, VECTOR3x(0x00000, -0x10000, 0x00000), VECTOR3x_ZERO, VECTOR3x(0x00000, -0x10000, 0x00000), 0x00000);
+	
+	// circle moving -y partially inside rect (more than half)
+	rect = initStationaryRect2D(VECTOR2x(-0x10000, -0x10000), VECTOR2x(0x20000, 0x20000));
+	circle = initMovingCircle(VECTOR2x(0x00000, 0x0C000), VECTOR2x(0x00000, -0x04000), 0x10000);
+	resetOutParameters();
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+#pragma mark Inner solidity (corners)
+	// circle moving +x +y partially inside rect (less than half)
+	rect = initStationaryRect2D(VECTOR2x(-0x10000, -0x10000), VECTOR2x(0x20000, 0x20000));
+	circle = initMovingCircle(VECTOR2x(-0x14000, -0x14000), VECTOR2x(-0x04000, -0x04000), 0x10000);
+	resetOutParameters();
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x00000, VECTOR3x(0x0B506, 0x0B506, 0x00000), VECTOR3x_ZERO, VECTOR3x(0x10000, 0x10000, 0x00000), 0x00000);
+	
+	// circle moving +x +y partially inside rect (more than half)
+	rect = initStationaryRect2D(VECTOR2x(-0x10000, -0x10000), VECTOR2x(0x20000, 0x20000));
+	circle = initMovingCircle(VECTOR2x(-0x0C000, -0x0C000), VECTOR2x(0x04000, 0x04000), 0x10000);
+	resetOutParameters();
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// circle moving -x +y partially inside rect (less than half)
+	rect = initStationaryRect2D(VECTOR2x(-0x10000, -0x10000), VECTOR2x(0x20000, 0x20000));
+	circle = initMovingCircle(VECTOR2x(0x14000, -0x14000), VECTOR2x(0x04000, -0x04000), 0x10000);
+	resetOutParameters();
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x00000, VECTOR3x(-0x0B506, 0x0B506, 0x00000), VECTOR3x_ZERO, VECTOR3x(-0x10000, 0x10000, 0x00000), 0x00000);
+	
+	// circle moving -x +y partially inside rect (more than half)
+	rect = initStationaryRect2D(VECTOR2x(-0x10000, -0x10000), VECTOR2x(0x20000, 0x20000));
+	circle = initMovingCircle(VECTOR2x(0x0C000, -0x0C000), VECTOR2x(-0x04000, 0x04000), 0x10000);
+	resetOutParameters();
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// circle moving +x -y partially inside rect (less than half)
+	rect = initStationaryRect2D(VECTOR2x(-0x10000, -0x10000), VECTOR2x(0x20000, 0x20000));
+	circle = initMovingCircle(VECTOR2x(-0x14000, 0x14000), VECTOR2x(-0x04000, 0x04000), 0x10000);
+	resetOutParameters();
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x00000, VECTOR3x(0x0B506, -0x0B506, 0x00000), VECTOR3x_ZERO, VECTOR3x(0x10000, -0x10000, 0x00000), 0x00000);
+	
+	// circle moving +x -y partially inside rect (more than half)
+	rect = initStationaryRect2D(VECTOR2x(-0x10000, -0x10000), VECTOR2x(0x20000, 0x20000));
+	circle = initMovingCircle(VECTOR2x(-0x0C000, 0x0C000), VECTOR2x(0x04000, -0x04000), 0x10000);
+	resetOutParameters();
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// circle moving -x -y partially inside rect (less than half)
+	rect = initStationaryRect2D(VECTOR2x(-0x10000, -0x10000), VECTOR2x(0x20000, 0x20000));
+	circle = initMovingCircle(VECTOR2x(0x14000, 0x14000), VECTOR2x(0x04000, 0x04000), 0x10000);
+	resetOutParameters();
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x00000, VECTOR3x(-0x0B506, -0x0B506, 0x00000), VECTOR3x_ZERO, VECTOR3x(-0x10000, -0x10000, 0x00000), 0x00000);
+	
+	// circle moving -x -y partially inside rect (more than half)
+	rect = initStationaryRect2D(VECTOR2x(-0x10000, -0x10000), VECTOR2x(0x20000, 0x20000));
+	circle = initMovingCircle(VECTOR2x(0x0C000, 0x0C000), VECTOR2x(-0x04000, -0x04000), 0x10000);
+	resetOutParameters();
+	result = intersectionHandler_rect2D_circle((CollisionObject *) &rect, (CollisionObject *) &circle, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
 }
 
 static void testRect2D_line2D() {

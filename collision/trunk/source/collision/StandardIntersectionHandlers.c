@@ -27,8 +27,8 @@
 
 #define SPATIAL_EPSILON 0x00008
 
-static bool intersectSweptLineSegments(fixed16_16 x1Start, fixed16_16 x1End,
-                                       fixed16_16 x2Start, fixed16_16 x2End,
+static bool intersectSweptLineSegments(fixed16_16 x1Start, fixed16_16 x1End, fixed16_16 thickness1,
+                                       fixed16_16 x2Start, fixed16_16 x2End, fixed16_16 thickness2,
                                        fixed16_16 bottom1Start, fixed16_16 top1Start, fixed16_16 bottom1End, fixed16_16 top1End,
                                        fixed16_16 bottom2Start, fixed16_16 top2Start, fixed16_16 bottom2End, fixed16_16 top2End,
                                        fixed16_16 * outTime, fixed16_16 * outContactArea) {
@@ -36,8 +36,16 @@ static bool intersectSweptLineSegments(fixed16_16 x1Start, fixed16_16 x1End,
 	fixed16_16 bottom1, top1, bottom2, top2;
 	
 	time = xdiv(x1Start - x2Start, x2End - x2Start - x1End + x1Start);
-	if (time > 0x10000 || time < 0x00000) {
+	if (time > 0x10000) {
 		return false;
+	}
+	if (time < 0x00000) {
+		if ((x1End - x2End > x1Start - x2Start && (x1Start - thickness1 < x2Start + thickness2)) ||
+		    (x1End - x2End < x1Start - x2Start && (x1Start + thickness1 > x2Start - thickness2))) {
+			time = 0x00000;
+		} else {
+			return false;
+		}
 	}
 	
 	bottom1 = bottom1Start + xmul(bottom1End - bottom1Start, time);
@@ -184,9 +192,13 @@ static bool intersectSweptCircles(Vector2x circle1LastPosition, Vector2x circle1
 	fixed16_16 radiusSum = circle1Radius + circle2Radius;
 	fixed16_16 radiusSumSquare = xmul(radiusSum, radiusSum);
 	fixed16_16 lastDistanceSquare = Vector2x_distanceSquared(circle1LastPosition, circle2LastPosition);
-	fixed16_16 distanceSquare = Vector2x_distanceSquared(circle1Position, circle2Position);
+	Vector2x circle1Vector          = Vector2x_subtract(circle1Position, circle1LastPosition);
+	Vector2x circle2Vector          = Vector2x_subtract(circle2Position, circle2LastPosition);
+	Vector2x circle1ToCircle2Vector = Vector2x_subtract(circle2LastPosition, circle1LastPosition);
+	Vector2x relativeVelocity       = Vector2x_subtract(circle2Vector, circle1Vector);
+	fixed16_16 b = Vector2x_dot(relativeVelocity, circle1ToCircle2Vector) * 2;
 	
-	if (lastDistanceSquare < radiusSumSquare && distanceSquare < radiusSumSquare && lastDistanceSquare > distanceSquare) {
+	if (lastDistanceSquare < radiusSumSquare && b < 0x00000) {
 		// If already penetrating and trying to penetrate deeper, put a stop to it early
 		Vector3x normal;
 		
@@ -199,12 +211,7 @@ static bool intersectSweptCircles(Vector2x circle1LastPosition, Vector2x circle1
 		return true;
 	}
 	
-	Vector2x circle1Vector          = Vector2x_subtract(circle1Position, circle1LastPosition);
-	Vector2x circle2Vector          = Vector2x_subtract(circle2Position, circle2LastPosition);
-	Vector2x circle1ToCircle2Vector = Vector2x_subtract(circle2LastPosition, circle1LastPosition);
-	Vector2x relativeVelocity       = Vector2x_subtract(circle2Vector, circle1Vector);
 	fixed16_16 a = Vector2x_dot(relativeVelocity, relativeVelocity);
-	fixed16_16 b = Vector2x_dot(relativeVelocity, circle1ToCircle2Vector) * 2;
 	fixed16_16 c = Vector2x_dot(circle1ToCircle2Vector, circle1ToCircle2Vector) - radiusSumSquare;
 	fixed16_16 time1 = -1, time2 = -1;
 	
@@ -250,8 +257,8 @@ bool intersectionHandler_rect2D_rect2D(CollisionObject * object1, CollisionObjec
 	// rect1 right vs. rect2 left
 	if (rect1->solidRight && rect2->solidLeft &&
 	    (rect1->position.x + rect1->size.x) - (rect1->lastPosition.x + rect1->lastSize.x) > rect2->position.x - rect2->lastPosition.x && 
-	    intersectSweptLineSegments(rect1->lastPosition.x + rect1->lastSize.x, rect1->position.x + rect1->size.x,
-	                               rect2->lastPosition.x, rect2->position.x,
+	    intersectSweptLineSegments(rect1->lastPosition.x + rect1->lastSize.x, rect1->position.x + rect1->size.x, 0x00000,
+	                               rect2->lastPosition.x, rect2->position.x, 0x00000,
 	                               rect1->lastPosition.y, rect1->lastPosition.y + rect1->lastSize.y, rect1->position.y, rect1->position.y + rect1->size.y,
 	                               rect2->lastPosition.y, rect2->lastPosition.y + rect2->lastSize.y, rect2->position.y, rect2->position.y + rect2->size.y,
 	                               &time, &contactArea)) {
@@ -267,8 +274,8 @@ bool intersectionHandler_rect2D_rect2D(CollisionObject * object1, CollisionObjec
 	// rect1 left vs. rect2 right
 	if (rect1->solidLeft && rect2->solidRight &&
 	    rect1->position.x - rect1->lastPosition.x < (rect2->position.x + rect2->size.x) - (rect2->lastPosition.x + rect2->lastSize.x) && 
-	    intersectSweptLineSegments(rect1->lastPosition.x, rect1->position.x,
-	                               rect2->lastPosition.x + rect2->lastSize.x, rect2->position.x + rect2->size.x,
+	    intersectSweptLineSegments(rect1->lastPosition.x, rect1->position.x, 0x00000,
+	                               rect2->lastPosition.x + rect2->lastSize.x, rect2->position.x + rect2->size.x, 0x00000,
 	                               rect1->lastPosition.y, rect1->lastPosition.y + rect1->lastSize.y, rect1->position.y, rect1->position.y + rect1->size.y,
 	                               rect2->lastPosition.y, rect2->lastPosition.y + rect2->lastSize.y, rect2->position.y, rect2->position.y + rect2->size.y,
 	                               &time, &contactArea)) {
@@ -284,8 +291,8 @@ bool intersectionHandler_rect2D_rect2D(CollisionObject * object1, CollisionObjec
 	// rect1 top vs. rect2 bottom
 	if (rect1->solidTop && rect2->solidBottom &&
 	    (rect1->position.y + rect1->size.y) - (rect1->lastPosition.y + rect1->lastSize.y) > rect2->position.y - rect2->lastPosition.y && 
-	    intersectSweptLineSegments(rect1->lastPosition.y + rect1->lastSize.y, rect1->position.y + rect1->size.y,
-	                               rect2->lastPosition.y, rect2->position.y,
+	    intersectSweptLineSegments(rect1->lastPosition.y + rect1->lastSize.y, rect1->position.y + rect1->size.y, 0x00000,
+	                               rect2->lastPosition.y, rect2->position.y, 0x00000,
 	                               rect1->lastPosition.x, rect1->lastPosition.x + rect1->lastSize.x, rect1->position.x, rect1->position.x + rect1->size.x,
 	                               rect2->lastPosition.x, rect2->lastPosition.x + rect2->lastSize.x, rect2->position.x, rect2->position.x + rect2->size.x,
 	                               &time, &contactArea)) {
@@ -301,8 +308,8 @@ bool intersectionHandler_rect2D_rect2D(CollisionObject * object1, CollisionObjec
 	// rect1 bottom vs. rect2 top
 	if (rect1->solidBottom && rect2->solidTop &&
 	    rect1->position.y - rect1->lastPosition.y < (rect2->position.y + rect2->size.y) - (rect2->lastPosition.y + rect2->lastSize.y) && 
-	    intersectSweptLineSegments(rect1->lastPosition.y, rect1->position.y,
-	                               rect2->lastPosition.y + rect2->lastSize.y, rect2->position.y + rect2->size.y,
+	    intersectSweptLineSegments(rect1->lastPosition.y, rect1->position.y, 0x00000,
+	                               rect2->lastPosition.y + rect2->lastSize.y, rect2->position.y + rect2->size.y, 0x00000,
 	                               rect1->lastPosition.x, rect1->lastPosition.x + rect1->lastSize.x, rect1->position.x, rect1->position.x + rect1->size.x,
 	                               rect2->lastPosition.x, rect2->lastPosition.x + rect2->lastSize.x, rect2->position.x, rect2->position.x + rect2->size.x,
 	                               &time, &contactArea)) {
@@ -456,8 +463,8 @@ bool intersectionHandler_rect2D_circle(CollisionObject * object1, CollisionObjec
 	// rect right vs. circle left
 	if (rect->solidRight &&
 	    (rect->position.x + rect->size.x) - (rect->lastPosition.x + rect->lastSize.x) > circle->position.x - circle->lastPosition.x && 
-	    intersectSweptLineSegments(rect->lastPosition.x + rect->lastSize.x, rect->position.x + rect->size.x,
-	                               circle->lastPosition.x - circle->radius, circle->position.x - circle->radius,
+	    intersectSweptLineSegments(rect->lastPosition.x + rect->lastSize.x, rect->position.x + rect->size.x, 0x00000,
+	                               circle->lastPosition.x - circle->radius, circle->position.x - circle->radius, circle->radius,
 	                               rect->lastPosition.y, rect->lastPosition.y + rect->lastSize.y, rect->position.y, rect->position.y + rect->size.y,
 	                               circle->lastPosition.y, circle->lastPosition.y, circle->position.y, circle->position.y,
 	                               &time, &contactArea)) {
@@ -471,8 +478,8 @@ bool intersectionHandler_rect2D_circle(CollisionObject * object1, CollisionObjec
 	// rect left vs. circle right
 	if (rect->solidLeft &&
 	    rect->position.x - rect->lastPosition.x < circle->position.x - circle->lastPosition.x && 
-	    intersectSweptLineSegments(rect->lastPosition.x, rect->position.x,
-	                               circle->lastPosition.x + circle->radius, circle->position.x + circle->radius,
+	    intersectSweptLineSegments(rect->lastPosition.x, rect->position.x, 0x00000,
+	                               circle->lastPosition.x + circle->radius, circle->position.x + circle->radius, circle->radius,
 	                               rect->lastPosition.y, rect->lastPosition.y + rect->lastSize.y, rect->position.y, rect->position.y + rect->size.y,
 	                               circle->lastPosition.y, circle->lastPosition.y, circle->position.y, circle->position.y,
 	                               &time, &contactArea)) {
@@ -486,8 +493,8 @@ bool intersectionHandler_rect2D_circle(CollisionObject * object1, CollisionObjec
 	// rect top vs. circle bottom
 	if (rect->solidTop &&
 	    (rect->position.y + rect->size.y) - (rect->lastPosition.y + rect->lastSize.y) > circle->position.y - circle->lastPosition.y && 
-	    intersectSweptLineSegments(rect->lastPosition.y + rect->lastSize.y, rect->position.y + rect->size.y,
-	                               circle->lastPosition.y - circle->radius, circle->position.y - circle->radius,
+	    intersectSweptLineSegments(rect->lastPosition.y + rect->lastSize.y, rect->position.y + rect->size.y, 0x00000,
+	                               circle->lastPosition.y - circle->radius, circle->position.y - circle->radius, circle->radius,
 	                               rect->lastPosition.x, rect->lastPosition.x + rect->lastSize.x, rect->position.x, rect->position.x + rect->size.x,
 	                               circle->lastPosition.x, circle->lastPosition.x, circle->position.x, circle->position.x,
 	                               &time, &contactArea)) {
@@ -501,8 +508,8 @@ bool intersectionHandler_rect2D_circle(CollisionObject * object1, CollisionObjec
 	// rect bottom vs. circle top
 	if (rect->solidBottom &&
 	    rect->position.y - rect->lastPosition.y < circle->position.y - circle->lastPosition.y && 
-	    intersectSweptLineSegments(rect->lastPosition.y, rect->position.y,
-	                               circle->lastPosition.y + circle->radius, circle->position.y + circle->radius,
+	    intersectSweptLineSegments(rect->lastPosition.y, rect->position.y, 0x00000,
+	                               circle->lastPosition.y + circle->radius, circle->position.y + circle->radius, circle->radius,
 	                               rect->lastPosition.x, rect->lastPosition.x + rect->lastSize.x, rect->position.x, rect->position.x + rect->size.x,
 	                               circle->lastPosition.x, circle->lastPosition.x, circle->position.x, circle->position.x,
 	                               &time, &contactArea)) {
