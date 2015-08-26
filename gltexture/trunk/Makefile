@@ -29,6 +29,8 @@ CCFLAGS_testharness_win64 = -DFREEGLUT_STATIC
 # Patterns: LINKFLAGS, LINKFLAGS_${target}, LINKFLAGS_${platform}, LINKFLAGS_${target}_${platform}
 LINKFLAGS = 
 LINKFLAGS_unittest_macosx = -framework OpenGL
+LINKFLAGS_unittest_win32 = -lopengl32
+LINKFLAGS_unittest_win64 = -lopengl32
 LINKFLAGS_unittest_linux32 = -lGL
 LINKFLAGS_unittest_linux64 = -lGL
 
