@@ -44,7 +44,7 @@ struct bouncingBall {
 	CollisionCircle circle;
 };
 
-#define BOUNCING_BALL_COUNT 20
+#define BOUNCING_BALL_COUNT 80
 
 #define BouncingBallScreen_structContents(self_type) \
 	Screen_structContents(self_type) \
@@ -60,6 +60,7 @@ struct bouncingBall {
 	bool paused; \
 	bool drawLabels; \
 	unsigned int frameCount; \
+	unsigned int lastCollisionCount; \
 	float speedMultiplier; \
 	float runFraction; \
 	struct bouncingBall balls[BOUNCING_BALL_COUNT]; \

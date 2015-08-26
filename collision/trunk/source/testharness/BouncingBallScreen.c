@@ -99,6 +99,7 @@ static void stepSimulation(BouncingBallScreen * self) {
 		CollisionCircle_updatePosition(&self->balls[ballIndex].circle, Vector2x_add(self->balls[ballIndex].circle.position, self->balls[ballIndex].velocity));
 	}
 	memcpy(self->lastBalls, self->balls, sizeof(self->balls));
+	self->lastCollisionCount = 0;
 	CollisionResolver_resolveAll(self->resolver);
 	self->frameCount++;
 }
@@ -116,6 +117,7 @@ static void run(void * context) {
 void ballCollision(CollisionRecord collision, fixed16_16 timesliceSize, fixed16_16 subframeTime) {
 	CollisionCircle * circle = (CollisionCircle *) collision.object1;
 	struct bouncingBall * ball = (struct bouncingBall *) circle->owner;
+	BouncingBallScreen * self = (BouncingBallScreen *) ball->owner;
 	Vector2x reflectedVelocity;
 	
 	ball->lastCollisionTime = Shell_getCurrentTime();
@@ -124,13 +126,13 @@ void ballCollision(CollisionRecord collision, fixed16_16 timesliceSize, fixed16_
 	} else {
 		ball->lastCollisionCircle = NULL;
 	}
-	//averageVector = (object1Vector + object2Vector) / timesliceSize / 2; //???
 	reflectedVelocity = Vector2x_reflect(ball->velocity, VECTOR2x(collision.normal.x, collision.normal.y));
-	ball->velocity = Vector2x_interpolate(ball->velocity, reflectedVelocity, 0x08000 + ELASTICITY / 2);
+	ball->velocity = Vector2x_multiplyScalar(reflectedVelocity, ELASTICITY);
 	circle->position = Vector2x_add(circle->lastPosition, Vector2x_multiplyScalar(ball->velocity, timesliceSize));
+	self->lastCollisionCount++;
 }
 
-#define CIRCLE_TESSELATIONS 64
+#define CIRCLE_TESSELATIONS 32
 
 #define COLOR_RECT        COLOR4f(1.0f, 1.0f, 0.0f, 1.0f)
 #define COLOR_CIRCLE_LAST COLOR4f(0.0f, 0.25f, 0.5f, 1.0f)
@@ -276,7 +278,7 @@ static void getCollisionObjectVertices2D(BouncingBallScreen * self, struct verte
 static void getLabelVertices(BouncingBallScreen * self, struct vertex_p2f_t2f_c4f * outVertices, GLuint * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount) {
 	size_t objectIndex;
 	char labelString[3];
-	char infoString[32];
+	char infoString[64];
 	
 	for (objectIndex = 0; objectIndex < self->resolver->objectCount; objectIndex++) {
 		CollisionObject * object = self->resolver->objects[objectIndex];
@@ -286,7 +288,7 @@ static void getLabelVertices(BouncingBallScreen * self, struct vertex_p2f_t2f_c4
 			GLBitmapFont_getStringVerticesWithColor(self->font, labelString, GLBITMAPFONT_USE_STRLEN, 0.5f, VECTOR2f(xtof(circle->position.x), xtof(circle->position.y)), VECTOR2f(0.5f, 0.375f), COLOR4f(1.0f, 1.0f, 1.0f, 1.0f), GL_UNSIGNED_INT, outVertices, outIndexes, ioVertexCount, ioIndexCount);
 		}
 	}
-	snprintf_safe(infoString, sizeof(infoString), "Frame %u (%gx speed)", self->frameCount, self->speedMultiplier);
+	snprintf_safe(infoString, sizeof(infoString), "Frame %u (%gx speed) (%u collisions)", self->frameCount, self->speedMultiplier, self->lastCollisionCount);
 	GLBitmapFont_getStringVerticesWithColor(self->font, infoString, GLBITMAPFONT_USE_STRLEN, 0.5f, VECTOR2f(0.0f, -11.5f), VECTOR2f(0.5f, 0.5f), COLOR4f(1.0f, 1.0f, 1.0f, 1.0f), GL_UNSIGNED_INT, outVertices, outIndexes, ioVertexCount, ioIndexCount);
 }
 

@@ -26,7 +26,7 @@
 
 #define SUPERCLASS StemObject
 
-#define MAX_ITERATIONS_TEMP 128
+#define MAX_ITERATIONS_TEMP 512
 #define MAX_SIMULTANEOUS_COLLISIONS 128
 
 CollisionResolver * CollisionResolver_create(IntersectionManager * intersectionManager, bool takeOwnership) {
