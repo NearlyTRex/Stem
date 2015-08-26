@@ -95,8 +95,8 @@ static void testResolve() {
 	TestCase_assert(collisionCallback2Calls == 1, "Expected 1 but got %u", collisionCallback2Calls);
 	TestCase_assert(lastCollision1.object1 == object1, "Expected %p but got %p", object1, lastCollision1.object1);
 	TestCase_assert(lastCollision1.object2 == object2, "Expected %p but got %p", object2, lastCollision1.object2);
-	TestCase_assert(lastCollision1.time == 0x10000, "Expected 0x10000 but got 0x%05X", object1, lastCollision1.time);
-	TestCase_assert(lastCollision1.contactArea == 0x10000, "Expected 0x10000 but got 0x%05X", object1, lastCollision1.contactArea);
+	TestCase_assert(lastCollision1.time == 0x10000, "Expected 0x10000 but got 0x%05X", lastCollision1.time);
+	TestCase_assert(lastCollision1.contactArea == 0x10000, "Expected 0x10000 but got 0x%05X", lastCollision1.contactArea);
 	TestCase_assert(lastCollision1.normal.x == 0x10000 && lastCollision1.normal.y == 0x00000 && lastCollision1.normal.z == 0x00000, "Expected {0x10000, 0x00000, 0x00000} but got {0x%05X, 0x%05X, 0x%05X}", lastCollision1.normal.x, lastCollision1.normal.y, lastCollision1.normal.z);
 	TestCase_assert(lastCollision1.object1Vector.x == 0 && lastCollision1.object1Vector.y == 1 && lastCollision1.object1Vector.z == 2, "Expected {0x00000, 0x00001, 0x00002} but got {0x%05X, 0x%05X, 0x%05X}", lastCollision1.object1Vector.x, lastCollision1.object1Vector.y, lastCollision1.object1Vector.z);
 	TestCase_assert(lastCollision1.object2Vector.x == 3 && lastCollision1.object2Vector.y == 4 && lastCollision1.object2Vector.z == 5, "Expected {0x00003, 0x00004, 0x00005} but got {0x%05X, 0x%05X, 0x%05X}", lastCollision1.object2Vector.x, lastCollision1.object2Vector.y, lastCollision1.object2Vector.z);
@@ -104,8 +104,8 @@ static void testResolve() {
 	TestCase_assert(lastSubframeTime1 == 0x00000, "Expected 0x00000 but got 0x%05X", lastSubframeTime1);
 	TestCase_assert(lastCollision2.object1 == object2, "Expected %p but got %p", object2, lastCollision2.object1);
 	TestCase_assert(lastCollision2.object2 == object1, "Expected %p but got %p", object1, lastCollision2.object2);
-	TestCase_assert(lastCollision2.time == 0x10000, "Expected 0x10000 but got 0x%05X", object1, lastCollision1.time);
-	TestCase_assert(lastCollision2.contactArea == 0x10000, "Expected 0x10000 but got 0x%05X", object1, lastCollision1.contactArea);
+	TestCase_assert(lastCollision2.time == 0x10000, "Expected 0x10000 but got 0x%05X", lastCollision1.time);
+	TestCase_assert(lastCollision2.contactArea == 0x10000, "Expected 0x10000 but got 0x%05X", lastCollision1.contactArea);
 	TestCase_assert(lastCollision2.normal.x == (fixed16_16) 0xFFFF0000 && lastCollision2.normal.y == 0x00000 && lastCollision2.normal.z == 0x00000, "Expected {0xFFFF0000, 0x00000, 0x00000} but got {0x%05X, 0x%05X, 0x%05X}", lastCollision2.normal.x, lastCollision2.normal.y, lastCollision2.normal.z);
 	TestCase_assert(lastCollision2.object1Vector.x == 3 && lastCollision2.object1Vector.y == 4 && lastCollision2.object1Vector.z == 5, "Expected {0x00003, 0x00004, 0x00005} but got {0x%05X, 0x%05X, 0x%05X}", lastCollision2.object1Vector.x, lastCollision2.object1Vector.y, lastCollision2.object1Vector.z);
 	TestCase_assert(lastCollision2.object2Vector.x == 0 && lastCollision2.object2Vector.y == 1 && lastCollision2.object2Vector.z == 2, "Expected {0x00000, 0x00001, 0x00002} but got {0x%05X, 0x%05X, 0x%05X}", lastCollision2.object2Vector.x, lastCollision2.object2Vector.y, lastCollision2.object2Vector.z);
@@ -127,8 +127,8 @@ static void testResolve() {
 	TestCase_assert(collisionCallback2Calls == 2, "Expected 2 but got %u", collisionCallback2Calls);
 	TestCase_assert(lastCollision1.object1 == object2, "Expected %p but got %p", object2, lastCollision1.object1);
 	TestCase_assert(lastCollision1.object2 == object1, "Expected %p but got %p", object1, lastCollision1.object2);
-	TestCase_assert(lastCollision1.time == 0x08000, "Expected 0x08000 but got 0x%05X", object1, lastCollision1.time);
-	TestCase_assert(lastCollision1.contactArea == 0x04000, "Expected 0x04000 but got 0x%05X", object1, lastCollision1.contactArea);
+	TestCase_assert(lastCollision1.time == 0x08000, "Expected 0x08000 but got 0x%05X", lastCollision1.time);
+	TestCase_assert(lastCollision1.contactArea == 0x04000, "Expected 0x04000 but got 0x%05X", lastCollision1.contactArea);
 	TestCase_assert(lastCollision1.normal.x == 0x00000 && lastCollision1.normal.y == 0x0B504 && lastCollision1.normal.z == (fixed16_16) 0xFFFF4AFC, "Expected {0x00000, 0x0B504, 0xFFFF4AFC} but got {0x%05X, 0x%05X, 0x%05X}", lastCollision1.normal.x, lastCollision1.normal.y, lastCollision1.normal.z);
 	TestCase_assert(lastCollision1.object1Vector.x == 4 && lastCollision1.object1Vector.y == 5 && lastCollision1.object1Vector.z == 6, "Expected {0x00004, 0x00005, 0x00006} but got {0x%05X, 0x%05X, 0x%05X}", lastCollision1.object1Vector.x, lastCollision1.object1Vector.y, lastCollision1.object1Vector.z);
 	TestCase_assert(lastCollision1.object2Vector.x == 1 && lastCollision1.object2Vector.y == 2 && lastCollision1.object2Vector.z == 3, "Expected {0x00001, 0x00002, 0x00003} but got {0x%05X, 0x%05X, 0x%05X}", lastCollision1.object2Vector.x, lastCollision1.object2Vector.y, lastCollision1.object2Vector.z);
@@ -136,8 +136,8 @@ static void testResolve() {
 	TestCase_assert(lastSubframeTime1 == 0x04000, "Expected 0x04000 but got 0x%05X", lastSubframeTime1);
 	TestCase_assert(lastCollision2.object1 == object1, "Expected %p but got %p", object1, lastCollision2.object1);
 	TestCase_assert(lastCollision2.object2 == object2, "Expected %p but got %p", object2, lastCollision2.object2);
-	TestCase_assert(lastCollision2.time == 0x08000, "Expected 0x08000 but got 0x%05X", object1, lastCollision1.time);
-	TestCase_assert(lastCollision2.contactArea == 0x04000, "Expected 0x04000 but got 0x%05X", object1, lastCollision1.contactArea);
+	TestCase_assert(lastCollision2.time == 0x08000, "Expected 0x08000 but got 0x%05X", lastCollision1.time);
+	TestCase_assert(lastCollision2.contactArea == 0x04000, "Expected 0x04000 but got 0x%05X", lastCollision1.contactArea);
 	TestCase_assert(lastCollision2.normal.x == 0x00000 && lastCollision2.normal.y == (fixed16_16) 0xFFFF4AFC && lastCollision2.normal.z == 0x0B504, "Expected {0x00000, 0xFFFF4AFC, 0x0B504} but got {0x%05X, 0x%05X, 0x%05X}", lastCollision2.normal.x, lastCollision2.normal.y, lastCollision2.normal.z);
 	TestCase_assert(lastCollision2.object1Vector.x == 1 && lastCollision2.object1Vector.y == 2 && lastCollision2.object1Vector.z == 3, "Expected {0x00001, 0x00002, 0x00003} but got {0x%05X, 0x%05X, 0x%05X}", lastCollision2.object1Vector.x, lastCollision2.object1Vector.y, lastCollision2.object1Vector.z);
 	TestCase_assert(lastCollision2.object2Vector.x == 4 && lastCollision2.object2Vector.y == 5 && lastCollision2.object2Vector.z == 6, "Expected {0x00004, 0x00005, 0x00006} but got {0x%05X, 0x%05X, 0x%05X}", lastCollision2.object2Vector.x, lastCollision2.object2Vector.y, lastCollision2.object2Vector.z);

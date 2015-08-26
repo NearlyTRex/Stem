@@ -88,7 +88,7 @@ static void testCallHandler() {
 	object2Vector = VECTOR3x_ZERO;
 	contactArea = 0;
 	result = IntersectionManager_callHandler(intersectionManager, object1, object2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
-	TestCase_assert(!result, "Expected false but got true", result);
+	TestCase_assert(!result, "Expected false but got true");
 	TestCase_assert(time == 0, "Expected 0x00000 but got 0x%05X", time);
 	TestCase_assert(normal.x == 0 && normal.y == 0 && normal.z == 0, "Expected {0x00000, 0x00000, 0x00000} but got {0x%05X, 0x%05X, 0x%05X}", normal.x, normal.y, normal.z);
 	TestCase_assert(object1Vector.x == 0 && object1Vector.y == 0 && object1Vector.z == 0, "Expected {0x00000, 0x00000, 0x00000} but got {0x%05X, 0x%05X, 0x%05X}", object1Vector.x, object1Vector.y, object1Vector.z);
@@ -100,7 +100,7 @@ static void testCallHandler() {
 	
 	result = IntersectionManager_callHandler(intersectionManager, object1, object2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
 	TestCase_assert(handler1Calls == 1, "Expected 1 but got %u", handler1Calls);
-	TestCase_assert(!result, "Expected false but got true", result);
+	TestCase_assert(!result, "Expected false but got true");
 	TestCase_assert(time == 0, "Expected 0x00000 but got 0x%05X", time);
 	TestCase_assert(normal.x == 0 && normal.y == 0 && normal.z == 0, "Expected {0x00000, 0x00000, 0x00000} but got {0x%05X, 0x%05X, 0x%05X}", normal.x, normal.y, normal.z);
 	TestCase_assert(object1Vector.x == 0 && object1Vector.y == 0 && object1Vector.z == 0, "Expected {0x00000, 0x00000, 0x00000} but got {0x%05X, 0x%05X, 0x%05X}", object1Vector.x, object1Vector.y, object1Vector.z);
@@ -110,7 +110,7 @@ static void testCallHandler() {
 	object2->shapeType = 1;
 	result = IntersectionManager_callHandler(intersectionManager, object1, object2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
 	TestCase_assert(handler2Calls == 1, "Expected 1 but got %u", handler2Calls);
-	TestCase_assert(result, "Expected true but got false", result);
+	TestCase_assert(result, "Expected true but got false");
 	TestCase_assert(time == 1, "Expected 0x00001 but got 0x%05X", time);
 	TestCase_assert(normal.x == 2 && normal.y == 3 && normal.z == 4, "Expected {0x00002, 0x00003, 0x00004} but got {0x%05X, 0x%05X, 0x%05X}", normal.x, normal.y, normal.z);
 	TestCase_assert(object1Vector.x == 5 && object1Vector.y == 6 && object1Vector.z == 7, "Expected {0x00005, 0x00006, 0x00007} but got {0x%05X, 0x%05X, 0x%05X}", object1Vector.x, object1Vector.y, object1Vector.z);

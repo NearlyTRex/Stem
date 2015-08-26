@@ -21,6 +21,8 @@ PLATFORMS = macosx iphonesimulator iphoneos linux32 linux64 win32 win64
 
 # Patterns: CCFLAGS, CCFLAGS_${target}, CCFLAGS_${configuration}, CCFLAGS_${platform}, CCFLAGS_${target}_${configuration}, CCFLAGS_${target}_${platform}, CCFLAGS_${configuration}_${platform}, CCFLAGS_${target}_${configuration}_${platform}
 CCFLAGS = 
+CCFLAGS_win32 = -Wno-unknown-pragmas
+CCFLAGS_win64 = -Wno-unknown-pragmas
 
 # Patterns: LINKFLAGS, LINKFLAGS_${target}, LINKFLAGS_${configuration}, LINKFLAGS_${platform}, LINKFLAGS_${target}_${configuration}, LINKFLAGS_${target}_${platform}, LINKFLAGS_${configuration}_${platform}
 LINKFLAGS = 

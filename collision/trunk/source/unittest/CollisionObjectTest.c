@@ -4,7 +4,7 @@
 
 static void verifyInit(int line, CollisionObject * collisionObject, void * owner, int shapeType, CollisionCallback collisionCallback) {
 	TestCase_assert(collisionObject != NULL, "Expected non-NULL but got NULL (line %d)", line);
-	TestCase_assert(collisionObject->dispose == CollisionObject_dispose, "Expected %p but got %p (line %d)", CollisionObject_dispose, collisionObject->dispose);
+	TestCase_assert(collisionObject->dispose == CollisionObject_dispose, "Expected %p but got %p (line %d)", CollisionObject_dispose, collisionObject->dispose, line);
 	TestCase_assert(collisionObject->shapeType == shapeType, "Expected %d but got %d (line %d)", shapeType, collisionObject->shapeType, line);
 	TestCase_assert(collisionObject->owner == owner, "Expected %p but got %p (line %d)", owner, collisionObject->owner, line);
 	TestCase_assert(collisionObject->collisionCallback == collisionCallback, "Expected %p but got %p (line %d)", collisionCallback, collisionObject->collisionCallback, line);

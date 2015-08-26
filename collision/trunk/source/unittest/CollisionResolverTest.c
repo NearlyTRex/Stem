@@ -5,7 +5,7 @@
 
 static void verifyInit(int line, CollisionResolver * collisionResolver, IntersectionManager * intersectionManager) {
 	TestCase_assert(collisionResolver != NULL, "Expected non-NULL but got NULL (line %d)", line);
-	TestCase_assert(collisionResolver->dispose == CollisionResolver_dispose, "Expected %p but got %p (line %d)", CollisionResolver_dispose, collisionResolver->dispose);
+	TestCase_assert(collisionResolver->dispose == CollisionResolver_dispose, "Expected %p but got %p (line %d)", CollisionResolver_dispose, collisionResolver->dispose, line);
 	TestCase_assert(collisionResolver->objectCount == 0, "Expected 0 but got " SIZE_T_FORMAT " (line %d)", collisionResolver->objectCount, line);
 	TestCase_assert(collisionResolver->intersectionManager == intersectionManager, "Expected %p but got %p", intersectionManager, collisionResolver->intersectionManager);
 }
