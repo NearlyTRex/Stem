@@ -52,3 +52,7 @@ void CollisionSphere_updatePosition(CollisionSphere * self, Vector3x newPosition
 void CollisionSphere_interpolate(CollisionSphere * self, fixed16_16 amount) {
 	self->lastPosition = Vector3x_interpolate(self->lastPosition, self->position, amount);
 }
+
+Box6x CollisionSphere_getCollisionBounds(CollisionSphere * self) {
+	return Box6x_union(BOX6x(self->lastPosition.x - self->radius, self->lastPosition.x + self->radius, self->lastPosition.y - self->radius, self->lastPosition.y + self->radius, self->lastPosition.z - self->radius, self->lastPosition.z + self->radius), BOX6x(self->position.x - self->radius, self->position.x + self->radius, self->position.y - self->radius, self->position.y + self->radius, self->position.z - self->radius, self->position.z + self->radius));
+}

@@ -1,6 +1,7 @@
 #include "collision/CollisionCapsule.h"
 #include "collision/CollisionCircle.h"
 #include "collision/CollisionRect2D.h"
+#include "collision/CollisionSphere.h"
 #include "collision/CollisionStaticTrimesh.h"
 #include "collision/StandardIntersectionHandlers.h"
 #include "unittest/TestSuite.h"
@@ -59,6 +60,21 @@ static CollisionCircle initMovingCircle(Vector2x lastPosition, Vector2x position
 	CollisionCircle_init(&circle, NULL, NULL, lastPosition, radius);
 	CollisionCircle_updatePosition(&circle, position);
 	return circle;
+}
+
+static CollisionSphere initStationarySphere(Vector3x position, fixed16_16 radius) {
+	CollisionSphere sphere;
+	
+	CollisionSphere_init(&sphere, NULL, NULL, position, radius);
+	return sphere;
+}
+
+static CollisionSphere initMovingSphere(Vector3x lastPosition, Vector3x position, fixed16_16 radius) {
+	CollisionSphere sphere;
+	
+	CollisionSphere_init(&sphere, NULL, NULL, lastPosition, radius);
+	CollisionSphere_updatePosition(&sphere, position);
+	return sphere;
 }
 
 static CollisionCapsule initStationaryCapsule(Vector3x position, fixed16_16 radius, fixed16_16 cylinderHeight) {
@@ -1165,7 +1181,90 @@ static void testBox_trimesh() {
 }
 
 static void testSphere_sphere() {
-	TestCase_assert(false, "Unimplemented");
+	CollisionSphere sphere1, sphere2;
+	bool result;
+	fixed16_16 time, contactArea;
+	Vector3x normal, object1Vector, object2Vector;
+	
+	// No collision for no movement (no contact)
+	sphere1 = initStationarySphere(VECTOR3x(-0x40000, 0x00000, 0x00000), 0x10000);
+	sphere2 = initStationarySphere(VECTOR3x(0x00000, 0x00000, 0x00000), 0x10000);
+	result = intersectionHandler_sphere_sphere((CollisionObject *) &sphere1, (CollisionObject *) &sphere2, NULL, NULL, NULL, NULL, NULL);
+	assertNoCollision(result);
+	
+	// sphere1 moving +x (level), sphere2 stationary
+	sphere1 = initMovingSphere(VECTOR3x(-0x40000, 0x00000, 0x00000), VECTOR3x(0x00000, 0x00000, 0x00000), 0x10000);
+	sphere2 = initStationarySphere(VECTOR3x(0x00000, 0x00000, 0x00000), 0x10000);
+	resetOutParameters();
+	result = intersectionHandler_sphere_sphere((CollisionObject *) &sphere1, (CollisionObject *) &sphere2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(-0x10000, 0x00000, 0x00000), VECTOR3x(0x40000, 0x00000, 0x00000), VECTOR3x_ZERO, 0x00000);
+	
+	// sphere1 moving +x (level), sphere2 stationary (different speed/collision time)
+	sphere1 = initMovingSphere(VECTOR3x(-0x40000, 0x00000, 0x00000), VECTOR3x(0x40000, 0x00000, 0x00000), 0x10000);
+	sphere2 = initStationarySphere(VECTOR3x(0x00000, 0x00000, 0x00000), 0x10000);
+	resetOutParameters();
+	result = intersectionHandler_sphere_sphere((CollisionObject *) &sphere1, (CollisionObject *) &sphere2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x04000, VECTOR3x(-0x10000, 0x00000, 0x00000), VECTOR3x(0x80000, 0x00000, 0x00000), VECTOR3x_ZERO, 0x00000);
+	
+	// sphere1 moving +x (level), sphere2 stationary (different radius)
+	sphere1 = initMovingSphere(VECTOR3x(-0x40000, 0x00000, 0x00000), VECTOR3x(0x00000, 0x00000, 0x00000), 0x10000);
+	sphere2 = initStationarySphere(VECTOR3x(0x00000, 0x00000, 0x00000), 0x20000);
+	resetOutParameters();
+	result = intersectionHandler_sphere_sphere((CollisionObject *) &sphere1, (CollisionObject *) &sphere2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x04000, VECTOR3x(-0x10000, 0x00000, 0x00000), VECTOR3x(0x40000, 0x00000, 0x00000), VECTOR3x_ZERO, 0x00000);
+	
+	// sphere1 moving +x (level), sphere2 stationary (sphere1 starts butted against sphere2)
+	sphere1 = initMovingSphere(VECTOR3x(-0x20000, 0x00000, 0x00000), VECTOR3x(0x00000, 0x00000, 0x00000), 0x10000);
+	sphere2 = initStationarySphere(VECTOR3x(0x00000, 0x00000, 0x00000), 0x10000);
+	resetOutParameters();
+	result = intersectionHandler_sphere_sphere((CollisionObject *) &sphere1, (CollisionObject *) &sphere2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x00000, VECTOR3x(-0x10000, 0x00000, 0x00000), VECTOR3x(0x20000, 0x00000, 0x00000), VECTOR3x_ZERO, 0x00000);
+	
+	// sphere1 moving +x (45 degrees up), sphere2 stationary
+	sphere1 = initMovingSphere(VECTOR3x(-0x40000, 0x16A09, 0x00000), VECTOR3x(0x00000, 0x16A09, 0x00000), 0x10000);
+	sphere2 = initStationarySphere(VECTOR3x(0x00000, 0x00000, 0x00000), 0x10000);
+	resetOutParameters();
+	result = intersectionHandler_sphere_sphere((CollisionObject *) &sphere1, (CollisionObject *) &sphere2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x0A57D, VECTOR3x(-0x0B506, 0x0B505, 0x00000), VECTOR3x(0x40000, 0x00000, 0x00000), VECTOR3x_ZERO, 0x00000);
+	
+	// sphere1 moving -y, sphere2 moving +x
+	sphere1 = initMovingSphere(VECTOR3x(0x00000, 0x20000, 0x00000), VECTOR3x(0x00000, -0x20000, 0x00000), 0x10000);
+	sphere2 = initMovingSphere(VECTOR3x(-0x20000, 0x00000, 0x00000), VECTOR3x(0x20000, 0x00000, 0x00000), 0x10000);
+	resetOutParameters();
+	result = intersectionHandler_sphere_sphere((CollisionObject *) &sphere1, (CollisionObject *) &sphere2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x0257D, VECTOR3x(0x0B505, 0x0B505, 0x00000), VECTOR3x(0x00000, -0x40000, 0x00000), VECTOR3x(0x40000, 0x00000, 0x00000), 0x00000);
+	
+	// sphere1 moving +z (level), sphere2 stationary
+	sphere1 = initMovingSphere(VECTOR3x(0x00000, 0x00000, -0x40000), VECTOR3x(0x00000, 0x00000, 0x00000), 0x10000);
+	sphere2 = initStationarySphere(VECTOR3x(0x00000, 0x00000, 0x00000), 0x10000);
+	resetOutParameters();
+	result = intersectionHandler_sphere_sphere((CollisionObject *) &sphere1, (CollisionObject *) &sphere2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x00000, 0x00000, -0x10000), VECTOR3x(0x00000, 0x00000, 0x40000), VECTOR3x_ZERO, 0x00000);
+	
+	// No collision for no movement (contact)
+	sphere1 = initStationarySphere(VECTOR3x(-0x10000, 0x00000, 0x00000), 0x10000);
+	sphere2 = initStationarySphere(VECTOR3x(0x00000, 0x00000, 0x00000), 0x10000);
+	result = intersectionHandler_sphere_sphere((CollisionObject *) &sphere1, (CollisionObject *) &sphere2, NULL, NULL, NULL, NULL, NULL);
+	assertNoCollision(result);
+	
+	// Miss (sphere1 above moving +x, sphere2 below moving -x)
+	sphere1 = initMovingSphere(VECTOR3x(-0x10000, 0x10000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x00000), 0x10000);
+	sphere2 = initMovingSphere(VECTOR3x(0x10000, -0x10000, 0x00000), VECTOR3x(-0x10000, -0x10000, 0x00000), 0x10000);
+	result = intersectionHandler_sphere_sphere((CollisionObject *) &sphere1, (CollisionObject *) &sphere2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// sphere1 moving +x (level), sphere2 stationary (sphere1 starts penetrating sphere2 by less than half)
+	sphere1 = initMovingSphere(VECTOR3x(-0x08000, 0x00000, 0x00000), VECTOR3x(0x00000, 0x00000, 0x00000), 0x10000);
+	sphere2 = initStationarySphere(VECTOR3x(0x00000, 0x00000, 0x00000), 0x10000);
+	resetOutParameters();
+	result = intersectionHandler_sphere_sphere((CollisionObject *) &sphere1, (CollisionObject *) &sphere2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x00000, VECTOR3x(-0x10000, 0x00000, 0x00000), VECTOR3x(0x08000, 0x00000, 0x00000), VECTOR3x_ZERO, 0x00000);
+	
+	// sphere1 moving +x (level), sphere2 stationary (sphere1 starts penetrating sphere2 by more than half)
+	sphere1 = initMovingSphere(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x08000, 0x00000, 0x00000), 0x10000);
+	sphere2 = initStationarySphere(VECTOR3x(0x00000, 0x00000, 0x00000), 0x10000);
+	result = intersectionHandler_sphere_sphere((CollisionObject *) &sphere1, (CollisionObject *) &sphere2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
 }
 
 static void testSphere_line3D() {

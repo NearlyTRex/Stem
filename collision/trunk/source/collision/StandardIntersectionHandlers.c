@@ -23,6 +23,7 @@
 #include "collision/CollisionCapsule.h"
 #include "collision/CollisionCircle.h"
 #include "collision/CollisionRect2D.h"
+#include "collision/CollisionSphere.h"
 #include "collision/StandardIntersectionHandlers.h"
 #include <stdio.h>
 
@@ -775,6 +776,34 @@ bool intersectionHandler_box3D_trimesh(CollisionObject * object1, CollisionObjec
 }
 
 bool intersectionHandler_sphere_sphere(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal, Vector3x * outObject1Vector, Vector3x * outObject2Vector, fixed16_16 * outContactArea) {
+	CollisionSphere * sphere1 = (CollisionSphere *) object1, * sphere2 = (CollisionSphere *) object2;
+	fixed16_16 time;
+	Vector3x normal;
+	
+	if (!Box6x_intersectsBox6x(CollisionSphere_getCollisionBounds(sphere1), CollisionSphere_getCollisionBounds(sphere2))) {
+		return false;
+	}
+	
+	if (intersectSweptSpheres(sphere1->lastPosition, sphere1->position, sphere1->radius,
+	                          sphere2->lastPosition, sphere2->position, sphere2->radius,
+	                          &time, &normal)) {
+		if (outNormal != NULL) {
+			*outNormal = normal;
+		}
+		if (outTime != NULL) {
+			*outTime = time;
+		}
+		if (outObject1Vector != NULL) {
+			*outObject1Vector = VECTOR3x(sphere1->position.x - sphere1->lastPosition.x, sphere1->position.y - sphere1->lastPosition.y, sphere1->position.z - sphere1->lastPosition.z);
+		}
+		if (outObject2Vector != NULL) {
+			*outObject2Vector = VECTOR3x(sphere2->position.x - sphere2->lastPosition.x, sphere2->position.y - sphere2->lastPosition.y, sphere2->position.z - sphere2->lastPosition.z);
+		}
+		if (outContactArea != NULL) {
+			*outContactArea = 0x00000;
+		}
+		return true;
+	}
 	return false;
 }
 

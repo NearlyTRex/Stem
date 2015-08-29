@@ -29,6 +29,7 @@ extern "C" {
 typedef struct CollisionSphere CollisionSphere;
 
 #include "collision/CollisionObject.h"
+#include "gamemath/Box6x.h"
 #include "gamemath/Vector3x.h"
 
 #define CollisionSphere_structContents(self_type) \
@@ -48,6 +49,7 @@ void CollisionSphere_dispose(CollisionSphere * self);
 
 void CollisionSphere_updatePosition(CollisionSphere * self, Vector3x newPosition);
 void CollisionSphere_interpolate(CollisionSphere * self, fixed16_16 amount);
+Box6x CollisionSphere_getCollisionBounds(CollisionSphere * self);
 
 #ifdef __cplusplus
 }
