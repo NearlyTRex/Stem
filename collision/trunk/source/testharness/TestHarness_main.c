@@ -52,6 +52,7 @@
 // TODO:
 // - Show contact area (and vectors?) in scene 1
 // - Animate mode (interpolate all shapes to first collision, resolve, continue until all resolved)
+// - Hotkey to resolve detected collision in scene 1 (move lastPosition to point of intersection)
 // - Display numbers for all relevant properties of selected object
 
 // Feature wishlist:

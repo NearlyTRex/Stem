@@ -1,3 +1,4 @@
+#include "collision/CollisionCapsule.h"
 #include "collision/CollisionCircle.h"
 #include "collision/CollisionRect2D.h"
 #include "collision/CollisionStaticTrimesh.h"
@@ -58,6 +59,21 @@ static CollisionCircle initMovingCircle(Vector2x lastPosition, Vector2x position
 	CollisionCircle_init(&circle, NULL, NULL, lastPosition, radius);
 	CollisionCircle_updatePosition(&circle, position);
 	return circle;
+}
+
+static CollisionCapsule initStationaryCapsule(Vector3x position, fixed16_16 radius, fixed16_16 cylinderHeight) {
+	CollisionCapsule capsule;
+	
+	CollisionCapsule_init(&capsule, NULL, NULL, position, radius, cylinderHeight);
+	return capsule;
+}
+
+static CollisionCapsule initMovingCapsule(Vector3x lastPosition, Vector3x position, fixed16_16 radius, fixed16_16 cylinderHeight) {
+	CollisionCapsule capsule;
+	
+	CollisionCapsule_init(&capsule, NULL, NULL, lastPosition, radius, cylinderHeight);
+	CollisionCapsule_updatePosition(&capsule, position);
+	return capsule;
 }
 
 #define assertNoCollision(result) \
@@ -1177,7 +1193,79 @@ static void testLine3D_trimesh() {
 }
 
 static void testCapsule_capsule() {
-	TestCase_assert(false, "Unimplemented");
+	CollisionCapsule capsule1, capsule2;
+	bool result;
+	fixed16_16 time, contactArea;
+	Vector3x normal, object1Vector, object2Vector;
+	
+	// No collision for no movement (no contact)
+	capsule1 = initStationaryCapsule(VECTOR3x(-0x40000, 0x00000, 0x00000), 0x10000, 0x10000);
+	capsule2 = initStationaryCapsule(VECTOR3x(0x00000, 0x00000, 0x00000), 0x10000, 0x10000);
+	result = intersectionHandler_capsule_capsule((CollisionObject *) &capsule1, (CollisionObject *) &capsule2, NULL, NULL, NULL, NULL, NULL);
+	assertNoCollision(result);
+	
+	// capsule1 moving +x (level), capsule2 stationary
+	capsule1 = initMovingCapsule(VECTOR3x(-0x40000, 0x00000, 0x00000), VECTOR3x(0x00000, 0x00000, 0x00000), 0x10000, 0x10000);
+	capsule2 = initStationaryCapsule(VECTOR3x(0x00000, 0x00000, 0x00000), 0x10000, 0x10000);
+	resetOutParameters();
+	result = intersectionHandler_capsule_capsule((CollisionObject *) &capsule1, (CollisionObject *) &capsule2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(-0x10000, 0x00000, 0x00000), VECTOR3x(0x40000, 0x00000, 0x00000), VECTOR3x_ZERO, 0x10000);
+	
+	// capsule1 moving +x (level), capsule2 stationary (different speed/collision time)
+	capsule1 = initMovingCapsule(VECTOR3x(-0x40000, 0x00000, 0x00000), VECTOR3x(0x40000, 0x00000, 0x00000), 0x10000, 0x10000);
+	capsule2 = initStationaryCapsule(VECTOR3x(0x00000, 0x00000, 0x00000), 0x10000, 0x10000);
+	resetOutParameters();
+	result = intersectionHandler_capsule_capsule((CollisionObject *) &capsule1, (CollisionObject *) &capsule2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x04000, VECTOR3x(-0x10000, 0x00000, 0x00000), VECTOR3x(0x80000, 0x00000, 0x00000), VECTOR3x_ZERO, 0x10000);
+	
+	// capsule1 moving +x (bottom of cylinder), capsule2 stationary
+	capsule1 = initMovingCapsule(VECTOR3x(-0x40000, -0x20000, 0x00000), VECTOR3x(0x00000, -0x20000, 0x00000), 0x10000, 0x20000);
+	capsule2 = initStationaryCapsule(VECTOR3x(0x00000, 0x00000, 0x00000), 0x10000, 0x20000);
+	resetOutParameters();
+	result = intersectionHandler_capsule_capsule((CollisionObject *) &capsule1, (CollisionObject *) &capsule2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(-0x10000, 0x00000, 0x00000), VECTOR3x(0x40000, 0x00000, 0x00000), VECTOR3x_ZERO, 0x00000);
+	
+	// capsule1 moving +x (top of cylinder), capsule2 stationary
+	capsule1 = initMovingCapsule(VECTOR3x(-0x40000, 0x20000, 0x00000), VECTOR3x(0x00000, 0x20000, 0x00000), 0x10000, 0x20000);
+	capsule2 = initStationaryCapsule(VECTOR3x(0x00000, 0x00000, 0x00000), 0x10000, 0x20000);
+	resetOutParameters();
+	result = intersectionHandler_capsule_capsule((CollisionObject *) &capsule1, (CollisionObject *) &capsule2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(-0x10000, 0x00000, 0x00000), VECTOR3x(0x40000, 0x00000, 0x00000), VECTOR3x_ZERO, 0x00000);
+	
+	// capsule1 moving -y, capsule2 stationary
+	capsule1 = initMovingCapsule(VECTOR3x(0x00000, 0x40000, 0x00000), VECTOR3x(0x00000, 0x20000, 0x00000), 0x10000, 0x10000);
+	capsule2 = initStationaryCapsule(VECTOR3x(0x00000, 0x00000, 0x00000), 0x10000, 0x10000);
+	resetOutParameters();
+	result = intersectionHandler_capsule_capsule((CollisionObject *) &capsule1, (CollisionObject *) &capsule2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x00000, 0x10000, 0x00000), VECTOR3x(0x00000, -0x20000, 0x00000), VECTOR3x_ZERO, 0x00000);
+	
+	// capsule1 moving +y, capsule2 stationary
+	capsule1 = initMovingCapsule(VECTOR3x(0x00000, -0x40000, 0x00000), VECTOR3x(0x00000, -0x20000, 0x00000), 0x10000, 0x10000);
+	capsule2 = initStationaryCapsule(VECTOR3x(0x00000, 0x00000, 0x00000), 0x10000, 0x10000);
+	resetOutParameters();
+	result = intersectionHandler_capsule_capsule((CollisionObject *) &capsule1, (CollisionObject *) &capsule2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x00000, -0x10000, 0x00000), VECTOR3x(0x00000, 0x20000, 0x00000), VECTOR3x_ZERO, 0x00000);
+	
+	// capsule1 moving +x (45 degrees below), capsule2 stationary
+	capsule1 = initMovingCapsule(VECTOR3x(-0x40000, -0x26A09, 0x00000), VECTOR3x(0x00000, -0x26A09, 0x00000), 0x10000, 0x10000);
+	capsule2 = initStationaryCapsule(VECTOR3x(0x00000, 0x00000, 0x00000), 0x10000, 0x10000);
+	resetOutParameters();
+	result = intersectionHandler_capsule_capsule((CollisionObject *) &capsule1, (CollisionObject *) &capsule2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x0A57D, VECTOR3x(-0x0B506, -0x0B505, 0x00000), VECTOR3x(0x40000, 0x00000, 0x00000), VECTOR3x_ZERO, 0x00000);
+	
+	// capsule1 moving +x (45 degrees above), capsule2 stationary
+	capsule1 = initMovingCapsule(VECTOR3x(-0x40000, 0x26A09, 0x00000), VECTOR3x(0x00000, 0x26A09, 0x00000), 0x10000, 0x10000);
+	capsule2 = initStationaryCapsule(VECTOR3x(0x00000, 0x00000, 0x00000), 0x10000, 0x10000);
+	resetOutParameters();
+	result = intersectionHandler_capsule_capsule((CollisionObject *) &capsule1, (CollisionObject *) &capsule2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x0A57D, VECTOR3x(-0x0B506, 0x0B505, 0x00000), VECTOR3x(0x40000, 0x00000, 0x00000), VECTOR3x_ZERO, 0x00000);
+	
+	// capsule1 moving +x (45 degrees in front), capsule2 stationary
+	capsule1 = initMovingCapsule(VECTOR3x(-0x40000, 0x00000, 0x16A09), VECTOR3x(0x00000, 0x00000, 0x16A09), 0x10000, 0x10000);
+	capsule2 = initStationaryCapsule(VECTOR3x(0x00000, 0x00000, 0x00000), 0x10000, 0x10000);
+	resetOutParameters();
+	result = intersectionHandler_capsule_capsule((CollisionObject *) &capsule1, (CollisionObject *) &capsule2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x0A57D, VECTOR3x(-0x0B506, 0x00000, 0x0B505), VECTOR3x(0x40000, 0x00000, 0x00000), VECTOR3x_ZERO, 0x10000);
 }
 
 static void testCapsule_trimesh() {

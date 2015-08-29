@@ -20,6 +20,7 @@
   Alex Diener alex@ludobloom.com
 */
 
+#include "collision/CollisionCapsule.h"
 #include "collision/CollisionCircle.h"
 #include "collision/CollisionRect2D.h"
 #include "collision/StandardIntersectionHandlers.h"
@@ -187,8 +188,7 @@ static bool quadraticFormula(fixed16_16 a,
 // Adapted from http://www.gamasutra.com/view/feature/131790/simple_intersection_tests_for_games.php?page=2
 static bool intersectSweptCircles(Vector2x circle1LastPosition, Vector2x circle1Position, fixed16_16 circle1Radius,
                                   Vector2x circle2LastPosition, Vector2x circle2Position, fixed16_16 circle2Radius,
-                                  fixed16_16 * outTime, Vector3x * outNormal, Vector3x * outObject1Vector, Vector3x * outObject2Vector) {
-	
+                                  fixed16_16 * outTime, Vector3x * outNormal) {
 	fixed16_16 radiusSum = circle1Radius + circle2Radius;
 	fixed16_16 radiusSumSquare = xmul(radiusSum, radiusSum);
 	fixed16_16 lastDistanceSquare = Vector2x_distanceSquared(circle1LastPosition, circle2LastPosition);
@@ -248,6 +248,95 @@ static bool intersectSweptCircles(Vector2x circle1LastPosition, Vector2x circle1
 	return false;
 }
 
+// Adapted from http://www.gamasutra.com/view/feature/131790/simple_intersection_tests_for_games.php?page=2
+static bool intersectSweptSpheres(Vector3x sphere1LastPosition, Vector3x sphere1Position, fixed16_16 sphere1Radius,
+                                  Vector3x sphere2LastPosition, Vector3x sphere2Position, fixed16_16 sphere2Radius,
+                                  fixed16_16 * outTime, Vector3x * outNormal) {
+	fixed16_16 radiusSum = sphere1Radius + sphere2Radius;
+	fixed16_16 radiusSumSquare = xmul(radiusSum, radiusSum);
+	fixed16_16 lastDistanceSquare = Vector3x_distanceSquared(sphere1LastPosition, sphere2LastPosition);
+	Vector3x sphere1Vector          = Vector3x_subtract(sphere1Position, sphere1LastPosition);
+	Vector3x sphere2Vector          = Vector3x_subtract(sphere2Position, sphere2LastPosition);
+	Vector3x sphere1ToSphere2Vector = Vector3x_subtract(sphere2LastPosition, sphere1LastPosition);
+	Vector3x relativeVelocity       = Vector3x_subtract(sphere2Vector, sphere1Vector);
+	fixed16_16 b = Vector3x_dot(relativeVelocity, sphere1ToSphere2Vector) * 2;
+	
+	if (lastDistanceSquare < radiusSumSquare && b < 0x00000) {
+		// If already penetrating and trying to penetrate deeper, put a stop to it early
+		Vector3x normal;
+		
+		normal.x = sphere1LastPosition.x - sphere2LastPosition.x;
+		normal.y = sphere1LastPosition.y - sphere2LastPosition.y;
+		normal.z = 0x00000;
+		Vector3x_normalize(&normal);
+		*outNormal = normal;
+		*outTime = 0x00000;
+		return true;
+	}
+	
+	fixed16_16 a = Vector3x_dot(relativeVelocity, relativeVelocity);
+	fixed16_16 c = Vector3x_dot(sphere1ToSphere2Vector, sphere1ToSphere2Vector) - radiusSumSquare;
+	fixed16_16 time1 = -1, time2 = -1;
+	
+	// Very small values of relativeVelocity will evaluate to a = 0 && b != 0, which throws off the calculation
+	if (a == 0) {
+		return false;
+	}
+	if (quadraticFormula(a, b, c, &time1, &time2) && time1 != time2) {
+		if (time2 < time1) {
+			time1 = time2;
+		}
+		if (time1 < 0x00000) {
+			fixed16_16 temporalEpsilon = xdiv(SPATIAL_EPSILON, xsqrt(a));
+			if (time1 >= -temporalEpsilon) {
+				time1 = 0x00000;
+			}
+		}
+		if (time1 >= 0x00000 && time1 <= 0x10000) {
+			Vector3x position1, position2;
+			Vector3x normal;
+			
+			position1 = Vector3x_interpolate(sphere1LastPosition, sphere1Position, time1);
+			position2 = Vector3x_interpolate(sphere2LastPosition, sphere2Position, time1);
+			normal.x = position1.x - position2.x;
+			normal.y = position1.y - position2.y;
+			normal.z = position1.z - position2.z;
+			Vector3x_normalize(&normal);
+			*outNormal = normal;
+			*outTime = time1;
+			return true;
+		}
+	}
+	
+	return false;
+}
+
+static bool intersectSweptCylinderWalls(Vector3x cylinder1LastPosition, Vector3x cylinder1Position, fixed16_16 cylinder1Radius, fixed16_16 cylinder1Height,
+                                        Vector3x cylinder2LastPosition, Vector3x cylinder2Position, fixed16_16 cylinder2Radius, fixed16_16 cylinder2Height,
+                                        fixed16_16 * outTime, Vector3x * outNormal, fixed16_16 * outContactArea) {
+	fixed16_16 time;
+	Vector3x normal;
+	
+	if (intersectSweptCircles(VECTOR2x(cylinder1LastPosition.x, cylinder1LastPosition.z), VECTOR2x(cylinder1Position.x, cylinder1Position.z), cylinder1Radius,
+	                          VECTOR2x(cylinder2LastPosition.x, cylinder2LastPosition.z), VECTOR2x(cylinder2Position.x, cylinder2Position.z), cylinder2Radius,
+	                          &time, &normal)) {
+		fixed16_16 bottom1, top1, bottom2, top2;
+		
+		bottom1 = cylinder1LastPosition.y + xmul(cylinder1Position.y - cylinder1LastPosition.y, time);
+		top1 = bottom1 + cylinder1Height;
+		bottom2 = cylinder2LastPosition.y + xmul(cylinder2Position.y - cylinder2LastPosition.y, time);
+		top2 = bottom2 + cylinder2Height;
+		
+		if (top1 > bottom2 && bottom1 < top2) {
+			*outTime = time;
+			*outNormal = VECTOR3x(normal.x, 0x00000, normal.y);
+			*outContactArea = (top1 < top2 ? top1 : top2) - (bottom1 > bottom2 ? bottom1 : bottom2);
+			return true;
+		}
+	}
+	return false;
+}
+
 bool intersectionHandler_rect2D_rect2D(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal, Vector3x * outObject1Vector, Vector3x * outObject2Vector, fixed16_16 * outContactArea) {
 	fixed16_16 time, bestTime = FIXED_16_16_MAX;
 	fixed16_16 contactArea, bestContactArea = 0x00000;
@@ -262,13 +351,11 @@ bool intersectionHandler_rect2D_rect2D(CollisionObject * object1, CollisionObjec
 	                               rect1->lastPosition.y, rect1->lastPosition.y + rect1->lastSize.y, rect1->position.y, rect1->position.y + rect1->size.y,
 	                               rect2->lastPosition.y, rect2->lastPosition.y + rect2->lastSize.y, rect2->position.y, rect2->position.y + rect2->size.y,
 	                               &time, &contactArea)) {
-		if (time < bestTime) {
-			bestTime = time;
-			bestNormal = VECTOR3x_LEFT;
-			bestObject1Vector = VECTOR3x((rect1->position.x + rect1->size.x) - (rect1->lastPosition.x + rect1->lastSize.x), rect1->position.y - rect1->lastPosition.y, 0x00000);
-			bestObject2Vector = VECTOR3x(rect2->position.x - rect2->lastPosition.x, rect2->position.y - rect2->lastPosition.y, 0x00000);
-			bestContactArea = contactArea;
-		}
+		bestTime = time;
+		bestNormal = VECTOR3x_LEFT;
+		bestObject1Vector = VECTOR3x((rect1->position.x + rect1->size.x) - (rect1->lastPosition.x + rect1->lastSize.x), rect1->position.y - rect1->lastPosition.y, 0x00000);
+		bestObject2Vector = VECTOR3x(rect2->position.x - rect2->lastPosition.x, rect2->position.y - rect2->lastPosition.y, 0x00000);
+		bestContactArea = contactArea;
 	}
 	
 	// rect1 left vs. rect2 right
@@ -468,11 +555,9 @@ bool intersectionHandler_rect2D_circle(CollisionObject * object1, CollisionObjec
 	                               rect->lastPosition.y, rect->lastPosition.y + rect->lastSize.y, rect->position.y, rect->position.y + rect->size.y,
 	                               circle->lastPosition.y, circle->lastPosition.y, circle->position.y, circle->position.y,
 	                               &time, &contactArea)) {
-		if (time < bestTime) {
-			bestTime = time;
-			bestNormal = VECTOR3x_LEFT;
-			bestObject1Vector = VECTOR3x((rect->position.x + rect->size.x) - (rect->lastPosition.x + rect->lastSize.x), rect->position.y - rect->lastPosition.y, 0x00000);
-		}
+		bestTime = time;
+		bestNormal = VECTOR3x_LEFT;
+		bestObject1Vector = VECTOR3x((rect->position.x + rect->size.x) - (rect->lastPosition.x + rect->lastSize.x), rect->position.y - rect->lastPosition.y, 0x00000);
 	}
 	
 	// rect left vs. circle right
@@ -543,7 +628,7 @@ bool intersectionHandler_rect2D_circle(CollisionObject * object1, CollisionObjec
 	if ((rect->solidLeft || rect->solidBottom) &&
 	    intersectSweptCircles(rect->lastPosition, rect->position, 0x00000,
 	                          circle->lastPosition, circle->position, circle->radius,
-	                          &time, &normal, NULL, NULL)) {
+	                          &time, &normal)) {
 		if (normal.x >= 0 && normal.y >= 0 && time < bestTime) {
 			bestTime = time;
 			bestNormal = normal;
@@ -555,7 +640,7 @@ bool intersectionHandler_rect2D_circle(CollisionObject * object1, CollisionObjec
 	if ((rect->solidRight || rect->solidBottom) &&
 	    intersectSweptCircles(VECTOR2x(rect->lastPosition.x + rect->lastSize.x, rect->lastPosition.y), VECTOR2x(rect->position.x + rect->size.x, rect->position.y), 0x00000,
 	                          circle->lastPosition, circle->position, circle->radius,
-	                          &time, &normal, NULL, NULL)) {
+	                          &time, &normal)) {
 		if (normal.x <= 0 && normal.y >= 0 && time < bestTime) {
 			bestTime = time;
 			bestNormal = normal;
@@ -567,7 +652,7 @@ bool intersectionHandler_rect2D_circle(CollisionObject * object1, CollisionObjec
 	if ((rect->solidLeft || rect->solidTop) &&
 	    intersectSweptCircles(VECTOR2x(rect->lastPosition.x, rect->lastPosition.y + rect->lastSize.y), VECTOR2x(rect->position.x, rect->position.y + rect->size.y), 0x00000,
 	                          circle->lastPosition, circle->position, circle->radius,
-	                          &time, &normal, NULL, NULL)) {
+	                          &time, &normal)) {
 		if (normal.x >= 0 && normal.y <= 0 && time < bestTime) {
 			bestTime = time;
 			bestNormal = normal;
@@ -579,7 +664,7 @@ bool intersectionHandler_rect2D_circle(CollisionObject * object1, CollisionObjec
 	if ((rect->solidRight || rect->solidTop) &&
 	    intersectSweptCircles(VECTOR2x(rect->lastPosition.x + rect->lastSize.x, rect->lastPosition.y + rect->lastSize.y), VECTOR2x(rect->position.x + rect->size.x, rect->position.y + rect->size.y), 0x00000,
 	                          circle->lastPosition, circle->position, circle->radius,
-	                          &time, &normal, NULL, NULL)) {
+	                          &time, &normal)) {
 		if (normal.x <= 0 && normal.y <= 0 && time < bestTime) {
 			bestTime = time;
 			bestNormal = normal;
@@ -628,7 +713,7 @@ bool intersectionHandler_circle_circle(CollisionObject * object1, CollisionObjec
 	
 	if (intersectSweptCircles(circle1->lastPosition, circle1->position, circle1->radius,
 	                          circle2->lastPosition, circle2->position, circle2->radius,
-	                          &time, &normal, NULL, NULL)) {
+	                          &time, &normal)) {
 		if (outNormal != NULL) {
 			*outNormal = normal;
 		}
@@ -718,6 +803,64 @@ bool intersectionHandler_line3D_trimesh(CollisionObject * object1, CollisionObje
 }
 
 bool intersectionHandler_capsule_capsule(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal, Vector3x * outObject1Vector, Vector3x * outObject2Vector, fixed16_16 * outContactArea) {
+	CollisionCapsule * capsule1 = (CollisionCapsule *) object1, * capsule2 = (CollisionCapsule *) object2;
+	fixed16_16 time, bestTime = FIXED_16_16_MAX;
+	fixed16_16 contactArea, bestContactArea = 0x00000;
+	Vector3x normal, bestNormal = VECTOR3x_ZERO;
+	
+	/*
+	if (!Box6x_intersectsBox6x(CollisionCapsule_getCollisionBounds(capsule1), CollisionCapsule_getCollisionBounds(capsule2))) {
+		return false;
+	}
+	*/
+	
+	if (intersectSweptCylinderWalls(capsule1->lastPosition, capsule1->position, capsule1->radius, capsule1->cylinderHeight,
+	                                capsule2->lastPosition, capsule2->position, capsule2->radius, capsule2->cylinderHeight,
+	                                &time, &normal, &contactArea)) {
+		bestTime = time;
+		bestNormal = normal;
+		bestContactArea = contactArea;
+		
+	} else {
+		if (intersectSweptSpheres(capsule1->lastPosition, capsule1->position, capsule1->radius,
+		                          VECTOR3x(capsule2->lastPosition.x, capsule2->lastPosition.y + capsule2->cylinderHeight, capsule2->lastPosition.z), VECTOR3x(capsule2->position.x, capsule2->position.y + capsule2->cylinderHeight, capsule2->position.z), capsule2->radius,
+		                          &time, &normal)) {
+			if (normal.y >= 0x00000 && time < bestTime) {
+				bestTime = time;
+				bestNormal = normal;
+				bestContactArea = 0x00000;
+			}
+		}
+		
+		if (intersectSweptSpheres(VECTOR3x(capsule1->lastPosition.x, capsule1->lastPosition.y + capsule1->cylinderHeight, capsule1->lastPosition.z), VECTOR3x(capsule1->position.x, capsule1->position.y + capsule1->cylinderHeight, capsule1->position.z), capsule1->radius,
+		                          capsule2->lastPosition, capsule2->position, capsule2->radius,
+		                          &time, &normal)) {
+			if (normal.y <= 0x00000 && time < bestTime) {
+				bestTime = time;
+				bestNormal = normal;
+				bestContactArea = 0x00000;
+			}
+		}
+	}
+	
+	if (bestTime < FIXED_16_16_MAX) {
+		if (outNormal != NULL) {
+			*outNormal = bestNormal;
+		}
+		if (outTime != NULL) {
+			*outTime = bestTime;
+		}
+		if (outObject1Vector != NULL) {
+			*outObject1Vector = Vector3x_subtract(capsule1->position, capsule1->lastPosition);
+		}
+		if (outObject2Vector != NULL) {
+			*outObject2Vector = Vector3x_subtract(capsule2->position, capsule2->lastPosition);
+		}
+		if (outContactArea != NULL) {
+			*outContactArea = bestContactArea;
+		}
+		return true;
+	}
 	return false;
 }
 
