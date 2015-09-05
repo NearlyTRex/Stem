@@ -1,3 +1,4 @@
+#include "collision/CollisionBox3D.h"
 #include "collision/CollisionCapsule.h"
 #include "collision/CollisionCircle.h"
 #include "collision/CollisionRect2D.h"
@@ -60,6 +61,46 @@ static CollisionCircle initMovingCircle(Vector2x lastPosition, Vector2x position
 	CollisionCircle_init(&circle, NULL, NULL, lastPosition, radius);
 	CollisionCircle_updatePosition(&circle, position);
 	return circle;
+}
+
+static CollisionBox3D initStationaryBox3D(Vector3x position, Vector3x size) {
+	CollisionBox3D box;
+	
+	CollisionBox3D_init(&box, NULL, NULL, position, size);
+	return box;
+}
+
+static CollisionBox3D initMovingBox3D(Vector3x lastPosition, Vector3x position, Vector3x size) {
+	CollisionBox3D box;
+	
+	CollisionBox3D_init(&box, NULL, NULL, lastPosition, size);
+	CollisionBox3D_updatePosition(&box, position);
+	return box;
+}
+
+static CollisionBox3D initResizingBox3D(Vector3x position, Vector3x lastSize, Vector3x size) {
+	CollisionBox3D box;
+	
+	CollisionBox3D_init(&box, NULL, NULL, position, lastSize);
+	CollisionBox3D_updateSize(&box, size);
+	return box;
+}
+
+static CollisionBox3D initStationaryBox3DWithSolidity(Vector3x position, Vector3x size, bool solidLeft, bool solidRight, bool solidBottom, bool solidTop, bool solidBack, bool solidFront) {
+	CollisionBox3D box;
+	
+	CollisionBox3D_init(&box, NULL, NULL, position, size);
+	CollisionBox3D_setSolidity(&box, solidLeft, solidRight, solidBottom, solidTop, solidBack, solidFront);
+	return box;
+}
+
+static CollisionBox3D initMovingBox3DWithSolidity(Vector3x lastPosition, Vector3x position, Vector3x size, bool solidLeft, bool solidRight, bool solidBottom, bool solidTop, bool solidBack, bool solidFront) {
+	CollisionBox3D box;
+	
+	CollisionBox3D_init(&box, NULL, NULL, lastPosition, size);
+	CollisionBox3D_updatePosition(&box, position);
+	CollisionBox3D_setSolidity(&box, solidLeft, solidRight, solidBottom, solidTop, solidBack, solidFront);
+	return box;
 }
 
 static CollisionSphere initStationarySphere(Vector3x position, fixed16_16 radius) {
@@ -1161,7 +1202,931 @@ static void testPolygon_polygon() {
 }
 
 static void testBox_box() {
-	TestCase_assert(false, "Unimplemented");
+	CollisionBox3D box1, box2;
+	bool result;
+	fixed16_16 time, contactArea;
+	Vector3x normal, object1Vector, object2Vector;
+	
+	// No collision for no movement
+	box1 = initStationaryBox3D(VECTOR3x(-0x20000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, NULL, NULL, NULL, NULL, NULL);
+	assertNoCollision(result);
+	
+#pragma mark Side collisions
+	// box1 moving +x, box2 stationary
+	box1 = initMovingBox3D(VECTOR3x(-0x20000, 0x00000, 0x00000), VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	resetOutParameters();
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(-0x10000, 0x00000, 0x00000), VECTOR3x(0x20000, 0x00000, 0x00000), VECTOR3x_ZERO, 0x10000);
+	
+	// box1 moving +x, box2 stationary (different speed/collision time)
+	box1 = initMovingBox3D(VECTOR3x(-0x20000, 0x00000, 0x00000), VECTOR3x(0x20000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	resetOutParameters();
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x04000, VECTOR3x(-0x10000, 0x00000, 0x00000), VECTOR3x(0x40000, 0x00000, 0x00000), VECTOR3x_ZERO, 0x10000);
+	
+	// box1 moving +x, box2 stationary (box1 starts butted against box2)
+	box1 = initMovingBox3D(VECTOR3x(-0x10000, 0x00000, 0x00000), VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	resetOutParameters();
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x00000, VECTOR3x(-0x10000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x00000, 0x00000), VECTOR3x_ZERO, 0x10000);
+	
+	// box1 moving +x, box2 stationary (box1 starts barely inside box2, so passes through)
+	box1 = initMovingBox3D(VECTOR3x(-0x0FFFF, 0x00000, 0x00000), VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// box1 stationary, box2 moving -x
+	box1 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initMovingBox3D(VECTOR3x(0x20000, 0x00000, 0x00000), VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	resetOutParameters();
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(-0x10000, 0x00000, 0x00000), VECTOR3x_ZERO, VECTOR3x(-0x20000, 0x00000, 0x00000), 0x10000);
+	
+	// box1 moving +x, box2 moving -x
+	box1 = initMovingBox3D(VECTOR3x(-0x20000, 0x00000, 0x00000), VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initMovingBox3D(VECTOR3x(0x20000, 0x00000, 0x00000), VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	resetOutParameters();
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x0C000, VECTOR3x(-0x10000, 0x00000, 0x00000), VECTOR3x(0x20000, 0x00000, 0x00000), VECTOR3x(-0x20000, 0x00000, 0x00000), 0x10000);
+	
+	// box1 moving -x, box2 stationary
+	box1 = initMovingBox3D(VECTOR3x(0x20000, 0x00000, 0x00000), VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	resetOutParameters();
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x10000, 0x00000, 0x00000), VECTOR3x(-0x20000, 0x00000, 0x00000), VECTOR3x_ZERO, 0x10000);
+	
+	// box1 moving +y, box2 stationary
+	box1 = initMovingBox3D(VECTOR3x(0x00000, -0x20000, 0x00000), VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	resetOutParameters();
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x00000, -0x10000, 0x00000), VECTOR3x(0x00000, 0x20000, 0x00000), VECTOR3x_ZERO, 0x10000);
+	
+	// box1 moving -y, box2 stationary
+	box1 = initMovingBox3D(VECTOR3x(0x00000, 0x20000, 0x00000), VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	resetOutParameters();
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x00000, 0x10000, 0x00000), VECTOR3x(0x00000, -0x20000, 0x00000), VECTOR3x_ZERO, 0x10000);
+	
+	// box1 moving +z, box2 stationary
+	box1 = initMovingBox3D(VECTOR3x(0x00000, 0x00000, -0x20000), VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	resetOutParameters();
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x00000, 0x00000, -0x10000), VECTOR3x(0x00000, 0x00000, 0x20000), VECTOR3x_ZERO, 0x10000);
+	
+	// box1 moving -z, box2 stationary
+	box1 = initMovingBox3D(VECTOR3x(0x00000, 0x00000, 0x20000), VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	resetOutParameters();
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x00000, 0x00000, 0x10000), VECTOR3x(0x00000, 0x00000, -0x20000), VECTOR3x_ZERO, 0x10000);
+	
+#pragma mark Edge collisions
+	// Edge collision (bottom left)
+	box1 = initMovingBox3D(VECTOR3x(-0x20000, -0x20000, 0x08000), VECTOR3x(0x00000, 0x00000, 0x08000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	resetOutParameters();
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(-0x10000, 0x00000, 0x00000), VECTOR3x(0x20000, 0x20000, 0x00000), VECTOR3x_ZERO, 0x00000);
+	
+	// Edge collision (top left)
+	box1 = initMovingBox3D(VECTOR3x(-0x20000, 0x20000, 0x08000), VECTOR3x(0x00000, 0x00000, 0x08000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	resetOutParameters();
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(-0x10000, 0x00000, 0x00000), VECTOR3x(0x20000, -0x20000, 0x00000), VECTOR3x_ZERO, 0x00000);
+	
+	// Edge collision (bottom right)
+	box1 = initMovingBox3D(VECTOR3x(0x20000, -0x20000, 0x08000), VECTOR3x(0x00000, 0x00000, 0x08000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	resetOutParameters();
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x10000, 0x00000, 0x00000), VECTOR3x(-0x20000, 0x20000, 0x00000), VECTOR3x_ZERO, 0x00000);
+	
+	// Edge collision (top right)
+	box1 = initMovingBox3D(VECTOR3x(0x20000, 0x20000, 0x08000), VECTOR3x(0x00000, 0x00000, 0x08000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	resetOutParameters();
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x10000, 0x00000, 0x00000), VECTOR3x(-0x20000, -0x20000, 0x00000), VECTOR3x_ZERO, 0x00000);
+	
+	// Edge collision (back left)
+	box1 = initMovingBox3D(VECTOR3x(-0x20000, 0x08000, -0x20000), VECTOR3x(0x00000, 0x08000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	resetOutParameters();
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(-0x10000, 0x00000, 0x00000), VECTOR3x(0x20000, 0x00000, 0x20000), VECTOR3x_ZERO, 0x00000);
+	
+	// Edge collision (front left)
+	box1 = initMovingBox3D(VECTOR3x(-0x20000, 0x08000, 0x20000), VECTOR3x(0x00000, 0x08000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	resetOutParameters();
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(-0x10000, 0x00000, 0x00000), VECTOR3x(0x20000, 0x00000, -0x20000), VECTOR3x_ZERO, 0x00000);
+	
+	// Edge collision (back right)
+	box1 = initMovingBox3D(VECTOR3x(0x20000, 0x08000, -0x20000), VECTOR3x(0x00000, 0x08000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	resetOutParameters();
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x10000, 0x00000, 0x00000), VECTOR3x(-0x20000, 0x00000, 0x20000), VECTOR3x_ZERO, 0x00000);
+	
+	// Edge collision (front right)
+	box1 = initMovingBox3D(VECTOR3x(0x20000, 0x08000, 0x20000), VECTOR3x(0x00000, 0x08000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	resetOutParameters();
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x10000, 0x00000, 0x00000), VECTOR3x(-0x20000, 0x00000, -0x20000), VECTOR3x_ZERO, 0x00000);
+	
+	// Edge collision (back bottom)
+	box1 = initMovingBox3D(VECTOR3x(0x08000, -0x20000, -0x20000), VECTOR3x(0x08000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	resetOutParameters();
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x00000, 0x00000, -0x10000), VECTOR3x(0x00000, 0x20000, 0x20000), VECTOR3x_ZERO, 0x00000);
+	
+	// Edge collision (front bottom)
+	box1 = initMovingBox3D(VECTOR3x(0x08000, -0x20000, 0x20000), VECTOR3x(0x08000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	resetOutParameters();
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x00000, 0x00000, -0x10000), VECTOR3x(0x00000, 0x20000, -0x20000), VECTOR3x_ZERO, 0x00000);
+	
+	// Edge collision (back top)
+	box1 = initMovingBox3D(VECTOR3x(0x08000, 0x20000, -0x20000), VECTOR3x(0x08000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	resetOutParameters();
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x00000, 0x00000, 0x10000), VECTOR3x(0x00000, -0x20000, 0x20000), VECTOR3x_ZERO, 0x00000);
+	
+	// Edge collision (front top)
+	box1 = initMovingBox3D(VECTOR3x(0x08000, 0x20000, 0x20000), VECTOR3x(0x08000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	resetOutParameters();
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x00000, 0x00000, 0x10000), VECTOR3x(0x00000, -0x20000, -0x20000), VECTOR3x_ZERO, 0x00000);
+	
+#pragma mark Corner collisions
+	// Corner collision (back bottom left)
+	box1 = initMovingBox3D(VECTOR3x(-0x20000, -0x20000, -0x20000), VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	resetOutParameters();
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(-0x10000, 0x00000, 0x00000), VECTOR3x(0x20000, 0x20000, 0x20000), VECTOR3x_ZERO, 0x00000);
+	
+	// Corner collision (back top left)
+	box1 = initMovingBox3D(VECTOR3x(-0x20000, 0x20000, -0x20000), VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	resetOutParameters();
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(-0x10000, 0x00000, 0x00000), VECTOR3x(0x20000, -0x20000, 0x20000), VECTOR3x_ZERO, 0x00000);
+	
+	// Corner collision (back bottom right)
+	box1 = initMovingBox3D(VECTOR3x(0x20000, -0x20000, -0x20000), VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	resetOutParameters();
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x10000, 0x00000, 0x00000), VECTOR3x(-0x20000, 0x20000, 0x20000), VECTOR3x_ZERO, 0x00000);
+	
+	// Corner collision (back top right)
+	box1 = initMovingBox3D(VECTOR3x(0x20000, 0x20000, -0x20000), VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	resetOutParameters();
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x10000, 0x00000, 0x00000), VECTOR3x(-0x20000, -0x20000, 0x20000), VECTOR3x_ZERO, 0x00000);
+	
+	// Corner collision (front bottom left)
+	box1 = initMovingBox3D(VECTOR3x(-0x20000, -0x20000, 0x20000), VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	resetOutParameters();
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(-0x10000, 0x00000, 0x00000), VECTOR3x(0x20000, 0x20000, -0x20000), VECTOR3x_ZERO, 0x00000);
+	
+	// Corner collision (front top left)
+	box1 = initMovingBox3D(VECTOR3x(-0x20000, 0x20000, 0x20000), VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	resetOutParameters();
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(-0x10000, 0x00000, 0x00000), VECTOR3x(0x20000, -0x20000, -0x20000), VECTOR3x_ZERO, 0x00000);
+	
+	// Corner collision (front bottom right)
+	box1 = initMovingBox3D(VECTOR3x(0x20000, -0x20000, 0x20000), VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	resetOutParameters();
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x10000, 0x00000, 0x00000), VECTOR3x(-0x20000, 0x20000, -0x20000), VECTOR3x_ZERO, 0x00000);
+	
+	// Corner collision (front top right)
+	box1 = initMovingBox3D(VECTOR3x(0x20000, 0x20000, 0x20000), VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	resetOutParameters();
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x10000, 0x00000, 0x00000), VECTOR3x(-0x20000, -0x20000, -0x20000), VECTOR3x_ZERO, 0x00000);
+	
+#pragma mark Outer non-collisions
+	// Miss (left, above)
+	box1 = initMovingBox3D(VECTOR3x(-0x20000, 0x10000, 0x00000), VECTOR3x(0x00000, 0x10000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// Miss (left, below)
+	box1 = initMovingBox3D(VECTOR3x(-0x20000, -0x10000, 0x00000), VECTOR3x(0x00000, -0x10000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x0000));
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// Miss (left, in front)
+	box1 = initMovingBox3D(VECTOR3x(-0x20000, 0x00000, 0x10000), VECTOR3x(0x00000, 0x00000, 0x10000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x0000));
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// Miss (left, behind)
+	box1 = initMovingBox3D(VECTOR3x(-0x20000, 0x00000, -0x10000), VECTOR3x(0x00000, 0x00000, -0x10000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// Miss (right, above)
+	box1 = initMovingBox3D(VECTOR3x(0x20000, 0x10000, 0x00000), VECTOR3x(0x00000, 0x10000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// Miss (right, below)
+	box1 = initMovingBox3D(VECTOR3x(0x20000, -0x10000, 0x00000), VECTOR3x(0x00000, -0x10000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// Miss (right, in front)
+	box1 = initMovingBox3D(VECTOR3x(0x20000, 0x00000, 0x10000), VECTOR3x(0x00000, 0x00000, 0x10000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// Miss (right, behind)
+	box1 = initMovingBox3D(VECTOR3x(0x20000, 0x00000, -0x10000), VECTOR3x(0x00000, 0x00000, -0x10000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// Miss (bottom, right)
+	box1 = initMovingBox3D(VECTOR3x(0x10000, -0x20000, 0x00000), VECTOR3x(0x10000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// Miss (bottom, left)
+	box1 = initMovingBox3D(VECTOR3x(-0x10000, -0x20000, 0x00000), VECTOR3x(-0x10000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// Miss (bottom, in front)
+	box1 = initMovingBox3D(VECTOR3x(0x00000, -0x20000, 0x10000), VECTOR3x(0x00000, 0x00000, 0x10000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// Miss (bottom, behind)
+	box1 = initMovingBox3D(VECTOR3x(0x00000, -0x20000, -0x10000), VECTOR3x(0x00000, 0x00000, -0x10000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// Miss (top, right)
+	box1 = initMovingBox3D(VECTOR3x(0x10000, 0x20000, 0x00000), VECTOR3x(0x10000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// Miss (top, left)
+	box1 = initMovingBox3D(VECTOR3x(-0x10000, 0x20000, 0x00000), VECTOR3x(-0x10000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// Miss (top, in front)
+	box1 = initMovingBox3D(VECTOR3x(0x00000, 0x20000, 0x10000), VECTOR3x(0x00000, 0x00000, 0x10000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// Miss (top, behind)
+	box1 = initMovingBox3D(VECTOR3x(0x00000, 0x20000, -0x10000), VECTOR3x(0x00000, 0x00000, -0x10000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// Miss (back, right)
+	box1 = initMovingBox3D(VECTOR3x(0x10000, 0x00000, -0x20000), VECTOR3x(0x10000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// Miss (back, left)
+	box1 = initMovingBox3D(VECTOR3x(-0x10000, 0x00000, -0x20000), VECTOR3x(-0x10000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// Miss (back, above)
+	box1 = initMovingBox3D(VECTOR3x(0x00000, 0x10000, -0x20000), VECTOR3x(0x00000, 0x10000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// Miss (back, below)
+	box1 = initMovingBox3D(VECTOR3x(0x00000, -0x10000, -0x20000), VECTOR3x(0x00000, -0x10000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// Miss (front, right)
+	box1 = initMovingBox3D(VECTOR3x(0x10000, 0x00000, 0x20000), VECTOR3x(0x10000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// Miss (front, left)
+	box1 = initMovingBox3D(VECTOR3x(-0x10000, 0x00000, 0x20000), VECTOR3x(-0x10000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// Miss (front, above)
+	box1 = initMovingBox3D(VECTOR3x(0x00000, 0x10000, 0x20000), VECTOR3x(0x00000, 0x10000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// Miss (front, below)
+	box1 = initMovingBox3D(VECTOR3x(0x00000, -0x10000, 0x20000), VECTOR3x(0x00000, -0x10000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+#pragma mark Inner non-collisions (sides)
+	// box1 moving -x from inside box2
+	box1 = initMovingBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(-0x20000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// box1 moving +x from inside box2
+	box1 = initMovingBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x20000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// box1 moving -y from inside box2
+	box1 = initMovingBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x00000, -0x20000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// box1 moving +y from inside box2
+	box1 = initMovingBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x00000, 0x20000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// box1 moving -z from inside box2
+	box1 = initMovingBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x00000, 0x00000, -0x20000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// box1 moving +z from inside box2
+	box1 = initMovingBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x00000, 0x00000, 0x20000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+#pragma mark Inner non-collisions (edges)
+	// Edge collision (bottom left, from inside)
+	box1 = initMovingBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(-0x20000, -0x20000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	TestCase_assert(!result, "Expected true but got false");
+	
+	// Edge collision (top left, from inside)
+	box1 = initMovingBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(-0x20000, 0x20000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	TestCase_assert(!result, "Expected true but got false");
+	
+	// Edge collision (bottom right, from inside)
+	box1 = initMovingBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x20000, -0x20000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	TestCase_assert(!result, "Expected true but got false");
+	
+	// Edge collision (top right, from inside)
+	box1 = initMovingBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x20000, 0x20000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	TestCase_assert(!result, "Expected true but got false");
+	
+	// Edge collision (back left, from inside)
+	box1 = initMovingBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(-0x20000, 0x00000, -0x20000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	TestCase_assert(!result, "Expected true but got false");
+	
+	// Edge collision (front left, from inside)
+	box1 = initMovingBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(-0x20000, 0x00000, 0x20000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	TestCase_assert(!result, "Expected true but got false");
+	
+	// Edge collision (back right, from inside)
+	box1 = initMovingBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x20000, 0x00000, -0x20000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	TestCase_assert(!result, "Expected true but got false");
+	
+	// Edge collision (front right, from inside)
+	box1 = initMovingBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x20000, 0x00000, 0x20000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	TestCase_assert(!result, "Expected true but got false");
+	
+	// Edge collision (back bottom, from inside)
+	box1 = initMovingBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x00000, -0x20000, -0x20000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	TestCase_assert(!result, "Expected true but got false");
+	
+	// Edge collision (front bottom, from inside)
+	box1 = initMovingBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x00000, -0x20000, 0x20000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	TestCase_assert(!result, "Expected true but got false");
+	
+	// Edge collision (back top, from inside)
+	box1 = initMovingBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x00000, 0x20000, -0x20000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	TestCase_assert(!result, "Expected true but got false");
+	
+	// Edge collision (front top, from inside)
+	box1 = initMovingBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x00000, 0x20000, 0x20000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	TestCase_assert(!result, "Expected true but got false");
+	
+#pragma mark Inner non-collisions (corners)
+	// Corner collision (back bottom left, from inside)
+	box1 = initMovingBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(-0x20000, -0x20000, -0x20000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	TestCase_assert(!result, "Expected true but got false");
+	
+	// Corner collision (back top left, from inside)
+	box1 = initMovingBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(-0x20000, 0x20000, -0x20000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	TestCase_assert(!result, "Expected true but got false");
+	
+	// Corner collision (back bottom right, from inside)
+	box1 = initMovingBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x20000, -0x20000, -0x20000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	TestCase_assert(!result, "Expected true but got false");
+	
+	// Corner collision (back top right, from inside)
+	box1 = initMovingBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x20000, 0x20000, -0x20000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	TestCase_assert(!result, "Expected true but got false");
+	
+	// Corner collision (front bottom left, from inside)
+	box1 = initMovingBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(-0x20000, -0x20000, 0x20000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	TestCase_assert(!result, "Expected true but got false");
+	
+	// Corner collision (front top left, from inside)
+	box1 = initMovingBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(-0x20000, 0x20000, 0x20000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	TestCase_assert(!result, "Expected true but got false");
+	
+	// Corner collision (front bottom right, from inside)
+	box1 = initMovingBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x20000, -0x20000, 0x20000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	TestCase_assert(!result, "Expected true but got false");
+	
+	// Corner collision (front top right, from inside)
+	box1 = initMovingBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x20000, 0x20000, 0x20000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	TestCase_assert(!result, "Expected true but got false");
+	
+#pragma mark Size-changing collisions
+	// box1 size increasing, box2 stationary
+	box1 = initResizingBox3D(VECTOR3x(-0x20000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000), VECTOR3x(0x30000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	resetOutParameters();
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(-0x10000, 0x00000, 0x00000), VECTOR3x(0x20000, 0x00000, 0x00000), VECTOR3x_ZERO, 0x10000);
+	
+	// box1 stationary, box2 size increasing
+	box1 = initStationaryBox3D(VECTOR3x(0x20000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initResizingBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000), VECTOR3x(0x30000, 0x10000, 0x10000));
+	resetOutParameters();
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x10000, 0x00000, 0x00000), VECTOR3x_ZERO, VECTOR3x(0x20000, 0x00000, 0x00000), 0x10000);
+	
+#pragma mark Solidity (sides)
+	// box1 moving +x, box2 stationary (unsolid left)
+	box1 = initMovingBox3D(VECTOR3x(-0x20000, 0x00000, 0x00000), VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3DWithSolidity(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000), false, true, true, true, true, true);
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// box1 moving +x (unsolid right), box2 stationary
+	box1 = initMovingBox3DWithSolidity(VECTOR3x(-0x20000, 0x00000, 0x00000), VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000), true, false, true, true, true, true);
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// box1 moving -x, box2 stationary (unsolid right)
+	box1 = initMovingBox3D(VECTOR3x(0x20000, 0x00000, 0x00000), VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3DWithSolidity(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000), true, false, true, true, true, true);
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// box1 moving -x (unsolid left), box2 stationary
+	box1 = initMovingBox3DWithSolidity(VECTOR3x(0x20000, 0x00000, 0x00000), VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000), false, true, true, true, true, true);
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// box1 moving +y, box2 stationary (unsolid bottom)
+	box1 = initMovingBox3D(VECTOR3x(0x00000, -0x20000, 0x00000), VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3DWithSolidity(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000), true, true, false, true, true, true);
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// box1 moving +y (unsolid top), box2 stationary
+	box1 = initMovingBox3DWithSolidity(VECTOR3x(0x00000, -0x20000, 0x00000), VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000), true, true, true, false, true, true);
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// box1 moving -y, box2 stationary (unsolid top)
+	box1 = initMovingBox3D(VECTOR3x(0x00000, 0x20000, 0x00000), VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3DWithSolidity(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000), true, true, true, false, true, true);
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// box1 moving -y (unsolid bottom), box2 stationary
+	box1 = initMovingBox3DWithSolidity(VECTOR3x(0x00000, 0x20000, 0x00000), VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000), true, true, false, true, true, true);
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// box1 moving +z, box2 stationary (unsolid back)
+	box1 = initMovingBox3D(VECTOR3x(0x00000, 0x00000, -0x20000), VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3DWithSolidity(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000), true, true, true, true, false, true);
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// box1 moving +z (unsolid front), box2 stationary
+	box1 = initMovingBox3DWithSolidity(VECTOR3x(0x00000, 0x00000, -0x20000), VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000), true, true, true, true, true, false);
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// box1 moving -z, box2 stationary (unsolid front)
+	box1 = initMovingBox3D(VECTOR3x(0x00000, 0x00000, 0x20000), VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3DWithSolidity(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000), true, true, true, true, true, false);
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// box1 moving -z (unsolid back), box2 stationary
+	box1 = initMovingBox3DWithSolidity(VECTOR3x(0x00000, 0x00000, 0x20000), VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000), true, true, true, true, false, true);
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+#pragma mark Solidity (corners)
+	// Corner collision (back bottom left, not solid)
+	box1 = initMovingBox3D(VECTOR3x(-0x20000, -0x20000, -0x20000), VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3DWithSolidity(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000), false, false, false, false, false, false);
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// Corner collision (back top left, not solid)
+	box1 = initMovingBox3D(VECTOR3x(-0x20000, 0x20000, -0x20000), VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3DWithSolidity(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000), false, false, false, false, false, false);
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// Corner collision (back bottom right, not solid)
+	box1 = initMovingBox3D(VECTOR3x(0x20000, -0x20000, -0x20000), VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3DWithSolidity(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000), false, false, false, false, false, false);
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// Corner collision (back top right, not solid)
+	box1 = initMovingBox3D(VECTOR3x(0x20000, 0x20000, -0x20000), VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3DWithSolidity(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000), false, false, false, false, false, false);
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// Corner collision (front bottom left, not solid)
+	box1 = initMovingBox3D(VECTOR3x(-0x20000, -0x20000, 0x20000), VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3DWithSolidity(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000), false, false, false, false, false, false);
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// Corner collision (front top left, not solid)
+	box1 = initMovingBox3D(VECTOR3x(-0x20000, 0x20000, 0x20000), VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3DWithSolidity(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000), false, false, false, false, false, false);
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// Corner collision (front bottom right, not solid)
+	box1 = initMovingBox3D(VECTOR3x(0x20000, -0x20000, 0x20000), VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3DWithSolidity(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000), false, false, false, false, false, false);
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// Corner collision (front top right, not solid)
+	box1 = initMovingBox3D(VECTOR3x(0x20000, 0x20000, 0x20000), VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3DWithSolidity(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000), false, false, false, false, false, false);
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+#pragma mark Concavity
+	// box2 moving -x from inside concave box1
+	box1 = initStationaryBox3D(VECTOR3x(0x10000, 0x10000, 0x10000), VECTOR3x(-0x20000, -0x20000, -0x20000));
+	box2 = initMovingBox3D(VECTOR3x(-0x08000, -0x08000, -0x08000), VECTOR3x(-0x18000, -0x08000, -0x08000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	resetOutParameters();
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(-0x10000, 0x00000, 0x00000), VECTOR3x_ZERO, VECTOR3x(-0x10000, 0x00000, 0x00000), 0x10000);
+	
+	// box2 moving +x from inside concave box1
+	box1 = initStationaryBox3D(VECTOR3x(0x10000, 0x10000, 0x10000), VECTOR3x(-0x20000, -0x20000, -0x20000));
+	box2 = initMovingBox3D(VECTOR3x(-0x08000, -0x08000, -0x08000), VECTOR3x(0x08000, -0x08000, -0x08000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	resetOutParameters();
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x10000, 0x00000, 0x00000), VECTOR3x_ZERO, VECTOR3x(0x10000, 0x00000, 0x00000), 0x10000);
+	
+	// box1 moving -y from inside concave box2
+	box1 = initMovingBox3D(VECTOR3x(-0x08000, -0x08000, -0x08000), VECTOR3x(-0x08000, -0x18000, -0x08000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x10000, 0x10000, 0x10000), VECTOR3x(-0x20000, -0x20000, -0x20000));
+	resetOutParameters();
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x00000, 0x10000, 0x00000), VECTOR3x(0x00000, -0x10000, 0x00000), VECTOR3x_ZERO, 0x10000);
+	
+	// box1 moving +y from inside concave box2
+	box1 = initMovingBox3D(VECTOR3x(-0x08000, -0x08000, -0x08000), VECTOR3x(-0x08000, 0x08000, -0x08000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x10000, 0x10000, 0x10000), VECTOR3x(-0x20000, -0x20000, -0x20000));
+	resetOutParameters();
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x00000, -0x10000, 0x00000), VECTOR3x(0x00000, 0x10000, 0x00000), VECTOR3x_ZERO, 0x10000);
+	
+	// box1 moving -z from inside concave box2
+	box1 = initMovingBox3D(VECTOR3x(-0x08000, -0x08000, -0x08000), VECTOR3x(-0x08000, -0x08000, -0x18000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x10000, 0x10000, 0x10000), VECTOR3x(-0x20000, -0x20000, -0x20000));
+	resetOutParameters();
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x00000, 0x00000, 0x10000), VECTOR3x(0x00000, 0x00000, -0x10000), VECTOR3x_ZERO, 0x10000);
+	
+	// box1 moving +z from inside concave box2
+	box1 = initMovingBox3D(VECTOR3x(-0x08000, -0x08000, -0x08000), VECTOR3x(-0x08000, -0x08000, 0x08000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x10000, 0x10000, 0x10000), VECTOR3x(-0x20000, -0x20000, -0x20000));
+	resetOutParameters();
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x00000, 0x00000, -0x10000), VECTOR3x(0x00000, 0x00000, 0x10000), VECTOR3x_ZERO, 0x10000);
+	
+#pragma mark Concave side priority
+	// box1 moving -x -y from inside concave box2 (left collision)
+	box1 = initMovingBox3D(VECTOR3x(-0x08000, -0x08000, 0x00000), VECTOR3x(-0x18000, -0x17000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x10000, 0x10000, 0x10000), VECTOR3x(-0x20000, -0x20000, -0x20000));
+	resetOutParameters();
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x10000, 0x00000, 0x00000), VECTOR3x(-0x10000, -0x0F000, 0x00000), VECTOR3x_ZERO, 0x10000);
+	
+	// box1 moving -x -y from inside concave box2 (bottom collision)
+	box1 = initMovingBox3D(VECTOR3x(-0x08000, -0x08000, 0x00000), VECTOR3x(-0x17000, -0x18000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x10000, 0x10000, 0x10000), VECTOR3x(-0x20000, -0x20000, -0x20000));
+	resetOutParameters();
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x00000, 0x10000, 0x00000), VECTOR3x(-0x0F000, -0x10000, 0x00000), VECTOR3x_ZERO, 0x10000);
+	
+	// box1 moving +x -y from inside concave box2 (right collision)
+	box1 = initMovingBox3D(VECTOR3x(-0x08000, -0x08000, 0x00000), VECTOR3x(0x08000, -0x17000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x10000, 0x10000, 0x10000), VECTOR3x(-0x20000, -0x20000, -0x20000));
+	resetOutParameters();
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(-0x10000, 0x00000, 0x00000), VECTOR3x(0x10000, -0x0F000, 0x00000), VECTOR3x_ZERO, 0x10000);
+	
+	// box1 moving +x -y from inside concave box2 (bottom collision)
+	box1 = initMovingBox3D(VECTOR3x(-0x08000, -0x08000, 0x00000), VECTOR3x(0x07000, -0x18000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x10000, 0x10000, 0x10000), VECTOR3x(-0x20000, -0x20000, -0x20000));
+	resetOutParameters();
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x00000, 0x10000, 0x00000), VECTOR3x(0x0F000, -0x10000, 0x00000), VECTOR3x_ZERO, 0x10000);
+	
+	// box1 moving -x +y from inside concave box2 (left collision)
+	box1 = initMovingBox3D(VECTOR3x(-0x08000, -0x08000, 0x00000), VECTOR3x(-0x18000, 0x07000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x10000, 0x10000, 0x10000), VECTOR3x(-0x20000, -0x20000, -0x20000));
+	resetOutParameters();
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x10000, 0x00000, 0x00000), VECTOR3x(-0x10000, 0x0F000, 0x00000), VECTOR3x_ZERO, 0x10000);
+	
+	// box1 moving -x +y from inside concave box2 (top collision)
+	box1 = initMovingBox3D(VECTOR3x(-0x08000, -0x08000, 0x00000), VECTOR3x(-0x17000, 0x08000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x10000, 0x10000, 0x10000), VECTOR3x(-0x20000, -0x20000, -0x20000));
+	resetOutParameters();
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x00000, -0x10000, 0x00000), VECTOR3x(-0x0F000, 0x10000, 0x00000), VECTOR3x_ZERO, 0x10000);
+	
+	// box1 moving +x +y from inside concave box2 (right collision)
+	box1 = initMovingBox3D(VECTOR3x(-0x08000, -0x08000, 0x00000), VECTOR3x(0x08000, 0x07000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x10000, 0x10000, 0x10000), VECTOR3x(-0x20000, -0x20000, -0x20000));
+	resetOutParameters();
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(-0x10000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x0F000, 0x00000), VECTOR3x_ZERO, 0x10000);
+	
+	// box1 moving +x +y from inside concave box2 (top collision)
+	box1 = initMovingBox3D(VECTOR3x(-0x08000, -0x08000, 0x00000), VECTOR3x(0x07000, 0x08000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x10000, 0x10000, 0x10000), VECTOR3x(-0x20000, -0x20000, -0x20000));
+	resetOutParameters();
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x00000, -0x10000, 0x00000), VECTOR3x(0x0F000, 0x10000, 0x00000), VECTOR3x_ZERO, 0x10000);
+	
+	// box1 moving -x -z from inside concave box2 (left collision)
+	box1 = initMovingBox3D(VECTOR3x(-0x08000, 0x00000, -0x08000), VECTOR3x(-0x18000, 0x00000, -0x17000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x10000, 0x10000, 0x10000), VECTOR3x(-0x20000, -0x20000, -0x20000));
+	resetOutParameters();
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x10000, 0x00000, 0x00000), VECTOR3x(-0x10000, 0x00000, -0x0F000), VECTOR3x_ZERO, 0x10000);
+	
+	// box1 moving -x -z from inside concave box2 (back collision)
+	box1 = initMovingBox3D(VECTOR3x(-0x08000, 0x00000, -0x08000), VECTOR3x(-0x17000, 0x00000, -0x18000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x10000, 0x10000, 0x10000), VECTOR3x(-0x20000, -0x20000, -0x20000));
+	resetOutParameters();
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x00000, 0x00000, 0x10000), VECTOR3x(-0x0F000, 0x00000, -0x10000), VECTOR3x_ZERO, 0x10000);
+	
+	// box1 moving +x -z from inside concave box2 (right collision)
+	box1 = initMovingBox3D(VECTOR3x(-0x08000, 0x00000, -0x08000), VECTOR3x(0x08000, 0x00000, -0x17000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x10000, 0x10000, 0x10000), VECTOR3x(-0x20000, -0x20000, -0x20000));
+	resetOutParameters();
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(-0x10000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x00000, -0x0F000), VECTOR3x_ZERO, 0x10000);
+	
+	// box1 moving +x -z from inside concave box2 (back collision)
+	box1 = initMovingBox3D(VECTOR3x(-0x08000, 0x00000, -0x08000), VECTOR3x(0x07000, 0x00000, -0x18000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x10000, 0x10000, 0x10000), VECTOR3x(-0x20000, -0x20000, -0x20000));
+	resetOutParameters();
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x00000, 0x00000, 0x10000), VECTOR3x(0x0F000, 0x00000, -0x10000), VECTOR3x_ZERO, 0x10000);
+	
+	// box1 moving -x +z from inside concave box2 (left collision)
+	box1 = initMovingBox3D(VECTOR3x(-0x08000, 0x00000, -0x08000), VECTOR3x(-0x18000, 0x00000, 0x07000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x10000, 0x10000, 0x10000), VECTOR3x(-0x20000, -0x20000, -0x20000));
+	resetOutParameters();
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x10000, 0x00000, 0x00000), VECTOR3x(-0x10000, 0x00000, 0x0F000), VECTOR3x_ZERO, 0x10000);
+	
+	// box1 moving -x +z from inside concave box2 (front collision)
+	box1 = initMovingBox3D(VECTOR3x(-0x08000, 0x00000, -0x08000), VECTOR3x(-0x17000, 0x00000, 0x08000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x10000, 0x10000, 0x10000), VECTOR3x(-0x20000, -0x20000, -0x20000));
+	resetOutParameters();
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x00000, 0x00000, -0x10000), VECTOR3x(-0x0F000, 0x00000, 0x10000), VECTOR3x_ZERO, 0x10000);
+	
+	// box1 moving +x +z from inside concave box2 (right collision)
+	box1 = initMovingBox3D(VECTOR3x(-0x08000, 0x00000, -0x08000), VECTOR3x(0x08000, 0x00000, 0x07000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x10000, 0x10000, 0x10000), VECTOR3x(-0x20000, -0x20000, -0x20000));
+	resetOutParameters();
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(-0x10000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x00000, 0x0F000), VECTOR3x_ZERO, 0x10000);
+	
+	// box1 moving +x +z from inside concave box2 (front collision)
+	box1 = initMovingBox3D(VECTOR3x(-0x08000, 0x00000, -0x08000), VECTOR3x(0x07000, 0x00000, 0x08000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x10000, 0x10000, 0x10000), VECTOR3x(-0x20000, -0x20000, -0x20000));
+	resetOutParameters();
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x00000, 0x00000, -0x10000), VECTOR3x(0x0F000, 0x00000, 0x10000), VECTOR3x_ZERO, 0x10000);
+	
+	// box1 moving -y -z from inside concave box2 (bottom collision)
+	box1 = initMovingBox3D(VECTOR3x(0x00000, -0x08000, -0x08000), VECTOR3x(0x00000, -0x18000, -0x17000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x10000, 0x10000, 0x10000), VECTOR3x(-0x20000, -0x20000, -0x20000));
+	resetOutParameters();
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x00000, 0x10000, 0x00000), VECTOR3x(0x00000, -0x10000, -0x0F000), VECTOR3x_ZERO, 0x10000);
+	
+	// box1 moving -y -z from inside concave box2 (back collision)
+	box1 = initMovingBox3D(VECTOR3x(0x00000, -0x08000, -0x08000), VECTOR3x(0x00000, -0x17000, -0x18000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x10000, 0x10000, 0x10000), VECTOR3x(-0x20000, -0x20000, -0x20000));
+	resetOutParameters();
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x00000, 0x00000, 0x10000), VECTOR3x(0x00000, -0x0F000, -0x10000), VECTOR3x_ZERO, 0x10000);
+	
+	// box1 moving +y -z from inside concave box2 (top collision)
+	box1 = initMovingBox3D(VECTOR3x(0x00000, -0x08000, -0x08000), VECTOR3x(0x00000, 0x08000, -0x17000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x10000, 0x10000, 0x10000), VECTOR3x(-0x20000, -0x20000, -0x20000));
+	resetOutParameters();
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x00000, -0x10000, 0x00000), VECTOR3x(0x00000, 0x10000, -0x0F000), VECTOR3x_ZERO, 0x10000);
+	
+	// box1 moving +y -z from inside concave box2 (back collision)
+	box1 = initMovingBox3D(VECTOR3x(0x00000, -0x08000, -0x08000), VECTOR3x(0x00000, 0x07000, -0x18000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x10000, 0x10000, 0x10000), VECTOR3x(-0x20000, -0x20000, -0x20000));
+	resetOutParameters();
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x00000, 0x00000, 0x10000), VECTOR3x(0x00000, 0x0F000, -0x10000), VECTOR3x_ZERO, 0x10000);
+	
+	// box1 moving -y +z from inside concave box2 (bottom collision)
+	box1 = initMovingBox3D(VECTOR3x(0x00000, -0x08000, -0x08000), VECTOR3x(0x00000, -0x18000, 0x07000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x10000, 0x10000, 0x10000), VECTOR3x(-0x20000, -0x20000, -0x20000));
+	resetOutParameters();
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x00000, 0x10000, 0x00000), VECTOR3x(0x00000, -0x10000, 0x0F000), VECTOR3x_ZERO, 0x10000);
+	
+	// box1 moving -y +z from inside concave box2 (front collision)
+	box1 = initMovingBox3D(VECTOR3x(0x00000, -0x08000, -0x08000), VECTOR3x(0x00000, -0x17000, 0x08000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x10000, 0x10000, 0x10000), VECTOR3x(-0x20000, -0x20000, -0x20000));
+	resetOutParameters();
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x00000, 0x00000, -0x10000), VECTOR3x(0x00000, -0x0F000, 0x10000), VECTOR3x_ZERO, 0x10000);
+	
+	// box1 moving +y +z from inside concave box2 (top collision)
+	box1 = initMovingBox3D(VECTOR3x(0x00000, -0x08000, -0x08000), VECTOR3x(0x00000, 0x08000, 0x07000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x10000, 0x10000, 0x10000), VECTOR3x(-0x20000, -0x20000, -0x20000));
+	resetOutParameters();
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x00000, -0x10000, 0x00000), VECTOR3x(0x00000, 0x10000, 0x0F000), VECTOR3x_ZERO, 0x10000);
+	
+	// box1 moving +y +z from inside concave box2 (front collision)
+	box1 = initMovingBox3D(VECTOR3x(0x00000, -0x08000, -0x08000), VECTOR3x(0x00000, 0x07000, 0x08000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x10000, 0x10000, 0x10000), VECTOR3x(-0x20000, -0x20000, -0x20000));
+	resetOutParameters();
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x00000, 0x00000, -0x10000), VECTOR3x(0x00000, 0x0F000, 0x10000), VECTOR3x_ZERO, 0x10000);
+	
+#pragma mark Contact area
+	// box1 moving +x at small size, box2 stationary at normal size
+	box1 = initMovingBox3D(VECTOR3x(-0x20000, 0x00000, 0x00000), VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x08000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	resetOutParameters();
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(-0x10000, 0x00000, 0x00000), VECTOR3x(0x20000, 0x00000, 0x00000), VECTOR3x_ZERO, 0x08000);
+	
+	// box1 moving +x at normal size, box2 stationary at small size
+	box1 = initMovingBox3D(VECTOR3x(-0x20000, 0x00000, 0x00000), VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x06000, 0x10000));
+	resetOutParameters();
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(-0x10000, 0x00000, 0x00000), VECTOR3x(0x20000, 0x00000, 0x00000), VECTOR3x_ZERO, 0x06000);
+	
+	// box1 moving +x at normal size (deeper), box2 stationary at small size (deeper)
+	box1 = initMovingBox3D(VECTOR3x(-0x20000, 0x00000, 0x00000), VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x20000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x06000, 0x20000));
+	resetOutParameters();
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(-0x10000, 0x00000, 0x00000), VECTOR3x(0x20000, 0x00000, 0x00000), VECTOR3x_ZERO, 0x0C000);
+	
+	// box1 moving +x at normal size, box2 stationary at normal size (half contact bottom)
+	box1 = initMovingBox3D(VECTOR3x(-0x20000, 0x00000, 0x00000), VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x08000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	resetOutParameters();
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(-0x10000, 0x00000, 0x00000), VECTOR3x(0x20000, 0x00000, 0x00000), VECTOR3x_ZERO, 0x08000);
+	
+	// box1 moving +x at normal size, box2 stationary at normal size (quarter contact top)
+	box1 = initMovingBox3D(VECTOR3x(-0x20000, 0x00000, 0x00000), VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, -0x0C000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	resetOutParameters();
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(-0x10000, 0x00000, 0x00000), VECTOR3x(0x20000, 0x00000, 0x00000), VECTOR3x_ZERO, 0x04000);
+	
+	// box1 resizing +x, box2 stationary at normal size
+	box1 = initResizingBox3D(VECTOR3x(-0x08000, 0x00000, 0x00000), VECTOR3x(0x04000, 0x04000, 0x40000), VECTOR3x(0x0C000, 0x0C000, 0xC0000));
+	box2 = initStationaryBox3D(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	resetOutParameters();
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(-0x10000, 0x00000, 0x00000), VECTOR3x(0x08000, 0x00000, 0x00000), VECTOR3x_ZERO, 0x08000);
 }
 
 static void testBox_sphere() {
