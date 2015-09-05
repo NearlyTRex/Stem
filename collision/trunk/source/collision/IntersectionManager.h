@@ -53,7 +53,8 @@ struct IntersectionHandlerEntry {
 	StemObject_structContents(self_type) \
 	\
 	size_t private_ivar(handlerCount); \
-	struct IntersectionHandlerEntry * private_ivar(handlers);
+	struct IntersectionHandlerEntry * private_ivar(handlers); \
+	IntersectionHandler defaultHandler;
 
 stemobject_struct_definition(IntersectionManager)
 

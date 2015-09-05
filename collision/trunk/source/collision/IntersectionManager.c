@@ -39,6 +39,7 @@ static void sharedInit(IntersectionManager * self) {
 	self->dispose = IntersectionManager_dispose;
 	self->private_ivar(handlerCount) = 0;
 	self->private_ivar(handlers) = NULL;
+	self->defaultHandler = NULL;
 }
 
 bool IntersectionManager_init(IntersectionManager * self) {
@@ -111,7 +112,7 @@ IntersectionHandler IntersectionManager_getHandler(IntersectionManager * self, i
 			return self->private_ivar(handlers)[handlerIndex].handler;
 		}
 	}
-	return NULL;
+	return self->defaultHandler;
 }
 
 bool IntersectionManager_callHandler(IntersectionManager * self, CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal, Vector3x * outObject1Vector, Vector3x * outObject2Vector, fixed16_16 * outContactArea) {

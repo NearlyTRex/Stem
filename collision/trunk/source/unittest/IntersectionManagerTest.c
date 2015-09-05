@@ -5,6 +5,7 @@
 static void verifyInit(int line, IntersectionManager * intersectionManager) {
 	TestCase_assert(intersectionManager != NULL, "Expected non-NULL but got NULL (line %d)", line);
 	TestCase_assert(intersectionManager->dispose == IntersectionManager_dispose, "Expected %p but got %p (line %d)", IntersectionManager_dispose, intersectionManager->dispose, line);
+	TestCase_assert(intersectionManager->defaultHandler == NULL, "Expected NULL but got %p (line %d)", intersectionManager->defaultHandler, line);
 }
 
 static void testInit() {
@@ -47,6 +48,10 @@ static void testGetHandler() {
 	IntersectionHandler handler;
 	
 	intersectionManager = IntersectionManager_create();
+	intersectionManager->defaultHandler = (void *) 0x1;
+	handler = IntersectionManager_getHandler(intersectionManager, 0, 0);
+	TestCase_assert(handler == (void *) 0x1, "Expected 0x1 but got %p", handler);
+	intersectionManager->defaultHandler = NULL;
 	handler = IntersectionManager_getHandler(intersectionManager, 0, 0);
 	TestCase_assert(handler == NULL, "Expected NULL but got %p", handler);
 	
@@ -116,6 +121,16 @@ static void testCallHandler() {
 	TestCase_assert(object1Vector.x == 5 && object1Vector.y == 6 && object1Vector.z == 7, "Expected {0x00005, 0x00006, 0x00007} but got {0x%05X, 0x%05X, 0x%05X}", object1Vector.x, object1Vector.y, object1Vector.z);
 	TestCase_assert(object2Vector.x == 8 && object2Vector.y == 9 && object2Vector.z == 10, "Expected {0x00008, 0x00009, 0x0000A} but got {0x%05X, 0x%05X, 0x%05X}", object2Vector.x, object2Vector.y, object2Vector.z);
 	TestCase_assert(contactArea == 11, "Expected 0x0000B but got 0x%05X", contactArea);
+	
+	object2->shapeType = 2;
+	result = IntersectionManager_callHandler(intersectionManager, object1, object2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	TestCase_assert(handler2Calls == 1, "Expected 1 but got %u", handler2Calls);
+	TestCase_assert(!result, "Expected false but got true");
+	
+	intersectionManager->defaultHandler = testHandler2;
+	result = IntersectionManager_callHandler(intersectionManager, object1, object2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	TestCase_assert(handler2Calls == 2, "Expected 2 but got %u", handler2Calls);
+	TestCase_assert(result, "Expected true but got false");
 	
 	IntersectionManager_dispose(intersectionManager);
 }
