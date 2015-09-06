@@ -34,8 +34,8 @@ bool CollisionPairQueue_init(CollisionPairQueue * self) {
 	self->dispose = CollisionPairQueue_dispose;
 	self->private_ivar(queueAllocatedSize) = 64;
 	self->frontQueue = malloc(sizeof(CollisionObject *) * 2 * self->private_ivar(queueAllocatedSize));
-	self->frontQueueCount = 0;
 	self->backQueue = malloc(sizeof(CollisionObject *) * 2 * self->private_ivar(queueAllocatedSize));
+	self->frontQueueCount = 0;
 	self->backQueueCount = 0;
 	self->queuePosition = 0;
 	return true;
@@ -48,10 +48,18 @@ void CollisionPairQueue_dispose(CollisionPairQueue * self) {
 }
 
 static void addPair(CollisionPairQueue * self, CollisionObject ** queue, size_t * queueCount, CollisionObject * object1, CollisionObject * object2) {
+	if (object1->isStatic(object1) && object2->isStatic(object2)) {
+		return;
+	}
+	if (Box6x_isEmpty(Box6x_union(object1->getCollisionBounds(object1), object2->getCollisionBounds(object2)))) {
+		return;
+	}
 	if (*queueCount >= self->private_ivar(queueAllocatedSize)) {
+		bool frontQueue = queue == self->frontQueue;
 		self->private_ivar(queueAllocatedSize) *= 2;
 		self->frontQueue = realloc(self->frontQueue, sizeof(CollisionObject *) * 2 * self->private_ivar(queueAllocatedSize));
 		self->backQueue = realloc(self->backQueue, sizeof(CollisionObject *) * 2 * self->private_ivar(queueAllocatedSize));
+		queue = frontQueue ? self->frontQueue : self->backQueue;
 	}
 	queue[*queueCount * 2 + 0] = object1;
 	queue[*queueCount * 2 + 1] = object2;
@@ -61,11 +69,16 @@ static void addPair(CollisionPairQueue * self, CollisionObject ** queue, size_t 
 void CollisionPairQueue_addInitialPairs(CollisionPairQueue * self, CollisionObject ** objects, size_t objectCount) {
 	size_t objectIndex, objectIndex2;
 	
-	for (objectIndex = 0; objectIndex < objectCount; objectIndex++) {
+	self->frontQueueCount = self->backQueueCount = self->queuePosition = 0;
+	for (objectIndex = 0; objectIndex < objectCount - 1; objectIndex++) {
 		for (objectIndex2 = objectIndex + 1; objectIndex2 < objectCount; objectIndex2++) {
 			addPair(self, self->frontQueue, &self->frontQueueCount, objects[objectIndex], objects[objectIndex2]);
 		}
 	}
+}
+
+void CollisionPairQueue_addNextPair(CollisionPairQueue * self, CollisionObject * object1, CollisionObject * object2) {
+	addPair(self, self->backQueue, &self->backQueueCount, object1, object2);
 }
 
 void CollisionPairQueue_addNextPairsForObject(CollisionPairQueue * self, CollisionObject * object, CollisionObject ** objects, size_t objectCount) {

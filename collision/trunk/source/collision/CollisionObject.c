@@ -34,7 +34,7 @@ bool CollisionObject_init(CollisionObject * self, void * owner, int shapeType, C
 	self->dispose = CollisionObject_dispose;
 	self->interpolate = NULL;
 	self->isStatic = CollisionObject_isStatic;
-	self->getCollisionBounds = NULL;
+	self->getCollisionBounds = CollisionObject_getCollisionBounds;
 	self->owner = owner;
 	self->shapeType = shapeType;
 	self->collisionCallback = collisionCallback;
@@ -49,4 +49,8 @@ void CollisionObject_dispose(CollisionObject * self) {
 
 bool CollisionObject_isStatic(CollisionObject * self) {
 	return false;
+}
+
+Box6x CollisionObject_getCollisionBounds(CollisionObject * self) {
+	return BOX6x(0x00000, 0x10000, 0x00000, 0x10000, 0x00000, 0x10000);
 }

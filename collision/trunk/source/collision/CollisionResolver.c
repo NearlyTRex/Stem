@@ -39,6 +39,7 @@ bool CollisionResolver_init(CollisionResolver * self, IntersectionManager * inte
 	self->intersectionManager = intersectionManager;
 	self->private_ivar(intersectionManagerOwned) = takeOwnership;
 	self->private_ivar(inResolveAll) = false;
+	self->private_ivar(pairQueue) = CollisionPairQueue_create();
 	self->private_ivar(simultaneousCollisionBuffer) = malloc(sizeof(*self->private_ivar(simultaneousCollisionBuffer)) * MAX_SIMULTANEOUS_COLLISIONS);
 	self->private_ivar(cycleDetectionBufferSize) = 128;
 	self->private_ivar(cycleDetectionBufferCount) = 0;
@@ -55,6 +56,7 @@ void CollisionResolver_dispose(CollisionResolver * self) {
 	if (self->private_ivar(intersectionManagerOwned)) {
 		IntersectionManager_dispose(self->intersectionManager);
 	}
+	CollisionPairQueue_dispose(self->private_ivar(pairQueue));
 	call_super(dispose, self);
 }
 
@@ -72,6 +74,10 @@ void CollisionResolver_addObject(CollisionResolver * self, CollisionObject * obj
 		self->objects = realloc(self->objects, sizeof(CollisionObject *) * self->objectAllocatedCount);
 	}
 	self->objects[self->objectCount++] = object;
+	
+	if (self->private_ivar(inResolveAll)) {
+		CollisionPairQueue_addNextPairsForObject(self->private_ivar(pairQueue), object, self->objects, self->objectCount);
+	}
 }
 
 void CollisionResolver_removeObject(CollisionResolver * self, CollisionObject * object) {
@@ -152,17 +158,30 @@ bool CollisionResolver_querySingle(CollisionResolver * self, CollisionObject * o
 	return false;
 }
 
+static void sortByContactArea(CollisionRecord * collisions, size_t collisionCount) {
+	size_t collisionIndex, collisionIndex2;
+	CollisionRecord collision;
+	
+	for (collisionIndex = 1; collisionIndex < collisionCount; collisionIndex++) {
+		collision = collisions[collisionIndex];
+		for (collisionIndex2 = collisionIndex; collisionIndex2 > 0 && collisions[collisionIndex2 - 1].contactArea < collision.contactArea; collisionIndex2--) {
+			collisions[collisionIndex2] = collisions[collisionIndex2 - 1];
+			collisions[collisionIndex2 - 1] = collision;
+		}
+	}
+}
+
 size_t CollisionResolver_findEarliest(CollisionResolver * self, CollisionRecord * outCollisions, size_t collisionCountMax) {
 	unsigned int objectIndex, objectIndex2;
+	size_t collisionCount = 0;
+	fixed16_16 bestTime = FIXED_16_16_MAX;
 	bool queryResult;
 	CollisionRecord collision;
-	size_t collisionCount = 0, collisionIndex, collisionIndex2;
-	fixed16_16 bestTime = FIXED_16_16_MAX;
 	
 	if (collisionCountMax == 0) {
 		return 0;
 	}
-	for (objectIndex = 0; objectIndex < self->objectCount; objectIndex++) {
+	for (objectIndex = 0; objectIndex < self->objectCount - 1; objectIndex++) {
 		for (objectIndex2 = objectIndex + 1; objectIndex2 < self->objectCount; objectIndex2++) {
 			queryResult = CollisionResolver_queryPairInternal(self, self->objects[objectIndex], self->objects[objectIndex2], &collision);
 			if (queryResult && collision.time <= bestTime) {
@@ -179,14 +198,35 @@ size_t CollisionResolver_findEarliest(CollisionResolver * self, CollisionRecord 
 			}
 		}
 	}
+	sortByContactArea(outCollisions, collisionCount);
 	
-	for (collisionIndex = 1; collisionIndex < collisionCount; collisionIndex++) {
-		collision = outCollisions[collisionIndex];
-		for (collisionIndex2 = collisionIndex; collisionIndex2 > 0 && outCollisions[collisionIndex2 - 1].contactArea < collision.contactArea; collisionIndex2--) {
-			outCollisions[collisionIndex2] = outCollisions[collisionIndex2 - 1];
-			outCollisions[collisionIndex2 - 1] = collision;
+	return collisionCount;
+}
+
+static size_t findEarliestInQueue(CollisionResolver * self, CollisionRecord * outCollisions, size_t collisionCountMax) {
+	CollisionObject * object1, * object2;
+	size_t collisionCount = 0;
+	fixed16_16 bestTime = FIXED_16_16_MAX;
+	bool queryResult;
+	CollisionRecord collision;
+	
+	while (CollisionPairQueue_nextPair(self->private_ivar(pairQueue), &object1, &object2)) {
+		queryResult = CollisionResolver_queryPairInternal(self, object1, object2, &collision);
+		if (queryResult) {
+			if (collision.time < bestTime) {
+				bestTime = collision.time;
+				outCollisions[0] = collision;
+				collisionCount = 1;
+				
+			} else if (collision.time == bestTime) {
+				if (collisionCount < collisionCountMax) {
+					outCollisions[collisionCount++] = collision;
+				}
+			}
+			CollisionPairQueue_addNextPair(self->private_ivar(pairQueue), collision.object1, collision.object2);
 		}
 	}
+	sortByContactArea(outCollisions, collisionCount);
 	
 	return collisionCount;
 }
@@ -241,15 +281,10 @@ void CollisionResolver_resolveAll(CollisionResolver * self) {
 	size_t objectIndex;
 	unsigned int iterationCount = 0;
 	
-	// Move cycle detection to CollisionPairList
-	// Init CollisionPairList with all initial pairs (skipping static/static)
-	// Use alternate version of findEarliest that pops pairs from CollisionPairList instead of iterating through everything
-	// When new objects are added during resolution, add to pair list
-	// For each collision resolved, refill pair list with all valid pairs for both objects
-	// Continue resolution until pair list is empty
-	
 	self->private_ivar(inResolveAll) = true;
-	while ((collisionCount = CollisionResolver_findEarliest(self, self->private_ivar(simultaneousCollisionBuffer), MAX_SIMULTANEOUS_COLLISIONS)) > 0) {
+	CollisionPairQueue_addInitialPairs(self->private_ivar(pairQueue), self->objects, self->objectCount);
+	// SORT OF HACK: findEarliestInQueue has the side effect of calling CollisionPairQueue_addNextPairsForObject for every collision detected (at all times, not just earliest)
+	while ((collisionCount = findEarliestInQueue(self, self->private_ivar(simultaneousCollisionBuffer), MAX_SIMULTANEOUS_COLLISIONS)) > 0) {
 		fixed16_16 collisionTime = self->private_ivar(simultaneousCollisionBuffer)[0].time;
 		fixed16_16 nextTimeslice = xmul(0x10000 - collisionTime, timesliceRemaining);
 		
@@ -286,11 +321,16 @@ void CollisionResolver_resolveAll(CollisionResolver * self) {
 				}
 				CollisionRecord_resolve(self->private_ivar(simultaneousCollisionBuffer)[collisionIndex], timesliceRemaining, 0x10000 - nextTimeslice);
 			}
+			CollisionPairQueue_addNextPairsForObject(self->private_ivar(pairQueue), self->private_ivar(simultaneousCollisionBuffer)[collisionIndex].object1, self->objects, self->objectCount);
+			CollisionPairQueue_addNextPairsForObject(self->private_ivar(pairQueue), self->private_ivar(simultaneousCollisionBuffer)[collisionIndex].object2, self->objects, self->objectCount);
 		}
 		
 		timesliceRemaining = nextTimeslice;
 		
 		iterationCount++;
+		if (!CollisionPairQueue_nextIteration(self->private_ivar(pairQueue))) {
+			break;
+		}
 		if (iterationCount >= MAX_ITERATIONS_TEMP) {
 			fprintf(stderr, "Warning: Max iterations (%u) exceeded\n", MAX_ITERATIONS_TEMP);
 			break;

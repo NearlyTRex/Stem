@@ -63,6 +63,54 @@ static void testAddInitialPairs() {
 	CollisionObject_dispose(objects[0]);
 	CollisionObject_dispose(objects[1]);
 	CollisionObject_dispose(objects[2]);
+	CollisionPairQueue_dispose(queue);
+}
+
+static void testAddNextPair() {
+	CollisionPairQueue * queue;
+	CollisionObject * objects[3];
+	CollisionObject * object1, * object2;
+	bool success;
+	
+	queue = CollisionPairQueue_create();
+	success = CollisionPairQueue_nextPair(queue, &object1, &object2);
+	TestCase_assert(!success, "Expected false but got true");
+	
+	objects[0] = CollisionObject_create(NULL, 0, NULL);
+	objects[1] = CollisionObject_create(NULL, 0, NULL);
+	objects[2] = CollisionObject_create(NULL, 0, NULL);
+	
+	CollisionPairQueue_addNextPair(queue, objects[0], objects[1]);
+	success = CollisionPairQueue_nextPair(queue, &object1, &object2);
+	TestCase_assert(!success, "Expected false but got true");
+	success = CollisionPairQueue_nextIteration(queue);
+	TestCase_assert(success, "Expected true but got false");
+	
+	success = CollisionPairQueue_nextPair(queue, &object1, &object2);
+	TestCase_assert(success, "Expected true but got false");
+	TestCase_assert(object1 == objects[0], "Expected %p but got %p", objects[0], object1);
+	TestCase_assert(object2 == objects[1], "Expected %p but got %p", objects[1], object2);
+	
+	CollisionPairQueue_addNextPair(queue, objects[0], objects[2]);
+	CollisionPairQueue_addNextPair(queue, objects[1], objects[2]);
+	CollisionPairQueue_nextIteration(queue);
+	success = CollisionPairQueue_nextPair(queue, &object1, &object2);
+	TestCase_assert(success, "Expected true but got false");
+	TestCase_assert(object1 == objects[0], "Expected %p but got %p", objects[0], object1);
+	TestCase_assert(object2 == objects[2], "Expected %p but got %p", objects[2], object2);
+	
+	success = CollisionPairQueue_nextPair(queue, &object1, &object2);
+	TestCase_assert(success, "Expected true but got false");
+	TestCase_assert(object1 == objects[1], "Expected %p but got %p", objects[1], object1);
+	TestCase_assert(object2 == objects[2], "Expected %p but got %p", objects[2], object2);
+	
+	success = CollisionPairQueue_nextPair(queue, &object1, &object2);
+	TestCase_assert(!success, "Expected false but got true");
+	
+	CollisionObject_dispose(objects[0]);
+	CollisionObject_dispose(objects[1]);
+	CollisionObject_dispose(objects[2]);
+	CollisionPairQueue_dispose(queue);
 }
 
 static void testAddNextPairsForObject() {
@@ -124,9 +172,11 @@ static void testAddNextPairsForObject() {
 	CollisionObject_dispose(objects[0]);
 	CollisionObject_dispose(objects[1]);
 	CollisionObject_dispose(objects[2]);
+	CollisionPairQueue_dispose(queue);
 }
 
 TEST_SUITE(CollisionPairQueueTest,
            testInit,
            testAddInitialPairs,
+           testAddNextPair,
            testAddNextPairsForObject)

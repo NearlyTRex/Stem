@@ -30,6 +30,7 @@ typedef struct CollisionPairQueue CollisionPairQueue;
 
 #include "collision/CollisionObject.h"
 #include "stemobject/StemObject.h"
+#include <stdlib.h>
 
 #define CollisionPairQueue_structContents(self_type) \
 	StemObject_structContents(self_type) \
@@ -50,6 +51,9 @@ void CollisionPairQueue_dispose(CollisionPairQueue * self);
 // Adds all permutations of objects pairs in the list to the initial queue. Pairs which can safely be ignored
 // (static vs. static) will not be added.
 void CollisionPairQueue_addInitialPairs(CollisionPairQueue * self, CollisionObject ** objects, size_t objectCount);
+
+// Adds a single pair to the next queue. Does not affect current queue.
+void CollisionPairQueue_addNextPair(CollisionPairQueue * self, CollisionObject * object1, CollisionObject * object2);
 
 // Adds pairs for object vs. all other relevant objects in the list to the next queue. Does not affect current queue.
 void CollisionPairQueue_addNextPairsForObject(CollisionPairQueue * self, CollisionObject * object, CollisionObject ** objects, size_t objectCount);

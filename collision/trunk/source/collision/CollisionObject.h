@@ -76,6 +76,7 @@ bool CollisionObject_init(CollisionObject * self, void * owner, int shapeType, C
 void CollisionObject_dispose(CollisionObject * self);
 
 bool CollisionObject_isStatic(CollisionObject * self);
+Box6x CollisionObject_getCollisionBounds(CollisionObject * self);
 
 #ifdef __cplusplus
 }

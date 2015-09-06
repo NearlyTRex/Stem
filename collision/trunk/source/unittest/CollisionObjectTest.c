@@ -10,7 +10,7 @@ static void verifyInit(int line, CollisionObject * collisionObject, void * owner
 	TestCase_assert(collisionObject->collisionCallback == collisionCallback, "Expected %p but got %p (line %d)", collisionCallback, collisionObject->collisionCallback, line);
 	TestCase_assert(collisionObject->interpolate == NULL, "Expected NULL but got %p (line %d)", collisionObject->interpolate, line);
 	TestCase_assert(collisionObject->isStatic == CollisionObject_isStatic, "Expected %p but got %p (line %d)", CollisionObject_isStatic, collisionObject->isStatic, line);
-	TestCase_assert(collisionObject->getCollisionBounds == NULL, "Expected NULL but got %p (line %d)", collisionObject->getCollisionBounds, line);
+	TestCase_assert(collisionObject->getCollisionBounds == CollisionObject_getCollisionBounds, "Expected %p but got %p (line %d)", CollisionObject_getCollisionBounds, collisionObject->getCollisionBounds, line);
 }
 
 static void testInit() {
