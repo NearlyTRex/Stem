@@ -26,6 +26,14 @@
 extern "C" {
 #endif
 
+// ADDITIONAL MODULE NEEDED: CollisionPairManager
+// - Responsible for taking list of objects and returning a list of pairs that need to be evaluated for collision
+// - With some smarts, can be made much more efficient:
+//  - Don't test static objects against static objects
+//  - Don't retest unchanged pairs on subsequent iterations
+// - Could take over cycleDetectionBuffer
+// - Space partitioning would be a separate subsystem still needed after this
+
 typedef struct CollisionResolver CollisionResolver;
 typedef struct CollisionRecord CollisionRecord;
 

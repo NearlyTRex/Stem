@@ -34,6 +34,8 @@ bool CollisionCapsule_init(CollisionCapsule * self, void * owner, CollisionCallb
 	call_super(init, self, owner, COLLISION_SHAPE_CAPSULE, collisionCallback);
 	self->dispose = CollisionCapsule_dispose;
 	self->interpolate = CollisionCapsule_interpolate;
+	self->isStatic = CollisionCapsule_isStatic;
+	self->getCollisionBounds = CollisionCapsule_getCollisionBounds;
 	self->position = position;
 	self->lastPosition = position;
 	self->radius = radius;
@@ -52,4 +54,12 @@ void CollisionCapsule_updatePosition(CollisionCapsule * self, Vector3x newPositi
 
 void CollisionCapsule_interpolate(CollisionCapsule * self, fixed16_16 amount) {
 	self->lastPosition = Vector3x_interpolate(self->lastPosition, self->position, amount);
+}
+
+bool CollisionCapsule_isStatic(CollisionCapsule * self) {
+	return self->position.x == self->lastPosition.x && self->position.y == self->lastPosition.y && self->position.z == self->lastPosition.z;
+}
+
+Box6x CollisionCapsule_getCollisionBounds(CollisionCapsule * self) {
+	return Box6x_union(BOX6x(self->lastPosition.x - self->radius, self->lastPosition.x + self->radius, self->lastPosition.y, self->lastPosition.y + self->radius * 2 + self->cylinderHeight, self->lastPosition.z - self->radius, self->lastPosition.z + self->radius), BOX6x(self->position.x - self->radius, self->position.x + self->radius, self->position.y, self->position.y + self->radius * 2 + self->cylinderHeight, self->position.z - self->radius, self->position.z + self->radius));
 }

@@ -9,6 +9,8 @@ static void verifyInit(int line, CollisionCircle * circle, void * owner, Collisi
 	TestCase_assert(circle->owner == owner, "Expected %p but got %p (line %d)", owner, circle->owner, line);
 	TestCase_assert(circle->collisionCallback == collisionCallback, "Expected %p but got %p (line %d)", collisionCallback, circle->collisionCallback, line);
 	TestCase_assert(circle->interpolate == CollisionCircle_interpolate, "Expected %p but got %p (line %d)", CollisionCircle_interpolate, circle->interpolate, line);
+	TestCase_assert(circle->isStatic == CollisionCircle_isStatic, "Expected %p but got %p (line %d)", CollisionCircle_isStatic, circle->isStatic, line);
+	TestCase_assert(circle->getCollisionBounds == CollisionCircle_getCollisionBounds, "Expected %p but got %p (line %d)", CollisionCircle_getCollisionBounds, circle->getCollisionBounds, line);
 	TestCase_assert(circle->position.x == position.x, "Expected 0x%05X but got 0x%05X (line %d)", position.x, circle->position.x, line);
 	TestCase_assert(circle->position.y == position.y, "Expected 0x%05X but got 0x%05X (line %d)", position.y, circle->position.y, line);
 	TestCase_assert(circle->lastPosition.x == position.x, "Expected 0x%05X but got 0x%05X (line %d)", position.x, circle->lastPosition.x, line);
@@ -90,7 +92,67 @@ static void testInterpolate() {
 	CollisionCircle_dispose(circle);
 }
 
+static void testIsStatic() {
+	CollisionCircle * circle;
+	bool result;
+	
+	circle = CollisionCircle_create(NULL, NULL, VECTOR2x(0x00000, 0x00000), 0x10000);
+	result = CollisionCircle_isStatic(circle);
+	TestCase_assert(result, "Expected true but got false");
+	
+	CollisionCircle_updatePosition(circle, VECTOR2x(0x10000, 0x10000));
+	result = CollisionCircle_isStatic(circle);
+	TestCase_assert(!result, "Expected false but got true");
+	
+	CollisionCircle_updatePosition(circle, VECTOR2x(0x10000, 0x10000));
+	result = CollisionCircle_isStatic(circle);
+	TestCase_assert(result, "Expected true but got false");
+	
+	CollisionCircle_dispose(circle);
+}
+
+static void testGetCollisionBounds() {
+	CollisionCircle * circle;
+	Box6x bounds;
+	
+	circle = CollisionCircle_create(NULL, NULL, VECTOR2x_ZERO, 0x10000);
+	bounds = CollisionCircle_getCollisionBounds(circle);
+	TestCase_assert(bounds.left == -0x10000 && bounds.right == 0x10000 &&
+	                bounds.bottom == -0x10000 && bounds.top == 0x10000 &&
+	                bounds.back == 0x00000 && bounds.front == 0x10000,
+	                "Expected {0xFFFF0000, 0x10000, 0xFFFF0000, 0x10000, 0x00000, 0x10000} but got {0x%05X, 0x%05X, 0x%05X, 0x%05X, 0x%05X, 0x%05X}",
+	                bounds.left, bounds.right, bounds.bottom, bounds.top, bounds.back, bounds.front);
+	
+	CollisionCircle_updatePosition(circle, VECTOR2x(0x10000, 0x10000));
+	bounds = CollisionCircle_getCollisionBounds(circle);
+	TestCase_assert(bounds.left == -0x10000 && bounds.right == 0x20000 &&
+	                bounds.bottom == -0x10000 && bounds.top == 0x20000 &&
+	                bounds.back == 0x00000 && bounds.front == 0x10000,
+	                "Expected {0xFFFF0000, 0x20000, 0xFFFF0000, 0x20000, 0x00000, 0x10000} but got {0x%05X, 0x%05X, 0x%05X, 0x%05X, 0x%05X, 0x%05X}",
+	                bounds.left, bounds.right, bounds.bottom, bounds.top, bounds.back, bounds.front);
+	
+	CollisionCircle_updatePosition(circle, VECTOR2x(-0x10000, -0x10000));
+	bounds = CollisionCircle_getCollisionBounds(circle);
+	TestCase_assert(bounds.left == -0x20000 && bounds.right == 0x20000 &&
+	                bounds.bottom == -0x20000 && bounds.top == 0x20000 &&
+	                bounds.back == 0x00000 && bounds.front == 0x10000,
+	                "Expected {0xFFFE0000, 0x20000, 0xFFFE0000, 0x20000, 0x00000, 0x10000} but got {0x%05X, 0x%05X, 0x%05X, 0x%05X, 0x%05X, 0x%05X}",
+	                bounds.left, bounds.right, bounds.bottom, bounds.top, bounds.back, bounds.front);
+	
+	circle->radius = 0x08000;
+	bounds = CollisionCircle_getCollisionBounds(circle);
+	TestCase_assert(bounds.left == -0x18000 && bounds.right == 0x18000 &&
+	                bounds.bottom == -0x18000 && bounds.top == 0x18000 &&
+	                bounds.back == 0x00000 && bounds.front == 0x10000,
+	                "Expected {0xFFFE8000, 0x18000, 0xFFFE8000, 0x18000, 0x00000, 0x10000} but got {0x%05X, 0x%05X, 0x%05X, 0x%05X, 0x%05X, 0x%05X}",
+	                bounds.left, bounds.right, bounds.bottom, bounds.top, bounds.back, bounds.front);
+	
+	CollisionCircle_dispose(circle);
+}
+
 TEST_SUITE(CollisionCircleTest,
            testInit,
            testUpdatePosition,
-           testInterpolate)
+           testInterpolate,
+           testIsStatic,
+           testGetCollisionBounds)

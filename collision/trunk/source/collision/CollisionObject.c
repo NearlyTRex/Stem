@@ -33,6 +33,8 @@ bool CollisionObject_init(CollisionObject * self, void * owner, int shapeType, C
 	call_super(init, self);
 	self->dispose = CollisionObject_dispose;
 	self->interpolate = NULL;
+	self->isStatic = CollisionObject_isStatic;
+	self->getCollisionBounds = NULL;
 	self->owner = owner;
 	self->shapeType = shapeType;
 	self->collisionCallback = collisionCallback;
@@ -43,4 +45,8 @@ bool CollisionObject_init(CollisionObject * self, void * owner, int shapeType, C
 
 void CollisionObject_dispose(CollisionObject * self) {
 	call_super(dispose, self);
+}
+
+bool CollisionObject_isStatic(CollisionObject * self) {
+	return false;
 }

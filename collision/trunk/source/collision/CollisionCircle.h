@@ -49,7 +49,9 @@ void CollisionCircle_dispose(CollisionCircle * self);
 
 void CollisionCircle_updatePosition(CollisionCircle * self, Vector2x newPosition);
 void CollisionCircle_interpolate(CollisionCircle * self, fixed16_16 amount);
-Rect4x CollisionCircle_getCollisionBounds(CollisionCircle * self);
+
+bool CollisionCircle_isStatic(CollisionCircle * self);
+Box6x CollisionCircle_getCollisionBounds(CollisionCircle * self);
 
 #ifdef __cplusplus
 }

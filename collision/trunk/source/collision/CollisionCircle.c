@@ -34,6 +34,8 @@ bool CollisionCircle_init(CollisionCircle * self, void * owner, CollisionCallbac
 	call_super(init, self, owner, COLLISION_SHAPE_CIRCLE, collisionCallback);
 	self->dispose = CollisionCircle_dispose;
 	self->interpolate = CollisionCircle_interpolate;
+	self->isStatic = CollisionCircle_isStatic;
+	self->getCollisionBounds = CollisionCircle_getCollisionBounds;
 	self->position = position;
 	self->lastPosition = position;
 	self->radius = radius;
@@ -53,6 +55,10 @@ void CollisionCircle_interpolate(CollisionCircle * self, fixed16_16 amount) {
 	self->lastPosition = Vector2x_interpolate(self->lastPosition, self->position, amount);
 }
 
-Rect4x CollisionCircle_getCollisionBounds(CollisionCircle * self) {
-	return Rect4x_union(RECT4x(self->lastPosition.x - self->radius, self->lastPosition.x + self->radius, self->lastPosition.y - self->radius, self->lastPosition.y + self->radius), RECT4x(self->position.x - self->radius, self->position.x + self->radius, self->position.y - self->radius, self->position.y + self->radius));
+bool CollisionCircle_isStatic(CollisionCircle * self) {
+	return self->position.x == self->lastPosition.x && self->position.y == self->lastPosition.y;
+}
+
+Box6x CollisionCircle_getCollisionBounds(CollisionCircle * self) {
+	return Box6x_union(BOX6x(self->lastPosition.x - self->radius, self->lastPosition.x + self->radius, self->lastPosition.y - self->radius, self->lastPosition.y + self->radius, 0x00000, 0x10000), BOX6x(self->position.x - self->radius, self->position.x + self->radius, self->position.y - self->radius, self->position.y + self->radius, 0x00000, 0x10000));
 }

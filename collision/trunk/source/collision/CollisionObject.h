@@ -29,6 +29,7 @@ extern "C" {
 typedef struct CollisionObject CollisionObject;
 
 #include "collision/CollisionResolver.h"
+#include "gamemath/Box6x.h"
 #include "gamemath/FixedPoint.h"
 #include "gamemath/Vector3x.h"
 #include "stemobject/StemObject.h"
@@ -59,13 +60,22 @@ typedef void (* CollisionCallback)(CollisionRecord collision, fixed16_16 timesli
 	bool private_ivar(markedForRemoval); \
 	bool private_ivar(unresolvable); \
 	\
-	void (* interpolate)(self_type * self, fixed16_16 amount);
+	/* Advance lastPosition toward position by the specified amount, or the equivalent depending on how this subclass's position is specified */ \
+	void (* interpolate)(self_type * self, fixed16_16 amount); \
+	\
+	/* If true, this object will not be tested against other objects that return true from isStatic */ \
+	bool (* isStatic)(self_type * self); \
+	\
+	/* A bounding box fully enclosing this object at both the previous and current timepoints, and everything in between */ \
+	Box6x (* getCollisionBounds)(self_type * self);
 
 stemobject_struct_definition(CollisionObject)
 
 CollisionObject * CollisionObject_create(void * owner, int shapeType, CollisionCallback collisionCallback);
 bool CollisionObject_init(CollisionObject * self, void * owner, int shapeType, CollisionCallback collisionCallback);
 void CollisionObject_dispose(CollisionObject * self);
+
+bool CollisionObject_isStatic(CollisionObject * self);
 
 #ifdef __cplusplus
 }

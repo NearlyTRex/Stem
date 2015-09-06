@@ -58,6 +58,9 @@ void CollisionBox3D_updateSize(CollisionBox3D * self, Vector3x newSize);
 void CollisionBox3D_setSolidity(CollisionBox3D * self, bool solidLeft, bool solidRight, bool solidBottom, bool solidTop, bool solidBack, bool solidFront);
 void CollisionBox3D_interpolate(CollisionBox3D * self, fixed16_16 amount);
 
+bool CollisionBox3D_isStatic(CollisionBox3D * self);
+Box6x CollisionBox3D_getCollisionBounds(CollisionBox3D * self);
+
 #ifdef __cplusplus
 }
 #endif

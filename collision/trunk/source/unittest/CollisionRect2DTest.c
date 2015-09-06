@@ -9,6 +9,8 @@ static void verifyInit(int line, CollisionRect2D * rect, void * owner, Collision
 	TestCase_assert(rect->owner == owner, "Expected %p but got %p (line %d)", owner, rect->owner, line);
 	TestCase_assert(rect->collisionCallback == collisionCallback, "Expected %p but got %p (line %d)", collisionCallback, rect->collisionCallback, line);
 	TestCase_assert(rect->interpolate == CollisionRect2D_interpolate, "Expected %p but got %p (line %d)", CollisionRect2D_interpolate, rect->interpolate, line);
+	TestCase_assert(rect->isStatic == CollisionRect2D_isStatic, "Expected %p but got %p (line %d)", CollisionRect2D_isStatic, rect->isStatic, line);
+	TestCase_assert(rect->getCollisionBounds == CollisionRect2D_getCollisionBounds, "Expected %p but got %p (line %d)", CollisionRect2D_getCollisionBounds, rect->getCollisionBounds, line);
 	TestCase_assert(rect->position.x == position.x, "Expected 0x%05X but got 0x%05X (line %d)", position.x, rect->position.x, line);
 	TestCase_assert(rect->position.y == position.y, "Expected 0x%05X but got 0x%05X (line %d)", position.y, rect->position.y, line);
 	TestCase_assert(rect->lastPosition.x == position.x, "Expected 0x%05X but got 0x%05X (line %d)", position.x, rect->lastPosition.x, line);
@@ -150,9 +152,78 @@ static void testInterpolate() {
 	CollisionRect2D_dispose(rect);
 }
 
+static void testIsStatic() {
+	CollisionRect2D * rect;
+	bool result;
+	
+	rect = CollisionRect2D_create(NULL, NULL, VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000));
+	result = CollisionRect2D_isStatic(rect);
+	TestCase_assert(result, "Expected true but got false");
+	
+	CollisionRect2D_updatePosition(rect, VECTOR2x(0x10000, 0x10000));
+	result = CollisionRect2D_isStatic(rect);
+	TestCase_assert(!result, "Expected false but got true");
+	
+	CollisionRect2D_updatePosition(rect, VECTOR2x(0x10000, 0x10000));
+	result = CollisionRect2D_isStatic(rect);
+	TestCase_assert(result, "Expected true but got false");
+	
+	CollisionRect2D_updateSize(rect, VECTOR2x(0x20000, 0x20000));
+	result = CollisionRect2D_isStatic(rect);
+	TestCase_assert(!result, "Expected false but got true");
+	
+	CollisionRect2D_updateSize(rect, VECTOR2x(0x20000, 0x20000));
+	result = CollisionRect2D_isStatic(rect);
+	TestCase_assert(result, "Expected true but got false");
+	
+	CollisionRect2D_dispose(rect);
+}
+
+static void testGetCollisionBounds() {
+	CollisionRect2D * rect;
+	Box6x bounds;
+	
+	rect = CollisionRect2D_create(NULL, NULL, VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000));
+	bounds = CollisionRect2D_getCollisionBounds(rect);
+	TestCase_assert(bounds.left == 0x00000 && bounds.right == 0x10000 &&
+	                bounds.bottom == 0x00000 && bounds.top == 0x10000 &&
+	                bounds.back == 0x00000 && bounds.front == 0x10000,
+	                "Expected {0x00000, 0x10000, 0x00000, 0x10000, 0x00000, 0x10000} but got {0x%05X, 0x%05X, 0x%05X, 0x%05X, 0x%05X, 0x%05X}",
+	                bounds.left, bounds.right, bounds.bottom, bounds.top, bounds.back, bounds.front);
+	
+	CollisionRect2D_updatePosition(rect, VECTOR2x(0x10000, 0x10000));
+	bounds = CollisionRect2D_getCollisionBounds(rect);
+	TestCase_assert(bounds.left == 0x00000 && bounds.right == 0x20000 &&
+	                bounds.bottom == 0x00000 && bounds.top == 0x20000 &&
+	                bounds.back == 0x00000 && bounds.front == 0x10000,
+	                "Expected {0x00000, 0x20000, 0x00000, 0x20000, 0x00000, 0x10000} but got {0x%05X, 0x%05X, 0x%05X, 0x%05X, 0x%05X, 0x%05X}",
+	                bounds.left, bounds.right, bounds.bottom, bounds.top, bounds.back, bounds.front);
+	
+	CollisionRect2D_updatePosition(rect, VECTOR2x(-0x10000, -0x10000));
+	bounds = CollisionRect2D_getCollisionBounds(rect);
+	TestCase_assert(bounds.left == -0x10000 && bounds.right == 0x20000 &&
+	                bounds.bottom == -0x10000 && bounds.top == 0x20000 &&
+	                bounds.back == 0x00000 && bounds.front == 0x10000,
+	                "Expected {0xFFFF0000, 0x20000, 0xFFFF0000, 0x20000, 0x00000, 0x10000} but got {0x%05X, 0x%05X, 0x%05X, 0x%05X, 0x%05X, 0x%05X}",
+	                bounds.left, bounds.right, bounds.bottom, bounds.top, bounds.back, bounds.front);
+	
+	CollisionRect2D_updateSize(rect, VECTOR2x(0x20000, 0x20000));
+	CollisionRect2D_updateSize(rect, VECTOR2x(0x20000, 0x20000));
+	bounds = CollisionRect2D_getCollisionBounds(rect);
+	TestCase_assert(bounds.left == -0x10000 && bounds.right == 0x30000 &&
+	                bounds.bottom == -0x10000 && bounds.top == 0x30000 &&
+	                bounds.back == 0x00000 && bounds.front == 0x10000,
+	                "Expected {0xFFFF0000, 0x30000, 0xFFFF0000, 0x30000, 0x00000, 0x10000} but got {0x%05X, 0x%05X, 0x%05X, 0x%05X, 0x%05X, 0x%05X}",
+	                bounds.left, bounds.right, bounds.bottom, bounds.top, bounds.back, bounds.front);
+	
+	CollisionRect2D_dispose(rect);
+}
+
 TEST_SUITE(CollisionRect2DTest,
            testInit,
            testUpdatePosition,
            testUpdateSize,
            testSetSolidity,
-           testInterpolate)
+           testInterpolate,
+           testIsStatic,
+           testGetCollisionBounds)

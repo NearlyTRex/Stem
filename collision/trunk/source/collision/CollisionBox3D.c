@@ -34,6 +34,8 @@ bool CollisionBox3D_init(CollisionBox3D * self, void * owner, CollisionCallback 
 	call_super(init, self, owner, COLLISION_SHAPE_BOX_3D, collisionCallback);
 	self->dispose = CollisionBox3D_dispose;
 	self->interpolate = CollisionBox3D_interpolate;
+	self->isStatic = CollisionBox3D_isStatic;
+	self->getCollisionBounds = CollisionBox3D_getCollisionBounds;
 	self->position = position;
 	self->lastPosition = position;
 	self->size = size;
@@ -73,4 +75,14 @@ void CollisionBox3D_setSolidity(CollisionBox3D * self, bool solidLeft, bool soli
 void CollisionBox3D_interpolate(CollisionBox3D * self, fixed16_16 amount) {
 	self->lastPosition = Vector3x_interpolate(self->lastPosition, self->position, amount);
 	self->lastSize = Vector3x_interpolate(self->lastSize, self->size, amount);
+}
+
+bool CollisionBox3D_isStatic(CollisionBox3D * self) {
+	return self->position.x == self->lastPosition.x && self->position.y == self->lastPosition.y && self->position.z == self->lastPosition.z &&
+	       self->size.x == self->lastSize.x && self->size.y == self->lastSize.y && self->size.z == self->lastSize.z;
+}
+
+Box6x CollisionBox3D_getCollisionBounds(CollisionBox3D * self) {
+	return Box6x_union(BOX6x(self->lastPosition.x, self->lastPosition.x + self->lastSize.x, self->lastPosition.y, self->lastPosition.y + self->lastSize.y, self->lastPosition.z, self->lastPosition.z + self->lastSize.z),
+	                   BOX6x(self->position.x, self->position.x + self->size.x, self->position.y, self->position.y + self->size.y, self->position.z, self->position.z + self->size.z));
 }

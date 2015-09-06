@@ -241,6 +241,13 @@ void CollisionResolver_resolveAll(CollisionResolver * self) {
 	size_t objectIndex;
 	unsigned int iterationCount = 0;
 	
+	// Move cycle detection to CollisionPairList
+	// Init CollisionPairList with all initial pairs (skipping static/static)
+	// Use alternate version of findEarliest that pops pairs from CollisionPairList instead of iterating through everything
+	// When new objects are added during resolution, add to pair list
+	// For each collision resolved, refill pair list with all valid pairs for both objects
+	// Continue resolution until pair list is empty
+	
 	self->private_ivar(inResolveAll) = true;
 	while ((collisionCount = CollisionResolver_findEarliest(self, self->private_ivar(simultaneousCollisionBuffer), MAX_SIMULTANEOUS_COLLISIONS)) > 0) {
 		fixed16_16 collisionTime = self->private_ivar(simultaneousCollisionBuffer)[0].time;

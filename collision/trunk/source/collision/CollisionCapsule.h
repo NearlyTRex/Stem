@@ -52,6 +52,9 @@ void CollisionCapsule_dispose(CollisionCapsule * self);
 void CollisionCapsule_updatePosition(CollisionCapsule * self, Vector3x newPosition);
 void CollisionCapsule_interpolate(CollisionCapsule * self, fixed16_16 amount);
 
+bool CollisionCapsule_isStatic(CollisionCapsule * self);
+Box6x CollisionCapsule_getCollisionBounds(CollisionCapsule * self);
+
 #ifdef __cplusplus
 }
 #endif

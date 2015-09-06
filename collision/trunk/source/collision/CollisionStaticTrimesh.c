@@ -34,6 +34,8 @@ CollisionStaticTrimesh * CollisionStaticTrimesh_create(void * owner, CollisionCa
 static void sharedInit(CollisionStaticTrimesh * self, void * owner, CollisionCallback collisionCallback) {
 	call_super(init, self, owner, COLLISION_SHAPE_STATIC_TRIMESH, collisionCallback);
 	self->dispose = CollisionStaticTrimesh_dispose;
+	self->isStatic = CollisionStaticTrimesh_isStatic;
+	self->getCollisionBounds = CollisionStaticTrimesh_getCollisionBounds;
 }
 
 bool CollisionStaticTrimesh_init(CollisionStaticTrimesh * self, void * owner, CollisionCallback collisionCallback, Vector3x * vertices, size_t vertexCount, bool copy, bool takeOwnership) {
@@ -74,4 +76,37 @@ void CollisionStaticTrimesh_dispose(CollisionStaticTrimesh * self) {
 		free(self->vertices);
 	}
 	call_super(dispose, self);
+}
+
+bool CollisionStaticTrimesh_isStatic(CollisionStaticTrimesh * self) {
+	return true;
+}
+
+Box6x CollisionStaticTrimesh_getCollisionBounds(CollisionStaticTrimesh * self) {
+	Box6x bounds = BOX6x(0, 0, 0, 0, 0, 0);
+	size_t vertexIndex;
+	
+	if (self->vertexCount > 0) {
+		bounds.left = bounds.right = self->vertices[0].x;
+		bounds.bottom = bounds.top = self->vertices[0].y;
+		bounds.back = bounds.front = self->vertices[0].z;
+	}
+	for (vertexIndex = 1; vertexIndex < self->vertexCount; vertexIndex++) {
+		if (self->vertices[vertexIndex].x < bounds.left) {
+			bounds.left = self->vertices[vertexIndex].x;
+		} else if (self->vertices[vertexIndex].x > bounds.right) {
+			bounds.right = self->vertices[vertexIndex].x;
+		}
+		if (self->vertices[vertexIndex].y < bounds.bottom) {
+			bounds.bottom = self->vertices[vertexIndex].y;
+		} else if (self->vertices[vertexIndex].y > bounds.top) {
+			bounds.top = self->vertices[vertexIndex].y;
+		}
+		if (self->vertices[vertexIndex].z < bounds.back) {
+			bounds.back = self->vertices[vertexIndex].z;
+		} else if (self->vertices[vertexIndex].z > bounds.front) {
+			bounds.front = self->vertices[vertexIndex].z;
+		}
+	}
+	return bounds;
 }

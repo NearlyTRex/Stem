@@ -11,6 +11,8 @@ static void verifyInit(int line, CollisionStaticTrimesh * trimesh, void * owner,
 	TestCase_assert(trimesh->shapeType == COLLISION_SHAPE_STATIC_TRIMESH, "Expected %d but got %d (line %d)", COLLISION_SHAPE_STATIC_TRIMESH, trimesh->shapeType, line);
 	TestCase_assert(trimesh->owner == owner, "Expected %p but got %p (line %d)", owner, trimesh->owner, line);
 	TestCase_assert(trimesh->collisionCallback == collisionCallback, "Expected %p but got %p (line %d)", collisionCallback, trimesh->collisionCallback, line);
+	TestCase_assert(trimesh->isStatic == CollisionStaticTrimesh_isStatic, "Expected %p but got %p (line %d)", CollisionStaticTrimesh_isStatic, trimesh->isStatic, line);
+	TestCase_assert(trimesh->getCollisionBounds == CollisionStaticTrimesh_getCollisionBounds, "Expected %p but got %p (line %d)", CollisionStaticTrimesh_getCollisionBounds, trimesh->getCollisionBounds, line);
 	TestCase_assert(trimesh->vertexCount == vertexCount, "Expected " SIZE_T_FORMAT " but got " SIZE_T_FORMAT " (line %d)", vertexCount, trimesh->vertexCount, line);
 	if (copy) {
 		TestCase_assert(trimesh->vertices != vertices, "Expected pointers to differ, but both were %p (line %d)", vertices, line);
@@ -89,6 +91,44 @@ static void testInitWithIndexes() {
 	CollisionStaticTrimesh_dispose(trimeshPtr);
 }
 
+static void testIsStatic() {
+	CollisionStaticTrimesh * trimesh;
+	bool result;
+	
+	trimesh = CollisionStaticTrimesh_create(NULL, NULL, NULL, 0, false, false);
+	result = CollisionStaticTrimesh_isStatic(trimesh);
+	TestCase_assert(result, "Expected true but got false");
+	CollisionStaticTrimesh_dispose(trimesh);
+}
+
+static void testGetCollisionBounds() {
+	CollisionStaticTrimesh * trimesh;
+	Vector3x vertices1[3] = {{0x00000, 0x10000, 0x20000}, {0x30000, 0x40000, 0x50000}, {0x60000, 0x70000, 0x80000}};
+	Vector3x vertices2[6] = {{-0x30000, -0x20000, -0x10000}, {0x00000, 0x10000, 0x20000}, {0x30000, 0x40000, 0x50000},
+	                         {-0x60000, -0x50000, -0x40000}, {-0x30000, -0x20000, -0x10000}, {0x00000, 0x10000, 0x20000}};
+	Box6x bounds;
+	
+	trimesh = CollisionStaticTrimesh_create(NULL, NULL, vertices1, 3, false, false);
+	bounds = CollisionStaticTrimesh_getCollisionBounds(trimesh);
+	TestCase_assert(bounds.left == 0x00000 && bounds.right == 0x60000 &&
+	                bounds.bottom == 0x10000 && bounds.top == 0x70000 &&
+	                bounds.back == 0x20000 && bounds.front == 0x80000,
+	                "Expected {0x00000, 0x60000, 0x10000, 0x70000, 0x20000, 0x80000} but got {0x%05X, 0x%05X, 0x%05X, 0x%05X, 0x%05X, 0x%05X}",
+	                bounds.left, bounds.right, bounds.bottom, bounds.top, bounds.back, bounds.front);
+	CollisionStaticTrimesh_dispose(trimesh);
+	
+	trimesh = CollisionStaticTrimesh_create(NULL, NULL, vertices2, 6, false, false);
+	bounds = CollisionStaticTrimesh_getCollisionBounds(trimesh);
+	TestCase_assert(bounds.left == -0x60000 && bounds.right == 0x30000 &&
+	                bounds.bottom == -0x50000 && bounds.top == 0x40000 &&
+	                bounds.back == -0x40000 && bounds.front == 0x50000,
+	                "Expected {0xFFFA0000, 0x30000, 0xFFFB0000, 0x40000, 0xFFFC0000, 0x50000} but got {0x%05X, 0x%05X, 0x%05X, 0x%05X, 0x%05X, 0x%05X}",
+	                bounds.left, bounds.right, bounds.bottom, bounds.top, bounds.back, bounds.front);
+	CollisionStaticTrimesh_dispose(trimesh);
+}
+
 TEST_SUITE(CollisionStaticTrimeshTest,
            testInit,
-           testInitWithIndexes)
+           testInitWithIndexes,
+           testIsStatic,
+           testGetCollisionBounds)

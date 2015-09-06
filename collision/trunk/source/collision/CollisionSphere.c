@@ -34,6 +34,8 @@ bool CollisionSphere_init(CollisionSphere * self, void * owner, CollisionCallbac
 	call_super(init, self, owner, COLLISION_SHAPE_SPHERE, collisionCallback);
 	self->dispose = CollisionSphere_dispose;
 	self->interpolate = CollisionSphere_interpolate;
+	self->isStatic = CollisionSphere_isStatic;
+	self->getCollisionBounds = CollisionSphere_getCollisionBounds;
 	self->position = position;
 	self->lastPosition = position;
 	self->radius = radius;
@@ -51,6 +53,10 @@ void CollisionSphere_updatePosition(CollisionSphere * self, Vector3x newPosition
 
 void CollisionSphere_interpolate(CollisionSphere * self, fixed16_16 amount) {
 	self->lastPosition = Vector3x_interpolate(self->lastPosition, self->position, amount);
+}
+
+bool CollisionSphere_isStatic(CollisionSphere * self) {
+	return self->position.x == self->lastPosition.x && self->position.y == self->lastPosition.y && self->position.z == self->lastPosition.z;
 }
 
 Box6x CollisionSphere_getCollisionBounds(CollisionSphere * self) {

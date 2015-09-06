@@ -53,6 +53,9 @@ bool CollisionStaticTrimesh_initWithIndexes(CollisionStaticTrimesh * self, void 
 
 void CollisionStaticTrimesh_dispose(CollisionStaticTrimesh * self);
 
+bool CollisionStaticTrimesh_isStatic(CollisionStaticTrimesh * self);
+Box6x CollisionStaticTrimesh_getCollisionBounds(CollisionStaticTrimesh * self);
+
 #ifdef __cplusplus
 }
 #endif

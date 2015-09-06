@@ -693,10 +693,6 @@ bool intersectionHandler_circle_circle(CollisionObject * object1, CollisionObjec
 	fixed16_16 time;
 	Vector3x normal;
 	
-	if (!Rect4x_intersectsRect4x(CollisionCircle_getCollisionBounds(circle1), CollisionCircle_getCollisionBounds(circle2))) {
-		return false;
-	}
-	
 	if (intersectSweptCircles(circle1->lastPosition, circle1->position, circle1->radius,
 	                          circle2->lastPosition, circle2->position, circle2->radius,
 	                          &time, &normal)) {
@@ -1114,10 +1110,6 @@ bool intersectionHandler_sphere_sphere(CollisionObject * object1, CollisionObjec
 	fixed16_16 time;
 	Vector3x normal;
 	
-	if (!Box6x_intersectsBox6x(CollisionSphere_getCollisionBounds(sphere1), CollisionSphere_getCollisionBounds(sphere2))) {
-		return false;
-	}
-	
 	if (intersectSweptSpheres(sphere1->lastPosition, sphere1->position, sphere1->radius,
 	                          sphere2->lastPosition, sphere2->position, sphere2->radius,
 	                          &time, &normal)) {
@@ -1155,12 +1147,6 @@ bool intersectionHandler_capsule_capsule(CollisionObject * object1, CollisionObj
 	fixed16_16 time, bestTime = FIXED_16_16_MAX;
 	fixed16_16 contactArea, bestContactArea = 0x00000;
 	Vector3x normal, bestNormal = VECTOR3x_ZERO;
-	
-	/*
-	if (!Box6x_intersectsBox6x(CollisionCapsule_getCollisionBounds(capsule1), CollisionCapsule_getCollisionBounds(capsule2))) {
-		return false;
-	}
-	*/
 	
 	if (intersectSweptCylinderWalls(capsule1->lastPosition, capsule1->position, capsule1->radius, capsule1->cylinderHeight,
 	                                capsule2->lastPosition, capsule2->position, capsule2->radius, capsule2->cylinderHeight,

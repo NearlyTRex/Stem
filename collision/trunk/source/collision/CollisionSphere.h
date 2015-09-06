@@ -49,6 +49,8 @@ void CollisionSphere_dispose(CollisionSphere * self);
 
 void CollisionSphere_updatePosition(CollisionSphere * self, Vector3x newPosition);
 void CollisionSphere_interpolate(CollisionSphere * self, fixed16_16 amount);
+
+bool CollisionSphere_isStatic(CollisionSphere * self);
 Box6x CollisionSphere_getCollisionBounds(CollisionSphere * self);
 
 #ifdef __cplusplus

@@ -9,6 +9,8 @@ static void verifyInit(int line, CollisionBox3D * box, void * owner, CollisionCa
 	TestCase_assert(box->owner == owner, "Expected %p but got %p (line %d)", owner, box->owner, line);
 	TestCase_assert(box->collisionCallback == collisionCallback, "Expected %p but got %p (line %d)", collisionCallback, box->collisionCallback, line);
 	TestCase_assert(box->interpolate == CollisionBox3D_interpolate, "Expected %p but got %p (line %d)", CollisionBox3D_interpolate, box->interpolate, line);
+	TestCase_assert(box->isStatic == CollisionBox3D_isStatic, "Expected %p but got %p (line %d)", CollisionBox3D_isStatic, box->isStatic, line);
+	TestCase_assert(box->getCollisionBounds == CollisionBox3D_getCollisionBounds, "Expected %p but got %p (line %d)", CollisionBox3D_getCollisionBounds, box->getCollisionBounds, line);
 	TestCase_assert(box->position.x == position.x, "Expected 0x%05X but got 0x%05X (line %d)", position.x, box->position.x, line);
 	TestCase_assert(box->position.y == position.y, "Expected 0x%05X but got 0x%05X (line %d)", position.y, box->position.y, line);
 	TestCase_assert(box->position.z == position.z, "Expected 0x%05X but got 0x%05X (line %d)", position.z, box->position.z, line);
@@ -180,9 +182,78 @@ static void testInterpolate() {
 	CollisionBox3D_dispose(box);
 }
 
+static void testIsStatic() {
+	CollisionBox3D * box;
+	bool result;
+	
+	box = CollisionBox3D_create(NULL, NULL, VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	result = CollisionBox3D_isStatic(box);
+	TestCase_assert(result, "Expected true but got false");
+	
+	CollisionBox3D_updatePosition(box, VECTOR3x(0x10000, 0x10000, 0x10000));
+	result = CollisionBox3D_isStatic(box);
+	TestCase_assert(!result, "Expected false but got true");
+	
+	CollisionBox3D_updatePosition(box, VECTOR3x(0x10000, 0x10000, 0x10000));
+	result = CollisionBox3D_isStatic(box);
+	TestCase_assert(result, "Expected true but got false");
+	
+	CollisionBox3D_updateSize(box, VECTOR3x(0x20000, 0x20000, 0x20000));
+	result = CollisionBox3D_isStatic(box);
+	TestCase_assert(!result, "Expected false but got true");
+	
+	CollisionBox3D_updateSize(box, VECTOR3x(0x20000, 0x20000, 0x20000));
+	result = CollisionBox3D_isStatic(box);
+	TestCase_assert(result, "Expected true but got false");
+	
+	CollisionBox3D_dispose(box);
+}
+
+static void testGetCollisionBounds() {
+	CollisionBox3D * box;
+	Box6x bounds;
+	
+	box = CollisionBox3D_create(NULL, NULL, VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	bounds = CollisionBox3D_getCollisionBounds(box);
+	TestCase_assert(bounds.left == 0x00000 && bounds.right == 0x10000 &&
+	                bounds.bottom == 0x00000 && bounds.top == 0x10000 &&
+	                bounds.back == 0x00000 && bounds.front == 0x10000,
+	                "Expected {0x00000, 0x10000, 0x00000, 0x10000, 0x00000, 0x10000} but got {0x%05X, 0x%05X, 0x%05X, 0x%05X, 0x%05X, 0x%05X}",
+	                bounds.left, bounds.right, bounds.bottom, bounds.top, bounds.back, bounds.front);
+	
+	CollisionBox3D_updatePosition(box, VECTOR3x(0x10000, 0x10000, 0x10000));
+	bounds = CollisionBox3D_getCollisionBounds(box);
+	TestCase_assert(bounds.left == 0x00000 && bounds.right == 0x20000 &&
+	                bounds.bottom == 0x00000 && bounds.top == 0x20000 &&
+	                bounds.back == 0x00000 && bounds.front == 0x20000,
+	                "Expected {0x00000, 0x20000, 0x00000, 0x20000, 0x00000, 0x20000} but got {0x%05X, 0x%05X, 0x%05X, 0x%05X, 0x%05X, 0x%05X}",
+	                bounds.left, bounds.right, bounds.bottom, bounds.top, bounds.back, bounds.front);
+	
+	CollisionBox3D_updatePosition(box, VECTOR3x(-0x10000, -0x10000, -0x10000));
+	bounds = CollisionBox3D_getCollisionBounds(box);
+	TestCase_assert(bounds.left == -0x10000 && bounds.right == 0x20000 &&
+	                bounds.bottom == -0x10000 && bounds.top == 0x20000 &&
+	                bounds.back == -0x10000 && bounds.front == 0x20000,
+	                "Expected {0xFFFF0000, 0x20000, 0xFFFF0000, 0x20000, 0xFFFF0000, 0x20000} but got {0x%05X, 0x%05X, 0x%05X, 0x%05X, 0x%05X, 0x%05X}",
+	                bounds.left, bounds.right, bounds.bottom, bounds.top, bounds.back, bounds.front);
+	
+	CollisionBox3D_updateSize(box, VECTOR3x(0x20000, 0x20000, 0x20000));
+	CollisionBox3D_updateSize(box, VECTOR3x(0x20000, 0x20000, 0x20000));
+	bounds = CollisionBox3D_getCollisionBounds(box);
+	TestCase_assert(bounds.left == -0x10000 && bounds.right == 0x30000 &&
+	                bounds.bottom == -0x10000 && bounds.top == 0x30000 &&
+	                bounds.back == -0x10000 && bounds.front == 0x30000,
+	                "Expected {0xFFFF0000, 0x30000, 0xFFFF0000, 0x30000, 0xFFFF0000, 0x30000} but got {0x%05X, 0x%05X, 0x%05X, 0x%05X, 0x%05X, 0x%05X}",
+	                bounds.left, bounds.right, bounds.bottom, bounds.top, bounds.back, bounds.front);
+	
+	CollisionBox3D_dispose(box);
+}
+
 TEST_SUITE(CollisionBox3DTest,
            testInit,
            testUpdatePosition,
            testUpdateSize,
            testSetSolidity,
-           testInterpolate)
+           testInterpolate,
+           testIsStatic,
+           testGetCollisionBounds)

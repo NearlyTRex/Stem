@@ -8,7 +8,9 @@ static void verifyInit(int line, CollisionObject * collisionObject, void * owner
 	TestCase_assert(collisionObject->shapeType == shapeType, "Expected %d but got %d (line %d)", shapeType, collisionObject->shapeType, line);
 	TestCase_assert(collisionObject->owner == owner, "Expected %p but got %p (line %d)", owner, collisionObject->owner, line);
 	TestCase_assert(collisionObject->collisionCallback == collisionCallback, "Expected %p but got %p (line %d)", collisionCallback, collisionObject->collisionCallback, line);
-	TestCase_assert(collisionObject->interpolate == NULL, "Expected NULL but got %p", collisionObject->interpolate);
+	TestCase_assert(collisionObject->interpolate == NULL, "Expected NULL but got %p (line %d)", collisionObject->interpolate, line);
+	TestCase_assert(collisionObject->isStatic == CollisionObject_isStatic, "Expected %p but got %p (line %d)", CollisionObject_isStatic, collisionObject->isStatic, line);
+	TestCase_assert(collisionObject->getCollisionBounds == NULL, "Expected NULL but got %p (line %d)", collisionObject->getCollisionBounds, line);
 }
 
 static void testInit() {
@@ -38,5 +40,16 @@ static void testInit() {
 	CollisionObject_dispose(collisionObjectPtr);
 }
 
+static void testIsStatic() {
+	CollisionObject * object;
+	bool result;
+	
+	object = CollisionObject_create(NULL, 0, NULL);
+	result = CollisionObject_isStatic(object);
+	TestCase_assert(!result, "Expected false but got true");
+	CollisionObject_dispose(object);
+}
+
 TEST_SUITE(CollisionObjectTest,
-           testInit)
+           testInit,
+           testIsStatic)

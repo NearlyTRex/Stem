@@ -9,6 +9,8 @@ static void verifyInit(int line, CollisionCapsule * capsule, void * owner, Colli
 	TestCase_assert(capsule->owner == owner, "Expected %p but got %p (line %d)", owner, capsule->owner, line);
 	TestCase_assert(capsule->collisionCallback == collisionCallback, "Expected %p but got %p (line %d)", collisionCallback, capsule->collisionCallback, line);
 	TestCase_assert(capsule->interpolate == CollisionCapsule_interpolate, "Expected %p but got %p (line %d)", CollisionCapsule_interpolate, capsule->interpolate, line);
+	TestCase_assert(capsule->isStatic == CollisionCapsule_isStatic, "Expected %p but got %p (line %d)", CollisionCapsule_isStatic, capsule->isStatic, line);
+	TestCase_assert(capsule->getCollisionBounds == CollisionCapsule_getCollisionBounds, "Expected %p but got %p (line %d)", CollisionCapsule_getCollisionBounds, capsule->getCollisionBounds, line);
 	TestCase_assert(capsule->position.x == position.x, "Expected 0x%05X but got 0x%05X (line %d)", position.x, capsule->position.x, line);
 	TestCase_assert(capsule->position.y == position.y, "Expected 0x%05X but got 0x%05X (line %d)", position.y, capsule->position.y, line);
 	TestCase_assert(capsule->position.z == position.z, "Expected 0x%05X but got 0x%05X (line %d)", position.z, capsule->position.z, line);
@@ -103,7 +105,68 @@ static void testInterpolate() {
 	CollisionCapsule_dispose(capsule);
 }
 
+static void testIsStatic() {
+	CollisionCapsule * capsule;
+	bool result;
+	
+	capsule = CollisionCapsule_create(NULL, NULL, VECTOR3x(0x00000, 0x00000, 0x00000), 0x10000, 0x10000);
+	result = CollisionCapsule_isStatic(capsule);
+	TestCase_assert(result, "Expected true but got false");
+	
+	CollisionCapsule_updatePosition(capsule, VECTOR3x(0x10000, 0x10000, 0x10000));
+	result = CollisionCapsule_isStatic(capsule);
+	TestCase_assert(!result, "Expected false but got true");
+	
+	CollisionCapsule_updatePosition(capsule, VECTOR3x(0x10000, 0x10000, 0x10000));
+	result = CollisionCapsule_isStatic(capsule);
+	TestCase_assert(result, "Expected true but got false");
+	
+	CollisionCapsule_dispose(capsule);
+}
+
+static void testGetCollisionBounds() {
+	CollisionCapsule * capsule;
+	Box6x bounds;
+	
+	capsule = CollisionCapsule_create(NULL, NULL, VECTOR3x_ZERO, 0x10000, 0x10000);
+	bounds = CollisionCapsule_getCollisionBounds(capsule);
+	TestCase_assert(bounds.left == -0x10000 && bounds.right == 0x10000 &&
+	                bounds.bottom == 0x00000 && bounds.top == 0x30000 &&
+	                bounds.back == -0x10000 && bounds.front == 0x10000,
+	                "Expected {0xFFFF0000, 0x10000, 0x00000, 0x30000, 0xFFFF0000, 0x10000} but got {0x%05X, 0x%05X, 0x%05X, 0x%05X, 0x%05X, 0x%05X}",
+	                bounds.left, bounds.right, bounds.bottom, bounds.top, bounds.back, bounds.front);
+	
+	CollisionCapsule_updatePosition(capsule, VECTOR3x(0x10000, 0x10000, 0x10000));
+	bounds = CollisionCapsule_getCollisionBounds(capsule);
+	TestCase_assert(bounds.left == -0x10000 && bounds.right == 0x20000 &&
+	                bounds.bottom == 0x00000 && bounds.top == 0x40000 &&
+	                bounds.back == -0x10000 && bounds.front == 0x20000,
+	                "Expected {0xFFFF0000, 0x20000, 0x00000, 0x40000, 0xFFFF0000, 0x20000} but got {0x%05X, 0x%05X, 0x%05X, 0x%05X, 0x%05X, 0x%05X}",
+	                bounds.left, bounds.right, bounds.bottom, bounds.top, bounds.back, bounds.front);
+	
+	CollisionCapsule_updatePosition(capsule, VECTOR3x(-0x10000, -0x10000, -0x10000));
+	bounds = CollisionCapsule_getCollisionBounds(capsule);
+	TestCase_assert(bounds.left == -0x20000 && bounds.right == 0x20000 &&
+	                bounds.bottom == -0x10000 && bounds.top == 0x40000 &&
+	                bounds.back == -0x20000 && bounds.front == 0x20000,
+	                "Expected {0xFFFE0000, 0x20000, 0xFFFF0000, 0x40000, 0xFFFE0000, 0x20000} but got {0x%05X, 0x%05X, 0x%05X, 0x%05X, 0x%05X, 0x%05X}",
+	                bounds.left, bounds.right, bounds.bottom, bounds.top, bounds.back, bounds.front);
+	
+	capsule->radius = 0x08000;
+	capsule->cylinderHeight = 0x18000;
+	bounds = CollisionCapsule_getCollisionBounds(capsule);
+	TestCase_assert(bounds.left == -0x18000 && bounds.right == 0x18000 &&
+	                bounds.bottom == -0x10000 && bounds.top == 0x38000 &&
+	                bounds.back == -0x18000 && bounds.front == 0x18000,
+	                "Expected {0xFFFE8000, 0x18000, 0xFFFF0000, 0x38000, 0xFFFE8000, 0x18000} but got {0x%05X, 0x%05X, 0x%05X, 0x%05X, 0x%05X, 0x%05X}",
+	                bounds.left, bounds.right, bounds.bottom, bounds.top, bounds.back, bounds.front);
+	
+	CollisionCapsule_dispose(capsule);
+}
+
 TEST_SUITE(CollisionCapsuleTest,
            testInit,
            testUpdatePosition,
-           testInterpolate)
+           testInterpolate,
+           testIsStatic,
+           testGetCollisionBounds)

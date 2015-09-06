@@ -57,6 +57,9 @@ void CollisionRect2D_updateSize(CollisionRect2D * self, Vector2x newSize);
 void CollisionRect2D_setSolidity(CollisionRect2D * self, bool solidLeft, bool solidRight, bool solidBottom, bool solidTop);
 void CollisionRect2D_interpolate(CollisionRect2D * self, fixed16_16 amount);
 
+bool CollisionRect2D_isStatic(CollisionRect2D * self);
+Box6x CollisionRect2D_getCollisionBounds(CollisionRect2D * self);
+
 #ifdef __cplusplus
 }
 #endif
