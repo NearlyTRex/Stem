@@ -155,8 +155,8 @@ static void testAddNextPairsForObject() {
 	
 	success = CollisionPairQueue_nextPair(queue, &object1, &object2);
 	TestCase_assert(success, "Expected true but got false");
-	TestCase_assert(object1 == objects[1], "Expected %p but got %p", objects[1], object1);
-	TestCase_assert(object2 == objects[0], "Expected %p but got %p", objects[0], object2);
+	TestCase_assert(object1 == objects[0], "Expected %p but got %p", objects[0], object1);
+	TestCase_assert(object2 == objects[1], "Expected %p but got %p", objects[1], object2);
 	
 	success = CollisionPairQueue_nextPair(queue, &object1, &object2);
 	TestCase_assert(success, "Expected true but got false");

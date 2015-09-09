@@ -32,12 +32,17 @@ typedef struct CollisionPairQueue CollisionPairQueue;
 #include "stemobject/StemObject.h"
 #include <stdlib.h>
 
+struct collisionObjectPair {
+	CollisionObject * object1;
+	CollisionObject * object2;
+};
+
 #define CollisionPairQueue_structContents(self_type) \
 	StemObject_structContents(self_type) \
 	\
-	CollisionObject ** frontQueue; \
+	struct collisionObjectPair * frontQueue; \
 	size_t frontQueueCount; \
-	CollisionObject ** backQueue; \
+	struct collisionObjectPair * backQueue; \
 	size_t backQueueCount; \
 	size_t queuePosition; \
 	size_t private_ivar(queueAllocatedSize);

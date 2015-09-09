@@ -181,7 +181,7 @@ size_t CollisionResolver_findEarliest(CollisionResolver * self, CollisionRecord 
 	if (collisionCountMax == 0) {
 		return 0;
 	}
-	for (objectIndex = 0; objectIndex < self->objectCount - 1; objectIndex++) {
+	for (objectIndex = 0; objectIndex < self->objectCount; objectIndex++) {
 		for (objectIndex2 = objectIndex + 1; objectIndex2 < self->objectCount; objectIndex2++) {
 			queryResult = CollisionResolver_queryPairInternal(self, self->objects[objectIndex], self->objects[objectIndex2], &collision);
 			if (queryResult && collision.time <= bestTime) {

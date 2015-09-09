@@ -33,8 +33,8 @@ bool CollisionPairQueue_init(CollisionPairQueue * self) {
 	call_super(init, self);
 	self->dispose = CollisionPairQueue_dispose;
 	self->private_ivar(queueAllocatedSize) = 64;
-	self->frontQueue = malloc(sizeof(CollisionObject *) * 2 * self->private_ivar(queueAllocatedSize));
-	self->backQueue = malloc(sizeof(CollisionObject *) * 2 * self->private_ivar(queueAllocatedSize));
+	self->frontQueue = malloc(sizeof(struct collisionObjectPair) * self->private_ivar(queueAllocatedSize));
+	self->backQueue = malloc(sizeof(struct collisionObjectPair) * self->private_ivar(queueAllocatedSize));
 	self->frontQueueCount = 0;
 	self->backQueueCount = 0;
 	self->queuePosition = 0;
@@ -47,22 +47,70 @@ void CollisionPairQueue_dispose(CollisionPairQueue * self) {
 	call_super(dispose, self);
 }
 
-static void addPair(CollisionPairQueue * self, CollisionObject ** queue, size_t * queueCount, CollisionObject * object1, CollisionObject * object2) {
+// Adapated from http://googleresearch.blogspot.co.nz/2006/06/extra-extra-read-all-about-it-nearly.html
+static size_t bsearchQueue(struct collisionObjectPair * queue, size_t count, CollisionObject * object1, CollisionObject * object2, bool * outFound) {
+	size_t low = 0;
+	size_t high = count - 1;
+	
+	while (low <= high && high < count) {
+		// Integer overflow is possible if count is high enough, but this can only happen with many orders of magnitude more CollisionObjects than the overall system can handle
+		size_t mid = (low + high) / 2;
+		
+		if (queue[mid].object1 < object1) {
+			low = mid + 1;
+			
+		} else if (queue[mid].object1 > object1) {
+			high = mid - 1;
+			
+		} else if (queue[mid].object2 < object2) {
+			low = mid + 1;
+			
+		} else if (queue[mid].object2 > object2) {
+			high = mid - 1;
+			
+		} else {
+			*outFound = true;
+			return mid;
+		}
+	}
+	*outFound = false;
+	return low;
+}
+
+static void addPair(CollisionPairQueue * self, struct collisionObjectPair * queue, size_t * queueCount, CollisionObject * object1, CollisionObject * object2) {
+	size_t insertionIndex, index;
+	bool found;
+	
+	if (object2 < object1) {
+		CollisionObject * swap = object1;
+		object1 = object2;
+		object2 = swap;
+	}
+	
+	insertionIndex = bsearchQueue(queue, *queueCount, object1, object2, &found);
+	if (found) {
+		return;
+	}
 	if (object1->isStatic(object1) && object2->isStatic(object2)) {
 		return;
 	}
 	if (Box6x_isEmpty(Box6x_union(object1->getCollisionBounds(object1), object2->getCollisionBounds(object2)))) {
 		return;
 	}
+	
 	if (*queueCount >= self->private_ivar(queueAllocatedSize)) {
 		bool frontQueue = queue == self->frontQueue;
 		self->private_ivar(queueAllocatedSize) *= 2;
-		self->frontQueue = realloc(self->frontQueue, sizeof(CollisionObject *) * 2 * self->private_ivar(queueAllocatedSize));
-		self->backQueue = realloc(self->backQueue, sizeof(CollisionObject *) * 2 * self->private_ivar(queueAllocatedSize));
+		self->frontQueue = realloc(self->frontQueue, sizeof(struct collisionObjectPair) * self->private_ivar(queueAllocatedSize));
+		self->backQueue = realloc(self->backQueue, sizeof(struct collisionObjectPair) * self->private_ivar(queueAllocatedSize));
 		queue = frontQueue ? self->frontQueue : self->backQueue;
 	}
-	queue[*queueCount * 2 + 0] = object1;
-	queue[*queueCount * 2 + 1] = object2;
+	
+	for (index = *queueCount; index > insertionIndex; index--) {
+		queue[index] = queue[index - 1];
+	}
+	queue[insertionIndex].object1 = object1;
+	queue[insertionIndex].object2 = object2;
 	(*queueCount)++;
 }
 
@@ -70,7 +118,7 @@ void CollisionPairQueue_addInitialPairs(CollisionPairQueue * self, CollisionObje
 	size_t objectIndex, objectIndex2;
 	
 	self->frontQueueCount = self->backQueueCount = self->queuePosition = 0;
-	for (objectIndex = 0; objectIndex < objectCount - 1; objectIndex++) {
+	for (objectIndex = 0; objectIndex < objectCount; objectIndex++) {
 		for (objectIndex2 = objectIndex + 1; objectIndex2 < objectCount; objectIndex2++) {
 			addPair(self, self->frontQueue, &self->frontQueueCount, objects[objectIndex], objects[objectIndex2]);
 		}
@@ -82,24 +130,13 @@ void CollisionPairQueue_addNextPair(CollisionPairQueue * self, CollisionObject *
 }
 
 void CollisionPairQueue_addNextPairsForObject(CollisionPairQueue * self, CollisionObject * object, CollisionObject ** objects, size_t objectCount) {
-	size_t objectIndex, queueIndex;
+	size_t objectIndex;
 	
 	for (objectIndex = 0; objectIndex < objectCount; objectIndex++) {
-		bool alreadyInQueue = false;
-		
 		if (objects[objectIndex] == object) {
 			continue;
 		}
-		for (queueIndex = 0; queueIndex < self->backQueueCount; queueIndex++) {
-			if ((self->backQueue[queueIndex * 2 + 0] == object || self->backQueue[queueIndex * 2 + 1] == object) &&
-			    (self->backQueue[queueIndex * 2 + 0] == objects[objectIndex] || self->backQueue[queueIndex * 2 + 1] == objects[objectIndex])) {
-				alreadyInQueue = true;
-				break;
-			}
-		}
-		if (!alreadyInQueue) {
-			addPair(self, self->backQueue, &self->backQueueCount, object, objects[objectIndex]);
-		}
+		addPair(self, self->backQueue, &self->backQueueCount, object, objects[objectIndex]);
 	}
 }
 
@@ -107,14 +144,14 @@ bool CollisionPairQueue_nextPair(CollisionPairQueue * self, CollisionObject ** o
 	if (self->queuePosition >= self->frontQueueCount) {
 		return false;
 	}
-	*outObject1 = self->frontQueue[self->queuePosition * 2 + 0];
-	*outObject2 = self->frontQueue[self->queuePosition * 2 + 1];
+	*outObject1 = self->frontQueue[self->queuePosition].object1;
+	*outObject2 = self->frontQueue[self->queuePosition].object2;
 	self->queuePosition++;
 	return true;
 }
 
 bool CollisionPairQueue_nextIteration(CollisionPairQueue * self) {
-	CollisionObject ** swap = self->frontQueue;
+	struct collisionObjectPair * swap = self->frontQueue;
 	self->frontQueue = self->backQueue;
 	self->backQueue = swap;
 	self->frontQueueCount = self->backQueueCount;
