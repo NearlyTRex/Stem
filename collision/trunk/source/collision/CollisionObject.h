@@ -38,7 +38,8 @@ typedef struct CollisionObject CollisionObject;
 // updating the CollisionObject's trajectory or other parameters in some way to resolve the specified collision and ensure
 // it would not be detected again immediately. For example, if two CollisionCircles collide, the CollisionCallback on both
 // could set their position field to the value of their lastPosition field, which would stop the motion of both and prevent
-// further collisions between them.
+// further collisions between them. (Note that during collision resolution, object trajectories must not be modified at any
+// time other than a collision callback for that specific object.)
 // 
 // timesliceSize specifies the scale of the timeslice that was being evaluated when this collision was detected. This may
 // include some amount of time before and/or after the collision occurred. CollisionRecord's time, object1Vector, and

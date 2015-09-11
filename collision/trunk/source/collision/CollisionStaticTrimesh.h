@@ -31,6 +31,10 @@ typedef struct CollisionStaticTrimesh CollisionStaticTrimesh;
 #include "collision/CollisionObject.h"
 #include "gamemath/Vector3x.h"
 
+// NEEDED:
+// - Ability to list protruding vertices, protruding edges, and triangles within a volume
+// - Calculated normals for vertices, edges, and faces
+
 #define CollisionStaticTrimesh_structContents(self_type) \
 	CollisionObject_structContents(self_type) \
 	\

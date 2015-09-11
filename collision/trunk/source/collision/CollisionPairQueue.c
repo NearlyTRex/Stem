@@ -48,7 +48,7 @@ void CollisionPairQueue_dispose(CollisionPairQueue * self) {
 }
 
 // Adapated from http://googleresearch.blogspot.co.nz/2006/06/extra-extra-read-all-about-it-nearly.html
-static size_t bsearchQueue(struct collisionObjectPair * queue, size_t count, CollisionObject * object1, CollisionObject * object2, bool * outFound) {
+static size_t bsearchQueue(struct collisionObjectPair * list, size_t count, CollisionObject * object1, CollisionObject * object2, bool * outFound) {
 	size_t low = 0;
 	size_t high = count - 1;
 	
@@ -56,16 +56,16 @@ static size_t bsearchQueue(struct collisionObjectPair * queue, size_t count, Col
 		// Integer overflow is possible if count is high enough, but this can only happen with many orders of magnitude more CollisionObjects than the overall system can handle
 		size_t mid = (low + high) / 2;
 		
-		if (queue[mid].object1 < object1) {
+		if (list[mid].object1 < object1) {
 			low = mid + 1;
 			
-		} else if (queue[mid].object1 > object1) {
+		} else if (list[mid].object1 > object1) {
 			high = mid - 1;
 			
-		} else if (queue[mid].object2 < object2) {
+		} else if (list[mid].object2 < object2) {
 			low = mid + 1;
 			
-		} else if (queue[mid].object2 > object2) {
+		} else if (list[mid].object2 > object2) {
 			high = mid - 1;
 			
 		} else {
