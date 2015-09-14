@@ -12,14 +12,12 @@ CollisionResolver manages the details of using IntersectionHandlers to detect co
 Usage example:
 
 CollisionResolver * collisionResolver;
-IntersectionManager * intersectionManager;
 CollisionCapsule * playerObject;
 CollisionBox3D * obstacleObject;
 CollisionTrimesh * levelObject;
 
 void init() {
-	intersectionManager = IntersectionManager_createWithStandardHandlers();
-	collisionResolver = CollisionResolver_create(intersectionManager, true, MAX_SIMULTANEOUS_COLLISIONS_DEFAULT, MAX_ITERATIONS_DEFAULT);
+	collisionResolver = CollisionResolver_create(IntersectionManager_createWithStandardHandlers(), true);
 	
 	playerObject = CollisionCapsule_create(playerModel, playerCollisionCallback, PLAYER_INITIAL_POSITION, PLAYER_RADIUS, PLAYER_HEIGHT);
 	obstacleObject = CollisionBox3D_create(...);

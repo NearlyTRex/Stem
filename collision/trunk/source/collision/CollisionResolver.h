@@ -30,7 +30,6 @@ typedef struct CollisionResolver CollisionResolver;
 typedef struct CollisionRecord CollisionRecord;
 
 #include "collision/CollisionObject.h"
-#include "collision/CollisionPairQueue.h"
 #include "collision/CollisionRecord.h"
 #include "collision/IntersectionManager.h"
 #include "gamemath/Vector3x.h"
@@ -47,7 +46,8 @@ typedef struct CollisionRecord CollisionRecord;
 	\
 	bool private_ivar(intersectionManagerOwned); \
 	bool private_ivar(inResolveAll); \
-	CollisionPairQueue * private_ivar(pairQueue); \
+	/* TODO: CollisionPairQueue.h isn't part of the public API, but that shouldn't mean CollisionResolver has to sacrifice type safety */ \
+	compat_type(CollisionPairQueue *) private_ivar(pairQueue); \
 	CollisionRecord * private_ivar(simultaneousCollisionBuffer); \
 	CollisionObject ** private_ivar(cycleDetectionBuffer); \
 	size_t private_ivar(cycleDetectionBufferSize); \

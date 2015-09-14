@@ -41,7 +41,8 @@ typedef struct CollisionRect2D CollisionRect2D;
 	bool solidLeft; \
 	bool solidRight; \
 	bool solidBottom; \
-	bool solidTop;
+	bool solidTop; \
+	fixed16_16 thickness;
 
 stemobject_struct_definition(CollisionRect2D)
 

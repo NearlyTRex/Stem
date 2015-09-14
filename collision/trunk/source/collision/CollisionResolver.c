@@ -20,6 +20,7 @@
   Alex Diener alex@ludobloom.com
 */
 
+#include "collision/CollisionPairQueue.h"
 #include "collision/CollisionResolver.h"
 #include <stdio.h>
 #include <stdlib.h>

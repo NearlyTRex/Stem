@@ -45,6 +45,7 @@ bool CollisionRect2D_init(CollisionRect2D * self, void * owner, CollisionCallbac
 	self->solidRight = true;
 	self->solidBottom = true;
 	self->solidTop = true;
+	self->thickness = 0x00000;
 	return true;
 }
 
