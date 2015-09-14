@@ -7,16 +7,9 @@ numeric_type_suffixes = {
 	"fixed16_16" => "x",
 	"int" => "i"
 }
-const_zero = {
-	"float" => "0.0f",
-	"double" => "0.0",
-	"fixed16_16" => "0x00000",
-	"int" => "0"
-}
 class_name = "#{shape_name}#{numeric_type_suffixes[numeric_type]}"
 class_name_upper = "#{shape_name.upcase}#{numeric_type_suffixes[numeric_type]}"
 class_argument_name = "#{shape_name.downcase.chop}"
-c0 = const_zero[numeric_type]
 if (shape_name == "Rect4")
 	vector_type = "Vector2#{numeric_type_suffixes[numeric_type]}"
 else
@@ -51,7 +44,7 @@ end
 	<%= class_name %> result;
 	
 	if (!<%= class_name %>_intersects<%= class_name %>(lhs, rhs)) {
-		return <%= class_name_upper %>(<%= c0 %>, <%= c0 %>, <%= c0 %>, <%= c0 %><% if shape_name == "Box6" %>, <%= c0 %>, <%= c0 %><% end %>);
+		return <%= class_name_upper %>_EMPTY;
 	}
 	
 	result.left   = lhs.left   < rhs.left   ? rhs.left   : lhs.left;
@@ -71,7 +64,7 @@ end
 	
 	if (<%= class_name %>_isEmpty(lhs)) {
 		if (<%= class_name %>_isEmpty(rhs)) {
-			return <%= class_name_upper %>(<%= c0 %>, <%= c0 %>, <%= c0 %>, <%= c0 %><% if shape_name == "Box6" %>, <%= c0 %>, <%= c0 %><% end %>);
+			return <%= class_name_upper %>_EMPTY;
 		}
 		return rhs;
 	}
