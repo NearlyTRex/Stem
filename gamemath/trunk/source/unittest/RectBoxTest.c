@@ -2143,6 +2143,141 @@ static void testContainsVector() {
 	TestCase_assert(!contains, "Expected false but got true");
 }
 
+static void testConvenienceAccessors() {
+	double resultd;
+	float resultf;
+	int resulti;
+	fixed16_16 resultx;
+	Vector2d center2d;
+	Vector2f center2f;
+	Vector2i center2i;
+	Vector2x center2x;
+	Vector3d center3d;
+	Vector3f center3f;
+	Vector3i center3i;
+	Vector3x center3x;
+	
+	resultd = Rect4d_getWidth(RECT4d(1.0, 3.0, 0.0, 1.0));
+	TestCase_assert(resultd == 2.0, "Expected 2.0 but got %f", resultd);
+	resultd = Rect4d_getWidth(RECT4d(4.0, 7.0, 1.0, 3.0));
+	TestCase_assert(resultd == 3.0, "Expected 3.0 but got %f", resultd);
+	resultd = Rect4d_getHeight(RECT4d(0.0, 1.0, 1.0, 3.0));
+	TestCase_assert(resultd == 2.0, "Expected 2.0 but got %f", resultd);
+	resultd = Rect4d_getHeight(RECT4d(1.0, 3.0, 4.0, 7.0));
+	TestCase_assert(resultd == 3.0, "Expected 3.0 but got %f", resultd);
+	center2d = Rect4d_getCenter(RECT4d(1.0, 3.0, 0.0, 1.0));
+	TestCase_assert(center2d.x == 2.0 && center2d.y == 0.5, "Expected {2.0, 0.5} but got {%f, %f}", center2d.x, center2d.y);
+	center2d = Rect4d_getCenter(RECT4d(-2.0, 2.0, 5.0, 8.0));
+	TestCase_assert(center2d.x == 0.0 && center2d.y == 6.5, "Expected {0.0, 6.5} but got {%f, %f}", center2d.x, center2d.y);
+	
+	resultf = Rect4f_getWidth(RECT4f(1.0f, 3.0f, 0.0f, 1.0f));
+	TestCase_assert(resultf == 2.0f, "Expected 2.0 but got %f", resultf);
+	resultf = Rect4f_getWidth(RECT4f(4.0f, 7.0f, 1.0f, 3.0f));
+	TestCase_assert(resultf == 3.0f, "Expected 3.0 but got %f", resultf);
+	resultf = Rect4f_getHeight(RECT4f(0.0f, 1.0f, 1.0f, 3.0f));
+	TestCase_assert(resultf == 2.0f, "Expected 2.0 but got %f", resultf);
+	resultf = Rect4f_getHeight(RECT4f(1.0f, 3.0f, 4.0f, 7.0f));
+	TestCase_assert(resultf == 3.0f, "Expected 3.0 but got %f", resultf);
+	center2f = Rect4f_getCenter(RECT4f(1.0f, 3.0f, 0.0f, 1.0f));
+	TestCase_assert(center2f.x == 2.0f && center2f.y == 0.5f, "Expected {2.0, 0.5} but got {%f, %f}", center2f.x, center2f.y);
+	center2f = Rect4f_getCenter(RECT4f(-2.0f, 2.0f, 5.0f, 8.0f));
+	TestCase_assert(center2f.x == 0.0f && center2f.y == 6.5f, "Expected {0.0, 6.5} but got {%f, %f}", center2f.x, center2f.y);
+	
+	resulti = Rect4i_getWidth(RECT4i(1, 3, 0, 1));
+	TestCase_assert(resulti == 2, "Expected 2 but got %d", resulti);
+	resulti = Rect4i_getWidth(RECT4i(4, 7, 1, 3));
+	TestCase_assert(resulti == 3, "Expected 3 but got %d", resulti);
+	resulti = Rect4i_getHeight(RECT4i(0, 1, 1, 3));
+	TestCase_assert(resulti == 2, "Expected 2 but got %d", resulti);
+	resulti = Rect4i_getHeight(RECT4i(1, 3, 4, 7));
+	TestCase_assert(resulti == 3, "Expected 3 but got %d", resulti);
+	center2i = Rect4i_getCenter(RECT4i(1, 3, 0, 1));
+	TestCase_assert(center2i.x == 2 && center2i.y == 0, "Expected {2, 0} but got {%d, %d}", center2i.x, center2i.y);
+	center2i = Rect4i_getCenter(RECT4i(-2, 2, 5, 8));
+	TestCase_assert(center2i.x == 0 && center2i.y == 6, "Expected {0, 6} but got {%d, %d}", center2i.x, center2i.y);
+	
+	resultx = Rect4x_getWidth(RECT4x(0x10000, 0x30000, 0x00000, 0x10000));
+	TestCase_assert(resultx == 0x20000, "Expected 0x20000 but got 0x%05X", resultx);
+	resultx = Rect4x_getWidth(RECT4x(0x40000, 0x70000, 0x10000, 0x30000));
+	TestCase_assert(resultx == 0x30000, "Expected 0x30000 but got 0x%05X", resultx);
+	resultx = Rect4x_getHeight(RECT4x(0x00000, 0x10000, 0x10000, 0x30000));
+	TestCase_assert(resultx == 0x20000, "Expected 0x20000 but got 0x%05X", resultx);
+	resultx = Rect4x_getHeight(RECT4x(0x10000, 0x30000, 0x40000, 0x70000));
+	TestCase_assert(resultx == 0x30000, "Expected 0x30000 but got 0x%05X", resultx);
+	center2x = Rect4x_getCenter(RECT4x(0x10000, 0x30000, 0x00000, 0x10000));
+	TestCase_assert(center2x.x == 0x20000 && center2x.y == 0x08000, "Expected {0x20000, 0x08000} but got {0x%05X, 0x%05X}", center2x.x, center2x.y);
+	center2x = Rect4x_getCenter(RECT4x(-0x20000, 0x20000, 0x50000, 0x80000));
+	TestCase_assert(center2x.x == 0x00000 && center2x.y == 0x68000, "Expected {0x00000, 0x68000} but got {0x%05X, 0x%05X}", center2x.x, center2x.y);
+	
+	resultd = Box6d_getWidth(BOX6d(1.0, 3.0, 0.0, 1.0, 0.0, 1.0));
+	TestCase_assert(resultd == 2.0, "Expected 2.0 but got %f", resultd);
+	resultd = Box6d_getWidth(BOX6d(4.0, 7.0, 1.0, 3.0, 1.0, 3.0));
+	TestCase_assert(resultd == 3.0, "Expected 3.0 but got %f", resultd);
+	resultd = Box6d_getHeight(BOX6d(0.0, 1.0, 1.0, 3.0, 0.0, 1.0));
+	TestCase_assert(resultd == 2.0, "Expected 2.0 but got %f", resultd);
+	resultd = Box6d_getHeight(BOX6d(1.0, 3.0, 4.0, 7.0, 1.0, 3.0));
+	TestCase_assert(resultd == 3.0, "Expected 3.0 but got %f", resultd);
+	resultd = Box6d_getDepth(BOX6d(0.0, 1.0, 0.0, 1.0, 1.0, 3.0));
+	TestCase_assert(resultd == 2.0, "Expected 2.0 but got %f", resultd);
+	resultd = Box6d_getDepth(BOX6d(1.0, 3.0, 1.0, 3.0, 4.0, 7.0));
+	TestCase_assert(resultd == 3.0, "Expected 3.0 but got %f", resultd);
+	center3d = Box6d_getCenter(BOX6d(1.0, 3.0, 0.0, 1.0, 2.0, 4.0));
+	TestCase_assert(center3d.x == 2.0 && center3d.y == 0.5 && center3d.z == 3.0, "Expected {2.0, 0.5, 3.0} but got {%f, %f, %f}", center3d.x, center3d.y, center3d.z);
+	center3d = Box6d_getCenter(BOX6d(-2.0, 2.0, 5.0, 8.0, -1.0, 3.0));
+	TestCase_assert(center3d.x == 0.0 && center3d.y == 6.5 && center3d.z == 1.0, "Expected {0.0, 6.5, 1.0} but got {%f, %f, %f}", center3d.x, center3d.y, center3d.z);
+	
+	resultf = Box6f_getWidth(BOX6f(1.0f, 3.0f, 0.0f, 1.0f, 0.0f, 1.0f));
+	TestCase_assert(resultf == 2.0f, "Expected 2.0 but got %f", resultf);
+	resultf = Box6f_getWidth(BOX6f(4.0f, 7.0f, 1.0f, 3.0f, 1.0f, 3.0f));
+	TestCase_assert(resultf == 3.0f, "Expected 3.0 but got %f", resultf);
+	resultf = Box6f_getHeight(BOX6f(0.0f, 1.0f, 1.0f, 3.0f, 0.0f, 1.0f));
+	TestCase_assert(resultf == 2.0f, "Expected 2.0 but got %f", resultf);
+	resultf = Box6f_getHeight(BOX6f(1.0f, 3.0f, 4.0f, 7.0f, 1.0f, 3.0f));
+	TestCase_assert(resultf == 3.0f, "Expected 3.0 but got %f", resultf);
+	resultf = Box6f_getDepth(BOX6f(0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 3.0f));
+	TestCase_assert(resultf == 2.0f, "Expected 2.0 but got %f", resultf);
+	resultf = Box6f_getDepth(BOX6f(1.0f, 3.0f, 1.0f, 3.0f, 4.0f, 7.0f));
+	TestCase_assert(resultf == 3.0f, "Expected 3.0 but got %f", resultf);
+	center3f = Box6f_getCenter(BOX6f(1.0f, 3.0f, 0.0f, 1.0f, 2.0f, 4.0f));
+	TestCase_assert(center3f.x == 2.0f && center3f.y == 0.5f && center3f.z == 3.0f, "Expected {2.0, 0.5, 3.0} but got {%f, %f, %f}", center3f.x, center3f.y, center3f.z);
+	center3f = Box6f_getCenter(BOX6f(-2.0f, 2.0f, 5.0f, 8.0f, -1.0f, 3.0f));
+	TestCase_assert(center3f.x == 0.0f && center3f.y == 6.5f && center3f.z == 1.0f, "Expected {0.0, 6.5, 1.0} but got {%f, %f, %f}", center3f.x, center3f.y, center3f.z);
+	
+	resulti = Box6i_getWidth(BOX6i(1, 3, 0, 1, 0, 1));
+	TestCase_assert(resulti == 2, "Expected 2 but got %d", resulti);
+	resulti = Box6i_getWidth(BOX6i(4, 7, 1, 3, 1, 3));
+	TestCase_assert(resulti == 3, "Expected 3 but got %d", resulti);
+	resulti = Box6i_getHeight(BOX6i(0, 1, 1, 3, 0, 1));
+	TestCase_assert(resulti == 2, "Expected 2 but got %d", resulti);
+	resulti = Box6i_getHeight(BOX6i(1, 3, 4, 7, 1, 3));
+	TestCase_assert(resulti == 3, "Expected 3 but got %d", resulti);
+	resulti = Box6i_getDepth(BOX6i(0, 1, 0, 1, 1, 3));
+	TestCase_assert(resulti == 2, "Expected 2 but got %d", resulti);
+	resulti = Box6i_getDepth(BOX6i(1, 3, 1, 3, 4, 7));
+	TestCase_assert(resulti == 3, "Expected 3 but got %d", resulti);
+	center3i = Box6i_getCenter(BOX6i(1, 3, 0, 1, 2, 4));
+	TestCase_assert(center3i.x == 2 && center3i.y == 0 && center3i.z == 3, "Expected {2, 0, 3} but got {%d, %d, %d}", center3i.x, center3i.y, center3i.z);
+	center3i = Box6i_getCenter(BOX6i(-2, 2, 5, 8, -1, 3));
+	TestCase_assert(center3i.x == 0 && center3i.y == 6 && center3i.z == 1, "Expected {0, 6, 1} but got {%d, %d, %d}", center3i.x, center3i.y, center3i.z);
+	
+	resultx = Box6x_getWidth(BOX6x(0x10000, 0x30000, 0x00000, 0x10000, 0x00000, 0x10000));
+	TestCase_assert(resultx == 0x20000, "Expected 0x20000 but got 0x%05X", resultx);
+	resultx = Box6x_getWidth(BOX6x(0x40000, 0x70000, 0x10000, 0x30000, 0x10000, 0x30000));
+	TestCase_assert(resultx == 0x30000, "Expected 0x30000 but got 0x%05X", resultx);
+	resultx = Box6x_getHeight(BOX6x(0x00000, 0x10000, 0x10000, 0x30000, 0x00000, 0x10000));
+	TestCase_assert(resultx == 0x20000, "Expected 0x20000 but got 0x%05X", resultx);
+	resultx = Box6x_getHeight(BOX6x(0x10000, 0x30000, 0x40000, 0x70000, 0x10000, 0x30000));
+	TestCase_assert(resultx == 0x30000, "Expected 0x30000 but got 0x%05X", resultx);
+	resultx = Box6x_getDepth(BOX6x(0x00000, 0x10000, 0x00000, 0x10000, 0x10000, 0x30000));
+	TestCase_assert(resultx == 0x20000, "Expected 0x20000 but got 0x%05X", resultx);
+	resultx = Box6x_getDepth(BOX6x(0x10000, 0x30000, 0x10000, 0x30000, 0x40000, 0x70000));
+	TestCase_assert(resultx == 0x30000, "Expected 0x30000 but got 0x%05X", resultx);
+	center3x = Box6x_getCenter(BOX6x(0x10000, 0x30000, 0x00000, 0x10000, 0x20000, 0x40000));
+	TestCase_assert(center3x.x == 0x20000 && center3x.y == 0x08000 && center3x.z == 0x30000, "Expected {0x20000, 0x08000, 0x30000} but got {0x%05X, 0x%05X, 0x%05X}", center3x.x, center3x.y, center3x.z);
+	center3x = Box6x_getCenter(BOX6x(-0x20000, 0x20000, 0x50000, 0x80000, -0x10000, 0x30000));
+	TestCase_assert(center3x.x == 0x00000 && center3x.y == 0x68000 && center3x.z == 0x10000, "Expected {0x00000, 0x68000, 0x10000} but got {0x%05X, 0x%05X, 0x%05X}", center3x.x, center3x.y, center3x.z);
+}
+
 TEST_SUITE(RectBoxTest,
            testConstructor,
            testIntersection,
@@ -2152,4 +2287,5 @@ TEST_SUITE(RectBoxTest,
            testIsEmpty,
            testIntersectsRectBox,
            testContainsRectBox,
-           testContainsVector)
+           testContainsVector,
+           testConvenienceAccessors)

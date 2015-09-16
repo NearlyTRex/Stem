@@ -40,6 +40,24 @@ end
 
 #include "gamemath/<%= class_name %>.h"
 
+<%= numeric_type %> <%= class_name %>_getWidth(<%= class_name %> <%= class_argument_name %>) {
+	return <%= class_argument_name %>.right - <%= class_argument_name %>.left;
+}
+
+<%= numeric_type %> <%= class_name %>_getHeight(<%= class_name %> <%= class_argument_name %>) {
+	return <%= class_argument_name %>.top - <%= class_argument_name %>.bottom;
+}
+
+<% if shape_name == "Box6" -%>
+<%= numeric_type %> <%= class_name %>_getDepth(<%= class_name %> <%= class_argument_name %>) {
+	return <%= class_argument_name %>.front - <%= class_argument_name %>.back;
+}
+
+<% end -%>
+<%= vector_type %> <%= class_name %>_getCenter(<%= class_name %> <%= class_argument_name %>) {
+	return (<%= vector_type %>) {<%= class_argument_name %>.left + (<%= class_argument_name %>.right - <%= class_argument_name %>.left) / 2, <%= class_argument_name %>.bottom + (<%= class_argument_name %>.top - <%= class_argument_name %>.bottom) / 2<% if shape_name == "Box6" %>, <%= class_argument_name %>.back + (<%= class_argument_name %>.front - <%= class_argument_name %>.back) / 2<% end %>};
+}
+
 <%= class_name %> <%= class_name %>_intersection(<%= class_name %> lhs, <%= class_name %> rhs) {
 	<%= class_name %> result;
 	

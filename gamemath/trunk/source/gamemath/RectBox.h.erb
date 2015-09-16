@@ -74,6 +74,13 @@ struct <%= class_name %> {
 
 #define <%= class_name_upper %>_EMPTY <%= class_name_upper %>(<%= c0 %>, <%= c0 %>, <%= c0 %>, <%= c0 %><% if shape_name == "Box6" %>, <%= c0 %>, <%= c0 %><% end %>)
 
+<%= numeric_type %> <%= class_name %>_getWidth(<%= class_name %> <%= class_argument_name %>);
+<%= numeric_type %> <%= class_name %>_getHeight(<%= class_name %> <%= class_argument_name %>);
+<% if shape_name == "Box6" -%>
+<%= numeric_type %> <%= class_name %>_getDepth(<%= class_name %> <%= class_argument_name %>);
+<% end -%>
+<%= vector_type %> <%= class_name %>_getCenter(<%= class_name %> <%= class_argument_name %>);
+
 <%= class_name %> <%= class_name %>_intersection(<%= class_name %> lhs, <%= class_name %> rhs);
 <%= class_name %> <%= class_name %>_union(<%= class_name %> lhs, <%= class_name %> rhs);
 <%= class_name %> <%= class_name %>_offset(<%= class_name %> <%= class_argument_name %>, <%= vector_type %> offset);
