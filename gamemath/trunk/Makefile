@@ -45,16 +45,19 @@ TYPE_SUFFIX_double = d
 TYPE_SUFFIX_int = i
 TYPE_SUFFIX_fixed16_16 = x
 
-GENERATED_SOURCES = ${foreach type_suffix,f d i x, \
-	${foreach axis_count,2 3 4, \
-		build/intermediate/generated/${PROJECT_NAME}/Vector${axis_count}${type_suffix}.h \
-		build/intermediate/generated/${PROJECT_NAME}/Vector${axis_count}${type_suffix}.c \
+GENERATED_SOURCES = \
+	${foreach type_suffix,f d i x, \
+		${foreach axis_count,2 3 4, \
+			build/intermediate/generated/${PROJECT_NAME}/Vector${axis_count}${type_suffix}.h \
+			build/intermediate/generated/${PROJECT_NAME}/Vector${axis_count}${type_suffix}.c \
+		} \
+		build/intermediate/generated/${PROJECT_NAME}/Rect4${type_suffix}.h \
+		build/intermediate/generated/${PROJECT_NAME}/Rect4${type_suffix}.c \
+		build/intermediate/generated/${PROJECT_NAME}/Box6${type_suffix}.h \
+		build/intermediate/generated/${PROJECT_NAME}/Box6${type_suffix}.c \
 	} \
-	build/intermediate/generated/${PROJECT_NAME}/Rect4${type_suffix}.h \
-	build/intermediate/generated/${PROJECT_NAME}/Rect4${type_suffix}.c \
-	build/intermediate/generated/${PROJECT_NAME}/Box6${type_suffix}.h \
-	build/intermediate/generated/${PROJECT_NAME}/Box6${type_suffix}.c \
-}
+	build/intermediate/generated/${PROJECT_NAME}/VectorConversions.c \
+	build/intermediate/generated/${PROJECT_NAME}/VectorConversions.h
 
 # Additional build prerequisites per target
 # Patterns: PREREQS, PREREQS_${target}
@@ -94,6 +97,7 @@ SOURCES_unittest_suites = \
 	source/unittest/MatrixTest.c \
 	source/unittest/RectBoxTest.c \
 	source/unittest/QuaternionTest.c \
+	source/unittest/VectorConversionsTest.c \
 	source/unittest/VectorTest.c
 
 SOURCES_testharness = \
@@ -124,7 +128,8 @@ INCLUDES = \
 	build/intermediate/generated/${PROJECT_NAME}/Vector4i.h \
 	build/intermediate/generated/${PROJECT_NAME}/Vector2x.h \
 	build/intermediate/generated/${PROJECT_NAME}/Vector3x.h \
-	build/intermediate/generated/${PROJECT_NAME}/Vector4x.h
+	build/intermediate/generated/${PROJECT_NAME}/Vector4x.h \
+	build/intermediate/generated/${PROJECT_NAME}/VectorConversions.h
 
 # Patterns: RESOURCES, RESOURCES_${target}, RESOURCES_${platform}, RESOURCES_${target}_${platform}
 RESOURCES = 
@@ -139,7 +144,8 @@ SPLINTFLAGS = -I build/intermediate/generated
 DEPENDENCY_SED_COMMANDS = \
 	s,source/${PROJECT_NAME}/Vector\(\\d\),build/intermediate/generated/${PROJECT_NAME}/Vector\\1,g; \
 	s,source/${PROJECT_NAME}/Rect\(\\d\),build/intermediate/generated/${PROJECT_NAME}/Rect\\1,g; \
-	s,source/${PROJECT_NAME}/Box\(\\d\),build/intermediate/generated/${PROJECT_NAME}/Box\\1,g
+	s,source/${PROJECT_NAME}/Box\(\\d\),build/intermediate/generated/${PROJECT_NAME}/Box\\1,g; \
+	s,source/${PROJECT_NAME}/VectorConversions,build/intermediate/generated/${PROJECT_NAME}/VectorConversions,g
 
 # Pattern: PLIST_FILE_${target}_${platform}
 
@@ -173,6 +179,11 @@ build/intermediate/generated/${PROJECT_NAME}/$1${TYPE_SUFFIX_$2}.c: source/${PRO
 	shape_name=$1 numeric_type=$2 erb -T - $$^ > $$@
 endef
 
+define generated_header_template #(name)
+build/intermediate/generated/${PROJECT_NAME}/$1.h: source/${PROJECT_NAME}/$1.h.erb | build/intermediate/generated/${PROJECT_NAME}
+	erb -T - $$^ > $$@
+endef
+
 ${foreach numeric_type,float double int fixed16_16, \
 	${foreach axis_count,2 3 4, \
 		${eval ${call generated_vector_template,${axis_count},${numeric_type}}} \
@@ -180,3 +191,4 @@ ${foreach numeric_type,float double int fixed16_16, \
 	${eval ${call generated_rectbox_template,Rect4,${numeric_type}}} \
 	${eval ${call generated_rectbox_template,Box6,${numeric_type}}} \
 }
+${eval ${call generated_header_template,VectorConversions}}

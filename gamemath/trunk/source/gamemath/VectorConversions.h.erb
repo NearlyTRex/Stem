@@ -1,0 +1,71 @@
+<%
+axis_names = ["x", "y", "z", "w"]
+
+def convert(value, type_1, type_2)
+	if type_1 == "x" then
+		if type_2 == "d" then
+			return "xtod(#{value})"
+		end
+		if type_2 == "f" then
+			return "xtof(#{value})"
+		end
+		if type_2 == "i" then
+			return "#{value} >> 16"
+		end
+	end
+	
+	if type_2 == "x" then
+		if type_1 == "d" then
+			return "dtox(#{value})"
+		end
+		if type_1 == "f" then
+			return "ftox(#{value})"
+		end
+		if type_1 == "i" then
+			return "#{value} << 16"
+		end
+	end
+	
+	return value
+end
+-%>
+/*
+  Copyright (c) 2015 Alex Diener
+  
+  This software is provided 'as-is', without any express or implied
+  warranty. In no event will the authors be held liable for any damages
+  arising from the use of this software.
+  
+  Permission is granted to anyone to use this software for any purpose,
+  including commercial applications, and to alter it and redistribute it
+  freely, subject to the following restrictions:
+  
+  1. The origin of this software must not be misrepresented; you must not
+     claim that you wrote the original software. If you use this software
+     in a product, an acknowledgment in the product documentation would be
+     appreciated but is not required.
+  2. Altered source versions must be plainly marked as such, and must not be
+     misrepresented as being the original software.
+  3. This notice may not be removed or altered from any source distribution.
+  
+  Alex Diener alex@ludobloom.com
+*/
+
+#ifndef __VectorConversions_H__
+#define __VectorConversions_H__
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+<% 2.upto(4) do |axis_count| -%>
+<% ["d", "f", "i", "x"].each do |type_suffix| -%>
+<% ["d", "f", "i", "x"].each do |type_suffix_2| -%>
+<% next if type_suffix == type_suffix_2 -%>
+#define Vector<%= axis_count %><%= type_suffix %>_toVector<%= axis_count %><%= type_suffix_2 %>(vector) VECTOR<%= axis_count %><%= type_suffix_2 %>(<%= convert("vector.x", type_suffix, type_suffix_2) %><% 1.upto(axis_count - 1) do |axis| %>, <%= convert("vector.#{axis_names[axis]}", type_suffix, type_suffix_2) %><% end %>);
+<% end %>
+<% end -%>
+<% end -%>
+#ifdef __cplusplus
+}
+#endif
+#endif
