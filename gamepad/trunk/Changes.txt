@@ -1,5 +1,6 @@
-1.4.2 (2015-04-14)
+1.4.2 (2015-09-16)
  * Fixed a bug introduced in 1.4.0 that caused the Gamepad_deviceAttachFunc callback not to be called on Windows
+ * Fixed a bug that could cause DualShock 4 controllers to spuriously disconnect (caused by not handling DI_BUFFEROVERFLOW)
 
 1.4.1 (2014-07-16)
  * Fixed a memory leak from queuing button and axis events on Linux
