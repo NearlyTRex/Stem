@@ -56,7 +56,6 @@ GENERATED_SOURCES = \
 		build/intermediate/generated/${PROJECT_NAME}/Box6${type_suffix}.h \
 		build/intermediate/generated/${PROJECT_NAME}/Box6${type_suffix}.c \
 	} \
-	build/intermediate/generated/${PROJECT_NAME}/VectorConversions.c \
 	build/intermediate/generated/${PROJECT_NAME}/VectorConversions.h
 
 # Additional build prerequisites per target
