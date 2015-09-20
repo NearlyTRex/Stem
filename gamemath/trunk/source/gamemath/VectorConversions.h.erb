@@ -81,6 +81,22 @@ extern "C" {
 #define Vector4<%= type_suffix %>_<%= axes[0] + axes[1] + axes[2] + axes[3] %>(vector) VECTOR4<%= type_suffix %>(vector.<%= axes[0] %>, vector.<%= axes[1] %>, vector.<%= axes[2] %>, vector.<%= axes[3] %>)
 <% end %>
 <% end -%>
+
+<% ["d", "f", "i", "x"].each do |type_suffix| -%>
+<% ["x", "y", "z"].permutation do |axes| -%>
+#define Vector3<%= type_suffix %>_<%= axes[0] + axes[1] %>(vector) VECTOR2<%= type_suffix %>(vector.<%= axes[0] %>, vector.<%= axes[1] %>)
+<% end %>
+<% end -%>
+<% ["d", "f", "i", "x"].each do |type_suffix| -%>
+<% ["x", "y", "z", "w"].permutation do |axes| -%>
+#define Vector4<%= type_suffix %>_<%= axes[0] + axes[1] + axes[2] %>(vector) VECTOR3<%= type_suffix %>(vector.<%= axes[0] %>, vector.<%= axes[1] %>, vector.<%= axes[2] %>)
+<% end %>
+<% end -%>
+<% ["d", "f", "i", "x"].each do |type_suffix| -%>
+<% ["x", "y", "z", "w"].permutation.to_a.collect {|entry| entry[0..1]}.uniq.each do |axes| -%>
+#define Vector4<%= type_suffix %>_<%= axes[0] + axes[1] %>(vector) VECTOR2<%= type_suffix %>(vector.<%= axes[0] %>, vector.<%= axes[1] %>)
+<% end %>
+<% end -%>
 #ifdef __cplusplus
 }
 #endif
