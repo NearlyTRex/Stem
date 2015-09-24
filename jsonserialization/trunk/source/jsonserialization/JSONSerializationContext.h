@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2014 Alex Diener
+  Copyright (c) 2015 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -78,6 +78,7 @@ void JSONSerializationContext_writeInt64(JSONSerializationContext * self, const 
 void JSONSerializationContext_writeUInt64(JSONSerializationContext * self, const char * key, uint64_t value);
 void JSONSerializationContext_writeFloat(JSONSerializationContext * self, const char * key, float value);
 void JSONSerializationContext_writeDouble(JSONSerializationContext * self, const char * key, double value);
+void JSONSerializationContext_writeFixed16_16(JSONSerializationContext * self, const char * key, fixed16_16 value);
 void JSONSerializationContext_writeEnumeration(JSONSerializationContext * self, const char * key, int value, ...) __attribute__((sentinel));
 void JSONSerializationContext_writeBitfield8(JSONSerializationContext * self, const char * key, uint8_t value, ...) __attribute__((sentinel));
 void JSONSerializationContext_writeBitfield16(JSONSerializationContext * self, const char * key, uint16_t value, ...) __attribute__((sentinel));

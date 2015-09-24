@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2014 Alex Diener
+  Copyright (c) 2015 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -78,6 +78,7 @@ int64_t JSONDeserializationContext_readInt64(JSONDeserializationContext * self, 
 uint64_t JSONDeserializationContext_readUInt64(JSONDeserializationContext * self, const char * key);
 float JSONDeserializationContext_readFloat(JSONDeserializationContext * self, const char * key);
 double JSONDeserializationContext_readDouble(JSONDeserializationContext * self, const char * key);
+fixed16_16 JSONDeserializationContext_readFixed16_16(JSONDeserializationContext * self, const char * key);
 bool JSONDeserializationContext_readBoolean(JSONDeserializationContext * self, const char * key);
 int JSONDeserializationContext_readEnumeration(JSONDeserializationContext * self, const char * key, ...) __attribute__((sentinel));
 uint8_t JSONDeserializationContext_readBitfield8(JSONDeserializationContext * self, const char * key, ...) __attribute__((sentinel));

@@ -30,6 +30,7 @@ static void verifyInit(JSONSerializationContext * context) {
 	TestCase_assert(context->writeUInt64 == JSONSerializationContext_writeUInt64, "Expected %p but got %p", JSONSerializationContext_writeUInt64, context->writeUInt64);
 	TestCase_assert(context->writeFloat == JSONSerializationContext_writeFloat, "Expected %p but got %p", JSONSerializationContext_writeFloat, context->writeFloat);
 	TestCase_assert(context->writeDouble == JSONSerializationContext_writeDouble, "Expected %p but got %p", JSONSerializationContext_writeDouble, context->writeDouble);
+	TestCase_assert(context->writeFixed16_16 == JSONSerializationContext_writeFixed16_16, "Expected %p but got %p", JSONSerializationContext_writeFixed16_16, context->writeFixed16_16);
 	TestCase_assert(context->writeEnumeration == JSONSerializationContext_writeEnumeration, "Expected %p but got %p", JSONSerializationContext_writeEnumeration, context->writeEnumeration);
 	TestCase_assert(context->writeBitfield8 == JSONSerializationContext_writeBitfield8, "Expected %p but got %p", JSONSerializationContext_writeBitfield8, context->writeBitfield8);
 	TestCase_assert(context->writeBitfield16 == JSONSerializationContext_writeBitfield16, "Expected %p but got %p", JSONSerializationContext_writeBitfield16, context->writeBitfield16);
@@ -122,6 +123,7 @@ static void testNumberValues() {
 	context->writeUInt64(context, "item", 7);
 	context->writeFloat(context, "item", 8);
 	context->writeDouble(context, "item", 9);
+	context->writeFixed16_16(context, "item", 0xA0000);
 	context->endArray(context);
 	node = JSONSerializationContext_writeToJSONNode(context);
 	context->dispose(context);
@@ -129,7 +131,7 @@ static void testNumberValues() {
 	if (node == NULL) {return;} // Suppress clang warning
 	TestCase_assert(node->type == JSON_TYPE_ARRAY, "Expected %d but got %d", JSON_TYPE_ARRAY, node->type);
 	TestCase_assert(node->key == NULL, "Expected NULL but got \"%s\"", node->key);
-	TestCase_assert(node->value.count == 10, "Expected 10 but got " SIZE_T_FORMAT, node->value.count);
+	TestCase_assert(node->value.count == 11, "Expected 11 but got " SIZE_T_FORMAT, node->value.count);
 	TestCase_assert(node->subitems != NULL, "Expected non-NULL but got NULL");
 	TestCase_assert(node->subitems[0].type == JSON_TYPE_NUMBER, "Expected %d but got %d", JSON_TYPE_NUMBER, node->subitems[0].type);
 	TestCase_assert(node->subitems[0].key == NULL, "Expected NULL but got %p", node->subitems[0].key);
@@ -161,6 +163,10 @@ static void testNumberValues() {
 	TestCase_assert(node->subitems[9].type == JSON_TYPE_NUMBER, "Expected %d but got %d", JSON_TYPE_NUMBER, node->subitems[9].type);
 	TestCase_assert(node->subitems[9].key == NULL, "Expected NULL but got %p", node->subitems[9].key);
 	TestCase_assert(node->subitems[9].value.number == 9, "Expected 9 but got %f", node->subitems[9].value.number);
+	TestCase_assert(node->subitems[10].type == JSON_TYPE_STRING, "Expected %d but got %d", JSON_TYPE_STRING, node->subitems[10].type);
+	TestCase_assert(node->subitems[10].key == NULL, "Expected NULL but got %p", node->subitems[10].key);
+	TestCase_assert(node->subitems[10].stringLength == 7, "Expected 7 but got " SIZE_T_FORMAT, node->subitems[10].stringLength);
+	TestCase_assert(!strcmp(node->subitems[10].value.string, "0xA0000"), "Expected \"0xA0000\" but got \"\"", node->subitems[10].value.string);
 	JSONNode_dispose(node);
 	
 	context = JSONSerializationContext_create();
@@ -177,6 +183,7 @@ static void testNumberValues() {
 	context->writeUInt64(context, "item", 1ull << DBL_MANT_DIG);
 	context->writeFloat(context, "item", FLT_MAX);
 	context->writeDouble(context, "item", DBL_MAX);
+	context->writeFixed16_16(context, "item", FIXED_16_16_MIN);
 	context->endArray(context);
 	node = JSONSerializationContext_writeToJSONNode(context);
 	context->dispose(context);
@@ -184,7 +191,7 @@ static void testNumberValues() {
 	if (node == NULL) {return;} // Suppress clang warning
 	TestCase_assert(node->type == JSON_TYPE_ARRAY, "Expected %d but got %d", JSON_TYPE_ARRAY, node->type);
 	TestCase_assert(node->key == NULL, "Expected NULL but got \"%s\"", node->key);
-	TestCase_assert(node->value.count == 10, "Expected 10 but got " SIZE_T_FORMAT, node->value.count);
+	TestCase_assert(node->value.count == 11, "Expected 11 but got " SIZE_T_FORMAT, node->value.count);
 	TestCase_assert(node->subitems != NULL, "Expected non-NULL but got NULL");
 	TestCase_assert(node->subitems[0].type == JSON_TYPE_NUMBER, "Expected %d but got %d", JSON_TYPE_NUMBER, node->subitems[0].type);
 	TestCase_assert(node->subitems[0].key == NULL, "Expected NULL but got %p", node->subitems[0].key);
@@ -216,6 +223,10 @@ static void testNumberValues() {
 	TestCase_assert(node->subitems[9].type == JSON_TYPE_NUMBER, "Expected %d but got %d", JSON_TYPE_NUMBER, node->subitems[9].type);
 	TestCase_assert(node->subitems[9].key == NULL, "Expected NULL but got %p", node->subitems[9].key);
 	TestCase_assert(node->subitems[9].value.number == DBL_MAX, "Expected %f but got %f", DBL_MAX, node->subitems[9].value.number);
+	TestCase_assert(node->subitems[10].type == JSON_TYPE_STRING, "Expected %d but got %d", JSON_TYPE_STRING, node->subitems[10].type);
+	TestCase_assert(node->subitems[10].key == NULL, "Expected NULL but got %p", node->subitems[10].key);
+	TestCase_assert(node->subitems[10].stringLength == 10, "Expected 10 but got " SIZE_T_FORMAT, node->subitems[10].stringLength);
+	TestCase_assert(!strcmp(node->subitems[10].value.string, "0x80000002"), "Expected \"0x80000002\" but got \"\"", node->subitems[10].value.string);
 	JSONNode_dispose(node);
 }
 
@@ -695,6 +706,7 @@ static void testArrays() {
 			context->endArray(context);
 			context->writeFloat(context, "item", 8);
 			context->writeDouble(context, "item", 9);
+			context->writeFixed16_16(context, "item", 0xA0000);
 			context->writeString(context, "item", "10");
 			context->writeBoolean(context, "item", true);
 			context->writeEnumeration(context, "item", 12, "enum", 12, NULL);
@@ -721,7 +733,7 @@ static void testArrays() {
 	TestCase_assert(node->subitems[0].subitems[0].value.number == 0, "Expected 0 but got %g", node->subitems[0].subitems[0].value.number);
 	TestCase_assert(node->subitems[1].type == JSON_TYPE_ARRAY, "Expected %d but got %d", JSON_TYPE_ARRAY, node->subitems[1].type);
 	TestCase_assert(node->subitems[1].key == NULL, "Expected NULL but got \"%s\"", node->subitems[1].key);
-	TestCase_assert(node->subitems[1].value.count == 11, "Expected 11 but got " SIZE_T_FORMAT, node->subitems[1].value.count);
+	TestCase_assert(node->subitems[1].value.count == 12, "Expected 12 but got " SIZE_T_FORMAT, node->subitems[1].value.count);
 	TestCase_assert(node->subitems[1].subitems != NULL, "Expected non-NULL but got NULL");
 	TestCase_assert(node->subitems[1].subitems[0].type == JSON_TYPE_NUMBER, "Expected %d but got %d", JSON_TYPE_NUMBER, node->subitems[1].subitems[0].type);
 	TestCase_assert(node->subitems[1].subitems[0].key == NULL, "Expected NULL but got \"%s\"", node->subitems[1].subitems[0].key);
@@ -756,23 +768,19 @@ static void testArrays() {
 	TestCase_assert(node->subitems[1].subitems[3].value.number == 9, "Expected 9 but got %g", node->subitems[1].subitems[3].value.number);
 	TestCase_assert(node->subitems[1].subitems[4].type == JSON_TYPE_STRING, "Expected %d but got %d", JSON_TYPE_STRING, node->subitems[1].subitems[4].type);
 	TestCase_assert(node->subitems[1].subitems[4].key == NULL, "Expected NULL but got \"%s\"", node->subitems[1].subitems[4].key);
-	TestCase_assert(node->subitems[1].subitems[4].stringLength == 2, "Expected 2 but got " SIZE_T_FORMAT, node->subitems[1].subitems[4].stringLength);
-	TestCase_assert(!strcmp(node->subitems[1].subitems[4].value.string, "10"), "Expected \"10\" but got \"%s\"", node->subitems[1].subitems[4].value.string);
-	TestCase_assert(node->subitems[1].subitems[5].type == JSON_TYPE_BOOLEAN, "Expected %d but got %d", JSON_TYPE_BOOLEAN, node->subitems[1].subitems[5].type);
+	TestCase_assert(node->subitems[1].subitems[4].stringLength == 7, "Expected 7 but got " SIZE_T_FORMAT, node->subitems[1].subitems[4].stringLength);
+	TestCase_assert(!strcmp(node->subitems[1].subitems[4].value.string, "0xA0000"), "Expected \"0xA0000\" but got \"%s\"", node->subitems[1].subitems[4].value.string);
+	TestCase_assert(node->subitems[1].subitems[5].type == JSON_TYPE_STRING, "Expected %d but got %d", JSON_TYPE_STRING, node->subitems[1].subitems[5].type);
 	TestCase_assert(node->subitems[1].subitems[5].key == NULL, "Expected NULL but got \"%s\"", node->subitems[1].subitems[5].key);
-	TestCase_assert(node->subitems[1].subitems[5].value.boolean == true, "Expected true but got false");
-	TestCase_assert(node->subitems[1].subitems[6].type == JSON_TYPE_STRING, "Expected %d but got %d", JSON_TYPE_STRING, node->subitems[1].subitems[6].type);
+	TestCase_assert(node->subitems[1].subitems[5].stringLength == 2, "Expected 2 but got " SIZE_T_FORMAT, node->subitems[1].subitems[5].stringLength);
+	TestCase_assert(!strcmp(node->subitems[1].subitems[5].value.string, "10"), "Expected \"10\" but got \"%s\"", node->subitems[1].subitems[5].value.string);
+	TestCase_assert(node->subitems[1].subitems[6].type == JSON_TYPE_BOOLEAN, "Expected %d but got %d", JSON_TYPE_BOOLEAN, node->subitems[1].subitems[6].type);
 	TestCase_assert(node->subitems[1].subitems[6].key == NULL, "Expected NULL but got \"%s\"", node->subitems[1].subitems[6].key);
-	TestCase_assert(node->subitems[1].subitems[6].stringLength == 4, "Expected 4 but got " SIZE_T_FORMAT, node->subitems[1].subitems[6].stringLength);
-	TestCase_assert(!strcmp(node->subitems[1].subitems[6].value.string, "enum"), "Expected \"enum\" but got \"%s\"", node->subitems[1].subitems[6].value.string);
-	TestCase_assert(node->subitems[1].subitems[7].type == JSON_TYPE_ARRAY, "Expected %d but got %d", JSON_TYPE_ARRAY, node->subitems[1].subitems[7].type);
+	TestCase_assert(node->subitems[1].subitems[6].value.boolean == true, "Expected true but got false");
+	TestCase_assert(node->subitems[1].subitems[7].type == JSON_TYPE_STRING, "Expected %d but got %d", JSON_TYPE_STRING, node->subitems[1].subitems[7].type);
 	TestCase_assert(node->subitems[1].subitems[7].key == NULL, "Expected NULL but got \"%s\"", node->subitems[1].subitems[7].key);
-	TestCase_assert(node->subitems[1].subitems[7].value.count == 1, "Expected 1 but got " SIZE_T_FORMAT, node->subitems[1].subitems[7].value.count);
-	TestCase_assert(node->subitems[1].subitems[7].subitems != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(node->subitems[1].subitems[7].subitems[0].type == JSON_TYPE_STRING, "Expected %d but got %d", JSON_TYPE_STRING, node->subitems[1].subitems[7].subitems[0].type);
-	TestCase_assert(node->subitems[1].subitems[7].subitems[0].key == NULL, "Expected NULL but got \"%s\"", node->subitems[1].subitems[7].subitems[0].key);
-	TestCase_assert(node->subitems[1].subitems[7].subitems[0].stringLength == 2, "Expected 2 but got " SIZE_T_FORMAT, node->subitems[1].subitems[7].subitems[0].stringLength);
-	TestCase_assert(!strcmp(node->subitems[1].subitems[7].subitems[0].value.string, "13"), "Expected \"13\" but got \"%s\"", node->subitems[1].subitems[7].subitems[0].value.string);
+	TestCase_assert(node->subitems[1].subitems[7].stringLength == 4, "Expected 4 but got " SIZE_T_FORMAT, node->subitems[1].subitems[7].stringLength);
+	TestCase_assert(!strcmp(node->subitems[1].subitems[7].value.string, "enum"), "Expected \"enum\" but got \"%s\"", node->subitems[1].subitems[7].value.string);
 	TestCase_assert(node->subitems[1].subitems[8].type == JSON_TYPE_ARRAY, "Expected %d but got %d", JSON_TYPE_ARRAY, node->subitems[1].subitems[8].type);
 	TestCase_assert(node->subitems[1].subitems[8].key == NULL, "Expected NULL but got \"%s\"", node->subitems[1].subitems[8].key);
 	TestCase_assert(node->subitems[1].subitems[8].value.count == 1, "Expected 1 but got " SIZE_T_FORMAT, node->subitems[1].subitems[8].value.count);
@@ -780,7 +788,7 @@ static void testArrays() {
 	TestCase_assert(node->subitems[1].subitems[8].subitems[0].type == JSON_TYPE_STRING, "Expected %d but got %d", JSON_TYPE_STRING, node->subitems[1].subitems[8].subitems[0].type);
 	TestCase_assert(node->subitems[1].subitems[8].subitems[0].key == NULL, "Expected NULL but got \"%s\"", node->subitems[1].subitems[8].subitems[0].key);
 	TestCase_assert(node->subitems[1].subitems[8].subitems[0].stringLength == 2, "Expected 2 but got " SIZE_T_FORMAT, node->subitems[1].subitems[8].subitems[0].stringLength);
-	TestCase_assert(!strcmp(node->subitems[1].subitems[8].subitems[0].value.string, "14"), "Expected \"14\" but got \"%s\"", node->subitems[1].subitems[8].subitems[0].value.string);
+	TestCase_assert(!strcmp(node->subitems[1].subitems[8].subitems[0].value.string, "13"), "Expected \"13\" but got \"%s\"", node->subitems[1].subitems[8].subitems[0].value.string);
 	TestCase_assert(node->subitems[1].subitems[9].type == JSON_TYPE_ARRAY, "Expected %d but got %d", JSON_TYPE_ARRAY, node->subitems[1].subitems[9].type);
 	TestCase_assert(node->subitems[1].subitems[9].key == NULL, "Expected NULL but got \"%s\"", node->subitems[1].subitems[9].key);
 	TestCase_assert(node->subitems[1].subitems[9].value.count == 1, "Expected 1 but got " SIZE_T_FORMAT, node->subitems[1].subitems[9].value.count);
@@ -788,7 +796,7 @@ static void testArrays() {
 	TestCase_assert(node->subitems[1].subitems[9].subitems[0].type == JSON_TYPE_STRING, "Expected %d but got %d", JSON_TYPE_STRING, node->subitems[1].subitems[9].subitems[0].type);
 	TestCase_assert(node->subitems[1].subitems[9].subitems[0].key == NULL, "Expected NULL but got \"%s\"", node->subitems[1].subitems[9].subitems[0].key);
 	TestCase_assert(node->subitems[1].subitems[9].subitems[0].stringLength == 2, "Expected 2 but got " SIZE_T_FORMAT, node->subitems[1].subitems[9].subitems[0].stringLength);
-	TestCase_assert(!strcmp(node->subitems[1].subitems[9].subitems[0].value.string, "15"), "Expected \"15\" but got \"%s\"", node->subitems[1].subitems[9].subitems[0].value.string);
+	TestCase_assert(!strcmp(node->subitems[1].subitems[9].subitems[0].value.string, "14"), "Expected \"14\" but got \"%s\"", node->subitems[1].subitems[9].subitems[0].value.string);
 	TestCase_assert(node->subitems[1].subitems[10].type == JSON_TYPE_ARRAY, "Expected %d but got %d", JSON_TYPE_ARRAY, node->subitems[1].subitems[10].type);
 	TestCase_assert(node->subitems[1].subitems[10].key == NULL, "Expected NULL but got \"%s\"", node->subitems[1].subitems[10].key);
 	TestCase_assert(node->subitems[1].subitems[10].value.count == 1, "Expected 1 but got " SIZE_T_FORMAT, node->subitems[1].subitems[10].value.count);
@@ -796,7 +804,15 @@ static void testArrays() {
 	TestCase_assert(node->subitems[1].subitems[10].subitems[0].type == JSON_TYPE_STRING, "Expected %d but got %d", JSON_TYPE_STRING, node->subitems[1].subitems[10].subitems[0].type);
 	TestCase_assert(node->subitems[1].subitems[10].subitems[0].key == NULL, "Expected NULL but got \"%s\"", node->subitems[1].subitems[10].subitems[0].key);
 	TestCase_assert(node->subitems[1].subitems[10].subitems[0].stringLength == 2, "Expected 2 but got " SIZE_T_FORMAT, node->subitems[1].subitems[10].subitems[0].stringLength);
-	TestCase_assert(!strcmp(node->subitems[1].subitems[10].subitems[0].value.string, "16"), "Expected \"16\" but got \"%s\"", node->subitems[1].subitems[10].subitems[0].value.string);
+	TestCase_assert(!strcmp(node->subitems[1].subitems[10].subitems[0].value.string, "15"), "Expected \"15\" but got \"%s\"", node->subitems[1].subitems[10].subitems[0].value.string);
+	TestCase_assert(node->subitems[1].subitems[11].type == JSON_TYPE_ARRAY, "Expected %d but got %d", JSON_TYPE_ARRAY, node->subitems[1].subitems[11].type);
+	TestCase_assert(node->subitems[1].subitems[11].key == NULL, "Expected NULL but got \"%s\"", node->subitems[1].subitems[11].key);
+	TestCase_assert(node->subitems[1].subitems[11].value.count == 1, "Expected 1 but got " SIZE_T_FORMAT, node->subitems[1].subitems[11].value.count);
+	TestCase_assert(node->subitems[1].subitems[11].subitems != NULL, "Expected non-NULL but got NULL");
+	TestCase_assert(node->subitems[1].subitems[11].subitems[0].type == JSON_TYPE_STRING, "Expected %d but got %d", JSON_TYPE_STRING, node->subitems[1].subitems[11].subitems[0].type);
+	TestCase_assert(node->subitems[1].subitems[11].subitems[0].key == NULL, "Expected NULL but got \"%s\"", node->subitems[1].subitems[11].subitems[0].key);
+	TestCase_assert(node->subitems[1].subitems[11].subitems[0].stringLength == 2, "Expected 2 but got " SIZE_T_FORMAT, node->subitems[1].subitems[11].subitems[0].stringLength);
+	TestCase_assert(!strcmp(node->subitems[1].subitems[11].subitems[0].value.string, "16"), "Expected \"16\" but got \"%s\"", node->subitems[1].subitems[11].subitems[0].value.string);
 	JSONNode_dispose(node);
 }
 
@@ -852,6 +868,7 @@ static void testStructures() {
 			context->writeBitfield16(context, "bitfield16", 1, "14", NULL);
 			context->writeBitfield32(context, "bitfield32", 1, "15", NULL);
 			context->writeBitfield64(context, "bitfield64", 1, "16", NULL);
+			context->writeFixed16_16(context, "fixed16_16", 0xA0000);
 		context->endStructure(context);
 	context->endStructure(context);
 	node = JSONSerializationContext_writeToJSONNode(context);
@@ -874,7 +891,7 @@ static void testStructures() {
 	TestCase_assert(node->subitems[1].type == JSON_TYPE_OBJECT, "Expected %d but got %d", JSON_TYPE_OBJECT, node->subitems[1].type);
 	TestCase_assert(node->subitems[1].keyLength == 7, "Expected 7 but got " SIZE_T_FORMAT, node->subitems[1].keyLength);
 	TestCase_assert(!strcmp(node->subitems[1].key, "struct2"), "Expected \"struct2\" but got \"%s\"", node->subitems[1].key);
-	TestCase_assert(node->subitems[1].value.count == 11, "Expected 11 but got " SIZE_T_FORMAT, node->subitems[1].value.count);
+	TestCase_assert(node->subitems[1].value.count == 12, "Expected 12 but got " SIZE_T_FORMAT, node->subitems[1].value.count);
 	TestCase_assert(node->subitems[1].subitems != NULL, "Expected non-NULL but got NULL");
 	TestCase_assert(node->subitems[1].subitems[0].type == JSON_TYPE_NUMBER, "Expected %d but got %d", JSON_TYPE_NUMBER, node->subitems[1].subitems[0].type);
 	TestCase_assert(node->subitems[1].subitems[0].keyLength == 5, "Expected 5 but got " SIZE_T_FORMAT, node->subitems[1].subitems[0].keyLength);
@@ -967,6 +984,11 @@ static void testStructures() {
 	TestCase_assert(node->subitems[1].subitems[10].subitems[0].key == NULL, "Expected NULL but got \"%s\"", node->subitems[1].subitems[10].subitems[0].key);
 	TestCase_assert(node->subitems[1].subitems[10].subitems[0].stringLength == 2, "Expected 2 but got " SIZE_T_FORMAT, node->subitems[1].subitems[10].subitems[0].stringLength);
 	TestCase_assert(!strcmp(node->subitems[1].subitems[10].subitems[0].value.string, "16"), "Expected \"16\" but got \"%s\"", node->subitems[1].subitems[10].subitems[0].value.string);
+	TestCase_assert(node->subitems[1].subitems[11].type == JSON_TYPE_STRING, "Expected %d but got %d", JSON_TYPE_STRING, node->subitems[1].subitems[3].type);
+	TestCase_assert(node->subitems[1].subitems[11].keyLength == 10, "Expected 10 but got " SIZE_T_FORMAT, node->subitems[1].subitems[11].keyLength);
+	TestCase_assert(!strcmp(node->subitems[1].subitems[11].key, "fixed16_16"), "Expected \"fixed16_16\" but got \"%s\"", node->subitems[1].subitems[11].key);
+	TestCase_assert(node->subitems[1].subitems[11].stringLength == 7, "Expected 7 but got " SIZE_T_FORMAT, node->subitems[1].subitems[11].stringLength);
+	TestCase_assert(!strcmp(node->subitems[1].subitems[11].value.string, "0xA0000"), "Expected \"0xA0000\" but got \"%s\"", node->subitems[1].subitems[11].value.string);
 	JSONNode_dispose(node);
 }
 
@@ -1022,6 +1044,7 @@ static void testDictionaries() {
 			context->writeBitfield16(context, "bitfield16", 1, "14", NULL);
 			context->writeBitfield32(context, "bitfield32", 1, "15", NULL);
 			context->writeBitfield64(context, "bitfield64", 1, "16", NULL);
+			context->writeFixed16_16(context, "fixed16_16", 0xA0000);
 		context->endDictionary(context);
 	context->endDictionary(context);
 	node = JSONSerializationContext_writeToJSONNode(context);
@@ -1044,7 +1067,7 @@ static void testDictionaries() {
 	TestCase_assert(node->subitems[1].type == JSON_TYPE_OBJECT, "Expected %d but got %d", JSON_TYPE_OBJECT, node->subitems[1].type);
 	TestCase_assert(node->subitems[1].keyLength == 7, "Expected 7 but got " SIZE_T_FORMAT, node->subitems[1].keyLength);
 	TestCase_assert(!strcmp(node->subitems[1].key, "struct2"), "Expected \"struct2\" but got \"%s\"", node->subitems[1].key);
-	TestCase_assert(node->subitems[1].value.count == 11, "Expected 11 but got " SIZE_T_FORMAT, node->subitems[1].value.count);
+	TestCase_assert(node->subitems[1].value.count == 12, "Expected 12 but got " SIZE_T_FORMAT, node->subitems[1].value.count);
 	TestCase_assert(node->subitems[1].subitems != NULL, "Expected non-NULL but got NULL");
 	TestCase_assert(node->subitems[1].subitems[0].type == JSON_TYPE_NUMBER, "Expected %d but got %d", JSON_TYPE_NUMBER, node->subitems[1].subitems[0].type);
 	TestCase_assert(node->subitems[1].subitems[0].keyLength == 5, "Expected 5 but got " SIZE_T_FORMAT, node->subitems[1].subitems[0].keyLength);
@@ -1137,6 +1160,11 @@ static void testDictionaries() {
 	TestCase_assert(node->subitems[1].subitems[10].subitems[0].key == NULL, "Expected NULL but got \"%s\"", node->subitems[1].subitems[10].subitems[0].key);
 	TestCase_assert(node->subitems[1].subitems[10].subitems[0].stringLength == 2, "Expected 2 but got " SIZE_T_FORMAT, node->subitems[1].subitems[10].subitems[0].stringLength);
 	TestCase_assert(!strcmp(node->subitems[1].subitems[10].subitems[0].value.string, "16"), "Expected \"16\" but got \"%s\"", node->subitems[1].subitems[10].subitems[0].value.string);
+	TestCase_assert(node->subitems[1].subitems[11].type == JSON_TYPE_STRING, "Expected %d but got %d", JSON_TYPE_STRING, node->subitems[1].subitems[11].type);
+	TestCase_assert(node->subitems[1].subitems[11].keyLength == 10, "Expected 10 but got " SIZE_T_FORMAT, node->subitems[1].subitems[11].keyLength);
+	TestCase_assert(!strcmp(node->subitems[1].subitems[11].key, "fixed16_16"), "Expected \"string\" but got \"%s\"", node->subitems[1].subitems[11].key);
+	TestCase_assert(node->subitems[1].subitems[11].stringLength == 7, "Expected 7 but got " SIZE_T_FORMAT, node->subitems[1].subitems[11].stringLength);
+	TestCase_assert(!strcmp(node->subitems[1].subitems[11].value.string, "0xA0000"), "Expected \"0xA0000\" but got \"%s\"", node->subitems[1].subitems[11].value.string);
 	JSONNode_dispose(node);
 }
 
@@ -1323,6 +1351,7 @@ static void testInvalidOperations() {
 	_testNoTopLevelContainer(writeUInt64, 0)
 	_testNoTopLevelContainer(writeFloat, 0)
 	_testNoTopLevelContainer(writeDouble, 0)
+	_testNoTopLevelContainer(writeFixed16_16, 0)
 	_testNoTopLevelContainer(writeString, "")
 	_testNoTopLevelContainer(writeBoolean, false)
 	_testNoTopLevelContainer(writeEnumeration, 0, NULL)
@@ -1604,6 +1633,7 @@ static void testInvalidOperations() {
 	_testNullObjectKey(Structure, writeUInt64, 0)
 	_testNullObjectKey(Structure, writeFloat, 0)
 	_testNullObjectKey(Structure, writeDouble, 0)
+	_testNullObjectKey(Structure, writeFixed16_16, 0)
 	_testNullObjectKey(Structure, writeString, "")
 	_testNullObjectKey(Structure, writeBoolean, false)
 	_testNullObjectKey(Structure, writeEnumeration, 0, "enum", 0, NULL)
@@ -1626,6 +1656,7 @@ static void testInvalidOperations() {
 	_testNullObjectKey(Dictionary, writeUInt64, 0)
 	_testNullObjectKey(Dictionary, writeFloat, 0)
 	_testNullObjectKey(Dictionary, writeDouble, 0)
+	_testNullObjectKey(Dictionary, writeFixed16_16, 0)
 	_testNullObjectKey(Dictionary, writeString, "")
 	_testNullObjectKey(Dictionary, writeBoolean, false)
 	_testNullObjectKey(Dictionary, writeEnumeration, 0, "enum", 0, NULL)
@@ -1701,6 +1732,7 @@ static void testErrorReporting() {
 	_testFailure(SERIALIZATION_ERROR_NO_CONTAINER_STARTED, , context->writeUInt64(context, "key", 0);)
 	_testFailure(SERIALIZATION_ERROR_NO_CONTAINER_STARTED, , context->writeFloat(context, "key", 0);)
 	_testFailure(SERIALIZATION_ERROR_NO_CONTAINER_STARTED, , context->writeDouble(context, "key", 0);)
+	_testFailure(SERIALIZATION_ERROR_NO_CONTAINER_STARTED, , context->writeFixed16_16(context, "key", 0);)
 	_testFailure(SERIALIZATION_ERROR_NO_CONTAINER_STARTED, , context->writeString(context, "key", "");)
 	_testFailure(SERIALIZATION_ERROR_NO_CONTAINER_STARTED, , context->writeBoolean(context, "key", false);)
 	_testFailure(SERIALIZATION_ERROR_NO_CONTAINER_STARTED, , context->writeEnumeration(context, "key", 0, "", 0, NULL);)
@@ -1719,6 +1751,7 @@ static void testErrorReporting() {
 	_testFailure(SERIALIZATION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->writeUInt64(context, "key", 0);)
 	_testFailure(SERIALIZATION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->writeFloat(context, "key", 0);)
 	_testFailure(SERIALIZATION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->writeDouble(context, "key", 0);)
+	_testFailure(SERIALIZATION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->writeFixed16_16(context, "key", 0);)
 	_testFailure(SERIALIZATION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->writeString(context, "key", "");)
 	_testFailure(SERIALIZATION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->writeBoolean(context, "key", false);)
 	_testFailure(SERIALIZATION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->writeEnumeration(context, "key", 0, "", 0, NULL);)
@@ -1857,6 +1890,9 @@ static void testErrorReporting() {
 	             context->writeDouble(context, NULL, 0);)
 	_testFailure(SERIALIZATION_ERROR_NULL_KEY,
 	             context->beginDictionary(context, "key");,
+	             context->writeFixed16_16(context, NULL, 0);)
+	_testFailure(SERIALIZATION_ERROR_NULL_KEY,
+	             context->beginDictionary(context, "key");,
 	             context->writeString(context, NULL, "");)
 	_testFailure(SERIALIZATION_ERROR_NULL_KEY,
 	             context->beginDictionary(context, "key");,
@@ -1909,6 +1945,9 @@ static void testErrorReporting() {
 	             context->writeDouble(context, NULL, 0);)
 	_testFailure(SERIALIZATION_ERROR_NULL_KEY,
 	             context->beginStructure(context, "key");,
+	             context->writeFixed16_16(context, NULL, 0);)
+	_testFailure(SERIALIZATION_ERROR_NULL_KEY,
+	             context->beginStructure(context, "key");,
 	             context->writeString(context, NULL, "");)
 	_testFailure(SERIALIZATION_ERROR_NULL_KEY,
 	             context->beginStructure(context, "key");,
@@ -1955,6 +1994,7 @@ static void testErrorReporting() {
 	_testFailureDuplicateStructureKey(writeUInt64(context, "key", 0))
 	_testFailureDuplicateStructureKey(writeFloat(context, "key", 0))
 	_testFailureDuplicateStructureKey(writeDouble(context, "key", 0))
+	_testFailureDuplicateStructureKey(writeFixed16_16(context, "key", 0))
 	_testFailureDuplicateStructureKey(writeString(context, "key", ""))
 	_testFailureDuplicateStructureKey(writeBoolean(context, "key", false))
 	_testFailureDuplicateStructureKey(writeEnumeration(context, "key", 0, "", 0, NULL))
@@ -1998,6 +2038,7 @@ static void testThatNodeIsCopiedWhenRequestedMultipleTimes() {
 			context->writeBitfield16(context, "item", 1, "14", NULL);
 			context->writeBitfield32(context, "item", 1, "15", NULL);
 			context->writeBitfield64(context, "item", 1, "16", NULL);
+			context->writeFixed16_16(context, "item", 0xA0000);
 		context->endArray(context);
 	context->endArray(context);
 	node1 = JSONSerializationContext_writeToJSONNode(context);
@@ -2032,6 +2073,7 @@ static void testThatNodeIsCopiedWhenRequestedMultipleTimes() {
 	TestCase_assert(node1->subitems[1].subitems[8].subitems[0].value.string != node2->subitems[1].subitems[8].subitems[0].value.string, "Pointers expected to differ, but didn't");
 	TestCase_assert(node1->subitems[1].subitems[9].subitems[0].value.string != node2->subitems[1].subitems[9].subitems[0].value.string, "Pointers expected to differ, but didn't");
 	TestCase_assert(node1->subitems[1].subitems[10].subitems[0].value.string != node2->subitems[1].subitems[10].subitems[0].value.string, "Pointers expected to differ, but didn't");
+	TestCase_assert(node1->subitems[1].subitems[11].value.string != node2->subitems[1].subitems[11].value.string, "Pointers expected to differ, but didn't");
 	JSONNode_dispose(node1);
 	JSONNode_dispose(node2);
 }

@@ -31,6 +31,7 @@ static void verifyInit(JSONDeserializationContext * context) {
 	TestCase_assert(context->readUInt64 == JSONDeserializationContext_readUInt64, "Expected %p but got %p", JSONDeserializationContext_readUInt64, context->readUInt64);
 	TestCase_assert(context->readFloat == JSONDeserializationContext_readFloat, "Expected %p but got %p", JSONDeserializationContext_readFloat, context->readFloat);
 	TestCase_assert(context->readDouble == JSONDeserializationContext_readDouble, "Expected %p but got %p", JSONDeserializationContext_readDouble, context->readDouble);
+	TestCase_assert(context->readFixed16_16 == JSONDeserializationContext_readFixed16_16, "Expected %p but got %p", JSONDeserializationContext_readFixed16_16, context->readFixed16_16);
 	TestCase_assert(context->readEnumeration == JSONDeserializationContext_readEnumeration, "Expected %p but got %p", JSONDeserializationContext_readEnumeration, context->readEnumeration);
 	TestCase_assert(context->readBitfield8 == JSONDeserializationContext_readBitfield8, "Expected %p but got %p", JSONDeserializationContext_readBitfield8, context->readBitfield8);
 	TestCase_assert(context->readBitfield16 == JSONDeserializationContext_readBitfield16, "Expected %p but got %p", JSONDeserializationContext_readBitfield16, context->readBitfield16);
@@ -113,6 +114,7 @@ static void testInit() {
 #define readFunction_uint64_t readUInt64
 #define readFunction_float readFloat
 #define readFunction_double readDouble
+#define readFunction_fixed16_16 readFixed16_16
 #define readFunction_bool readBoolean
 #define printfSpecifier_int8_t "%d"
 #define printfSpecifier_uint8_t "%u"
@@ -124,6 +126,7 @@ static void testInit() {
 #define printfSpecifier_uint64_t UINT64_FORMAT
 #define printfSpecifier_float "%f"
 #define printfSpecifier_double "%f"
+#define printfSpecifier_fixed16_16 "0x%05X"
 #define printfSpecifier_bool "%d"
 #define readAndVerifyNumber(TYPE, KEY, EXPECTED_VALUE) { \
 	TYPE value; \
@@ -185,10 +188,10 @@ static void testInit() {
 static void testNumberValues() {
 	JSONDeserializationContext * context;
 	
-	context = JSONDeserializationContext_createWithString(stringAndLength("[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]"));
+	context = JSONDeserializationContext_createWithString(stringAndLength("[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, \"0xA0000\"]"));
 	TestCase_assert(context != NULL, "Expected non-NULL but got NULL");
 	if (context == NULL) {return;} // Suppress clang warning
-	beginAndVerifyArray("", 10)
+	beginAndVerifyArray("", 11)
 	readAndVerifyNumber(int8_t, "", 0)
 	readAndVerifyNumber(uint8_t, "", 1)
 	readAndVerifyNumber(int16_t, "", 2)
@@ -199,13 +202,14 @@ static void testNumberValues() {
 	readAndVerifyNumber(uint64_t, "", 7)
 	readAndVerifyNumber(float, "", 8)
 	readAndVerifyNumber(double, "", 9)
+	readAndVerifyNumber(fixed16_16, "", 0xA0000)
 	context->endArray(context);
 	context->dispose(context);
 	
-	context = JSONDeserializationContext_createWithString(stringAndLength("[-128, 255, -32768, 65535, -2147483648, 4294967295, -9007199254740992, 9007199254740992, 340282346638528859811704183484516925440, 179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368]"));
+	context = JSONDeserializationContext_createWithString(stringAndLength("[-128, 255, -32768, 65535, -2147483648, 4294967295, -9007199254740992, 9007199254740992, 340282346638528859811704183484516925440, 179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368, \"0x80000002\"]"));
 	TestCase_assert(context != NULL, "Expected non-NULL but got NULL");
 	if (context == NULL) {return;} // Suppress clang warning
-	beginAndVerifyArray("", 10)
+	beginAndVerifyArray("", 11)
 	readAndVerifyNumber(int8_t, "", INT8_MIN)
 	readAndVerifyNumber(uint8_t, "", UINT8_MAX)
 	readAndVerifyNumber(int16_t, "", INT16_MIN)
@@ -216,6 +220,7 @@ static void testNumberValues() {
 	readAndVerifyNumber(uint64_t, "", 1ull << DBL_MANT_DIG)
 	readAndVerifyNumber(float, "", FLT_MAX)
 	readAndVerifyNumber(double, "", DBL_MAX)
+	readAndVerifyNumber(fixed16_16, "", FIXED_16_16_MIN)
 	context->endArray(context);
 	context->dispose(context);
 }
@@ -368,14 +373,14 @@ static void testBitfields() {
 static void testArrays() {
 	JSONDeserializationContext * context;
 	
-	context = JSONDeserializationContext_createWithString(stringAndLength("[[-1], [0, 1, [2, 3, 4, 5, 6, 7], 8, 9, \"10\", true, \"enum\", [\"13\"], [\"14\"], [\"15\"], [\"16\"]]]"));
+	context = JSONDeserializationContext_createWithString(stringAndLength("[[-1], [0, 1, [2, 3, 4, 5, 6, 7], 8, 9, \"0xA0000\", \"10\", true, \"enum\", [\"13\"], [\"14\"], [\"15\"], [\"16\"]]]"));
 	TestCase_assert(context != NULL, "Expected non-NULL but got NULL");
 	if (context == NULL) {return;} // Suppress clang warning
 	beginAndVerifyArray("", 2)
 		beginAndVerifyArray("", 1)
 			readAndVerifyNumber(int8_t, "", -1)
 		context->endArray(context);
-		beginAndVerifyArray("", 12)
+		beginAndVerifyArray("", 13)
 			readAndVerifyNumber(int8_t, "", 0)
 			readAndVerifyNumber(uint8_t, "", 1)
 			beginAndVerifyArray("", 6)
@@ -388,6 +393,7 @@ static void testArrays() {
 			context->endArray(context);
 			readAndVerifyNumber(float, "", 8)
 			readAndVerifyNumber(double, "", 9)
+			readAndVerifyNumber(fixed16_16, "", 0xA0000)
 			readAndVerifyString("", "10")
 			readAndVerifyNumber(bool, "", true)
 			readAndVerifyEnumeration("", 12, "enum", 12, NULL)
@@ -403,7 +409,7 @@ static void testArrays() {
 static void testStructures() {
 	JSONDeserializationContext * context;
 	
-	context = JSONDeserializationContext_createWithString(stringAndLength("{\"a\": {\"b\": -1}, \"c\": {\"d\": 0, \"e\": 1, \"f\": {\"g\": 2, \"h\": 3, \"i\": 4, \"j\": 5, \"k\": 6, \"l\": 7}, \"m\": 8, \"n\": 9, \"o\": \"10\", \"p\": true, \"q\": \"enum\", \"r\": [\"13\"], \"s\": [\"14\"], \"t\": [\"15\"], \"u\": [\"16\"]}}"));
+	context = JSONDeserializationContext_createWithString(stringAndLength("{\"a\": {\"b\": -1}, \"c\": {\"d\": 0, \"e\": 1, \"f\": {\"g\": 2, \"h\": 3, \"i\": 4, \"j\": 5, \"k\": 6, \"l\": 7}, \"m\": 8, \"n\": 9, \"v\": 655360, \"o\": \"10\", \"p\": true, \"q\": \"enum\", \"r\": [\"13\"], \"s\": [\"14\"], \"t\": [\"15\"], \"u\": [\"16\"]}}"));
 	TestCase_assert(context != NULL, "Expected non-NULL but got NULL");
 	if (context == NULL) {return;} // Suppress clang warning
 	context->beginStructure(context, "");
@@ -423,6 +429,7 @@ static void testStructures() {
 			context->endStructure(context);
 			readAndVerifyNumber(float, "m", 8)
 			readAndVerifyNumber(double, "n", 9)
+			readAndVerifyNumber(fixed16_16, "v", 0xA0000)
 			readAndVerifyString("o", "10")
 			readAndVerifyNumber(bool, "p", true)
 			readAndVerifyEnumeration("q", 12, "enum", 12, NULL)
@@ -434,7 +441,7 @@ static void testStructures() {
 	context->endStructure(context);
 	context->dispose(context);
 	
-	context = JSONDeserializationContext_createWithString(stringAndLength("{\"c\": {\"u\": [\"16\"], \"t\": [\"15\"], \"s\": [\"14\"], \"r\": [\"13\"], \"q\": \"enum\", \"p\": true, \"o\": \"10\", \"n\": 9, \"m\": 8, \"f\": {\"l\": 7, \"k\": 6, \"j\": 5, \"i\": 4, \"h\": 3, \"g\": 2}, \"e\": 1, \"d\": 0}, \"a\": {\"b2\": -10, \"b\": -1}}"));
+	context = JSONDeserializationContext_createWithString(stringAndLength("{\"c\": {\"u\": [\"16\"], \"t\": [\"15\"], \"s\": [\"14\"], \"r\": [\"13\"], \"q\": \"enum\", \"p\": true, \"o\": \"10\", \"v\": \"0xA0000\", \"n\": 9, \"m\": 8, \"f\": {\"l\": 7, \"k\": 6, \"j\": 5, \"i\": 4, \"h\": 3, \"g\": 2}, \"e\": 1, \"d\": 0}, \"a\": {\"b2\": -10, \"b\": -1}}"));
 	TestCase_assert(context != NULL, "Expected non-NULL but got NULL");
 	if (context == NULL) {return;} // Suppress clang warning
 	context->beginStructure(context, "");
@@ -455,6 +462,7 @@ static void testStructures() {
 			context->endStructure(context);
 			readAndVerifyNumber(float, "m", 8)
 			readAndVerifyNumber(double, "n", 9)
+			readAndVerifyNumber(fixed16_16, "v", 0xA0000)
 			readAndVerifyString("o", "10")
 			readAndVerifyNumber(bool, "p", true)
 			readAndVerifyEnumeration("q", 12, "enum", 12, NULL)
@@ -471,14 +479,14 @@ static void testDictionaries() {
 	JSONDeserializationContext * context;
 	const char * key;
 	
-	context = JSONDeserializationContext_createWithString(stringAndLength("{\"a\": {\"b\": -1}, \"c\": {\"d\": 0, \"e\": 1, \"f\": {\"g\": 2, \"h\": 3, \"i\": 4, \"j\": 5, \"k\": 6, \"l\": 7}, \"m\": 8, \"n\": 9, \"o\": \"10\", \"p\": true, \"q\": \"enum\", \"r\": [\"13\"], \"s\": [\"14\"], \"t\": [\"15\"], \"u\": [\"16\"]}}"));
+	context = JSONDeserializationContext_createWithString(stringAndLength("{\"a\": {\"b\": -1}, \"c\": {\"d\": 0, \"e\": 1, \"f\": {\"g\": 2, \"h\": 3, \"i\": 4, \"j\": 5, \"k\": 6, \"l\": 7}, \"m\": 8, \"n\": 9, \"v\": 655360, \"o\": \"10\", \"p\": true, \"q\": \"enum\", \"r\": [\"13\"], \"s\": [\"14\"], \"t\": [\"15\"], \"u\": [\"16\"]}}"));
 	TestCase_assert(context != NULL, "Expected non-NULL but got NULL");
 	if (context == NULL) {return;} // Suppress clang warning
 	beginAndVerifyDictionary("", 2)
 		beginAndVerifyDictionary("a", 1)
 			readAndVerifyNumber(int8_t, "b", -1)
 		context->endDictionary(context);
-		beginAndVerifyDictionary("c", 12)
+		beginAndVerifyDictionary("c", 13)
 			readAndVerifyNumber(int8_t, "d", 0)
 			readAndVerifyNumber(uint8_t, "e", 1)
 			beginAndVerifyDictionary("f", 6)
@@ -491,6 +499,7 @@ static void testDictionaries() {
 			context->endDictionary(context);
 			readAndVerifyNumber(float, "m", 8)
 			readAndVerifyNumber(double, "n", 9)
+			readAndVerifyNumber(fixed16_16, "v", 0xA0000)
 			readAndVerifyString("o", "10")
 			readAndVerifyNumber(bool, "p", true)
 			readAndVerifyEnumeration("q", 12, "enum", 12, NULL)
@@ -502,7 +511,7 @@ static void testDictionaries() {
 	context->endDictionary(context);
 	context->dispose(context);
 	
-	context = JSONDeserializationContext_createWithString(stringAndLength("{\"c\": {\"u\": [\"16\"], \"t\": [\"15\"], \"s\": [\"14\"], \"r\": [\"13\"], \"q\": \"enum\", \"p\": true, \"o\": \"10\", \"n\": 9, \"m\": 8, \"f\": {\"l\": 7, \"k\": 6, \"j\": 5, \"i\": 4, \"h\": 3, \"g\": 2}, \"e\": 1, \"d\": 0}, \"a\": {\"b2\": -10, \"b\": -1}}"));
+	context = JSONDeserializationContext_createWithString(stringAndLength("{\"c\": {\"u\": [\"16\"], \"t\": [\"15\"], \"s\": [\"14\"], \"r\": [\"13\"], \"q\": \"enum\", \"p\": true, \"o\": \"10\", \"v\": \"0xA0000\", \"n\": 9, \"m\": 8, \"f\": {\"l\": 7, \"k\": 6, \"j\": 5, \"i\": 4, \"h\": 3, \"g\": 2}, \"e\": 1, \"d\": 0}, \"a\": {\"b2\": -10, \"b\": -1}}"));
 	TestCase_assert(context != NULL, "Expected non-NULL but got NULL");
 	if (context == NULL) {return;} // Suppress clang warning
 	beginAndVerifyDictionary("", 2)
@@ -510,7 +519,7 @@ static void testDictionaries() {
 			readAndVerifyNumber(int8_t, "b", -1)
 			readAndVerifyNumber(int8_t, "b2", -10)
 		context->endDictionary(context);
-		beginAndVerifyDictionary("c", 12)
+		beginAndVerifyDictionary("c", 13)
 			readAndVerifyNumber(int8_t, "d", 0)
 			readAndVerifyNumber(uint8_t, "e", 1)
 			beginAndVerifyDictionary("f", 6)
@@ -523,6 +532,7 @@ static void testDictionaries() {
 			context->endDictionary(context);
 			readAndVerifyNumber(float, "m", 8)
 			readAndVerifyNumber(double, "n", 9)
+			readAndVerifyNumber(fixed16_16, "v", 0xA0000)
 			readAndVerifyString("o", "10")
 			readAndVerifyNumber(bool, "p", true)
 			readAndVerifyEnumeration("q", 12, "enum", 12, NULL)
@@ -570,10 +580,10 @@ static void testDictionaries() {
 	context->endDictionary(context);
 	context->dispose(context);
 	
-	context = JSONDeserializationContext_createWithString(stringAndLength("{\"\": -1, \"\": 0, \"\": 1, \"\": 2, \"\": 3, \"\": 4, \"\": 5, \"\": 6, \"\": 7, \"\": 8, \"\": 9, \"\": \"10\", \"\": true, \"\": \"enum\", \"\": [\"13\"], \"\": [\"14\"], \"\": [\"15\"], \"\": [\"16\"], \"\": [], \"\": {}, \"\": {\"\": 0, \"\": 0}}"));
+	context = JSONDeserializationContext_createWithString(stringAndLength("{\"\": -1, \"\": 0, \"\": 1, \"\": 2, \"\": 3, \"\": 4, \"\": 5, \"\": 6, \"\": 7, \"\": 8, \"\": 9, \"\": \"0xA0000\", \"\": \"10\", \"\": true, \"\": \"enum\", \"\": [\"13\"], \"\": [\"14\"], \"\": [\"15\"], \"\": [\"16\"], \"\": [], \"\": {}, \"\": {\"\": 0, \"\": 0}}"));
 	TestCase_assert(context != NULL, "Expected non-NULL but got NULL");
 	if (context == NULL) {return;} // Suppress clang warning
-	beginAndVerifyDictionary("", 21)
+	beginAndVerifyDictionary("", 22)
 		verifyHasDictionaryKey("", true)
 		verifyHasDictionaryKey(" ", false)
 		verifyReadNextDictionaryKey("")
@@ -598,6 +608,8 @@ static void testDictionaries() {
 		readAndVerifyNumber(float, key, 8)
 		verifyReadNextDictionaryKey("")
 		readAndVerifyNumber(double, key, 9)
+		verifyReadNextDictionaryKey("")
+		readAndVerifyNumber(fixed16_16, key, 0xA0000)
 		verifyReadNextDictionaryKey("")
 		readAndVerifyString(key, "10")
 		verifyReadNextDictionaryKey("")
@@ -1007,6 +1019,10 @@ static void testErrorReporting() {
 	             SERIALIZATION_ERROR_INCORRECT_TYPE,
 	             context->beginArray(context, "");,
 	             context->readDouble(context, "");)
+	_testFiveFailures("[{}]", "[[]]", "[\"\"]", "[false]", "[null]",
+	             SERIALIZATION_ERROR_INCORRECT_TYPE,
+	             context->beginArray(context, "");,
+	             context->readFixed16_16(context, "");)
 	
 	_testFiveFailures("[{}]", "[[]]", "[0]", "[false]", "[null]",
 	             SERIALIZATION_ERROR_INCORRECT_TYPE,
@@ -1061,6 +1077,7 @@ static void testErrorReporting() {
 	_testEndOfArray(context->readUInt64(context, "");)
 	_testEndOfArray(context->readFloat(context, "");)
 	_testEndOfArray(context->readDouble(context, "");)
+	_testEndOfArray(context->readFixed16_16(context, "");)
 	_testEndOfArray(context->readString(context, "");)
 	_testEndOfArray(context->readBoolean(context, "");)
 	_testEndOfArray(context->readEnumeration(context, "", "enum", 0, NULL);)
@@ -1115,6 +1132,7 @@ static void testErrorReporting() {
 	_testNoSuchKey(context->readUInt64(context, "");)
 	_testNoSuchKey(context->readFloat(context, "");)
 	_testNoSuchKey(context->readDouble(context, "");)
+	_testNoSuchKey(context->readFixed16_16(context, "");)
 	_testNoSuchKey(context->readString(context, "");)
 	_testNoSuchKey(context->readBoolean(context, "");)
 	_testNoSuchKey(context->readEnumeration(context, "", "enum", 0, NULL);)
@@ -1248,6 +1266,7 @@ static void testErrorReporting() {
 	_testFailure("{}", SERIALIZATION_ERROR_NULL_KEY, context->beginStructure(context, "");, context->readUInt64(context, NULL);)
 	_testFailure("{}", SERIALIZATION_ERROR_NULL_KEY, context->beginStructure(context, "");, context->readFloat(context, NULL);)
 	_testFailure("{}", SERIALIZATION_ERROR_NULL_KEY, context->beginStructure(context, "");, context->readDouble(context, NULL);)
+	_testFailure("{}", SERIALIZATION_ERROR_NULL_KEY, context->beginStructure(context, "");, context->readFixed16_16(context, NULL);)
 	_testFailure("{}", SERIALIZATION_ERROR_NULL_KEY, context->beginStructure(context, "");, context->readString(context, NULL);)
 	_testFailure("{}", SERIALIZATION_ERROR_NULL_KEY, context->beginStructure(context, "");, context->readBoolean(context, NULL);)
 	_testFailure("{}", SERIALIZATION_ERROR_NULL_KEY, context->beginStructure(context, "");, context->readEnumeration(context, NULL, NULL);)
@@ -1266,6 +1285,7 @@ static void testErrorReporting() {
 	_testFailure("{}", SERIALIZATION_ERROR_NULL_KEY, context->beginDictionary(context, "");, context->readUInt64(context, NULL);)
 	_testFailure("{}", SERIALIZATION_ERROR_NULL_KEY, context->beginDictionary(context, "");, context->readFloat(context, NULL);)
 	_testFailure("{}", SERIALIZATION_ERROR_NULL_KEY, context->beginDictionary(context, "");, context->readDouble(context, NULL);)
+	_testFailure("{}", SERIALIZATION_ERROR_NULL_KEY, context->beginDictionary(context, "");, context->readFixed16_16(context, NULL);)
 	_testFailure("{}", SERIALIZATION_ERROR_NULL_KEY, context->beginDictionary(context, "");, context->readString(context, NULL);)
 	_testFailure("{}", SERIALIZATION_ERROR_NULL_KEY, context->beginDictionary(context, "");, context->readBoolean(context, NULL);)
 	_testFailure("{}", SERIALIZATION_ERROR_NULL_KEY, context->beginDictionary(context, "");, context->readEnumeration(context, NULL, NULL);)
@@ -1417,6 +1437,7 @@ static void testErrorReporting() {
 	_testFailure("[]", SERIALIZATION_ERROR_NO_CONTAINER_STARTED, , context->readUInt64(context, "key");)
 	_testFailure("[]", SERIALIZATION_ERROR_NO_CONTAINER_STARTED, , context->readFloat(context, "key");)
 	_testFailure("[]", SERIALIZATION_ERROR_NO_CONTAINER_STARTED, , context->readDouble(context, "key");)
+	_testFailure("[]", SERIALIZATION_ERROR_NO_CONTAINER_STARTED, , context->readFixed16_16(context, "key");)
 	_testFailure("[]", SERIALIZATION_ERROR_NO_CONTAINER_STARTED, , context->readString(context, "key");)
 	_testFailure("[]", SERIALIZATION_ERROR_NO_CONTAINER_STARTED, , context->readBoolean(context, "key");)
 	_testFailure("[]", SERIALIZATION_ERROR_NO_CONTAINER_STARTED, , context->readEnumeration(context, "key", "", 0, NULL);)
@@ -1435,6 +1456,7 @@ static void testErrorReporting() {
 	_testFailure("[]", SERIALIZATION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->readUInt64(context, "key");)
 	_testFailure("[]", SERIALIZATION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->readFloat(context, "key");)
 	_testFailure("[]", SERIALIZATION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->readDouble(context, "key");)
+	_testFailure("[]", SERIALIZATION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->readFixed16_16(context, "key");)
 	_testFailure("[]", SERIALIZATION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->readString(context, "key");)
 	_testFailure("[]", SERIALIZATION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->readBoolean(context, "key");)
 	_testFailure("[]", SERIALIZATION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->readEnumeration(context, "key", "", 0, NULL);)

@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2014 Alex Diener
+  Copyright (c) 2015 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -63,6 +63,7 @@ static void JSONDeserializationContext_init(JSONDeserializationContext * self) {
 	self->readUInt64 = JSONDeserializationContext_readUInt64;
 	self->readFloat = JSONDeserializationContext_readFloat;
 	self->readDouble = JSONDeserializationContext_readDouble;
+	self->readFixed16_16 = JSONDeserializationContext_readFixed16_16;
 	self->readEnumeration = JSONDeserializationContext_readEnumeration;
 	self->readBitfield8 = JSONDeserializationContext_readBitfield8;
 	self->readBitfield16 = JSONDeserializationContext_readBitfield16;
@@ -507,6 +508,26 @@ double JSONDeserializationContext_readDouble(JSONDeserializationContext * self, 
 	
 	getNextNodeIndex(0)
 	_failIfNotOfType(JSON_TYPE_NUMBER, 0)
+	return self->currentNode->subitems[nextNodeIndex].value.number;
+}
+
+fixed16_16 JSONDeserializationContext_readFixed16_16(JSONDeserializationContext * self, const char * key) {
+	size_t nextNodeIndex = 0;
+	
+	getNextNodeIndex(0)
+	if (self->currentNode->subitems[nextNodeIndex].type != JSON_TYPE_NUMBER && self->currentNode->subitems[nextNodeIndex].type != JSON_TYPE_STRING) {
+		failWithStatus(SERIALIZATION_ERROR_INCORRECT_TYPE, return 0)
+	}
+	if (self->currentNode->subitems[nextNodeIndex].type == JSON_TYPE_STRING) {
+		unsigned int value = 0;
+		int conversions, charsConsumed;
+		
+		conversions = sscanf(self->currentNode->subitems[nextNodeIndex].value.string, "%x%n", &value, &charsConsumed);
+		if (conversions != 1 || (size_t) charsConsumed != self->currentNode->subitems[nextNodeIndex].stringLength) {
+			failWithStatus(SERIALIZATION_ERROR_INCORRECT_TYPE,)
+		}
+		return value;
+	}
 	return self->currentNode->subitems[nextNodeIndex].value.number;
 }
 

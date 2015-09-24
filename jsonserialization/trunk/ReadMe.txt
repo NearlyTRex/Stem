@@ -1,3 +1,5 @@
 JSONSerialization provides SerializationContext and DeserializationContext subclasses that translate to and from JSON data. Inputs and outputs can be strings, files, or JSON nodes in memory. Structures and dictionaries are represented as JSON objects; arrays are represented as JSON arrays; integer and floating point types are represented as numbers (see exception below); enumerations are represented as strings; bitfields are represented as arrays of strings.
 
 Since all JSON numbers are typed as double, some large 64-bit integers are not representable. When a 64-bit number is serialized, it will be written as a JSON number if it is losslessly representable as a double. If not, it will be written as a JSON string.
+
+For convenience of editing, fixed16_16 is serialized as a string with the format "0x%05X". Deserialization accepts both string representations in this format and number representations.
