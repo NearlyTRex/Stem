@@ -28,6 +28,7 @@ extern "C" {
 
 typedef struct DeserializationContext DeserializationContext;
 
+#include "gamemath/FixedPoint.h"
 #include "serialization/SerializationShared.h"
 #include "stemobject/StemObject.h"
 #include <stdint.h>
@@ -75,6 +76,7 @@ typedef struct DeserializationContext DeserializationContext;
 	uint64_t     (* readUInt64)(self_type * self, const char * key); \
 	float        (* readFloat)(self_type * self, const char * key); \
 	double       (* readDouble)(self_type * self, const char * key); \
+	fixed16_16   (* readFixed16_16)(self_type * self, const char * key); \
 	\
 	/* Additional args: Pairs of strings naming constants, and the values described by them, terminated by */ \
 	/* NULL. You can use the enumKV macro from SerializationShared.h for convenience. */ \

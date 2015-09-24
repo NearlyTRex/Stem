@@ -49,6 +49,7 @@ bool SerializationContext_init(SerializationContext * self) {
 	self->writeUInt64 = NULL;
 	self->writeFloat = NULL;
 	self->writeDouble = NULL;
+	self->writeFixed16_16 = NULL;
 	self->writeEnumeration = NULL;
 	self->writeBitfield8 = NULL;
 	self->writeBitfield16 = NULL;

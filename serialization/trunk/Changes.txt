@@ -1,3 +1,6 @@
+1.6.0 (2015-09-23)
+ * Added fixed16_16 type to interfaces for serialization and deserialization
+
 1.5.0 (2014-12-07)
  * Renamed readBytes/writeBytes to readBlob/writeBlob to match DataValue naming convention
  * Reordered function pointers in SerializationContext and DeserializationContext to match DataValue order

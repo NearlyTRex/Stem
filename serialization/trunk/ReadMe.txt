@@ -39,6 +39,7 @@ Example usage of SerializationContext:
 	context->endArray(context);
 	context->writeFloat(context, "float", 0.25);
 	context->writeDouble(context, "double", 1.5);
+	context->writeFixed16_16(context, "fixed16_16", 0x38000);
 	context->writeString(context, "string", "Hello, world!");
 	context->writeBlob(context, "blob", "\x01\x02\x03\x04", 4);
 	context->writeEnumeration(context, "first_enum", ENUM_VALUE_0, enumKV(ENUM_VALUE_0), enumKV(ENUM_VALUE_1), NULL);
@@ -91,6 +92,8 @@ Example usage of DeserializationContext, to read back the above data:
 	// floatValue: 0.25
 	doubleValue = context->readDouble(context, "double");
 	// doubleValue: 1.5
+	fixedValue = context->readFixed16_16(context, "fixed16_16");
+	// fixedValue: 0x38000
 	string = context->readString(context, "string");
 	// string: "Hello, world!"
 	blob = context->readBlob(context, "blob", &length);
@@ -123,10 +126,10 @@ The serialized output of the above code might look like this with a binary seria
 	0010: 36 00 8A D0 FF FF FF FF FF FE 79 60 00 00 00 03 	6.........y`....
 	0020: 00 01 86 A0 FF FF FF FE D5 FA 0E 00 00 00 00 01 	................
 	0030: 2A 05 F2 00 00 00 80 3E 00 00 80 3E 00 00 00 00 	*......>...>....
-	0040: 48 65 6C 6C 6F 2C 20 77 6F 72 6C 64 21 00 00 00 	Hello, world!...
-	0050: 00 04 01 02 03 04 00 00 00 00 00 00 00 01 05 03 	................
-	0060: 00 1E 00 05 00 00 00 1E 00 00 00 05 00 00 00 00 	................
-	0070: 00 00 00 1E 00 00 00 00 00 00 00 05             	............
+	0040: 00 03 80 00 48 65 6C 6C 6F 2C 20 77 6F 72 6C 64 	....Hello, world
+	0050: 21 00 00 00 00 04 01 02 03 04 00 00 00 00 00 00 	!...............
+	0060: 00 01 05 03 00 1E 00 05 00 00 00 1E 00 00 00 05 	................
+	0070: 00 00 00 00 00 00 00 1E 00 00 00 00 00 00 00 05   ................
 
 In JSON:
 
@@ -145,6 +148,7 @@ In JSON:
 		],
 		"float": 0.25,
 		"double": 1.5,
+		"fixed16_16": "0x38000",
 		"string": "Hello, world!",
 		"blob": "AQIDBA==",
 		"first_enum": "ENUM_VALUE_0",
@@ -208,6 +212,7 @@ In XML:
 		</array>
 		<float value="0.25"/>
 		<double value="1.5"/>
+		<fixed16_16 value="0x38000"/>
 		<string value="Hello, world!"/>
 		<blob value="AQIDBA=="/>
 		<first_enum value="ENUM_VALUE_0"/>

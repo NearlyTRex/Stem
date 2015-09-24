@@ -50,6 +50,7 @@ bool DeserializationContext_init(DeserializationContext * self) {
 	self->readUInt64 = NULL;
 	self->readFloat = NULL;
 	self->readDouble = NULL;
+	self->readFixed16_16 = NULL;
 	self->readEnumeration = NULL;
 	self->readBitfield8 = NULL;
 	self->readBitfield16 = NULL;

@@ -47,6 +47,7 @@ struct TestDeserializationContext_expectedCall {
 		uint64_t uint64Value;
 		float floatValue;
 		double doubleValue;
+		fixed16_16 fixed16_16Value;
 		const char * stringValue;
 		const void * blobValue;
 		bool boolValue;
@@ -100,6 +101,7 @@ int64_t      TestDeserializationContext_readInt64(TestDeserializationContext * s
 uint64_t     TestDeserializationContext_readUInt64(TestDeserializationContext * self, const char * key);
 float        TestDeserializationContext_readFloat(TestDeserializationContext * self, const char * key);
 double       TestDeserializationContext_readDouble(TestDeserializationContext * self, const char * key);
+fixed16_16   TestDeserializationContext_readFixed16_16(TestDeserializationContext * self, const char * key);
 int          TestDeserializationContext_readEnumeration(TestDeserializationContext * self, const char * key, ...) __attribute__((sentinel));
 uint8_t      TestDeserializationContext_readBitfield8(TestDeserializationContext * self, const char * key, ...) __attribute__((sentinel));
 uint16_t     TestDeserializationContext_readBitfield16(TestDeserializationContext * self, const char * key, ...) __attribute__((sentinel));

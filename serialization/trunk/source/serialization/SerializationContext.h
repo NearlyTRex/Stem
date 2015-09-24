@@ -26,6 +26,7 @@
 extern "C" {
 #endif
 
+#include "gamemath/FixedPoint.h"
 #include "serialization/SerializationShared.h"
 #include "stemobject/StemObject.h"
 #include <stdlib.h>
@@ -61,6 +62,7 @@ typedef struct SerializationContext SerializationContext;
 	void (* writeUInt64)(self_type * self, const char * key, uint64_t value); \
 	void (* writeFloat)(self_type * self, const char * key, float value); \
 	void (* writeDouble)(self_type * self, const char * key, double value); \
+	void (* writeFixed16_16)(self_type * self, const char * key, fixed16_16 value); \
 	\
 	/* Additional args: Pairs of strings naming constants, and the values described by them, terminated by */ \
 	/* NULL. You can use the enumKV macro from serialization/SerializationShared.h for convenience. */ \

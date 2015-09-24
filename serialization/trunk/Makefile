@@ -2,7 +2,7 @@ PROJECT_NAME = serialization
 
 # VERSION_MAJOR, VERSION_MINOR, and VERSION_TWEAK are available as preprocessor macros for all source files in the project
 VERSION_MAJOR = 1
-VERSION_MINOR = 5
+VERSION_MINOR = 6
 VERSION_TWEAK = 0
 PROJECT_VERSION = ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_TWEAK}
 
@@ -31,6 +31,7 @@ PROJECT_LIBRARY_DEPENDENCIES_unittest = library
 # STEM_LIBRARY_DEPENDENCIES is specified as ${PROJECT_NAME}/${PROJECT_VERSION} for each stem library to be linked when building
 # Patterns: STEM_LIBRARY_DEPENDENCIES, STEM_LIBRARY_DEPENDENCIES_${target}, STEM_LIBRARY_DEPENDENCIES_${platform}, STEM_LIBRARY_DEPENDENCIES_${target}_${platform}
 STEM_LIBRARY_DEPENDENCIES = \
+	gamemath/latest \
 	stemobject/latest \
 	utilities/latest
 STEM_LIBRARY_DEPENDENCIES_unittest = unittest/latest

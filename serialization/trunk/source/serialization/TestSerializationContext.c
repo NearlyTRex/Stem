@@ -63,6 +63,7 @@ bool TestSerializationContext_init(TestSerializationContext * self, jmp_buf * se
 	self->writeUInt64 = TestSerializationContext_writeUInt64;
 	self->writeFloat = TestSerializationContext_writeFloat;
 	self->writeDouble = TestSerializationContext_writeDouble;
+	self->writeFixed16_16 = TestSerializationContext_writeFixed16_16;
 	self->writeEnumeration = TestSerializationContext_writeEnumeration;
 	self->writeBitfield8 = TestSerializationContext_writeBitfield8;
 	self->writeBitfield16 = TestSerializationContext_writeBitfield16;
@@ -107,6 +108,7 @@ static char * functionNameForPtr(TestSerializationContext * self, void * functio
 	tryFunctionName(writeUInt64)
 	tryFunctionName(writeFloat)
 	tryFunctionName(writeDouble)
+	tryFunctionName(writeFixed16_16)
 	tryFunctionName(writeEnumeration)
 	tryFunctionName(writeBitfield8)
 	tryFunctionName(writeBitfield16)
@@ -230,6 +232,15 @@ static void verifyCallIsInSequence(TestSerializationContext * self, void * funct
 		doubleValue = va_arg(args, double);
 		if (self->expectedCalls[self->nextExpectedCallIndex].value.doubleValue != doubleValue) {
 			snprintf_safe(self->error, SERIALIZATION_ERROR_MAX, "Arg 3 to call %d (%s) was expected to be %f, but was %f instead", self->nextExpectedCallIndex, functionNameForPtr(self, functionPtr), self->expectedCalls[self->nextExpectedCallIndex].value.doubleValue, doubleValue);
+			longjmp(*self->sequenceBreakJmpEnv, 3);
+		}
+		
+	} else if (functionPtr == self->writeFixed16_16) {
+		fixed16_16 fixed16_16Value;
+		
+		fixed16_16Value = va_arg(args, fixed16_16);
+		if (self->expectedCalls[self->nextExpectedCallIndex].value.fixed16_16Value != fixed16_16Value) {
+			snprintf_safe(self->error, SERIALIZATION_ERROR_MAX, "Arg 3 to call %d (%s) was expected to be 0x%05X, but was 0x%05X instead", self->nextExpectedCallIndex, functionNameForPtr(self, functionPtr), self->expectedCalls[self->nextExpectedCallIndex].value.fixed16_16Value, fixed16_16Value);
 			longjmp(*self->sequenceBreakJmpEnv, 3);
 		}
 		
@@ -436,6 +447,11 @@ void TestSerializationContext_writeDouble(TestSerializationContext * self, const
 	failIfRequested(self);
 }
 
+void TestSerializationContext_writeFixed16_16(TestSerializationContext * self, const char * key, fixed16_16 value) {
+	verifyCallIsInSequence(self, self->writeFixed16_16, key, value);
+	failIfRequested(self);
+}
+
 void TestSerializationContext_writeEnumeration(TestSerializationContext * self, const char * key, int value, ...) {
 	va_list args;
 	
@@ -535,6 +551,9 @@ void TestSerializationContext_expectCall(TestSerializationContext * self, void *
 		
 	} else if (functionPtr == self->writeDouble) {
 		self->expectedCalls[self->numExpectedCalls].value.doubleValue = va_arg(args, double);
+		
+	} else if (functionPtr == self->writeFixed16_16) {
+		self->expectedCalls[self->numExpectedCalls].value.fixed16_16Value = va_arg(args, fixed16_16);
 		
 	} else if (functionPtr == self->writeEnumeration) {
 		self->expectedCalls[self->numExpectedCalls].value.enumValue = va_arg(args, int);

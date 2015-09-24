@@ -46,6 +46,7 @@ struct TestSerializationContext_expectedCall {
 		uint64_t uint64Value;
 		float floatValue;
 		double doubleValue;
+		fixed16_16 fixed16_16Value;
 		const char * stringValue;
 		const void * blobValue;
 		bool boolValue;
@@ -98,6 +99,7 @@ void TestSerializationContext_writeInt64(TestSerializationContext * self, const 
 void TestSerializationContext_writeUInt64(TestSerializationContext * self, const char * key, uint64_t value);
 void TestSerializationContext_writeFloat(TestSerializationContext * self, const char * key, float value);
 void TestSerializationContext_writeDouble(TestSerializationContext * self, const char * key, double value);
+void TestSerializationContext_writeFixed16_16(TestSerializationContext * self, const char * key, fixed16_16 value);
 void TestSerializationContext_writeBoolean(TestSerializationContext * self, const char * key, bool value);
 void TestSerializationContext_writeEnumeration(TestSerializationContext * self, const char * key, int value, ...) __attribute__((sentinel));
 void TestSerializationContext_writeBitfield8(TestSerializationContext * self, const char * key, uint8_t value, ...) __attribute__((sentinel));

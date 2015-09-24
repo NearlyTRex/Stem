@@ -61,6 +61,7 @@ bool TestDeserializationContext_init(TestDeserializationContext * self, jmp_buf 
 	self->readUInt64 = TestDeserializationContext_readUInt64;
 	self->readFloat = TestDeserializationContext_readFloat;
 	self->readDouble = TestDeserializationContext_readDouble;
+	self->readFixed16_16 = TestDeserializationContext_readFixed16_16;
 	self->readEnumeration = TestDeserializationContext_readEnumeration;
 	self->readBitfield8 = TestDeserializationContext_readBitfield8;
 	self->readBitfield16 = TestDeserializationContext_readBitfield16;
@@ -107,6 +108,7 @@ static char * functionNameForPtr(TestDeserializationContext * self, void * funct
 	tryFunctionName(readUInt64)
 	tryFunctionName(readFloat)
 	tryFunctionName(readDouble)
+	tryFunctionName(readFixed16_16)
 	tryFunctionName(readEnumeration)
 	tryFunctionName(readBitfield8)
 	tryFunctionName(readBitfield16)
@@ -315,6 +317,12 @@ double TestDeserializationContext_readDouble(TestDeserializationContext * self, 
 	return self->expectedCalls[self->nextExpectedCallIndex - 1].returnValue.doubleValue;
 }
 
+fixed16_16 TestDeserializationContext_readFixed16_16(TestDeserializationContext * self, const char * key) {
+	verifyCallIsInSequence(self, self->readFixed16_16, key);
+	failIfRequested(self);
+	return self->expectedCalls[self->nextExpectedCallIndex - 1].returnValue.fixed16_16Value;
+}
+
 int TestDeserializationContext_readEnumeration(TestDeserializationContext * self, const char * key, ...) {
 	va_list args;
 	
@@ -439,6 +447,9 @@ void TestDeserializationContext_expectCall(TestDeserializationContext * self, vo
 		
 	} else if (functionPtr == self->readDouble) {
 		self->expectedCalls[self->numExpectedCalls].returnValue.doubleValue = va_arg(args, double);
+		
+	} else if (functionPtr == self->readFixed16_16) {
+		self->expectedCalls[self->numExpectedCalls].returnValue.fixed16_16Value = va_arg(args, fixed16_16);
 		
 	} else if (functionPtr == self->readEnumeration) {
 		self->expectedCalls[self->numExpectedCalls].returnValue.enumValue = va_arg(args, int);
