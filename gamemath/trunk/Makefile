@@ -56,6 +56,7 @@ GENERATED_SOURCES = \
 		build/intermediate/generated/${PROJECT_NAME}/Box6${type_suffix}.h \
 		build/intermediate/generated/${PROJECT_NAME}/Box6${type_suffix}.c \
 	} \
+	build/intermediate/generated/${PROJECT_NAME}/RectBoxConversions.h \
 	build/intermediate/generated/${PROJECT_NAME}/VectorConversions.h
 
 # Additional build prerequisites per target
@@ -94,6 +95,7 @@ SOURCES_unittest_suites = \
 	source/unittest/FixedPointTest.c \
 	source/unittest/InterpolationTest.c \
 	source/unittest/MatrixTest.c \
+	source/unittest/RectBoxConversionsTest.c \
 	source/unittest/RectBoxTest.c \
 	source/unittest/QuaternionTest.c \
 	source/unittest/VectorConversionsTest.c \
@@ -116,6 +118,7 @@ INCLUDES = \
 	build/intermediate/generated/${PROJECT_NAME}/Rect4f.h \
 	build/intermediate/generated/${PROJECT_NAME}/Rect4i.h \
 	build/intermediate/generated/${PROJECT_NAME}/Rect4x.h \
+	build/intermediate/generated/${PROJECT_NAME}/RectBoxConversions.h \
 	build/intermediate/generated/${PROJECT_NAME}/Vector2d.h \
 	build/intermediate/generated/${PROJECT_NAME}/Vector3d.h \
 	build/intermediate/generated/${PROJECT_NAME}/Vector4d.h \
@@ -144,7 +147,8 @@ DEPENDENCY_SED_COMMANDS = \
 	s,source/${PROJECT_NAME}/Vector\(\\d\),build/intermediate/generated/${PROJECT_NAME}/Vector\\1,g; \
 	s,source/${PROJECT_NAME}/Rect\(\\d\),build/intermediate/generated/${PROJECT_NAME}/Rect\\1,g; \
 	s,source/${PROJECT_NAME}/Box\(\\d\),build/intermediate/generated/${PROJECT_NAME}/Box\\1,g; \
-	s,source/${PROJECT_NAME}/VectorConversions,build/intermediate/generated/${PROJECT_NAME}/VectorConversions,g
+	s,source/${PROJECT_NAME}/VectorConversions,build/intermediate/generated/${PROJECT_NAME}/VectorConversions,g; \
+	s,source/${PROJECT_NAME}/RectBoxConversions,build/intermediate/generated/${PROJECT_NAME}/RectBoxConversions,g
 
 # Pattern: PLIST_FILE_${target}_${platform}
 
@@ -191,3 +195,4 @@ ${foreach numeric_type,float double int fixed16_16, \
 	${eval ${call generated_rectbox_template,Box6,${numeric_type}}} \
 }
 ${eval ${call generated_header_template,VectorConversions}}
+${eval ${call generated_header_template,RectBoxConversions}}
