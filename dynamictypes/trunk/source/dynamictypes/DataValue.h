@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2014 Alex Diener
+  Copyright (c) 2015 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -28,6 +28,7 @@ extern "C" {
 
 typedef struct DataValue DataValue;
 
+#include "gamemath/FixedPoint.h"
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -53,7 +54,8 @@ enum DataValueType {
 	DATA_TYPE_BLOB,
 	DATA_TYPE_HASH_TABLE,
 	DATA_TYPE_ARRAY,
-	DATA_TYPE_ASSOCIATIVE_ARRAY
+	DATA_TYPE_ASSOCIATIVE_ARRAY,
+	DATA_TYPE_FIXED_16_16
 };
 
 #define DATA_USE_STRLEN ((size_t) -1)
@@ -71,6 +73,7 @@ struct DataValue {
 		uint64_t uint64;
 		float float32;
 		double float64;
+		fixed16_16 fixed;
 		void * pointer;
 		const char * string;
 		struct {
@@ -97,6 +100,7 @@ DataValue valueCreateInt64(int64_t value);
 DataValue valueCreateUInt64(uint64_t value);
 DataValue valueCreateFloat(float value);
 DataValue valueCreateDouble(double value);
+DataValue valueCreateFixed16_16(fixed16_16 value);
 DataValue valueCreatePointer(void * value);
 
 /** Initializes a DataValue struct with the specified non-primitive type and value.
@@ -135,6 +139,7 @@ int64_t valueGetInt64(DataValue * value);
 uint64_t valueGetUInt64(DataValue * value);
 float valueGetFloat(DataValue * value);
 double valueGetDouble(DataValue * value);
+fixed16_16 valueGetFixed16_16(DataValue * value);
 void * valueGetPointer(DataValue * value);
 const char * valueGetString(DataValue * value);
 const void * valueGetBlob(DataValue * value, size_t * outLength);

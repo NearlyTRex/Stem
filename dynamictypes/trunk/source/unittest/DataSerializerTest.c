@@ -24,7 +24,8 @@
 	enumKV(DATA_TYPE_BLOB), \
 	enumKV(DATA_TYPE_HASH_TABLE), \
 	enumKV(DATA_TYPE_ARRAY), \
-	enumKV(DATA_TYPE_ASSOCIATIVE_ARRAY)
+	enumKV(DATA_TYPE_ASSOCIATIVE_ARRAY), \
+	enumKV(DATA_TYPE_FIXED_16_16)
 
 static void testSerialize() {
 	DataValue value;
@@ -61,6 +62,8 @@ static void testSerialize() {
 		valueCreateFloat(1.0f),
 		valueCreateDouble(0.0),
 		valueCreateDouble(1.0),
+		valueCreateFixed16_16(0x00000),
+		valueCreateFixed16_16(0x10000),
 		valueCreateString("a", DATA_USE_STRLEN, false, false),
 		valueCreateString("foo", DATA_USE_STRLEN, false, false),
 		valueCreateBlob("a", 1, false, false),
@@ -114,6 +117,10 @@ static void testSerialize() {
 	context->expectCall(context, context->writeDouble, NULL, 0.0);
 	context->expectCall(context, context->writeEnumeration, NULL, DATA_TYPE_DOUBLE, ALL_DATA_TYPE_ENUM_KEYS_AND_VALUES, NULL);
 	context->expectCall(context, context->writeDouble, NULL, 1.0);
+	context->expectCall(context, context->writeEnumeration, NULL, DATA_TYPE_FIXED_16_16, ALL_DATA_TYPE_ENUM_KEYS_AND_VALUES, NULL);
+	context->expectCall(context, context->writeFixed16_16, NULL, 0x00000);
+	context->expectCall(context, context->writeEnumeration, NULL, DATA_TYPE_FIXED_16_16, ALL_DATA_TYPE_ENUM_KEYS_AND_VALUES, NULL);
+	context->expectCall(context, context->writeFixed16_16, NULL, 0x10000);
 	context->expectCall(context, context->writeEnumeration, NULL, DATA_TYPE_STRING, ALL_DATA_TYPE_ENUM_KEYS_AND_VALUES, NULL);
 	context->expectCall(context, context->writeString, NULL, "a");
 	context->expectCall(context, context->writeEnumeration, NULL, DATA_TYPE_STRING, ALL_DATA_TYPE_ENUM_KEYS_AND_VALUES, NULL);
@@ -159,6 +166,8 @@ static void testSerialize() {
 		"float_1", valueCreateFloat(1.0f),
 		"double_0", valueCreateDouble(0.0),
 		"double_1", valueCreateDouble(1.0),
+		"fixed_0", valueCreateFixed16_16(0x00000),
+		"fixed_1", valueCreateFixed16_16(0x10000),
 		"string_a", valueCreateString("a", DATA_USE_STRLEN, false, false),
 		"string_foo", valueCreateString("foo", DATA_USE_STRLEN, false, false),
 		"blob_a", valueCreateBlob("a", 1, false, false),
@@ -258,6 +267,14 @@ static void testSerialize() {
 			context->expectCall(context, context->writeString, NULL, "double_1");
 			context->expectCall(context, context->writeEnumeration, NULL, DATA_TYPE_DOUBLE, ALL_DATA_TYPE_ENUM_KEYS_AND_VALUES, NULL);
 			context->expectCall(context, context->writeDouble, NULL, 1.0);
+		} else if (!strcmp(keys[keyIndex], "fixed_0")) {
+			context->expectCall(context, context->writeString, NULL, "fixed_0");
+			context->expectCall(context, context->writeEnumeration, NULL, DATA_TYPE_FIXED_16_16, ALL_DATA_TYPE_ENUM_KEYS_AND_VALUES, NULL);
+			context->expectCall(context, context->writeFixed16_16, NULL, 0x00000);
+		} else if (!strcmp(keys[keyIndex], "fixed_1")) {
+			context->expectCall(context, context->writeString, NULL, "fixed_1");
+			context->expectCall(context, context->writeEnumeration, NULL, DATA_TYPE_FIXED_16_16, ALL_DATA_TYPE_ENUM_KEYS_AND_VALUES, NULL);
+			context->expectCall(context, context->writeFixed16_16, NULL, 0x10000);
 		} else if (!strcmp(keys[keyIndex], "string_a")) {
 			context->expectCall(context, context->writeString, NULL, "string_a");
 			context->expectCall(context, context->writeEnumeration, NULL, DATA_TYPE_STRING, ALL_DATA_TYPE_ENUM_KEYS_AND_VALUES, NULL);
@@ -314,6 +331,8 @@ static void testSerialize() {
 		"float_1", valueCreateFloat(1.0f),
 		"double_0", valueCreateDouble(0.0),
 		"double_1", valueCreateDouble(1.0),
+		"fixed_0", valueCreateFixed16_16(0x00000),
+		"fixed_1", valueCreateFixed16_16(0x10000),
 		"string_a", valueCreateString("a", DATA_USE_STRLEN, false, false),
 		"string_foo", valueCreateString("foo", DATA_USE_STRLEN, false, false),
 		"blob_a", valueCreateBlob("a", 1, false, false),
@@ -389,6 +408,12 @@ static void testSerialize() {
 	context->expectCall(context, context->writeString, NULL, "double_1");
 	context->expectCall(context, context->writeEnumeration, NULL, DATA_TYPE_DOUBLE, ALL_DATA_TYPE_ENUM_KEYS_AND_VALUES, NULL);
 	context->expectCall(context, context->writeDouble, NULL, 1.0);
+	context->expectCall(context, context->writeString, NULL, "fixed_0");
+	context->expectCall(context, context->writeEnumeration, NULL, DATA_TYPE_FIXED_16_16, ALL_DATA_TYPE_ENUM_KEYS_AND_VALUES, NULL);
+	context->expectCall(context, context->writeFixed16_16, NULL, 0x00000);
+	context->expectCall(context, context->writeString, NULL, "fixed_1");
+	context->expectCall(context, context->writeEnumeration, NULL, DATA_TYPE_FIXED_16_16, ALL_DATA_TYPE_ENUM_KEYS_AND_VALUES, NULL);
+	context->expectCall(context, context->writeFixed16_16, NULL, 0x10000);
 	context->expectCall(context, context->writeString, NULL, "string_a");
 	context->expectCall(context, context->writeEnumeration, NULL, DATA_TYPE_STRING, ALL_DATA_TYPE_ENUM_KEYS_AND_VALUES, NULL);
 	context->expectCall(context, context->writeString, NULL, "a");
@@ -672,7 +697,7 @@ static void testDeserialize() {
 	
 	context->expectCall(context, context->beginArray, "data", 2);
 	context->expectCall(context, context->readString, NULL, "array");
-	context->expectCall(context, context->beginArray, NULL, 52);
+	context->expectCall(context, context->beginArray, NULL, 56);
 	context->expectCall(context, context->readEnumeration, NULL, DATA_TYPE_BOOLEAN, ALL_DATA_TYPE_ENUM_KEYS_AND_VALUES, NULL);
 	context->expectCall(context, context->readBoolean, NULL, false);
 	context->expectCall(context, context->readEnumeration, NULL, DATA_TYPE_BOOLEAN, ALL_DATA_TYPE_ENUM_KEYS_AND_VALUES, NULL);
@@ -717,6 +742,10 @@ static void testDeserialize() {
 	context->expectCall(context, context->readDouble, NULL, 0.0);
 	context->expectCall(context, context->readEnumeration, NULL, DATA_TYPE_DOUBLE, ALL_DATA_TYPE_ENUM_KEYS_AND_VALUES, NULL);
 	context->expectCall(context, context->readDouble, NULL, 1.0);
+	context->expectCall(context, context->readEnumeration, NULL, DATA_TYPE_FIXED_16_16, ALL_DATA_TYPE_ENUM_KEYS_AND_VALUES, NULL);
+	context->expectCall(context, context->readFixed16_16, NULL, 0x00000);
+	context->expectCall(context, context->readEnumeration, NULL, DATA_TYPE_FIXED_16_16, ALL_DATA_TYPE_ENUM_KEYS_AND_VALUES, NULL);
+	context->expectCall(context, context->readFixed16_16, NULL, 0x10000);
 	context->expectCall(context, context->readEnumeration, NULL, DATA_TYPE_STRING, ALL_DATA_TYPE_ENUM_KEYS_AND_VALUES, NULL);
 	context->expectCall(context, context->readString, NULL, "a");
 	context->expectCall(context, context->readEnumeration, NULL, DATA_TYPE_STRING, ALL_DATA_TYPE_ENUM_KEYS_AND_VALUES, NULL);
@@ -731,7 +760,7 @@ static void testDeserialize() {
 	value = DataValue_deserialize((DeserializationContext *) context);
 	
 	TestCase_assert(value.type == DATA_TYPE_ARRAY, "Expected %d but got %d", DATA_TYPE_ARRAY, value.type);
-	TestCase_assert(value.value.array->count == 26, "Expected 26 but got " SIZE_T_FORMAT, value.value.array->count);
+	TestCase_assert(value.value.array->count == 28, "Expected 28 but got " SIZE_T_FORMAT, value.value.array->count);
 	TestCase_assert(value.value.array->values[0].type == DATA_TYPE_BOOLEAN, "Expected %d but got %d", DATA_TYPE_BOOLEAN, value.value.array->values[0].type);
 	TestCase_assert(!value.value.array->values[0].value.boolean, "Expected false but got true");
 	TestCase_assert(value.value.array->values[1].type == DATA_TYPE_BOOLEAN, "Expected %d but got %d", DATA_TYPE_BOOLEAN, value.value.array->values[1].type);
@@ -776,16 +805,20 @@ static void testDeserialize() {
 	TestCase_assert(value.value.array->values[20].value.float64 == 0.0, "Expected 0.0 but got %f", value.value.array->values[20].value.float64);
 	TestCase_assert(value.value.array->values[21].type == DATA_TYPE_DOUBLE, "Expected %d but got %d", DATA_TYPE_DOUBLE, value.value.array->values[21].type);
 	TestCase_assert(value.value.array->values[21].value.float64 == 1.0, "Expected 1.0 but got %f", value.value.array->values[21].value.float64);
-	TestCase_assert(value.value.array->values[22].type == DATA_TYPE_STRING, "Expected %d but got %d", DATA_TYPE_STRING, value.value.array->values[22].type);
-	TestCase_assert(!strcmp(value.value.array->values[22].value.string, "a"), "Expected \"a\" but got \"%s\"", value.value.array->values[22].value.string);
-	TestCase_assert(value.value.array->values[23].type == DATA_TYPE_STRING, "Expected %d but got %d", DATA_TYPE_STRING, value.value.array->values[23].type);
-	TestCase_assert(!strcmp(value.value.array->values[23].value.string, "foo"), "Expected \"foo\" but got \"%s\"", value.value.array->values[23].value.string);
-	TestCase_assert(value.value.array->values[24].type == DATA_TYPE_BLOB, "Expected %d but got %d", DATA_TYPE_BLOB, value.value.array->values[24].type);
-	TestCase_assert(value.value.array->values[24].value.blob.length == 1, "Expected 1 but got " SIZE_T_FORMAT, value.value.array->values[24].value.blob.length);
-	TestCase_assert(!memcmp(value.value.array->values[24].value.blob.bytes, "a", 1), "Expected \"a\" but got \"%.*s\"", (int) value.value.array->values[24].value.blob.length, (char *) value.value.array->values[24].value.blob.bytes);
-	TestCase_assert(value.value.array->values[25].type == DATA_TYPE_BLOB, "Expected %d but got %d", DATA_TYPE_BLOB, value.value.array->values[25].type);
-	TestCase_assert(value.value.array->values[25].value.blob.length == 3, "Expected 3 but got " SIZE_T_FORMAT, value.value.array->values[25].value.blob.length);
-	TestCase_assert(!memcmp(value.value.array->values[25].value.blob.bytes, "foo", 3), "Expected \"foo\" but got \"%.*s\"", (int) value.value.array->values[25].value.blob.length, (char *) value.value.array->values[25].value.blob.bytes);
+	TestCase_assert(value.value.array->values[22].type == DATA_TYPE_FIXED_16_16, "Expected %d but got %d", DATA_TYPE_FIXED_16_16, value.value.array->values[22].type);
+	TestCase_assert(value.value.array->values[22].value.fixed == 0x00000, "Expected 0x00000 but got 0x%05X", value.value.array->values[22].value.fixed);
+	TestCase_assert(value.value.array->values[23].type == DATA_TYPE_FIXED_16_16, "Expected %d but got %d", DATA_TYPE_FIXED_16_16, value.value.array->values[23].type);
+	TestCase_assert(value.value.array->values[23].value.fixed == 0x10000, "Expected 0x10000 but got 0x%05X", value.value.array->values[23].value.fixed);
+	TestCase_assert(value.value.array->values[24].type == DATA_TYPE_STRING, "Expected %d but got %d", DATA_TYPE_STRING, value.value.array->values[24].type);
+	TestCase_assert(!strcmp(value.value.array->values[24].value.string, "a"), "Expected \"a\" but got \"%s\"", value.value.array->values[24].value.string);
+	TestCase_assert(value.value.array->values[25].type == DATA_TYPE_STRING, "Expected %d but got %d", DATA_TYPE_STRING, value.value.array->values[25].type);
+	TestCase_assert(!strcmp(value.value.array->values[25].value.string, "foo"), "Expected \"foo\" but got \"%s\"", value.value.array->values[25].value.string);
+	TestCase_assert(value.value.array->values[26].type == DATA_TYPE_BLOB, "Expected %d but got %d", DATA_TYPE_BLOB, value.value.array->values[26].type);
+	TestCase_assert(value.value.array->values[26].value.blob.length == 1, "Expected 1 but got " SIZE_T_FORMAT, value.value.array->values[26].value.blob.length);
+	TestCase_assert(!memcmp(value.value.array->values[26].value.blob.bytes, "a", 1), "Expected \"a\" but got \"%.*s\"", (int) value.value.array->values[26].value.blob.length, (char *) value.value.array->values[26].value.blob.bytes);
+	TestCase_assert(value.value.array->values[27].type == DATA_TYPE_BLOB, "Expected %d but got %d", DATA_TYPE_BLOB, value.value.array->values[27].type);
+	TestCase_assert(value.value.array->values[27].value.blob.length == 3, "Expected 3 but got " SIZE_T_FORMAT, value.value.array->values[27].value.blob.length);
+	TestCase_assert(!memcmp(value.value.array->values[27].value.blob.bytes, "foo", 3), "Expected \"foo\" but got \"%.*s\"", (int) value.value.array->values[27].value.blob.length, (char *) value.value.array->values[27].value.blob.bytes);
 	
 	TestDeserializationContext_finish(context);
 	TestDeserializationContext_dispose(context);
@@ -798,7 +831,7 @@ static void testDeserialize() {
 	
 	context->expectCall(context, context->beginArray, "data", 2);
 	context->expectCall(context, context->readString, NULL, "structure");
-	context->expectCall(context, context->beginArray, NULL, 78);
+	context->expectCall(context, context->beginArray, NULL, 84);
 	context->expectCall(context, context->readString, NULL, "bool_0");
 	context->expectCall(context, context->readEnumeration, NULL, DATA_TYPE_BOOLEAN, ALL_DATA_TYPE_ENUM_KEYS_AND_VALUES, NULL);
 	context->expectCall(context, context->readBoolean, NULL, false);
@@ -865,6 +898,12 @@ static void testDeserialize() {
 	context->expectCall(context, context->readString, NULL, "double_1");
 	context->expectCall(context, context->readEnumeration, NULL, DATA_TYPE_DOUBLE, ALL_DATA_TYPE_ENUM_KEYS_AND_VALUES, NULL);
 	context->expectCall(context, context->readDouble, NULL, 1.0);
+	context->expectCall(context, context->readString, NULL, "fixed_0");
+	context->expectCall(context, context->readEnumeration, NULL, DATA_TYPE_FIXED_16_16, ALL_DATA_TYPE_ENUM_KEYS_AND_VALUES, NULL);
+	context->expectCall(context, context->readFixed16_16, NULL, 0x00000);
+	context->expectCall(context, context->readString, NULL, "fixed_1");
+	context->expectCall(context, context->readEnumeration, NULL, DATA_TYPE_FIXED_16_16, ALL_DATA_TYPE_ENUM_KEYS_AND_VALUES, NULL);
+	context->expectCall(context, context->readFixed16_16, NULL, 0x10000);
 	context->expectCall(context, context->readString, NULL, "string_a");
 	context->expectCall(context, context->readEnumeration, NULL, DATA_TYPE_STRING, ALL_DATA_TYPE_ENUM_KEYS_AND_VALUES, NULL);
 	context->expectCall(context, context->readString, NULL, "a");
@@ -883,7 +922,7 @@ static void testDeserialize() {
 	value = DataValue_deserialize((DeserializationContext *) context);
 	
 	TestCase_assert(value.type == DATA_TYPE_HASH_TABLE, "Expected %d but got %d", DATA_TYPE_HASH_TABLE, value.type);
-	TestCase_assert(value.value.hashTable->count == 26, "Expected 26 but got " SIZE_T_FORMAT, value.value.hashTable->count);
+	TestCase_assert(value.value.hashTable->count == 28, "Expected 28 but got " SIZE_T_FORMAT, value.value.hashTable->count);
 	keys = hashGetKeys(value.value.hashTable, NULL);
 	for (keyIndex = 0; keyIndex < value.value.hashTable->count; keyIndex++) {
 		hashTableValue = hashGet(value.value.hashTable, keys[keyIndex]);
@@ -953,6 +992,12 @@ static void testDeserialize() {
 		} else if (!strcmp(keys[keyIndex], "double_1")) {
 			TestCase_assert(hashTableValue->type == DATA_TYPE_DOUBLE, "Expected %d but got %d", DATA_TYPE_DOUBLE, hashTableValue->type);
 			TestCase_assert(hashTableValue->value.float64 == 1.0, "Expected 1.0 but got %f", hashTableValue->value.float64);
+		} else if (!strcmp(keys[keyIndex], "fixed_0")) {
+			TestCase_assert(hashTableValue->type == DATA_TYPE_FIXED_16_16, "Expected %d but got %d", DATA_TYPE_FIXED_16_16, hashTableValue->type);
+			TestCase_assert(hashTableValue->value.fixed == 0x00000, "Expected 0x00000 but got 0x%05X", hashTableValue->value.fixed);
+		} else if (!strcmp(keys[keyIndex], "fixed_1")) {
+			TestCase_assert(hashTableValue->type == DATA_TYPE_FIXED_16_16, "Expected %d but got %d", DATA_TYPE_FIXED_16_16, hashTableValue->type);
+			TestCase_assert(hashTableValue->value.fixed == 0x10000, "Expected 0x10000 but got 0x%05X", hashTableValue->value.fixed);
 		} else if (!strcmp(keys[keyIndex], "string_a")) {
 			TestCase_assert(hashTableValue->type == DATA_TYPE_STRING, "Expected %d but got %d", DATA_TYPE_STRING, hashTableValue->type);
 			TestCase_assert(!strcmp(hashTableValue->value.string, "a"), "Expected \"a\" but got \"%s\"", hashTableValue->value.string);
@@ -984,7 +1029,7 @@ static void testDeserialize() {
 	
 	context->expectCall(context, context->beginArray, "data", 2);
 	context->expectCall(context, context->readString, NULL, "dictionary");
-	context->expectCall(context, context->beginArray, NULL, 78);
+	context->expectCall(context, context->beginArray, NULL, 84);
 	context->expectCall(context, context->readString, NULL, "bool_0");
 	context->expectCall(context, context->readEnumeration, NULL, DATA_TYPE_BOOLEAN, ALL_DATA_TYPE_ENUM_KEYS_AND_VALUES, NULL);
 	context->expectCall(context, context->readBoolean, NULL, false);
@@ -1051,6 +1096,12 @@ static void testDeserialize() {
 	context->expectCall(context, context->readString, NULL, "double_1");
 	context->expectCall(context, context->readEnumeration, NULL, DATA_TYPE_DOUBLE, ALL_DATA_TYPE_ENUM_KEYS_AND_VALUES, NULL);
 	context->expectCall(context, context->readDouble, NULL, 1.0);
+	context->expectCall(context, context->readString, NULL, "fixed_0");
+	context->expectCall(context, context->readEnumeration, NULL, DATA_TYPE_FIXED_16_16, ALL_DATA_TYPE_ENUM_KEYS_AND_VALUES, NULL);
+	context->expectCall(context, context->readFixed16_16, NULL, 0x00000);
+	context->expectCall(context, context->readString, NULL, "fixed_1");
+	context->expectCall(context, context->readEnumeration, NULL, DATA_TYPE_FIXED_16_16, ALL_DATA_TYPE_ENUM_KEYS_AND_VALUES, NULL);
+	context->expectCall(context, context->readFixed16_16, NULL, 0x10000);
 	context->expectCall(context, context->readString, NULL, "string_a");
 	context->expectCall(context, context->readEnumeration, NULL, DATA_TYPE_STRING, ALL_DATA_TYPE_ENUM_KEYS_AND_VALUES, NULL);
 	context->expectCall(context, context->readString, NULL, "a");
@@ -1069,7 +1120,7 @@ static void testDeserialize() {
 	value = DataValue_deserialize((DeserializationContext *) context);
 	
 	TestCase_assert(value.type == DATA_TYPE_ASSOCIATIVE_ARRAY, "Expected %d but got %d", DATA_TYPE_ASSOCIATIVE_ARRAY, value.type);
-	TestCase_assert(value.value.associativeArray->count == 26, "Expected 26 but got " SIZE_T_FORMAT, value.value.associativeArray->count);
+	TestCase_assert(value.value.associativeArray->count == 28, "Expected 28 but got " SIZE_T_FORMAT, value.value.associativeArray->count);
 	TestCase_assert(!strcmp(value.value.associativeArray->keys[0], "bool_0"), "Expected \"bool_0\" but got \"%s\"", value.value.associativeArray->keys[0]);
 	TestCase_assert(value.value.associativeArray->values[0].type == DATA_TYPE_BOOLEAN, "Expected %d but got %d", DATA_TYPE_BOOLEAN, value.value.associativeArray->values[0].type);
 	TestCase_assert(!value.value.associativeArray->values[0].value.boolean, "Expected false but got true");
@@ -1136,20 +1187,26 @@ static void testDeserialize() {
 	TestCase_assert(!strcmp(value.value.associativeArray->keys[21], "double_1"), "Expected \"double_1\" but got \"%s\"", value.value.associativeArray->keys[21]);
 	TestCase_assert(value.value.associativeArray->values[21].type == DATA_TYPE_DOUBLE, "Expected %d but got %d", DATA_TYPE_DOUBLE, value.value.associativeArray->values[21].type);
 	TestCase_assert(value.value.associativeArray->values[21].value.float64 == 1.0, "Expected 1.0 but got %f", value.value.associativeArray->values[21].value.float64);
-	TestCase_assert(!strcmp(value.value.associativeArray->keys[22], "string_a"), "Expected \"string_a\" but got \"%s\"", value.value.associativeArray->keys[22]);
-	TestCase_assert(value.value.associativeArray->values[22].type == DATA_TYPE_STRING, "Expected %d but got %d", DATA_TYPE_STRING, value.value.associativeArray->values[22].type);
-	TestCase_assert(!strcmp(value.value.associativeArray->values[22].value.string, "a"), "Expected \"a\" but got \"%s\"", value.value.associativeArray->values[22].value.string);
-	TestCase_assert(!strcmp(value.value.associativeArray->keys[23], "string_foo"), "Expected \"string_foo\" but got \"%s\"", value.value.associativeArray->keys[23]);
-	TestCase_assert(value.value.associativeArray->values[23].type == DATA_TYPE_STRING, "Expected %d but got %d", DATA_TYPE_STRING, value.value.associativeArray->values[23].type);
-	TestCase_assert(!strcmp(value.value.associativeArray->values[23].value.string, "foo"), "Expected \"foo\" but got \"%s\"", value.value.associativeArray->values[23].value.string);
-	TestCase_assert(!strcmp(value.value.associativeArray->keys[24], "blob_a"), "Expected \"blob_a\" but got \"%s\"", value.value.associativeArray->keys[24]);
-	TestCase_assert(value.value.associativeArray->values[24].type == DATA_TYPE_BLOB, "Expected %d but got %d", DATA_TYPE_BLOB, value.value.associativeArray->values[24].type);
-	TestCase_assert(value.value.associativeArray->values[24].value.blob.length == 1, "Expected 1 but got " SIZE_T_FORMAT, value.value.associativeArray->values[24].value.blob.length);
-	TestCase_assert(!memcmp(value.value.associativeArray->values[24].value.blob.bytes, "a", 1), "Expected \"a\" but got \"%.*s\"", (int) value.value.associativeArray->values[24].value.blob.length, (char *) value.value.associativeArray->values[24].value.blob.bytes);
-	TestCase_assert(!strcmp(value.value.associativeArray->keys[25], "blob_foo"), "Expected \"blob_foo\" but got \"%s\"", value.value.associativeArray->keys[25]);
-	TestCase_assert(value.value.associativeArray->values[25].type == DATA_TYPE_BLOB, "Expected %d but got %d", DATA_TYPE_BLOB, value.value.associativeArray->values[25].type);
-	TestCase_assert(value.value.associativeArray->values[25].value.blob.length == 3, "Expected 3 but got " SIZE_T_FORMAT, value.value.associativeArray->values[25].value.blob.length);
-	TestCase_assert(!memcmp(value.value.associativeArray->values[25].value.blob.bytes, "foo", 3), "Expected \"foo\" but got \"%.*s\"", (int) value.value.associativeArray->values[25].value.blob.length, (char *) value.value.associativeArray->values[25].value.blob.bytes);
+	TestCase_assert(!strcmp(value.value.associativeArray->keys[22], "fixed_0"), "Expected \"fixed_0\" but got \"%s\"", value.value.associativeArray->keys[22]);
+	TestCase_assert(value.value.associativeArray->values[22].type == DATA_TYPE_FIXED_16_16, "Expected %d but got %d", DATA_TYPE_FIXED_16_16, value.value.associativeArray->values[22].type);
+	TestCase_assert(value.value.associativeArray->values[22].value.fixed == 0x00000, "Expected 0x00000 but got 0x%05X", value.value.associativeArray->values[22].value.fixed);
+	TestCase_assert(!strcmp(value.value.associativeArray->keys[23], "fixed_1"), "Expected \"fixed_1\" but got \"%s\"", value.value.associativeArray->keys[23]);
+	TestCase_assert(value.value.associativeArray->values[23].type == DATA_TYPE_FIXED_16_16, "Expected %d but got %d", DATA_TYPE_FIXED_16_16, value.value.associativeArray->values[23].type);
+	TestCase_assert(value.value.associativeArray->values[23].value.fixed == 0x10000, "Expected 0x10000 but got 0x%05X", value.value.associativeArray->values[23].value.fixed);
+	TestCase_assert(!strcmp(value.value.associativeArray->keys[24], "string_a"), "Expected \"string_a\" but got \"%s\"", value.value.associativeArray->keys[24]);
+	TestCase_assert(value.value.associativeArray->values[24].type == DATA_TYPE_STRING, "Expected %d but got %d", DATA_TYPE_STRING, value.value.associativeArray->values[24].type);
+	TestCase_assert(!strcmp(value.value.associativeArray->values[24].value.string, "a"), "Expected \"a\" but got \"%s\"", value.value.associativeArray->values[24].value.string);
+	TestCase_assert(!strcmp(value.value.associativeArray->keys[25], "string_foo"), "Expected \"string_foo\" but got \"%s\"", value.value.associativeArray->keys[25]);
+	TestCase_assert(value.value.associativeArray->values[25].type == DATA_TYPE_STRING, "Expected %d but got %d", DATA_TYPE_STRING, value.value.associativeArray->values[25].type);
+	TestCase_assert(!strcmp(value.value.associativeArray->values[25].value.string, "foo"), "Expected \"foo\" but got \"%s\"", value.value.associativeArray->values[25].value.string);
+	TestCase_assert(!strcmp(value.value.associativeArray->keys[26], "blob_a"), "Expected \"blob_a\" but got \"%s\"", value.value.associativeArray->keys[26]);
+	TestCase_assert(value.value.associativeArray->values[26].type == DATA_TYPE_BLOB, "Expected %d but got %d", DATA_TYPE_BLOB, value.value.associativeArray->values[26].type);
+	TestCase_assert(value.value.associativeArray->values[26].value.blob.length == 1, "Expected 1 but got " SIZE_T_FORMAT, value.value.associativeArray->values[26].value.blob.length);
+	TestCase_assert(!memcmp(value.value.associativeArray->values[26].value.blob.bytes, "a", 1), "Expected \"a\" but got \"%.*s\"", (int) value.value.associativeArray->values[26].value.blob.length, (char *) value.value.associativeArray->values[26].value.blob.bytes);
+	TestCase_assert(!strcmp(value.value.associativeArray->keys[27], "blob_foo"), "Expected \"blob_foo\" but got \"%s\"", value.value.associativeArray->keys[27]);
+	TestCase_assert(value.value.associativeArray->values[27].type == DATA_TYPE_BLOB, "Expected %d but got %d", DATA_TYPE_BLOB, value.value.associativeArray->values[27].type);
+	TestCase_assert(value.value.associativeArray->values[27].value.blob.length == 3, "Expected 3 but got " SIZE_T_FORMAT, value.value.associativeArray->values[27].value.blob.length);
+	TestCase_assert(!memcmp(value.value.associativeArray->values[27].value.blob.bytes, "foo", 3), "Expected \"foo\" but got \"%.*s\"", (int) value.value.associativeArray->values[27].value.blob.length, (char *) value.value.associativeArray->values[27].value.blob.bytes);
 	
 	TestDeserializationContext_finish(context);
 	TestDeserializationContext_dispose(context);

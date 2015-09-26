@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2014 Alex Diener
+  Copyright (c) 2015 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -66,6 +66,7 @@ void DataSerializationContext_writeInt64(DataSerializationContext * self, const 
 void DataSerializationContext_writeUInt64(DataSerializationContext * self, const char * key, uint64_t value);
 void DataSerializationContext_writeFloat(DataSerializationContext * self, const char * key, float value);
 void DataSerializationContext_writeDouble(DataSerializationContext * self, const char * key, double value);
+void DataSerializationContext_writeFixed16_16(DataSerializationContext * self, const char * key, fixed16_16 value);
 void DataSerializationContext_writeEnumeration(DataSerializationContext * self, const char * key, int value, ...) __attribute__((sentinel));
 void DataSerializationContext_writeBitfield8(DataSerializationContext * self, const char * key, uint8_t value, ...) __attribute__((sentinel));
 void DataSerializationContext_writeBitfield16(DataSerializationContext * self, const char * key, uint16_t value, ...) __attribute__((sentinel));

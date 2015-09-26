@@ -28,6 +28,7 @@
 	verifyFunctionPointer(context, readUInt64); \
 	verifyFunctionPointer(context, readFloat); \
 	verifyFunctionPointer(context, readDouble); \
+	verifyFunctionPointer(context, readFixed16_16); \
 	verifyFunctionPointer(context, readEnumeration); \
 	verifyFunctionPointer(context, readBitfield8); \
 	verifyFunctionPointer(context, readBitfield16); \
@@ -77,6 +78,7 @@ static void testInit() {
 #define readFunction_uint64_t readUInt64
 #define readFunction_float readFloat
 #define readFunction_double readDouble
+#define readFunction_fixed16_16 readFixed16_16
 #define readFunction_bool readBoolean
 #define printfSpecifier_int8_t "%d"
 #define printfSpecifier_uint8_t "%u"
@@ -88,6 +90,7 @@ static void testInit() {
 #define printfSpecifier_uint64_t UINT64_FORMAT
 #define printfSpecifier_float "%f"
 #define printfSpecifier_double "%f"
+#define printfSpecifier_fixed16_16 "0x%05X"
 #define printfSpecifier_bool "%d"
 #define readAndVerifyNumber(TYPE, KEY, EXPECTED_VALUE) { \
 	TYPE value; \
@@ -174,6 +177,8 @@ static void testInit() {
 	readAndVerifyNumber(float, "float_1", 1.0f); \
 	readAndVerifyNumber(double, "double_0", 0.0); \
 	readAndVerifyNumber(double, "double_1", 1.0); \
+	readAndVerifyNumber(fixed16_16, "fixed_0", 0x00000); \
+	readAndVerifyNumber(fixed16_16, "fixed_1", 0x10000); \
 	readAndVerifyEnumeration("enum_0", ENUM_TEST_0, enumKV(ENUM_TEST_0), enumKV(ENUM_TEST_1), NULL); \
 	readAndVerifyEnumeration("enum_1", ENUM_TEST_1, enumKV(ENUM_TEST_0), enumKV(ENUM_TEST_1), NULL); \
 	readAndVerifyBitfield(8, "bitfield8_0", 0xAA, "bit_0", "bit_1", "bit_2", "bit_3", "bit_4", "bit_5", "bit_6", "bit_7", NULL); \
@@ -216,6 +221,8 @@ static void testValuesInArray() {
 	arrayAppend(array, valueCreateFloat(1.0f));
 	arrayAppend(array, valueCreateDouble(0.0));
 	arrayAppend(array, valueCreateDouble(1.0));
+	arrayAppend(array, valueCreateFixed16_16(0x00000));
+	arrayAppend(array, valueCreateFixed16_16(0x10000));
 	arrayAppend(array, valueCreateInt32(ENUM_TEST_0));
 	arrayAppend(array, valueCreateInt32(ENUM_TEST_1));
 	arrayAppend(array, valueCreateUInt8(0xAA));
@@ -232,7 +239,7 @@ static void testValuesInArray() {
 	arrayAppend(array, valueCreateBlob("abcd", 4, false, false));
 	
 	context = DataDeserializationContext_create(valueCreateArray(array, false, false));
-	beginAndVerifyArray(NULL, 36);
+	beginAndVerifyArray(NULL, 38);
 	verifyTestValues();
 	context->endArray(context);
 	
@@ -267,6 +274,8 @@ static void testValuesInHashTable() {
 	hashSet(hashTable, "float_1", valueCreateFloat(1.0f));
 	hashSet(hashTable, "double_0", valueCreateDouble(0.0));
 	hashSet(hashTable, "double_1", valueCreateDouble(1.0));
+	hashSet(hashTable, "fixed_0", valueCreateFixed16_16(0x00000));
+	hashSet(hashTable, "fixed_1", valueCreateFixed16_16(0x10000));
 	hashSet(hashTable, "enum_0", valueCreateInt32(ENUM_TEST_0));
 	hashSet(hashTable, "enum_1", valueCreateInt32(ENUM_TEST_1));
 	hashSet(hashTable, "bitfield8_0", valueCreateUInt8(0xAA));
@@ -318,6 +327,8 @@ static void testValuesInAssociativeArray() {
 	associativeArrayAppend(assArray, "float_1", valueCreateFloat(1.0f));
 	associativeArrayAppend(assArray, "double_0", valueCreateDouble(0.0));
 	associativeArrayAppend(assArray, "double_1", valueCreateDouble(1.0));
+	associativeArrayAppend(assArray, "fixed_0", valueCreateFixed16_16(0x00000));
+	associativeArrayAppend(assArray, "fixed_1", valueCreateFixed16_16(0x10000));
 	associativeArrayAppend(assArray, "enum_0", valueCreateInt32(ENUM_TEST_0));
 	associativeArrayAppend(assArray, "enum_1", valueCreateInt32(ENUM_TEST_1));
 	associativeArrayAppend(assArray, "bitfield8_0", valueCreateUInt8(0xAA));
@@ -334,7 +345,7 @@ static void testValuesInAssociativeArray() {
 	associativeArrayAppend(assArray, "blob_1", valueCreateBlob("abcd", 4, false, false));
 	
 	context = DataDeserializationContext_create(valueCreateAssociativeArray(assArray, false, false));
-	beginAndVerifyDictionary(NULL, 36);
+	beginAndVerifyDictionary(NULL, 38);
 	verifyTestValues();
 	context->endDictionary(context);
 	
@@ -366,6 +377,8 @@ static void testValuesInAssociativeArray() {
 	associativeArrayAppend(assArray, "enum_0", valueCreateInt32(ENUM_TEST_0));
 	associativeArrayAppend(assArray, "double_1", valueCreateDouble(1.0));
 	associativeArrayAppend(assArray, "double_0", valueCreateDouble(0.0));
+	associativeArrayAppend(assArray, "fixed_1", valueCreateFixed16_16(0x10000));
+	associativeArrayAppend(assArray, "fixed_0", valueCreateFixed16_16(0x00000));
 	associativeArrayAppend(assArray, "bool_1", valueCreateBoolean(true));
 	associativeArrayAppend(assArray, "bool_0", valueCreateBoolean(false));
 	associativeArrayAppend(assArray, "blob_1", valueCreateBlob("abcd", 4, false, false));
@@ -380,7 +393,7 @@ static void testValuesInAssociativeArray() {
 	associativeArrayAppend(assArray, "bitfield16_0", valueCreateUInt16(0xF001));
 	
 	context = DataDeserializationContext_create(valueCreateAssociativeArray(assArray, false, false));
-	beginAndVerifyDictionary(NULL, 36);
+	beginAndVerifyDictionary(NULL, 38);
 	verifyTestValues();
 	context->endDictionary(context);
 	
@@ -461,6 +474,7 @@ static void testHierarchy() {
 	testFailure(VALUE, ERROR_STATUS, PREAMBLE_CODE, context->readUInt64(context, KEY);); \
 	testFailure(VALUE, ERROR_STATUS, PREAMBLE_CODE, context->readFloat(context, KEY);); \
 	testFailure(VALUE, ERROR_STATUS, PREAMBLE_CODE, context->readDouble(context, KEY);); \
+	testFailure(VALUE, ERROR_STATUS, PREAMBLE_CODE, context->readFixed16_16(context, KEY);); \
 	testFailure(VALUE, ERROR_STATUS, PREAMBLE_CODE, context->readEnumeration(context, KEY, enumKV(ENUM_TEST_0), NULL);); \
 	testFailure(VALUE, ERROR_STATUS, PREAMBLE_CODE, context->readBitfield8(context, KEY, "a", NULL);); \
 	testFailure(VALUE, ERROR_STATUS, PREAMBLE_CODE, context->readBitfield16(context, KEY, "a", NULL);); \
@@ -508,6 +522,9 @@ static void testHierarchy() {
 	if (strcmp(#EXCEPTION, "double")) { \
 		testFailure(VALUE, ERROR_STATUS, PREAMBLE_CODE, context->readDouble(context, KEY);); \
 	} \
+	if (strcmp(#EXCEPTION, "fixed16_16")) { \
+		testFailure(VALUE, ERROR_STATUS, PREAMBLE_CODE, context->readFixed16_16(context, KEY);); \
+	} \
 	if (strcmp(#EXCEPTION, "string")) { \
 		testFailure(VALUE, ERROR_STATUS, PREAMBLE_CODE, context->readString(context, KEY);); \
 	} \
@@ -547,6 +564,7 @@ static void testHierarchy() {
 	TEST_MACRO(BEGIN_CONTAINER_CODE, VALUE_CREATE_FUNC, CONTAINER_INIT_FUNC, valueCreateUInt64(0)); \
 	TEST_MACRO(BEGIN_CONTAINER_CODE, VALUE_CREATE_FUNC, CONTAINER_INIT_FUNC, valueCreateFloat(0.0f)); \
 	TEST_MACRO(BEGIN_CONTAINER_CODE, VALUE_CREATE_FUNC, CONTAINER_INIT_FUNC, valueCreateDouble(0.0)); \
+	TEST_MACRO(BEGIN_CONTAINER_CODE, VALUE_CREATE_FUNC, CONTAINER_INIT_FUNC, valueCreateFixed16_16(0x00000)); \
 	TEST_MACRO(BEGIN_CONTAINER_CODE, VALUE_CREATE_FUNC, CONTAINER_INIT_FUNC, valueCreateString("a", 1, false, false)); \
 	TEST_MACRO(BEGIN_CONTAINER_CODE, VALUE_CREATE_FUNC, CONTAINER_INIT_FUNC, valueCreateBlob("a", 1, false, false))
 
@@ -846,6 +864,11 @@ static void testErrors() {
 	                              context->beginArray(context, NULL);,
 	                              NULL,
 	                              double);
+	testFailureWithAllTypesExcept(valueCreateArray(arrayCreateWithValues(valueCreateFixed16_16(0x00000)), true, false),
+	                              SERIALIZATION_ERROR_INCORRECT_TYPE,
+	                              context->beginArray(context, NULL);,
+	                              NULL,
+	                              fixed16_16);
 	testFailureWithAllTypesExcept(valueCreateArray(arrayCreateWithValues(valueCreateString("a", DATA_USE_STRLEN, false, false)), true, false),
 	                              SERIALIZATION_ERROR_INCORRECT_TYPE,
 	                              context->beginArray(context, NULL);,

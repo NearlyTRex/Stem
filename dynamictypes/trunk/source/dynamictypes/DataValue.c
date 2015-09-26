@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2014 Alex Diener
+  Copyright (c) 2015 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -68,6 +68,10 @@ DataValue valueCreateFloat(float value) {
 
 DataValue valueCreateDouble(double value) {
 	return (DataValue) {{.float64 = value}, DATA_TYPE_DOUBLE, false};
+}
+
+DataValue valueCreateFixed16_16(fixed16_16 value) {
+	return (DataValue) {{.fixed = value}, DATA_TYPE_FIXED_16_16, false};
 }
 
 DataValue valueCreatePointer(void * value) {
@@ -253,6 +257,41 @@ void valueDispose(DataValue * value) {
 			return value->value.float32; \
 		case DATA_TYPE_DOUBLE: \
 			return value->value.float64; \
+		case DATA_TYPE_FIXED_16_16: \
+			return xtod(value->value.fixed); \
+		default: \
+			return defaultValue; \
+	}
+
+#define returnNumericValueFixed(value, defaultValue) \
+	if (value == NULL) { \
+		return defaultValue; \
+	} \
+	switch (value->type) { \
+		case DATA_TYPE_BOOLEAN: \
+			return value->value.boolean << 16; \
+		case DATA_TYPE_INT8: \
+			return value->value.int8 << 16; \
+		case DATA_TYPE_UINT8: \
+			return value->value.uint8 << 16; \
+		case DATA_TYPE_INT16: \
+			return value->value.int16 << 16; \
+		case DATA_TYPE_UINT16: \
+			return value->value.uint16 << 16; \
+		case DATA_TYPE_INT32: \
+			return value->value.int32 << 16; \
+		case DATA_TYPE_UINT32: \
+			return value->value.uint32 << 16; \
+		case DATA_TYPE_INT64: \
+			return value->value.int64 << 16; \
+		case DATA_TYPE_UINT64: \
+			return value->value.uint64 << 16; \
+		case DATA_TYPE_FLOAT: \
+			return ftox(value->value.float32); \
+		case DATA_TYPE_DOUBLE: \
+			return dtox(value->value.float64); \
+		case DATA_TYPE_FIXED_16_16: \
+			return value->value.fixed; \
 		default: \
 			return defaultValue; \
 	}
@@ -299,6 +338,10 @@ float valueGetFloat(DataValue * value) {
 
 double valueGetDouble(DataValue * value) {
 	returnNumericValue(value, 0.0);
+}
+
+fixed16_16 valueGetFixed16_16(DataValue * value) {
+	returnNumericValueFixed(value, 0x00000);
 }
 
 void * valueGetPointer(DataValue * value) {

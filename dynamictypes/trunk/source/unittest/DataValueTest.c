@@ -113,6 +113,15 @@ static void testCreate() {
 	TestCase_assert(value.value.float64 == 1.0, "Expected 1.0 but got %f", value.value.float64);
 	valueDispose(&value);
 	
+	value = valueCreateFixed16_16(0x00000);
+	TestCase_assert(value.type == DATA_TYPE_FIXED_16_16, "Expected %d but got %d", DATA_TYPE_FIXED_16_16, value.type);
+	TestCase_assert(value.value.fixed == 0x00000, "Expected 0x00000 but got 0x%05X", value.value.fixed);
+	valueDispose(&value);
+	value = valueCreateFixed16_16(0x10000);
+	TestCase_assert(value.type == DATA_TYPE_FIXED_16_16, "Expected %d but got %d", DATA_TYPE_FIXED_16_16, value.type);
+	TestCase_assert(value.value.fixed == 0x10000, "Expected 0x10000 but got 0x%05X", value.value.fixed);
+	valueDispose(&value);
+	
 	value = valueCreatePointer((void *) 0x0);
 	TestCase_assert(value.type == DATA_TYPE_POINTER, "Expected %d but got %d", DATA_TYPE_POINTER, value.type);
 	TestCase_assert(value.value.pointer == (void *) 0x0, "Expected 0x0 but got %p", value.value.pointer);
@@ -207,6 +216,7 @@ static void testGet() {
 	uint64_t uint64;
 	float float32;
 	double float64;
+	fixed16_16 fixed;
 	void * pointer;
 	const char * string;
 	size_t length;
@@ -312,6 +322,15 @@ static void testGet() {
 	value = valueCreateDouble(DBL_MAX);
 	float64 = valueGetDouble(&value);
 	TestCase_assert(float64 == DBL_MAX, "Expected %f but got %f", DBL_MAX, float64);
+	valueDispose(&value);
+	
+	value = valueCreateFixed16_16(0x00000);
+	fixed = valueGetFixed16_16(&value);
+	TestCase_assert(fixed == 0x00000, "Expected 0x00000 but got 0x%05X", fixed);
+	valueDispose(&value);
+	value = valueCreateFixed16_16(FIXED_16_16_MIN);
+	fixed = valueGetFixed16_16(&value);
+	TestCase_assert(fixed == FIXED_16_16_MIN, "Expected 0x%05X but got 0x%05X", FIXED_16_16_MIN, fixed);
 	valueDispose(&value);
 	
 	value = valueCreatePointer(NULL);
@@ -511,6 +530,19 @@ static void testCopy() {
 	valueDispose(&value);
 	valueDispose(&copy);
 	
+	value = valueCreateFixed16_16(0x00000);
+	copy = valueCopy(&value);
+	TestCase_assert(copy.type == DATA_TYPE_FIXED_16_16, "Expected %d but got %d", DATA_TYPE_FIXED_16_16, copy.type);
+	TestCase_assert(copy.value.fixed == 0.0, "Expected 0.0 but got %f", copy.value.fixed);
+	valueDispose(&value);
+	valueDispose(&copy);
+	value = valueCreateFixed16_16(FIXED_16_16_MIN);
+	copy = valueCopy(&value);
+	TestCase_assert(copy.type == DATA_TYPE_FIXED_16_16, "Expected %d but got %d", DATA_TYPE_FIXED_16_16, copy.type);
+	TestCase_assert(copy.value.fixed == FIXED_16_16_MIN, "Expected 0x%05X but got 0x%05X", FIXED_16_16_MIN, copy.value.fixed);
+	valueDispose(&value);
+	valueDispose(&copy);
+	
 	value = valueCreatePointer(NULL);
 	copy = valueCopy(&value);
 	TestCase_assert(copy.type == DATA_TYPE_POINTER, "Expected %d but got %d", DATA_TYPE_POINTER, copy.type);
@@ -638,6 +670,7 @@ static void testCopy() {
 	uint64 = valueGetUInt64(&value); \
 	float32 = valueGetFloat(&value); \
 	float64 = valueGetDouble(&value); \
+	fixed = valueGetFixed16_16(&value); \
 	pointer = valueGetPointer(&value); \
 	string = valueGetString(&value); \
 	blob = valueGetBlob(&value, NULL); \
@@ -645,7 +678,7 @@ static void testCopy() {
 	array = valueGetArray(&value); \
 	assArray = valueGetAssociativeArray(&value)
 
-#define assertAllPrimitiveTypes(expectedBooleanValue, expectedIntegerValue, expectedFloatValue) \
+#define assertAllPrimitiveTypes(expectedBooleanValue, expectedIntegerValue, expectedFixedValue, expectedFloatValue) \
 	TestCase_assert(boolean == expectedBooleanValue, "Expected %s but got %s (boolean)", expectedBooleanValue ? "true" : "false", boolean ? "true" : "false"); \
 	TestCase_assert(int8 == expectedIntegerValue, "Expected %d but got %d (int8)", (int8_t) expectedIntegerValue, int8); \
 	TestCase_assert(uint8 == expectedIntegerValue, "Expected %u but got %u (uint8)", (uint8_t) expectedIntegerValue, uint8); \
@@ -656,7 +689,8 @@ static void testCopy() {
 	TestCase_assert(int64 == expectedIntegerValue, "Expected " INT64_FORMAT " but got " INT64_FORMAT " (int64)", (int64_t) expectedIntegerValue, int64); \
 	TestCase_assert(uint64 == expectedIntegerValue, "Expected " UINT64_FORMAT " but got " UINT64_FORMAT " (uint64)", (uint64_t) expectedIntegerValue, uint64); \
 	TestCase_assert(float32 == expectedFloatValue, "Expected %f but got %f (float)", expectedFloatValue, float32); \
-	TestCase_assert(float64 == expectedFloatValue, "Expected %f but got %f (double)", expectedFloatValue, float64)
+	TestCase_assert(float64 == expectedFloatValue, "Expected %f but got %f (double)", expectedFloatValue, float64); \
+	TestCase_assert(fixed == expectedFixedValue, "Expected 0x%05X but got 0x%05X (fixed16_16)", expectedFixedValue, fixed)
 
 #define assertAllPointerTypesSeparate(expectedPointerValue, expectedStringValue, expectedBlobValue, expectedHashTableValue, expectedArrayValue, expectedAssArrayValue) \
 	TestCase_assert(pointer == (void *) expectedPointerValue, "Expected %p but got %p (pointer)", expectedPointerValue, pointer); \
@@ -669,8 +703,8 @@ static void testCopy() {
 #define assertAllPointerTypes(expectedValue) \
 	assertAllPointerTypesSeparate(expectedValue, expectedValue, expectedValue, expectedValue, expectedValue, expectedValue)
 
-#define assertAllTypes(expectedBooleanValue, expectedIntegerValue, expectedFloatValue, expectedPointerValue) \
-	assertAllPrimitiveTypes(expectedBooleanValue, expectedIntegerValue, expectedFloatValue); \
+#define assertAllTypes(expectedBooleanValue, expectedIntegerValue, expectedFloatValue, expectedFixedValue, expectedPointerValue) \
+	assertAllPrimitiveTypes(expectedBooleanValue, expectedIntegerValue, expectedFixedValue, expectedFloatValue); \
 	assertAllPointerTypes(expectedPointerValue)
 
 static void testConversions() {
@@ -686,6 +720,7 @@ static void testConversions() {
 	uint64_t uint64;
 	float float32;
 	double float64;
+	fixed16_16 fixed;
 	void * pointer;
 	const char * string;
 	const void * blob;
@@ -695,135 +730,151 @@ static void testConversions() {
 	
 	value = valueCreateBoolean(false);
 	getAllValues(value);
-	assertAllTypes(0, 0, 0.0, NULL);
+	assertAllTypes(0, 0, 0.0, 0x00000, NULL);
 	value = valueCreateBoolean(true);
 	getAllValues(value);
-	assertAllTypes(true, 1, 1.0, NULL);
+	assertAllTypes(true, 1, 1.0, 0x10000, NULL);
 	
 	value = valueCreateInt8(0);
 	getAllValues(value);
-	assertAllTypes(false, 0, 0.0, NULL);
+	assertAllTypes(false, 0, 0.0, 0x00000, NULL);
 	value = valueCreateInt8(1);
 	getAllValues(value);
-	assertAllTypes(true, 1, 1.0, NULL);
+	assertAllTypes(true, 1, 1.0, 0x10000, NULL);
 	
 	value = valueCreateUInt8(0);
 	getAllValues(value);
-	assertAllTypes(false, 0, 0.0, NULL);
+	assertAllTypes(false, 0, 0.0, 0x00000, NULL);
 	value = valueCreateUInt8(1);
 	getAllValues(value);
-	assertAllTypes(true, 1, 1.0, NULL);
+	assertAllTypes(true, 1, 1.0, 0x10000, NULL);
 	
 	value = valueCreateInt16(0);
 	getAllValues(value);
-	assertAllTypes(false, 0, 0.0, NULL);
+	assertAllTypes(false, 0, 0.0, 0x00000, NULL);
 	value = valueCreateInt16(1);
 	getAllValues(value);
-	assertAllTypes(true, 1, 1.0, NULL);
+	assertAllTypes(true, 1, 1.0, 0x10000, NULL);
 	
 	value = valueCreateUInt16(0);
 	getAllValues(value);
-	assertAllTypes(false, 0, 0.0, NULL);
+	assertAllTypes(false, 0, 0.0, 0x00000, NULL);
 	value = valueCreateUInt16(1);
 	getAllValues(value);
-	assertAllTypes(true, 1, 1.0, NULL);
+	assertAllTypes(true, 1, 1.0, 0x10000, NULL);
 	
 	value = valueCreateInt32(0);
 	getAllValues(value);
-	assertAllTypes(false, 0, 0.0, NULL);
+	assertAllTypes(false, 0, 0.0, 0x00000, NULL);
 	value = valueCreateInt32(1);
 	getAllValues(value);
-	assertAllTypes(true, 1, 1.0, NULL);
+	assertAllTypes(true, 1, 1.0, 0x10000, NULL);
 	
 	value = valueCreateUInt32(0);
 	getAllValues(value);
-	assertAllTypes(false, 0, 0.0, NULL);
+	assertAllTypes(false, 0, 0.0, 0x00000, NULL);
 	value = valueCreateUInt32(1);
 	getAllValues(value);
-	assertAllTypes(true, 1, 1.0, NULL);
+	assertAllTypes(true, 1, 1.0, 0x10000, NULL);
 	
 	value = valueCreateInt64(0);
 	getAllValues(value);
-	assertAllTypes(false, 0, 0.0, NULL);
+	assertAllTypes(false, 0, 0.0, 0x00000, NULL);
 	value = valueCreateInt64(1);
 	getAllValues(value);
-	assertAllTypes(true, 1, 1.0, NULL);
+	assertAllTypes(true, 1, 1.0, 0x10000, NULL);
 	
 	value = valueCreateUInt64(0);
 	getAllValues(value);
-	assertAllTypes(false, 0, 0.0, NULL);
+	assertAllTypes(false, 0, 0.0, 0x00000, NULL);
 	value = valueCreateUInt64(1);
 	getAllValues(value);
-	assertAllTypes(true, 1, 1.0, NULL);
+	assertAllTypes(true, 1, 1.0, 0x10000, NULL);
 	
 	value = valueCreateFloat(0.0f);
 	getAllValues(value);
-	assertAllTypes(false, 0, 0.0, NULL);
+	assertAllTypes(false, 0, 0.0, 0x00000, NULL);
 	value = valueCreateFloat(1.0f);
 	getAllValues(value);
-	assertAllTypes(true, 1, 1.0, NULL);
+	assertAllTypes(true, 1, 1.0, 0x10000, NULL);
+	value = valueCreateFloat(1.25f);
+	getAllValues(value);
+	assertAllTypes(true, 1, 1.25, 0x14000, NULL);
 	
 	value = valueCreateDouble(0.0);
 	getAllValues(value);
-	assertAllTypes(false, 0, 0.0, NULL);
+	assertAllTypes(false, 0, 0.0, 0x00000, NULL);
 	value = valueCreateDouble(1.0);
 	getAllValues(value);
-	assertAllTypes(true, 1, 1.0, NULL);
+	assertAllTypes(true, 1, 1.0, 0x10000, NULL);
+	value = valueCreateDouble(1.25);
+	getAllValues(value);
+	assertAllTypes(true, 1, 1.25, 0x14000, NULL);
+	
+	value = valueCreateFixed16_16(0x00000);
+	getAllValues(value);
+	assertAllTypes(false, 0, 0.0, 0x00000, NULL);
+	value = valueCreateFixed16_16(0x10000);
+	getAllValues(value);
+	assertAllTypes(true, 1, 1.0, 0x10000, NULL);
+	value = valueCreateFixed16_16(0x14000);
+	getAllValues(value);
+	assertAllTypes(true, 1, 1.25, 0x14000, NULL);
 	
 	value = valueCreatePointer(NULL);
 	getAllValues(value);
-	assertAllPrimitiveTypes(false, 0, 0.0);
+	assertAllPrimitiveTypes(false, 0, 0.0, 0x00000);
 	assertAllPointerTypes(NULL);
 	value = valueCreatePointer((void *) 0x1);
 	getAllValues(value);
-	assertAllPrimitiveTypes(false, 0, 0.0);
+	assertAllPrimitiveTypes(false, 0, 0.0, 0x00000);
 	assertAllPointerTypesSeparate((void *) 0x1, NULL, NULL, NULL, NULL, NULL);
 	
 	value = valueCreateString(NULL, 0, false, false);
 	getAllValues(value);
-	assertAllPrimitiveTypes(false, 0, 0.0);
+	assertAllPrimitiveTypes(false, 0, 0.0, 0x00000);
 	assertAllPointerTypes(NULL);
 	value = valueCreateString("abcd", 4, false, false);
 	getAllValues(value);
-	assertAllPrimitiveTypes(false, 0, 0.0);
+	assertAllPrimitiveTypes(false, 0, 0.0, 0x00000);
 	assertAllPointerTypesSeparate(value.value.string, value.value.string, value.value.string, NULL, NULL, NULL);
 	
 	value = valueCreateBlob(NULL, 0, false, false);
 	getAllValues(value);
-	assertAllPrimitiveTypes(false, 0, 0.0);
+	assertAllPrimitiveTypes(false, 0, 0.0, 0x00000);
 	assertAllPointerTypes(NULL);
 	value = valueCreateBlob("abcd", 4, false, false);
 	getAllValues(value);
-	assertAllPrimitiveTypes(false, 0, 0.0);
+	assertAllPrimitiveTypes(false, 0, 0.0, 0x00000);
 	assertAllPointerTypesSeparate(value.value.blob.bytes, NULL, value.value.blob.bytes, NULL, NULL, NULL);
 	
 	value = valueCreateHashTable(NULL, false, false);
 	getAllValues(value);
-	assertAllPrimitiveTypes(false, 0, 0.0);
+	assertAllPrimitiveTypes(false, 0, 0.0, 0x00000);
 	assertAllPointerTypes(NULL);
 	value = valueCreateHashTable(hashCreate(), true, false);
 	getAllValues(value);
-	assertAllPrimitiveTypes(false, 0, 0.0);
+	assertAllPrimitiveTypes(false, 0, 0.0, 0x00000);
 	assertAllPointerTypesSeparate(value.value.hashTable, NULL, NULL, value.value.hashTable, NULL, NULL);
 	valueDispose(&value);
 	
 	value = valueCreateArray(NULL, false, false);
 	getAllValues(value);
-	assertAllPrimitiveTypes(false, 0, 0.0);
+	assertAllPrimitiveTypes(false, 0, 0.0, 0x00000);
 	assertAllPointerTypes(NULL);
 	value = valueCreateArray(arrayCreate(), true, false);
 	getAllValues(value);
-	assertAllPrimitiveTypes(false, 0, 0.0);
+	assertAllPrimitiveTypes(false, 0, 0.0, 0x00000);
 	assertAllPointerTypesSeparate(value.value.array, NULL, NULL, NULL, value.value.array, NULL);
 	valueDispose(&value);
 	
 	value = valueCreateAssociativeArray(NULL, false, false);
 	getAllValues(value);
-	assertAllPrimitiveTypes(false, 0, 0.0);
+	assertAllPrimitiveTypes(false, 0, 0.0, 0x00000);
 	assertAllPointerTypes(NULL);
 	value = valueCreateAssociativeArray(associativeArrayCreate(), true, false);
 	getAllValues(value);
-	assertAllPrimitiveTypes(false, 0, 0.0);
+	assertAllPrimitiveTypes(false, 0, 0.0, 0x00000);
 	assertAllPointerTypesSeparate(value.value.associativeArray, NULL, NULL, NULL, NULL, value.value.associativeArray);
 	valueDispose(&value);
 }
@@ -840,6 +891,7 @@ static void testNullTolerance() {
 	uint64_t uint64;
 	float float32;
 	double float64;
+	fixed16_16 fixed;
 	void * pointer;
 	const char * string;
 	const void * blob;
@@ -869,6 +921,8 @@ static void testNullTolerance() {
 	TestCase_assert(float32 == 0.0f, "Expected 0.0 but got %f", float32);
 	float64 = valueGetDouble(NULL);
 	TestCase_assert(float64 == 0.0, "Expected 0.0 but got %f", float64);
+	fixed = valueGetFixed16_16(NULL);
+	TestCase_assert(fixed == 0x00000, "Expected 0x00000 but got 0x%05X", fixed);
 	pointer = valueGetPointer(NULL);
 	TestCase_assert(pointer == NULL, "Expected NULL but got %p", pointer);
 	string = valueGetString(NULL);

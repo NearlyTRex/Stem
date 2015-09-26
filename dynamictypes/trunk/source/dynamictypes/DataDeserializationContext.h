@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2014 Alex Diener
+  Copyright (c) 2015 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -69,6 +69,7 @@ int64_t DataDeserializationContext_readInt64(DataDeserializationContext * self, 
 uint64_t DataDeserializationContext_readUInt64(DataDeserializationContext * self, const char * key);
 float DataDeserializationContext_readFloat(DataDeserializationContext * self, const char * key);
 double DataDeserializationContext_readDouble(DataDeserializationContext * self, const char * key);
+fixed16_16 DataDeserializationContext_readFixed16_16(DataDeserializationContext * self, const char * key);
 int DataDeserializationContext_readEnumeration(DataDeserializationContext * self, const char * key, ...) __attribute__((sentinel));
 uint8_t DataDeserializationContext_readBitfield8(DataDeserializationContext * self, const char * key, ...) __attribute__((sentinel));
 uint16_t DataDeserializationContext_readBitfield16(DataDeserializationContext * self, const char * key, ...) __attribute__((sentinel));

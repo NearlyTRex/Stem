@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2014 Alex Diener
+  Copyright (c) 2015 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -42,7 +42,8 @@
 	enumKV(DATA_TYPE_BLOB), \
 	enumKV(DATA_TYPE_HASH_TABLE), \
 	enumKV(DATA_TYPE_ARRAY), \
-	enumKV(DATA_TYPE_ASSOCIATIVE_ARRAY)
+	enumKV(DATA_TYPE_ASSOCIATIVE_ARRAY), \
+	enumKV(DATA_TYPE_FIXED_16_16)
 
 static void deserializeContainer(DataValue * container, DeserializationContext * context) {
 	size_t index, count;
@@ -114,6 +115,10 @@ static void deserializeContainer(DataValue * container, DeserializationContext *
 				value = valueCreateDouble(context->readDouble(context, NULL));
 				break;
 				
+			case DATA_TYPE_FIXED_16_16:
+				value = valueCreateFixed16_16(context->readFixed16_16(context, NULL));
+				break;
+				
 			case DATA_TYPE_STRING:
 				value = valueCreateString(context->readString(context, NULL), DATA_USE_STRLEN, true, true);
 				break;
@@ -144,7 +149,7 @@ static void deserializeContainer(DataValue * container, DeserializationContext *
 				deserializeContainer(&value, context);
 				break;
 				
-			default:
+			case DATA_TYPE_POINTER:
 				break;
 		}
 		if (context->status != SERIALIZATION_ERROR_OK) {
@@ -251,6 +256,10 @@ static void serializeValue(DataValue * value, SerializationContext * context) {
 			
 		case DATA_TYPE_DOUBLE:
 			context->writeDouble(context, NULL, value->value.float64);
+			break;
+			
+		case DATA_TYPE_FIXED_16_16:
+			context->writeFixed16_16(context, NULL, value->value.fixed);
 			break;
 			
 		case DATA_TYPE_POINTER:

@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2014 Alex Diener
+  Copyright (c) 2015 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -52,6 +52,7 @@ bool DataSerializationContext_init(DataSerializationContext * self) {
 	self->writeUInt64 = DataSerializationContext_writeUInt64;
 	self->writeFloat = DataSerializationContext_writeFloat;
 	self->writeDouble = DataSerializationContext_writeDouble;
+	self->writeFixed16_16 = DataSerializationContext_writeFixed16_16;
 	self->writeEnumeration = DataSerializationContext_writeEnumeration;
 	self->writeBitfield8 = DataSerializationContext_writeBitfield8;
 	self->writeBitfield16 = DataSerializationContext_writeBitfield16;
@@ -227,6 +228,10 @@ void DataSerializationContext_writeFloat(DataSerializationContext * self, const 
 
 void DataSerializationContext_writeDouble(DataSerializationContext * self, const char * key, double value) {
 	writeValue(self, key, valueCreateDouble(value));
+}
+
+void DataSerializationContext_writeFixed16_16(DataSerializationContext * self, const char * key, fixed16_16 value) {
+	writeValue(self, key, valueCreateFixed16_16(value));
 }
 
 void DataSerializationContext_writeEnumeration(DataSerializationContext * self, const char * key, int value, ...) {

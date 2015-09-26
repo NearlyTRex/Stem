@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2014 Alex Diener
+  Copyright (c) 2015 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -52,6 +52,7 @@ bool DataDeserializationContext_init(DataDeserializationContext * self, DataValu
 	self->readUInt64 = DataDeserializationContext_readUInt64;
 	self->readFloat = DataDeserializationContext_readFloat;
 	self->readDouble = DataDeserializationContext_readDouble;
+	self->readFixed16_16 = DataDeserializationContext_readFixed16_16;
 	self->readEnumeration = DataDeserializationContext_readEnumeration;
 	self->readBitfield8 = DataDeserializationContext_readBitfield8;
 	self->readBitfield16 = DataDeserializationContext_readBitfield16;
@@ -247,6 +248,10 @@ float DataDeserializationContext_readFloat(DataDeserializationContext * self, co
 
 double DataDeserializationContext_readDouble(DataDeserializationContext * self, const char * key) {
 	readValueImplementation(float64, 0.0, DATA_TYPE_DOUBLE);
+}
+
+fixed16_16 DataDeserializationContext_readFixed16_16(DataDeserializationContext * self, const char * key) {
+	readValueImplementation(fixed, 0x00000, DATA_TYPE_FIXED_16_16);
 }
 
 int DataDeserializationContext_readEnumeration(DataDeserializationContext * self, const char * key, ...) {
