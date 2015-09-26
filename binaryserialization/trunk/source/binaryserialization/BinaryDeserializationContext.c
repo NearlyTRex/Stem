@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2014 Alex Diener
+  Copyright (c) 2015 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -138,6 +138,7 @@ static void sharedInit(BinaryDeserializationContext * self) {
 	self->readUInt64 = BinaryDeserializationContext_readUInt64;
 	self->readFloat = BinaryDeserializationContext_readFloat;
 	self->readDouble = BinaryDeserializationContext_readDouble;
+	self->readFixed16_16 = BinaryDeserializationContext_readFixed16_16;
 	self->readEnumeration = BinaryDeserializationContext_readEnumeration;
 	self->readBitfield8 = BinaryDeserializationContext_readBitfield8;
 	self->readBitfield16 = BinaryDeserializationContext_readBitfield16;
@@ -440,6 +441,10 @@ double BinaryDeserializationContext_readDouble(BinaryDeserializationContext * se
 	
 	value.u = self->readUInt64(self, key);
 	return value.f;
+}
+
+fixed16_16 BinaryDeserializationContext_readFixed16_16(BinaryDeserializationContext * self, const char * key) {
+	return self->readUInt32(self, key);
 }
 
 int BinaryDeserializationContext_readEnumeration(BinaryDeserializationContext * self, const char * key, ...) {

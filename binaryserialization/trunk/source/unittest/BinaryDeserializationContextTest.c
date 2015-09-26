@@ -28,6 +28,7 @@ static void verifyInit(BinaryDeserializationContext * context) {
 	TestCase_assert(context->readUInt64 == BinaryDeserializationContext_readUInt64, "Expected %p but got %p", BinaryDeserializationContext_readUInt64, context->readUInt64);
 	TestCase_assert(context->readFloat == BinaryDeserializationContext_readFloat, "Expected %p but got %p", BinaryDeserializationContext_readFloat, context->readFloat);
 	TestCase_assert(context->readDouble == BinaryDeserializationContext_readDouble, "Expected %p but got %p", BinaryDeserializationContext_readDouble, context->readDouble);
+	TestCase_assert(context->readFixed16_16 == BinaryDeserializationContext_readFixed16_16, "Expected %p but got %p", BinaryDeserializationContext_readFixed16_16, context->readFixed16_16);
 	TestCase_assert(context->readEnumeration == BinaryDeserializationContext_readEnumeration, "Expected %p but got %p", BinaryDeserializationContext_readEnumeration, context->readEnumeration);
 	TestCase_assert(context->readBitfield8 == BinaryDeserializationContext_readBitfield8, "Expected %p but got %p", BinaryDeserializationContext_readBitfield8, context->readBitfield8);
 	TestCase_assert(context->readBitfield16 == BinaryDeserializationContext_readBitfield16, "Expected %p but got %p", BinaryDeserializationContext_readBitfield16, context->readBitfield16);
@@ -129,6 +130,7 @@ static void testInitErrors() {
 #define readFunction_uint64_t readUInt64
 #define readFunction_float readFloat
 #define readFunction_double readDouble
+#define readFunction_fixed16_16 readFixed16_16
 #define readFunction_bool readBoolean
 #define printfSpecifier_int8_t "%d"
 #define printfSpecifier_uint8_t "%u"
@@ -140,6 +142,7 @@ static void testInitErrors() {
 #define printfSpecifier_uint64_t UINT64_FORMAT
 #define printfSpecifier_float "%f"
 #define printfSpecifier_double "%f"
+#define printfSpecifier_fixed16_16 "0x%05X"
 #define printfSpecifier_bool "%d"
 #define readAndVerifyNumber(TYPE, KEY, EXPECTED_VALUE) { \
 	TYPE value; \
@@ -205,7 +208,7 @@ static void testNumberValues() {
 	
 	context = BinaryDeserializationContext_createWithBytes(
 		"Stem"
-		"\x00\x00\x00\x0A"
+		"\x00\x00\x00\x0B"
 		"\x00"
 		"\x01"
 		"\x00\x02"
@@ -215,12 +218,13 @@ static void testNumberValues() {
 		"\x00\x00\x00\x00\x00\x00\x00\x06"
 		"\x00\x00\x00\x00\x00\x00\x00\x07"
 		"\x41\x00\x00\x00"
-		"\x40\x22\x00\x00\x00\x00\x00\x00",
-		50
+		"\x40\x22\x00\x00\x00\x00\x00\x00"
+		"\x00\x0A\x00\x00",
+		54
 	);
 	TestCase_assert(context != NULL, "Expected non-NULL but got NULL");
 	if (context == NULL) {return;} // Suppress clang warning
-	beginAndVerifyArray("", 10)
+	beginAndVerifyArray("", 11)
 	readAndVerifyNumber(int8_t, "", 0)
 	readAndVerifyNumber(uint8_t, "", 1)
 	readAndVerifyNumber(int16_t, "", 2)
@@ -231,12 +235,13 @@ static void testNumberValues() {
 	readAndVerifyNumber(uint64_t, "", 7)
 	readAndVerifyNumber(float, "", 8)
 	readAndVerifyNumber(double, "", 9)
+	readAndVerifyNumber(fixed16_16, "", 0xA0000)
 	context->endArray(context);
 	context->dispose(context);
 	
 	context = BinaryDeserializationContext_createWithBytes(
 		"metS"
-		"\x0A\x00\x00\x00"
+		"\x0B\x00\x00\x00"
 		"\x00"
 		"\x01"
 		"\x02\x00"
@@ -246,12 +251,13 @@ static void testNumberValues() {
 		"\x06\x00\x00\x00\x00\x00\x00\x00"
 		"\x07\x00\x00\x00\x00\x00\x00\x00"
 		"\x00\x00\x00\x41"
-		"\x00\x00\x00\x00\x00\x00\x22\x40",
-		50
+		"\x00\x00\x00\x00\x00\x00\x22\x40"
+		"\x00\x00\x0A\x00",
+		54
 	);
 	TestCase_assert(context != NULL, "Expected non-NULL but got NULL");
 	if (context == NULL) {return;} // Suppress clang warning
-	beginAndVerifyArray("", 10)
+	beginAndVerifyArray("", 11)
 	readAndVerifyNumber(int8_t, "", 0)
 	readAndVerifyNumber(uint8_t, "", 1)
 	readAndVerifyNumber(int16_t, "", 2)
@@ -262,12 +268,13 @@ static void testNumberValues() {
 	readAndVerifyNumber(uint64_t, "", 7)
 	readAndVerifyNumber(float, "", 8)
 	readAndVerifyNumber(double, "", 9)
+	readAndVerifyNumber(fixed16_16, "", 0xA0000)
 	context->endArray(context);
 	context->dispose(context);
 	
 	context = BinaryDeserializationContext_createWithBytes(
 		"Stem"
-		"\x00\x00\x00\x0A"
+		"\x00\x00\x00\x0B"
 		"\x80"
 		"\xFF"
 		"\x80\x00"
@@ -277,12 +284,13 @@ static void testNumberValues() {
 		"\x80\x00\x00\x00\x00\x00\x00\x00"
 		"\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF"
 		"\x7F\x7F\xFF\xFF"
-		"\x7F\xEF\xFF\xFF\xFF\xFF\xFF\xFF",
-		50
+		"\x7F\xEF\xFF\xFF\xFF\xFF\xFF\xFF"
+		"\x80\x00\x00\x02",
+		54
 	);
 	TestCase_assert(context != NULL, "Expected non-NULL but got NULL");
 	if (context == NULL) {return;} // Suppress clang warning
-	beginAndVerifyArray("", 10)
+	beginAndVerifyArray("", 11)
 	readAndVerifyNumber(int8_t, "", INT8_MIN)
 	readAndVerifyNumber(uint8_t, "", UINT8_MAX)
 	readAndVerifyNumber(int16_t, "", INT16_MIN)
@@ -293,12 +301,13 @@ static void testNumberValues() {
 	readAndVerifyNumber(uint64_t, "", UINT64_MAX)
 	readAndVerifyNumber(float, "", FLT_MAX)
 	readAndVerifyNumber(double, "", DBL_MAX)
+	readAndVerifyNumber(fixed16_16, "", FIXED_16_16_MIN)
 	context->endArray(context);
 	context->dispose(context);
 	
 	context = BinaryDeserializationContext_createWithBytes(
 		"metS"
-		"\x0A\x00\x00\x00"
+		"\x0B\x00\x00\x00"
 		"\x80"
 		"\xFF"
 		"\x00\x80"
@@ -308,12 +317,13 @@ static void testNumberValues() {
 		"\x00\x00\x00\x00\x00\x00\x00\x80"
 		"\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF"
 		"\xFF\xFF\x7F\x7F"
-		"\xFF\xFF\xFF\xFF\xFF\xFF\xEF\x7F",
-		50
+		"\xFF\xFF\xFF\xFF\xFF\xFF\xEF\x7F"
+		"\x02\x00\x00\x80",
+		54
 	);
 	TestCase_assert(context != NULL, "Expected non-NULL but got NULL");
 	if (context == NULL) {return;} // Suppress clang warning
-	beginAndVerifyArray("", 10)
+	beginAndVerifyArray("", 11)
 	readAndVerifyNumber(int8_t, "", INT8_MIN)
 	readAndVerifyNumber(uint8_t, "", UINT8_MAX)
 	readAndVerifyNumber(int16_t, "", INT16_MIN)
@@ -324,6 +334,7 @@ static void testNumberValues() {
 	readAndVerifyNumber(uint64_t, "", UINT64_MAX)
 	readAndVerifyNumber(float, "", FLT_MAX)
 	readAndVerifyNumber(double, "", DBL_MAX)
+	readAndVerifyNumber(fixed16_16, "", FIXED_16_16_MIN)
 	context->endArray(context);
 	context->dispose(context);
 }
@@ -534,7 +545,7 @@ static void testArrays() {
 		"\x00\x00\x00\x02"
 		"\x00\x00\x00\x01"
 		"\xFF"
-		"\x00\x00\x00\x0D"
+		"\x00\x00\x00\x0E"
 		"\x00"
 		"\x01"
 		"\x00\x00\x00\x06"
@@ -546,6 +557,7 @@ static void testArrays() {
 		"\x00\x00\x00\x00\x00\x00\x00\x07"
 		"\x41\x00\x00\x00"
 		"\x40\x22\x00\x00\x00\x00\x00\x00"
+		"\x00\x0A\x00\x00"
 		"10\x00"
 		"\x00\x00\x00\x04" "blob"
 		"\x01"
@@ -554,7 +566,7 @@ static void testArrays() {
 		"\x00\x01"
 		"\x00\x00\x00\x01"
 		"\x00\x00\x00\x00\x00\x00\x00\x01",
-		94
+		98
 	);
 	TestCase_assert(context != NULL, "Expected non-NULL but got NULL");
 	if (context == NULL) {return;} // Suppress clang warning
@@ -562,7 +574,7 @@ static void testArrays() {
 		beginAndVerifyArray("", 1)
 			readAndVerifyNumber(int8_t, "", -1)
 		context->endArray(context);
-		beginAndVerifyArray("", 13)
+		beginAndVerifyArray("", 14)
 			readAndVerifyNumber(int8_t, "", 0)
 			readAndVerifyNumber(uint8_t, "", 1)
 			beginAndVerifyArray("", 6)
@@ -575,6 +587,7 @@ static void testArrays() {
 			context->endArray(context);
 			readAndVerifyNumber(float, "", 8)
 			readAndVerifyNumber(double, "", 9)
+			readAndVerifyNumber(fixed16_16, "", 0xA0000)
 			readAndVerifyString("", "10")
 			readAndVerifyBlob("", "blob", 4)
 			readAndVerifyNumber(bool, "", true)
@@ -604,6 +617,7 @@ static void testStructures() {
 		"\x00\x00\x00\x00\x00\x00\x00\x07"
 		"\x41\x00\x00\x00"
 		"\x40\x22\x00\x00\x00\x00\x00\x00"
+		"\x00\x0A\x00\x00"
 		"10\x00"
 		"\x01"
 		"\x00\x00\x00\x0C"
@@ -611,7 +625,7 @@ static void testStructures() {
 		"\x00\x01"
 		"\x00\x00\x00\x01"
 		"\x00\x00\x00\x00\x00\x00\x00\x01",
-		72
+		76
 	);
 	TestCase_assert(context != NULL, "Expected non-NULL but got NULL");
 	if (context == NULL) {return;} // Suppress clang warning
@@ -632,6 +646,7 @@ static void testStructures() {
 			context->endStructure(context);
 			readAndVerifyNumber(float, "m", 8)
 			readAndVerifyNumber(double, "n", 9)
+			readAndVerifyNumber(fixed16_16, "v", 0xA0000)
 			readAndVerifyString("o", "10")
 			readAndVerifyNumber(bool, "p", true)
 			readAndVerifyEnumeration("q", 12, "enum", 12, NULL)
@@ -651,7 +666,7 @@ static void testDictionaries() {
 	context = BinaryDeserializationContext_createWithBytes(
 		"Stem"
 		"\x00\x00\x00\x02" // top start
-		"\x00\x00\x00\xE0" // top end offset
+		"\x00\x00\x00\xEA" // top end offset
 		"a\x00"
 		"\x00\x00\x00\x14" // a offset from top start
 		"c\x00"
@@ -662,32 +677,34 @@ static void testDictionaries() {
 		"\x00\x00\x00\x0E" // b offset from a start
 		"\xFF" // b
 		// a end
-		"\x00\x00\x00\x0C" // c start
-		"\x00\x00\x00\xBD" // c end offset
+		"\x00\x00\x00\x0D" // c start
+		"\x00\x00\x00\xC6" // c end offset
 		"d\x00"
-		"\x00\x00\x00\x50" // d offset from c start
+		"\x00\x00\x00\x56" // d offset from c start
 		"e\x00"
-		"\x00\x00\x00\x51" // e offset from c start
+		"\x00\x00\x00\x57" // e offset from c start
 		"f\x00"
-		"\x00\x00\x00\x52" // f offset from c start
+		"\x00\x00\x00\x58" // f offset from c start
 		"m\x00"
-		"\x00\x00\x00\x9A" // m offset from c start
+		"\x00\x00\x00\xA0" // m offset from c start
 		"n\x00"
-		"\x00\x00\x00\x9E" // n offset from c start
+		"\x00\x00\x00\xA4" // n offset from c start
 		"o\x00"
-		"\x00\x00\x00\xA6" // o offset from c start
+		"\x00\x00\x00\xAC" // o offset from c start
 		"p\x00"
-		"\x00\x00\x00\xA9" // p offset from c start
+		"\x00\x00\x00\xAF" // p offset from c start
 		"q\x00"
-		"\x00\x00\x00\xAA" // q offset from c start
+		"\x00\x00\x00\xB0" // q offset from c start
 		"r\x00"
-		"\x00\x00\x00\xAE" // r offset from c start
+		"\x00\x00\x00\xB4" // r offset from c start
 		"s\x00"
-		"\x00\x00\x00\xAF" // s offset from c start
+		"\x00\x00\x00\xB5" // s offset from c start
 		"t\x00"
-		"\x00\x00\x00\xB1" // t offset from c start
+		"\x00\x00\x00\xB7" // t offset from c start
 		"u\x00"
-		"\x00\x00\x00\xB5" // u offset from c start
+		"\x00\x00\x00\xBB" // u offset from c start
+		"v\x00"
+		"\x00\x00\x00\xC3" // u offset from c start
 		"\x00" // d
 		"\x01" // e
 		"\x00\x00\x00\x06" // f start
@@ -719,10 +736,11 @@ static void testDictionaries() {
 		"\x01" // r
 		"\x00\x01" // s
 		"\x00\x00\x00\x01" // t
-		"\x00\x00\x00\x00\x00\x00\x00\x01", // u
+		"\x00\x00\x00\x00\x00\x00\x00\x01" // u
+		"\x00\x0A\x00\x00", // v
 		// c end
 		// top end
-		228
+		238
 	);
 	TestCase_assert(context != NULL, "Expected non-NULL but got NULL");
 	if (context == NULL) {return;} // Suppress clang warning
@@ -730,7 +748,7 @@ static void testDictionaries() {
 		beginAndVerifyDictionary("a", 1)
 			readAndVerifyNumber(int8_t, "b", -1)
 		context->endDictionary(context);
-		beginAndVerifyDictionary("c", 12)
+		beginAndVerifyDictionary("c", 13)
 			readAndVerifyNumber(int8_t, "d", 0)
 			readAndVerifyNumber(uint8_t, "e", 1)
 			beginAndVerifyDictionary("f", 6)
@@ -750,6 +768,7 @@ static void testDictionaries() {
 			readAndVerifyBitfield(16, "s", 0x0001, "14", NULL)
 			readAndVerifyBitfield(32, "t", 0x00000001, "15", NULL)
 			readAndVerifyBitfield(64, "u", (uint64_t) 0x0000000000000001ull, "16", NULL)
+			readAndVerifyNumber(fixed16_16, "v", 0xA0000)
 		context->endDictionary(context);
 	context->endDictionary(context);
 	context->dispose(context);
@@ -939,50 +958,52 @@ static void testDictionaries() {
 	
 	context = BinaryDeserializationContext_createWithBytes(
 		"Stem"
-		"\x00\x00\x00\x15" // top start
-		"\x00\x00\x00\xCB" // top end offset
+		"\x00\x00\x00\x16" // top start
+		"\x00\x00\x00\xD4" // top end offset
 		"\x00"
-		"\x00\x00\x00\x71" // key 0 offset from top start
+		"\x00\x00\x00\x76" // key 0 offset from top start
 		"\x00"
-		"\x00\x00\x00\x72" // key 1 offset from top start
+		"\x00\x00\x00\x77" // key 1 offset from top start
 		"\x00"
-		"\x00\x00\x00\x73" // key 2 offset from top start
+		"\x00\x00\x00\x78" // key 2 offset from top start
 		"\x00"
-		"\x00\x00\x00\x74" // key 3 offset from top start
+		"\x00\x00\x00\x79" // key 3 offset from top start
 		"\x00"
-		"\x00\x00\x00\x76" // key 4 offset from top start
+		"\x00\x00\x00\x7B" // key 4 offset from top start
 		"\x00"
-		"\x00\x00\x00\x78" // key 5 offset from top start
+		"\x00\x00\x00\x7D" // key 5 offset from top start
 		"\x00"
-		"\x00\x00\x00\x7C" // key 6 offset from top start
+		"\x00\x00\x00\x81" // key 6 offset from top start
 		"\x00"
-		"\x00\x00\x00\x80" // key 7 offset from top start
+		"\x00\x00\x00\x85" // key 7 offset from top start
 		"\x00"
-		"\x00\x00\x00\x88" // key 8 offset from top start
+		"\x00\x00\x00\x8D" // key 8 offset from top start
 		"\x00"
-		"\x00\x00\x00\x90" // key 9 offset from top start
+		"\x00\x00\x00\x95" // key 9 offset from top start
 		"\x00"
-		"\x00\x00\x00\x94" // key 10 offset from top start
+		"\x00\x00\x00\x99" // key 10 offset from top start
 		"\x00"
-		"\x00\x00\x00\x9C" // key 11 offset from top start
+		"\x00\x00\x00\xA1" // key 11 offset from top start
 		"\x00"
-		"\x00\x00\x00\x9F" // key 12 offset from top start
+		"\x00\x00\x00\xA4" // key 12 offset from top start
 		"\x00"
-		"\x00\x00\x00\xA0" // key 13 offset from top start
+		"\x00\x00\x00\xA5" // key 13 offset from top start
 		"\x00"
-		"\x00\x00\x00\xA4" // key 14 offset from top start
+		"\x00\x00\x00\xA9" // key 14 offset from top start
 		"\x00"
-		"\x00\x00\x00\xA5" // key 15 offset from top start
+		"\x00\x00\x00\xAA" // key 15 offset from top start
 		"\x00"
-		"\x00\x00\x00\xA7" // key 16 offset from top start
+		"\x00\x00\x00\xAC" // key 16 offset from top start
 		"\x00"
-		"\x00\x00\x00\xAB" // key 17 offset from top start
+		"\x00\x00\x00\xB0" // key 17 offset from top start
 		"\x00"
-		"\x00\x00\x00\xB3" // key 18 offset from top start
+		"\x00\x00\x00\xB8" // key 18 offset from top start
 		"\x00"
-		"\x00\x00\x00\xB7" // key 19 offset from top start
+		"\x00\x00\x00\xBC" // key 19 offset from top start
 		"\x00"
-		"\x00\x00\x00\xB7" // key 20 offset from top start
+		"\x00\x00\x00\xBC" // key 20 offset from top start
+		"\x00"
+		"\x00\x00\x00\xD0" // key 21 offset from top start
 		"\xFF" // value 0
 		"\x00" // value 1
 		"\x01" // value 2
@@ -1010,14 +1031,15 @@ static void testDictionaries() {
 		"\x00"
 		"\x00\x00\x00\x13" // value 20 key 1 offset from value 20 start
 		"\x00" // value 20 value 0
-		"\x00", // value 20 value 1
+		"\x00" // value 20 value 1
 		// value 20 end
+		"\x00\x0A\x00\x00", // value 21
 		// top end
-		207
+		216
 	);
 	TestCase_assert(context != NULL, "Expected non-NULL but got NULL");
 	if (context == NULL) {return;} // Suppress clang warning
-	beginAndVerifyDictionary("", 21)
+	beginAndVerifyDictionary("", 22)
 		verifyHasDictionaryKey("", true)
 		verifyHasDictionaryKey(" ", false)
 		verifyReadNextDictionaryKey("")
@@ -1065,6 +1087,8 @@ static void testDictionaries() {
 		verifyReadNextDictionaryKey("")
 		beginAndVerifyDictionary(key, 2)
 		context->endDictionary(context);
+		verifyReadNextDictionaryKey("")
+		readAndVerifyNumber(fixed16_16, key, 0xA0000)
 	context->endDictionary(context);
 	context->dispose(context);
 }
@@ -1281,6 +1305,11 @@ static void testErrorReporting() {
 	             BINARY_SERIALIZATION_ERROR_UNEXPECTED_EOF,
 	             context->beginStructure(context, "");,
 	             context->readDouble(context, "");)
+	_testFailure("Stem\x00\x00\x00",
+	             7,
+	             BINARY_SERIALIZATION_ERROR_UNEXPECTED_EOF,
+	             context->beginStructure(context, "");,
+	             context->readFixed16_16(context, "");)
 	_testFailure("Stem",
 	             4,
 	             BINARY_SERIALIZATION_ERROR_UNEXPECTED_EOF,
@@ -1441,6 +1470,11 @@ static void testErrorReporting() {
 	             9,
 	             SERIALIZATION_ERROR_END_OF_CONTAINER,
 	             context->beginArray(context, ""); context->readInt8(context, "");,
+	             context->readFixed16_16(context, "");)
+	_testFailure("Stem\x00\x00\x00\x01\x00",
+	             9,
+	             SERIALIZATION_ERROR_END_OF_CONTAINER,
+	             context->beginArray(context, ""); context->readInt8(context, "");,
 	             context->readString(context, "");)
 	_testFailure("Stem\x00\x00\x00\x01\x00",
 	             9,
@@ -1510,6 +1544,7 @@ static void testErrorReporting() {
 	_testNoSuchKey(context->readUInt64(context, "");)
 	_testNoSuchKey(context->readFloat(context, "");)
 	_testNoSuchKey(context->readDouble(context, "");)
+	_testNoSuchKey(context->readFixed16_16(context, "");)
 	_testNoSuchKey(context->readString(context, "");)
 	_testNoSuchKey(context->readBoolean(context, "");)
 	_testNoSuchKey(context->readEnumeration(context, "", "enum", 0, NULL);)
@@ -1614,6 +1649,7 @@ static void testErrorReporting() {
 	_testFailure("Stem", 4, SERIALIZATION_ERROR_NULL_KEY, context->beginStructure(context, "");, context->readUInt64(context, NULL);)
 	_testFailure("Stem", 4, SERIALIZATION_ERROR_NULL_KEY, context->beginStructure(context, "");, context->readFloat(context, NULL);)
 	_testFailure("Stem", 4, SERIALIZATION_ERROR_NULL_KEY, context->beginStructure(context, "");, context->readDouble(context, NULL);)
+	_testFailure("Stem", 4, SERIALIZATION_ERROR_NULL_KEY, context->beginStructure(context, "");, context->readFixed16_16(context, NULL);)
 	_testFailure("Stem", 4, SERIALIZATION_ERROR_NULL_KEY, context->beginStructure(context, "");, context->readString(context, NULL);)
 	_testFailure("Stem", 4, SERIALIZATION_ERROR_NULL_KEY, context->beginStructure(context, "");, context->readBoolean(context, NULL);)
 	_testFailure("Stem", 4, SERIALIZATION_ERROR_NULL_KEY, context->beginStructure(context, "");, context->readEnumeration(context, NULL, NULL);)
@@ -1632,6 +1668,7 @@ static void testErrorReporting() {
 	_testFailure("Stem\x00\x00\x00\x00\x00\x00\x00\x08", 12, SERIALIZATION_ERROR_NULL_KEY, context->beginDictionary(context, "");, context->readUInt64(context, NULL);)
 	_testFailure("Stem\x00\x00\x00\x00\x00\x00\x00\x08", 12, SERIALIZATION_ERROR_NULL_KEY, context->beginDictionary(context, "");, context->readFloat(context, NULL);)
 	_testFailure("Stem\x00\x00\x00\x00\x00\x00\x00\x08", 12, SERIALIZATION_ERROR_NULL_KEY, context->beginDictionary(context, "");, context->readDouble(context, NULL);)
+	_testFailure("Stem\x00\x00\x00\x00\x00\x00\x00\x08", 12, SERIALIZATION_ERROR_NULL_KEY, context->beginDictionary(context, "");, context->readFixed16_16(context, NULL);)
 	_testFailure("Stem\x00\x00\x00\x00\x00\x00\x00\x08", 12, SERIALIZATION_ERROR_NULL_KEY, context->beginDictionary(context, "");, context->readString(context, NULL);)
 	_testFailure("Stem\x00\x00\x00\x00\x00\x00\x00\x08", 12, SERIALIZATION_ERROR_NULL_KEY, context->beginDictionary(context, "");, context->readBoolean(context, NULL);)
 	_testFailure("Stem\x00\x00\x00\x00\x00\x00\x00\x08", 12, SERIALIZATION_ERROR_NULL_KEY, context->beginDictionary(context, "");, context->readEnumeration(context, NULL, NULL);)
@@ -1806,6 +1843,7 @@ static void testErrorReporting() {
 	_testFailure("Stem", 4, SERIALIZATION_ERROR_NO_CONTAINER_STARTED, , context->readUInt64(context, "key");)
 	_testFailure("Stem", 4, SERIALIZATION_ERROR_NO_CONTAINER_STARTED, , context->readFloat(context, "key");)
 	_testFailure("Stem", 4, SERIALIZATION_ERROR_NO_CONTAINER_STARTED, , context->readDouble(context, "key");)
+	_testFailure("Stem", 4, SERIALIZATION_ERROR_NO_CONTAINER_STARTED, , context->readFixed16_16(context, "key");)
 	_testFailure("Stem", 4, SERIALIZATION_ERROR_NO_CONTAINER_STARTED, , context->readString(context, "key");)
 	_testFailure("Stem", 4, SERIALIZATION_ERROR_NO_CONTAINER_STARTED, , context->readBoolean(context, "key");)
 	_testFailure("Stem", 4, SERIALIZATION_ERROR_NO_CONTAINER_STARTED, , context->readEnumeration(context, "key", "", 0, NULL);)
@@ -1824,6 +1862,7 @@ static void testErrorReporting() {
 	_testFailure("Stem", 4, SERIALIZATION_ERROR_NO_CONTAINER_STARTED, context->beginStructure(context, ""); context->endStructure(context);, context->readUInt64(context, "key");)
 	_testFailure("Stem", 4, SERIALIZATION_ERROR_NO_CONTAINER_STARTED, context->beginStructure(context, ""); context->endStructure(context);, context->readFloat(context, "key");)
 	_testFailure("Stem", 4, SERIALIZATION_ERROR_NO_CONTAINER_STARTED, context->beginStructure(context, ""); context->endStructure(context);, context->readDouble(context, "key");)
+	_testFailure("Stem", 4, SERIALIZATION_ERROR_NO_CONTAINER_STARTED, context->beginStructure(context, ""); context->endStructure(context);, context->readFixed16_16(context, "key");)
 	_testFailure("Stem", 4, SERIALIZATION_ERROR_NO_CONTAINER_STARTED, context->beginStructure(context, ""); context->endStructure(context);, context->readString(context, "key");)
 	_testFailure("Stem", 4, SERIALIZATION_ERROR_NO_CONTAINER_STARTED, context->beginStructure(context, ""); context->endStructure(context);, context->readBoolean(context, "key");)
 	_testFailure("Stem", 4, SERIALIZATION_ERROR_NO_CONTAINER_STARTED, context->beginStructure(context, ""); context->endStructure(context);, context->readEnumeration(context, "key", "", 0, NULL);)

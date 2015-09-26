@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2014 Alex Diener
+  Copyright (c) 2015 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -63,6 +63,7 @@ bool BinarySerializationContext_init(BinarySerializationContext * self, bool big
 	self->writeUInt64 = BinarySerializationContext_writeUInt64;
 	self->writeFloat = BinarySerializationContext_writeFloat;
 	self->writeDouble = BinarySerializationContext_writeDouble;
+	self->writeFixed16_16 = BinarySerializationContext_writeFixed16_16;
 	self->writeEnumeration = BinarySerializationContext_writeEnumeration;
 	self->writeBitfield8 = BinarySerializationContext_writeBitfield8;
 	self->writeBitfield16 = BinarySerializationContext_writeBitfield16;
@@ -406,6 +407,11 @@ void BinarySerializationContext_writeDouble(BinarySerializationContext * self, c
 	
 	writePreamble(self, key);
 	writeUInt64Internal(self, valueUnion.u);
+}
+
+void BinarySerializationContext_writeFixed16_16(BinarySerializationContext * self, const char * key, fixed16_16 value) {
+	writePreamble(self, key);
+	writeUInt32Internal(self, value);
 }
 
 void BinarySerializationContext_writeEnumeration(BinarySerializationContext * self, const char * key, int value, ...) {

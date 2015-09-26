@@ -1,3 +1,6 @@
+1.2.0 (2015-09-24)
+ * Updated for serialization 1.6.0 (adds read/writeFixed16_16)
+
 1.1.0 (2014-12-08)
  * Implemented readBlob and writeBlob (added in serialization 1.5.0)
  * Removed writeToBytes and writeToFile function pointers from BinarySerializationContext struct in preparation for stemobject 4.0.0
