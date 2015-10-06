@@ -67,6 +67,7 @@ SOURCES_library = \
 	source/${PROJECT_NAME}/FixedPoint.c \
 	source/${PROJECT_NAME}/Interpolation.c \
 	source/${PROJECT_NAME}/Matrix.c \
+	source/${PROJECT_NAME}/MouseCoordinateTransforms.c \
 	source/${PROJECT_NAME}/Quaternion.c \
 	build/intermediate/generated/${PROJECT_NAME}/Box6d.c \
 	build/intermediate/generated/${PROJECT_NAME}/Box6f.c \
@@ -95,6 +96,7 @@ SOURCES_unittest_suites = \
 	source/unittest/FixedPointTest.c \
 	source/unittest/InterpolationTest.c \
 	source/unittest/MatrixTest.c \
+	source/unittest/MouseCoordinateTransformsTest.c \
 	source/unittest/RectBoxConversionsTest.c \
 	source/unittest/RectBoxTest.c \
 	source/unittest/QuaternionTest.c \
@@ -109,6 +111,7 @@ INCLUDES = \
 	source/${PROJECT_NAME}/FixedPoint.h \
 	source/${PROJECT_NAME}/Interpolation.h \
 	source/${PROJECT_NAME}/Matrix.h \
+	source/${PROJECT_NAME}/MouseCoordinateTransforms.h \
 	source/${PROJECT_NAME}/Quaternion.h \
 	build/intermediate/generated/${PROJECT_NAME}/Box6d.h \
 	build/intermediate/generated/${PROJECT_NAME}/Box6f.h \
