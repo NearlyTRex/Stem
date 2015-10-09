@@ -27,11 +27,11 @@
 
 #define SUPERCLASS CollisionObject
 
-CollisionRect2D * CollisionRect2D_create(void * owner, CollisionCallback collisionCallback, Vector2x position, Vector2x size) {
-	stemobject_create_implementation(CollisionRect2D, init, owner, collisionCallback, position, size)
+CollisionRect2D * CollisionRect2D_create(void * owner, CollisionCallback collisionCallback, Vector2x position, Vector2x size, fixed16_16 edgeThickness) {
+	stemobject_create_implementation(CollisionRect2D, init, owner, collisionCallback, position, size, edgeThickness)
 }
 
-bool CollisionRect2D_init(CollisionRect2D * self, void * owner, CollisionCallback collisionCallback, Vector2x position, Vector2x size) {
+bool CollisionRect2D_init(CollisionRect2D * self, void * owner, CollisionCallback collisionCallback, Vector2x position, Vector2x size, fixed16_16 edgeThickness) {
 	call_super(init, self, owner, COLLISION_SHAPE_RECT_2D, collisionCallback);
 	self->dispose = CollisionRect2D_dispose;
 	self->interpolate = CollisionRect2D_interpolate;
@@ -45,7 +45,7 @@ bool CollisionRect2D_init(CollisionRect2D * self, void * owner, CollisionCallbac
 	self->solidRight = true;
 	self->solidBottom = true;
 	self->solidTop = true;
-	self->thickness = 0x00000;
+	self->edgeThickness = edgeThickness;
 	return true;
 }
 

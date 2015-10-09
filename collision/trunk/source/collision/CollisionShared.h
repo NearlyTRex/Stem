@@ -38,6 +38,8 @@ extern "C" {
 #define COLLISION_SHAPE_LINE_3D 14
 #define COLLISION_SHAPE_STATIC_TRIMESH 15
 
+#define EDGE_THICKNESS_DEFAULT FIXED_16_16_MAX
+
 #ifdef __cplusplus
 }
 #endif

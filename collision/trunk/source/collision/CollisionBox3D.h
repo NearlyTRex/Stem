@@ -47,6 +47,8 @@ typedef struct CollisionBox3D CollisionBox3D;
 
 stemobject_struct_definition(CollisionBox3D)
 
+// TODO: edgeThickness
+
 // position is the corner of the rect with the lowest x and y axis values.
 // size extends the rect from position in the +x and +y directions.
 CollisionBox3D * CollisionBox3D_create(void * owner, CollisionCallback collisionCallback, Vector3x position, Vector3x size);

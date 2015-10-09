@@ -438,7 +438,7 @@ void BouncingBallScreen_activate(BouncingBallScreen * self) {
 	int randomSeed;
 	
 	self->resolver = CollisionResolver_create(self->intersectionManager, false);
-	CollisionResolver_addObject(self->resolver, (CollisionObject *) CollisionRect2D_create(NULL, NULL, VECTOR2x(BALL_AREA_X, BALL_AREA_Y), VECTOR2x(BALL_AREA_X * -2, BALL_AREA_Y * -2)));
+	CollisionResolver_addObject(self->resolver, (CollisionObject *) CollisionRect2D_create(NULL, NULL, VECTOR2x(BALL_AREA_X, BALL_AREA_Y), VECTOR2x(BALL_AREA_X * -2, BALL_AREA_Y * -2), 0x00000));
 	
 	if (g_fixedRandomSeed) {
 		randomSeed = g_randomSeed;

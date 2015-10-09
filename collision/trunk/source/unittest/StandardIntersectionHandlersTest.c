@@ -11,14 +11,14 @@
 static CollisionRect2D initStationaryRect2D(Vector2x position, Vector2x size) {
 	CollisionRect2D rect;
 	
-	CollisionRect2D_init(&rect, NULL, NULL, position, size);
+	CollisionRect2D_init(&rect, NULL, NULL, position, size, 0x00000);
 	return rect;
 }
 
 static CollisionRect2D initMovingRect2D(Vector2x lastPosition, Vector2x position, Vector2x size) {
 	CollisionRect2D rect;
 	
-	CollisionRect2D_init(&rect, NULL, NULL, lastPosition, size);
+	CollisionRect2D_init(&rect, NULL, NULL, lastPosition, size, 0x00000);
 	CollisionRect2D_updatePosition(&rect, position);
 	return rect;
 }
@@ -26,7 +26,7 @@ static CollisionRect2D initMovingRect2D(Vector2x lastPosition, Vector2x position
 static CollisionRect2D initResizingRect2D(Vector2x position, Vector2x lastSize, Vector2x size) {
 	CollisionRect2D rect;
 	
-	CollisionRect2D_init(&rect, NULL, NULL, position, lastSize);
+	CollisionRect2D_init(&rect, NULL, NULL, position, lastSize, 0x00000);
 	CollisionRect2D_updateSize(&rect, size);
 	return rect;
 }
@@ -34,15 +34,22 @@ static CollisionRect2D initResizingRect2D(Vector2x position, Vector2x lastSize, 
 static CollisionRect2D initStationaryRect2DWithSolidity(Vector2x position, Vector2x size, bool solidLeft, bool solidRight, bool solidBottom, bool solidTop) {
 	CollisionRect2D rect;
 	
-	CollisionRect2D_init(&rect, NULL, NULL, position, size);
+	CollisionRect2D_init(&rect, NULL, NULL, position, size, 0x00000);
 	CollisionRect2D_setSolidity(&rect, solidLeft, solidRight, solidBottom, solidTop);
+	return rect;
+}
+
+static CollisionRect2D initStationaryRect2DWithThickness(Vector2x position, Vector2x size, fixed16_16 thickness) {
+	CollisionRect2D rect;
+	
+	CollisionRect2D_init(&rect, NULL, NULL, position, size, thickness);
 	return rect;
 }
 
 static CollisionRect2D initMovingRect2DWithSolidity(Vector2x lastPosition, Vector2x position, Vector2x size, bool solidLeft, bool solidRight, bool solidBottom, bool solidTop) {
 	CollisionRect2D rect;
 	
-	CollisionRect2D_init(&rect, NULL, NULL, lastPosition, size);
+	CollisionRect2D_init(&rect, NULL, NULL, lastPosition, size, 0x00000);
 	CollisionRect2D_updatePosition(&rect, position);
 	CollisionRect2D_setSolidity(&rect, solidLeft, solidRight, solidBottom, solidTop);
 	return rect;
@@ -564,6 +571,89 @@ static void testRect2D_rect2D() {
 	resetOutParameters();
 	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
 	assertCollision(result, time, normal, 0x08000, VECTOR3x(-0x10000, 0x00000, 0x00000), VECTOR3x(0x08000, 0x00000, 0x00000), VECTOR3x_ZERO, 0x08000);
+	
+#pragma mark Thickness
+	// rect1 moving +x inside thin rect2
+	rect1 = initMovingRect2D(VECTOR2x(-0x10000, 0x00000), VECTOR2x(0x00000, 0x00000), VECTOR2x(0x08000, 0x08000));
+	rect2 = initStationaryRect2DWithThickness(VECTOR2x(-0x10000, -0x10000), VECTOR2x(0x20000, 0x20000), 0x00000);
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// rect1 moving +x inside thick rect2 (collision)
+	rect1 = initMovingRect2D(VECTOR2x(-0x09000, 0x00000), VECTOR2x(0x00000, 0x00000), VECTOR2x(0x08000, 0x08000));
+	rect2 = initStationaryRect2DWithThickness(VECTOR2x(-0x10000, -0x10000), VECTOR2x(0x20000, 0x20000), 0x10000);
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x00000, VECTOR3x(-0x10000, 0x00000, 0x00000), VECTOR3x(0x09000, 0x00000, 0x00000), VECTOR3x_ZERO, 0x08000);
+	
+	// rect1 moving +x inside thick rect2 (no collision)
+	rect1 = initMovingRect2D(VECTOR2x(-0x07000, 0x00000), VECTOR2x(0x00000, 0x00000), VECTOR2x(0x08000, 0x08000));
+	rect2 = initStationaryRect2DWithThickness(VECTOR2x(-0x10000, -0x10000), VECTOR2x(0x20000, 0x20000), 0x10000);
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// rect1 moving +x inside default thickness rect2 (collision)
+	rect1 = initMovingRect2D(VECTOR2x(-0x09000, 0x00000), VECTOR2x(0x00000, 0x00000), VECTOR2x(0x08000, 0x08000));
+	rect2 = initStationaryRect2DWithThickness(VECTOR2x(-0x10000, -0x10000), VECTOR2x(0x20000, 0x20000), EDGE_THICKNESS_DEFAULT);
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x00000, VECTOR3x(-0x10000, 0x00000, 0x00000), VECTOR3x(0x09000, 0x00000, 0x00000), VECTOR3x_ZERO, 0x08000);
+	
+	// rect1 moving +x inside default thickness rect2 (no collision)
+	rect1 = initMovingRect2D(VECTOR2x(-0x07000, 0x00000), VECTOR2x(0x00000, 0x00000), VECTOR2x(0x08000, 0x08000));
+	rect2 = initStationaryRect2DWithThickness(VECTOR2x(-0x10000, -0x10000), VECTOR2x(0x20000, 0x20000), EDGE_THICKNESS_DEFAULT);
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// rect1 moving +x inside resized default thickness rect2 (collision)
+	rect1 = initMovingRect2D(VECTOR2x(-0x09000, 0x00000), VECTOR2x(0x00000, 0x00000), VECTOR2x(0x08000, 0x08000));
+	rect2 = initStationaryRect2DWithThickness(VECTOR2x(-0x10000, -0x10000), VECTOR2x(0x04000, 0x04000), EDGE_THICKNESS_DEFAULT);
+	CollisionRect2D_updateSize(&rect2, VECTOR2x(0x20000, 0x20000));
+	CollisionRect2D_updateSize(&rect2, VECTOR2x(0x20000, 0x20000));
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x00000, VECTOR3x(-0x10000, 0x00000, 0x00000), VECTOR3x(0x09000, 0x00000, 0x00000), VECTOR3x_ZERO, 0x08000);
+	
+	// rect1 moving +x inside resized default thickness rect2 (no collision)
+	rect1 = initMovingRect2D(VECTOR2x(-0x07000, 0x00000), VECTOR2x(0x00000, 0x00000), VECTOR2x(0x08000, 0x08000));
+	rect2 = initStationaryRect2DWithThickness(VECTOR2x(-0x10000, -0x10000), VECTOR2x(0x04000, 0x04000), EDGE_THICKNESS_DEFAULT);
+	CollisionRect2D_updateSize(&rect2, VECTOR2x(0x20000, 0x20000));
+	CollisionRect2D_updateSize(&rect2, VECTOR2x(0x20000, 0x20000));
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// rect1 moving -x inside thick rect2 (collision)
+	rect1 = initMovingRect2D(VECTOR2x(0x01000, 0x00000), VECTOR2x(-0x08000, 0x00000), VECTOR2x(0x08000, 0x08000));
+	rect2 = initStationaryRect2DWithThickness(VECTOR2x(-0x10000, -0x10000), VECTOR2x(0x20000, 0x20000), 0x10000);
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x00000, VECTOR3x(0x10000, 0x00000, 0x00000), VECTOR3x(-0x09000, 0x00000, 0x00000), VECTOR3x_ZERO, 0x08000);
+	
+	// rect1 moving -x inside thick rect2 (no collision)
+	rect1 = initMovingRect2D(VECTOR2x(-0x01000, 0x00000), VECTOR2x(-0x08000, 0x00000), VECTOR2x(0x08000, 0x08000));
+	rect2 = initStationaryRect2DWithThickness(VECTOR2x(-0x10000, -0x10000), VECTOR2x(0x20000, 0x20000), 0x10000);
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// rect1 moving +y inside thick rect2 (collision)
+	rect1 = initMovingRect2D(VECTOR2x(0x00000, -0x09000), VECTOR2x(0x00000, 0x00000), VECTOR2x(0x08000, 0x08000));
+	rect2 = initStationaryRect2DWithThickness(VECTOR2x(-0x10000, -0x10000), VECTOR2x(0x20000, 0x20000), 0x10000);
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x00000, VECTOR3x(0x00000, -0x10000, 0x00000), VECTOR3x(0x00000, 0x09000, 0x00000), VECTOR3x_ZERO, 0x08000);
+	
+	// rect1 moving +y inside thick rect2 (no collision)
+	rect1 = initMovingRect2D(VECTOR2x(0x00000, -0x07000), VECTOR2x(0x00000, 0x00000), VECTOR2x(0x08000, 0x08000));
+	rect2 = initStationaryRect2DWithThickness(VECTOR2x(-0x10000, -0x10000), VECTOR2x(0x20000, 0x20000), 0x10000);
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// rect1 moving -y inside thick rect2 (collision)
+	rect1 = initMovingRect2D(VECTOR2x(0x00000, 0x01000), VECTOR2x(0x00000, -0x08000), VECTOR2x(0x08000, 0x08000));
+	rect2 = initStationaryRect2DWithThickness(VECTOR2x(-0x10000, -0x10000), VECTOR2x(0x20000, 0x20000), 0x10000);
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x00000, VECTOR3x(0x00000, 0x10000, 0x00000), VECTOR3x(0x00000, -0x09000, 0x00000), VECTOR3x_ZERO, 0x08000);
+	
+	// rect1 moving -y inside thick rect2 (no collision)
+	rect1 = initMovingRect2D(VECTOR2x(0x00000, -0x01000), VECTOR2x(0x00000, -0x08000), VECTOR2x(0x08000, 0x08000));
+	rect2 = initStationaryRect2DWithThickness(VECTOR2x(-0x10000, -0x10000), VECTOR2x(0x20000, 0x20000), 0x10000);
+	result = intersectionHandler_rect2D_rect2D((CollisionObject *) &rect1, (CollisionObject *) &rect2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
 }
 
 static void testRect2D_circle() {

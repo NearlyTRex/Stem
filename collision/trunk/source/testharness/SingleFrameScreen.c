@@ -550,8 +550,8 @@ static bool resized(Atom eventID, void * eventData, void * context) {
 
 void SingleFrameScreen_activate(SingleFrameScreen * self) {
 	self->resolver = CollisionResolver_create(self->intersectionManager, false);
-	CollisionResolver_addObject(self->resolver, (CollisionObject *) CollisionRect2D_create(NULL, NULL, VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000)));
-	CollisionResolver_addObject(self->resolver, (CollisionObject *) CollisionRect2D_create(NULL, NULL, VECTOR2x(0x20000, -0x40000), VECTOR2x(0x50000, 0x20000)));
+	CollisionResolver_addObject(self->resolver, (CollisionObject *) CollisionRect2D_create(NULL, NULL, VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000), 0x00000));
+	CollisionResolver_addObject(self->resolver, (CollisionObject *) CollisionRect2D_create(NULL, NULL, VECTOR2x(0x20000, -0x40000), VECTOR2x(0x50000, 0x20000), 0x00000));
 	CollisionResolver_addObject(self->resolver, (CollisionObject *) CollisionCircle_create(NULL, NULL, VECTOR2x(-0x30000, 0x00000), 0x10000));
 	CollisionResolver_addObject(self->resolver, (CollisionObject *) CollisionCircle_create(NULL, NULL, VECTOR2x(-0x20000, 0x50000), 0x08000));
 	

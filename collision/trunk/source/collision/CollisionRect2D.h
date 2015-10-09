@@ -42,14 +42,20 @@ typedef struct CollisionRect2D CollisionRect2D;
 	bool solidRight; \
 	bool solidBottom; \
 	bool solidTop; \
-	fixed16_16 thickness;
+	fixed16_16 edgeThickness;
 
 stemobject_struct_definition(CollisionRect2D)
 
 // position is the corner of the rect with the lowest x and y axis values.
 // size extends the rect from position in the +x and +y directions.
-CollisionRect2D * CollisionRect2D_create(void * owner, CollisionCallback collisionCallback, Vector2x position, Vector2x size);
-bool CollisionRect2D_init(CollisionRect2D * self, void * owner, CollisionCallback collisionCallback, Vector2x position, Vector2x size);
+// edgeThickness specifies how far inside (or outside, if concave) the edges of the rect should be considered to be solid.
+// Two rects with an edgeThickness of 0 may be able to phase through each other in some cases due to rounding.
+// If you specify EDGE_THICKNESS_DEFAULT, thickness will automatically adjust to the rect's size on each axis, such
+// that any geometry already penetrating the rect and moving inward will be considered to have collided with it, and geometry
+// penetrating but moving outward will be allowed to pass through unhindered.
+// Concave rects treat EDGE_THICKNESS_DEFAULT as a value of 0.
+CollisionRect2D * CollisionRect2D_create(void * owner, CollisionCallback collisionCallback, Vector2x position, Vector2x size, fixed16_16 edgeThickness);
+bool CollisionRect2D_init(CollisionRect2D * self, void * owner, CollisionCallback collisionCallback, Vector2x position, Vector2x size, fixed16_16 edgeThickness);
 void CollisionRect2D_dispose(CollisionRect2D * self);
 
 // Problem (?): updatePosition inside a collision callback will do the wrong thing with lastPosition

@@ -410,6 +410,20 @@ static bool intersectSweptPoints3D(fixed16_16 x1Start, fixed16_16 x1End,
 	return true;
 }
 
+static fixed16_16 getRectEdgeThicknessX(CollisionRect2D * rect) {
+	if (rect->edgeThickness == EDGE_THICKNESS_DEFAULT) {
+		return rect->size.x / 2;
+	}
+	return rect->edgeThickness;
+}
+
+static fixed16_16 getRectEdgeThicknessY(CollisionRect2D * rect) {
+	if (rect->edgeThickness == EDGE_THICKNESS_DEFAULT) {
+		return rect->size.y / 2;
+	}
+	return rect->edgeThickness;
+}
+
 #define returnIntersection(time, normal, object1Vector, object2Vector, contactArea) \
 	if (outTime != NULL) { \
 		*outTime = time; \
@@ -437,8 +451,8 @@ bool intersectionHandler_rect2D_rect2D(CollisionObject * object1, CollisionObjec
 	// rect1 right vs. rect2 left
 	if (rect1->solidRight && rect2->solidLeft &&
 	    (rect1->position.x + rect1->size.x) - (rect1->lastPosition.x + rect1->lastSize.x) > rect2->position.x - rect2->lastPosition.x &&
-	    intersectSweptLineSegments(rect1->lastPosition.x + rect1->lastSize.x, rect1->position.x + rect1->size.x, rect1->thickness,
-	                               rect2->lastPosition.x, rect2->position.x, rect2->thickness,
+	    intersectSweptLineSegments(rect1->lastPosition.x + rect1->lastSize.x, rect1->position.x + rect1->size.x, getRectEdgeThicknessX(rect1),
+	                               rect2->lastPosition.x, rect2->position.x, getRectEdgeThicknessX(rect2),
 	                               rect1->lastPosition.y, rect1->lastPosition.y + rect1->lastSize.y, rect1->position.y, rect1->position.y + rect1->size.y,
 	                               rect2->lastPosition.y, rect2->lastPosition.y + rect2->lastSize.y, rect2->position.y, rect2->position.y + rect2->size.y,
 	                               &time, &contactArea)) {
@@ -452,8 +466,8 @@ bool intersectionHandler_rect2D_rect2D(CollisionObject * object1, CollisionObjec
 	// rect1 left vs. rect2 right
 	if (rect1->solidLeft && rect2->solidRight &&
 	    rect1->position.x - rect1->lastPosition.x < (rect2->position.x + rect2->size.x) - (rect2->lastPosition.x + rect2->lastSize.x) &&
-	    intersectSweptLineSegments(rect1->lastPosition.x, rect1->position.x, rect1->thickness,
-	                               rect2->lastPosition.x + rect2->lastSize.x, rect2->position.x + rect2->size.x, rect2->thickness,
+	    intersectSweptLineSegments(rect1->lastPosition.x, rect1->position.x, getRectEdgeThicknessX(rect1),
+	                               rect2->lastPosition.x + rect2->lastSize.x, rect2->position.x + rect2->size.x, getRectEdgeThicknessX(rect2),
 	                               rect1->lastPosition.y, rect1->lastPosition.y + rect1->lastSize.y, rect1->position.y, rect1->position.y + rect1->size.y,
 	                               rect2->lastPosition.y, rect2->lastPosition.y + rect2->lastSize.y, rect2->position.y, rect2->position.y + rect2->size.y,
 	                               &time, &contactArea)) {
@@ -469,8 +483,8 @@ bool intersectionHandler_rect2D_rect2D(CollisionObject * object1, CollisionObjec
 	// rect1 top vs. rect2 bottom
 	if (rect1->solidTop && rect2->solidBottom &&
 	    (rect1->position.y + rect1->size.y) - (rect1->lastPosition.y + rect1->lastSize.y) > rect2->position.y - rect2->lastPosition.y &&
-	    intersectSweptLineSegments(rect1->lastPosition.y + rect1->lastSize.y, rect1->position.y + rect1->size.y, rect1->thickness,
-	                               rect2->lastPosition.y, rect2->position.y, rect2->thickness,
+	    intersectSweptLineSegments(rect1->lastPosition.y + rect1->lastSize.y, rect1->position.y + rect1->size.y, getRectEdgeThicknessY(rect1),
+	                               rect2->lastPosition.y, rect2->position.y, getRectEdgeThicknessY(rect2),
 	                               rect1->lastPosition.x, rect1->lastPosition.x + rect1->lastSize.x, rect1->position.x, rect1->position.x + rect1->size.x,
 	                               rect2->lastPosition.x, rect2->lastPosition.x + rect2->lastSize.x, rect2->position.x, rect2->position.x + rect2->size.x,
 	                               &time, &contactArea)) {
@@ -486,8 +500,8 @@ bool intersectionHandler_rect2D_rect2D(CollisionObject * object1, CollisionObjec
 	// rect1 bottom vs. rect2 top
 	if (rect1->solidBottom && rect2->solidTop &&
 	    rect1->position.y - rect1->lastPosition.y < (rect2->position.y + rect2->size.y) - (rect2->lastPosition.y + rect2->lastSize.y) &&
-	    intersectSweptLineSegments(rect1->lastPosition.y, rect1->position.y, rect1->thickness,
-	                               rect2->lastPosition.y + rect2->lastSize.y, rect2->position.y + rect2->size.y, rect2->thickness,
+	    intersectSweptLineSegments(rect1->lastPosition.y, rect1->position.y, getRectEdgeThicknessY(rect1),
+	                               rect2->lastPosition.y + rect2->lastSize.y, rect2->position.y + rect2->size.y, getRectEdgeThicknessY(rect2),
 	                               rect1->lastPosition.x, rect1->lastPosition.x + rect1->lastSize.x, rect1->position.x, rect1->position.x + rect1->size.x,
 	                               rect2->lastPosition.x, rect2->lastPosition.x + rect2->lastSize.x, rect2->position.x, rect2->position.x + rect2->size.x,
 	                               &time, &contactArea)) {
