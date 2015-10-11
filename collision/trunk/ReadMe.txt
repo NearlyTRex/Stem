@@ -43,3 +43,5 @@ void playerCollisionCallback(CollisionRecord collision, fixed16_16 timesliceSize
 	// Don't call updatePosition inside CollisionCallback; modify the position ivar directly instead so that lastPosition is unchanged
 	capsule->position = Vector3x_add(capsule->lastPosition, Vector2x_multiplyScalar(ball->velocity, timesliceSize));
 }
+
+// TODO: Example of CollisionObject_setMasks()

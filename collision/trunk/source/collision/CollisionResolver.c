@@ -106,7 +106,9 @@ static bool CollisionResolver_queryPairInternal(CollisionResolver * self, Collis
 	bool intersectionFound;
 	
 	if (object1->private_ivar(markedForRemoval) || object2->private_ivar(markedForRemoval) ||
-	    (object1->private_ivar(unresolvable) && object2->private_ivar(unresolvable))) {
+	    (object1->private_ivar(unresolvable) && object2->private_ivar(unresolvable)) ||
+	    (object1->collidableMask & object2->ownMask) == 0 ||
+	    (object2->collidableMask & object1->ownMask) == 0) {
 		return false;
 	}
 	

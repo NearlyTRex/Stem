@@ -8,6 +8,8 @@ static void verifyInit(int line, CollisionObject * collisionObject, void * owner
 	TestCase_assert(collisionObject->shapeType == shapeType, "Expected %d but got %d (line %d)", shapeType, collisionObject->shapeType, line);
 	TestCase_assert(collisionObject->owner == owner, "Expected %p but got %p (line %d)", owner, collisionObject->owner, line);
 	TestCase_assert(collisionObject->collisionCallback == collisionCallback, "Expected %p but got %p (line %d)", collisionCallback, collisionObject->collisionCallback, line);
+	TestCase_assert(collisionObject->ownMask == 0x1, "Expected 0x1 but got 0x%X (line %d)", collisionObject->ownMask, line);
+	TestCase_assert(collisionObject->collidableMask == 0xFFFFFFFF, "Expected 0xFFFFFFFF but got 0x%X (line %d)", collisionObject->collidableMask, line);
 	TestCase_assert(collisionObject->interpolate == NULL, "Expected NULL but got %p (line %d)", collisionObject->interpolate, line);
 	TestCase_assert(collisionObject->isStatic == CollisionObject_isStatic, "Expected %p but got %p (line %d)", CollisionObject_isStatic, collisionObject->isStatic, line);
 	TestCase_assert(collisionObject->getCollisionBounds == CollisionObject_getCollisionBounds, "Expected %p but got %p (line %d)", CollisionObject_getCollisionBounds, collisionObject->getCollisionBounds, line);
@@ -50,6 +52,36 @@ static void testIsStatic() {
 	CollisionObject_dispose(object);
 }
 
+static void testGetCollisionBounds() {
+	CollisionObject * object;
+	Box6x bounds;
+	
+	object = CollisionObject_create(NULL, 0, NULL);
+	bounds = CollisionObject_getCollisionBounds(object);
+	TestCase_assert(bounds.left == 0x00000 && bounds.right == 0x10000 && bounds.bottom == 0x00000 && bounds.top == 0x10000 && bounds.back == 0x00000 && bounds.front == 0x10000, "Expected {0x00000, 0x10000, 0x00000, 0x10000, 0x00000, 0x10000} but got {0x%05X, 0x%05X, 0x%05X, 0x%05X, 0x%05X, 0x%05X}", bounds.left, bounds.right, bounds.bottom, bounds.top, bounds.back, bounds.front);
+	CollisionObject_dispose(object);
+}
+
+static void testSetMasks() {
+	CollisionObject * object, * result;
+	
+	object = CollisionObject_create(NULL, 0, NULL);
+	result = CollisionObject_setMasks(object, 0x0, 0x0);
+	TestCase_assert(result == object, "Expected %p but got %p", object, result);
+	TestCase_assert(object->ownMask == 0x0, "Expected 0x0 but got 0x%X", object->ownMask);
+	TestCase_assert(object->collidableMask == 0x0, "Expected 0x0 but got 0x%X", object->collidableMask);
+	CollisionObject_dispose(object);
+	
+	object = CollisionObject_create(NULL, 0, NULL);
+	result = CollisionObject_setMasks(object, 0x01234567, 0x89ABCDEF);
+	TestCase_assert(result == object, "Expected %p but got %p", object, result);
+	TestCase_assert(object->ownMask == 0x01234567, "Expected 0x01234567 but got 0x%X", object->ownMask);
+	TestCase_assert(object->collidableMask == 0x89ABCDEF, "Expected 0x89ABCDEF but got 0x%X", object->collidableMask);
+	CollisionObject_dispose(object);
+}
+
 TEST_SUITE(CollisionObjectTest,
            testInit,
-           testIsStatic)
+           testIsStatic,
+           testGetCollisionBounds,
+           testSetMasks)

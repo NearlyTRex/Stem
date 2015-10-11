@@ -61,6 +61,10 @@ typedef void (* CollisionCallback)(CollisionRecord collision, fixed16_16 timesli
 	bool private_ivar(markedForRemoval); \
 	bool private_ivar(unresolvable); \
 	\
+	/* See CollisionObject_setMasks() below for explanation */ \
+	uint32_t ownMask; \
+	uint32_t collidableMask; \
+	\
 	/* Advance lastPosition toward position by the specified amount, or the equivalent depending on how this subclass's position is specified */ \
 	void (* interpolate)(self_type * self, fixed16_16 amount); \
 	\
@@ -78,6 +82,22 @@ void CollisionObject_dispose(CollisionObject * self);
 
 bool CollisionObject_isStatic(CollisionObject * self);
 Box6x CollisionObject_getCollisionBounds(CollisionObject * self);
+
+// These two masks are used to determine which objects are able to intercollide with which other objects.
+// In contrast to shapeType, which is used to look up the appropriate intersection handler for a pair of objects,
+// these values are user-defined and allowed/expected to be changed at runtime, including during collision
+// resolution.
+// 
+// Semantically, ownMask indicates the "group type" to which this object belongs (or group types, if more than
+// one bit is set), while collidableMask indicates the group types of objects that are considered solid from this
+// object's viewpoint, and should be tested against it.
+// 
+// Mechanically, when an object pair is considered for an intersection test, object1's collidableMask is bitwise
+// ANDed with object2's ownMask, and vice versa. If either operation results in 0, the pair is discarded for
+// testing and the objects will behave as nonsolid with respect to each other.
+// 
+// self is returned to allow function chaining.
+CollisionObject * CollisionObject_setMasks(CollisionObject * self, uint32_t ownMask, uint32_t collidableMask);
 
 #ifdef __cplusplus
 }

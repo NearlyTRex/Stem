@@ -38,6 +38,8 @@ bool CollisionObject_init(CollisionObject * self, void * owner, int shapeType, C
 	self->owner = owner;
 	self->shapeType = shapeType;
 	self->collisionCallback = collisionCallback;
+	self->ownMask = 0x1;
+	self->collidableMask = 0xFFFFFFFF;
 	self->private_ivar(markedForRemoval) = false;
 	self->private_ivar(unresolvable) = false;
 	return true;
@@ -53,4 +55,10 @@ bool CollisionObject_isStatic(CollisionObject * self) {
 
 Box6x CollisionObject_getCollisionBounds(CollisionObject * self) {
 	return BOX6x(0x00000, 0x10000, 0x00000, 0x10000, 0x00000, 0x10000);
+}
+
+CollisionObject * CollisionObject_setMasks(CollisionObject * self, uint32_t ownMask, uint32_t collidableMask) {
+	self->ownMask = ownMask;
+	self->collidableMask = collidableMask;
+	return self;
 }

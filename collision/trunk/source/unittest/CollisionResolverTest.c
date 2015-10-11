@@ -839,6 +839,70 @@ static void testUnresolvableDetection() {
 	CollisionObject_dispose(testObjects[3]);
 }
 
+static unsigned int collidableMasksCollisionCallbackCalls[2];
+
+static bool collidableMasksIntersectionHandler(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal, Vector3x * outObject1Vector, Vector3x * outObject2Vector, fixed16_16 * outContactArea) {
+	if (collidableMasksCollisionCallbackCalls[0] == 0) {
+		*outTime = 0x00000;
+		*outNormal = VECTOR3x(0x10000, 0x00000, 0x00000);
+		*outContactArea = 0x00000;
+		return true;
+	}
+	return false;
+}
+
+static void collidableMasksCollisionCallback(CollisionRecord collision, fixed16_16 timesliceSize, fixed16_16 subframeTime) {
+	unsigned int object1Index, object2Index;
+	
+	object1Index = getTestObjectIndex(collision.object1);
+	TestCase_assert(object1Index < 2, "Collision handler called with unknown object1 %p (line %d)", collision.object1, resolveAllLine);
+	object2Index = getTestObjectIndex(collision.object2);
+	TestCase_assert(object2Index < 2, "Collision handler called with unknown object2 %p (line %d)", collision.object2, resolveAllLine);
+	
+	collidableMasksCollisionCallbackCalls[object1Index]++;
+	collidableMasksCollisionCallbackCalls[object2Index]++;
+}
+
+static void testCollidableMasks() {
+	CollisionResolver * collisionResolver;
+	IntersectionManager * intersectionManager;
+	
+	intersectionManager = IntersectionManager_create();
+	IntersectionManager_setHandler(intersectionManager, 0, 0, collidableMasksIntersectionHandler);
+	
+	collisionResolver = CollisionResolver_create(intersectionManager, false);
+	testObjects[0] = CollisionObject_create(collisionResolver, 0, collidableMasksCollisionCallback);
+	testObjects[1] = CollisionObject_create(collisionResolver, 0, collidableMasksCollisionCallback);
+	CollisionResolver_addObject(collisionResolver, testObjects[0]);
+	CollisionResolver_addObject(collisionResolver, testObjects[1]);
+	
+	CollisionObject_setMasks(testObjects[0], 0x1, 0x3);
+	CollisionObject_setMasks(testObjects[1], 0x2, 0x3);
+	collidableMasksCollisionCallbackCalls[0] = collidableMasksCollisionCallbackCalls[1] = 0;
+	resolveAllLine = __LINE__; CollisionResolver_resolveAll(collisionResolver);
+	TestCase_assert(collidableMasksCollisionCallbackCalls[0] == 2, "Expected 2 but got %u", collidableMasksCollisionCallbackCalls[0]);
+	TestCase_assert(collidableMasksCollisionCallbackCalls[1] == 2, "Expected 2 but got %u", collidableMasksCollisionCallbackCalls[1]);
+	
+	CollisionObject_setMasks(testObjects[0], 0x1, 0x1);
+	CollisionObject_setMasks(testObjects[1], 0x2, 0x3);
+	collidableMasksCollisionCallbackCalls[0] = collidableMasksCollisionCallbackCalls[1] = 0;
+	resolveAllLine = __LINE__; CollisionResolver_resolveAll(collisionResolver);
+	TestCase_assert(collidableMasksCollisionCallbackCalls[0] == 0, "Expected 0 but got %u", collidableMasksCollisionCallbackCalls[0]);
+	TestCase_assert(collidableMasksCollisionCallbackCalls[1] == 0, "Expected 0 but got %u", collidableMasksCollisionCallbackCalls[1]);
+	
+	CollisionObject_setMasks(testObjects[0], 0x1, 0x3);
+	CollisionObject_setMasks(testObjects[1], 0x2, 0x2);
+	collidableMasksCollisionCallbackCalls[0] = collidableMasksCollisionCallbackCalls[1] = 0;
+	resolveAllLine = __LINE__; CollisionResolver_resolveAll(collisionResolver);
+	TestCase_assert(collidableMasksCollisionCallbackCalls[0] == 0, "Expected 0 but got %u", collidableMasksCollisionCallbackCalls[0]);
+	TestCase_assert(collidableMasksCollisionCallbackCalls[1] == 0, "Expected 0 but got %u", collidableMasksCollisionCallbackCalls[1]);
+	
+	CollisionResolver_dispose(collisionResolver);
+	IntersectionManager_dispose(intersectionManager);
+	CollisionObject_dispose(testObjects[0]);
+	CollisionObject_dispose(testObjects[1]);
+}
+
 TEST_SUITE(CollisionResolverTest,
            testInit,
            testAddObject,
@@ -849,4 +913,5 @@ TEST_SUITE(CollisionResolverTest,
            testResolveAll,
            testListMutationDuringResolution,
            testSimultaneousCollisionRetestsObjectsAlreadyResolvedInSameIteration,
-           testUnresolvableDetection)
+           testUnresolvableDetection,
+           testCollidableMasks)
