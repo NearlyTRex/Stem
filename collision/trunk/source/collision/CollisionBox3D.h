@@ -43,16 +43,21 @@ typedef struct CollisionBox3D CollisionBox3D;
 	bool solidBottom; \
 	bool solidTop; \
 	bool solidBack; \
-	bool solidFront;
+	bool solidFront; \
+	fixed16_16 edgeThickness;
 
 stemobject_struct_definition(CollisionBox3D)
 
-// TODO: edgeThickness
-
 // position is the corner of the rect with the lowest x and y axis values.
 // size extends the rect from position in the +x and +y directions.
-CollisionBox3D * CollisionBox3D_create(void * owner, CollisionCallback collisionCallback, Vector3x position, Vector3x size);
-bool CollisionBox3D_init(CollisionBox3D * self, void * owner, CollisionCallback collisionCallback, Vector3x position, Vector3x size);
+// edgeThickness specifies how far inside (or outside, if concave) the faces of the box should be considered to be solid.
+// Two boxes with an edgeThickness of 0 may be able to phase through each other in some cases due to rounding.
+// If you specify EDGE_THICKNESS_DEFAULT, thickness will automatically adjust to the box's size on each axis, such
+// that any geometry already penetrating the box and moving inward will be considered to have collided with it, and geometry
+// penetrating but moving outward will be allowed to pass through unhindered.
+// Concave rects treat EDGE_THICKNESS_DEFAULT as a value of 0.
+CollisionBox3D * CollisionBox3D_create(void * owner, CollisionCallback collisionCallback, Vector3x position, Vector3x size, fixed16_16 edgeThickness);
+bool CollisionBox3D_init(CollisionBox3D * self, void * owner, CollisionCallback collisionCallback, Vector3x position, Vector3x size, fixed16_16 edgeThickness);
 void CollisionBox3D_dispose(CollisionBox3D * self);
 
 void CollisionBox3D_updatePosition(CollisionBox3D * self, Vector3x newPosition);

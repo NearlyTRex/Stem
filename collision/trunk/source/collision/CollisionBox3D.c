@@ -26,11 +26,11 @@
 
 #define SUPERCLASS CollisionObject
 
-CollisionBox3D * CollisionBox3D_create(void * owner, CollisionCallback collisionCallback, Vector3x position, Vector3x size) {
-	stemobject_create_implementation(CollisionBox3D, init, owner, collisionCallback, position, size)
+CollisionBox3D * CollisionBox3D_create(void * owner, CollisionCallback collisionCallback, Vector3x position, Vector3x size, fixed16_16 edgeThickness) {
+	stemobject_create_implementation(CollisionBox3D, init, owner, collisionCallback, position, size, edgeThickness)
 }
 
-bool CollisionBox3D_init(CollisionBox3D * self, void * owner, CollisionCallback collisionCallback, Vector3x position, Vector3x size) {
+bool CollisionBox3D_init(CollisionBox3D * self, void * owner, CollisionCallback collisionCallback, Vector3x position, Vector3x size, fixed16_16 edgeThickness) {
 	call_super(init, self, owner, COLLISION_SHAPE_BOX_3D, collisionCallback);
 	self->dispose = CollisionBox3D_dispose;
 	self->interpolate = CollisionBox3D_interpolate;
@@ -46,6 +46,7 @@ bool CollisionBox3D_init(CollisionBox3D * self, void * owner, CollisionCallback 
 	self->solidTop = true;
 	self->solidBack = true;
 	self->solidFront = true;
+	self->edgeThickness = edgeThickness;
 	return true;
 }
 

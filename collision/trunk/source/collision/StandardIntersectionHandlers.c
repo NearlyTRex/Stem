@@ -424,6 +424,27 @@ static fixed16_16 getRectEdgeThicknessY(CollisionRect2D * rect) {
 	return rect->edgeThickness;
 }
 
+static fixed16_16 getBoxEdgeThicknessX(CollisionBox3D * box) {
+	if (box->edgeThickness == EDGE_THICKNESS_DEFAULT) {
+		return box->size.x / 2;
+	}
+	return box->edgeThickness;
+}
+
+static fixed16_16 getBoxEdgeThicknessY(CollisionBox3D * box) {
+	if (box->edgeThickness == EDGE_THICKNESS_DEFAULT) {
+		return box->size.y / 2;
+	}
+	return box->edgeThickness;
+}
+
+static fixed16_16 getBoxEdgeThicknessZ(CollisionBox3D * box) {
+	if (box->edgeThickness == EDGE_THICKNESS_DEFAULT) {
+		return box->size.z / 2;
+	}
+	return box->edgeThickness;
+}
+
 #define returnIntersection(time, normal, object1Vector, object2Vector, contactArea) \
 	if (outTime != NULL) { \
 		*outTime = time; \
@@ -745,8 +766,8 @@ bool intersectionHandler_box3D_box3D(CollisionObject * object1, CollisionObject 
 	// box1 right vs. box2 left
 	if (box1->solidRight && box2->solidLeft &&
 	    (box1->position.x + box1->size.x) - (box1->lastPosition.x + box1->lastSize.x) > box2->position.x - box2->lastPosition.x &&
-	    intersectSweptQuads(box1->lastPosition.x + box1->lastSize.x, box1->position.x + box1->size.x, 0x00000,
-	                        box2->lastPosition.x, box2->position.x, 0x00000,
+	    intersectSweptQuads(box1->lastPosition.x + box1->lastSize.x, box1->position.x + box1->size.x, getBoxEdgeThicknessX(box1),
+	                        box2->lastPosition.x, box2->position.x, getBoxEdgeThicknessX(box2),
 	                        box1->lastPosition.y, box1->lastPosition.y + box1->lastSize.y, box1->position.y, box1->position.y + box1->size.y,
 	                        box2->lastPosition.y, box2->lastPosition.y + box2->lastSize.y, box2->position.y, box2->position.y + box2->size.y,
 	                        box1->lastPosition.z, box1->lastPosition.z + box1->lastSize.z, box1->position.z, box1->position.z + box1->size.z,
@@ -762,8 +783,8 @@ bool intersectionHandler_box3D_box3D(CollisionObject * object1, CollisionObject 
 	// box1 left vs. box2 right
 	if (box1->solidLeft && box2->solidRight &&
 	    box1->position.x - box1->lastPosition.x < (box2->position.x + box2->size.x) - (box2->lastPosition.x + box2->lastSize.x) &&
-	    intersectSweptQuads(box1->lastPosition.x, box1->position.x, 0x00000,
-	                        box2->lastPosition.x + box2->lastSize.x, box2->position.x + box2->size.x, 0x00000,
+	    intersectSweptQuads(box1->lastPosition.x, box1->position.x, getBoxEdgeThicknessX(box1),
+	                        box2->lastPosition.x + box2->lastSize.x, box2->position.x + box2->size.x, getBoxEdgeThicknessX(box2),
 	                        box1->lastPosition.y, box1->lastPosition.y + box1->lastSize.y, box1->position.y, box1->position.y + box1->size.y,
 	                        box2->lastPosition.y, box2->lastPosition.y + box2->lastSize.y, box2->position.y, box2->position.y + box2->size.y,
 	                        box1->lastPosition.z, box1->lastPosition.z + box1->lastSize.z, box1->position.z, box1->position.z + box1->size.z,
@@ -781,8 +802,8 @@ bool intersectionHandler_box3D_box3D(CollisionObject * object1, CollisionObject 
 	// box1 top vs. box2 bottom
 	if (box1->solidTop && box2->solidBottom &&
 	    (box1->position.y + box1->size.y) - (box1->lastPosition.y + box1->lastSize.y) > box2->position.y - box2->lastPosition.y &&
-	    intersectSweptQuads(box1->lastPosition.y + box1->lastSize.y, box1->position.y + box1->size.y, 0x00000,
-	                        box2->lastPosition.y, box2->position.y, 0x00000,
+	    intersectSweptQuads(box1->lastPosition.y + box1->lastSize.y, box1->position.y + box1->size.y, getBoxEdgeThicknessY(box1),
+	                        box2->lastPosition.y, box2->position.y, getBoxEdgeThicknessY(box2),
 	                        box1->lastPosition.x, box1->lastPosition.x + box1->lastSize.x, box1->position.x, box1->position.x + box1->size.x,
 	                        box2->lastPosition.x, box2->lastPosition.x + box2->lastSize.x, box2->position.x, box2->position.x + box2->size.x,
 	                        box1->lastPosition.z, box1->lastPosition.z + box1->lastSize.z, box1->position.z, box1->position.z + box1->size.z,
@@ -800,8 +821,8 @@ bool intersectionHandler_box3D_box3D(CollisionObject * object1, CollisionObject 
 	// box1 bottom vs. box2 top
 	if (box1->solidBottom && box2->solidTop &&
 	    box1->position.y - box1->lastPosition.y < (box2->position.y + box2->size.y) - (box2->lastPosition.y + box2->lastSize.y) &&
-	    intersectSweptQuads(box1->lastPosition.y, box1->position.y, 0x00000,
-	                        box2->lastPosition.y + box2->lastSize.y, box2->position.y + box2->size.y, 0x00000,
+	    intersectSweptQuads(box1->lastPosition.y, box1->position.y, getBoxEdgeThicknessY(box1),
+	                        box2->lastPosition.y + box2->lastSize.y, box2->position.y + box2->size.y, getBoxEdgeThicknessY(box2),
 	                        box1->lastPosition.x, box1->lastPosition.x + box1->lastSize.x, box1->position.x, box1->position.x + box1->size.x,
 	                        box2->lastPosition.x, box2->lastPosition.x + box2->lastSize.x, box2->position.x, box2->position.x + box2->size.x,
 	                        box1->lastPosition.z, box1->lastPosition.z + box1->lastSize.z, box1->position.z, box1->position.z + box1->size.z,
@@ -819,8 +840,8 @@ bool intersectionHandler_box3D_box3D(CollisionObject * object1, CollisionObject 
 	// box1 front vs. box2 back
 	if (box1->solidFront && box2->solidBack &&
 	    (box1->position.z + box1->size.z) - (box1->lastPosition.z + box1->lastSize.z) > box2->position.z - box2->lastPosition.z &&
-	    intersectSweptQuads(box1->lastPosition.z + box1->lastSize.z, box1->position.z + box1->size.z, 0x00000,
-	                        box2->lastPosition.z, box2->position.z, 0x00000,
+	    intersectSweptQuads(box1->lastPosition.z + box1->lastSize.z, box1->position.z + box1->size.z, getBoxEdgeThicknessZ(box1),
+	                        box2->lastPosition.z, box2->position.z, getBoxEdgeThicknessZ(box2),
 	                        box1->lastPosition.x, box1->lastPosition.x + box1->lastSize.x, box1->position.x, box1->position.x + box1->size.x,
 	                        box2->lastPosition.x, box2->lastPosition.x + box2->lastSize.x, box2->position.x, box2->position.x + box2->size.x,
 	                        box1->lastPosition.y, box1->lastPosition.y + box1->lastSize.y, box1->position.y, box1->position.y + box1->size.y,
@@ -838,8 +859,8 @@ bool intersectionHandler_box3D_box3D(CollisionObject * object1, CollisionObject 
 	// box1 back vs. box2 front
 	if (box1->solidBack && box2->solidFront &&
 	    box1->position.z - box1->lastPosition.z < (box2->position.z + box2->size.z) - (box2->lastPosition.z + box2->lastSize.z) &&
-	    intersectSweptQuads(box1->lastPosition.z, box1->position.z, 0x00000,
-	                        box2->lastPosition.z + box2->lastSize.z, box2->position.z + box2->size.z, 0x00000,
+	    intersectSweptQuads(box1->lastPosition.z, box1->position.z, getBoxEdgeThicknessZ(box1),
+	                        box2->lastPosition.z + box2->lastSize.z, box2->position.z + box2->size.z, getBoxEdgeThicknessZ(box2),
 	                        box1->lastPosition.x, box1->lastPosition.x + box1->lastSize.x, box1->position.x, box1->position.x + box1->size.x,
 	                        box2->lastPosition.x, box2->lastPosition.x + box2->lastSize.x, box2->position.x, box2->position.x + box2->size.x,
 	                        box1->lastPosition.y, box1->lastPosition.y + box1->lastSize.y, box1->position.y, box1->position.y + box1->size.y,

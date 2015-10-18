@@ -73,14 +73,14 @@ static CollisionCircle initMovingCircle(Vector2x lastPosition, Vector2x position
 static CollisionBox3D initStationaryBox3D(Vector3x position, Vector3x size) {
 	CollisionBox3D box;
 	
-	CollisionBox3D_init(&box, NULL, NULL, position, size);
+	CollisionBox3D_init(&box, NULL, NULL, position, size, 0x00000);
 	return box;
 }
 
 static CollisionBox3D initMovingBox3D(Vector3x lastPosition, Vector3x position, Vector3x size) {
 	CollisionBox3D box;
 	
-	CollisionBox3D_init(&box, NULL, NULL, lastPosition, size);
+	CollisionBox3D_init(&box, NULL, NULL, lastPosition, size, 0x00000);
 	CollisionBox3D_updatePosition(&box, position);
 	return box;
 }
@@ -88,7 +88,7 @@ static CollisionBox3D initMovingBox3D(Vector3x lastPosition, Vector3x position, 
 static CollisionBox3D initResizingBox3D(Vector3x position, Vector3x lastSize, Vector3x size) {
 	CollisionBox3D box;
 	
-	CollisionBox3D_init(&box, NULL, NULL, position, lastSize);
+	CollisionBox3D_init(&box, NULL, NULL, position, lastSize, 0x00000);
 	CollisionBox3D_updateSize(&box, size);
 	return box;
 }
@@ -96,7 +96,7 @@ static CollisionBox3D initResizingBox3D(Vector3x position, Vector3x lastSize, Ve
 static CollisionBox3D initStationaryBox3DWithSolidity(Vector3x position, Vector3x size, bool solidLeft, bool solidRight, bool solidBottom, bool solidTop, bool solidBack, bool solidFront) {
 	CollisionBox3D box;
 	
-	CollisionBox3D_init(&box, NULL, NULL, position, size);
+	CollisionBox3D_init(&box, NULL, NULL, position, size, 0x00000);
 	CollisionBox3D_setSolidity(&box, solidLeft, solidRight, solidBottom, solidTop, solidBack, solidFront);
 	return box;
 }
@@ -104,9 +104,16 @@ static CollisionBox3D initStationaryBox3DWithSolidity(Vector3x position, Vector3
 static CollisionBox3D initMovingBox3DWithSolidity(Vector3x lastPosition, Vector3x position, Vector3x size, bool solidLeft, bool solidRight, bool solidBottom, bool solidTop, bool solidBack, bool solidFront) {
 	CollisionBox3D box;
 	
-	CollisionBox3D_init(&box, NULL, NULL, lastPosition, size);
+	CollisionBox3D_init(&box, NULL, NULL, lastPosition, size, 0x00000);
 	CollisionBox3D_updatePosition(&box, position);
 	CollisionBox3D_setSolidity(&box, solidLeft, solidRight, solidBottom, solidTop, solidBack, solidFront);
+	return box;
+}
+
+static CollisionBox3D initStationaryBox3DWithThickness(Vector3x position, Vector3x size, fixed16_16 thickness) {
+	CollisionBox3D box;
+	
+	CollisionBox3D_init(&box, NULL, NULL, position, size, thickness);
 	return box;
 }
 
@@ -2217,6 +2224,113 @@ static void testBox_box() {
 	resetOutParameters();
 	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
 	assertCollision(result, time, normal, 0x08000, VECTOR3x(-0x10000, 0x00000, 0x00000), VECTOR3x(0x08000, 0x00000, 0x00000), VECTOR3x_ZERO, 0x08000);
+	
+#pragma mark Thickness
+	// box1 moving +x inside thin box2
+	box1 = initMovingBox3D(VECTOR3x(-0x10000, 0x00000, 0x00000), VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x08000, 0x08000, 0x08000));
+	box2 = initStationaryBox3DWithThickness(VECTOR3x(-0x10000, -0x10000, -0x10000), VECTOR3x(0x20000, 0x20000, 0x20000), 0x00000);
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// box1 moving +x inside thick box2 (collision)
+	box1 = initMovingBox3D(VECTOR3x(-0x09000, 0x00000, 0x00000), VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x08000, 0x08000, 0x08000));
+	box2 = initStationaryBox3DWithThickness(VECTOR3x(-0x10000, -0x10000, -0x10000), VECTOR3x(0x20000, 0x20000, 0x20000), 0x10000);
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x00000, VECTOR3x(-0x10000, 0x00000, 0x00000), VECTOR3x(0x09000, 0x00000, 0x00000), VECTOR3x_ZERO, 0x04000);
+	
+	// box1 moving +x inside thick box2 (no collision)
+	box1 = initMovingBox3D(VECTOR3x(-0x07000, 0x00000, 0x00000), VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x08000, 0x08000, 0x08000));
+	box2 = initStationaryBox3DWithThickness(VECTOR3x(-0x10000, -0x10000, -0x10000), VECTOR3x(0x20000, 0x20000, 0x20000), 0x10000);
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// box1 moving +x inside default thickness box2 (collision)
+	box1 = initMovingBox3D(VECTOR3x(-0x09000, 0x00000, 0x00000), VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x08000, 0x08000, 0x08000));
+	box2 = initStationaryBox3DWithThickness(VECTOR3x(-0x10000, -0x10000, -0x10000), VECTOR3x(0x20000, 0x20000, 0x20000), EDGE_THICKNESS_DEFAULT);
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x00000, VECTOR3x(-0x10000, 0x00000, 0x00000), VECTOR3x(0x09000, 0x00000, 0x00000), VECTOR3x_ZERO, 0x04000);
+	
+	// box1 moving +x inside default thickness box2 (no collision)
+	box1 = initMovingBox3D(VECTOR3x(-0x07000, 0x00000, 0x00000), VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x08000, 0x08000, 0x08000));
+	box2 = initStationaryBox3DWithThickness(VECTOR3x(-0x10000, -0x10000, -0x10000), VECTOR3x(0x20000, 0x20000, 0x20000), EDGE_THICKNESS_DEFAULT);
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// box1 moving +x inside resized default thickness box2 (collision)
+	box1 = initMovingBox3D(VECTOR3x(-0x09000, 0x00000, 0x00000), VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x08000, 0x08000, 0x08000));
+	box2 = initStationaryBox3DWithThickness(VECTOR3x(-0x10000, -0x10000, -0x10000), VECTOR3x(0x04000, 0x04000, 0x04000), EDGE_THICKNESS_DEFAULT);
+	CollisionBox3D_updateSize(&box2, VECTOR3x(0x20000, 0x20000, 0x20000));
+	CollisionBox3D_updateSize(&box2, VECTOR3x(0x20000, 0x20000, 0x20000));
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x00000, VECTOR3x(-0x10000, 0x00000, 0x00000), VECTOR3x(0x09000, 0x00000, 0x00000), VECTOR3x_ZERO, 0x04000);
+	
+	// box1 moving +x inside resized default thickness box2 (no collision)
+	box1 = initMovingBox3D(VECTOR3x(-0x07000, 0x00000, 0x00000), VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x08000, 0x08000, 0x08000));
+	box2 = initStationaryBox3DWithThickness(VECTOR3x(-0x10000, -0x10000, -0x10000), VECTOR3x(0x04000, 0x04000, 0x04000), EDGE_THICKNESS_DEFAULT);
+	CollisionBox3D_updateSize(&box2, VECTOR3x(0x20000, 0x20000, 0x20000));
+	CollisionBox3D_updateSize(&box2, VECTOR3x(0x20000, 0x20000, 0x20000));
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// box1 moving -x inside thick box2 (collision)
+	box1 = initMovingBox3D(VECTOR3x(0x01000, 0x00000, 0x00000), VECTOR3x(-0x08000, 0x00000, 0x00000), VECTOR3x(0x08000, 0x08000, 0x08000));
+	box2 = initStationaryBox3DWithThickness(VECTOR3x(-0x10000, -0x10000, -0x10000), VECTOR3x(0x20000, 0x20000, 0x20000), 0x10000);
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x00000, VECTOR3x(0x10000, 0x00000, 0x00000), VECTOR3x(-0x09000, 0x00000, 0x00000), VECTOR3x_ZERO, 0x04000);
+	
+	// box1 moving -x inside thick box2 (no collision)
+	box1 = initMovingBox3D(VECTOR3x(-0x01000, 0x00000, 0x00000), VECTOR3x(-0x08000, 0x00000, 0x00000), VECTOR3x(0x08000, 0x08000, 0x08000));
+	box2 = initStationaryBox3DWithThickness(VECTOR3x(-0x10000, -0x10000, -0x10000), VECTOR3x(0x20000, 0x20000, 0x20000), 0x10000);
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// box1 moving +y inside thick box2 (collision)
+	box1 = initMovingBox3D(VECTOR3x(0x00000, -0x09000, 0x00000), VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x08000, 0x08000, 0x08000));
+	box2 = initStationaryBox3DWithThickness(VECTOR3x(-0x10000, -0x10000, -0x10000), VECTOR3x(0x20000, 0x20000, 0x20000), 0x10000);
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x00000, VECTOR3x(0x00000, -0x10000, 0x00000), VECTOR3x(0x00000, 0x09000, 0x00000), VECTOR3x_ZERO, 0x04000);
+	
+	// box1 moving +y inside thick box2 (no collision)
+	box1 = initMovingBox3D(VECTOR3x(0x00000, -0x07000, 0x00000), VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x08000, 0x08000, 0x08000));
+	box2 = initStationaryBox3DWithThickness(VECTOR3x(-0x10000, -0x10000, -0x10000), VECTOR3x(0x20000, 0x20000, 0x20000), 0x10000);
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// box1 moving -y inside thick box2 (collision)
+	box1 = initMovingBox3D(VECTOR3x(0x00000, 0x00000, 0x01000), VECTOR3x(0x00000, 0x00000, -0x08000), VECTOR3x(0x08000, 0x08000, 0x08000));
+	box2 = initStationaryBox3DWithThickness(VECTOR3x(-0x10000, -0x10000, -0x10000), VECTOR3x(0x20000, 0x20000, 0x20000), 0x10000);
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x00000, VECTOR3x(0x00000, 0x00000, 0x10000), VECTOR3x(0x00000, 0x00000, -0x09000), VECTOR3x_ZERO, 0x04000);
+	
+	// box1 moving -y inside thick box2 (no collision)
+	box1 = initMovingBox3D(VECTOR3x(0x00000, 0x00000, -0x01000), VECTOR3x(0x00000, 0x00000, -0x08000), VECTOR3x(0x08000, 0x08000, 0x08000));
+	box2 = initStationaryBox3DWithThickness(VECTOR3x(-0x10000, -0x10000, -0x10000), VECTOR3x(0x20000, 0x20000, 0x20000), 0x10000);
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// box1 moving +z inside thick box2 (collision)
+	box1 = initMovingBox3D(VECTOR3x(0x00000, 0x00000, -0x09000), VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x08000, 0x08000, 0x08000));
+	box2 = initStationaryBox3DWithThickness(VECTOR3x(-0x10000, -0x10000, -0x10000), VECTOR3x(0x20000, 0x20000, 0x20000), 0x10000);
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x00000, VECTOR3x(0x00000, 0x00000, -0x10000), VECTOR3x(0x00000, 0x00000, 0x09000), VECTOR3x_ZERO, 0x04000);
+	
+	// box1 moving +z inside thick box2 (no collision)
+	box1 = initMovingBox3D(VECTOR3x(0x00000, 0x00000, -0x07000), VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x08000, 0x08000, 0x08000));
+	box2 = initStationaryBox3DWithThickness(VECTOR3x(-0x10000, -0x10000, -0x10000), VECTOR3x(0x20000, 0x20000, 0x20000), 0x10000);
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// box1 moving -z inside thick box2 (collision)
+	box1 = initMovingBox3D(VECTOR3x(0x00000, 0x00000, 0x01000), VECTOR3x(0x00000, 0x00000, -0x08000), VECTOR3x(0x08000, 0x08000, 0x08000));
+	box2 = initStationaryBox3DWithThickness(VECTOR3x(-0x10000, -0x10000, -0x10000), VECTOR3x(0x20000, 0x20000, 0x20000), 0x10000);
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x00000, VECTOR3x(0x00000, 0x00000, 0x10000), VECTOR3x(0x00000, 0x00000, -0x09000), VECTOR3x_ZERO, 0x04000);
+	
+	// box1 moving -z inside thick box2 (no collision)
+	box1 = initMovingBox3D(VECTOR3x(0x00000, 0x00000, -0x01000), VECTOR3x(0x00000, 0x00000, -0x08000), VECTOR3x(0x08000, 0x08000, 0x08000));
+	box2 = initStationaryBox3DWithThickness(VECTOR3x(-0x10000, -0x10000, -0x10000), VECTOR3x(0x20000, 0x20000, 0x20000), 0x10000);
+	result = intersectionHandler_box3D_box3D((CollisionObject *) &box1, (CollisionObject *) &box2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
 }
 
 static void testBox_sphere() {
