@@ -29,7 +29,6 @@ extern "C" {
 typedef struct CollisionCircle CollisionCircle;
 
 #include "collision/CollisionObject.h"
-#include "gamemath/Rect4x.h"
 #include "gamemath/Vector2x.h"
 
 #define CollisionCircle_structContents(self_type) \

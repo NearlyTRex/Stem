@@ -68,6 +68,7 @@ SOURCES_library = \
 	source/${PROJECT_NAME}/CollisionBox3D.c \
 	source/${PROJECT_NAME}/CollisionCapsule.c \
 	source/${PROJECT_NAME}/CollisionCircle.c \
+	source/${PROJECT_NAME}/CollisionLine2D.c \
 	source/${PROJECT_NAME}/CollisionObject.c \
 	source/${PROJECT_NAME}/CollisionPairQueue.c \
 	source/${PROJECT_NAME}/CollisionRecord.c \
@@ -84,6 +85,7 @@ SOURCES_unittest_suites = \
 	source/unittest/CollisionBox3DTest.c \
 	source/unittest/CollisionCapsuleTest.c \
 	source/unittest/CollisionCircleTest.c \
+	source/unittest/CollisionLine2DTest.c \
 	source/unittest/CollisionObjectTest.c \
 	source/unittest/CollisionPairQueueTest.c \
 	source/unittest/CollisionRecordTest.c \
