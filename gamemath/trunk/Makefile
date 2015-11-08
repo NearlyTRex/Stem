@@ -64,6 +64,7 @@ GENERATED_SOURCES = \
 PREREQS = ${GENERATED_SOURCES}
 
 SOURCES_library = \
+	source/${PROJECT_NAME}/Barycentric.c \
 	source/${PROJECT_NAME}/FixedPoint.c \
 	source/${PROJECT_NAME}/Interpolation.c \
 	source/${PROJECT_NAME}/Matrix.c \
@@ -93,6 +94,7 @@ SOURCES_library = \
 # Executable targets named "unittest" should usually specify only SOURCES_unittest_suites, which must contain only test suite files.
 # If files other than test suites are required, specify SOURCES_unittest.
 SOURCES_unittest_suites = \
+	source/unittest/BarycentricTest.c \
 	source/unittest/FixedPointTest.c \
 	source/unittest/InterpolationTest.c \
 	source/unittest/MatrixTest.c \
@@ -108,6 +110,7 @@ SOURCES_testharness = \
 
 # Public-facing include files to be distributed with the library, if the project builds one
 INCLUDES = \
+	source/${PROJECT_NAME}/Barycentric.h \
 	source/${PROJECT_NAME}/FixedPoint.h \
 	source/${PROJECT_NAME}/Interpolation.h \
 	source/${PROJECT_NAME}/Matrix.h \
