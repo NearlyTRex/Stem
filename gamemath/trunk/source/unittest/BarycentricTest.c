@@ -2,19 +2,19 @@
 #include "unittest/TestSuite.h"
 #include <math.h>
 
-#define assertVector2fExact(vector, expectedX, expectedY, expectedZ) \
+#define assertVector2fExact(vector, expectedX, expectedY) \
 	TestCase_assert(vector.x == expectedX && vector.y == expectedY, "Expected {%f, %f} but got {%f, %f}", expectedX, expectedY, vector.x, vector.y)
 
 #define assertVector3fExact(vector, expectedX, expectedY, expectedZ) \
 	TestCase_assert(vector.x == expectedX && vector.y == expectedY && vector.z == expectedZ, "Expected {%f, %f, %f} but got {%f, %f, %f}", expectedX, expectedY, expectedZ, vector.x, vector.y, vector.z)
 
-#define assertVector2fApproximate(vector, expectedX, expectedY, expectedZ, epsilon) \
+#define assertVector2fApproximate(vector, expectedX, expectedY, epsilon) \
 	TestCase_assert(fabs(vector.x - expectedX) < epsilon && fabs(vector.y - expectedY) < epsilon, "Expected {%f, %f} but got {%f, %f} (tolerance %f)", expectedX, expectedY, vector.x, vector.y, epsilon);
 
 #define assertVector3fApproximate(vector, expectedX, expectedY, expectedZ, epsilon) \
 	TestCase_assert(fabs(vector.x - expectedX) < epsilon && fabs(vector.y - expectedY) < epsilon && fabs(vector.z - expectedZ) < epsilon, "Expected {%f, %f, %f} but got {%f, %f, %f} (tolerance %f)", expectedX, expectedY, expectedZ, vector.x, vector.y, vector.z, epsilon);
 
-#define assertVector2x(vector, expectedX, expectedY, expectedZ) \
+#define assertVector2x(vector, expectedX, expectedY) \
 	TestCase_assert(vector.x == expectedX && vector.y == expectedY, "Expected {0x%05X, 0x%05X} but got {0x%05X, 0x%05X}", expectedX, expectedY, vector.x, vector.y)
 
 #define assertVector3x(vector, expectedX, expectedY, expectedZ) \
@@ -182,8 +182,172 @@ static void testCartesianToBarycentric3x() {
 	assertVector3x(result, 0x10000, 0x00000, 0x00000);
 }
 
+static void testBarycentricToCartesian2f() {
+	Vector2f result;
+	
+	// Right triangle bottom left
+	result = barycentricToCartesian2f(VECTOR3f(1.0f, 0.0f, 0.0f), VECTOR2f(0.0f, 0.0f), VECTOR2f(1.0f, 0.0f), VECTOR2f(0.0f, 1.0f));
+	assertVector2fExact(result, 0.0f, 0.0f);
+	
+	// Right triangle right
+	result = barycentricToCartesian2f(VECTOR3f(0.0f, 1.0f, 0.0f), VECTOR2f(0.0f, 0.0f), VECTOR2f(1.0f, 0.0f), VECTOR2f(0.0f, 1.0f));
+	assertVector2fExact(result, 1.0f, 0.0f);
+	
+	// Right triangle top
+	result = barycentricToCartesian2f(VECTOR3f(0.0f, 0.0f, 1.0f), VECTOR2f(0.0f, 0.0f), VECTOR2f(1.0f, 0.0f), VECTOR2f(0.0f, 1.0f));
+	assertVector2fExact(result, 0.0f, 1.0f);
+	
+	// Right triangle hypotenuse center
+	result = barycentricToCartesian2f(VECTOR3f(0.0f, 0.5f, 0.5f), VECTOR2f(0.0f, 0.0f), VECTOR2f(1.0f, 0.0f), VECTOR2f(0.0f, 1.0f));
+	assertVector2fApproximate(result, 0.5f, 0.5f, EPSILON);
+	
+	// Right triangle vertical side center
+	result = barycentricToCartesian2f(VECTOR3f(0.5f, 0.0f, 0.5f), VECTOR2f(0.0f, 0.0f), VECTOR2f(1.0f, 0.0f), VECTOR2f(0.0f, 1.0f));
+	assertVector2fApproximate(result, 0.0f, 0.5f, EPSILON);
+	
+	// Right triangle horizontal side center
+	result = barycentricToCartesian2f(VECTOR3f(0.5f, 0.5f, 0.0f), VECTOR2f(0.0f, 0.0f), VECTOR2f(1.0f, 0.0f), VECTOR2f(0.0f, 1.0f));
+	assertVector2fApproximate(result, 0.5f, 0.0f, EPSILON);
+	
+	// Equilateral triangle center
+	result = barycentricToCartesian2f(VECTOR3f(1.0f / 3.0f, 1.0f / 3.0f, 1.0f / 3.0f), VECTOR2f(0.0f, 1.0f), VECTOR2f(0.8660254037844384, -0.5f), VECTOR2f(-0.8660254037844384, -0.5f));
+	assertVector2fApproximate(result, 0.0f, 0.0f, EPSILON);
+	
+	// Outside right triangle
+	result = barycentricToCartesian2f(VECTOR3f(1.0f, 1.0f, -1.0f), VECTOR2f(0.0f, 0.0f), VECTOR2f(1.0f, 0.0f), VECTOR2f(0.0f, 1.0f));
+	assertVector2fExact(result, 1.0f, -1.0f);
+}
+
+static void testBarycentricToCartesian3f() {
+	Vector3f result;
+	
+	// Right triangle bottom left
+	result = barycentricToCartesian3f(VECTOR3f(1.0f, 0.0f, 0.0f), VECTOR3f(0.0f, 0.0f, 0.0f), VECTOR3f(1.0f, 0.0f, 0.0f), VECTOR3f(0.0f, 1.0f, 0.0f));
+	assertVector3fExact(result, 0.0f, 0.0f, 0.0f);
+	
+	// Right triangle right
+	result = barycentricToCartesian3f(VECTOR3f(0.0f, 1.0f, 0.0f), VECTOR3f(0.0f, 0.0f, 0.0f), VECTOR3f(1.0f, 0.0f, 0.0f), VECTOR3f(0.0f, 1.0f, 0.0f));
+	assertVector3fExact(result, 1.0f, 0.0f, 0.0f);
+	
+	// Right triangle top
+	result = barycentricToCartesian3f(VECTOR3f(0.0f, 0.0f, 1.0f), VECTOR3f(0.0f, 0.0f, 0.0f), VECTOR3f(1.0f, 0.0f, 0.0f), VECTOR3f(0.0f, 1.0f, 0.0f));
+	assertVector3fExact(result, 0.0f, 1.0f, 0.0f);
+	
+	// Right triangle hypotenuse center
+	result = barycentricToCartesian3f(VECTOR3f(0.0f, 0.5f, 0.5f), VECTOR3f(0.0f, 0.0f, 0.0f), VECTOR3f(1.0f, 0.0f, 0.0f), VECTOR3f(0.0f, 1.0f, 0.0f));
+	assertVector3fApproximate(result, 0.5f, 0.5f, 0.0f, EPSILON);
+	
+	// Right triangle vertical side center
+	result = barycentricToCartesian3f(VECTOR3f(0.5f, 0.0f, 0.5f), VECTOR3f(0.0f, 0.0f, 0.0f), VECTOR3f(1.0f, 0.0f, 0.0f), VECTOR3f(0.0f, 1.0f, 0.0f));
+	assertVector3fApproximate(result, 0.0f, 0.5f, 0.0f, EPSILON);
+	
+	// Right triangle horizontal side center
+	result = barycentricToCartesian3f(VECTOR3f(0.5f, 0.5f, 0.0f), VECTOR3f(0.0f, 0.0f, 0.0f), VECTOR3f(1.0f, 0.0f, 0.0f), VECTOR3f(0.0f, 1.0f, 0.0f));
+	assertVector3fApproximate(result, 0.5f, 0.0f, 0.0f, EPSILON);
+	
+	// Equilateral triangle center
+	result = barycentricToCartesian3f(VECTOR3f(1.0f / 3.0f, 1.0f / 3.0f, 1.0f / 3.0f), VECTOR3f(0.0f, 1.0f, 0.0f), VECTOR3f(0.8660254037844384, -0.5f, 0.0f), VECTOR3f(-0.8660254037844384, -0.5f, 0.0f));
+	assertVector3fApproximate(result, 0.0f, 0.0f, 0.0f, EPSILON);
+	
+	// Outside right triangle
+	result = barycentricToCartesian3f(VECTOR3f(1.0f, 1.0f, -1.0f), VECTOR3f(0.0f, 0.0f, 0.0f), VECTOR3f(1.0f, 0.0f, 0.0f), VECTOR3f(0.0f, 1.0f, 0.0f));
+	assertVector3fExact(result, 1.0f, -1.0f, 0.0f);
+	
+	// Right triangle hypotenuse center (different orientation)
+	result = barycentricToCartesian3f(VECTOR3f(0.0f, 0.5f, 0.5f), VECTOR3f(0.0f, 0.0f, 0.0f), VECTOR3f(1.0f, 0.0f, 0.0f), VECTOR3f(0.0f, 0.0f, 1.0f));
+	assertVector3fApproximate(result, 0.5f, 0.0f, 0.5f, EPSILON);
+	
+	// Right triangle right (different orientation)
+	result = barycentricToCartesian3f(VECTOR3f(0.0f, 1.0f, 0.0f), VECTOR3f(0.0f, 0.0f, 0.0f), VECTOR3f(1.0f, 1.0f, 0.0f), VECTOR3f(0.0f, 1.0f, -1.0f));
+	assertVector3fExact(result, 1.0f, 1.0f, 0.0f);
+}
+
+static void testBarycentricToCartesian2x() {
+	Vector2x result;
+	
+	// Right triangle bottom left
+	result = barycentricToCartesian2x(VECTOR3x(0x10000, 0x00000, 0x00000), VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x00000), VECTOR2x(0x00000, 0x10000));
+	assertVector2x(result, 0x00000, 0x00000);
+	
+	// Right triangle right
+	result = barycentricToCartesian2x(VECTOR3x(0x00000, 0x10000, 0x00000), VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x00000), VECTOR2x(0x00000, 0x10000));
+	assertVector2x(result, 0x10000, 0x00000);
+	
+	// Right triangle top
+	result = barycentricToCartesian2x(VECTOR3x(0x00000, 0x00000, 0x10000), VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x00000), VECTOR2x(0x00000, 0x10000));
+	assertVector2x(result, 0x00000, 0x10000);
+	
+	// Right triangle hypotenuse center
+	result = barycentricToCartesian2x(VECTOR3x(0x00000, 0x08000, 0x08000), VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x00000), VECTOR2x(0x00000, 0x10000));
+	assertVector2x(result, 0x08000, 0x08000);
+	
+	// Right triangle vertical side center
+	result = barycentricToCartesian2x(VECTOR3x(0x08000, 0x00000, 0x08000), VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x00000), VECTOR2x(0x00000, 0x10000));
+	assertVector2x(result, 0x00000, 0x08000);
+	
+	// Right triangle horizontal side center
+	result = barycentricToCartesian2x(VECTOR3x(0x08000, 0x08000, 0x00000), VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x00000), VECTOR2x(0x00000, 0x10000));
+	assertVector2x(result, 0x08000, 0x00000);
+	
+	// Equilateral triangle center
+	result = barycentricToCartesian2x(VECTOR3x(0x05556, 0x05555, 0x05555), VECTOR2x(0x00000, 0x10000), VECTOR2x(0x0DDB4, -0x08000), VECTOR2x(-0x0DDB4, -0x08000));
+	assertVector2x(result, 0x00000, 0x00000);
+	
+	// Outside right triangle
+	result = barycentricToCartesian2x(VECTOR3x(0x10000, 0x10000, -0x10000), VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x00000), VECTOR2x(0x00000, 0x10000));
+	assertVector2x(result, 0x10000, -0x10000);
+}
+
+static void testBarycentricToCartesian3x() {
+	Vector3x result;
+	
+	// Right triangle bottom left
+	result = barycentricToCartesian3x(VECTOR3x(0x10000, 0x00000, 0x00000), VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x00000, 0x00000), VECTOR3x(0x00000, 0x10000, 0x00000));
+	assertVector3x(result, 0x00000, 0x00000, 0x00000);
+	
+	// Right triangle right
+	result = barycentricToCartesian3x(VECTOR3x(0x00000, 0x10000, 0x00000), VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x00000, 0x00000), VECTOR3x(0x00000, 0x10000, 0x00000));
+	assertVector3x(result, 0x10000, 0x00000, 0x00000);
+	
+	// Right triangle top
+	result = barycentricToCartesian3x(VECTOR3x(0x00000, 0x00000, 0x10000), VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x00000, 0x00000), VECTOR3x(0x00000, 0x10000, 0x00000));
+	assertVector3x(result, 0x00000, 0x10000, 0x00000);
+	
+	// Right triangle hypotenuse center
+	result = barycentricToCartesian3x(VECTOR3x(0x00000, 0x08000, 0x08000), VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x00000, 0x00000), VECTOR3x(0x00000, 0x10000, 0x00000));
+	assertVector3x(result, 0x08000, 0x08000, 0x00000);
+	
+	// Right triangle vertical side center
+	result = barycentricToCartesian3x(VECTOR3x(0x08000, 0x00000, 0x08000), VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x00000, 0x00000), VECTOR3x(0x00000, 0x10000, 0x00000));
+	assertVector3x(result, 0x00000, 0x08000, 0x00000);
+	
+	// Right triangle horizontal side center
+	result = barycentricToCartesian3x(VECTOR3x(0x08000, 0x08000, 0x00000), VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x00000, 0x00000), VECTOR3x(0x00000, 0x10000, 0x00000));
+	assertVector3x(result, 0x08000, 0x00000, 0x00000);
+	
+	// Equilateral triangle center
+	result = barycentricToCartesian3x(VECTOR3x(0x05556, 0x05555, 0x05555), VECTOR3x(0x00000, 0x10000, 0x00000), VECTOR3x(0x0DDB4, -0x08000, 0x00000), VECTOR3x(-0x0DDB4, -0x08000, 0x00000));
+	assertVector3x(result, 0x00000, 0x00000, 0x00000);
+	
+	// Outside right triangle
+	result = barycentricToCartesian3x(VECTOR3x(0x10000, 0x10000, -0x10000), VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x00000, 0x00000), VECTOR3x(0x00000, 0x10000, 0x00000));
+	assertVector3x(result, 0x10000, -0x10000, 0x00000);
+	
+	// Right triangle hypotenuse center (different orientation)
+	result = barycentricToCartesian3x(VECTOR3x(0x00000, 0x08000, 0x08000), VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x00000, 0x00000), VECTOR3x(0x00000, 0x00000, 0x10000));
+	assertVector3x(result, 0x08000, 0x00000, 0x08000);
+	
+	// Right triangle right (different orientation)
+	result = barycentricToCartesian3x(VECTOR3x(0x00000, 0x10000, 0x00000), VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x00000), VECTOR3x(0x00000, 0x10000, -0x10000));
+	assertVector3x(result, 0x10000, 0x10000, 0x00000);
+}
+
 TEST_SUITE(BarycentricTest,
            testCartesianToBarycentric2f,
            testCartesianToBarycentric3f,
            testCartesianToBarycentric2x,
-           testCartesianToBarycentric3x)
+           testCartesianToBarycentric3x,
+           testBarycentricToCartesian2f,
+           testBarycentricToCartesian3f,
+           testBarycentricToCartesian2x,
+           testBarycentricToCartesian3x)

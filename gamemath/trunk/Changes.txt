@@ -1,12 +1,13 @@
-2.3.0 (2015-10-03)
- * Added Rect4* and Box6* for 2D and 3D boundaries, with numeric types matching those provided by Vector*
+2.3.0 (2015-11-08)
+ * Added Rect4*.h and Box6*.h for 2D and 3D boundaries, with numeric types matching those provided by Vector*
+ * Added VectorConversions.h and RectBoxConversions.h with convenience macros for converting between structure data types and (for vectors) axis counts
+ * Added MouseCoordinateTransforms.h
+ * Added Barycentric.h
  * Added Vector*_invert() and Vector*_inverted()
  * Fixed multiplications in Vector*x_reflect() and Vector*x_magnitude() giving wildly incorrect results
  * Fixed a bug that caused xsqrt to be nonterminating for some inputs
  * xmul and xdiv now return FIXED_16_16_INF or FIXED_16_16_NINF if the result overflows a 32-bit type
  * xmul and xdiv now return FIXED_16_16_INF, FIXED_16_16_NINF, or FIXED_16_16_NAN as appropriate if one of both of their inputs is inf or nan
- * Added VectorConversions.h and RectBoxConversions.h with convenience macros for converting between structure data types and (for vectors) axis counts
- * Added MouseCoordinateTransforms
 
 2.2.0 (2014-11-02)
  * Renamed project from 3dmath to gamemath to more accurately fit its purpose

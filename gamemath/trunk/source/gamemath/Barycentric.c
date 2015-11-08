@@ -89,17 +89,35 @@ Vector3x cartesianToBarycentric3x(Vector3x position, Vector3x vertex0, Vector3x 
 }
 
 Vector2f barycentricToCartesian2f(Vector3f position, Vector2f vertex0, Vector2f vertex1, Vector2f vertex2) {
-	return VECTOR2f_ZERO;
+	Vector2f result;
+	
+	result.x = vertex0.x * position.x + vertex1.x * position.y + vertex2.x * position.z;
+	result.y = vertex0.y * position.x + vertex1.y * position.y + vertex2.y * position.z;
+	return result;
 }
 
 Vector3f barycentricToCartesian3f(Vector3f position, Vector3f vertex0, Vector3f vertex1, Vector3f vertex2) {
-	return VECTOR3f_ZERO;
+	Vector3f result;
+	
+	result.x = vertex0.x * position.x + vertex1.x * position.y + vertex2.x * position.z;
+	result.y = vertex0.y * position.x + vertex1.y * position.y + vertex2.y * position.z;
+	result.z = vertex0.z * position.x + vertex1.z * position.y + vertex2.z * position.z;
+	return result;
 }
 
 Vector2x barycentricToCartesian2x(Vector3x position, Vector2x vertex0, Vector2x vertex1, Vector2x vertex2) {
-	return VECTOR2x_ZERO;
+	Vector2x result;
+	
+	result.x = xmul(vertex0.x, position.x) + xmul(vertex1.x, position.y) + xmul(vertex2.x, position.z);
+	result.y = xmul(vertex0.y, position.x) + xmul(vertex1.y, position.y) + xmul(vertex2.y, position.z);
+	return result;
 }
 
 Vector3x barycentricToCartesian3x(Vector3x position, Vector3x vertex0, Vector3x vertex1, Vector3x vertex2) {
-	return VECTOR3x_ZERO;
+	Vector3x result;
+	
+	result.x = xmul(vertex0.x, position.x) + xmul(vertex1.x, position.y) + xmul(vertex2.x, position.z);
+	result.y = xmul(vertex0.y, position.x) + xmul(vertex1.y, position.y) + xmul(vertex2.y, position.z);
+	result.z = xmul(vertex0.z, position.x) + xmul(vertex1.z, position.y) + xmul(vertex2.z, position.z);
+	return result;
 }
