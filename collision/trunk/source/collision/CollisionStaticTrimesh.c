@@ -128,6 +128,30 @@ static void computeGeometryInfo(CollisionStaticTrimesh * self) {
 	self->edgeCount = computeEdgeInfo(self, NULL);
 	self->edges = malloc(sizeof(struct trimeshConvexEdge) * self->edgeCount);
 	computeEdgeInfo(self, self->edges);
+	
+	self->bounds = BOX6x(0, 0, 0, 0, 0, 0);
+	if (self->vertexCount > 0) {
+		self->bounds.left = self->bounds.right = self->vertices[0].position.x;
+		self->bounds.bottom = self->bounds.top = self->vertices[0].position.y;
+		self->bounds.back = self->bounds.front = self->vertices[0].position.z;
+	}
+	for (vertexIndex = 1; vertexIndex < self->vertexCount; vertexIndex++) {
+		if (self->vertices[vertexIndex].position.x < self->bounds.left) {
+			self->bounds.left = self->vertices[vertexIndex].position.x;
+		} else if (self->vertices[vertexIndex].position.x > self->bounds.right) {
+			self->bounds.right = self->vertices[vertexIndex].position.x;
+		}
+		if (self->vertices[vertexIndex].position.y < self->bounds.bottom) {
+			self->bounds.bottom = self->vertices[vertexIndex].position.y;
+		} else if (self->vertices[vertexIndex].position.y > self->bounds.top) {
+			self->bounds.top = self->vertices[vertexIndex].position.y;
+		}
+		if (self->vertices[vertexIndex].position.z < self->bounds.back) {
+			self->bounds.back = self->vertices[vertexIndex].position.z;
+		} else if (self->vertices[vertexIndex].position.z > self->bounds.front) {
+			self->bounds.front = self->vertices[vertexIndex].position.z;
+		}
+	}
 }
 
 static unsigned int uniqVertices(Vector3x * vertices, unsigned int vertexCount, unsigned int * indexes, unsigned int indexCount) {
@@ -247,40 +271,5 @@ bool CollisionStaticTrimesh_isStatic(CollisionStaticTrimesh * self) {
 }
 
 Box6x CollisionStaticTrimesh_getCollisionBounds(CollisionStaticTrimesh * self) {
-	Box6x bounds = BOX6x(0, 0, 0, 0, 0, 0);
-	unsigned int vertexIndex;
-	
-	// TODO: Compute at init and cache
-	if (self->vertexCount > 0) {
-		bounds.left = bounds.right = self->vertices[0].position.x;
-		bounds.bottom = bounds.top = self->vertices[0].position.y;
-		bounds.back = bounds.front = self->vertices[0].position.z;
-	}
-	for (vertexIndex = 1; vertexIndex < self->vertexCount; vertexIndex++) {
-		if (self->vertices[vertexIndex].position.x < bounds.left) {
-			bounds.left = self->vertices[vertexIndex].position.x;
-		} else if (self->vertices[vertexIndex].position.x > bounds.right) {
-			bounds.right = self->vertices[vertexIndex].position.x;
-		}
-		if (self->vertices[vertexIndex].position.y < bounds.bottom) {
-			bounds.bottom = self->vertices[vertexIndex].position.y;
-		} else if (self->vertices[vertexIndex].position.y > bounds.top) {
-			bounds.top = self->vertices[vertexIndex].position.y;
-		}
-		if (self->vertices[vertexIndex].position.z < bounds.back) {
-			bounds.back = self->vertices[vertexIndex].position.z;
-		} else if (self->vertices[vertexIndex].position.z > bounds.front) {
-			bounds.front = self->vertices[vertexIndex].position.z;
-		}
-	}
-	return bounds;
-}
-
-void CollisionStaticTrimesh_enumerateConvexVerticesIntersectingBounds(CollisionStaticTrimesh * self, Box6x bounds, void (* callback)(Vector3x position, Vector3x normal, void * context), void * context) {
-}
-
-void CollisionStaticTrimesh_enumerateConvexEdgesIntersectingBounds(CollisionStaticTrimesh * self, Box6x bounds, void (* callback)(Vector3x position1, Vector3x position2, Vector3x normal, void * context), void * context) {
-}
-
-void CollisionStaticTrimesh_enumerateTrianglesIntersectingBounds(CollisionStaticTrimesh * self, Box6x bounds, void (* callback)(Vector3x vertex0, Vector3x vertex1, Vector3x vertex2, Vector3x normal, void * context), void * context) {
+	return self->bounds;
 }

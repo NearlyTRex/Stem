@@ -57,7 +57,8 @@ struct trimeshTriangle {
 	struct trimeshConvexEdge * edges; \
 	unsigned int edgeCount; \
 	struct trimeshTriangle * triangles; \
-	unsigned int triangleCount;
+	unsigned int triangleCount; \
+	Box6x bounds;
 
 stemobject_struct_definition(CollisionStaticTrimesh)
 
@@ -73,10 +74,6 @@ void CollisionStaticTrimesh_dispose(CollisionStaticTrimesh * self);
 
 bool CollisionStaticTrimesh_isStatic(CollisionStaticTrimesh * self);
 Box6x CollisionStaticTrimesh_getCollisionBounds(CollisionStaticTrimesh * self);
-
-void CollisionStaticTrimesh_enumerateConvexVerticesIntersectingBounds(CollisionStaticTrimesh * self, Box6x bounds, void (* callback)(Vector3x position, Vector3x normal, void * context), void * context);
-void CollisionStaticTrimesh_enumerateConvexEdgesIntersectingBounds(CollisionStaticTrimesh * self, Box6x bounds, void (* callback)(Vector3x position1, Vector3x position2, Vector3x normal, void * context), void * context);
-void CollisionStaticTrimesh_enumerateTrianglesIntersectingBounds(CollisionStaticTrimesh * self, Box6x bounds, void (* callback)(Vector3x vertex0, Vector3x vertex1, Vector3x vertex2, Vector3x normal, void * context), void * context);
 
 #ifdef __cplusplus
 }
