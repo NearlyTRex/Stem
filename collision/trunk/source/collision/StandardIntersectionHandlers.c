@@ -25,6 +25,7 @@
 #include "collision/CollisionCircle.h"
 #include "collision/CollisionRect2D.h"
 #include "collision/CollisionSphere.h"
+#include "collision/CollisionStaticTrimesh.h"
 #include "collision/StandardIntersectionHandlers.h"
 #include <stdio.h>
 
@@ -745,6 +746,9 @@ bool intersectionHandler_circle_polygon(CollisionObject * object1, CollisionObje
 }
 
 bool intersectionHandler_line2D_line2D(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal, Vector3x * outObject1Vector, Vector3x * outObject2Vector, fixed16_16 * outContactArea) {
+	// Already intersecting and moving inward (need test!)
+	// Endpoints of line1 pass through line2
+	// Endpoints of line2 pass through line1
 	return false;
 }
 
@@ -1162,6 +1166,45 @@ bool intersectionHandler_sphere_capsule(CollisionObject * object1, CollisionObje
 }
 
 bool intersectionHandler_sphere_trimesh(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal, Vector3x * outObject1Vector, Vector3x * outObject2Vector, fixed16_16 * outContactArea) {
+	/*fixed16_16 time, bestTime = FIXED_16_16_MAX;
+	fixed16_16 contactArea, bestContactArea = 0x00000;
+	Vector3x bestNormal = VECTOR3x_ZERO;
+	CollisionSphere * sphere = (CollisionSphere *) object1;
+	CollisionStaticTrimesh * trimesh = (CollisionStaticTrimesh *) object2;
+	Vector3x vertices[3];
+	Vector3x normal;
+	
+	for (vertices[0], normal in CollisionStaticTrimesh_eachVertexIntersecting(CollisionSphere_getCollisionBounds(sphere))) {
+		if (intersectSweptSpheres(sphere->lastPosition, sphere->position, sphere->radius,
+		                          vertices[0], vertices[0], 0x00000,
+		                          &time, &normal)) {
+			if (time < bestTime) {
+				bestTime = time;
+				bestNormal = normal;
+			}
+		}
+	}
+	for (vertices[0], vertices[1], normal in CollisionStaticTrimesh_eachEdgeIntersecting(CollisionSphere_getCollisionBounds(sphere))) {
+		if (intersectSphereLine3D(sphere->lastPosition, sphere->position, sphere->radius,
+		                          vertices[0], vertices[1], 0x00000,
+		                          &time, &normal)) {
+			if (time < bestTime) {
+				bestTime = time;
+				bestNormal = normal;
+			}
+		}
+	}
+	for (vertices[0], vertices[1], vertices[2], normal in CollisionStaticTrimesh_eachTriangleIntersecting(CollisionSphere_getCollisionBounds(sphere))) {
+		if (intersectSphereTriangle(sphere->lastPosition, sphere->position, sphere->radius,
+		                            vertices[0], vertices[1], vertices[2],
+		                            &time, &normal)) {
+			if (time < bestTime) {
+				bestTime = time;
+				bestNormal = normal;
+			}
+		}
+	}
+	*/
 	return false;
 }
 

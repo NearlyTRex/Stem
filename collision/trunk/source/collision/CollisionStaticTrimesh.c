@@ -22,14 +22,11 @@
 
 #include "collision/CollisionStaticTrimesh.h"
 #include "collision/CollisionShared.h"
+#include <limits.h>
 #include <stdlib.h>
 #include <string.h>
 
 #define SUPERCLASS CollisionObject
-
-CollisionStaticTrimesh * CollisionStaticTrimesh_create(void * owner, CollisionCallback collisionCallback, Vector3x * vertices, size_t vertexCount, bool copy, bool takeOwnership) {
-	stemobject_create_implementation(CollisionStaticTrimesh, init, owner, collisionCallback, vertices, vertexCount, copy, takeOwnership)
-}
 
 static void sharedInit(CollisionStaticTrimesh * self, void * owner, CollisionCallback collisionCallback) {
 	call_super(init, self, owner, COLLISION_SHAPE_STATIC_TRIMESH, collisionCallback);
@@ -38,43 +35,201 @@ static void sharedInit(CollisionStaticTrimesh * self, void * owner, CollisionCal
 	self->getCollisionBounds = CollisionStaticTrimesh_getCollisionBounds;
 }
 
-bool CollisionStaticTrimesh_init(CollisionStaticTrimesh * self, void * owner, CollisionCallback collisionCallback, Vector3x * vertices, size_t vertexCount, bool copy, bool takeOwnership) {
-	sharedInit(self, owner, collisionCallback);
-	self->vertexCount = vertexCount;
-	if (copy) {
-		self->vertices = malloc(sizeof(Vector3x) * vertexCount);
-		memcpy(self->vertices, vertices, sizeof(Vector3x) * vertexCount);
-	} else {
-		self->vertices = vertices;
+static unsigned int computeEdgeInfo(CollisionStaticTrimesh * self, struct trimeshConvexEdge * edges) {
+	unsigned int triangleIndex, triangleVertexIndex, edgeIndex = 0;
+	Vector3x edgeParallel, edgePerpendicular, normal, connectedNormal;
+	
+	for (triangleIndex = 0; triangleIndex < self->triangleCount; triangleIndex++) {
+		for (triangleVertexIndex = 0; triangleVertexIndex < 3; triangleVertexIndex++) {
+			if (self->triangles[triangleIndex].connectedTriangleIndexes[triangleVertexIndex] > triangleIndex && self->triangles[triangleIndex].connectedTriangleIndexes[triangleVertexIndex] != UINT_MAX) {
+				normal = self->triangles[triangleIndex].normal;
+				connectedNormal = self->triangles[self->triangles[triangleIndex].connectedTriangleIndexes[triangleVertexIndex]].normal;
+				edgeParallel = Vector3x_subtract(self->vertices[self->triangles[triangleIndex].vertexIndexes[triangleVertexIndex]].position, self->vertices[self->triangles[triangleIndex].vertexIndexes[(triangleVertexIndex + 1) % 3]].position);
+				edgePerpendicular = Vector3x_cross(edgeParallel, normal);
+				if (Vector3x_dot(edgePerpendicular, connectedNormal) < 0x00000) {
+					if (edges != NULL) {
+						self->edges[edgeIndex].vertexIndexes[0] = self->triangles[triangleIndex].vertexIndexes[triangleVertexIndex];
+						self->edges[edgeIndex].vertexIndexes[1] = self->triangles[triangleIndex].vertexIndexes[(triangleVertexIndex + 1) % 3];
+						self->edges[edgeIndex].normal = Vector3x_add(normal, connectedNormal);
+						if (!Vector3x_normalize(&self->edges[edgeIndex].normal)) {
+							self->edges[edgeIndex].normal = Vector3x_normalized(edgePerpendicular);
+						}
+					}
+					edgeIndex++;
+				}
+			}
+		}
 	}
-	self->private_ivar(verticesOwned) = takeOwnership;
+	return edgeIndex;
+}
+
+static void computeGeometryInfo(CollisionStaticTrimesh * self) {
+	unsigned int triangleIndex, triangleIndex2, vertexIndex, triangleVertexIndex, triangleVertexIndex2;
+	Vector3x v01, v02, normal, v1, v2, trianglePerpendicular;
+	
+	for (triangleIndex = 0; triangleIndex < self->triangleCount; triangleIndex++) {
+		v01 = Vector3x_subtract(self->vertices[self->triangles[triangleIndex].vertexIndexes[0]].position, self->vertices[self->triangles[triangleIndex].vertexIndexes[1]].position);
+		v02 = Vector3x_subtract(self->vertices[self->triangles[triangleIndex].vertexIndexes[0]].position, self->vertices[self->triangles[triangleIndex].vertexIndexes[2]].position);
+		self->triangles[triangleIndex].normal = Vector3x_normalized(Vector3x_cross(v01, v02));
+		
+		self->triangles[triangleIndex].connectedTriangleIndexes[0] = UINT_MAX;
+		self->triangles[triangleIndex].connectedTriangleIndexes[1] = UINT_MAX;
+		self->triangles[triangleIndex].connectedTriangleIndexes[2] = UINT_MAX;
+	}
+	
+	for (triangleIndex = 0; triangleIndex < self->triangleCount; triangleIndex++) {
+		for (triangleVertexIndex = 0; triangleVertexIndex < 3; triangleVertexIndex++) {
+			if (self->triangles[triangleIndex].connectedTriangleIndexes[triangleVertexIndex] != UINT_MAX) {
+				continue;
+			}
+			for (triangleIndex2 = triangleIndex + 1; triangleIndex2 < self->triangleCount; triangleIndex2++) {
+				for (triangleVertexIndex2 = 0; triangleVertexIndex2 < 3; triangleVertexIndex2++) {
+					if (self->triangles[triangleIndex].vertexIndexes[triangleVertexIndex] == self->triangles[triangleIndex2].vertexIndexes[triangleVertexIndex2] &&
+					    self->triangles[triangleIndex].vertexIndexes[(triangleVertexIndex + 1) % 3] == self->triangles[triangleIndex2].vertexIndexes[(triangleVertexIndex2 + 2) % 3]) {
+						self->triangles[triangleIndex].connectedTriangleIndexes[triangleVertexIndex] = triangleIndex2;
+						self->triangles[triangleIndex2].connectedTriangleIndexes[(triangleVertexIndex2 + 2) % 3] = triangleIndex;
+						break;
+					}
+				}
+				if (self->triangles[triangleIndex].connectedTriangleIndexes[triangleVertexIndex] != UINT_MAX) {
+					break;
+				}
+			}
+		}
+	}
+	
+	for (vertexIndex = 0; vertexIndex < self->vertexCount; vertexIndex++) {
+		normal = VECTOR3x_ZERO;
+		for (triangleIndex = 0; triangleIndex < self->triangleCount; triangleIndex++) {
+			for (triangleVertexIndex = 0; triangleVertexIndex < 3; triangleVertexIndex++) {
+				if (self->triangles[triangleIndex].vertexIndexes[triangleVertexIndex] == vertexIndex) {
+					normal = Vector3x_add(normal, self->triangles[triangleIndex].normal);
+					break;
+				}
+			}
+		}
+		self->vertices[vertexIndex].normal = Vector3x_normalized(normal);
+		
+		self->vertices[vertexIndex].convex = false;
+		for (triangleIndex = 0; triangleIndex < self->triangleCount; triangleIndex++) {
+			for (triangleVertexIndex = 0; triangleVertexIndex < 3; triangleVertexIndex++) {
+				if (self->triangles[triangleIndex].vertexIndexes[triangleVertexIndex] == vertexIndex) {
+					v1 = self->vertices[self->triangles[triangleIndex].vertexIndexes[(triangleVertexIndex + 1) % 3]].position;
+					v2 = self->vertices[self->triangles[triangleIndex].vertexIndexes[(triangleVertexIndex + 2) % 3]].position;
+					trianglePerpendicular = Vector3x_subtract(self->vertices[vertexIndex].position, Vector3x_multiplyScalar(Vector3x_add(v1, v2), 0x08000));
+					if (Vector3x_dot(self->vertices[vertexIndex].normal, trianglePerpendicular) > 0x00000) {
+						self->vertices[vertexIndex].convex = true;
+					}
+				}
+			}
+		}
+	}
+	
+	self->edgeCount = computeEdgeInfo(self, NULL);
+	self->edges = malloc(sizeof(struct trimeshConvexEdge) * self->edgeCount);
+	computeEdgeInfo(self, self->edges);
+}
+
+static unsigned int uniqVertices(Vector3x * vertices, unsigned int vertexCount, unsigned int * indexes, unsigned int indexCount) {
+	unsigned int index, vertexIndex, vertexIndex2;
+	
+	for (vertexIndex = 1; vertexIndex < vertexCount; vertexIndex++) {
+		for (vertexIndex2 = 0; vertexIndex2 < vertexIndex; vertexIndex2++) {
+			if (vertices[vertexIndex2].x == vertices[vertexIndex].x &&
+			    vertices[vertexIndex2].y == vertices[vertexIndex].y &&
+			    vertices[vertexIndex2].z == vertices[vertexIndex].z) {
+				
+				for (index = 0; index < indexCount; index++) {
+					if (indexes[index] == vertexIndex) {
+						indexes[index] = vertexIndex2;
+						
+					} else if (indexes[index] > vertexIndex) {
+						indexes[index]--;
+					}
+				}
+				
+				vertexCount--;
+				for (vertexIndex2 = vertexIndex; vertexIndex2 < vertexCount; vertexIndex2++) {
+					vertices[vertexIndex2] = vertices[vertexIndex2 + 1];
+				}
+				
+				vertexIndex--;
+				break;
+			}
+		}
+	}
+	return vertexCount;
+}
+
+static void initVertexAndTriangleData(CollisionStaticTrimesh * self, const Vector3x * vertices, unsigned int vertexCount, const unsigned int * indexes, unsigned int indexCount) {
+	unsigned int vertexIndex, triangleIndex;
+	
+	self->vertexCount = vertexCount;
+	self->vertices = malloc(sizeof(struct trimeshVertex) * vertexCount);
+	for (vertexIndex = 0; vertexIndex < vertexCount; vertexIndex++) {
+		self->vertices[vertexIndex].position = vertices[vertexIndex];
+	}
+	
+	self->triangleCount = indexCount / 3;
+	self->triangles = malloc(sizeof(struct trimeshTriangle) * self->triangleCount);
+	for (triangleIndex = 0; triangleIndex < self->triangleCount; triangleIndex++) {
+		self->triangles[triangleIndex].vertexIndexes[0] = indexes[triangleIndex * 3];
+		self->triangles[triangleIndex].vertexIndexes[1] = indexes[triangleIndex * 3 + 1];
+		self->triangles[triangleIndex].vertexIndexes[2] = indexes[triangleIndex * 3 + 2];
+	}
+}
+
+CollisionStaticTrimesh * CollisionStaticTrimesh_create(void * owner, CollisionCallback collisionCallback, const Vector3x * vertices, unsigned int vertexCount) {
+	stemobject_create_implementation(CollisionStaticTrimesh, init, owner, collisionCallback, vertices, vertexCount)
+}
+
+bool CollisionStaticTrimesh_init(CollisionStaticTrimesh * self, void * owner, CollisionCallback collisionCallback, const Vector3x * vertices, unsigned int vertexCount) {
+	unsigned int index, indexCount;
+	unsigned int * indexes;
+	Vector3x * verticesCopy;
+	
+	sharedInit(self, owner, collisionCallback);
+	
+	indexes = malloc(sizeof(unsigned int) * vertexCount);
+	for (index = 0; index < vertexCount; index++) {
+		indexes[index] = index;
+	}
+	
+	indexCount = vertexCount;
+	verticesCopy = malloc(sizeof(Vector3x) * vertexCount);
+	memcpy(verticesCopy, vertices, sizeof(Vector3x) * vertexCount);
+	vertexCount = uniqVertices(verticesCopy, vertexCount, indexes, indexCount);
+	initVertexAndTriangleData(self, verticesCopy, vertexCount, indexes, indexCount);
+	free(verticesCopy);
+	computeGeometryInfo(self);
+	
 	return true;
 }
 
-CollisionStaticTrimesh * CollisionStaticTrimesh_createWithIndexes(void * owner, CollisionCallback collisionCallback, Vector3x * vertices, unsigned int * indexes, size_t indexCount) {
+CollisionStaticTrimesh * CollisionStaticTrimesh_createWithIndexes(void * owner, CollisionCallback collisionCallback, const Vector3x * vertices, const unsigned int * indexes, unsigned int indexCount) {
 	stemobject_create_implementation(CollisionStaticTrimesh, initWithIndexes, owner, collisionCallback, vertices, indexes, indexCount)
 }
 
-bool CollisionStaticTrimesh_initWithIndexes(CollisionStaticTrimesh * self, void * owner, CollisionCallback collisionCallback, Vector3x * vertices, unsigned int * indexes, size_t indexCount) {
+bool CollisionStaticTrimesh_initWithIndexes(CollisionStaticTrimesh * self, void * owner, CollisionCallback collisionCallback, const Vector3x * vertices, const unsigned int * indexes, unsigned int indexCount) {
+	unsigned int vertexCount, index;
+	
 	sharedInit(self, owner, collisionCallback);
-	self->vertexCount = indexCount;
-	if (indexCount == 0) {
-		self->vertices = NULL;
-	} else {
-		size_t index;
-		
-		self->vertices = malloc(sizeof(Vector3x) * indexCount);
-		for (index = 0; index < indexCount; index++) {
-			self->vertices[index] = vertices[indexes[index]];
+	vertexCount = 0;
+	for (index = 0; index < indexCount; index++) {
+		if (indexes[index] + 1 > vertexCount) {
+			vertexCount = indexes[index] + 1;
 		}
 	}
+	
+	initVertexAndTriangleData(self, vertices, vertexCount, indexes, indexCount);
+	computeGeometryInfo(self);
 	return true;
 }
 
 void CollisionStaticTrimesh_dispose(CollisionStaticTrimesh * self) {
-	if (self->private_ivar(verticesOwned)) {
-		free(self->vertices);
-	}
+	free(self->vertices);
+	free(self->edges);
+	free(self->triangles);
 	call_super(dispose, self);
 }
 
@@ -84,29 +239,39 @@ bool CollisionStaticTrimesh_isStatic(CollisionStaticTrimesh * self) {
 
 Box6x CollisionStaticTrimesh_getCollisionBounds(CollisionStaticTrimesh * self) {
 	Box6x bounds = BOX6x(0, 0, 0, 0, 0, 0);
-	size_t vertexIndex;
+	unsigned int vertexIndex;
 	
+	// TODO: Compute at init and cache
 	if (self->vertexCount > 0) {
-		bounds.left = bounds.right = self->vertices[0].x;
-		bounds.bottom = bounds.top = self->vertices[0].y;
-		bounds.back = bounds.front = self->vertices[0].z;
+		bounds.left = bounds.right = self->vertices[0].position.x;
+		bounds.bottom = bounds.top = self->vertices[0].position.y;
+		bounds.back = bounds.front = self->vertices[0].position.z;
 	}
 	for (vertexIndex = 1; vertexIndex < self->vertexCount; vertexIndex++) {
-		if (self->vertices[vertexIndex].x < bounds.left) {
-			bounds.left = self->vertices[vertexIndex].x;
-		} else if (self->vertices[vertexIndex].x > bounds.right) {
-			bounds.right = self->vertices[vertexIndex].x;
+		if (self->vertices[vertexIndex].position.x < bounds.left) {
+			bounds.left = self->vertices[vertexIndex].position.x;
+		} else if (self->vertices[vertexIndex].position.x > bounds.right) {
+			bounds.right = self->vertices[vertexIndex].position.x;
 		}
-		if (self->vertices[vertexIndex].y < bounds.bottom) {
-			bounds.bottom = self->vertices[vertexIndex].y;
-		} else if (self->vertices[vertexIndex].y > bounds.top) {
-			bounds.top = self->vertices[vertexIndex].y;
+		if (self->vertices[vertexIndex].position.y < bounds.bottom) {
+			bounds.bottom = self->vertices[vertexIndex].position.y;
+		} else if (self->vertices[vertexIndex].position.y > bounds.top) {
+			bounds.top = self->vertices[vertexIndex].position.y;
 		}
-		if (self->vertices[vertexIndex].z < bounds.back) {
-			bounds.back = self->vertices[vertexIndex].z;
-		} else if (self->vertices[vertexIndex].z > bounds.front) {
-			bounds.front = self->vertices[vertexIndex].z;
+		if (self->vertices[vertexIndex].position.z < bounds.back) {
+			bounds.back = self->vertices[vertexIndex].position.z;
+		} else if (self->vertices[vertexIndex].position.z > bounds.front) {
+			bounds.front = self->vertices[vertexIndex].position.z;
 		}
 	}
 	return bounds;
+}
+
+void CollisionStaticTrimesh_enumerateConvexVerticesIntersectingBounds(CollisionStaticTrimesh * self, Box6x bounds, void (* callback)(Vector3x position, Vector3x normal, void * context), void * context) {
+}
+
+void CollisionStaticTrimesh_enumerateConvexEdgesIntersectingBounds(CollisionStaticTrimesh * self, Box6x bounds, void (* callback)(Vector3x position1, Vector3x position2, Vector3x normal, void * context), void * context) {
+}
+
+void CollisionStaticTrimesh_enumerateTrianglesIntersectingBounds(CollisionStaticTrimesh * self, Box6x bounds, void (* callback)(Vector3x vertex0, Vector3x vertex1, Vector3x vertex2, Vector3x normal, void * context), void * context) {
 }

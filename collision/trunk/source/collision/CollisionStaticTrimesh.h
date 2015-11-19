@@ -31,34 +31,52 @@ typedef struct CollisionStaticTrimesh CollisionStaticTrimesh;
 #include "collision/CollisionObject.h"
 #include "gamemath/Vector3x.h"
 
-// NEEDED:
-// - Ability to list protruding vertices, protruding edges, and triangles within a volume
-// - Calculated normals for vertices, edges, and faces
+struct trimeshVertex {
+	Vector3x position;
+	Vector3x normal;
+	bool convex;
+};
+
+// Only convex edges are stored
+struct trimeshConvexEdge {
+	unsigned int vertexIndexes[2];
+	Vector3x normal;
+};
+
+struct trimeshTriangle {
+	unsigned int vertexIndexes[3];
+	unsigned int connectedTriangleIndexes[3];
+	Vector3x normal;
+};
 
 #define CollisionStaticTrimesh_structContents(self_type) \
 	CollisionObject_structContents(self_type) \
 	\
-	Vector3x * vertices; \
-	bool private_ivar(verticesOwned); \
-	size_t vertexCount;
+	struct trimeshVertex * vertices; \
+	unsigned int vertexCount; \
+	struct trimeshConvexEdge * edges; \
+	unsigned int edgeCount; \
+	struct trimeshTriangle * triangles; \
+	unsigned int triangleCount;
 
 stemobject_struct_definition(CollisionStaticTrimesh)
 
 // vertices is interpreted like GL_TRIANGLES; no implicit sharing between triangles takes place. To share, use CollisionStaticTrimesh_createWithIndexes.
-// If copy is true, a new copy of vertices will be stores in this CollisionStaticTrimesh. If false, the original pointer will be used.
-// If takeOwnership is true, vertices will be free when this CollisionStaticTrimesh is disposed.
-CollisionStaticTrimesh * CollisionStaticTrimesh_create(void * owner, CollisionCallback collisionCallback, Vector3x * vertices, size_t vertexCount, bool copy, bool takeOwnership);
-bool CollisionStaticTrimesh_init(CollisionStaticTrimesh * self, void * owner, CollisionCallback collisionCallback, Vector3x * vertices, size_t vertexCount, bool copy, bool takeOwnership);
+CollisionStaticTrimesh * CollisionStaticTrimesh_create(void * owner, CollisionCallback collisionCallback, const Vector3x * vertices, unsigned int vertexCount);
+bool CollisionStaticTrimesh_init(CollisionStaticTrimesh * self, void * owner, CollisionCallback collisionCallback, const Vector3x * vertices, unsigned int vertexCount);
 
 // indexes is interpreted like GL_TRIANGLES; no implicit index sharing between triangles takes place. Multiple triangles can index the same vertices.
-// This init function implies copy and takeOwnership, so the vertices and indexes pointers passed to this function will not be freed by CollisionStaticTrimesh.
-CollisionStaticTrimesh * CollisionStaticTrimesh_createWithIndexes(void * owner, CollisionCallback collisionCallback, Vector3x * vertices, unsigned int * indexes, size_t indexCount);
-bool CollisionStaticTrimesh_initWithIndexes(CollisionStaticTrimesh * self, void * owner, CollisionCallback collisionCallback, Vector3x * vertices, unsigned int * indexes, size_t indexCount);
+CollisionStaticTrimesh * CollisionStaticTrimesh_createWithIndexes(void * owner, CollisionCallback collisionCallback, const Vector3x * vertices, const unsigned int * indexes, unsigned int indexCount);
+bool CollisionStaticTrimesh_initWithIndexes(CollisionStaticTrimesh * self, void * owner, CollisionCallback collisionCallback, const Vector3x * vertices, const unsigned int * indexes, unsigned int indexCount);
 
 void CollisionStaticTrimesh_dispose(CollisionStaticTrimesh * self);
 
 bool CollisionStaticTrimesh_isStatic(CollisionStaticTrimesh * self);
 Box6x CollisionStaticTrimesh_getCollisionBounds(CollisionStaticTrimesh * self);
+
+void CollisionStaticTrimesh_enumerateConvexVerticesIntersectingBounds(CollisionStaticTrimesh * self, Box6x bounds, void (* callback)(Vector3x position, Vector3x normal, void * context), void * context);
+void CollisionStaticTrimesh_enumerateConvexEdgesIntersectingBounds(CollisionStaticTrimesh * self, Box6x bounds, void (* callback)(Vector3x position1, Vector3x position2, Vector3x normal, void * context), void * context);
+void CollisionStaticTrimesh_enumerateTrianglesIntersectingBounds(CollisionStaticTrimesh * self, Box6x bounds, void (* callback)(Vector3x vertex0, Vector3x vertex1, Vector3x vertex2, Vector3x normal, void * context), void * context);
 
 #ifdef __cplusplus
 }

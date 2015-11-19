@@ -163,6 +163,15 @@ static void testGetCollisionBounds() {
 	                "Expected {0xFFFE0000, 0x40000, 0xFFFE0000, 0x30000, 0x00000, 0x10000} but got {0x%05X, 0x%05X, 0x%05X, 0x%05X, 0x%05X, 0x%05X}",
 	                bounds.left, bounds.right, bounds.bottom, bounds.top, bounds.back, bounds.front);
 	
+	CollisionLine2D_updateEndpoints(line2D, VECTOR2x(0x00000, 0x00000), VECTOR2x(0x00000, 0x00000));
+	CollisionLine2D_updateEndpoints(line2D, VECTOR2x(0x00000, 0x00000), VECTOR2x(0x00000, 0x00000));
+	bounds = CollisionLine2D_getCollisionBounds(line2D);
+	TestCase_assert(bounds.left == -0x00001 && bounds.right == 0x00001 &&
+	                bounds.bottom == -0x00001 && bounds.top == 0x00001 &&
+	                bounds.back == 0x00000 && bounds.front == 0x10000,
+	                "Expected {0xFFFFFFFF, 0x00001, 0xFFFFFFFF, 0x00001, 0x00000, 0x10000} but got {0x%05X, 0x%05X, 0x%05X, 0x%05X, 0x%05X, 0x%05X}",
+	                bounds.left, bounds.right, bounds.bottom, bounds.top, bounds.back, bounds.front);
+	
 	CollisionLine2D_dispose(line2D);
 }
 

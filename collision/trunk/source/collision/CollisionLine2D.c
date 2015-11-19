@@ -105,5 +105,14 @@ Box6x CollisionLine2D_getCollisionBounds(CollisionLine2D * self) {
 	bounds.back   = 0x00000;
 	bounds.front  = 0x10000;
 	
+	if (bounds.left == bounds.right) {
+		bounds.left -= 1;
+		bounds.right += 1;
+	}
+	if (bounds.bottom == bounds.top) {
+		bounds.bottom -= 1;
+		bounds.top += 1;
+	}
+	
 	return bounds;
 }

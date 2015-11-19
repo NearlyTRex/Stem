@@ -1,6 +1,7 @@
 #include "collision/CollisionBox3D.h"
 #include "collision/CollisionCapsule.h"
 #include "collision/CollisionCircle.h"
+#include "collision/CollisionLine2D.h"
 #include "collision/CollisionRect2D.h"
 #include "collision/CollisionSphere.h"
 #include "collision/CollisionStaticTrimesh.h"
@@ -145,6 +146,21 @@ static CollisionCapsule initMovingCapsule(Vector3x lastPosition, Vector3x positi
 	CollisionCapsule_init(&capsule, NULL, NULL, lastPosition, radius, cylinderHeight);
 	CollisionCapsule_updatePosition(&capsule, position);
 	return capsule;
+}
+
+static CollisionLine2D initStaticLine2D(Vector2x endpoint1, Vector2x endpoint2, bool doubleSided) {
+	CollisionLine2D line;
+	
+	CollisionLine2D_init(&line, NULL, NULL, endpoint1, endpoint2, doubleSided);
+	return line;
+}
+
+static CollisionLine2D initMovingLine2D(Vector2x lastEndpoint1, Vector2x lastEndpoint2, Vector2x endpoint1, Vector2x endpoint2, bool doubleSided) {
+	CollisionLine2D line;
+	
+	CollisionLine2D_init(&line, NULL, NULL, lastEndpoint1, lastEndpoint2, doubleSided);
+	CollisionLine2D_updateEndpoints(&line, endpoint1, endpoint2);
+	return line;
 }
 
 #define assertNoCollision(result) \
@@ -1287,7 +1303,103 @@ static void testCircle_polygon() {
 }
 
 static void testLine2D_line2D() {
-	//TestCase_assert(false, "Unimplemented");
+	CollisionLine2D line1, line2;
+	bool result;
+	fixed16_16 time, contactArea;
+	Vector3x normal, object1Vector, object2Vector;
+	
+	// vertical line1 moving +x toward static vertical line2 (both forward, single sided)
+	line1 = initMovingLine2D(VECTOR2x(0x00000, 0x10000), VECTOR2x(0x00000, 0x00000), VECTOR2x(0x20000, 0x10000), VECTOR2x(0x20000, 0x00000), false);
+	line2 = initStaticLine2D(VECTOR2x(0x10000, 0x00000), VECTOR2x(0x10000, 0x10000), false);
+	resetOutParameters();
+	result = intersectionHandler_line2D_line2D((CollisionObject *) &line1, (CollisionObject *) &line2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(-0x10000, 0x00000, 0x00000), VECTOR3x(0x20000, 0x00000, 0x00000), VECTOR3x_ZERO, 0x10000);
+	
+	// vertical line1 moving +x toward static vertical line2 (line1 backward, single sided)
+	line1 = initMovingLine2D(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x00000, 0x10000), VECTOR2x(0x20000, 0x00000), VECTOR2x(0x20000, 0x10000), false);
+	line2 = initStaticLine2D(VECTOR2x(0x10000, 0x00000), VECTOR2x(0x10000, 0x10000), false);
+	resetOutParameters();
+	result = intersectionHandler_line2D_line2D((CollisionObject *) &line1, (CollisionObject *) &line2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// vertical line1 moving +x toward static vertical line2 (line2 backward, single sided)
+	line1 = initMovingLine2D(VECTOR2x(0x00000, 0x10000), VECTOR2x(0x00000, 0x00000), VECTOR2x(0x20000, 0x10000), VECTOR2x(0x20000, 0x00000), false);
+	line2 = initStaticLine2D(VECTOR2x(0x10000, 0x10000), VECTOR2x(0x10000, 0x00000), false);
+	resetOutParameters();
+	result = intersectionHandler_line2D_line2D((CollisionObject *) &line1, (CollisionObject *) &line2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// vertical line1 moving +x toward static vertical line2 (both backward, single sided)
+	line1 = initMovingLine2D(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x00000, 0x10000), VECTOR2x(0x20000, 0x00000), VECTOR2x(0x20000, 0x10000), false);
+	line2 = initStaticLine2D(VECTOR2x(0x10000, 0x10000), VECTOR2x(0x10000, 0x00000), false);
+	resetOutParameters();
+	result = intersectionHandler_line2D_line2D((CollisionObject *) &line1, (CollisionObject *) &line2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// vertical line1 moving +x toward static vertical line2 (both forward, both double sided)
+	line1 = initMovingLine2D(VECTOR2x(0x00000, 0x10000), VECTOR2x(0x00000, 0x00000), VECTOR2x(0x20000, 0x10000), VECTOR2x(0x20000, 0x00000), true);
+	line2 = initStaticLine2D(VECTOR2x(0x10000, 0x00000), VECTOR2x(0x10000, 0x10000), true);
+	resetOutParameters();
+	result = intersectionHandler_line2D_line2D((CollisionObject *) &line1, (CollisionObject *) &line2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(-0x10000, 0x00000, 0x00000), VECTOR3x(0x20000, 0x00000, 0x00000), VECTOR3x_ZERO, 0x10000);
+	
+	// vertical line1 moving +x toward static vertical line2 (line1 backward, double sided)
+	line1 = initMovingLine2D(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x00000, 0x10000), VECTOR2x(0x20000, 0x00000), VECTOR2x(0x20000, 0x10000), true);
+	line2 = initStaticLine2D(VECTOR2x(0x10000, 0x00000), VECTOR2x(0x10000, 0x10000), false);
+	resetOutParameters();
+	result = intersectionHandler_line2D_line2D((CollisionObject *) &line1, (CollisionObject *) &line2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(-0x10000, 0x00000, 0x00000), VECTOR3x(0x20000, 0x00000, 0x00000), VECTOR3x_ZERO, 0x10000);
+	
+	// vertical line1 moving +x toward static vertical line2 (line2 backward, double sided)
+	line1 = initMovingLine2D(VECTOR2x(0x00000, 0x10000), VECTOR2x(0x00000, 0x00000), VECTOR2x(0x20000, 0x10000), VECTOR2x(0x20000, 0x00000), false);
+	line2 = initStaticLine2D(VECTOR2x(0x10000, 0x10000), VECTOR2x(0x10000, 0x00000), true);
+	resetOutParameters();
+	result = intersectionHandler_line2D_line2D((CollisionObject *) &line1, (CollisionObject *) &line2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(-0x10000, 0x00000, 0x00000), VECTOR3x(0x20000, 0x00000, 0x00000), VECTOR3x_ZERO, 0x10000);
+	
+	// vertical line1 moving +x toward static vertical line2 (both backward, both double sided)
+	line1 = initMovingLine2D(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x00000, 0x10000), VECTOR2x(0x20000, 0x00000), VECTOR2x(0x20000, 0x10000), true);
+	line2 = initStaticLine2D(VECTOR2x(0x10000, 0x10000), VECTOR2x(0x10000, 0x00000), true);
+	resetOutParameters();
+	result = intersectionHandler_line2D_line2D((CollisionObject *) &line1, (CollisionObject *) &line2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(-0x10000, 0x00000, 0x00000), VECTOR3x(0x20000, 0x00000, 0x00000), VECTOR3x_ZERO, 0x10000);
+	
+	// diagonal line1 moving -y toward static horizontal line2 (line1 endpoint1 collides with line2 surface)
+	line1 = initMovingLine2D(VECTOR2x(0x08000, 0x08000), VECTOR2x(0x00000, 0x10000), VECTOR2x(0x08000, -0x08000), VECTOR2x(0x00000, 0x00000), false);
+	line2 = initStaticLine2D(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x00000), false);
+	resetOutParameters();
+	result = intersectionHandler_line2D_line2D((CollisionObject *) &line1, (CollisionObject *) &line2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x00000, 0x10000, 0x00000), VECTOR3x(0x00000, -0x10000, 0x00000), VECTOR3x_ZERO, 0x00000);
+	
+	// diagonal line1 moving -y toward static horizontal line2 (line1 endpoint2 collides with line2 surface)
+	line1 = initMovingLine2D(VECTOR2x(0x10000, 0x10000), VECTOR2x(0x08000, 0x08000), VECTOR2x(0x10000, 0x00000), VECTOR2x(0x08000, -0x08000), false);
+	line2 = initStaticLine2D(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x00000), false);
+	resetOutParameters();
+	result = intersectionHandler_line2D_line2D((CollisionObject *) &line1, (CollisionObject *) &line2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x00000, 0x10000, 0x00000), VECTOR3x(0x00000, -0x10000, 0x00000), VECTOR3x_ZERO, 0x00000);
+	
+	// diagonal line2 moving -y toward static horizontal line1 (line2 endpoint1 collides with line1 surface)
+	line1 = initStaticLine2D(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x00000), false);
+	line2 = initMovingLine2D(VECTOR2x(0x08000, 0x08000), VECTOR2x(0x00000, 0x10000), VECTOR2x(0x08000, -0x08000), VECTOR2x(0x00000, 0x00000), false);
+	resetOutParameters();
+	result = intersectionHandler_line2D_line2D((CollisionObject *) &line1, (CollisionObject *) &line2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x00000, -0x10000, 0x00000), VECTOR3x_ZERO, VECTOR3x(0x00000, 0x10000, 0x00000), 0x00000);
+	
+	// diagonal line2 moving -y toward static horizontal line1 (line2 endpoint2 collides with line1 surface)
+	line1 = initStaticLine2D(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x00000), false);
+	line2 = initMovingLine2D(VECTOR2x(0x10000, 0x10000), VECTOR2x(0x08000, 0x08000), VECTOR2x(0x10000, 0x00000), VECTOR2x(0x08000, -0x08000), false);
+	resetOutParameters();
+	result = intersectionHandler_line2D_line2D((CollisionObject *) &line1, (CollisionObject *) &line2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x00000, -0x10000, 0x00000), VECTOR3x_ZERO, VECTOR3x(0x00000, 0x10000, 0x00000), 0x00000);
+	
+	// line1 and line2 rotating through each other from horizontal to vertical
+	line1 = initMovingLine2D(VECTOR2x(-0x10000, -0x10000), VECTOR2x(0x20000, -0x10000), VECTOR2x(-0x10000, -0x10000), VECTOR2x(-0x10000, 0x20000), false);
+	line2 = initMovingLine2D(VECTOR2x(0x10000, 0x10000), VECTOR2x(-0x20000, 0x10000), VECTOR2x(0x10000, 0x10000), VECTOR2x(0x10000, -0x20000), false);
+	resetOutParameters();
+	result = intersectionHandler_line2D_line2D((CollisionObject *) &line1, (CollisionObject *) &line2, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x08000, VECTOR3x(0x00000, -0x10000, 0x00000), VECTOR3x_ZERO, VECTOR3x(0x00000, 0x10000, 0x00000), 0x00000);
+	
+	TestCase_assert(false, "Unimplemented");
 }
 
 static void testLine2D_polygon() {
@@ -2546,8 +2658,8 @@ static void testTrimesh_trimesh() {
 	Vector3x vertices[3] = {{0x00000, 0x00000, 0x00000}, {0x10000, 0x00000, 0x00000}, {0x00000, 0x10000, 0x00000}};
 	bool result;
 	
-	trimesh1 = CollisionStaticTrimesh_create(NULL, NULL, vertices, 3, false, false);
-	trimesh2 = CollisionStaticTrimesh_create(NULL, NULL, vertices, 3, false, false);
+	trimesh1 = CollisionStaticTrimesh_create(NULL, NULL, vertices, 3);
+	trimesh2 = CollisionStaticTrimesh_create(NULL, NULL, vertices, 3);
 	result = intersectionHandler_trimesh_trimesh((CollisionObject *) trimesh1, (CollisionObject *) trimesh2, NULL, NULL, NULL, NULL, NULL);
 	assertNoCollision(result);
 	
