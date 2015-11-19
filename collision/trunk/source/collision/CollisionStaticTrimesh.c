@@ -212,6 +212,8 @@ CollisionStaticTrimesh * CollisionStaticTrimesh_createWithIndexes(void * owner, 
 
 bool CollisionStaticTrimesh_initWithIndexes(CollisionStaticTrimesh * self, void * owner, CollisionCallback collisionCallback, const Vector3x * vertices, const unsigned int * indexes, unsigned int indexCount) {
 	unsigned int vertexCount, index;
+	unsigned int * indexesCopy;
+	Vector3x * verticesCopy;
 	
 	sharedInit(self, owner, collisionCallback);
 	vertexCount = 0;
@@ -221,7 +223,14 @@ bool CollisionStaticTrimesh_initWithIndexes(CollisionStaticTrimesh * self, void 
 		}
 	}
 	
-	initVertexAndTriangleData(self, vertices, vertexCount, indexes, indexCount);
+	verticesCopy = malloc(sizeof(Vector3x) * vertexCount);
+	memcpy(verticesCopy, vertices, sizeof(Vector3x) * vertexCount);
+	indexesCopy = malloc(sizeof(unsigned int) * indexCount);
+	memcpy(indexesCopy, indexes, sizeof(unsigned int) * indexCount);
+	vertexCount = uniqVertices(verticesCopy, vertexCount, indexesCopy, indexCount);
+	initVertexAndTriangleData(self, verticesCopy, vertexCount, indexesCopy, indexCount);
+	free(verticesCopy);
+	free(indexesCopy);
 	computeGeometryInfo(self);
 	return true;
 }
