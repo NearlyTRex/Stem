@@ -1,26 +1,27 @@
 #include <math.h>
 #include <stdbool.h>
-#include "gamemath/Quaternion.h"
+#include "gamemath/Quaternionf.h"
 #include "unittest/TestSuite.h"
 
 #define TEST_EPSILON 0.00001f
 
 static void testLoadIdentity() {
-	Quaternion quaternion = {1.2f, 3.4f, 5.6f, 7.8f};
+	Quaternionf quaternion;
 	
-	Quaternion_loadIdentity(&quaternion);
+	memset(&quaternion, 0xFF, sizeof(quaternion));
+	Quaternionf_loadIdentity(&quaternion);
 	TestCase_assert(quaternion.x == 0.0f &&
 	                quaternion.y == 0.0f &&
 	                quaternion.z == 0.0f &&
 	                quaternion.w == 1.0f,
-	                "Incorrect quaternion values (expected {0, 0, 0, 0}; got {%f, %f, %f, %f})",
+	                "Incorrect quaternion values (expected {0, 0, 0, 1}; got {%f, %f, %f, %f})",
 	                quaternion.x, quaternion.y, quaternion.z, quaternion.w);
 }
 
 static void testIdentity() {
-	Quaternion quaternion;
+	Quaternionf quaternion;
 	
-	quaternion = QUATERNION_IDENTITY;
+	quaternion = QUATERNIONf_IDENTITY;
 	TestCase_assert(quaternion.x == 0.0f &&
 	                quaternion.y == 0.0f &&
 	                quaternion.z == 0.0f &&
@@ -30,9 +31,9 @@ static void testIdentity() {
 }
 
 static void testInit() {
-	Quaternion quaternion;
+	Quaternionf quaternion;
 	
-	quaternion = QUATERNION(1.2f, 3.4f, 5.6f, 7.8f);
+	quaternion = QUATERNIONf(1.2f, 3.4f, 5.6f, 7.8f);
 	TestCase_assert(fabs(quaternion.x - 1.2f) < TEST_EPSILON &&
 	                fabs(quaternion.y - 3.4f) < TEST_EPSILON &&
 	                fabs(quaternion.z - 5.6f) < TEST_EPSILON &&
@@ -40,19 +41,19 @@ static void testInit() {
 	                "Incorrect quaternion values (expected {1.2, 3.4, 5.6, 7.8}; got {%f, %f, %f, %f})",
 	                quaternion.x, quaternion.y, quaternion.z, quaternion.w);
 	
-	quaternion = QUATERNION(-0.1f, -0.2f, -0.3f, -0.4f);
+	quaternion = QUATERNIONf(-0.1f, -0.2f, -0.3f, -0.4f);
 	TestCase_assert(fabs(quaternion.x - -0.1f) < TEST_EPSILON &&
 	                fabs(quaternion.y - -0.2f) < TEST_EPSILON &&
 	                fabs(quaternion.z - -0.3f) < TEST_EPSILON &&
 	                fabs(quaternion.w - -0.4f) < TEST_EPSILON,
-	                "Incorrect quaternion values (expected {0.1, 0.2, 0.3, 0.4}; got {%f, %f, %f, %f})",
+	                "Incorrect quaternion values (expected {-0.1, -0.2, -0.3, -0.4}; got {%f, %f, %f, %f})",
 	                quaternion.x, quaternion.y, quaternion.z, quaternion.w);
 }
 
 static void testFromAxisAngle() {
-	Quaternion quaternion;
+	Quaternionf quaternion;
 	
-	quaternion = Quaternion_fromAxisAngle(VECTOR3f_RIGHT, 0.0f);
+	quaternion = Quaternionf_fromAxisAngle(VECTOR3f_RIGHT, 0.0f);
 	TestCase_assert(fabs(quaternion.x - 0.0f) < TEST_EPSILON &&
 	                fabs(quaternion.y - 0.0f) < TEST_EPSILON &&
 	                fabs(quaternion.z - 0.0f) < TEST_EPSILON &&
@@ -61,7 +62,7 @@ static void testFromAxisAngle() {
 	                0.0f, 0.0f, 0.0f, 1.0f,
 	                quaternion.x, quaternion.y, quaternion.z, quaternion.w);
 	
-	quaternion = Quaternion_fromAxisAngle(VECTOR3f(60.0f, 60.0f, 60.0f), 1.0f);
+	quaternion = Quaternionf_fromAxisAngle(VECTOR3f(60.0f, 60.0f, 60.0f), 1.0f);
 	TestCase_assert(fabs(quaternion.x - 0.276796f) < TEST_EPSILON &&
 	                fabs(quaternion.y - 0.276796f) < TEST_EPSILON &&
 	                fabs(quaternion.z - 0.276796f) < TEST_EPSILON &&
@@ -70,7 +71,7 @@ static void testFromAxisAngle() {
 	                0.276796f, 0.276796f, 0.276796f, 0.877583f,
 	                quaternion.x, quaternion.y, quaternion.z, quaternion.w);
 	
-	quaternion = Quaternion_fromAxisAngle(VECTOR3f(0.0f, -0.1f, 0.0f), M_PI);
+	quaternion = Quaternionf_fromAxisAngle(VECTOR3f(0.0f, -0.1f, 0.0f), M_PI);
 	TestCase_assert(fabs(quaternion.x - 0.0f) < TEST_EPSILON &&
 	                fabs(quaternion.y - -1.0f) < TEST_EPSILON &&
 	                fabs(quaternion.z - 0.0f) < TEST_EPSILON &&
@@ -79,7 +80,7 @@ static void testFromAxisAngle() {
 	                0.0f, -1.0f, 0.0f, 0.0f,
 	                quaternion.x, quaternion.y, quaternion.z, quaternion.w);
 	
-	quaternion = Quaternion_fromAxisAngle(VECTOR3f(0.0f, -0.1f, 0.0f), M_PI / 2);
+	quaternion = Quaternionf_fromAxisAngle(VECTOR3f(0.0f, -0.1f, 0.0f), M_PI / 2);
 	TestCase_assert(fabs(quaternion.x - 0.0f) < TEST_EPSILON &&
 	                fabs(quaternion.y - -0.707107f) < TEST_EPSILON &&
 	                fabs(quaternion.z - 0.0f) < TEST_EPSILON &&
@@ -88,7 +89,7 @@ static void testFromAxisAngle() {
 	                0.0f, -0.707107f, 0.0f, 0.707107f,
 	                quaternion.x, quaternion.y, quaternion.z, quaternion.w);
 	
-	quaternion = Quaternion_fromAxisAngle(VECTOR3f_ZERO, 0.0f);
+	quaternion = Quaternionf_fromAxisAngle(VECTOR3f_ZERO, 0.0f);
 	TestCase_assert(isnan(quaternion.x) &&
 	                isnan(quaternion.y) &&
 	                isnan(quaternion.z) &&
@@ -102,7 +103,7 @@ static void testToAxisAngle() {
 	Vector3f axis;
 	float angle;
 	
-	Quaternion_toAxisAngle(QUATERNION(0.0f, 0.0f, 0.0f, 1.0f), &axis, &angle);
+	Quaternionf_toAxisAngle(QUATERNIONf(0.0f, 0.0f, 0.0f, 1.0f), &axis, &angle);
 	TestCase_assert(fabs(axis.x - 0.0f) < TEST_EPSILON &&
 	                fabs(axis.y - 0.0f) < TEST_EPSILON &&
 	                fabs(axis.z - 0.0f) < TEST_EPSILON &&
@@ -111,7 +112,7 @@ static void testToAxisAngle() {
 	                0.0f, 0.0f, 0.0f, 0.0f,
 	                axis.x, axis.y, axis.z, angle);
 	
-	Quaternion_toAxisAngle(QUATERNION(0.276796f, 0.276796f, 0.276796f, 0.877583f), &axis, &angle);
+	Quaternionf_toAxisAngle(QUATERNIONf(0.276796f, 0.276796f, 0.276796f, 0.877583f), &axis, &angle);
 	TestCase_assert(fabs(axis.x - 0.577350269189626f) < TEST_EPSILON &&
 	                fabs(axis.y - 0.577350269189626f) < TEST_EPSILON &&
 	                fabs(axis.z - 0.577350269189626f) < TEST_EPSILON &&
@@ -120,7 +121,7 @@ static void testToAxisAngle() {
 	                0.577350269189626f, 0.577350269189626f, 0.577350269189626f, 1.0f,
 	                axis.x, axis.y, axis.z, angle);
 	
-	Quaternion_toAxisAngle(QUATERNION(0.0f, -1.0f, 0.0f, 0.0f), &axis, &angle);
+	Quaternionf_toAxisAngle(QUATERNIONf(0.0f, -1.0f, 0.0f, 0.0f), &axis, &angle);
 	TestCase_assert(fabs(axis.x - 0.0f) < TEST_EPSILON &&
 	                fabs(axis.y - -1.0f) < TEST_EPSILON &&
 	                fabs(axis.z - 0.0f) < TEST_EPSILON &&
@@ -129,7 +130,7 @@ static void testToAxisAngle() {
 	                0.0f, -1.0f, 0.0f, M_PI,
 	                axis.x, axis.y, axis.z, angle);
 	
-	Quaternion_toAxisAngle(QUATERNION(0.0f, -0.707107f, 0.0f, 0.707107f), &axis, &angle);
+	Quaternionf_toAxisAngle(QUATERNIONf(0.0f, -0.707107f, 0.0f, 0.707107f), &axis, &angle);
 	TestCase_assert(fabs(axis.x - 0.0f) < TEST_EPSILON &&
 	                fabs(axis.y - -1.0f) < TEST_EPSILON &&
 	                fabs(axis.z - 0.0f) < TEST_EPSILON &&
@@ -138,7 +139,7 @@ static void testToAxisAngle() {
 	                0.0f, -1.0f, 0.0f, M_PI / 2,
 	                axis.x, axis.y, axis.z, angle);
 	
-	Quaternion_toAxisAngle(QUATERNION(0.0f, 0.0f, 0.0f, 0.0f), &axis, &angle);
+	Quaternionf_toAxisAngle(QUATERNIONf(0.0f, 0.0f, 0.0f, 0.0f), &axis, &angle);
 	TestCase_assert(isnan(axis.x) &&
 	                isnan(axis.y) &&
 	                isnan(axis.z) &&
@@ -148,7 +149,7 @@ static void testToAxisAngle() {
 	                axis.x, axis.y, axis.z, angle);
 }
 
-static bool QuaternionTests_matrixCompare(Matrix matrix, float m0, float m1, float m2, float m3, float m4, float m5, float m6, float m7, float m8, float m9, float m10, float m11, float m12, float m13, float m14, float m15) {
+static bool QuaternionfTests_matrixCompare(Matrix4x4f matrix, float m0, float m1, float m2, float m3, float m4, float m5, float m6, float m7, float m8, float m9, float m10, float m11, float m12, float m13, float m14, float m15) {
 	return fabs(matrix.m[0] - m0) < TEST_EPSILON &&
 	       fabs(matrix.m[1] - m1) < TEST_EPSILON &&
 	       fabs(matrix.m[2] - m2) < TEST_EPSILON &&
@@ -168,20 +169,10 @@ static bool QuaternionTests_matrixCompare(Matrix matrix, float m0, float m1, flo
 }
 
 static void testToMatrix() {
-	Matrix matrix;
+	Matrix4x4f matrix;
 	
-	TestCase_assert(!QuaternionTests_matrixCompare(MATRIX(0.0f, 1.0f, 1.0f, 1.0f,
-	                                                      1.0f, 0.0f, 1.0f, 1.0f,
-	                                                      1.0f, 1.0f, 0.0f, 1.0f,
-	                                                      1.0f, 1.0f, 1.0f, 0.0f),
-	                                               1.0f, 0.0f, 0.0f, 0.0f,
-	                                               0.0f, 1.0f, 0.0f, 0.0f,
-	                                               0.0f, 0.0f, 1.0f, 0.0f,
-	                                               0.0f, 0.0f, 0.0f, 1.0f),
-	                "Matrix comparison utility function is broken (gave false positive for known mismatch)");
-	
-	matrix = Quaternion_toMatrix(QUATERNION(0.0f, 0.0f, 0.0f, 1.0f));
-	TestCase_assert(QuaternionTests_matrixCompare(matrix,
+	matrix = Quaternionf_toMatrix(QUATERNIONf(0.0f, 0.0f, 0.0f, 1.0f));
+	TestCase_assert(QuaternionfTests_matrixCompare(matrix,
 	                                              1.0f, 0.0f, 0.0f, 0.0f,
 	                                              0.0f, 1.0f, 0.0f, 0.0f,
 	                                              0.0f, 0.0f, 1.0f, 0.0f,
@@ -196,8 +187,8 @@ static void testToMatrix() {
 	                matrix.m[8], matrix.m[9], matrix.m[10], matrix.m[11],
 	                matrix.m[12], matrix.m[13], matrix.m[14], matrix.m[15]);
 	
-	matrix = Quaternion_toMatrix(QUATERNION(0.0f, 0.707107f, 0.0f, 0.707107f));
-	TestCase_assert(QuaternionTests_matrixCompare(matrix,
+	matrix = Quaternionf_toMatrix(QUATERNIONf(0.0f, 0.707107f, 0.0f, 0.707107f));
+	TestCase_assert(QuaternionfTests_matrixCompare(matrix,
 	                                              0.0f, 0.0f, -1.0f, 0.0f,
 	                                              0.0f, 1.0f, 0.0f, 0.0f,
 	                                              1.0f, 0.0f, 0.0f, 0.0f,
@@ -212,8 +203,8 @@ static void testToMatrix() {
 	                matrix.m[8], matrix.m[9], matrix.m[10], matrix.m[11],
 	                matrix.m[12], matrix.m[13], matrix.m[14], matrix.m[15]);
 	
-	matrix = Quaternion_toMatrix(QUATERNION(0.5f, 0.5f, 0.5f, 0.5f));
-	TestCase_assert(QuaternionTests_matrixCompare(matrix,
+	matrix = Quaternionf_toMatrix(QUATERNIONf(0.5f, 0.5f, 0.5f, 0.5f));
+	TestCase_assert(QuaternionfTests_matrixCompare(matrix,
 	                                              0.0f, 1.0f, 0.0f, 0.0f,
 	                                              0.0f, 0.0f, 1.0f, 0.0f,
 	                                              1.0f, 0.0f, 0.0f, 0.0f,
@@ -228,8 +219,8 @@ static void testToMatrix() {
 	                matrix.m[8], matrix.m[9], matrix.m[10], matrix.m[11],
 	                matrix.m[12], matrix.m[13], matrix.m[14], matrix.m[15]);
 	
-	matrix = Quaternion_toMatrix(QUATERNION(1.0f, 1.0f, 1.0f, 1.0f));
-	TestCase_assert(QuaternionTests_matrixCompare(matrix,
+	matrix = Quaternionf_toMatrix(QUATERNIONf(1.0f, 1.0f, 1.0f, 1.0f));
+	TestCase_assert(QuaternionfTests_matrixCompare(matrix,
 	                                              -3.0f, 4.0f, 0.0f, 0.0f,
 	                                              0.0f, -3.0f, 4.0f, 0.0f,
 	                                              4.0f, 0.0f, -3.0f, 0.0f,
@@ -246,10 +237,10 @@ static void testToMatrix() {
 }
 
 static void testNormalize() {
-	Quaternion quaternion;
+	Quaternionf quaternion;
 	
-	quaternion = QUATERNION(1.0f, -1.0f, 1.0f, -1.0f);
-	Quaternion_normalize(&quaternion);
+	quaternion = QUATERNIONf(1.0f, -1.0f, 1.0f, -1.0f);
+	Quaternionf_normalize(&quaternion);
 	TestCase_assert(fabs(quaternion.x - 0.5f) < TEST_EPSILON &&
 	                fabs(quaternion.y - -0.5f) < TEST_EPSILON &&
 	                fabs(quaternion.z - 0.5f) < TEST_EPSILON &&
@@ -257,7 +248,7 @@ static void testNormalize() {
 	                "Incorrect quaternion values (expected {%f, %f, %f, %f}; got {%f, %f, %f, %f})",
 	                0.5f, -0.5f, 0.5f, -0.5f,
 	                quaternion.x, quaternion.y, quaternion.z, quaternion.w);
-	Quaternion_normalize(&quaternion);
+	Quaternionf_normalize(&quaternion);
 	TestCase_assert(fabs(quaternion.x - 0.5f) < TEST_EPSILON &&
 	                fabs(quaternion.y - -0.5f) < TEST_EPSILON &&
 	                fabs(quaternion.z - 0.5f) < TEST_EPSILON &&
@@ -268,9 +259,9 @@ static void testNormalize() {
 }
 
 static void testNormalized() {
-	Quaternion quaternion;
+	Quaternionf quaternion;
 	
-	quaternion = Quaternion_normalized(QUATERNION(1.0f, -1.0f, 1.0f, -1.0f));
+	quaternion = Quaternionf_normalized(QUATERNIONf(1.0f, -1.0f, 1.0f, -1.0f));
 	TestCase_assert(fabs(quaternion.x - 0.5f) < TEST_EPSILON &&
 	                fabs(quaternion.y - -0.5f) < TEST_EPSILON &&
 	                fabs(quaternion.z - 0.5f) < TEST_EPSILON &&
@@ -278,7 +269,7 @@ static void testNormalized() {
 	                "Incorrect quaternion values (expected {%f, %f, %f, %f}; got {%f, %f, %f, %f})",
 	                0.5f, -0.5f, 0.5f, -0.5f,
 	                quaternion.x, quaternion.y, quaternion.z, quaternion.w);
-	quaternion = Quaternion_normalized(QUATERNION(0.5f, -0.5f, 0.5f, -0.5f));
+	quaternion = Quaternionf_normalized(QUATERNIONf(0.5f, -0.5f, 0.5f, -0.5f));
 	TestCase_assert(fabs(quaternion.x - 0.5f) < TEST_EPSILON &&
 	                fabs(quaternion.y - -0.5f) < TEST_EPSILON &&
 	                fabs(quaternion.z - 0.5f) < TEST_EPSILON &&
@@ -289,10 +280,10 @@ static void testNormalized() {
 }
 
 static void testMultiply() {
-	Quaternion quaternion;
+	Quaternionf quaternion;
 	
-	quaternion = QUATERNION(0.0f, 0.0f, 0.0f, 1.0f);
-	Quaternion_multiply(&quaternion, QUATERNION(0.0f, 0.0f, 0.0f, 1.0f));
+	quaternion = QUATERNIONf(0.0f, 0.0f, 0.0f, 1.0f);
+	Quaternionf_multiply(&quaternion, QUATERNIONf(0.0f, 0.0f, 0.0f, 1.0f));
 	TestCase_assert(fabs(quaternion.x - 0.0f) < TEST_EPSILON &&
 	                fabs(quaternion.y - 0.0f) < TEST_EPSILON &&
 	                fabs(quaternion.z - 0.0f) < TEST_EPSILON &&
@@ -301,8 +292,8 @@ static void testMultiply() {
 	                0.0f, 0.0f, 0.0f, 1.0f,
 	                quaternion.x, quaternion.y, quaternion.z, quaternion.w);
 	
-	quaternion = QUATERNION(-1.0f, -1.0f, 0.0f, 1.0f);
-	Quaternion_multiply(&quaternion, QUATERNION(-0.5f, 0.5f, 0.5f, 0.5f));
+	quaternion = QUATERNIONf(-1.0f, -1.0f, 0.0f, 1.0f);
+	Quaternionf_multiply(&quaternion, QUATERNIONf(-0.5f, 0.5f, 0.5f, 0.5f));
 	TestCase_assert(fabs(quaternion.x - -1.5f) < TEST_EPSILON &&
 	                fabs(quaternion.y - 0.5f) < TEST_EPSILON &&
 	                fabs(quaternion.z - -0.5f) < TEST_EPSILON &&
@@ -313,10 +304,10 @@ static void testMultiply() {
 }
 
 static void testMultiplied() {
-	Quaternion quaternion;
+	Quaternionf quaternion;
 	
-	quaternion = Quaternion_multiplied(QUATERNION(0.0f, 0.0f, 0.0f, 1.0f),
-	                                   QUATERNION(0.0f, 0.0f, 0.0f, 1.0f));
+	quaternion = Quaternionf_multiplied(QUATERNIONf(0.0f, 0.0f, 0.0f, 1.0f),
+	                                    QUATERNIONf(0.0f, 0.0f, 0.0f, 1.0f));
 	TestCase_assert(fabs(quaternion.x - 0.0f) < TEST_EPSILON &&
 	                fabs(quaternion.y - 0.0f) < TEST_EPSILON &&
 	                fabs(quaternion.z - 0.0f) < TEST_EPSILON &&
@@ -325,8 +316,8 @@ static void testMultiplied() {
 	                0.0f, 0.0f, 0.0f, 1.0f,
 	                quaternion.x, quaternion.y, quaternion.z, quaternion.w);
 	
-	quaternion = Quaternion_multiplied(QUATERNION(-1.0f, -1.0f, 0.0f, 1.0f),
-	                                   QUATERNION(-0.5f, 0.5f, 0.5f, 0.5f));
+	quaternion = Quaternionf_multiplied(QUATERNIONf(-1.0f, -1.0f, 0.0f, 1.0f),
+	                                    QUATERNIONf(-0.5f, 0.5f, 0.5f, 0.5f));
 	TestCase_assert(fabs(quaternion.x - -1.5f) < TEST_EPSILON &&
 	                fabs(quaternion.y - 0.5f) < TEST_EPSILON &&
 	                fabs(quaternion.z - -0.5f) < TEST_EPSILON &&
@@ -337,11 +328,11 @@ static void testMultiplied() {
 }
 
 static void testSlerp() {
-	Quaternion quaternion;
+	Quaternionf quaternion;
 	
-	quaternion = Quaternion_slerp(QUATERNION(1.0f, 0.0f, 0.0f, 0.0f),
-	                              QUATERNION(0.0f, 1.0f, 0.0f, 0.0f),
-	                              0.0f);
+	quaternion = Quaternionf_slerp(QUATERNIONf(1.0f, 0.0f, 0.0f, 0.0f),
+	                               QUATERNIONf(0.0f, 1.0f, 0.0f, 0.0f),
+	                               0.0f);
 	TestCase_assert(fabs(quaternion.x - 1.0f) < TEST_EPSILON &&
 	                fabs(quaternion.y - 0.0f) < TEST_EPSILON &&
 	                fabs(quaternion.z - 0.0f) < TEST_EPSILON &&
@@ -350,9 +341,9 @@ static void testSlerp() {
 	                1.0f, 0.0f, 0.0f, 0.0f,
 	                quaternion.x, quaternion.y, quaternion.z, quaternion.w);
 	
-	quaternion = Quaternion_slerp(QUATERNION(1.0f, 0.0f, 0.0f, 0.0f),
-	                              QUATERNION(0.0f, 1.0f, 0.0f, 0.0f),
-	                              1.0f);
+	quaternion = Quaternionf_slerp(QUATERNIONf(1.0f, 0.0f, 0.0f, 0.0f),
+	                               QUATERNIONf(0.0f, 1.0f, 0.0f, 0.0f),
+	                               1.0f);
 	TestCase_assert(fabs(quaternion.x - 0.0f) < TEST_EPSILON &&
 	                fabs(quaternion.y - 1.0f) < TEST_EPSILON &&
 	                fabs(quaternion.z - 0.0f) < TEST_EPSILON &&
@@ -361,9 +352,9 @@ static void testSlerp() {
 	                0.0f, 1.0f, 0.0f, 0.0f,
 	                quaternion.x, quaternion.y, quaternion.z, quaternion.w);
 	
-	quaternion = Quaternion_slerp(QUATERNION(0.707107f, 0.0f, 0.0f, 0.707107f),
-	                              QUATERNION(0.0f, 0.707107f, 0.0f, 0.707107f),
-	                              0.5f);
+	quaternion = Quaternionf_slerp(QUATERNIONf(0.707107f, 0.0f, 0.0f, 0.707107f),
+	                               QUATERNIONf(0.0f, 0.707107f, 0.0f, 0.707107f),
+	                               0.5f);
 	TestCase_assert(fabs(quaternion.x - 0.408248290463863f) < TEST_EPSILON &&
 	                fabs(quaternion.y - 0.408248290463863f) < TEST_EPSILON &&
 	                fabs(quaternion.z - 0.0f) < TEST_EPSILON &&
@@ -372,9 +363,9 @@ static void testSlerp() {
 	                0.408248290463863f, 0.408248290463863f, 0.0f, 0.816496580927725f,
 	                quaternion.x, quaternion.y, quaternion.z, quaternion.w);
 	
-	quaternion = Quaternion_slerp(QUATERNION(0.707107f, 0.0f, 0.0f, 0.707107f),
-	                              QUATERNION(0.0f, 0.707107f, 0.0f, 0.707107f),
-	                              0.75f);
+	quaternion = Quaternionf_slerp(QUATERNIONf(0.707107f, 0.0f, 0.0f, 0.707107f),
+	                               QUATERNIONf(0.0f, 0.707107f, 0.0f, 0.707107f),
+	                               0.75f);
 	TestCase_assert(fabs(quaternion.x - 0.211325f) < TEST_EPSILON &&
 	                fabs(quaternion.y - 0.577350f) < TEST_EPSILON &&
 	                fabs(quaternion.z - 0.0f) < TEST_EPSILON &&
@@ -385,10 +376,10 @@ static void testSlerp() {
 }
 
 static void testRotate() {
-	Quaternion quaternion;
+	Quaternionf quaternion;
 	
-	quaternion = QUATERNION_IDENTITY;
-	Quaternion_rotate(&quaternion, VECTOR3f_UP, M_PI / 5);
+	quaternion = QUATERNIONf_IDENTITY;
+	Quaternionf_rotate(&quaternion, VECTOR3f_UP, M_PI / 5);
 	TestCase_assert(fabs(quaternion.x - 0.0f) < TEST_EPSILON &&
 	                fabs(quaternion.y - 0.309017f) < TEST_EPSILON &&
 	                fabs(quaternion.z - 0.0f) < TEST_EPSILON &&
@@ -397,7 +388,7 @@ static void testRotate() {
 	                0.0f, 0.309017f, 0.0f, 0.951057f,
 	                quaternion.x, quaternion.y, quaternion.z, quaternion.w);
 	
-	Quaternion_rotate(&quaternion, VECTOR3f(1.0f, 0.0f, 0.5f), 1.0f);
+	Quaternionf_rotate(&quaternion, VECTOR3f(1.0f, 0.0f, 0.5f), 1.0f);
 	TestCase_assert(fabs(quaternion.x - 0.474079f) < TEST_EPSILON &&
 	                fabs(quaternion.y - 0.271188f) < TEST_EPSILON &&
 	                fabs(quaternion.z - 0.071402f) < TEST_EPSILON &&
@@ -408,10 +399,10 @@ static void testRotate() {
 }
 
 static void testRotated() {
-	Quaternion quaternion;
+	Quaternionf quaternion;
 	
-	quaternion = QUATERNION_IDENTITY;
-	quaternion = Quaternion_rotated(quaternion, VECTOR3f_UP, M_PI / 5);
+	quaternion = QUATERNIONf_IDENTITY;
+	quaternion = Quaternionf_rotated(quaternion, VECTOR3f_UP, M_PI / 5);
 	TestCase_assert(fabs(quaternion.x - 0.0f) < TEST_EPSILON &&
 	                fabs(quaternion.y - 0.309017f) < TEST_EPSILON &&
 	                fabs(quaternion.z - 0.0f) < TEST_EPSILON &&
@@ -420,7 +411,7 @@ static void testRotated() {
 	                0.0f, 0.309017f, 0.0f, 0.951057f,
 	                quaternion.x, quaternion.y, quaternion.z, quaternion.w);
 	
-	quaternion = Quaternion_rotated(quaternion, VECTOR3f(1.0f, 0.0f, 0.5f), 1.0f);
+	quaternion = Quaternionf_rotated(quaternion, VECTOR3f(1.0f, 0.0f, 0.5f), 1.0f);
 	TestCase_assert(fabs(quaternion.x - 0.474079f) < TEST_EPSILON &&
 	                fabs(quaternion.y - 0.271188f) < TEST_EPSILON &&
 	                fabs(quaternion.z - 0.071402f) < TEST_EPSILON &&
@@ -431,10 +422,10 @@ static void testRotated() {
 }
 
 static void testInvert() {
-	Quaternion quaternion;
+	Quaternionf quaternion;
 	
-	quaternion = QUATERNION(0.0f, 1.0f, 0.0f, 0.0f);
-	Quaternion_invert(&quaternion);
+	quaternion = QUATERNIONf(0.0f, 1.0f, 0.0f, 0.0f);
+	Quaternionf_invert(&quaternion);
 	TestCase_assert(fabs(quaternion.x - 0.0f) < TEST_EPSILON &&
 	                fabs(quaternion.y - -1.0f) < TEST_EPSILON &&
 	                fabs(quaternion.z - 0.0f) < TEST_EPSILON &&
@@ -443,8 +434,8 @@ static void testInvert() {
 	                0.0f, -1.0f, 0.0f, 0.0f,
 	                quaternion.x, quaternion.y, quaternion.z, quaternion.w);
 	
-	quaternion = QUATERNION(-0.5f, 0.5f, 1.0f, 0.5f);
-	Quaternion_invert(&quaternion);
+	quaternion = QUATERNIONf(-0.5f, 0.5f, 1.0f, 0.5f);
+	Quaternionf_invert(&quaternion);
 	TestCase_assert(fabs(quaternion.x - 0.285714f) < TEST_EPSILON &&
 	                fabs(quaternion.y - -0.285714f) < TEST_EPSILON &&
 	                fabs(quaternion.z - -0.571429f) < TEST_EPSILON &&
@@ -453,7 +444,7 @@ static void testInvert() {
 	                0.285714f, -0.285714f, -0.571429f, 0.285714f,
 	                quaternion.x, quaternion.y, quaternion.z, quaternion.w);
 	
-	Quaternion_invert(&quaternion);
+	Quaternionf_invert(&quaternion);
 	TestCase_assert(fabs(quaternion.x - -0.5f) < TEST_EPSILON &&
 	                fabs(quaternion.y - 0.5f) < TEST_EPSILON &&
 	                fabs(quaternion.z - 1.0f) < TEST_EPSILON &&
@@ -464,10 +455,10 @@ static void testInvert() {
 }
 
 static void testInverted() {
-	Quaternion quaternion;
+	Quaternionf quaternion;
 	
-	quaternion = QUATERNION(0.0f, 1.0f, 0.0f, 0.0f);
-	quaternion = Quaternion_inverted(quaternion);
+	quaternion = QUATERNIONf(0.0f, 1.0f, 0.0f, 0.0f);
+	quaternion = Quaternionf_inverted(quaternion);
 	TestCase_assert(fabs(quaternion.x - 0.0f) < TEST_EPSILON &&
 	                fabs(quaternion.y - -1.0f) < TEST_EPSILON &&
 	                fabs(quaternion.z - 0.0f) < TEST_EPSILON &&
@@ -476,8 +467,8 @@ static void testInverted() {
 	                0.0f, -1.0f, 0.0f, 0.0f,
 	                quaternion.x, quaternion.y, quaternion.z, quaternion.w);
 	
-	quaternion = QUATERNION(-0.5f, 0.5f, 1.0f, 0.5f);
-	quaternion = Quaternion_inverted(quaternion);
+	quaternion = QUATERNIONf(-0.5f, 0.5f, 1.0f, 0.5f);
+	quaternion = Quaternionf_inverted(quaternion);
 	TestCase_assert(fabs(quaternion.x - 0.285714f) < TEST_EPSILON &&
 	                fabs(quaternion.y - -0.285714f) < TEST_EPSILON &&
 	                fabs(quaternion.z - -0.571429f) < TEST_EPSILON &&
@@ -486,7 +477,7 @@ static void testInverted() {
 	                0.285714f, -0.285714f, -0.571429f, 0.285714f,
 	                quaternion.x, quaternion.y, quaternion.z, quaternion.w);
 	
-	quaternion = Quaternion_inverted(quaternion);
+	quaternion = Quaternionf_inverted(quaternion);
 	TestCase_assert(fabs(quaternion.x - -0.5f) < TEST_EPSILON &&
 	                fabs(quaternion.y - 0.5f) < TEST_EPSILON &&
 	                fabs(quaternion.z - 1.0f) < TEST_EPSILON &&
@@ -499,8 +490,8 @@ static void testInverted() {
 static void testMultiplyVector3f() {
 	Vector3f vector;
 	
-	vector = Quaternion_multiplyVector3f(Quaternion_fromAxisAngle(VECTOR3f_UP, M_PI / 4),
-	                                     VECTOR3f(1.0f, 1.0f, 0.0f));
+	vector = Quaternionf_multiplyVector3f(Quaternionf_fromAxisAngle(VECTOR3f_UP, M_PI / 4),
+	                                      VECTOR3f(1.0f, 1.0f, 0.0f));
 	TestCase_assert(fabs(vector.x - 0.707107f) < TEST_EPSILON &&
 	                fabs(vector.y - 1.0f) < TEST_EPSILON &&
 	                fabs(vector.z - -0.707107f) < TEST_EPSILON,
@@ -508,8 +499,8 @@ static void testMultiplyVector3f() {
 	                0.707107f, 1.0f, -0.707107f,
 	                vector.x, vector.y, vector.z);
 	
-	vector = Quaternion_multiplyVector3f(Quaternion_fromAxisAngle(VECTOR3f_RIGHT, M_PI / 4),
-	                                     VECTOR3f(-2.5f, 2.0f, 0.0f));
+	vector = Quaternionf_multiplyVector3f(Quaternionf_fromAxisAngle(VECTOR3f_RIGHT, M_PI / 4),
+	                                      VECTOR3f(-2.5f, 2.0f, 0.0f));
 	TestCase_assert(fabs(vector.x - -2.5f) < TEST_EPSILON &&
 	                fabs(vector.y - 1.414213f) < TEST_EPSILON &&
 	                fabs(vector.z - 1.414213f) < TEST_EPSILON,
@@ -517,8 +508,8 @@ static void testMultiplyVector3f() {
 	                -2.5f, 1.414213f, 1.414213f,
 	                vector.x, vector.y, vector.z);
 	
-	vector = Quaternion_multiplyVector3f(Quaternion_fromAxisAngle(VECTOR3f_FRONT, M_PI / 4),
-	                                     VECTOR3f(1.0f, 1.0f, 0.0f));
+	vector = Quaternionf_multiplyVector3f(Quaternionf_fromAxisAngle(VECTOR3f_FRONT, M_PI / 4),
+	                                      VECTOR3f(1.0f, 1.0f, 0.0f));
 	TestCase_assert(fabs(vector.x - 0.0f) < TEST_EPSILON &&
 	                fabs(vector.y - 1.414213f) < TEST_EPSILON &&
 	                fabs(vector.z - 0.0f) < TEST_EPSILON,
@@ -530,8 +521,8 @@ static void testMultiplyVector3f() {
 static void testMultiplyVector4f() {
 	Vector4f vector;
 	
-	vector = Quaternion_multiplyVector4f(Quaternion_fromAxisAngle(VECTOR3f_UP, M_PI / 4),
-	                                     VECTOR4f(1.0f, 1.0f, 0.0f, 1.0f));
+	vector = Quaternionf_multiplyVector4f(Quaternionf_fromAxisAngle(VECTOR3f_UP, M_PI / 4),
+	                                      VECTOR4f(1.0f, 1.0f, 0.0f, 1.0f));
 	TestCase_assert(fabs(vector.x - 0.707107f) < TEST_EPSILON &&
 	                fabs(vector.y - 1.0f) < TEST_EPSILON &&
 	                fabs(vector.z - -0.707107f) < TEST_EPSILON &&
@@ -540,8 +531,8 @@ static void testMultiplyVector4f() {
 	                0.707107f, 1.0f, -0.707107f, 1.0f,
 	                vector.x, vector.y, vector.z, vector.w);
 	
-	vector = Quaternion_multiplyVector4f(Quaternion_fromAxisAngle(VECTOR3f_RIGHT, M_PI / 4),
-	                                     VECTOR4f(-2.5f, 2.0f, 0.0f, 0.0f));
+	vector = Quaternionf_multiplyVector4f(Quaternionf_fromAxisAngle(VECTOR3f_RIGHT, M_PI / 4),
+	                                      VECTOR4f(-2.5f, 2.0f, 0.0f, 0.0f));
 	TestCase_assert(fabs(vector.x - -2.5f) < TEST_EPSILON &&
 	                fabs(vector.y - 1.414213f) < TEST_EPSILON &&
 	                fabs(vector.z - 1.414213f) < TEST_EPSILON &&
@@ -550,8 +541,8 @@ static void testMultiplyVector4f() {
 	                -2.5f, 1.414213f, 1.414213f, 0.0f,
 	                vector.x, vector.y, vector.z, vector.w);
 	
-	vector = Quaternion_multiplyVector4f(Quaternion_fromAxisAngle(VECTOR3f_FRONT, M_PI / 4),
-	                                     VECTOR4f(1.0f, 1.0f, 0.0f, 0.0f));
+	vector = Quaternionf_multiplyVector4f(Quaternionf_fromAxisAngle(VECTOR3f_FRONT, M_PI / 4),
+	                                      VECTOR4f(1.0f, 1.0f, 0.0f, 0.0f));
 	TestCase_assert(fabs(vector.x - 0.0f) < TEST_EPSILON &&
 	                fabs(vector.y - 1.414213f) < TEST_EPSILON &&
 	                fabs(vector.z - 0.0f) < TEST_EPSILON &&
@@ -561,7 +552,7 @@ static void testMultiplyVector4f() {
 	                vector.x, vector.y, vector.z, vector.w);
 }
 
-TEST_SUITE(QuaternionTest,
+TEST_SUITE(QuaternionfTest,
            testLoadIdentity,
            testIdentity,
            testInit,

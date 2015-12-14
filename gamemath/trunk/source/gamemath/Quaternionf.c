@@ -20,20 +20,20 @@
   Alex Diener alex@ludobloom.com
 */
 
-#include "gamemath/Quaternion.h"
+#include "gamemath/Quaternionf.h"
 
 #include <math.h>
 #include <stdlib.h>
 
-void Quaternion_loadIdentity(Quaternion * quaternion) {
+void Quaternionf_loadIdentity(Quaternionf * quaternion) {
 	quaternion->x = 0.0f;
 	quaternion->y = 0.0f;
 	quaternion->z = 0.0f;
 	quaternion->w = 1.0f;
 }
 
-Quaternion Quaternion_fromAxisAngle(Vector3f axis, float radians) {
-	Quaternion quaternion;
+Quaternionf Quaternionf_fromAxisAngle(Vector3f axis, float radians) {
+	Quaternionf quaternion;
 	float sinAngle;
 	
 	radians *= 0.5f;
@@ -53,10 +53,10 @@ Quaternion Quaternion_fromAxisAngle(Vector3f axis, float radians) {
 	return quaternion;
 }
 
-void Quaternion_toAxisAngle(Quaternion quaternion, Vector3f * outAxis, float * outRadians) {
+void Quaternionf_toAxisAngle(Quaternionf quaternion, Vector3f * outAxis, float * outRadians) {
 	float sinAngle;
 	
-	Quaternion_normalize(&quaternion);
+	Quaternionf_normalize(&quaternion);
 	sinAngle = sqrtf(1.0f - quaternion.w * quaternion.w);
 	if (fabsf(sinAngle) < 0.0005f) {
 		sinAngle = 1.0f;
@@ -73,8 +73,8 @@ void Quaternion_toAxisAngle(Quaternion quaternion, Vector3f * outAxis, float * o
 	}
 }
 
-Matrix Quaternion_toMatrix(Quaternion quaternion) {
-	Matrix matrix;
+Matrix4x4f Quaternionf_toMatrix(Quaternionf quaternion) {
+	Matrix4x4f matrix;
 	
 	matrix.m[0]  = 1.0f - 2.0f * (quaternion.y * quaternion.y + quaternion.z * quaternion.z);
 	matrix.m[1]  =        2.0f * (quaternion.x * quaternion.y + quaternion.z * quaternion.w);
@@ -96,7 +96,7 @@ Matrix Quaternion_toMatrix(Quaternion quaternion) {
 	return matrix;
 }
 
-void Quaternion_normalize(Quaternion * quaternion) {
+void Quaternionf_normalize(Quaternionf * quaternion) {
 	float magnitude;
 	
 	magnitude = sqrtf(quaternion->x * quaternion->x +
@@ -109,13 +109,13 @@ void Quaternion_normalize(Quaternion * quaternion) {
 	quaternion->w /= magnitude;
 }
 
-Quaternion Quaternion_normalized(Quaternion quaternion) {
-	Quaternion_normalize(&quaternion);
+Quaternionf Quaternionf_normalized(Quaternionf quaternion) {
+	Quaternionf_normalize(&quaternion);
 	return quaternion;
 }
 
-void Quaternion_multiply(Quaternion * quaternion1, Quaternion quaternion2) {
-	Quaternion result;
+void Quaternionf_multiply(Quaternionf * quaternion1, Quaternionf quaternion2) {
+	Quaternionf result;
 	
 	result.x = quaternion1->w * quaternion2.x + quaternion1->x * quaternion2.w + quaternion1->y * quaternion2.z - quaternion1->z * quaternion2.y;
 	result.y = quaternion1->w * quaternion2.y - quaternion1->x * quaternion2.z + quaternion1->y * quaternion2.w + quaternion1->z * quaternion2.x;
@@ -124,16 +124,16 @@ void Quaternion_multiply(Quaternion * quaternion1, Quaternion quaternion2) {
 	*quaternion1 = result;
 }
 
-Quaternion Quaternion_multiplied(Quaternion quaternion1, Quaternion quaternion2) {
-	Quaternion_multiply(&quaternion1, quaternion2);
+Quaternionf Quaternionf_multiplied(Quaternionf quaternion1, Quaternionf quaternion2) {
+	Quaternionf_multiply(&quaternion1, quaternion2);
 	return quaternion1;
 }
 
 #define SLERP_TO_LERP_SWITCH_THRESHOLD 0.01f
 
-Quaternion Quaternion_slerp(Quaternion left, Quaternion right, float value) {
+Quaternionf Quaternionf_slerp(Quaternionf left, Quaternionf right, float value) {
 	float leftWeight, rightWeight, difference;
-	Quaternion result;
+	Quaternionf result;
 	
 	difference = left.x * right.x + left.y * right.y + left.z * right.z + left.w * right.w;
 	if (1.0f - fabs(difference) > SLERP_TO_LERP_SWITCH_THRESHOLD) {
@@ -154,24 +154,24 @@ Quaternion Quaternion_slerp(Quaternion left, Quaternion right, float value) {
 	result.y = left.y * leftWeight + right.y * rightWeight;
 	result.z = left.z * leftWeight + right.z * rightWeight;
 	result.w = left.w * leftWeight + right.w * rightWeight;
-	Quaternion_normalize(&result);
+	Quaternionf_normalize(&result);
 	
 	return result;
 }
 
-void Quaternion_rotate(Quaternion * quaternion, Vector3f axis, float radians) {
-	Quaternion rotationQuaternion;
+void Quaternionf_rotate(Quaternionf * quaternion, Vector3f axis, float radians) {
+	Quaternionf rotationQuaternion;
 	
-	rotationQuaternion = Quaternion_fromAxisAngle(axis, radians);
-	Quaternion_multiply(quaternion, rotationQuaternion);
+	rotationQuaternion = Quaternionf_fromAxisAngle(axis, radians);
+	Quaternionf_multiply(quaternion, rotationQuaternion);
 }
 
-Quaternion Quaternion_rotated(Quaternion quaternion, Vector3f axis, float radians) {
-	Quaternion_rotate(&quaternion, axis, radians);
+Quaternionf Quaternionf_rotated(Quaternionf quaternion, Vector3f axis, float radians) {
+	Quaternionf_rotate(&quaternion, axis, radians);
 	return quaternion;
 }
 
-void Quaternion_invert(Quaternion * quaternion) {
+void Quaternionf_invert(Quaternionf * quaternion) {
 	float length;
 	
 	length = 1.0f / (quaternion->x * quaternion->x +
@@ -184,23 +184,23 @@ void Quaternion_invert(Quaternion * quaternion) {
 	quaternion->w *= length;
 }
 
-Quaternion Quaternion_inverted(Quaternion quaternion) {
-	Quaternion_invert(&quaternion);
+Quaternionf Quaternionf_inverted(Quaternionf quaternion) {
+	Quaternionf_invert(&quaternion);
 	return quaternion;
 }
 
-Vector3f Quaternion_multiplyVector3f(Quaternion quaternion, Vector3f vector) {
-	Quaternion vectorQuaternion, inverseQuaternion, result;
+Vector3f Quaternionf_multiplyVector3f(Quaternionf quaternion, Vector3f vector) {
+	Quaternionf vectorQuaternion, inverseQuaternion, result;
 	
-	vectorQuaternion = QUATERNION(vector.x, vector.y, vector.z, 0.0f);
-	inverseQuaternion = Quaternion_inverted(quaternion);
-	result = Quaternion_multiplied(quaternion, Quaternion_multiplied(vectorQuaternion, inverseQuaternion));
+	vectorQuaternion = QUATERNIONf(vector.x, vector.y, vector.z, 0.0f);
+	inverseQuaternion = Quaternionf_inverted(quaternion);
+	result = Quaternionf_multiplied(quaternion, Quaternionf_multiplied(vectorQuaternion, inverseQuaternion));
 	return VECTOR3f(result.x, result.y, result.z);
 }
 
-Vector4f Quaternion_multiplyVector4f(Quaternion quaternion, Vector4f vector) {
+Vector4f Quaternionf_multiplyVector4f(Quaternionf quaternion, Vector4f vector) {
 	Vector3f vector3;
 	
-	vector3 = Quaternion_multiplyVector3f(quaternion, VECTOR3f(vector.x, vector.y, vector.z));
+	vector3 = Quaternionf_multiplyVector3f(quaternion, VECTOR3f(vector.x, vector.y, vector.z));
 	return VECTOR4f(vector3.x, vector3.y, vector3.z, vector.w);
 }

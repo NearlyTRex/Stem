@@ -67,9 +67,11 @@ SOURCES_library = \
 	source/${PROJECT_NAME}/Barycentric.c \
 	source/${PROJECT_NAME}/FixedPoint.c \
 	source/${PROJECT_NAME}/Interpolation.c \
-	source/${PROJECT_NAME}/Matrix.c \
+	source/${PROJECT_NAME}/Matrix4x4f.c \
+	source/${PROJECT_NAME}/Matrix4x4x.c \
 	source/${PROJECT_NAME}/MouseCoordinateTransforms.c \
-	source/${PROJECT_NAME}/Quaternion.c \
+	source/${PROJECT_NAME}/Quaternionf.c \
+	source/${PROJECT_NAME}/Quaternionx.c \
 	build/intermediate/generated/${PROJECT_NAME}/Box6d.c \
 	build/intermediate/generated/${PROJECT_NAME}/Box6f.c \
 	build/intermediate/generated/${PROJECT_NAME}/Box6i.c \
@@ -97,11 +99,13 @@ SOURCES_unittest_suites = \
 	source/unittest/BarycentricTest.c \
 	source/unittest/FixedPointTest.c \
 	source/unittest/InterpolationTest.c \
-	source/unittest/MatrixTest.c \
+	source/unittest/Matrix4x4fTest.c \
+	source/unittest/Matrix4x4xTest.c \
 	source/unittest/MouseCoordinateTransformsTest.c \
 	source/unittest/RectBoxConversionsTest.c \
 	source/unittest/RectBoxTest.c \
-	source/unittest/QuaternionTest.c \
+	source/unittest/QuaternionfTest.c \
+	source/unittest/QuaternionxTest.c \
 	source/unittest/VectorConversionsTest.c \
 	source/unittest/VectorTest.c
 
@@ -113,9 +117,11 @@ INCLUDES = \
 	source/${PROJECT_NAME}/Barycentric.h \
 	source/${PROJECT_NAME}/FixedPoint.h \
 	source/${PROJECT_NAME}/Interpolation.h \
-	source/${PROJECT_NAME}/Matrix.h \
+	source/${PROJECT_NAME}/Matrix4x4f.h \
+	source/${PROJECT_NAME}/Matrix4x4x.h \
 	source/${PROJECT_NAME}/MouseCoordinateTransforms.h \
-	source/${PROJECT_NAME}/Quaternion.h \
+	source/${PROJECT_NAME}/Quaternionf.h \
+	source/${PROJECT_NAME}/Quaternionx.h \
 	build/intermediate/generated/${PROJECT_NAME}/Box6d.h \
 	build/intermediate/generated/${PROJECT_NAME}/Box6f.h \
 	build/intermediate/generated/${PROJECT_NAME}/Box6i.h \

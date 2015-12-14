@@ -20,11 +20,11 @@
   Alex Diener alex@ludobloom.com
 */
 
-#include "gamemath/Matrix.h"
-#include "gamemath/Quaternion.h"
+#include "gamemath/Matrix4x4f.h"
+#include "gamemath/Quaternionf.h"
 #include <math.h>
 
-void Matrix_loadIdentity(Matrix * matrix) {
+void Matrix4x4f_loadIdentity(Matrix4x4f * matrix) {
 	matrix->m[0] = 1.0f;
 	matrix->m[1] = 0.0f;
 	matrix->m[2] = 0.0f;
@@ -43,10 +43,10 @@ void Matrix_loadIdentity(Matrix * matrix) {
 	matrix->m[15] = 1.0f;
 }
 
-Matrix Matrix_fromDirectionVectors(Vector3f right, Vector3f up, Vector3f front) {
-	Matrix matrix;
+Matrix4x4f Matrix4x4f_fromDirectionVectors(Vector3f right, Vector3f up, Vector3f front) {
+	Matrix4x4f matrix;
 	
-	Matrix_loadIdentity(&matrix);
+	Matrix4x4f_loadIdentity(&matrix);
 	matrix.m[0]  = right.x;
 	matrix.m[1]  = right.y;
 	matrix.m[2]  = right.z;
@@ -59,8 +59,8 @@ Matrix Matrix_fromDirectionVectors(Vector3f right, Vector3f up, Vector3f front) 
 	return matrix;
 }
 
-void Matrix_multiply(Matrix * matrix1, Matrix m2) {
-	Matrix m1, result;
+void Matrix4x4f_multiply(Matrix4x4f * matrix1, Matrix4x4f m2) {
+	Matrix4x4f m1, result;
 	
 	m1 = *matrix1;
 	
@@ -84,99 +84,99 @@ void Matrix_multiply(Matrix * matrix1, Matrix m2) {
 	*matrix1 = result;
 }
 
-Matrix Matrix_multiplied(Matrix matrix1, Matrix matrix2) {
-	Matrix_multiply(&matrix1, matrix2);
+Matrix4x4f Matrix4x4f_multiplied(Matrix4x4f matrix1, Matrix4x4f matrix2) {
+	Matrix4x4f_multiply(&matrix1, matrix2);
 	return matrix1;
 }
 
-void Matrix_translate(Matrix * matrix, float x, float y, float z) {
-	Matrix translationMatrix;
+void Matrix4x4f_translate(Matrix4x4f * matrix, float x, float y, float z) {
+	Matrix4x4f translationMatrix;
 	
-	Matrix_loadIdentity(&translationMatrix);
+	Matrix4x4f_loadIdentity(&translationMatrix);
 	translationMatrix.m[12] = x;
 	translationMatrix.m[13] = y;
 	translationMatrix.m[14] = z;
-	Matrix_multiply(matrix, translationMatrix);
+	Matrix4x4f_multiply(matrix, translationMatrix);
 }
 
-Matrix Matrix_translated(Matrix matrix, float x, float y, float z) {
-	Matrix_translate(&matrix, x, y, z);
+Matrix4x4f Matrix4x4f_translated(Matrix4x4f matrix, float x, float y, float z) {
+	Matrix4x4f_translate(&matrix, x, y, z);
 	return matrix;
 }
 
-void Matrix_scale(Matrix * matrix, float x, float y, float z) {
-	Matrix scalingMatrix;
+void Matrix4x4f_scale(Matrix4x4f * matrix, float x, float y, float z) {
+	Matrix4x4f scalingMatrix;
 	
-	Matrix_loadIdentity(&scalingMatrix);
+	Matrix4x4f_loadIdentity(&scalingMatrix);
 	scalingMatrix.m[0] = x;
 	scalingMatrix.m[5] = y;
 	scalingMatrix.m[10] = z;
-	Matrix_multiply(matrix, scalingMatrix);
+	Matrix4x4f_multiply(matrix, scalingMatrix);
 }
 
-Matrix Matrix_scaled(Matrix matrix, float x, float y, float z) {
-	Matrix_scale(&matrix, x, y, z);
+Matrix4x4f Matrix4x4f_scaled(Matrix4x4f matrix, float x, float y, float z) {
+	Matrix4x4f_scale(&matrix, x, y, z);
 	return matrix;
 }
 
-void Matrix_rotate(Matrix * matrix, Vector3f axis, float radians) {
-	Matrix rotationMatrix;
-	Quaternion quaternion;
+void Matrix4x4f_rotate(Matrix4x4f * matrix, Vector3f axis, float radians) {
+	Matrix4x4f rotationMatrix;
+	Quaternionf quaternion;
 	
-	quaternion = Quaternion_fromAxisAngle(axis, radians);
-	rotationMatrix = Quaternion_toMatrix(quaternion);
-	Matrix_multiply(matrix, rotationMatrix);
+	quaternion = Quaternionf_fromAxisAngle(axis, radians);
+	rotationMatrix = Quaternionf_toMatrix(quaternion);
+	Matrix4x4f_multiply(matrix, rotationMatrix);
 }
 
-Matrix Matrix_rotated(Matrix matrix, Vector3f axis, float radians) {
-	Matrix_rotate(&matrix, axis, radians);
+Matrix4x4f Matrix4x4f_rotated(Matrix4x4f matrix, Vector3f axis, float radians) {
+	Matrix4x4f_rotate(&matrix, axis, radians);
 	return matrix;
 }
 
-void Matrix_shearX(Matrix * matrix, float y, float z) {
-	Matrix shearingMatrix;
+void Matrix4x4f_shearX(Matrix4x4f * matrix, float y, float z) {
+	Matrix4x4f shearingMatrix;
 	
-	Matrix_loadIdentity(&shearingMatrix);
+	Matrix4x4f_loadIdentity(&shearingMatrix);
 	shearingMatrix.m[1] = y;
 	shearingMatrix.m[2] = z;
-	Matrix_multiply(matrix, shearingMatrix);
+	Matrix4x4f_multiply(matrix, shearingMatrix);
 }
 
-Matrix Matrix_shearedX(Matrix matrix, float y, float z) {
-	Matrix_shearX(&matrix, y, z);
+Matrix4x4f Matrix4x4f_shearedX(Matrix4x4f matrix, float y, float z) {
+	Matrix4x4f_shearX(&matrix, y, z);
 	return matrix;
 }
 
-void Matrix_shearY(Matrix * matrix, float x, float z) {
-	Matrix shearingMatrix;
+void Matrix4x4f_shearY(Matrix4x4f * matrix, float x, float z) {
+	Matrix4x4f shearingMatrix;
 	
-	Matrix_loadIdentity(&shearingMatrix);
+	Matrix4x4f_loadIdentity(&shearingMatrix);
 	shearingMatrix.m[4] = x;
 	shearingMatrix.m[6] = z;
-	Matrix_multiply(matrix, shearingMatrix);
+	Matrix4x4f_multiply(matrix, shearingMatrix);
 }
 
-Matrix Matrix_shearedY(Matrix matrix, float x, float z) {
-	Matrix_shearY(&matrix, x, z);
+Matrix4x4f Matrix4x4f_shearedY(Matrix4x4f matrix, float x, float z) {
+	Matrix4x4f_shearY(&matrix, x, z);
 	return matrix;
 }
 
-void Matrix_shearZ(Matrix * matrix, float x, float y) {
-	Matrix shearingMatrix;
+void Matrix4x4f_shearZ(Matrix4x4f * matrix, float x, float y) {
+	Matrix4x4f shearingMatrix;
 	
-	Matrix_loadIdentity(&shearingMatrix);
+	Matrix4x4f_loadIdentity(&shearingMatrix);
 	shearingMatrix.m[8] = x;
 	shearingMatrix.m[9] = y;
-	Matrix_multiply(matrix, shearingMatrix);
+	Matrix4x4f_multiply(matrix, shearingMatrix);
 }
 
-Matrix Matrix_shearedZ(Matrix matrix, float x, float y) {
-	Matrix_shearZ(&matrix, x, y);
+Matrix4x4f Matrix4x4f_shearedZ(Matrix4x4f matrix, float x, float y) {
+	Matrix4x4f_shearZ(&matrix, x, y);
 	return matrix;
 }
 
-void Matrix_applyPerspective(Matrix * matrix, float fovYDegrees, float aspect, float zNear, float zFar) {
-	Matrix perspectiveMatrix;
+void Matrix4x4f_applyPerspective(Matrix4x4f * matrix, float fovYDegrees, float aspect, float zNear, float zFar) {
+	Matrix4x4f perspectiveMatrix;
 	float sine, cotangent, deltaZ;
 	
 	fovYDegrees = fovYDegrees * M_PI / 360.0f;
@@ -187,52 +187,52 @@ void Matrix_applyPerspective(Matrix * matrix, float fovYDegrees, float aspect, f
 	}
 	cotangent = cos(fovYDegrees) / sine;
 	
-	Matrix_loadIdentity(&perspectiveMatrix);
+	Matrix4x4f_loadIdentity(&perspectiveMatrix);
 	perspectiveMatrix.m[0] = cotangent / aspect;
 	perspectiveMatrix.m[5] = cotangent;
 	perspectiveMatrix.m[10] = -(zFar + zNear) / deltaZ;
 	perspectiveMatrix.m[11] = -1.0f;
 	perspectiveMatrix.m[14] = -2.0f * zNear * zFar / deltaZ;
 	perspectiveMatrix.m[15] = 0.0f;
-	Matrix_multiply(matrix, perspectiveMatrix);
+	Matrix4x4f_multiply(matrix, perspectiveMatrix);
 }
 
-Matrix Matrix_perspective(Matrix matrix, float fovYDegrees, float aspect, float zNear, float zFar) {
-	Matrix_applyPerspective(&matrix, fovYDegrees, aspect, zNear, zFar);
+Matrix4x4f Matrix4x4f_perspective(Matrix4x4f matrix, float fovYDegrees, float aspect, float zNear, float zFar) {
+	Matrix4x4f_applyPerspective(&matrix, fovYDegrees, aspect, zNear, zFar);
 	return matrix;
 }
 
-void Matrix_applyOrtho(Matrix * matrix, float left, float right, float bottom, float top, float zNear, float zFar) {
-	Matrix orthoMatrix;
+void Matrix4x4f_applyOrtho(Matrix4x4f * matrix, float left, float right, float bottom, float top, float zNear, float zFar) {
+	Matrix4x4f orthoMatrix;
 	
-	Matrix_loadIdentity(&orthoMatrix);
+	Matrix4x4f_loadIdentity(&orthoMatrix);
 	orthoMatrix.m[0] = 2.0f / (right - left);
 	orthoMatrix.m[5] = 2.0f / (top - bottom);
 	orthoMatrix.m[10] = -2.0f / (zFar - zNear);
 	orthoMatrix.m[12] = -((right + left) / (right - left));
 	orthoMatrix.m[13] = -((top + bottom) / (top - bottom));
 	orthoMatrix.m[14] = -((zFar + zNear) / (zFar - zNear));
-	Matrix_multiply(matrix, orthoMatrix);
+	Matrix4x4f_multiply(matrix, orthoMatrix);
 }
 
-Matrix Matrix_ortho(Matrix matrix, float left, float right, float bottom, float top, float zNear, float zFar) {
-	Matrix_applyOrtho(&matrix, left, right, bottom, top, zNear, zFar);
+Matrix4x4f Matrix4x4f_ortho(Matrix4x4f matrix, float left, float right, float bottom, float top, float zNear, float zFar) {
+	Matrix4x4f_applyOrtho(&matrix, left, right, bottom, top, zNear, zFar);
 	return matrix;
 }
 
-void Matrix_transpose(Matrix * matrix) {
-	*matrix = MATRIX(matrix->m[0],  matrix->m[1],  matrix->m[2],  matrix->m[3],
-	                 matrix->m[4],  matrix->m[5],  matrix->m[6],  matrix->m[7],
-	                 matrix->m[8],  matrix->m[9],  matrix->m[10], matrix->m[11],
-	                 matrix->m[12], matrix->m[13], matrix->m[14], matrix->m[15]);
+void Matrix4x4f_transpose(Matrix4x4f * matrix) {
+	*matrix = MATRIX4x4f(matrix->m[0],  matrix->m[1],  matrix->m[2],  matrix->m[3],
+	                     matrix->m[4],  matrix->m[5],  matrix->m[6],  matrix->m[7],
+	                     matrix->m[8],  matrix->m[9],  matrix->m[10], matrix->m[11],
+	                     matrix->m[12], matrix->m[13], matrix->m[14], matrix->m[15]);
 }
 
-Matrix Matrix_transposed(Matrix matrix) {
-	Matrix_transpose(&matrix);
+Matrix4x4f Matrix4x4f_transposed(Matrix4x4f matrix) {
+	Matrix4x4f_transpose(&matrix);
 	return matrix;
 }
 
-static float Matrix_subdeterminant(Matrix matrix, int excludeIndex) {
+static float Matrix4x4f_subdeterminant(Matrix4x4f matrix, int excludeIndex) {
 	int index4x4, index3x3;
 	float matrix3x3[9];
 	
@@ -253,13 +253,13 @@ static float Matrix_subdeterminant(Matrix matrix, int excludeIndex) {
 	       matrix3x3[6] * (matrix3x3[1] * matrix3x3[5] - matrix3x3[2] * matrix3x3[4]);
 }
 
-float Matrix_determinant(Matrix matrix) {
+float Matrix4x4f_determinant(Matrix4x4f matrix) {
 	float subdeterminant0, subdeterminant1, subdeterminant2, subdeterminant3;
 	
-	subdeterminant0 = Matrix_subdeterminant(matrix, 0);
-	subdeterminant1 = Matrix_subdeterminant(matrix, 4);
-	subdeterminant2 = Matrix_subdeterminant(matrix, 8);
-	subdeterminant3 = Matrix_subdeterminant(matrix, 12);
+	subdeterminant0 = Matrix4x4f_subdeterminant(matrix, 0);
+	subdeterminant1 = Matrix4x4f_subdeterminant(matrix, 4);
+	subdeterminant2 = Matrix4x4f_subdeterminant(matrix, 8);
+	subdeterminant3 = Matrix4x4f_subdeterminant(matrix, 12);
 	
 	return matrix.m[0]  *  subdeterminant0 +
 	       matrix.m[4]  * -subdeterminant1 +
@@ -267,28 +267,28 @@ float Matrix_determinant(Matrix matrix) {
 	       matrix.m[12] * -subdeterminant3;
 }
 
-void Matrix_invert(Matrix * matrix) {
+void Matrix4x4f_invert(Matrix4x4f * matrix) {
 	float determinant;
-	Matrix result;
+	Matrix4x4f result;
 	int index, indexTransposed;
 	int sign;
 	
-	determinant = Matrix_determinant(*matrix);
+	determinant = Matrix4x4f_determinant(*matrix);
 	for (index = 0; index < 16; index++) {
 		sign = 1 - (index % 4 + index / 4) % 2 * 2;
 		indexTransposed = index % 4 * 4 + index / 4;
-		result.m[indexTransposed] = Matrix_subdeterminant(*matrix, index) * sign / determinant;
+		result.m[indexTransposed] = Matrix4x4f_subdeterminant(*matrix, index) * sign / determinant;
 	}
 	
 	*matrix = result;
 }
 
-Matrix Matrix_inverted(Matrix matrix) {
-	Matrix_invert(&matrix);
+Matrix4x4f Matrix4x4f_inverted(Matrix4x4f matrix) {
+	Matrix4x4f_invert(&matrix);
 	return matrix;
 }
 
-void Matrix_interpolate(Matrix * left, Matrix right, float value) {
+void Matrix4x4f_interpolate(Matrix4x4f * left, Matrix4x4f right, float value) {
 	unsigned int index;
 	
 	for (index = 0; index < 16; index++) {
@@ -296,12 +296,12 @@ void Matrix_interpolate(Matrix * left, Matrix right, float value) {
 	}
 }
 
-Matrix Matrix_interpolated(Matrix left, Matrix right, float value) {
-	Matrix_interpolate(&left, right, value);
+Matrix4x4f Matrix4x4f_interpolated(Matrix4x4f left, Matrix4x4f right, float value) {
+	Matrix4x4f_interpolate(&left, right, value);
 	return left;
 }
 
-Vector2f Matrix_multiplyVector2f(Matrix matrix, Vector2f vector) {
+Vector2f Matrix4x4f_multiplyVector2f(Matrix4x4f matrix, Vector2f vector) {
 	Vector2f result;
 	
 	result.x = matrix.m[0] * vector.x + matrix.m[4] * vector.y + matrix.m[12];
@@ -309,7 +309,7 @@ Vector2f Matrix_multiplyVector2f(Matrix matrix, Vector2f vector) {
 	return result;
 }
 
-Vector3f Matrix_multiplyVector3f(Matrix matrix, Vector3f vector) {
+Vector3f Matrix4x4f_multiplyVector3f(Matrix4x4f matrix, Vector3f vector) {
 	Vector3f result;
 	
 	result.x = matrix.m[0] * vector.x + matrix.m[4] * vector.y + matrix.m[8]  * vector.z + matrix.m[12];
@@ -318,7 +318,7 @@ Vector3f Matrix_multiplyVector3f(Matrix matrix, Vector3f vector) {
 	return result;
 }
 
-Vector4f Matrix_multiplyVector4f(Matrix matrix, Vector4f vector) {
+Vector4f Matrix4x4f_multiplyVector4f(Matrix4x4f matrix, Vector4f vector) {
 	Vector4f result;
 	
 	result.x = matrix.m[0] * vector.x + matrix.m[4] * vector.y + matrix.m[8]  * vector.z + matrix.m[12] * vector.w;
@@ -328,7 +328,7 @@ Vector4f Matrix_multiplyVector4f(Matrix matrix, Vector4f vector) {
 	return result;
 }
 
-Vector3f Matrix_multiplyVector3f_rotationOnly(Matrix matrix, Vector3f vector) {
+Vector3f Matrix4x4f_multiplyVector3f_rotationOnly(Matrix4x4f matrix, Vector3f vector) {
 	Vector3f result;
 	
 	result.x = matrix.m[0] * vector.x + matrix.m[4] * vector.y + matrix.m[8]  * vector.z;
