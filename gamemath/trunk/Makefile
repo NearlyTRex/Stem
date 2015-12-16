@@ -1,8 +1,8 @@
 PROJECT_NAME = gamemath
 
 # VERSION_MAJOR, VERSION_MINOR, and VERSION_TWEAK are available as preprocessor macros for all source files in the project
-VERSION_MAJOR = 2
-VERSION_MINOR = 3
+VERSION_MAJOR = 3
+VERSION_MINOR = 0
 VERSION_TWEAK = 0
 PROJECT_VERSION = ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_TWEAK}
 
