@@ -1,7 +1,7 @@
 #include "shell/Shell.h"
 #include "shell/ShellCallbacks.h"
 #include "shell/ShellKeyCodes.h"
-#include "gamemath/Matrix.h"
+#include "gamemath/Matrix4x4f.h"
 #include "glbitmapfont/GLBitmapFont.h"
 #include "glgraphics/GLGraphics.h"
 #include "glgraphics/GLIncludes.h"
@@ -86,7 +86,7 @@ static void drawString(GLBitmapFont * font, const char * string, size_t length, 
 }
 
 static bool Target_draw() {
-	Matrix projectionMatrix;
+	Matrix4x4f projectionMatrix;
 	float ratio;
 	float stringWidth;
 	char indexString[32];
@@ -95,7 +95,7 @@ static bool Target_draw() {
 	glClear(GL_COLOR_BUFFER_BIT);
 	
 	ratio = (float) viewportWidth / viewportHeight;
-	projectionMatrix = Matrix_ortho(MATRIX_IDENTITY, -ratio, ratio, -1.0f, 1.0f, -1.0f, 1.0f);
+	projectionMatrix = Matrix4x4f_ortho(MATRIX4x4f_IDENTITY, -ratio, ratio, -1.0f, 1.0f, -1.0f, 1.0f);
 	
 	if (GLGraphics_getOpenGLAPIVersion() == GL_API_VERSION_ES2) {
 		glUniformMatrix4fv(matrixUniform, 1, GL_FALSE, projectionMatrix.m);

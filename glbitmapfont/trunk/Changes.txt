@@ -1,4 +1,4 @@
-2.0.1 (2015-07-07)
+2.0.1 (2015-12-16)
  * Removed baseIndex parameter from GLBitmapFont_getStringVertices() and GLBitmapFont_getStringVerticesWithColor(). It's now inferred from ioVertexCount.
  * Fixed crash when deserializing malformed GLBitmapFont data
 
