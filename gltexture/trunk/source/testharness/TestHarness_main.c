@@ -1,7 +1,7 @@
 #include "shell/Shell.h"
 #include "shell/ShellCallbacks.h"
 #include "shell/ShellKeyCodes.h"
-#include "gamemath/Matrix.h"
+#include "gamemath/Matrix4x4f.h"
 #include "glgraphics/GLIncludes.h"
 #include "gltexture/GLTexture.h"
 #include "jsonserialization/JSONDeserializationContext.h"
@@ -177,9 +177,9 @@ static void drawControl(float x, float y, float scale, int parameter) {
 		{{0.5f, 1.0f}},
 		{{0.0f, 0.5f}}
 	};
-	Matrix matrix;
+	Matrix4x4f matrix;
 	
-	matrix = Matrix_scaled(Matrix_translated(MATRIX_IDENTITY, x, y, 0.0f), scale, scale, 1.0f);
+	matrix = Matrix4x4f_scaled(Matrix4x4f_translated(MATRIX4x4f_IDENTITY, x, y, 0.0f), scale, scale, 1.0f);
 	glLoadMatrixf(matrix.m);
 	switch (parameter) {
 		case 0:
@@ -233,7 +233,7 @@ static bool Target_draw() {
 		{{-0.5f, 0.75f,  0.5f}, {minTexCoordX, maxTexCoordY}},
 		{{-0.5f, 0.75f, -0.5f}, {minTexCoordX, minTexCoordY}}
 	};
-	Matrix matrix;
+	Matrix4x4f matrix;
 	
 	if (whiteBackground) {
 		glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
@@ -244,7 +244,7 @@ static bool Target_draw() {
 	glClear(GL_COLOR_BUFFER_BIT);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	matrix = Matrix_perspective(MATRIX_IDENTITY, 60.0f, (float) viewportWidth / viewportHeight, 0.25f, 100.0f);
+	matrix = Matrix4x4f_perspective(MATRIX4x4f_IDENTITY, 60.0f, (float) viewportWidth / viewportHeight, 0.25f, 100.0f);
 	glMultMatrixf(matrix.m);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
@@ -264,7 +264,7 @@ static bool Target_draw() {
 		
 		glMatrixMode(GL_PROJECTION);
 		glLoadIdentity();
-		matrix = Matrix_ortho(MATRIX_IDENTITY, 0.0f, viewRatio, 0.0f, 1.0f, -1.0f, 1.0f);
+		matrix = Matrix4x4f_ortho(MATRIX4x4f_IDENTITY, 0.0f, viewRatio, 0.0f, 1.0f, -1.0f, 1.0f);
 		glMultMatrixf(matrix.m);
 		glMatrixMode(GL_MODELVIEW);
 		
