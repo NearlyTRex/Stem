@@ -35,6 +35,8 @@ static void sharedInit(CollisionStaticTrimesh * self, void * owner, CollisionCal
 	self->getCollisionBounds = CollisionStaticTrimesh_getCollisionBounds;
 }
 
+#define FORWARD_DOT_MAX 0x0FFF0
+
 static unsigned int computeEdgeInfo(CollisionStaticTrimesh * self, struct trimeshConvexEdge * edges) {
 	unsigned int triangleIndex, triangleVertexIndex, edgeIndex = 0;
 	Vector3x edgeParallel, edgePerpendicular, normal, connectedNormal;
@@ -48,11 +50,29 @@ static unsigned int computeEdgeInfo(CollisionStaticTrimesh * self, struct trimes
 				edgePerpendicular = Vector3x_cross(edgeParallel, normal);
 				if (Vector3x_dot(edgePerpendicular, connectedNormal) < 0x00000) {
 					if (edges != NULL) {
+						Vector3x axis;
+						fixed16_16 dot;
+						
 						self->edges[edgeIndex].vertexIndexes[0] = self->triangles[triangleIndex].vertexIndexes[triangleVertexIndex];
 						self->edges[edgeIndex].vertexIndexes[1] = self->triangles[triangleIndex].vertexIndexes[(triangleVertexIndex + 1) % 3];
 						self->edges[edgeIndex].normal = Vector3x_add(normal, connectedNormal);
 						if (!Vector3x_normalize(&self->edges[edgeIndex].normal)) {
 							self->edges[edgeIndex].normal = Vector3x_normalized(edgePerpendicular);
+						}
+						
+						self->edges[edgeIndex].length = Vector3x_magnitude(edgeParallel);
+						edgeParallel = Vector3x_divideScalar(edgeParallel, self->edges[edgeIndex].length);
+						dot = Vector3x_dot(edgeParallel, VECTOR3x_FRONT);
+						if (dot > FORWARD_DOT_MAX) {
+							self->edges[edgeIndex].planarTransform = QUATERNIONx_IDENTITY;
+							
+						} else if (dot < -FORWARD_DOT_MAX) {
+							self->edges[edgeIndex].planarTransform = Quaternionx_fromAxisAngle(VECTOR3x_UP, X_PI);
+							
+						} else {
+							axis = Vector3x_cross(edgeParallel, VECTOR3x_FRONT);
+							Vector3x_normalize(&axis);
+							self->edges[edgeIndex].planarTransform = Quaternionx_fromAxisAngle(axis, xacos(dot));
 						}
 					}
 					edgeIndex++;

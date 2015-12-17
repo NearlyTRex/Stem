@@ -83,10 +83,12 @@ static void verifyVertex(struct trimeshVertex vertex, Vector3x position, Vector3
 	TestCase_assert(vertex.convex == convex, "Expected %s but got %s (line %d)", convex ? "true" : "false", vertex.convex ? "true" : "false", line);
 }
 
-static void verifyEdge(struct trimeshConvexEdge edge, unsigned int vertexIndex0, unsigned int vertexIndex1, Vector3x normal, int line) {
+static void verifyEdge(struct trimeshConvexEdge edge, unsigned int vertexIndex0, unsigned int vertexIndex1, Vector3x normal, Quaternionx planarTransform, fixed16_16 length, int line) {
 	TestCase_assert(edge.vertexIndexes[0] == vertexIndex0, "Expected %u but got %u (line %d)", vertexIndex0, edge.vertexIndexes[0], line);
 	TestCase_assert(edge.vertexIndexes[1] == vertexIndex1, "Expected %u but got %u (line %d)", vertexIndex1, edge.vertexIndexes[1], line);
 	TestCase_assert(edge.normal.x == normal.x && edge.normal.y == normal.y && edge.normal.z == normal.z, "Expected {0x%05X, 0x%05X, 0x%05X} but got {0x%05X, 0x%05X, 0x%05X} (line %d)", normal.x, normal.y, normal.z, edge.normal.x, edge.normal.y, edge.normal.z, line);
+	TestCase_assert(edge.planarTransform.x == planarTransform.x && edge.planarTransform.y == planarTransform.y && edge.planarTransform.z == planarTransform.z && edge.planarTransform.w == planarTransform.w, "Expected {0x%05X, 0x%05X, 0x%05X}, 0x%05X but got {0x%05X, 0x%05X, 0x%05X}, 0x%05X (line %d)", planarTransform.x, planarTransform.y, planarTransform.z, planarTransform.w, edge.planarTransform.x, edge.planarTransform.y, edge.planarTransform.z, edge.planarTransform.w, line);
+	TestCase_assert(edge.length == length, "Expected 0x%05X but got 0x%05X (line %d)", length, edge.length, line);
 }
 
 static void verifyTriangle(struct trimeshTriangle triangle, unsigned int vertexIndex0, unsigned int vertexIndex1, unsigned int vertexIndex2, unsigned int connectedTriangleIndex0, unsigned int connectedTriangleIndex1, unsigned int connectedTriangleIndex2, Vector3x normal, int line) {
@@ -122,7 +124,7 @@ static void testGeometryInfo() {
 	verifyVertex(trimesh->vertices[2], VECTOR3x(0x00000, 0x10000, 0x00000), VECTOR3x(0x05337, 0x05337, 0x0E359), true, __LINE__);
 	verifyVertex(trimesh->vertices[3], VECTOR3x(0x10000, 0x10000, -0x10000), VECTOR3x(0x093CE, 0x093CE, 0x093CE), false, __LINE__);
 	TestCase_assert(trimesh->edgeCount == 1, "Expected 1 but got %u", trimesh->edgeCount);
-	verifyEdge(trimesh->edges[0], 1, 2, VECTOR3x(0x05337, 0x05337, 0x0E359), __LINE__);
+	verifyEdge(trimesh->edges[0], 1, 2, VECTOR3x(0x05337, 0x05337, 0x0E359), QUATERNIONx(-0x07FFF, -0x07FFF, 0x00000, 0x0B503), 0x16A09, __LINE__);
 	TestCase_assert(trimesh->triangleCount == 2, "Expected 2 but got %u", trimesh->triangleCount);
 	verifyTriangle(trimesh->triangles[0], 0, 1, 2, UINT_MAX, 1, UINT_MAX, VECTOR3x(0x00000, 0x00000, 0x10000), __LINE__);
 	verifyTriangle(trimesh->triangles[1], 2, 1, 3, 0, UINT_MAX, UINT_MAX, VECTOR3x(0x093CD, 0x093CD, 0x093CD), __LINE__);

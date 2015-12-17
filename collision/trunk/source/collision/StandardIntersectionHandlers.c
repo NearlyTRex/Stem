@@ -28,7 +28,7 @@
 #include "collision/CollisionStaticTrimesh.h"
 #include "collision/StandardIntersectionHandlers.h"
 #include "gamemath/Barycentric.h"
-#include <stdio.h>
+#include "gamemath/VectorConversions.h"
 
 #define SPATIAL_EPSILON 0x00008
 
@@ -412,37 +412,28 @@ static bool intersectSweptPoints3D(fixed16_16 x1Start, fixed16_16 x1End,
 	return true;
 }
 
-static bool intersectSphereLine3D(Vector3x lastPosition, Vector3x position, fixed16_16 radius, Vector3x endpoint1, Vector3x endpoint2, fixed16_16 thickness, fixed16_16 * outTime, Vector3x * outNormal) {
-	/*Vector3x projectionNormal, projectedLastPosition, projectedPosition;
-	Vector3x cross1, cross2;
-	Vector2x lastPositionFlat, positionFlat;
+static bool intersectSweptSphereTrimeshEdge(Vector3x lastPosition, Vector3x position, fixed16_16 radius, Vector3x endpoint1, Vector3x endpoint2, Quaternionx planarTransform, fixed16_16 length, fixed16_16 * outTime, Vector3x * outNormal) {
+	Vector3x normal;
+	fixed16_16 time;
 	
-	// May be able to get away without normalizing, but very short/long lines could cause range issues
-	projectionNormal = Vector3x_normalized(Vector3x_subtract(endpoint2, endpoint1));
-	projectedLastPosition = Vector3x_project(lastPosition, projectionNormal);
-	projectedPosition = Vector3x_project(position, projectionNormal);
+	lastPosition = Quaternionx_multiplyVector3x(planarTransform, Vector3x_subtract(lastPosition, endpoint2));
+	position = Quaternionx_multiplyVector3x(planarTransform, Vector3x_subtract(position, endpoint2));
 	
-	// Forget this mess
-	// Map lastPosition and position onto a 2D plane defined by projectionNormal, call intersectSweptCircles to get time, check depth at time
-	cross1 = Vector3x_cross(projectionNormal, Vector3x_subtract(projectedLastPosition, endpoint1));
-	cross2 = Vector3x_cross(projectionNormal, Vector3x_subtract(projectedPosition, endpoint1));
-	if (Vector3x_normalize(&cross1)) {
-		lastPositionFlat.x = Vector3x_magnitude(Vector3x_subtract(projectedLastPosition, 
-	} else if (Vector3x_normalize(&cross2)) {
-		
-	} else {
-		return false;
+	if (intersectSweptCircles(Vector3x_xy(lastPosition), Vector3x_xy(position), radius,
+	                          VECTOR2x_ZERO, VECTOR2x_ZERO, 0x00000,
+	                          &time, &normal)) {
+		Vector3x intersectingPosition = Vector3x_interpolate(lastPosition, position, time);
+		if (intersectingPosition.z >= 0x00000 && intersectingPosition.z <= length) {
+			*outTime = time;
+			*outNormal = Quaternionx_multiplyVector3x(Quaternionx_inverted(planarTransform), normal);
+			return true;
+		}
 	}
 	
-	// Project lastPosition and position onto plane defined by endpoint2 - endpoint1
-	// Call intersectSweptCircles
-	// Use time as result to check endpoint span
-	
-	*/
 	return false;
 }
 
-static bool intersectSphereTriangle(Vector3x lastPosition, Vector3x position, fixed16_16 radius, Vector3x vertex1, Vector3x vertex2, Vector3x vertex3, Vector3x normal, fixed16_16 * outTime) {
+static bool intersectSweptSphereTriangle(Vector3x lastPosition, Vector3x position, fixed16_16 radius, Vector3x vertex1, Vector3x vertex2, Vector3x vertex3, Vector3x normal, fixed16_16 * outTime) {
 	fixed16_16 distance1, distance2;
 	fixed16_16 time;
 	Vector3x collidingPosition, barycenter;
@@ -1346,9 +1337,9 @@ bool intersectionHandler_sphere_trimesh(CollisionObject * object1, CollisionObje
 		vertices[0] = trimesh->vertices[trimesh->edges[edgeIndex].vertexIndexes[0]].position;
 		vertices[1] = trimesh->vertices[trimesh->edges[edgeIndex].vertexIndexes[1]].position;
 		if (Box6x_intersectsBox6x(sphereBounds, box6xEnclosing2Points(vertices[0], vertices[1])) &&
-		    intersectSphereLine3D(sphere->lastPosition, sphere->position, sphere->radius,
-		                          vertices[0], vertices[1], 0x00000,
-		                          &time, &normal)) {
+		    intersectSweptSphereTrimeshEdge(sphere->lastPosition, sphere->position, sphere->radius,
+		                                    vertices[0], vertices[1], trimesh->edges[edgeIndex].planarTransform, trimesh->edges[edgeIndex].length,
+		                                    &time, &normal)) {
 			if (time < bestTime) {
 				bestTime = time;
 				bestNormal = normal;
@@ -1360,9 +1351,9 @@ bool intersectionHandler_sphere_trimesh(CollisionObject * object1, CollisionObje
 		vertices[1] = trimesh->vertices[trimesh->triangles[triangleIndex].vertexIndexes[1]].position;
 		vertices[2] = trimesh->vertices[trimesh->triangles[triangleIndex].vertexIndexes[2]].position;
 		if (Box6x_intersectsBox6x(sphereBounds, box6xEnclosing3Points(vertices[0], vertices[1], vertices[2])) &&
-		    intersectSphereTriangle(sphere->lastPosition, sphere->position, sphere->radius,
-		                            vertices[0], vertices[1], vertices[2], trimesh->triangles[triangleIndex].normal,
-		                            &time)) {
+		    intersectSweptSphereTriangle(sphere->lastPosition, sphere->position, sphere->radius,
+		                                 vertices[0], vertices[1], vertices[2], trimesh->triangles[triangleIndex].normal,
+		                                 &time)) {
 			if (time < bestTime) {
 				bestTime = time;
 				bestNormal = trimesh->triangles[triangleIndex].normal;

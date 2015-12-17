@@ -30,6 +30,7 @@ typedef struct CollisionStaticTrimesh CollisionStaticTrimesh;
 
 #include "collision/CollisionObject.h"
 #include "gamemath/Vector3x.h"
+#include "gamemath/Quaternionx.h"
 
 struct trimeshVertex {
 	Vector3x position;
@@ -41,6 +42,8 @@ struct trimeshVertex {
 struct trimeshConvexEdge {
 	unsigned int vertexIndexes[2];
 	Vector3x normal;
+	Quaternionx planarTransform;
+	fixed16_16 length;
 };
 
 struct trimeshTriangle {

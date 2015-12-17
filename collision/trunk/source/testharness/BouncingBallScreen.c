@@ -22,7 +22,7 @@
 
 #include "collision/CollisionRect2D.h"
 #include "collision/CollisionShared.h"
-#include "gamemath/Matrix.h"
+#include "gamemath/Matrix4x4f.h"
 #include "gamemath/Vector2f.h"
 #include "glgraphics/GLIncludes.h"
 #include "glgraphics/VertexTypes.h"
@@ -299,7 +299,7 @@ static bool draw(Atom eventID, void * eventData, void * context) {
 	unsigned int vertexCount;
 	GLuint * indexes;
 	unsigned int indexCount;
-	Matrix matrix;
+	Matrix4x4f matrix;
 	
 	FixedIntervalRunLoop_run(self->runLoop);
 	
@@ -311,7 +311,7 @@ static bool draw(Atom eventID, void * eventData, void * context) {
 	}
 	
 	glClear(GL_COLOR_BUFFER_BIT);
-	matrix = Matrix_ortho(MATRIX_IDENTITY, -12.0f * g_viewRatio, 12.0f * g_viewRatio, -12.0f, 12.0f, -1.0f, 1.0f);
+	matrix = Matrix4x4f_ortho(MATRIX4x4f_IDENTITY, -12.0f * g_viewRatio, 12.0f * g_viewRatio, -12.0f, 12.0f, -1.0f, 1.0f);
 	glLoadMatrixf(matrix.m);
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_COLOR_ARRAY);
