@@ -61,7 +61,7 @@ extern "C" {
 <% ["d", "f", "i", "x"].each do |type_suffix| -%>
 <% ["d", "f", "i", "x"].each do |type_suffix_2| -%>
 <% next if type_suffix == type_suffix_2 -%>
-#define Vector<%= axis_count %><%= type_suffix %>_toVector<%= axis_count %><%= type_suffix_2 %>(vector) VECTOR<%= axis_count %><%= type_suffix_2 %>(<%= convert("vector.x", type_suffix, type_suffix_2) %><% 1.upto(axis_count - 1) do |axis| %>, <%= convert("vector.#{axis_names[axis]}", type_suffix, type_suffix_2) %><% end %>);
+#define Vector<%= axis_count %><%= type_suffix %>_toVector<%= axis_count %><%= type_suffix_2 %>(vector) VECTOR<%= axis_count %><%= type_suffix_2 %>(<%= convert("vector.x", type_suffix, type_suffix_2) %><% 1.upto(axis_count - 1) do |axis| %>, <%= convert("vector.#{axis_names[axis]}", type_suffix, type_suffix_2) %><% end %>)
 <% end %>
 <% end -%>
 <% end -%>
