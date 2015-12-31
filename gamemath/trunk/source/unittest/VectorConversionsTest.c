@@ -1,3 +1,7 @@
+#include "gamemath/Matrix4x4f.h"
+#include "gamemath/Matrix4x4x.h"
+#include "gamemath/Quaternionf.h"
+#include "gamemath/Quaternionx.h"
 #include "gamemath/Vector2d.h"
 #include "gamemath/Vector2f.h"
 #include "gamemath/Vector2i.h"
@@ -45,6 +49,54 @@
 	assertVector4Equal(vector, expectedX, expectedY, expectedZ, expectedW, "%d")
 #define assertVector4xEqual(vector, expectedX, expectedY, expectedZ, expectedW) \
 	assertVector4Equal(vector, expectedX, expectedY, expectedZ, expectedW, "0x%05X")
+
+#define assertQuaternionEqual(quaternion, expectedX, expectedY, expectedZ, expectedW, format) \
+	TestCase_assert(quaternion.x == expectedX && quaternion.y == expectedY && quaternion.z == expectedZ && quaternion.w == expectedW, "Expected {" format ", " format ", " format ", " format "} but got {" format ", " format ", " format ", " format "}", expectedX, expectedY, expectedZ, expectedW, quaternion.x, quaternion.y, quaternion.z, quaternion.w)
+#define assertQuaternionfEqual(quaternion, expectedX, expectedY, expectedZ, expectedW) \
+	assertQuaternionEqual(quaternion, expectedX, expectedY, expectedZ, expectedW, "%f")
+#define assertQuaternionxEqual(quaternion, expectedX, expectedY, expectedZ, expectedW) \
+	assertQuaternionEqual(quaternion, expectedX, expectedY, expectedZ, expectedW, "0x%05X")
+
+#define assertMatrix4x4Equal(matrix, expected0, expected4, expected8,  expected12, \
+	                                   expected1, expected5, expected9,  expected13, \
+	                                   expected2, expected6, expected10, expected14, \
+	                                   expected3, expected7, expected11, expected15, format) \
+	TestCase_assert(matrix.m[0] == expected0 && matrix.m[4] == expected4 && matrix.m[8]  == expected8  && matrix.m[12] == expected12 && \
+	                matrix.m[1] == expected1 && matrix.m[5] == expected5 && matrix.m[9]  == expected9  && matrix.m[13] == expected13 && \
+	                matrix.m[2] == expected2 && matrix.m[6] == expected6 && matrix.m[10] == expected10 && matrix.m[14] == expected14 && \
+	                matrix.m[3] == expected3 && matrix.m[7] == expected7 && matrix.m[11] == expected11 && matrix.m[15] == expected15, \
+	                "Expected {" format ", " format ", " format ", " format "\n              " \
+	                             format ", " format ", " format ", " format "\n              " \
+	                             format ", " format ", " format ", " format "\n              " \
+	                             format ", " format ", " format ", " format "},\n    but got {" \
+	                             format ", " format ", " format ", " format "\n             " \
+	                             format ", " format ", " format ", " format "\n             " \
+	                             format ", " format ", " format ", " format "\n             " \
+	                             format ", " format ", " format ", " format "}", \
+	                expected0, expected4, expected8,  expected12, \
+	                expected1, expected5, expected9,  expected13, \
+	                expected2, expected6, expected10, expected14, \
+	                expected3, expected7, expected11, expected15, \
+	                matrix.m[0], matrix.m[4], matrix.m[8],  matrix.m[12], \
+	                matrix.m[1], matrix.m[5], matrix.m[9],  matrix.m[13], \
+	                matrix.m[2], matrix.m[6], matrix.m[10], matrix.m[14], \
+	                matrix.m[3], matrix.m[7], matrix.m[11], matrix.m[15])
+#define assertMatrix4x4fEqual(matrix, expected0, expected4, expected8,  expected12, \
+                                      expected1, expected5, expected9,  expected13, \
+                                      expected2, expected6, expected10, expected14, \
+                                      expected3, expected7, expected11, expected15) \
+	assertMatrix4x4Equal(matrix, expected0, expected4, expected8,  expected12, \
+	                             expected1, expected5, expected9,  expected13, \
+	                             expected2, expected6, expected10, expected14, \
+	                             expected3, expected7, expected11, expected15, "%f")
+#define assertMatrix4x4xEqual(matrix, expected0, expected4, expected8,  expected12, \
+                                      expected1, expected5, expected9,  expected13, \
+                                      expected2, expected6, expected10, expected14, \
+                                      expected3, expected7, expected11, expected15) \
+	assertMatrix4x4Equal(matrix, expected0, expected4, expected8,  expected12, \
+	                             expected1, expected5, expected9,  expected13, \
+	                             expected2, expected6, expected10, expected14, \
+	                             expected3, expected7, expected11, expected15, "0x%05X")
 
 static void testTypeConversions() {
 	Vector2d vector2d;
@@ -840,7 +892,63 @@ static void testAxisSelection() {
 	assertVector2xEqual(vector2x, 0x40000, 0x30000);
 }
 
+static void testQuaternionConversions() {
+	Quaternionf quaternionf;
+	Quaternionx quaternionx;
+	
+	quaternionf = Quaternionx_toQuaternionf(QUATERNIONx(0x10000, 0x20000, 0x30000, 0x40000));
+	assertQuaternionfEqual(quaternionf, 1.0f, 2.0f, 3.0f, 4.0f);
+	quaternionf = Quaternionx_toQuaternionf(QUATERNIONx(0x08000, 0x00000, 0x10000, 0x04000));
+	assertQuaternionfEqual(quaternionf, 0.5f, 0.0f, 1.0f, 0.25f);
+	
+	quaternionx = Quaternionf_toQuaternionx(QUATERNIONf(1.0f, 2.0f, 3.0f, 4.0f));
+	assertQuaternionxEqual(quaternionx, 0x10000, 0x20000, 0x30000, 0x40000);
+	quaternionx = Quaternionf_toQuaternionx(QUATERNIONf(0.5f, 0.0f, 1.0f, 0.25f));
+	assertQuaternionxEqual(quaternionx, 0x08000, 0x00000, 0x10000, 0x04000);
+}
+
+static void testMatrixConversions() {
+	Matrix4x4f matrixf;
+	Matrix4x4x matrixx;
+	
+	matrixf = Matrix4x4x_toMatrix4x4f(MATRIX4x4x(0x00000, 0x40000, 0x80000, 0xC0000,
+	                                             0x10000, 0x50000, 0x90000, 0xD0000,
+	                                             0x20000, 0x60000, 0xA0000, 0xE0000,
+	                                             0x30000, 0x70000, 0xB0000, 0xF0000));
+	assertMatrix4x4fEqual(matrixf, 0.0f, 4.0f, 8.0f,  12.0f,
+	                               1.0f, 5.0f, 9.0f,  13.0f,
+	                               2.0f, 6.0f, 10.0f, 14.0f,
+	                               3.0f, 7.0f, 11.0f, 15.0f);
+	matrixf = Matrix4x4x_toMatrix4x4f(MATRIX4x4x(0x08000, 0x00000, 0x00000, 0x00000,
+	                                             0x00000, 0x10000, 0x00000, 0x00000,
+	                                             0x00000, 0x00000, 0x18000, 0x00000,
+	                                             0x00000, 0x00000, 0x00000, 0x04000));
+	assertMatrix4x4fEqual(matrixf, 0.5f, 0.0f, 0.0f, 0.0f,
+	                               0.0f, 1.0f, 0.0f, 0.0f,
+	                               0.0f, 0.0f, 1.5f, 0.0f,
+	                               0.0f, 0.0f, 0.0f, 0.25f);
+	
+	matrixx = Matrix4x4f_toMatrix4x4x(MATRIX4x4f(0.0f, 4.0f, 8.0f,  12.0f,
+	                                             1.0f, 5.0f, 9.0f,  13.0f,
+	                                             2.0f, 6.0f, 10.0f, 14.0f,
+	                                             3.0f, 7.0f, 11.0f, 15.0f));
+	assertMatrix4x4xEqual(matrixx, 0x00000, 0x40000, 0x80000, 0xC0000,
+	                               0x10000, 0x50000, 0x90000, 0xD0000,
+	                               0x20000, 0x60000, 0xA0000, 0xE0000,
+	                               0x30000, 0x70000, 0xB0000, 0xF0000);
+	matrixx = Matrix4x4f_toMatrix4x4x(MATRIX4x4f(0.5f, 0.0f, 0.0f, 0.0f,
+	                                             0.0f, 1.0f, 0.0f, 0.0f,
+	                                             0.0f, 0.0f, 1.5f, 0.0f,
+	                                             0.0f, 0.0f, 0.0f, 0.25f));
+	assertMatrix4x4xEqual(matrixx, 0x08000, 0x00000, 0x00000, 0x00000,
+	                               0x00000, 0x10000, 0x00000, 0x00000,
+	                               0x00000, 0x00000, 0x18000, 0x00000,
+	                               0x00000, 0x00000, 0x00000, 0x04000);
+}
+
 TEST_SUITE(VectorConversionsTest,
            testTypeConversions,
            testAxisRearrangement,
-           testAxisSelection)
+           testAxisSelection,
+           testQuaternionConversions,
+           testMatrixConversions)

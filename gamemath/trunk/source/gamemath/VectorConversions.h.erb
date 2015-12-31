@@ -97,6 +97,19 @@ extern "C" {
 #define Vector4<%= type_suffix %>_<%= axes[0] + axes[1] %>(vector) VECTOR2<%= type_suffix %>(vector.<%= axes[0] %>, vector.<%= axes[1] %>)
 <% end %>
 <% end -%>
+
+#define Quaternionf_toQuaternionx(quaternion) QUATERNIONx(ftox(quaternion.x), ftox(quaternion.y), ftox(quaternion.z), ftox(quaternion.w))
+#define Quaternionx_toQuaternionf(quaternion) QUATERNIONf(xtof(quaternion.x), xtof(quaternion.y), xtof(quaternion.z), xtof(quaternion.w))
+
+#define Matrix4x4f_toMatrix4x4x(matrix) MATRIX4x4x(ftox(matrix.m[0]), ftox(matrix.m[4]), ftox(matrix.m[8]),  ftox(matrix.m[12]), \
+                                                   ftox(matrix.m[1]), ftox(matrix.m[5]), ftox(matrix.m[9]),  ftox(matrix.m[13]), \
+                                                   ftox(matrix.m[2]), ftox(matrix.m[6]), ftox(matrix.m[10]), ftox(matrix.m[14]), \
+                                                   ftox(matrix.m[3]), ftox(matrix.m[7]), ftox(matrix.m[11]), ftox(matrix.m[15]))
+#define Matrix4x4x_toMatrix4x4f(matrix) MATRIX4x4f(xtof(matrix.m[0]), xtof(matrix.m[4]), xtof(matrix.m[8]),  xtof(matrix.m[12]), \
+                                                   xtof(matrix.m[1]), xtof(matrix.m[5]), xtof(matrix.m[9]),  xtof(matrix.m[13]), \
+                                                   xtof(matrix.m[2]), xtof(matrix.m[6]), xtof(matrix.m[10]), xtof(matrix.m[14]), \
+                                                   xtof(matrix.m[3]), xtof(matrix.m[7]), xtof(matrix.m[11]), xtof(matrix.m[15]))
+
 #ifdef __cplusplus
 }
 #endif
