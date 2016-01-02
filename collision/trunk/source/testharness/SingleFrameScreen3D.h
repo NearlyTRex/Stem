@@ -20,45 +20,55 @@
   Alex Diener alex@ludobloom.com
 */
 
-#ifndef __SingleFrameScreen_H__
-#define __SingleFrameScreen_H__
+#ifndef __SingleFrameScreen3D_H__
+#define __SingleFrameScreen3D_H__
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef struct SingleFrameScreen SingleFrameScreen;
+typedef struct SingleFrameScreen3D SingleFrameScreen3D;
 
 #include "collision/CollisionResolver.h"
 #include "collision/IntersectionManager.h"
-#include "gamemath/Vector2x.h"
+#include "gamemath/Quaternionx.h"
+#include "gamemath/Vector3x.h"
+#include "glslshader/GLSLShader.h"
 #include "resourcemanager/ResourceManager.h"
 #include "screenmanager/Screen.h"
 
-#define SingleFrameScreen_structContents(self_type) \
+enum SingleFrameScreen3D_dragMode {
+	DRAG_NONE,
+	DRAG_OBJECT_POSITION,
+	DRAG_OBJECT_LAST_POSITION,
+	DRAG_OBJECT_BOTH_POSITIONS,
+	DRAG_OBJECT_SIZE,
+	DRAG_OBJECT_LAST_SIZE,
+	DRAG_OBJECT_BOTH_SIZES,
+	DRAG_CAMERA_DIRECTION,
+	DRAG_CAMERA_FOCUS,
+	DRAG_CAMERA_DISTANCE
+};
+
+#define SingleFrameScreen3D_structContents(self_type) \
 	Screen_structContents(self_type) \
 	\
 	IntersectionManager * intersectionManager; \
 	CollisionResolver * resolver; \
-	Vector2x dragOrigin; \
-	bool dragging; \
-	bool draggingLastPosition; \
-	bool draggingBoth; \
-	bool draggingSize; \
+	GLSLShader * lightShader; \
+	enum SingleFrameScreen3D_dragMode dragMode; \
 	size_t selectedObjectIndex; \
-	Vector2x dragStartPosition; \
-	Vector2x dragStartLastPosition; \
-	Vector2x dragStartSize; \
-	Vector2x dragStartLastSize; \
-	fixed16_16 dragStartRadius;
+	Vector3x cameraFocus; \
+	Quaternionx cameraDirection; \
+	fixed16_16 cameraDistance;
 
-stemobject_struct_definition(SingleFrameScreen)
+stemobject_struct_definition(SingleFrameScreen3D)
 
-SingleFrameScreen * SingleFrameScreen_create(ResourceManager * resourceManager);
-bool SingleFrameScreen_init(SingleFrameScreen * self, ResourceManager * resourceManager);
-void SingleFrameScreen_dispose(SingleFrameScreen * self);
+SingleFrameScreen3D * SingleFrameScreen3D_create(ResourceManager * resourceManager);
+bool SingleFrameScreen3D_init(SingleFrameScreen3D * self, ResourceManager * resourceManager);
+void SingleFrameScreen3D_dispose(SingleFrameScreen3D * self);
 
-void SingleFrameScreen_activate(SingleFrameScreen * self);
-void SingleFrameScreen_deactivate(SingleFrameScreen * self);
+void SingleFrameScreen3D_activate(SingleFrameScreen3D * self);
+void SingleFrameScreen3D_deactivate(SingleFrameScreen3D * self);
 
 #ifdef __cplusplus
 }

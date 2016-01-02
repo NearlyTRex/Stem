@@ -2734,7 +2734,24 @@ static void testCapsule_capsule() {
 }
 
 static void testCapsule_trimesh() {
-	//TestCase_assert(false, "Unimplemented");
+	/*
+	CollisionCapsule capsule;
+	CollisionStaticTrimesh trimesh;
+	bool result;
+	fixed16_16 time, contactArea;
+	Vector3x normal, object1Vector, object2Vector;
+	Vector3x vertices[] = {{0x00000, 0x00000, 0x00000}, {0x20000, 0x00000, 0x00000}, {0x00000, 0x00000, 0x20000},
+	                       {0x00000, 0x00000, 0x00000}, {0x00000, 0x00000, 0x20000}, {0x00000, 0x20000, 0x00000},
+	                       {0x00000, 0x00000, 0x00000}, {0x00000, 0x20000, 0x00000}, {0x20000, 0x00000, 0x00000},
+	                       {0x00000, 0x20000, 0x00000}, {0x00000, 0x00000, 0x20000}, {0x20000, 0x00000, 0x00000}};
+	
+	CollisionStaticTrimesh_init(&trimesh, NULL, NULL, vertices, 12);
+	
+	// ...
+	
+	CollisionStaticTrimesh_dispose(&trimesh);
+	*/
+	TestCase_assert(false, "Unimplemented");
 }
 
 static void testTrimesh_trimesh() {

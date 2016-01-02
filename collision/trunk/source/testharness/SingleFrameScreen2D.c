@@ -24,12 +24,14 @@
 #include "collision/CollisionRect2D.h"
 #include "collision/CollisionShared.h"
 #include "gamemath/Matrix4x4f.h"
+#include "gamemath/MouseCoordinateTransforms.h"
 #include "gamemath/Vector2f.h"
+#include "gamemath/VectorConversions.h"
 #include "glgraphics/GLIncludes.h"
 #include "glgraphics/VertexTypes.h"
 #include "shell/Shell.h"
 #include "shell/ShellKeyCodes.h"
-#include "testharness/SingleFrameScreen.h"
+#include "testharness/SingleFrameScreen2D.h"
 #include "testharness/SharedEvents.h"
 #include "testharness/TestHarness_globals.h"
 #include <math.h>
@@ -38,27 +40,27 @@
 
 #define SUPERCLASS Screen
 
-SingleFrameScreen * SingleFrameScreen_create(ResourceManager * resourceManager) {
-	stemobject_create_implementation(SingleFrameScreen, init, resourceManager)
+SingleFrameScreen2D * SingleFrameScreen2D_create(ResourceManager * resourceManager) {
+	stemobject_create_implementation(SingleFrameScreen2D, init, resourceManager)
 }
 
-bool SingleFrameScreen_init(SingleFrameScreen * self, ResourceManager * resourceManager) {
+bool SingleFrameScreen2D_init(SingleFrameScreen2D * self, ResourceManager * resourceManager) {
 	call_super(init, self);
-	self->dispose = SingleFrameScreen_dispose;
-	self->activate = SingleFrameScreen_activate;
-	self->deactivate = SingleFrameScreen_deactivate;
+	self->dispose = SingleFrameScreen2D_dispose;
+	self->activate = SingleFrameScreen2D_activate;
+	self->deactivate = SingleFrameScreen2D_deactivate;
 	self->intersectionManager = IntersectionManager_createWithStandardHandlers();
 	return true;
 }
 
-void SingleFrameScreen_dispose(SingleFrameScreen * self) {
+void SingleFrameScreen2D_dispose(SingleFrameScreen2D * self) {
 	IntersectionManager_dispose(self->intersectionManager);
 	call_super(dispose, self);
 }
 
 #define ARROW_RADIUS 0.375f
 
-static void getArrowVertices2D(Vector2x position, Vector3x normal, struct vertex_p2f_c4f * outVertices, GLuint * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount) {
+static void getArrowVertices(Vector2x position, Vector3x normal, struct vertex_p2f_c4f * outVertices, GLuint * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount) {
 	if (outVertices != NULL) {
 		struct vertex_p2f_c4f vertex;
 		Vector2f positionf = VECTOR2f(xtof(position.x), xtof(position.y));
@@ -118,7 +120,7 @@ static void setVertexColor(struct vertex_p2f_c4f * vertex, Color4f color) {
 	vertex->color[3] = color.alpha;
 }
 
-static void getCollisionObjectVertices2D(SingleFrameScreen * self, struct vertex_p2f_c4f * outVertices, GLuint * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount) {
+static void getCollisionObjectVertices(SingleFrameScreen2D * self, struct vertex_p2f_c4f * outVertices, GLuint * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount) {
 	size_t objectIndex;
 	CollisionObject * object;
 	struct vertex_p2f_c4f vertex;
@@ -233,7 +235,7 @@ static void getCollisionObjectVertices2D(SingleFrameScreen * self, struct vertex
 					}
 					*ioVertexCount += 4;
 					
-					getArrowVertices2D(VECTOR2x(collidingPosition.x + collidingSize.x / 2, collidingPosition.y + collidingSize.y / 2), collision.normal, outVertices, outIndexes, ioVertexCount, ioIndexCount);
+					getArrowVertices(VECTOR2x(collidingPosition.x + collidingSize.x / 2, collidingPosition.y + collidingSize.y / 2), collision.normal, outVertices, outIndexes, ioVertexCount, ioIndexCount);
 				}
 				break;
 			}
@@ -327,7 +329,7 @@ static void getCollisionObjectVertices2D(SingleFrameScreen * self, struct vertex
 					*ioVertexCount += CIRCLE_TESSELATIONS;
 					*ioIndexCount += CIRCLE_TESSELATIONS * 2;
 					
-					getArrowVertices2D(collidingPosition, collision.normal, outVertices, outIndexes, ioVertexCount, ioIndexCount);
+					getArrowVertices(collidingPosition, collision.normal, outVertices, outIndexes, ioVertexCount, ioIndexCount);
 				}
 				break;
 			}
@@ -336,7 +338,7 @@ static void getCollisionObjectVertices2D(SingleFrameScreen * self, struct vertex
 }
 
 static bool draw(Atom eventID, void * eventData, void * context) {
-	SingleFrameScreen * self = context;
+	SingleFrameScreen2D * self = context;
 	static GLuint vertexBufferID, indexBufferID;
 	struct vertex_p2f_c4f * vertices;
 	unsigned int vertexCount;
@@ -352,7 +354,7 @@ static bool draw(Atom eventID, void * eventData, void * context) {
 	glClear(GL_COLOR_BUFFER_BIT);
 	
 	vertexCount = indexCount = 0;
-	getCollisionObjectVertices2D(self, NULL, NULL, &vertexCount, &indexCount);
+	getCollisionObjectVertices(self, NULL, NULL, &vertexCount, &indexCount);
 	glBindBufferARB(GL_ARRAY_BUFFER, vertexBufferID);
 	glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER, indexBufferID);
 	glBufferDataARB(GL_ARRAY_BUFFER, sizeof(struct vertex_p2f_c4f) * vertexCount, NULL, GL_STREAM_DRAW);
@@ -360,7 +362,7 @@ static bool draw(Atom eventID, void * eventData, void * context) {
 	vertices = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
 	indexes = glMapBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_WRITE_ONLY);
 	vertexCount = indexCount = 0;
-	getCollisionObjectVertices2D(self, vertices, indexes, &vertexCount, &indexCount);
+	getCollisionObjectVertices(self, vertices, indexes, &vertexCount, &indexCount);
 	glUnmapBuffer(GL_ARRAY_BUFFER);
 	glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
 	
@@ -383,7 +385,7 @@ static bool draw(Atom eventID, void * eventData, void * context) {
 }
 
 static bool keyDown(Atom eventID, void * eventData, void * context) {
-	SingleFrameScreen * self = context;
+	SingleFrameScreen2D * self = context;
 	struct keyEvent * event = eventData;
 	
 	switch (event->keyCode) {
@@ -417,19 +419,11 @@ static bool keyDown(Atom eventID, void * eventData, void * context) {
 	return true;
 }
 
-static Vector2x transformMousePosition(float x, float y) {
-	Vector2x result;
-	
-	result.x = ftox((x - g_viewWidth / 2) / g_viewWidth * 2 * 12 * g_viewRatio);
-	result.y = ftox((g_viewHeight / 2 - y) / g_viewHeight * 2 * 12);
-	return result;
-}
-
 #define DOUBLE_CLICK_INTERVAL 0.25
 #define DOUBLE_CLICK_MAX_DISTANCE 4.0f
 
 static bool mouseDown(Atom eventID, void * eventData, void * context) {
-	SingleFrameScreen * self = context;
+	SingleFrameScreen2D * self = context;
 	struct mouseEvent * event = eventData;
 	static double lastClickTime;
 	static Vector2f lastClickPosition;
@@ -454,7 +448,7 @@ static bool mouseDown(Atom eventID, void * eventData, void * context) {
 		self->dragging = false;
 		
 	} else {
-		self->dragOrigin = transformMousePosition(event->position.x, event->position.y);
+		self->dragOrigin = Vector2f_toVector2x(transformMousePosition_signedCenter(VECTOR2f(event->position.x, event->position.y), g_viewWidth, g_viewHeight, 12.0f));
 		self->draggingLastPosition = g_shiftKeyDown;
 		self->draggingBoth = g_controlKeyDown;
 		self->draggingSize = g_altKeyDown;
@@ -485,16 +479,16 @@ static bool mouseDown(Atom eventID, void * eventData, void * context) {
 }
 
 static bool mouseUp(Atom eventID, void * eventData, void * context) {
-	SingleFrameScreen * self = context;
+	SingleFrameScreen2D * self = context;
 	
 	self->dragging = false;
 	return true;
 }
 
 static bool mouseDragged(Atom eventID, void * eventData, void * context) {
-	SingleFrameScreen * self = context;
+	SingleFrameScreen2D * self = context;
 	struct mouseEvent * event = eventData;
-	Vector2x mousePosition = transformMousePosition(event->position.x, event->position.y);
+	Vector2x mousePosition = Vector2f_toVector2x(transformMousePosition_signedCenter(VECTOR2f(event->position.x, event->position.y), g_viewWidth, g_viewHeight, 12.0f));
 	CollisionObject * object = self->resolver->objects[self->selectedObjectIndex];
 	
 	switch (object->shapeType) {
@@ -548,7 +542,7 @@ static bool resized(Atom eventID, void * eventData, void * context) {
 	return true;
 }
 
-void SingleFrameScreen_activate(SingleFrameScreen * self) {
+void SingleFrameScreen2D_activate(SingleFrameScreen2D * self) {
 	self->resolver = CollisionResolver_create(self->intersectionManager, false);
 	CollisionResolver_addObject(self->resolver, (CollisionObject *) CollisionRect2D_create(NULL, NULL, VECTOR2x(0x00000, 0x00000), VECTOR2x(0x10000, 0x10000), 0x00000));
 	CollisionResolver_addObject(self->resolver, (CollisionObject *) CollisionRect2D_create(NULL, NULL, VECTOR2x(0x20000, -0x40000), VECTOR2x(0x50000, 0x20000), 0x00000));
@@ -571,7 +565,7 @@ void SingleFrameScreen_activate(SingleFrameScreen * self) {
 	Shell_redisplay();
 }
 
-void SingleFrameScreen_deactivate(SingleFrameScreen * self) {
+void SingleFrameScreen2D_deactivate(SingleFrameScreen2D * self) {
 	size_t objectIndex;
 	
 	for (objectIndex = 0; objectIndex < self->resolver->objectCount; objectIndex++) {

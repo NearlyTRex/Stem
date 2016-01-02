@@ -1422,6 +1422,24 @@ bool intersectionHandler_capsule_capsule(CollisionObject * object1, CollisionObj
 }
 
 bool intersectionHandler_capsule_trimesh(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal, Vector3x * outObject1Vector, Vector3x * outObject2Vector, fixed16_16 * outContactArea) {
+	// for each vertex:
+	//   test bottom cap (intersectSweptSpheres); discard if normal y > 0
+	//   test top cap (intersectSweptSpheres); discard if normal y < 0
+	//   test cylinder (intersectSweptCircles xz, check y)
+	// for each edge:
+	//   test bottom cap (intersectSweptSphereTrimeshEdge); discard if normal y > 0
+	//   test top cap (intersectSweptSphereTrimeshEdge); discard if normal y < 0
+	//   test cylinder:
+	//     cross edge vector with up
+	//     if too parallel, no intersection (covered by vertex tests)
+	//     normalize cross and dot with cylinder lastPosition and position to find intersecting depth
+	//     at intersecting depth, dot with normalize(endpoint2 - endpoint1)
+	//     if positive and less than magnitude(endpoint2 - endpoint1), interpolate along edge for point
+	//     check if point's y is within cylinder's span
+	// for each face:
+	//   test bottom cap (intersectSweptSphereTriangle); discard if normal y > 0
+	//   test top cap (intersectSweptSphereTriangle); discard if normal y < 0
+	//   don't test cylinder; can't have any kind of collision not otherwise detected
 	return false;
 }
 

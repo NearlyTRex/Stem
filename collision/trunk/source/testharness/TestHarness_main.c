@@ -22,7 +22,8 @@
 
 #include "testharness/BouncingBallScreen.h"
 #include "testharness/ResourceWiring.h"
-#include "testharness/SingleFrameScreen.h"
+#include "testharness/SingleFrameScreen2D.h"
+#include "testharness/SingleFrameScreen3D.h"
 #include "testharness/SharedEvents.h"
 #include "testharness/TestHarness_globals.h"
 
@@ -65,7 +66,8 @@
 // - Stress test (control number/speed of collisiding objects with performance metrics)
 
 static ScreenManager * screenManager;
-static SingleFrameScreen * singleFrameScreen;
+static SingleFrameScreen2D * singleFrameScreen2D;
+static SingleFrameScreen3D * singleFrameScreen3D;
 static BouncingBallScreen * bouncingBallScreen;
 static ResourceManager * resourceManager;
 
@@ -83,10 +85,13 @@ static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned
 		EventDispatcher_dispatchEvent(screenManager->eventDispatcher, ATOM(Shell_isFullScreen() ? EVENT_FULLSCREENED : EVENT_WINDOWED), NULL);
 		
 	} else if (keyCode == KEYBOARD_1) {
-		ScreenManager_setScreen(screenManager, singleFrameScreen);
+		ScreenManager_setScreen(screenManager, singleFrameScreen2D);
 		
 	} else if (keyCode == KEYBOARD_2) {
 		ScreenManager_setScreen(screenManager, bouncingBallScreen);
+		
+	} else if (keyCode == KEYBOARD_3) {
+		ScreenManager_setScreen(screenManager, singleFrameScreen3D);
 		
 	} else {
 		struct keyEvent event;
@@ -231,6 +236,7 @@ void GLXTarget_configure(int argc, const char ** argv, struct GLXShellConfigurat
 	configuration->windowWidth = g_viewWidth = windowWidth;
 	configuration->windowHeight = g_viewHeight = windowHeight;
 	configuration->windowTitle = "Collision Test Harness";
+	configuration->displayMode.depthBuffer = true;
 	
 	registerShellCallbacks();
 }
@@ -242,11 +248,13 @@ void Target_init() {
 	ResourceWiring_addTypeHandlers(resourceManager);
 	
 	screenManager = ScreenManager_create();
-	singleFrameScreen = SingleFrameScreen_create(resourceManager);
+	singleFrameScreen2D = SingleFrameScreen2D_create(resourceManager);
+	singleFrameScreen3D = SingleFrameScreen3D_create(resourceManager);
 	bouncingBallScreen = BouncingBallScreen_create(resourceManager);
-	ScreenManager_addScreen(screenManager, singleFrameScreen);
+	ScreenManager_addScreen(screenManager, singleFrameScreen2D);
+	ScreenManager_addScreen(screenManager, singleFrameScreen3D);
 	ScreenManager_addScreen(screenManager, bouncingBallScreen);
-	ScreenManager_setScreen(screenManager, singleFrameScreen);
+	ScreenManager_setScreen(screenManager, singleFrameScreen2D);
 	
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	Shell_setVSync(false, false);

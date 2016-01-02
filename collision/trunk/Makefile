@@ -45,6 +45,7 @@ STEM_LIBRARY_DEPENDENCIES_unittest = \
 
 STEM_LIBRARY_DEPENDENCIES_testharness = \
 	glbitmapfont/latest \
+	glslshader/latest \
 	jsonserialization/latest \
 	pngimageio/latest \
 	resourcemanager/latest \
@@ -99,7 +100,8 @@ SOURCES_unittest_suites = \
 SOURCES_testharness = \
 	source/testharness/BouncingBallScreen.c \
 	source/testharness/ResourceWiring.c \
-	source/testharness/SingleFrameScreen.c \
+	source/testharness/SingleFrameScreen2D.c \
+	source/testharness/SingleFrameScreen3D.c \
 	source/testharness/TestHarness_globals.c \
 	source/testharness/TestHarness_main.c
 
@@ -120,6 +122,8 @@ INCLUDES = \
 
 # Patterns: RESOURCES, RESOURCES_${target}, RESOURCES_${platform}, RESOURCES_${target}_${platform}
 RESOURCES_testharness = \
+	resources/litsurface.frag \
+	resources/litsurface.vert \
 	resources/verdana_atlas.json \
 	resources/verdana_font.json \
 	resources/verdana_texture.json \
