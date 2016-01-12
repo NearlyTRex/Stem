@@ -32,34 +32,27 @@ typedef struct SingleFrameScreen3D SingleFrameScreen3D;
 #include "collision/IntersectionManager.h"
 #include "gamemath/Quaternionx.h"
 #include "gamemath/Vector3x.h"
+#include "glbitmapfont/GLBitmapFont.h"
 #include "glslshader/GLSLShader.h"
 #include "resourcemanager/ResourceManager.h"
 #include "screenmanager/Screen.h"
 
-enum SingleFrameScreen3D_dragMode {
-	DRAG_NONE,
-	DRAG_OBJECT_POSITION,
-	DRAG_OBJECT_LAST_POSITION,
-	DRAG_OBJECT_BOTH_POSITIONS,
-	DRAG_OBJECT_SIZE,
-	DRAG_OBJECT_LAST_SIZE,
-	DRAG_OBJECT_BOTH_SIZES,
-	DRAG_CAMERA_DIRECTION,
-	DRAG_CAMERA_FOCUS,
-	DRAG_CAMERA_DISTANCE
-};
+#define OBJECT_COUNT_3D 5
 
 #define SingleFrameScreen3D_structContents(self_type) \
 	Screen_structContents(self_type) \
 	\
 	IntersectionManager * intersectionManager; \
 	CollisionResolver * resolver; \
+	ResourceManager * resourceManager; \
 	GLSLShader * lightShader; \
-	enum SingleFrameScreen3D_dragMode dragMode; \
+	GLBitmapFont * font; \
+	bool draggingCamera; \
 	size_t selectedObjectIndex; \
 	Vector3x cameraFocus; \
 	Quaternionx cameraDirection; \
-	fixed16_16 cameraDistance;
+	fixed16_16 cameraDistance; \
+	CollisionRecord collisions[OBJECT_COUNT_3D];
 
 stemobject_struct_definition(SingleFrameScreen3D)
 

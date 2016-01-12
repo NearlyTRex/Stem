@@ -23,6 +23,7 @@
 #include "collision/CollisionBox3D.h"
 #include "collision/CollisionShared.h"
 #include "collision/CollisionSphere.h"
+#include "collision/CollisionStaticTrimesh.h"
 #include "gamemath/Matrix4x4f.h"
 #include "gamemath/MouseCoordinateTransforms.h"
 #include "gamemath/Quaternionf.h"
@@ -30,11 +31,13 @@
 #include "glgraphics/GLIncludes.h"
 #include "glgraphics/VertexTypes.h"
 #include "shell/Shell.h"
+#include "shell/ShellKeyCodes.h"
 #include "testharness/SingleFrameScreen3D.h"
 #include "testharness/SharedEvents.h"
 #include "testharness/TestHarness_globals.h"
 #include <stddef.h>
 #include <stdlib.h>
+#include <math.h>
 
 #define SUPERCLASS Screen
 
@@ -131,14 +134,157 @@ bool SingleFrameScreen3D_init(SingleFrameScreen3D * self, ResourceManager * reso
 	self->activate = SingleFrameScreen3D_activate;
 	self->deactivate = SingleFrameScreen3D_deactivate;
 	self->intersectionManager = IntersectionManager_createWithStandardHandlers();
+	self->resourceManager = resourceManager;
 	self->lightShader = GLSLShader_createWithFiles("litsurface.vert", "litsurface.frag", NULL);
+	self->font = ResourceManager_referenceResource(self->resourceManager, "bitmap_font", "verdana_font.json");
 	return true;
 }
 
 void SingleFrameScreen3D_dispose(SingleFrameScreen3D * self) {
 	IntersectionManager_dispose(self->intersectionManager);
 	GLSLShader_dispose(self->lightShader);
+	ResourceManager_releaseResource(self->resourceManager, "bitmap_font", "verdana_font.json");
 	call_super(dispose, self);
+}
+
+static void updateCollisions(SingleFrameScreen3D * self) {
+	unsigned int collisionIndex;
+	
+	for (collisionIndex = 0; collisionIndex < OBJECT_COUNT_3D; collisionIndex++) {
+		if (!CollisionResolver_querySingle(self->resolver, self->resolver->objects[collisionIndex], &self->collisions[collisionIndex])) {
+			self->collisions[collisionIndex].time = -1;
+		}
+	}
+}
+
+#define COLOR_BOX_LAST_POSITION                COLOR4f(0.5f, 0.25f, 0.0f, 1.0f)
+#define COLOR_BOX_LAST_POSITION_HIGHLIGHT      COLOR4f(0.75f, 0.625f, 0.125f, 1.0f)
+#define COLOR_BOX_POSITION                     COLOR4f(1.0f, 1.0f, 0.0f, 1.0f)
+#define COLOR_BOX_POSITION_HIGHLIGHT           COLOR4f(1.0f, 1.0f, 0.875f, 1.0f)
+#define COLOR_BOX_POSITION_COLLIDING           COLOR4f(1.0f, 0.0f, 0.0f, 1.0f)
+#define COLOR_BOX_POSITION_COLLIDING_HIGHLIGHT COLOR4f(1.0f, 0.75f, 0.75f, 1.0f)
+
+#define COLOR_SPHERE_LAST_POSITION                COLOR4f(0.0f, 0.25f, 0.5f, 1.0f)
+#define COLOR_SPHERE_LAST_POSITION_HIGHLIGHT      COLOR4f(0.125f, 0.625f, 0.75f, 1.0f)
+#define COLOR_SPHERE_POSITION                     COLOR4f(0.0f, 1.0f, 1.0f, 1.0f)
+#define COLOR_SPHERE_POSITION_HIGHLIGHT           COLOR4f(0.875f, 1.0f, 1.0f, 1.0f)
+#define COLOR_SPHERE_POSITION_COLLIDING           COLOR4f(1.0f, 0.0f, 0.0f, 1.0f)
+#define COLOR_SPHERE_POSITION_COLLIDING_HIGHLIGHT COLOR4f(1.0f, 0.75f, 0.75f, 1.0f)
+
+#define COLOR_TRIMESH COLOR4f(0.0f, 1.0f, 0.0f, 1.0f)
+
+#define SWEEP_ALPHA 0.5f
+
+static void setVertexColor(struct vertex_p3f_n3f_c4f * vertex, Color4f color) {
+	vertex->color[0] = color.red;
+	vertex->color[1] = color.green;
+	vertex->color[2] = color.blue;
+	vertex->color[3] = color.alpha;
+}
+
+static void getBoxVertices(Vector3f position, Vector3f size, Color4f color, struct vertex_p3f_n3f_c4f * outVertices, GLuint * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount) {
+	if (outVertices != NULL) {
+		struct vertex_p3f_n3f_c4f vertex;
+		
+		setVertexColor(&vertex, color);
+		vertex.normal[0] = -1.0f;
+		vertex.normal[1] = 0.0f;
+		vertex.normal[2] = 0.0f;
+		vertex.position[0] = position.x;
+		vertex.position[1] = position.y;
+		vertex.position[2] = position.z;
+		outVertices[*ioVertexCount + 0] = vertex;
+		vertex.position[2] = position.z + size.z;
+		outVertices[*ioVertexCount + 1] = vertex;
+		vertex.position[1] = position.y + size.y;
+		outVertices[*ioVertexCount + 2] = vertex;
+		vertex.position[2] = position.z;
+		outVertices[*ioVertexCount + 3] = vertex;
+		
+		vertex.normal[0] = 1.0f;
+		vertex.normal[1] = 0.0f;
+		vertex.normal[2] = 0.0f;
+		vertex.position[0] = position.x + size.x;
+		vertex.position[1] = position.y;
+		vertex.position[2] = position.z + size.z;
+		outVertices[*ioVertexCount + 4] = vertex;
+		vertex.position[2] = position.z;
+		outVertices[*ioVertexCount + 5] = vertex;
+		vertex.position[1] = position.y + size.y;
+		outVertices[*ioVertexCount + 6] = vertex;
+		vertex.position[2] = position.z + size.z;
+		outVertices[*ioVertexCount + 7] = vertex;
+		
+		vertex.normal[0] = 0.0f;
+		vertex.normal[1] = -1.0f;
+		vertex.normal[2] = 0.0f;
+		vertex.position[0] = position.x;
+		vertex.position[1] = position.y;
+		vertex.position[2] = position.z;
+		outVertices[*ioVertexCount + 8] = vertex;
+		vertex.position[0] = position.x + size.x;
+		outVertices[*ioVertexCount + 9] = vertex;
+		vertex.position[2] = position.z + size.z;
+		outVertices[*ioVertexCount + 10] = vertex;
+		vertex.position[0] = position.x;
+		outVertices[*ioVertexCount + 11] = vertex;
+		
+		vertex.normal[0] = 0.0f;
+		vertex.normal[1] = 1.0f;
+		vertex.normal[2] = 0.0f;
+		vertex.position[0] = position.x;
+		vertex.position[1] = position.y + size.y;
+		vertex.position[2] = position.z + size.z;
+		outVertices[*ioVertexCount + 12] = vertex;
+		vertex.position[0] = position.x + size.x;
+		outVertices[*ioVertexCount + 13] = vertex;
+		vertex.position[2] = position.z;
+		outVertices[*ioVertexCount + 14] = vertex;
+		vertex.position[0] = position.x;
+		outVertices[*ioVertexCount + 15] = vertex;
+		
+		vertex.normal[0] = 0.0f;
+		vertex.normal[1] = 0.0f;
+		vertex.normal[2] = -1.0f;
+		vertex.position[0] = position.x + size.x;
+		vertex.position[1] = position.y;
+		vertex.position[2] = position.z;
+		outVertices[*ioVertexCount + 16] = vertex;
+		vertex.position[0] = position.x;
+		outVertices[*ioVertexCount + 17] = vertex;
+		vertex.position[1] = position.y + size.y;
+		outVertices[*ioVertexCount + 18] = vertex;
+		vertex.position[0] = position.x + size.x;
+		outVertices[*ioVertexCount + 19] = vertex;
+		
+		vertex.normal[0] = 0.0f;
+		vertex.normal[1] = 0.0f;
+		vertex.normal[2] = 1.0f;
+		vertex.position[0] = position.x;
+		vertex.position[1] = position.y;
+		vertex.position[2] = position.z + size.z;
+		outVertices[*ioVertexCount + 20] = vertex;
+		vertex.position[0] = position.x + size.x;
+		outVertices[*ioVertexCount + 21] = vertex;
+		vertex.position[1] = position.y + size.y;
+		outVertices[*ioVertexCount + 22] = vertex;
+		vertex.position[0] = position.x;
+		outVertices[*ioVertexCount + 23] = vertex;
+	}
+	if (outIndexes != NULL) {
+		unsigned int faceIndex;
+		
+		for (faceIndex = 0; faceIndex < 6; faceIndex++) {
+			outIndexes[*ioIndexCount + faceIndex * 6 + 0] = *ioVertexCount + faceIndex * 4 + 0;
+			outIndexes[*ioIndexCount + faceIndex * 6 + 1] = *ioVertexCount + faceIndex * 4 + 1;
+			outIndexes[*ioIndexCount + faceIndex * 6 + 2] = *ioVertexCount + faceIndex * 4 + 2;
+			outIndexes[*ioIndexCount + faceIndex * 6 + 3] = *ioVertexCount + faceIndex * 4 + 2;
+			outIndexes[*ioIndexCount + faceIndex * 6 + 4] = *ioVertexCount + faceIndex * 4 + 3;
+			outIndexes[*ioIndexCount + faceIndex * 6 + 5] = *ioVertexCount + faceIndex * 4 + 0;
+		}
+	}
+	*ioVertexCount += 24;
+	*ioIndexCount += 36;
 }
 
 static void getSphereVertices(Vector3f position, float radius, Color4f color, struct vertex_p3f_n3f_c4f * outVertices, GLuint * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount) {
@@ -147,18 +293,15 @@ static void getSphereVertices(Vector3f position, float radius, Color4f color, st
 		struct vertex_p3f_n3f_c4f vertex;
 		Vector3f vertexPosition;
 		
-		vertex.color[0] = color.red;
-		vertex.color[1] = color.green;
-		vertex.color[2] = color.blue;
-		vertex.color[3] = color.alpha;
+		setVertexColor(&vertex, color);
 		for (vertexIndex = 0; vertexIndex < SPHERE_VERTEX_COUNT; vertexIndex++) {
-			vertexPosition.x = sphereVertexTemplate[vertexIndex].position[0] + position.x;
-			vertexPosition.y = sphereVertexTemplate[vertexIndex].position[1] + position.y;
-			vertexPosition.z = sphereVertexTemplate[vertexIndex].position[2] + position.z;
+			vertexPosition.x = sphereVertexTemplate[vertexIndex].position[0];
+			vertexPosition.y = sphereVertexTemplate[vertexIndex].position[1];
+			vertexPosition.z = sphereVertexTemplate[vertexIndex].position[2];
 			vertexPosition = Vector3f_multiplyScalar(vertexPosition, radius);
-			vertex.position[0] = vertexPosition.x;
-			vertex.position[1] = vertexPosition.y;
-			vertex.position[2] = vertexPosition.z;
+			vertex.position[0] = vertexPosition.x + position.x;
+			vertex.position[1] = vertexPosition.y + position.y;
+			vertex.position[2] = vertexPosition.z + position.z;
 			vertex.normal[0] = sphereVertexTemplate[vertexIndex].normal[0];
 			vertex.normal[1] = sphereVertexTemplate[vertexIndex].normal[1];
 			vertex.normal[2] = sphereVertexTemplate[vertexIndex].normal[2];
@@ -176,10 +319,42 @@ static void getSphereVertices(Vector3f position, float radius, Color4f color, st
 	*ioIndexCount += SPHERE_INDEX_COUNT;
 }
 
-static void getCollisionObjectVertices(SingleFrameScreen3D * self, struct vertex_p3f_n3f_c4f * outVertices, GLuint * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount) {
+static void getTrimeshVertices(CollisionStaticTrimesh * trimesh, Color4f color, struct vertex_p3f_n3f_c4f * outVertices, GLuint * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount) {
+	unsigned int triangleIndex, vertexIndex;
+	
+	if (outVertices != NULL) {
+		struct vertex_p3f_n3f_c4f vertex;
+		
+		setVertexColor(&vertex, color);
+		for (triangleIndex = 0; triangleIndex < trimesh->triangleCount; triangleIndex++) {
+			vertex.normal[0] = trimesh->triangles[triangleIndex].normal.x;
+			vertex.normal[1] = trimesh->triangles[triangleIndex].normal.y;
+			vertex.normal[2] = trimesh->triangles[triangleIndex].normal.z;
+			for (vertexIndex = 0; vertexIndex < 3; vertexIndex++) {
+				vertex.position[0] = xtof(trimesh->vertices[trimesh->triangles[triangleIndex].vertexIndexes[vertexIndex]].position.x);
+				vertex.position[1] = xtof(trimesh->vertices[trimesh->triangles[triangleIndex].vertexIndexes[vertexIndex]].position.y);
+				vertex.position[2] = xtof(trimesh->vertices[trimesh->triangles[triangleIndex].vertexIndexes[vertexIndex]].position.z);
+				outVertices[*ioVertexCount + triangleIndex * 3 + vertexIndex] = vertex;
+			}
+		}
+	}
+	
+	if (outIndexes != NULL) {
+		for (triangleIndex = 0; triangleIndex < trimesh->triangleCount; triangleIndex++) {
+			for (vertexIndex = 0; vertexIndex < 3; vertexIndex++) {
+				outIndexes[*ioIndexCount + triangleIndex * 3 + vertexIndex] = *ioVertexCount + triangleIndex * 3 + vertexIndex;
+			}
+		}
+	}
+	
+	*ioVertexCount += trimesh->triangleCount * 3;
+	*ioIndexCount += trimesh->triangleCount * 3;
+}
+
+static void getOpaqueCollisionObjectVertices(SingleFrameScreen3D * self, struct vertex_p3f_n3f_c4f * outVertices, GLuint * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount) {
 	size_t objectIndex;
 	CollisionObject * object;
-	struct vertex_p3f_n3f_c4f vertex;
+	Color4f color;
 	
 	for (objectIndex = 0; objectIndex < self->resolver->objectCount; objectIndex++) {
 		object = self->resolver->objects[objectIndex];
@@ -187,129 +362,220 @@ static void getCollisionObjectVertices(SingleFrameScreen3D * self, struct vertex
 			case COLLISION_SHAPE_BOX_3D: {
 				CollisionBox3D * box = (CollisionBox3D *) object;
 				
-				if (outVertices != NULL) {
-					vertex.color[0] = 1.0f;
-					vertex.color[1] = 1.0f;
-					vertex.color[2] = 0.0f;
-					vertex.color[3] = 1.0f;
-					vertex.normal[0] = -1.0f;
-					vertex.normal[1] = 0.0f;
-					vertex.normal[2] = 0.0f;
-					vertex.position[0] = xtof(box->position.x);
-					vertex.position[1] = xtof(box->position.y);
-					vertex.position[2] = xtof(box->position.z);
-					outVertices[*ioVertexCount + 0] = vertex;
-					vertex.position[2] = xtof(box->position.z + box->size.z);
-					outVertices[*ioVertexCount + 1] = vertex;
-					vertex.position[1] = xtof(box->position.y + box->size.y);
-					outVertices[*ioVertexCount + 2] = vertex;
-					vertex.position[2] = xtof(box->position.z);
-					outVertices[*ioVertexCount + 3] = vertex;
-					
-					vertex.normal[0] = 1.0f;
-					vertex.normal[1] = 0.0f;
-					vertex.normal[2] = 0.0f;
-					vertex.position[0] = xtof(box->position.x + box->size.x);
-					vertex.position[1] = xtof(box->position.y);
-					vertex.position[2] = xtof(box->position.z + box->size.z);
-					outVertices[*ioVertexCount + 4] = vertex;
-					vertex.position[2] = xtof(box->position.z);
-					outVertices[*ioVertexCount + 5] = vertex;
-					vertex.position[1] = xtof(box->position.y + box->size.y);
-					outVertices[*ioVertexCount + 6] = vertex;
-					vertex.position[2] = xtof(box->position.z + box->size.z);
-					outVertices[*ioVertexCount + 7] = vertex;
-					
-					vertex.normal[0] = 0.0f;
-					vertex.normal[1] = -1.0f;
-					vertex.normal[2] = 0.0f;
-					vertex.position[0] = xtof(box->position.x);
-					vertex.position[1] = xtof(box->position.y);
-					vertex.position[2] = xtof(box->position.z);
-					outVertices[*ioVertexCount + 8] = vertex;
-					vertex.position[0] = xtof(box->position.x + box->size.x);
-					outVertices[*ioVertexCount + 9] = vertex;
-					vertex.position[2] = xtof(box->position.z + box->size.z);
-					outVertices[*ioVertexCount + 10] = vertex;
-					vertex.position[0] = xtof(box->position.x);
-					outVertices[*ioVertexCount + 11] = vertex;
-					
-					vertex.normal[0] = 0.0f;
-					vertex.normal[1] = 1.0f;
-					vertex.normal[2] = 0.0f;
-					vertex.position[0] = xtof(box->position.x);
-					vertex.position[1] = xtof(box->position.y + box->size.y);
-					vertex.position[2] = xtof(box->position.z + box->size.z);
-					outVertices[*ioVertexCount + 12] = vertex;
-					vertex.position[0] = xtof(box->position.x + box->size.x);
-					outVertices[*ioVertexCount + 13] = vertex;
-					vertex.position[2] = xtof(box->position.z);
-					outVertices[*ioVertexCount + 14] = vertex;
-					vertex.position[0] = xtof(box->position.x);
-					outVertices[*ioVertexCount + 15] = vertex;
-					
-					vertex.normal[0] = 0.0f;
-					vertex.normal[1] = 0.0f;
-					vertex.normal[2] = -1.0f;
-					vertex.position[0] = xtof(box->position.x + box->size.x);
-					vertex.position[1] = xtof(box->position.y);
-					vertex.position[2] = xtof(box->position.z);
-					outVertices[*ioVertexCount + 16] = vertex;
-					vertex.position[0] = xtof(box->position.x);
-					outVertices[*ioVertexCount + 17] = vertex;
-					vertex.position[1] = xtof(box->position.y + box->size.y);
-					outVertices[*ioVertexCount + 18] = vertex;
-					vertex.position[0] = xtof(box->position.x + box->size.x);
-					outVertices[*ioVertexCount + 19] = vertex;
-					
-					vertex.normal[0] = 0.0f;
-					vertex.normal[1] = 0.0f;
-					vertex.normal[2] = 1.0f;
-					vertex.position[0] = xtof(box->position.x);
-					vertex.position[1] = xtof(box->position.y);
-					vertex.position[2] = xtof(box->position.z + box->size.z);
-					outVertices[*ioVertexCount + 20] = vertex;
-					vertex.position[0] = xtof(box->position.x + box->size.x);
-					outVertices[*ioVertexCount + 21] = vertex;
-					vertex.position[1] = xtof(box->position.y + box->size.y);
-					outVertices[*ioVertexCount + 22] = vertex;
-					vertex.position[0] = xtof(box->position.x);
-					outVertices[*ioVertexCount + 23] = vertex;
+				if (objectIndex == self->selectedObjectIndex) {
+					color = COLOR_BOX_LAST_POSITION_HIGHLIGHT;
+				} else {
+					color = COLOR_BOX_LAST_POSITION;
 				}
-				if (outIndexes != NULL) {
-					unsigned int faceIndex;
-					
-					for (faceIndex = 0; faceIndex < 6; faceIndex++) {
-						outIndexes[*ioIndexCount + faceIndex * 6 + 0] = *ioVertexCount + faceIndex * 4 + 0;
-						outIndexes[*ioIndexCount + faceIndex * 6 + 1] = *ioVertexCount + faceIndex * 4 + 1;
-						outIndexes[*ioIndexCount + faceIndex * 6 + 2] = *ioVertexCount + faceIndex * 4 + 2;
-						outIndexes[*ioIndexCount + faceIndex * 6 + 3] = *ioVertexCount + faceIndex * 4 + 2;
-						outIndexes[*ioIndexCount + faceIndex * 6 + 4] = *ioVertexCount + faceIndex * 4 + 3;
-						outIndexes[*ioIndexCount + faceIndex * 6 + 5] = *ioVertexCount + faceIndex * 4 + 0;
-					}
-				}
-				*ioVertexCount += 24;
-				*ioIndexCount += 36;
+				getBoxVertices(Vector3x_toVector3f(box->lastPosition), Vector3x_toVector3f(box->lastSize), color, outVertices, outIndexes, ioVertexCount, ioIndexCount);
 				
+				if (self->collisions[objectIndex].time > -1) {
+					Vector3x collidingPosition = Vector3x_interpolate(box->lastPosition, box->position, self->collisions[objectIndex].time);
+					Vector3x collidingSize = Vector3x_interpolate(box->lastSize, box->size, self->collisions[objectIndex].time);
+					
+					if (objectIndex == self->selectedObjectIndex) {
+						color = COLOR_BOX_POSITION_HIGHLIGHT;
+					} else {
+						color = COLOR_BOX_POSITION;
+					}
+					getBoxVertices(Vector3x_toVector3f(collidingPosition), Vector3x_toVector3f(collidingSize), color, outVertices, outIndexes, ioVertexCount, ioIndexCount);
+				}
+				
+				if (objectIndex == self->selectedObjectIndex) {
+					if (self->collisions[objectIndex].time > -1) {
+						color = COLOR_BOX_POSITION_COLLIDING_HIGHLIGHT;
+					} else {
+						color = COLOR_BOX_POSITION_HIGHLIGHT;
+					}
+				} else if (self->collisions[objectIndex].time > -1) {
+					color = COLOR_BOX_POSITION_COLLIDING;
+				} else {
+					color = COLOR_BOX_POSITION;
+				}
+				getBoxVertices(Vector3x_toVector3f(box->position), Vector3x_toVector3f(box->size), color, outVertices, outIndexes, ioVertexCount, ioIndexCount);
 				break;
 			}
 			case COLLISION_SHAPE_SPHERE: {
 				CollisionSphere * sphere = (CollisionSphere *) object;
 				
-				getSphereVertices(Vector3x_toVector3f(sphere->position), xtof(sphere->radius), COLOR4f(0.0f, 1.0f, 1.0f, 1.0f), outVertices, outIndexes, ioVertexCount, ioIndexCount);
+				if (objectIndex == self->selectedObjectIndex) {
+					color = COLOR_SPHERE_LAST_POSITION_HIGHLIGHT;
+				} else {
+					color = COLOR_SPHERE_LAST_POSITION;
+				}
+				getSphereVertices(Vector3x_toVector3f(sphere->lastPosition), xtof(sphere->radius), color, outVertices, outIndexes, ioVertexCount, ioIndexCount);
+				
+				if (self->collisions[objectIndex].time > -1) {
+					Vector3x collidingPosition = Vector3x_interpolate(sphere->lastPosition, sphere->position, self->collisions[objectIndex].time);
+					
+					if (objectIndex == self->selectedObjectIndex) {
+						color = COLOR_SPHERE_POSITION_HIGHLIGHT;
+					} else {
+						color = COLOR_SPHERE_POSITION;
+					}
+					getSphereVertices(Vector3x_toVector3f(collidingPosition), xtof(sphere->radius), color, outVertices, outIndexes, ioVertexCount, ioIndexCount);
+				}
+				
+				if (objectIndex == self->selectedObjectIndex) {
+					if (self->collisions[objectIndex].time > -1) {
+						color = COLOR_SPHERE_POSITION_COLLIDING_HIGHLIGHT;
+					} else {
+						color = COLOR_SPHERE_POSITION_HIGHLIGHT;
+					}
+				} else if (self->collisions[objectIndex].time > -1) {
+					color = COLOR_SPHERE_POSITION_COLLIDING;
+				} else {
+					color = COLOR_SPHERE_POSITION;
+				}
+				getSphereVertices(Vector3x_toVector3f(sphere->position), xtof(sphere->radius), color, outVertices, outIndexes, ioVertexCount, ioIndexCount);
 				break;
 			}
+			case COLLISION_SHAPE_STATIC_TRIMESH:
+				getTrimeshVertices((CollisionStaticTrimesh *) object, COLOR_TRIMESH, outVertices, outIndexes, ioVertexCount, ioIndexCount);
+				break;
 		}
 	}
+}
+
+static void getBoxSweepVertices(Vector3f lastPosition, Vector3f lastSize, Vector3f position, Vector3f size, Color4f colorStart, Color4f colorEnd, struct vertex_p3f_n3f_c4f * outVertices, GLuint * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount) {
+}
+
+static void getSphereSweepVertices(Vector3f lastPosition, Vector3f position, float radius, Color4f colorStart, Color4f colorEnd, struct vertex_p3f_n3f_c4f * outVertices, GLuint * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount) {
+	if (lastPosition.x == position.x && lastPosition.y == position.y && lastPosition.z == position.z) {
+		return;
+	}
+	
+	if (outVertices != NULL) {
+		Vector3f direction, radialPosition;
+		float length, dot;
+		Quaternionf orientation;
+		unsigned int vertexIndex;
+		struct vertex_p3f_n3f_c4f vertex;
+		
+		direction = Vector3f_subtract(position, lastPosition);
+		length = Vector3f_magnitude(direction);
+		direction = Vector3f_divideScalar(direction, length);
+		dot = Vector3f_dot(direction, VECTOR3f_FRONT);
+		if (dot > 0.9999f) {
+			orientation = QUATERNIONf_IDENTITY;
+			
+		} else if (dot < -0.9999f) {
+			orientation = Quaternionf_fromAxisAngle(VECTOR3f_UP, M_PI);
+			
+		} else {
+			Vector3f axis = Vector3f_cross(direction, VECTOR3f_FRONT);
+			Vector3f_normalize(&axis);
+			orientation = Quaternionf_fromAxisAngle(axis, -acos(dot));
+		}
+		
+		for (vertexIndex = 0; vertexIndex < SPHERE_SUBDIVISIONS; vertexIndex++) {
+			radialPosition = VECTOR3f(cos(vertexIndex * M_PI * 2 / SPHERE_SUBDIVISIONS), sin(vertexIndex * M_PI * 2 / SPHERE_SUBDIVISIONS), 0.0f);
+			radialPosition = Quaternionf_multiplyVector3f(orientation, radialPosition);
+			vertex.normal[0] = radialPosition.x;
+			vertex.normal[1] = radialPosition.y;
+			vertex.normal[2] = radialPosition.z;
+			vertex.position[0] = radialPosition.x * radius + lastPosition.x;
+			vertex.position[1] = radialPosition.y * radius + lastPosition.y;
+			vertex.position[2] = radialPosition.z * radius + lastPosition.z;
+			setVertexColor(&vertex, colorStart);
+			outVertices[*ioVertexCount + vertexIndex] = vertex;
+			
+			vertex.position[0] = radialPosition.x * radius + position.x;
+			vertex.position[1] = radialPosition.y * radius + position.y;
+			vertex.position[2] = radialPosition.z * radius + position.z;
+			setVertexColor(&vertex, colorEnd);
+			outVertices[*ioVertexCount + SPHERE_SUBDIVISIONS + vertexIndex] = vertex;
+		}
+	}
+	
+	if (outIndexes != NULL) {
+		unsigned int vertexIndex;
+		
+		for (vertexIndex = 0; vertexIndex < SPHERE_SUBDIVISIONS; vertexIndex++) {
+			outIndexes[*ioIndexCount + vertexIndex * 6 + 0] = *ioVertexCount + vertexIndex;
+			outIndexes[*ioIndexCount + vertexIndex * 6 + 1] = *ioVertexCount + (vertexIndex + 1) % SPHERE_SUBDIVISIONS;
+			outIndexes[*ioIndexCount + vertexIndex * 6 + 2] = *ioVertexCount + (vertexIndex + 1) % SPHERE_SUBDIVISIONS + SPHERE_SUBDIVISIONS;
+			outIndexes[*ioIndexCount + vertexIndex * 6 + 3] = *ioVertexCount + (vertexIndex + 1) % SPHERE_SUBDIVISIONS + SPHERE_SUBDIVISIONS;
+			outIndexes[*ioIndexCount + vertexIndex * 6 + 4] = *ioVertexCount + vertexIndex + SPHERE_SUBDIVISIONS;
+			outIndexes[*ioIndexCount + vertexIndex * 6 + 5] = *ioVertexCount + vertexIndex;
+		}
+	}
+	*ioVertexCount += SPHERE_SUBDIVISIONS * 2;
+	*ioIndexCount += SPHERE_SUBDIVISIONS * 6;
+}
+
+static void getTranslucentCollisionObjectVertices(SingleFrameScreen3D * self, struct vertex_p3f_n3f_c4f * outVertices, GLuint * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount) {
+	size_t objectIndex;
+	CollisionObject * object;
+	Color4f colorStart, colorEnd;
+	
+	for (objectIndex = 0; objectIndex < self->resolver->objectCount; objectIndex++) {
+		object = self->resolver->objects[objectIndex];
+		switch (object->shapeType) {
+			case COLLISION_SHAPE_BOX_3D: {
+				CollisionBox3D * box = (CollisionBox3D *) object;
+				
+				if (objectIndex == self->selectedObjectIndex) {
+					colorStart = COLOR_BOX_LAST_POSITION_HIGHLIGHT;
+					if (self->collisions[objectIndex].time > -1) {
+						colorEnd = COLOR_BOX_POSITION_COLLIDING_HIGHLIGHT;
+					} else {
+						colorEnd = COLOR_BOX_POSITION_HIGHLIGHT;
+					}
+					
+				} else {
+					colorStart = COLOR_BOX_LAST_POSITION;
+					if (self->collisions[objectIndex].time > -1) {
+						colorEnd = COLOR_BOX_POSITION_COLLIDING;
+					} else {
+						colorEnd = COLOR_BOX_POSITION;
+					}
+				}
+				colorStart.alpha = SWEEP_ALPHA;
+				colorEnd.alpha = SWEEP_ALPHA;
+				getBoxSweepVertices(Vector3x_toVector3f(box->lastPosition), Vector3x_toVector3f(box->lastSize), Vector3x_toVector3f(box->position), Vector3x_toVector3f(box->size), colorStart, colorEnd, outVertices, outIndexes, ioVertexCount, ioIndexCount);
+				break;
+			}
+			case COLLISION_SHAPE_SPHERE: {
+				CollisionSphere * sphere = (CollisionSphere *) object;
+				
+				if (objectIndex == self->selectedObjectIndex) {
+					colorStart = COLOR_SPHERE_LAST_POSITION_HIGHLIGHT;
+					if (self->collisions[objectIndex].time > -1) {
+						colorEnd = COLOR_SPHERE_POSITION_COLLIDING_HIGHLIGHT;
+					} else {
+						colorEnd = COLOR_SPHERE_POSITION_HIGHLIGHT;
+					}
+				} else {
+					colorStart = COLOR_SPHERE_LAST_POSITION;
+					if (self->collisions[objectIndex].time > -1) {
+						colorEnd = COLOR_SPHERE_POSITION_COLLIDING;
+					} else {
+						colorEnd = COLOR_SPHERE_POSITION;
+					}
+				}
+				colorStart.alpha = SWEEP_ALPHA;
+				colorEnd.alpha = SWEEP_ALPHA;
+				getSphereSweepVertices(Vector3x_toVector3f(sphere->lastPosition), Vector3x_toVector3f(sphere->position), xtof(sphere->radius), colorStart, colorEnd, outVertices, outIndexes, ioVertexCount, ioIndexCount);
+				break;
+			}
+			case COLLISION_SHAPE_STATIC_TRIMESH:
+				break;
+		}
+	}
+}
+
+static void getTextVertices(SingleFrameScreen3D * self, struct vertex_p2f_t2f_c4f * outVertices, GLuint * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount) {
 }
 
 static bool draw(Atom eventID, void * eventData, void * context) {
 	SingleFrameScreen3D * self = context;
 	static GLuint vertexBufferID, indexBufferID;
 	struct vertex_p3f_n3f_c4f * vertices;
+	struct vertex_p2f_t2f_c4f * textVertices;
 	unsigned int vertexCount;
 	GLuint * indexes;
-	unsigned int indexCount;
+	unsigned int indexCount, indexCountOpaque;
 	Matrix4x4f matrix;
 	
 	if (vertexBufferID == 0) {
@@ -318,9 +584,15 @@ static bool draw(Atom eventID, void * eventData, void * context) {
 	}
 	
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glEnable(GL_CULL_FACE);
 	
+#pragma mark 3D geometry
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LEQUAL);
 	vertexCount = indexCount = 0;
-	getCollisionObjectVertices(self, NULL, NULL, &vertexCount, &indexCount);
+	getOpaqueCollisionObjectVertices(self, NULL, NULL, &vertexCount, &indexCount);
+	indexCountOpaque = indexCount;
+	getTranslucentCollisionObjectVertices(self, NULL, NULL, &vertexCount, &indexCount);
 	glBindBufferARB(GL_ARRAY_BUFFER, vertexBufferID);
 	glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER, indexBufferID);
 	glBufferDataARB(GL_ARRAY_BUFFER, sizeof(struct vertex_p3f_n3f_c4f) * vertexCount, NULL, GL_STREAM_DRAW);
@@ -328,14 +600,15 @@ static bool draw(Atom eventID, void * eventData, void * context) {
 	vertices = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
 	indexes = glMapBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_WRITE_ONLY);
 	vertexCount = indexCount = 0;
-	getCollisionObjectVertices(self, vertices, indexes, &vertexCount, &indexCount);
+	getOpaqueCollisionObjectVertices(self, vertices, indexes, &vertexCount, &indexCount);
+	getTranslucentCollisionObjectVertices(self, vertices, indexes, &vertexCount, &indexCount);
 	glUnmapBuffer(GL_ARRAY_BUFFER);
 	glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
 	
 	matrix = Matrix4x4f_perspective(MATRIX4x4f_IDENTITY, 70.0f, g_viewRatio, 0.5f, 800.0f);
 	Matrix4x4f_translate(&matrix, 0.0f, 0.0f, -xtof(self->cameraDistance));
 	Matrix4x4f_multiply(&matrix, Quaternionf_toMatrix(Quaternionx_toQuaternionf(self->cameraDirection)));
-	Matrix4x4f_translate(&matrix, -xtof(self->cameraFocus.x), -xtof(self->cameraFocus.y), -xtof(self->cameraFocus.z));
+	Matrix4x4f_translate(&matrix, xtof(self->cameraFocus.x), xtof(self->cameraFocus.y), xtof(self->cameraFocus.z));
 	glLoadMatrixf(matrix.m);
 	
 	glEnableClientState(GL_VERTEX_ARRAY);
@@ -349,89 +622,180 @@ static bool draw(Atom eventID, void * eventData, void * context) {
 	glVertexPointer(3, GL_FLOAT, sizeof(struct vertex_p3f_n3f_c4f), (void *) offsetof(struct vertex_p3f_n3f_c4f, position));
 	glNormalPointer(GL_FLOAT, sizeof(struct vertex_p3f_n3f_c4f), (void *) offsetof(struct vertex_p3f_n3f_c4f, normal));
 	glColorPointer(4, GL_FLOAT, sizeof(struct vertex_p3f_n3f_c4f), (void *) offsetof(struct vertex_p3f_n3f_c4f, color));
-	glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, 0);
+	glDrawElements(GL_TRIANGLES, indexCountOpaque, GL_UNSIGNED_INT, 0);
+	glEnable(GL_BLEND);
+	glDepthMask(GL_FALSE);
+	glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, (void *) (ptrdiff_t) ((indexCount - indexCountOpaque) * sizeof(GLuint)));
+	glDepthMask(GL_TRUE);
+	glDisable(GL_BLEND);
 	
 	GLSLShader_deactivate(self->lightShader);
-	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_NORMAL_ARRAY);
+	
+#pragma mark Text
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	
+	matrix = Matrix4x4f_ortho(MATRIX4x4f_IDENTITY, -12.0f * g_viewRatio, 12.0f * g_viewRatio, -12.0f, 12.0f, -1.0f, 1.0f);
+	glLoadMatrixf(matrix.m);
+	
+	vertexCount = indexCount = 0;
+	getTextVertices(self, NULL, NULL, &vertexCount, &indexCount);
+	glBufferDataARB(GL_ARRAY_BUFFER, sizeof(struct vertex_p2f_t2f_c4f) * vertexCount, NULL, GL_STREAM_DRAW);
+	glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint) * indexCount, NULL, GL_STREAM_DRAW);
+	textVertices = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+	indexes = glMapBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_WRITE_ONLY);
+	vertexCount = indexCount = 0;
+	getTextVertices(self, textVertices, indexes, &vertexCount, &indexCount);
+	glUnmapBuffer(GL_ARRAY_BUFFER);
+	glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
+	glVertexPointer(2, GL_FLOAT, sizeof(struct vertex_p2f_t2f_c4f), (void *) offsetof(struct vertex_p2f_t2f_c4f, position));
+	glColorPointer(4, GL_FLOAT, sizeof(struct vertex_p2f_t2f_c4f), (void *) offsetof(struct vertex_p2f_t2f_c4f, color));
+	glTexCoordPointer(2, GL_FLOAT, sizeof(struct vertex_p2f_t2f_c4f), (void *) offsetof(struct vertex_p2f_t2f_c4f, texCoords));
+	GLTexture_activate(self->font->atlas->texture);
+	glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, 0);
+	GLTexture_deactivate(self->font->atlas->texture);
+	
+	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_COLOR_ARRAY);
 	glBindBufferARB(GL_ARRAY_BUFFER, 0);
 	glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER, 0);
+	glDisable(GL_CULL_FACE);
 	
 	return true;
 }
 
 static bool keyDown(Atom eventID, void * eventData, void * context) {
+	SingleFrameScreen3D * self = context;
+	struct keyEvent * event = eventData;
+	
+	switch (event->keyCode) {
+		case KEYBOARD_TAB:
+			if (event->modifiers & MODIFIER_SHIFT_BIT) {
+				self->selectedObjectIndex += self->resolver->objectCount - 1;
+			} else {
+				self->selectedObjectIndex++;
+			}
+			self->selectedObjectIndex %= self->resolver->objectCount;
+			Shell_redisplay();
+			break;
+			
+		case KEYBOARD_I:
+		case KEYBOARD_J:
+		case KEYBOARD_K:
+		case KEYBOARD_L:
+		case KEYBOARD_U:
+		case KEYBOARD_M:
+			if (self->resolver->objects[self->selectedObjectIndex]->shapeType == COLLISION_SHAPE_BOX_3D) {
+				CollisionBox3D * box = (CollisionBox3D *) self->resolver->objects[self->selectedObjectIndex];
+				CollisionBox3D_setSolidity(box,
+				                           event->keyCode == KEYBOARD_J ? !box->solidLeft   : box->solidLeft,
+				                           event->keyCode == KEYBOARD_L ? !box->solidRight  : box->solidRight,
+				                           event->keyCode == KEYBOARD_K ? !box->solidBottom : box->solidBottom,
+				                           event->keyCode == KEYBOARD_I ? !box->solidTop    : box->solidTop,
+				                           event->keyCode == KEYBOARD_U ? !box->solidBack   : box->solidBack,
+				                           event->keyCode == KEYBOARD_M ? !box->solidFront  : box->solidFront);
+				Shell_redisplay();
+			}
+			break;
+	}
 	return true;
 }
 
 static bool mouseDown(Atom eventID, void * eventData, void * context) {
 	SingleFrameScreen3D * self = context;
 	
-	if (g_controlKeyDown) {
-		self->dragMode = DRAG_CAMERA_DISTANCE;
-	} else if (g_shiftKeyDown) {
-		self->dragMode = DRAG_CAMERA_FOCUS;
-	} else {
-		self->dragMode = DRAG_CAMERA_DIRECTION;
-	}
+	self->draggingCamera = g_altKeyDown;
 	Shell_setMouseDeltaMode(true);
+	Shell_redisplay();
 	return true;
 }
 
 static bool mouseUp(Atom eventID, void * eventData, void * context) {
-	SingleFrameScreen3D * self = context;
-	
-	self->dragMode = DRAG_NONE;
 	Shell_setMouseDeltaMode(false);
+	Shell_redisplay();
 	return true;
 }
 
 #define CAMERA_LOOK_SENSITIVITY 0x00100
 #define CAMERA_ZOOM_SENSITIVITY 0x00060
 #define CAMERA_DRAG_SENSITIVITY 0x00060
+#define OBJECT_DRAG_SENSITIVITY 0x00060
 
 static bool mouseDragged(Atom eventID, void * eventData, void * context) {
 	SingleFrameScreen3D * self = context;
 	struct mouseEvent * event = eventData;
+	Vector3x offset;
+	CollisionObject * object = self->resolver->objects[self->selectedObjectIndex];
 	
-	switch (self->dragMode) {
-		case DRAG_NONE:
-			break;
-			
-		case DRAG_OBJECT_POSITION:
-		case DRAG_OBJECT_LAST_POSITION:
-		case DRAG_OBJECT_BOTH_POSITIONS:
-		case DRAG_OBJECT_SIZE:
-		case DRAG_OBJECT_LAST_SIZE:
-		case DRAG_OBJECT_BOTH_SIZES:
-			break;
-			
-		case DRAG_CAMERA_DIRECTION:
-			Quaternionx_rotate(&self->cameraDirection, VECTOR3x_UP, xmul(ftox(event->position.x), CAMERA_LOOK_SENSITIVITY));
-			Quaternionx_rotate(&self->cameraDirection, Quaternionx_multiplyVector3x(Quaternionx_inverted(self->cameraDirection), VECTOR3x_RIGHT), xmul(ftox(event->position.y), CAMERA_LOOK_SENSITIVITY));
-			Shell_redisplay();
-			break;
-			
-		case DRAG_CAMERA_FOCUS: {
-			Vector3x offset;
-			
-			offset.x = xmul(ftox(event->position.x), xmul(CAMERA_DRAG_SENSITIVITY, self->cameraDistance));
-			offset.y = -xmul(ftox(event->position.y), xmul(CAMERA_DRAG_SENSITIVITY, self->cameraDistance));
-			offset.z = 0x00000;
-			offset = Quaternionx_multiplyVector3x(Quaternionx_inverted(self->cameraDirection), offset);
-			self->cameraFocus = Vector3x_subtract(self->cameraFocus, offset);
-			Shell_redisplay();
-			break;
-		}
-		case DRAG_CAMERA_DISTANCE:
+	if (self->draggingCamera) {
+		if (g_controlKeyDown) {
+			// Zoom
 			self->cameraDistance += xmul(ftox(event->position.y), xmul(CAMERA_ZOOM_SENSITIVITY, self->cameraDistance));
 			if (self->cameraDistance < 0x10000) {
 				self->cameraDistance = 0x10000;
 			}
 			Shell_redisplay();
-			break;
+			
+		} else if (g_shiftKeyDown) {
+			// Pan
+			offset.x = xmul(ftox(event->position.x), xmul(CAMERA_DRAG_SENSITIVITY, self->cameraDistance));
+			offset.y = -xmul(ftox(event->position.y), xmul(CAMERA_DRAG_SENSITIVITY, self->cameraDistance));
+			offset.z = 0x00000;
+			offset = Quaternionx_multiplyVector3x(Quaternionx_inverted(self->cameraDirection), offset);
+			self->cameraFocus = Vector3x_add(self->cameraFocus, offset);
+			Shell_redisplay();
+			
+		} else {
+			// Rotate
+			Quaternionx_rotate(&self->cameraDirection, VECTOR3x_UP, xmul(ftox(event->position.x), CAMERA_LOOK_SENSITIVITY));
+			Quaternionx_rotate(&self->cameraDirection, Quaternionx_multiplyVector3x(Quaternionx_inverted(self->cameraDirection), VECTOR3x_RIGHT), xmul(ftox(event->position.y), CAMERA_LOOK_SENSITIVITY));
+			Shell_redisplay();
+		}
+		
+	} else {
+		if (g_controlKeyDown) {
+			offset.x = 0x00000;
+			offset.y = 0x00000;
+			offset.z = xmul(ftox(event->position.y), xmul(OBJECT_DRAG_SENSITIVITY, self->cameraDistance));
+		} else {
+			offset.x = xmul(ftox(event->position.x), xmul(OBJECT_DRAG_SENSITIVITY, self->cameraDistance));
+			offset.y = -xmul(ftox(event->position.y), xmul(OBJECT_DRAG_SENSITIVITY, self->cameraDistance));
+			offset.z = 0x00000;
+		}
+		offset = Quaternionx_multiplyVector3x(Quaternionx_inverted(self->cameraDirection), offset);
+		switch (object->shapeType) {
+			case COLLISION_SHAPE_BOX_3D: {
+				CollisionBox3D * box = (CollisionBox3D *) object;
+				if (g_altKeyDown) {
+					if (g_shiftKeyDown) {
+						box->lastSize = Vector3x_add(box->lastSize, offset);
+					} else {
+						box->lastPosition = Vector3x_add(box->lastPosition, offset);
+					}
+				} else if (g_shiftKeyDown) {
+					box->size = Vector3x_add(box->size, offset);
+				} else {
+					box->position = Vector3x_add(box->position, offset);
+				}
+				break;
+			}
+			case COLLISION_SHAPE_SPHERE: {
+				CollisionSphere * sphere = (CollisionSphere *) object;
+				if (g_shiftKeyDown) {
+					sphere->radius += offset.y;
+				} else if (g_altKeyDown) {
+					sphere->lastPosition = Vector3x_add(sphere->lastPosition, offset);
+				} else {
+					sphere->position = Vector3x_add(sphere->position, offset);
+				}
+				break;
+			}
+		}
+		updateCollisions(self);
+		Shell_redisplay();
 	}
+	
 	return true;
 }
 
@@ -441,17 +805,31 @@ static bool resized(Atom eventID, void * eventData, void * context) {
 }
 
 void SingleFrameScreen3D_activate(SingleFrameScreen3D * self) {
+	Vector3x vertices[] = {
+		{-0x20000, -0x20000, -0x60000},
+		{ 0x20000, -0x20000, -0x20000},
+		{ 0x20000,  0x20000, -0x60000},
+		{ 0x20000, -0x20000, -0x60000}
+	};
+	unsigned int indexes[] = {
+		0, 1, 2,
+		0, 3, 1,
+		0, 2, 3,
+		1, 3, 2
+	};
+	
 	self->resolver = CollisionResolver_create(self->intersectionManager, false);
 	CollisionResolver_addObject(self->resolver, (CollisionObject *) CollisionBox3D_create(NULL, NULL, VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000), 0x00000));
 	CollisionResolver_addObject(self->resolver, (CollisionObject *) CollisionBox3D_create(NULL, NULL, VECTOR3x(0x20000, -0x40000, 0x00000), VECTOR3x(0x50000, 0x20000, 0x30000), 0x00000));
 	CollisionResolver_addObject(self->resolver, (CollisionObject *) CollisionSphere_create(NULL, NULL, VECTOR3x(-0x30000, 0x00000, 0x00000), 0x10000));
 	CollisionResolver_addObject(self->resolver, (CollisionObject *) CollisionSphere_create(NULL, NULL, VECTOR3x(-0x20000, 0x50000, 0x00000), 0x08000));
+	CollisionResolver_addObject(self->resolver, (CollisionObject *) CollisionStaticTrimesh_createWithIndexes(NULL, NULL, vertices, indexes, sizeof(indexes) / sizeof(unsigned int)));
 	
-	self->dragMode = DRAG_NONE;
 	self->selectedObjectIndex = 0;
 	self->cameraFocus = VECTOR3x_ZERO;
 	self->cameraDirection = QUATERNIONx_IDENTITY;
 	self->cameraDistance = 0xF0000;
+	updateCollisions(self);
 	
 	EventDispatcher_registerForEvent(self->screenManager->eventDispatcher, ATOM(EVENT_KEY_DOWN), keyDown, self);
 	EventDispatcher_registerForEvent(self->screenManager->eventDispatcher, ATOM(EVENT_MOUSE_DOWN), mouseDown, self);
@@ -459,9 +837,6 @@ void SingleFrameScreen3D_activate(SingleFrameScreen3D * self) {
 	EventDispatcher_registerForEvent(self->screenManager->eventDispatcher, ATOM(EVENT_MOUSE_DRAGGED), mouseDragged, self);
 	EventDispatcher_registerForEvent(self->screenManager->eventDispatcher, ATOM(EVENT_RESIZED), resized, self);
 	EventDispatcher_registerForEvent(self->screenManager->eventDispatcher, ATOM(EVENT_DRAW), draw, self);
-	
-	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LEQUAL);
 	
 	Shell_redisplay();
 }
@@ -480,6 +855,4 @@ void SingleFrameScreen3D_deactivate(SingleFrameScreen3D * self) {
 	EventDispatcher_unregisterForEvent(self->screenManager->eventDispatcher, ATOM(EVENT_MOUSE_DRAGGED), mouseDragged, self);
 	EventDispatcher_unregisterForEvent(self->screenManager->eventDispatcher, ATOM(EVENT_RESIZED), resized, self);
 	EventDispatcher_unregisterForEvent(self->screenManager->eventDispatcher, ATOM(EVENT_DRAW), draw, self);
-	
-	glDisable(GL_DEPTH_TEST);
 }

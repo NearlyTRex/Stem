@@ -444,7 +444,7 @@ static bool intersectSweptSphereTriangle(Vector3x lastPosition, Vector3x positio
 		return false;
 	}
 	
-	time = xdiv(distance2 - radius, distance2 - distance1);
+	time = xdiv(distance1 - radius, -distance2 + distance1);
 	if (time > 0x10000) {
 		return false;
 	}

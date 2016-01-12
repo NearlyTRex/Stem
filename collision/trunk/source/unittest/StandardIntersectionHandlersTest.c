@@ -2585,7 +2585,7 @@ static void testSphere_trimesh() {
 	sphere = initMovingSphere(VECTOR3x(-0x10000, 0x08000, 0x08000), VECTOR3x(0x10000, 0x08000, 0x08000), 0x04000);
 	resetOutParameters();
 	result = intersectionHandler_sphere_trimesh((CollisionObject *) &sphere, (CollisionObject *) &trimesh, &time, &normal, &object1Vector, &object2Vector, &contactArea);
-	assertCollision(result, time, normal, 0x0A000, VECTOR3x(-0x10000, 0x00000, 0x00000), VECTOR3x(0x20000, 0x00000, 0x00000), VECTOR3x_ZERO, 0x00000);
+	assertCollision(result, time, normal, 0x06000, VECTOR3x(-0x10000, 0x00000, 0x00000), VECTOR3x(0x20000, 0x00000, 0x00000), VECTOR3x_ZERO, 0x00000);
 	
 	// Face collision from bottom
 	sphere = initMovingSphere(VECTOR3x(0x08000, -0x10000, 0x08000), VECTOR3x(0x08000, 0x00000, 0x08000), 0x08000);
@@ -2603,7 +2603,7 @@ static void testSphere_trimesh() {
 	sphere = initMovingSphere(VECTOR3x(0x18000, 0x18000, 0x18000), VECTOR3x(0x08000, 0x08000, 0x08000), 0x08000);
 	resetOutParameters();
 	result = intersectionHandler_sphere_trimesh((CollisionObject *) &sphere, (CollisionObject *) &trimesh, &time, &normal, &object1Vector, &object2Vector, &contactArea);
-	assertCollision(result, time, normal, 0x07491, VECTOR3x(0x093CD, 0x093CD, 0x093CD), VECTOR3x(-0x10000, -0x10000, -0x10000), VECTOR3x_ZERO, 0x00000);
+	assertCollision(result, time, normal, 0x08B6F, VECTOR3x(0x093CD, 0x093CD, 0x093CD), VECTOR3x(-0x10000, -0x10000, -0x10000), VECTOR3x_ZERO, 0x00000);
 	
 	// Vertex collision from right
 	sphere = initMovingSphere(VECTOR3x(0x30000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x00000, 0x00000), 0x08000);
