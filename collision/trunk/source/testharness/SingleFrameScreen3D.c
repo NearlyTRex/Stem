@@ -176,8 +176,8 @@ static void updateCollisions(SingleFrameScreen3D * self) {
 
 #define COLOR_CAPSULE_LAST_POSITION                COLOR4f(0.25f, 0.0f, 0.5f, 1.0f)
 #define COLOR_CAPSULE_LAST_POSITION_HIGHLIGHT      COLOR4f(0.5f, 0.25f, 0.75f, 1.0f)
-#define COLOR_CAPSULE_POSITION                     COLOR4f(1.0f, 0.5f, 0.0f, 1.0f)
-#define COLOR_CAPSULE_POSITION_HIGHLIGHT           COLOR4f(1.0f, 0.75f, 0.5f, 1.0f)
+#define COLOR_CAPSULE_POSITION                     COLOR4f(0.5f, 0.0f, 1.0f, 1.0f)
+#define COLOR_CAPSULE_POSITION_HIGHLIGHT           COLOR4f(0.75f, 0.5f, 1.0f, 1.0f)
 #define COLOR_CAPSULE_POSITION_COLLIDING           COLOR4f(1.0f, 0.0f, 0.0f, 1.0f)
 #define COLOR_CAPSULE_POSITION_COLLIDING_HIGHLIGHT COLOR4f(1.0f, 0.75f, 0.75f, 1.0f)
 
@@ -344,6 +344,7 @@ static void getCapsuleVertices(Vector3f position, float radius, float cylinderHe
 			if (vertexPosition.y > 0.0f) {
 				vertexPosition.y += cylinderHeight;
 			}
+			vertexPosition.y += radius;
 			vertex.position[0] = vertexPosition.x + position.x;
 			vertex.position[1] = vertexPosition.y + position.y;
 			vertex.position[2] = vertexPosition.z + position.z;
@@ -588,6 +589,77 @@ static void getSphereSweepVertices(Vector3f lastPosition, Vector3f position, flo
 	*ioIndexCount += SWEEP_CYLINDER_SUBDIVISIONS * 6;
 }
 
+static void getCapsuleSweepVertices(Vector3f lastPosition, Vector3f position, float radius, float cylinderHeight, Color4f colorStart, Color4f colorEnd, struct vertex_p3f_n3f_c4f * outVertices, GLuint * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount) {
+	if (lastPosition.x == position.x && lastPosition.y == position.y && lastPosition.z == position.z) {
+		return;
+	}
+	
+	if (outVertices != NULL) {
+		Vector3f direction, radialPosition;
+		float length, dot;
+		Quaternionf orientation;
+		unsigned int vertexIndex;
+		struct vertex_p3f_n3f_c4f vertex;
+		float yOffset;
+		
+		direction = Vector3f_subtract(position, lastPosition);
+		length = Vector3f_magnitude(direction);
+		direction = Vector3f_divideScalar(direction, length);
+		dot = Vector3f_dot(direction, VECTOR3f_FRONT);
+		if (dot > 0.9999f) {
+			orientation = QUATERNIONf_IDENTITY;
+			
+		} else if (dot < -0.9999f) {
+			orientation = Quaternionf_fromAxisAngle(VECTOR3f_UP, M_PI);
+			
+		} else {
+			Vector3f axis = Vector3f_cross(direction, VECTOR3f_FRONT);
+			Vector3f_normalize(&axis);
+			orientation = Quaternionf_fromAxisAngle(axis, -acos(dot));
+		}
+		
+		radius /= cos(0.5f * M_PI * 2 / SWEEP_CYLINDER_SUBDIVISIONS);
+		
+		for (vertexIndex = 0; vertexIndex < SWEEP_CYLINDER_SUBDIVISIONS; vertexIndex++) {
+			radialPosition = VECTOR3f(cos(vertexIndex * M_PI * 2 / SWEEP_CYLINDER_SUBDIVISIONS), sin(vertexIndex * M_PI * 2 / SWEEP_CYLINDER_SUBDIVISIONS), 0.0f);
+			radialPosition = Quaternionf_multiplyVector3f(orientation, radialPosition);
+			vertex.normal[0] = radialPosition.x;
+			vertex.normal[1] = radialPosition.y;
+			vertex.normal[2] = radialPosition.z;
+			yOffset = radius;
+			if (radialPosition.y > 0.0f) {
+				yOffset += cylinderHeight;
+			}
+			vertex.position[0] = radialPosition.x * radius + lastPosition.x;
+			vertex.position[1] = radialPosition.y * radius + lastPosition.y + yOffset;
+			vertex.position[2] = radialPosition.z * radius + lastPosition.z;
+			setVertexColor(&vertex, colorStart);
+			outVertices[*ioVertexCount + vertexIndex] = vertex;
+			
+			vertex.position[0] = radialPosition.x * radius + position.x;
+			vertex.position[1] = radialPosition.y * radius + position.y + yOffset;
+			vertex.position[2] = radialPosition.z * radius + position.z;
+			setVertexColor(&vertex, colorEnd);
+			outVertices[*ioVertexCount + SWEEP_CYLINDER_SUBDIVISIONS + vertexIndex] = vertex;
+		}
+	}
+	
+	if (outIndexes != NULL) {
+		unsigned int vertexIndex;
+		
+		for (vertexIndex = 0; vertexIndex < SWEEP_CYLINDER_SUBDIVISIONS; vertexIndex++) {
+			outIndexes[*ioIndexCount + vertexIndex * 6 + 0] = *ioVertexCount + vertexIndex;
+			outIndexes[*ioIndexCount + vertexIndex * 6 + 1] = *ioVertexCount + (vertexIndex + 1) % SWEEP_CYLINDER_SUBDIVISIONS;
+			outIndexes[*ioIndexCount + vertexIndex * 6 + 2] = *ioVertexCount + (vertexIndex + 1) % SWEEP_CYLINDER_SUBDIVISIONS + SWEEP_CYLINDER_SUBDIVISIONS;
+			outIndexes[*ioIndexCount + vertexIndex * 6 + 3] = *ioVertexCount + (vertexIndex + 1) % SWEEP_CYLINDER_SUBDIVISIONS + SWEEP_CYLINDER_SUBDIVISIONS;
+			outIndexes[*ioIndexCount + vertexIndex * 6 + 4] = *ioVertexCount + vertexIndex + SWEEP_CYLINDER_SUBDIVISIONS;
+			outIndexes[*ioIndexCount + vertexIndex * 6 + 5] = *ioVertexCount + vertexIndex;
+		}
+	}
+	*ioVertexCount += SWEEP_CYLINDER_SUBDIVISIONS * 2;
+	*ioIndexCount += SWEEP_CYLINDER_SUBDIVISIONS * 6;
+}
+
 static void getTranslucentCollisionObjectVertices(SingleFrameScreen3D * self, struct vertex_p3f_n3f_c4f * outVertices, GLuint * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount) {
 	size_t objectIndex;
 	CollisionObject * object;
@@ -646,10 +718,29 @@ static void getTranslucentCollisionObjectVertices(SingleFrameScreen3D * self, st
 				getSphereSweepVertices(Vector3x_toVector3f(sphere->lastPosition), Vector3x_toVector3f(sphere->position), xtof(sphere->radius), colorStart, colorEnd, outVertices, outIndexes, ioVertexCount, ioIndexCount);
 				break;
 			}
-			case COLLISION_SHAPE_CAPSULE:
-				// TODO
-				break;
+			case COLLISION_SHAPE_CAPSULE: {
+				CollisionCapsule * capsule = (CollisionCapsule *) object;
 				
+				if (objectIndex == self->selectedObjectIndex) {
+					colorStart = COLOR_CAPSULE_LAST_POSITION_HIGHLIGHT;
+					if (self->collisions[objectIndex].time > -1) {
+						colorEnd = COLOR_CAPSULE_POSITION_COLLIDING_HIGHLIGHT;
+					} else {
+						colorEnd = COLOR_CAPSULE_POSITION_HIGHLIGHT;
+					}
+				} else {
+					colorStart = COLOR_CAPSULE_LAST_POSITION;
+					if (self->collisions[objectIndex].time > -1) {
+						colorEnd = COLOR_CAPSULE_POSITION_COLLIDING;
+					} else {
+						colorEnd = COLOR_CAPSULE_POSITION;
+					}
+				}
+				colorStart.alpha = SWEEP_ALPHA;
+				colorEnd.alpha = SWEEP_ALPHA;
+				getCapsuleSweepVertices(Vector3x_toVector3f(capsule->lastPosition), Vector3x_toVector3f(capsule->position), xtof(capsule->radius), xtof(capsule->cylinderHeight), colorStart, colorEnd, outVertices, outIndexes, ioVertexCount, ioIndexCount);
+				break;
+			}
 			case COLLISION_SHAPE_STATIC_TRIMESH:
 				break;
 		}
