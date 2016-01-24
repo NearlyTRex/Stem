@@ -37,7 +37,7 @@ typedef struct SingleFrameScreen3D SingleFrameScreen3D;
 #include "resourcemanager/ResourceManager.h"
 #include "screenmanager/Screen.h"
 
-#define OBJECT_COUNT_3D 5
+#define OBJECT_COUNT_3D 8
 
 #define SingleFrameScreen3D_structContents(self_type) \
 	Screen_structContents(self_type) \
@@ -52,7 +52,9 @@ typedef struct SingleFrameScreen3D SingleFrameScreen3D;
 	Vector3x cameraFocus; \
 	Quaternionx cameraDirection; \
 	fixed16_16 cameraDistance; \
-	CollisionRecord collisions[OBJECT_COUNT_3D];
+	CollisionRecord collisions[OBJECT_COUNT_3D]; \
+	bool drawSweeps; \
+	bool wireframe;
 
 stemobject_struct_definition(SingleFrameScreen3D)
 

@@ -21,6 +21,7 @@
 */
 
 #include "collision/CollisionBox3D.h"
+#include "collision/CollisionCapsule.h"
 #include "collision/CollisionShared.h"
 #include "collision/CollisionSphere.h"
 #include "collision/CollisionStaticTrimesh.h"
@@ -35,7 +36,9 @@
 #include "testharness/SingleFrameScreen3D.h"
 #include "testharness/SharedEvents.h"
 #include "testharness/TestHarness_globals.h"
+#include "utilities/printfFormats.h"
 #include <stddef.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 
@@ -58,23 +61,23 @@ static void __attribute__((constructor)) initSphereTemplate() {
 		MATRIX4x4f(0.0f, 0.0f, -1.0f, 0.0f,
 		           0.0f, 1.0f,  0.0f, 0.0f,
 		           1.0f, 0.0f,  0.0f, 0.0f,
-		           0.0f, 0.0f,  0.0f, 1.0f),
+		           0.0f, 0.0f,  0.0f, 1.0f), // Left
+		MATRIX4x4f(-1.0f, 0.0f,  0.0f, 0.0f,
+		           0.0f,  1.0f,  0.0f, 0.0f,
+		           0.0f,  0.0f, -1.0f, 0.0f,
+		           0.0f,  0.0f,  0.0f, 1.0f), // Back
 		MATRIX4x4f(0.0f, 0.0f, 1.0f, 0.0f,
 		           0.0f, 1.0f, 0.0f, 0.0f,
 		          -1.0f, 0.0f, 0.0f, 0.0f,
-		           0.0f, 0.0f, 0.0f, 1.0f),
+		           0.0f, 0.0f, 0.0f, 1.0f), // Right
 		MATRIX4x4f(1.0f, 0.0f,  0.0f, 0.0f,
 		           0.0f, 0.0f, -1.0f, 0.0f,
 		           0.0f, 1.0f,  0.0f, 0.0f,
-		           0.0f, 0.0f,  0.0f, 1.0f),
+		           0.0f, 0.0f,  0.0f, 1.0f), // Bottom
 		MATRIX4x4f(1.0f,  0.0f, 0.0f, 0.0f,
 		           0.0f,  0.0f, 1.0f, 0.0f,
 		           0.0f, -1.0f, 0.0f, 0.0f,
-		           0.0f,  0.0f, 0.0f, 1.0f),
-		MATRIX4x4f(1.0f,  0.0f,  0.0f, 0.0f,
-		           0.0f, -1.0f,  0.0f, 0.0f,
-		           0.0f,  0.0f, -1.0f, 0.0f,
-		           0.0f,  0.0f,  0.0f, 1.0f)
+		           0.0f,  0.0f, 0.0f, 1.0f) // Top
 	};
 	
 	for (rowIndex = 0; rowIndex < SPHERE_SUBDIVISIONS + 2; rowIndex++) {
@@ -170,6 +173,13 @@ static void updateCollisions(SingleFrameScreen3D * self) {
 #define COLOR_SPHERE_POSITION_HIGHLIGHT           COLOR4f(0.875f, 1.0f, 1.0f, 1.0f)
 #define COLOR_SPHERE_POSITION_COLLIDING           COLOR4f(1.0f, 0.0f, 0.0f, 1.0f)
 #define COLOR_SPHERE_POSITION_COLLIDING_HIGHLIGHT COLOR4f(1.0f, 0.75f, 0.75f, 1.0f)
+
+#define COLOR_CAPSULE_LAST_POSITION                COLOR4f(0.25f, 0.0f, 0.5f, 1.0f)
+#define COLOR_CAPSULE_LAST_POSITION_HIGHLIGHT      COLOR4f(0.5f, 0.25f, 0.75f, 1.0f)
+#define COLOR_CAPSULE_POSITION                     COLOR4f(1.0f, 0.5f, 0.0f, 1.0f)
+#define COLOR_CAPSULE_POSITION_HIGHLIGHT           COLOR4f(1.0f, 0.75f, 0.5f, 1.0f)
+#define COLOR_CAPSULE_POSITION_COLLIDING           COLOR4f(1.0f, 0.0f, 0.0f, 1.0f)
+#define COLOR_CAPSULE_POSITION_COLLIDING_HIGHLIGHT COLOR4f(1.0f, 0.75f, 0.75f, 1.0f)
 
 #define COLOR_TRIMESH COLOR4f(0.0f, 1.0f, 0.0f, 1.0f)
 
@@ -319,6 +329,41 @@ static void getSphereVertices(Vector3f position, float radius, Color4f color, st
 	*ioIndexCount += SPHERE_INDEX_COUNT;
 }
 
+static void getCapsuleVertices(Vector3f position, float radius, float cylinderHeight, Color4f color, struct vertex_p3f_n3f_c4f * outVertices, GLuint * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount) {
+	if (outVertices != NULL) {
+		unsigned int vertexIndex;
+		struct vertex_p3f_n3f_c4f vertex;
+		Vector3f vertexPosition;
+		
+		setVertexColor(&vertex, color);
+		for (vertexIndex = 0; vertexIndex < SPHERE_VERTEX_COUNT; vertexIndex++) {
+			vertexPosition.x = sphereVertexTemplate[vertexIndex].position[0];
+			vertexPosition.y = sphereVertexTemplate[vertexIndex].position[1];
+			vertexPosition.z = sphereVertexTemplate[vertexIndex].position[2];
+			vertexPosition = Vector3f_multiplyScalar(vertexPosition, radius);
+			if (vertexPosition.y > 0.0f) {
+				vertexPosition.y += cylinderHeight;
+			}
+			vertex.position[0] = vertexPosition.x + position.x;
+			vertex.position[1] = vertexPosition.y + position.y;
+			vertex.position[2] = vertexPosition.z + position.z;
+			vertex.normal[0] = sphereVertexTemplate[vertexIndex].normal[0];
+			vertex.normal[1] = sphereVertexTemplate[vertexIndex].normal[1];
+			vertex.normal[2] = sphereVertexTemplate[vertexIndex].normal[2];
+			outVertices[*ioVertexCount + vertexIndex] = vertex;
+		}
+	}
+	if (outIndexes != NULL) {
+		unsigned int index;
+		
+		for (index = 0; index < SPHERE_INDEX_COUNT; index++) {
+			outIndexes[*ioIndexCount + index] = sphereIndexTemplate[index] + *ioVertexCount;
+		}
+	}
+	*ioVertexCount += SPHERE_VERTEX_COUNT;
+	*ioIndexCount += SPHERE_INDEX_COUNT;
+}
+
 static void getTrimeshVertices(CollisionStaticTrimesh * trimesh, Color4f color, struct vertex_p3f_n3f_c4f * outVertices, GLuint * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount) {
 	unsigned int triangleIndex, vertexIndex;
 	
@@ -430,6 +475,41 @@ static void getOpaqueCollisionObjectVertices(SingleFrameScreen3D * self, struct 
 				getSphereVertices(Vector3x_toVector3f(sphere->position), xtof(sphere->radius), color, outVertices, outIndexes, ioVertexCount, ioIndexCount);
 				break;
 			}
+			case COLLISION_SHAPE_CAPSULE: {
+				CollisionCapsule * capsule = (CollisionCapsule *) object;
+				
+				if (objectIndex == self->selectedObjectIndex) {
+					color = COLOR_CAPSULE_LAST_POSITION_HIGHLIGHT;
+				} else {
+					color = COLOR_CAPSULE_LAST_POSITION;
+				}
+				getCapsuleVertices(Vector3x_toVector3f(capsule->lastPosition), xtof(capsule->radius), xtof(capsule->cylinderHeight), color, outVertices, outIndexes, ioVertexCount, ioIndexCount);
+				
+				if (self->collisions[objectIndex].time > -1) {
+					Vector3x collidingPosition = Vector3x_interpolate(capsule->lastPosition, capsule->position, self->collisions[objectIndex].time);
+					
+					if (objectIndex == self->selectedObjectIndex) {
+						color = COLOR_CAPSULE_POSITION_HIGHLIGHT;
+					} else {
+						color = COLOR_CAPSULE_POSITION;
+					}
+					getCapsuleVertices(Vector3x_toVector3f(collidingPosition), xtof(capsule->radius), xtof(capsule->cylinderHeight), color, outVertices, outIndexes, ioVertexCount, ioIndexCount);
+				}
+				
+				if (objectIndex == self->selectedObjectIndex) {
+					if (self->collisions[objectIndex].time > -1) {
+						color = COLOR_CAPSULE_POSITION_COLLIDING_HIGHLIGHT;
+					} else {
+						color = COLOR_CAPSULE_POSITION_HIGHLIGHT;
+					}
+				} else if (self->collisions[objectIndex].time > -1) {
+					color = COLOR_CAPSULE_POSITION_COLLIDING;
+				} else {
+					color = COLOR_CAPSULE_POSITION;
+				}
+				getCapsuleVertices(Vector3x_toVector3f(capsule->position), xtof(capsule->radius), xtof(capsule->cylinderHeight), color, outVertices, outIndexes, ioVertexCount, ioIndexCount);
+				break;
+			}
 			case COLLISION_SHAPE_STATIC_TRIMESH:
 				getTrimeshVertices((CollisionStaticTrimesh *) object, COLOR_TRIMESH, outVertices, outIndexes, ioVertexCount, ioIndexCount);
 				break;
@@ -439,6 +519,8 @@ static void getOpaqueCollisionObjectVertices(SingleFrameScreen3D * self, struct 
 
 static void getBoxSweepVertices(Vector3f lastPosition, Vector3f lastSize, Vector3f position, Vector3f size, Color4f colorStart, Color4f colorEnd, struct vertex_p3f_n3f_c4f * outVertices, GLuint * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount) {
 }
+
+#define SWEEP_CYLINDER_SUBDIVISIONS 32
 
 static void getSphereSweepVertices(Vector3f lastPosition, Vector3f position, float radius, Color4f colorStart, Color4f colorEnd, struct vertex_p3f_n3f_c4f * outVertices, GLuint * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount) {
 	if (lastPosition.x == position.x && lastPosition.y == position.y && lastPosition.z == position.z) {
@@ -468,8 +550,10 @@ static void getSphereSweepVertices(Vector3f lastPosition, Vector3f position, flo
 			orientation = Quaternionf_fromAxisAngle(axis, -acos(dot));
 		}
 		
-		for (vertexIndex = 0; vertexIndex < SPHERE_SUBDIVISIONS; vertexIndex++) {
-			radialPosition = VECTOR3f(cos(vertexIndex * M_PI * 2 / SPHERE_SUBDIVISIONS), sin(vertexIndex * M_PI * 2 / SPHERE_SUBDIVISIONS), 0.0f);
+		radius /= cos(0.5f * M_PI * 2 / SWEEP_CYLINDER_SUBDIVISIONS);
+		
+		for (vertexIndex = 0; vertexIndex < SWEEP_CYLINDER_SUBDIVISIONS; vertexIndex++) {
+			radialPosition = VECTOR3f(cos(vertexIndex * M_PI * 2 / SWEEP_CYLINDER_SUBDIVISIONS), sin(vertexIndex * M_PI * 2 / SWEEP_CYLINDER_SUBDIVISIONS), 0.0f);
 			radialPosition = Quaternionf_multiplyVector3f(orientation, radialPosition);
 			vertex.normal[0] = radialPosition.x;
 			vertex.normal[1] = radialPosition.y;
@@ -484,24 +568,24 @@ static void getSphereSweepVertices(Vector3f lastPosition, Vector3f position, flo
 			vertex.position[1] = radialPosition.y * radius + position.y;
 			vertex.position[2] = radialPosition.z * radius + position.z;
 			setVertexColor(&vertex, colorEnd);
-			outVertices[*ioVertexCount + SPHERE_SUBDIVISIONS + vertexIndex] = vertex;
+			outVertices[*ioVertexCount + SWEEP_CYLINDER_SUBDIVISIONS + vertexIndex] = vertex;
 		}
 	}
 	
 	if (outIndexes != NULL) {
 		unsigned int vertexIndex;
 		
-		for (vertexIndex = 0; vertexIndex < SPHERE_SUBDIVISIONS; vertexIndex++) {
+		for (vertexIndex = 0; vertexIndex < SWEEP_CYLINDER_SUBDIVISIONS; vertexIndex++) {
 			outIndexes[*ioIndexCount + vertexIndex * 6 + 0] = *ioVertexCount + vertexIndex;
-			outIndexes[*ioIndexCount + vertexIndex * 6 + 1] = *ioVertexCount + (vertexIndex + 1) % SPHERE_SUBDIVISIONS;
-			outIndexes[*ioIndexCount + vertexIndex * 6 + 2] = *ioVertexCount + (vertexIndex + 1) % SPHERE_SUBDIVISIONS + SPHERE_SUBDIVISIONS;
-			outIndexes[*ioIndexCount + vertexIndex * 6 + 3] = *ioVertexCount + (vertexIndex + 1) % SPHERE_SUBDIVISIONS + SPHERE_SUBDIVISIONS;
-			outIndexes[*ioIndexCount + vertexIndex * 6 + 4] = *ioVertexCount + vertexIndex + SPHERE_SUBDIVISIONS;
+			outIndexes[*ioIndexCount + vertexIndex * 6 + 1] = *ioVertexCount + (vertexIndex + 1) % SWEEP_CYLINDER_SUBDIVISIONS;
+			outIndexes[*ioIndexCount + vertexIndex * 6 + 2] = *ioVertexCount + (vertexIndex + 1) % SWEEP_CYLINDER_SUBDIVISIONS + SWEEP_CYLINDER_SUBDIVISIONS;
+			outIndexes[*ioIndexCount + vertexIndex * 6 + 3] = *ioVertexCount + (vertexIndex + 1) % SWEEP_CYLINDER_SUBDIVISIONS + SWEEP_CYLINDER_SUBDIVISIONS;
+			outIndexes[*ioIndexCount + vertexIndex * 6 + 4] = *ioVertexCount + vertexIndex + SWEEP_CYLINDER_SUBDIVISIONS;
 			outIndexes[*ioIndexCount + vertexIndex * 6 + 5] = *ioVertexCount + vertexIndex;
 		}
 	}
-	*ioVertexCount += SPHERE_SUBDIVISIONS * 2;
-	*ioIndexCount += SPHERE_SUBDIVISIONS * 6;
+	*ioVertexCount += SWEEP_CYLINDER_SUBDIVISIONS * 2;
+	*ioIndexCount += SWEEP_CYLINDER_SUBDIVISIONS * 6;
 }
 
 static void getTranslucentCollisionObjectVertices(SingleFrameScreen3D * self, struct vertex_p3f_n3f_c4f * outVertices, GLuint * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount) {
@@ -509,6 +593,9 @@ static void getTranslucentCollisionObjectVertices(SingleFrameScreen3D * self, st
 	CollisionObject * object;
 	Color4f colorStart, colorEnd;
 	
+	if (!self->drawSweeps) {
+		return;
+	}
 	for (objectIndex = 0; objectIndex < self->resolver->objectCount; objectIndex++) {
 		object = self->resolver->objects[objectIndex];
 		switch (object->shapeType) {
@@ -559,6 +646,10 @@ static void getTranslucentCollisionObjectVertices(SingleFrameScreen3D * self, st
 				getSphereSweepVertices(Vector3x_toVector3f(sphere->lastPosition), Vector3x_toVector3f(sphere->position), xtof(sphere->radius), colorStart, colorEnd, outVertices, outIndexes, ioVertexCount, ioIndexCount);
 				break;
 			}
+			case COLLISION_SHAPE_CAPSULE:
+				// TODO
+				break;
+				
 			case COLLISION_SHAPE_STATIC_TRIMESH:
 				break;
 		}
@@ -577,6 +668,7 @@ static bool draw(Atom eventID, void * eventData, void * context) {
 	GLuint * indexes;
 	unsigned int indexCount, indexCountOpaque;
 	Matrix4x4f matrix;
+	Vector3f cameraPosition;
 	
 	if (vertexBufferID == 0) {
 		glGenBuffersARB(1, &vertexBufferID);
@@ -616,14 +708,21 @@ static bool draw(Atom eventID, void * eventData, void * context) {
 	glEnableClientState(GL_COLOR_ARRAY);
 	
 	GLSLShader_activate(self->lightShader);
-	glUniform3f(GLSLShader_getUniformLocation(self->lightShader, "light0"), 0.0f, 5.0f, 10.0f);
-	glUniform1f(GLSLShader_getUniformLocation(self->lightShader, "ambient"), 0.1f);
+	glUniform3f(GLSLShader_getUniformLocation(self->lightShader, "diffusePosition"), 0.0f, 5.0f, 5.0f);
+	glUniform3f(GLSLShader_getUniformLocation(self->lightShader, "diffuseColor"), 1.0f, 1.0f, 0.95f);
+	glUniform3f(GLSLShader_getUniformLocation(self->lightShader, "ambientColor"), 0.1f, 0.1f, 0.105f);
+	glUniform1f(GLSLShader_getUniformLocation(self->lightShader, "specularIntensity"), 0.875f);
+	glUniform1f(GLSLShader_getUniformLocation(self->lightShader, "shininess"), 32.0f);
+	 // TODO: cameraPosition is still wrong somehow
+	cameraPosition = Vector3f_add(Quaternionf_multiplyVector3f(Quaternionx_toQuaternionf(self->cameraDirection), VECTOR3f(0.0f, 0.0f, -xtof(self->cameraDistance))), Vector3x_toVector3f(self->cameraFocus));
+	glUniform3f(GLSLShader_getUniformLocation(self->lightShader, "cameraPosition"), -cameraPosition.x, -cameraPosition.y, -cameraPosition.z);
 	
 	glVertexPointer(3, GL_FLOAT, sizeof(struct vertex_p3f_n3f_c4f), (void *) offsetof(struct vertex_p3f_n3f_c4f, position));
 	glNormalPointer(GL_FLOAT, sizeof(struct vertex_p3f_n3f_c4f), (void *) offsetof(struct vertex_p3f_n3f_c4f, normal));
 	glColorPointer(4, GL_FLOAT, sizeof(struct vertex_p3f_n3f_c4f), (void *) offsetof(struct vertex_p3f_n3f_c4f, color));
 	glDrawElements(GL_TRIANGLES, indexCountOpaque, GL_UNSIGNED_INT, 0);
 	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glDepthMask(GL_FALSE);
 	glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, (void *) (ptrdiff_t) ((indexCount - indexCountOpaque) * sizeof(GLuint)));
 	glDepthMask(GL_TRUE);
@@ -698,6 +797,17 @@ static bool keyDown(Atom eventID, void * eventData, void * context) {
 				Shell_redisplay();
 			}
 			break;
+			
+		case KEYBOARD_S:
+			self->drawSweeps = !self->drawSweeps;
+			Shell_redisplay();
+			break;
+			
+		case KEYBOARD_W:
+			self->wireframe = !self->wireframe;
+			glPolygonMode(GL_FRONT, self->wireframe ? GL_LINE : GL_FILL);
+			Shell_redisplay();
+			break;
 	}
 	return true;
 }
@@ -729,21 +839,27 @@ static bool mouseDragged(Atom eventID, void * eventData, void * context) {
 	CollisionObject * object = self->resolver->objects[self->selectedObjectIndex];
 	
 	if (self->draggingCamera) {
-		if (g_controlKeyDown) {
+		if (g_shiftKeyDown) {
+			// Pan
+			if (g_controlKeyDown) {
+				offset.x = 0x00000;
+				offset.y = 0x00000;
+				offset.z = -xmul(ftox(event->position.y), xmul(CAMERA_DRAG_SENSITIVITY, self->cameraDistance));
+			} else {
+				offset.x = xmul(ftox(event->position.x), xmul(CAMERA_DRAG_SENSITIVITY, self->cameraDistance));
+				offset.y = -xmul(ftox(event->position.y), xmul(CAMERA_DRAG_SENSITIVITY, self->cameraDistance));
+				offset.z = 0x00000;
+			}
+			offset = Quaternionx_multiplyVector3x(Quaternionx_inverted(self->cameraDirection), offset);
+			self->cameraFocus = Vector3x_add(self->cameraFocus, offset);
+			Shell_redisplay();
+			
+		} else if (g_controlKeyDown) {
 			// Zoom
 			self->cameraDistance += xmul(ftox(event->position.y), xmul(CAMERA_ZOOM_SENSITIVITY, self->cameraDistance));
 			if (self->cameraDistance < 0x10000) {
 				self->cameraDistance = 0x10000;
 			}
-			Shell_redisplay();
-			
-		} else if (g_shiftKeyDown) {
-			// Pan
-			offset.x = xmul(ftox(event->position.x), xmul(CAMERA_DRAG_SENSITIVITY, self->cameraDistance));
-			offset.y = -xmul(ftox(event->position.y), xmul(CAMERA_DRAG_SENSITIVITY, self->cameraDistance));
-			offset.z = 0x00000;
-			offset = Quaternionx_multiplyVector3x(Quaternionx_inverted(self->cameraDirection), offset);
-			self->cameraFocus = Vector3x_add(self->cameraFocus, offset);
 			Shell_redisplay();
 			
 		} else {
@@ -791,6 +907,24 @@ static bool mouseDragged(Atom eventID, void * eventData, void * context) {
 				}
 				break;
 			}
+			case COLLISION_SHAPE_CAPSULE: {
+				CollisionCapsule * capsule = (CollisionCapsule *) object;
+				if (g_shiftKeyDown) {
+					if (g_altKeyDown) {
+						capsule->cylinderHeight += offset.y;
+						if (capsule->cylinderHeight < 0x00000) {
+							capsule->cylinderHeight = 0x00000;
+						}
+					} else {
+						capsule->radius += offset.y;
+					}
+				} else if (g_altKeyDown) {
+					capsule->lastPosition = Vector3x_add(capsule->lastPosition, offset);
+				} else {
+					capsule->position = Vector3x_add(capsule->position, offset);
+				}
+				break;
+			}
 		}
 		updateCollisions(self);
 		Shell_redisplay();
@@ -817,18 +951,30 @@ void SingleFrameScreen3D_activate(SingleFrameScreen3D * self) {
 		0, 2, 3,
 		1, 3, 2
 	};
+	Vector3x vertices2[] = {{-0x80000, -0x60000, 0x00000}, {-0x60000, -0x60000, 0x00000}, {-0x80000, -0x60000, 0x20000},
+	                        {-0x80000, -0x60000, 0x00000}, {-0x80000, -0x60000, 0x20000}, {-0x80000, -0x40000, 0x00000},
+	                        {-0x80000, -0x60000, 0x00000}, {-0x80000, -0x40000, 0x00000}, {-0x60000, -0x60000, 0x00000},
+	                        {-0x80000, -0x40000, 0x00000}, {-0x80000, -0x60000, 0x20000}, {-0x60000, -0x60000, 0x00000}};
 	
 	self->resolver = CollisionResolver_create(self->intersectionManager, false);
 	CollisionResolver_addObject(self->resolver, (CollisionObject *) CollisionBox3D_create(NULL, NULL, VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000), 0x00000));
 	CollisionResolver_addObject(self->resolver, (CollisionObject *) CollisionBox3D_create(NULL, NULL, VECTOR3x(0x20000, -0x40000, 0x00000), VECTOR3x(0x50000, 0x20000, 0x30000), 0x00000));
 	CollisionResolver_addObject(self->resolver, (CollisionObject *) CollisionSphere_create(NULL, NULL, VECTOR3x(-0x30000, 0x00000, 0x00000), 0x10000));
 	CollisionResolver_addObject(self->resolver, (CollisionObject *) CollisionSphere_create(NULL, NULL, VECTOR3x(-0x20000, 0x50000, 0x00000), 0x08000));
+	CollisionResolver_addObject(self->resolver, (CollisionObject *) CollisionCapsule_create(NULL, NULL, VECTOR3x(0x00000, -0x50000, 0x20000), 0x08000, 0x14000));
+	CollisionResolver_addObject(self->resolver, (CollisionObject *) CollisionCapsule_create(NULL, NULL, VECTOR3x(0x20000, 0x60000, 0x20000), 0x0C000, 0x10000));
 	CollisionResolver_addObject(self->resolver, (CollisionObject *) CollisionStaticTrimesh_createWithIndexes(NULL, NULL, vertices, indexes, sizeof(indexes) / sizeof(unsigned int)));
+	CollisionResolver_addObject(self->resolver, (CollisionObject *) CollisionStaticTrimesh_create(NULL, NULL, vertices2, 12));
+	if (self->resolver->objectCount > OBJECT_COUNT_3D) {
+		fprintf(stderr, "OBJECT_COUNT_3D needs to be updated (currently %u; " SIZE_T_FORMAT " objects added)\n", OBJECT_COUNT_3D, self->resolver->objectCount);
+		abort();
+	}
 	
 	self->selectedObjectIndex = 0;
 	self->cameraFocus = VECTOR3x_ZERO;
 	self->cameraDirection = QUATERNIONx_IDENTITY;
 	self->cameraDistance = 0xF0000;
+	self->drawSweeps = true;
 	updateCollisions(self);
 	
 	EventDispatcher_registerForEvent(self->screenManager->eventDispatcher, ATOM(EVENT_KEY_DOWN), keyDown, self);
@@ -843,6 +989,8 @@ void SingleFrameScreen3D_activate(SingleFrameScreen3D * self) {
 
 void SingleFrameScreen3D_deactivate(SingleFrameScreen3D * self) {
 	size_t objectIndex;
+	
+	glPolygonMode(GL_FRONT, GL_FILL);
 	
 	for (objectIndex = 0; objectIndex < self->resolver->objectCount; objectIndex++) {
 		self->resolver->objects[objectIndex]->dispose(self->resolver->objects[objectIndex]);
