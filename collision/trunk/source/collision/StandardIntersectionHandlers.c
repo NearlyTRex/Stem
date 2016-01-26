@@ -465,6 +465,53 @@ static bool intersectSweptSphereTriangle(Vector3x lastPosition, Vector3x positio
 	return true;
 }
 
+#define UP_DOT_MAX 0x0FFF0
+
+static bool intersectSweptCylinderWallTrimeshEdge(Vector3x lastPosition, Vector3x position, fixed16_16 radius, fixed16_16 height, Vector3x endpoint1, Vector3x endpoint2, Vector3x normal, fixed16_16 length, fixed16_16 * outTime, Vector3x * outNormal) {
+	Vector3x edgeVector, planarEdgeNormal;
+	fixed16_16 distance1, distance2, distance3;
+	fixed16_16 time;
+	Vector3x intersectingCylinderPosition, intersectingEdgePosition;
+	
+	edgeVector = Vector3x_normalized(Vector3x_subtract(endpoint2, endpoint1));
+	if (xabs(Vector3x_dot(edgeVector, VECTOR3x_UP)) > UP_DOT_MAX) {
+		return false;
+	}
+	planarEdgeNormal = normal;
+	planarEdgeNormal.y = 0x00000;
+	if (!Vector3x_normalize(&planarEdgeNormal)) {
+		return false;
+	}
+	distance1 = Vector3x_dot(planarEdgeNormal, Vector3x_subtract(lastPosition, endpoint1));
+	distance2 = Vector3x_dot(planarEdgeNormal, Vector3x_subtract(position, endpoint1));
+	
+	time = xdiv(distance1 - radius, -distance2 + distance1);
+	if (time > 0x10000) {
+		return false;
+	}
+	if (time < 0x00000) {
+		if (distance1 > radius) {
+			return false;
+		}
+		time = 0x00000;
+	}
+	
+	intersectingCylinderPosition = Vector3x_interpolate(lastPosition, position, time);
+	distance3 = Vector3x_dot(Vector3x_subtract(intersectingCylinderPosition, endpoint1), edgeVector);
+	if (distance3 < 0x00000 || distance3 > length) {
+		return false;
+	}
+	
+	intersectingEdgePosition = Vector3x_interpolate(endpoint1, endpoint2, xdiv(distance3, length));
+	if (intersectingEdgePosition.y < intersectingCylinderPosition.y || intersectingEdgePosition.y > intersectingCylinderPosition.y + height) {
+		return false;
+	}
+	
+	*outTime = time;
+	*outNormal = planarEdgeNormal;
+	return true;
+}
+
 static fixed16_16 getRectEdgeThicknessX(CollisionRect2D * rect) {
 	if (rect->edgeThickness == EDGE_THICKNESS_DEFAULT) {
 		return rect->size.x / 2;
@@ -1422,24 +1469,126 @@ bool intersectionHandler_capsule_capsule(CollisionObject * object1, CollisionObj
 }
 
 bool intersectionHandler_capsule_trimesh(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal, Vector3x * outObject1Vector, Vector3x * outObject2Vector, fixed16_16 * outContactArea) {
-	// for each vertex:
-	//   test bottom cap (intersectSweptSpheres); discard if normal y > 0
-	//   test top cap (intersectSweptSpheres); discard if normal y < 0
-	//   test cylinder (intersectSweptCircles xz, check y)
-	// for each edge:
-	//   test bottom cap (intersectSweptSphereTrimeshEdge); discard if normal y > 0
-	//   test top cap (intersectSweptSphereTrimeshEdge); discard if normal y < 0
-	//   test cylinder:
-	//     cross edge vector with up
-	//     if too parallel, no intersection (covered by vertex tests)
-	//     normalize cross and dot with cylinder lastPosition and position to find intersecting depth
-	//     at intersecting depth, dot with normalize(endpoint2 - endpoint1)
-	//     if positive and less than magnitude(endpoint2 - endpoint1), interpolate along edge for point
-	//     check if point's y is within cylinder's span
-	// for each face:
-	//   test bottom cap (intersectSweptSphereTriangle); discard if normal y > 0
-	//   test top cap (intersectSweptSphereTriangle); discard if normal y < 0
-	//   don't test cylinder; can't have any kind of collision not otherwise detected
+	fixed16_16 time, bestTime = FIXED_16_16_MAX;
+	Vector3x bestNormal = VECTOR3x_ZERO;
+	CollisionCapsule * capsule = (CollisionCapsule *) object1;
+	CollisionStaticTrimesh * trimesh = (CollisionStaticTrimesh *) object2;
+	Vector3x vertices[3];
+	Vector3x normal;
+	Vector3x lastBottomCapPosition, lastTopCapPosition, bottomCapPosition, topCapPosition;
+	unsigned int triangleIndex, edgeIndex, vertexIndex;
+	Box6x capsuleBounds;
+	bool intersection;
+	
+	lastBottomCapPosition = capsule->lastPosition;
+	lastTopCapPosition = capsule->lastPosition;
+	bottomCapPosition = capsule->position;
+	topCapPosition = capsule->position;
+	
+	lastBottomCapPosition.y += capsule->radius;
+	bottomCapPosition.y += capsule->radius;
+	lastTopCapPosition.y += capsule->radius + capsule->cylinderHeight;
+	topCapPosition.y += capsule->radius + capsule->cylinderHeight;
+	
+	capsuleBounds = CollisionCapsule_getCollisionBounds(capsule);
+	
+	for (vertexIndex = 0; vertexIndex < trimesh->vertexCount; vertexIndex++) {
+		if (trimesh->vertices[vertexIndex].convex &&
+		    Box6x_containsVector3x(capsuleBounds, trimesh->vertices[vertexIndex].position)) {
+			
+			intersection = intersectSweptSpheres(lastBottomCapPosition, bottomCapPosition, capsule->radius,
+			                                     trimesh->vertices[vertexIndex].position, trimesh->vertices[vertexIndex].position, 0x00000,
+			                                     &time, &normal);
+			if (normal.y < 0x00000) {
+				intersection = false;
+			}
+			
+			if (!intersection) {
+				intersection = intersectSweptSpheres(lastTopCapPosition, topCapPosition, capsule->radius,
+				                                     trimesh->vertices[vertexIndex].position, trimesh->vertices[vertexIndex].position, 0x00000,
+				                                     &time, &normal);
+				if (normal.y > 0x00000) {
+					intersection = false;
+				}
+			}
+			
+			if (!intersection) {
+				fixed16_16 contactArea;
+				
+				intersection = intersectSweptCylinderWalls(lastBottomCapPosition, bottomCapPosition, capsule->radius, capsule->cylinderHeight,
+				                                           trimesh->vertices[vertexIndex].position, trimesh->vertices[vertexIndex].position, 0x00000, 0x00000,
+				                                           &time, &normal, &contactArea);
+			}
+			
+			if (intersection && time < bestTime) {
+				bestTime = time;
+				bestNormal = normal;
+			}
+		}
+	}
+	
+	for (edgeIndex = 0; edgeIndex < trimesh->edgeCount; edgeIndex++) {
+		vertices[0] = trimesh->vertices[trimesh->edges[edgeIndex].vertexIndexes[0]].position;
+		vertices[1] = trimesh->vertices[trimesh->edges[edgeIndex].vertexIndexes[1]].position;
+		if (Box6x_intersectsBox6x(capsuleBounds, box6xEnclosing2Points(vertices[0], vertices[1]))) {
+			
+			intersection = intersectSweptSphereTrimeshEdge(lastBottomCapPosition, bottomCapPosition, capsule->radius,
+			                                               vertices[0], vertices[1], trimesh->edges[edgeIndex].planarTransform, trimesh->edges[edgeIndex].length,
+			                                               &time, &normal);
+			if (normal.y < 0x00000) {
+				intersection = false;
+			}
+			
+			if (!intersection) {
+				intersection = intersectSweptSphereTrimeshEdge(lastTopCapPosition, topCapPosition, capsule->radius,
+				                                               vertices[0], vertices[1], trimesh->edges[edgeIndex].planarTransform, trimesh->edges[edgeIndex].length,
+				                                               &time, &normal);
+				if (normal.y > 0x00000) {
+					intersection = false;
+				}
+			}
+			
+			if (!intersection) {
+				intersection = intersectSweptCylinderWallTrimeshEdge(lastBottomCapPosition, bottomCapPosition, capsule->radius, capsule->cylinderHeight,
+				                                                     vertices[0], vertices[1], trimesh->edges[edgeIndex].normal, trimesh->edges[edgeIndex].length,
+				                                                     &time, &normal);
+			}
+			
+			if (intersection && time < bestTime) {
+				bestTime = time;
+				bestNormal = normal;
+			}
+		}
+	}
+	
+	for (triangleIndex = 0; triangleIndex < trimesh->triangleCount; triangleIndex++) {
+		vertices[0] = trimesh->vertices[trimesh->triangles[triangleIndex].vertexIndexes[0]].position;
+		vertices[1] = trimesh->vertices[trimesh->triangles[triangleIndex].vertexIndexes[1]].position;
+		vertices[2] = trimesh->vertices[trimesh->triangles[triangleIndex].vertexIndexes[2]].position;
+		if (Box6x_intersectsBox6x(capsuleBounds, box6xEnclosing3Points(vertices[0], vertices[1], vertices[2]))) {
+			intersection = false;
+			if (trimesh->triangles[triangleIndex].normal.y >= 0x00000) {
+				intersection = intersectSweptSphereTriangle(lastBottomCapPosition, bottomCapPosition, capsule->radius,
+				                                            vertices[0], vertices[1], vertices[2], trimesh->triangles[triangleIndex].normal,
+				                                            &time);
+			}
+			if (!intersection && trimesh->triangles[triangleIndex].normal.y <= 0x00000) {
+				intersection = intersectSweptSphereTriangle(lastTopCapPosition, topCapPosition, capsule->radius,
+				                                            vertices[0], vertices[1], vertices[2], trimesh->triangles[triangleIndex].normal,
+				                                            &time);
+			}
+			
+			if (intersection && time < bestTime) {
+				bestTime = time;
+				bestNormal = trimesh->triangles[triangleIndex].normal;
+			}
+		}
+	}
+	
+	if (bestTime < FIXED_16_16_MAX) {
+		returnIntersection(bestTime, bestNormal, Vector3x_subtract(capsule->position, capsule->lastPosition), VECTOR3x_ZERO, 0x00000);
+	}
+	
 	return false;
 }
 
