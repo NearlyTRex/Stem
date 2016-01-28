@@ -899,6 +899,40 @@ static bool keyDown(Atom eventID, void * eventData, void * context) {
 			glPolygonMode(GL_FRONT, self->wireframe ? GL_LINE : GL_FILL);
 			Shell_redisplay();
 			break;
+			
+		case KEYBOARD_P:
+			if (self->collisions[self->selectedObjectIndex].time == -1) {
+				printf("No collision\n");
+			} else {
+				CollisionObject * object = self->resolver->objects[self->selectedObjectIndex];
+				printf("Collision at 0x%05X; normal = {0x%05X, 0x%05X, 0x%05X}\n", self->collisions[self->selectedObjectIndex].time, self->collisions[self->selectedObjectIndex].normal.x, self->collisions[self->selectedObjectIndex].normal.y, self->collisions[self->selectedObjectIndex].normal.z);
+				switch (object->shapeType) {
+					case COLLISION_SHAPE_BOX_3D: {
+						CollisionBox3D * box = (CollisionBox3D *) object;
+						printf("  lastPosition: {0x%05X, 0x%05X, 0x%05X}\n", box->lastPosition.x, box->lastPosition.y, box->lastPosition.z);
+						printf("  lastSize: {0x%05X, 0x%05X, 0x%05X}\n", box->lastSize.x, box->lastSize.y, box->lastSize.z);
+						printf("  position: {0x%05X, 0x%05X, 0x%05X}\n", box->position.x, box->position.y, box->position.z);
+						printf("  size: {0x%05X, 0x%05X, 0x%05X}\n", box->size.x, box->size.y, box->size.z);
+						break;
+					}
+					case COLLISION_SHAPE_SPHERE: {
+						CollisionSphere * sphere = (CollisionSphere *) object;
+						printf("  lastPosition: {0x%05X, 0x%05X, 0x%05X}\n", sphere->lastPosition.x, sphere->lastPosition.y, sphere->lastPosition.z);
+						printf("  position: {0x%05X, 0x%05X, 0x%05X}\n", sphere->position.x, sphere->position.y, sphere->position.z);
+						printf("  radius: 0x%05X\n", sphere->radius);
+						break;
+					}
+					case COLLISION_SHAPE_CAPSULE: {
+						CollisionCapsule * capsule = (CollisionCapsule *) object;
+						printf("  lastPosition: {0x%05X, 0x%05X, 0x%05X}\n", capsule->lastPosition.x, capsule->lastPosition.y, capsule->lastPosition.z);
+						printf("  position: {0x%05X, 0x%05X, 0x%05X}\n", capsule->position.x, capsule->position.y, capsule->position.z);
+						printf("  radius: 0x%05X\n", capsule->radius);
+						printf("  cylinderHeight: 0x%05X\n", capsule->cylinderHeight);
+						break;
+					}
+				}
+			}
+			break;
 	}
 	return true;
 }
@@ -1042,10 +1076,16 @@ void SingleFrameScreen3D_activate(SingleFrameScreen3D * self) {
 		0, 2, 3,
 		1, 3, 2
 	};
+	/*
 	Vector3x vertices2[] = {{-0x80000, -0x60000, 0x00000}, {-0x60000, -0x60000, 0x00000}, {-0x80000, -0x60000, 0x20000},
 	                        {-0x80000, -0x60000, 0x00000}, {-0x80000, -0x60000, 0x20000}, {-0x80000, -0x40000, 0x00000},
 	                        {-0x80000, -0x60000, 0x00000}, {-0x80000, -0x40000, 0x00000}, {-0x60000, -0x60000, 0x00000},
 	                        {-0x80000, -0x40000, 0x00000}, {-0x80000, -0x60000, 0x20000}, {-0x60000, -0x60000, 0x00000}};
+	*/
+	Vector3x vertices2[] = {{0x00000, 0x00000, 0x00000}, {0x20000, 0x00000, 0x00000}, {0x00000, 0x00000, 0x20000},
+	                        {0x00000, 0x00000, 0x00000}, {0x00000, 0x00000, 0x20000}, {0x00000, 0x20000, 0x00000},
+	                        {0x00000, 0x00000, 0x00000}, {0x00000, 0x20000, 0x00000}, {0x20000, 0x00000, 0x00000},
+	                        {0x00000, 0x20000, 0x00000}, {0x00000, 0x00000, 0x20000}, {0x20000, 0x00000, 0x00000}};
 	
 	self->resolver = CollisionResolver_create(self->intersectionManager, false);
 	CollisionResolver_addObject(self->resolver, (CollisionObject *) CollisionBox3D_create(NULL, NULL, VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x10000, 0x10000, 0x10000), 0x00000));

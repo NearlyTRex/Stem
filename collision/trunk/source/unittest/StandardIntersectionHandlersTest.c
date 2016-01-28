@@ -2804,11 +2804,45 @@ static void testCapsule_trimesh() {
 	capsule = initMovingCapsule(VECTOR3x(0x20000, -0x10000, 0x20000), VECTOR3x(0x10000, -0x10000, 0x10000), 0x08000, 0x10000);
 	resetOutParameters();
 	result = intersectionHandler_capsule_trimesh((CollisionObject *) &capsule, (CollisionObject *) &trimesh, &time, &normal, &object1Vector, &object2Vector, &contactArea);
-	// TODO: This expected time is suspicious; verify somehow
-	assertCollision(result, time, normal, 0x0A57E, VECTOR3x(0x0B505, 0x00000, 0x0B505), VECTOR3x(-0x10000, 0x00000, -0x10000), VECTOR3x_ZERO, 0x00000);
+	assertCollision(result, time, normal, 0x0A57E, VECTOR3x(0x0B506, 0x00000, 0x0B506), VECTOR3x(-0x10000, 0x00000, -0x10000), VECTOR3x_ZERO, 0x00000);
+	
+	// Bug: Returned collision time much too early (was 0x080FB in test case; approximately 0x0939F expected)
+	capsule = initMovingCapsule(VECTOR3x(0x2DD1A, 0x082A0, 0x79134), VECTOR3x(0x0FA1C, 0xFFFE6396, 0xFFFC0E06), 0x08000, 0x14000);
+	resetOutParameters();
+	result = intersectionHandler_capsule_trimesh((CollisionObject *) &capsule, (CollisionObject *) &trimesh, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x0939F, VECTOR3x(0x0CE92, 0x00000, 0xFFFF68C7), VECTOR3x(-0x1E2FE, -0x21F0A, -0xB832E), VECTOR3x_ZERO, 0x00000);
+	
+	// Bug: Returned collision time much too early (was 0x09EB3 in test case; approximately 0x0ABE7 expected)
+	capsule = initMovingCapsule(VECTOR3x(0x409DC, 0xFFFDF34F, 0x2C989), VECTOR3x(0xFFFCE95B, 0xFFFDCF84, 0x07F09), 0x08000, 0x14000);
+	resetOutParameters();
+	result = intersectionHandler_capsule_trimesh((CollisionObject *) &capsule, (CollisionObject *) &trimesh, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x0ABE7, VECTOR3x(0x0CE92, 0x00000, 0xFFFF68C7), VECTOR3x(-0x72081, -0x023CB, -0x24A80), VECTOR3x_ZERO, 0x00000);
 	
 	CollisionStaticTrimesh_dispose(&trimesh);
 }
+/*
+Collision at 0x080FB; normal = {0x0CE92, 0x00000, 0xFFFF68C7}
+  lastPosition: {0x2DD1A, 0x082A0, 0x79134}
+  position: {0x0FA1C, 0xFFFE6396, 0xFFFC0E06}
+  radius: 0x08000
+  cylinderHeight: 0x14000
+Collision at 0x0939F; normal = {0x0B506, 0x00000, 0x0B506}
+  lastPosition: {0x2DD1A, 0x082A0, 0x79134}
+  position: {0x0FD5F, 0xFFFE5612, 0xFFFC0BFE}
+  radius: 0x08000
+  cylinderHeight: 0x14000
+
+Collision at 0x09EB3; normal = {0x0CE92, 0x00000, 0xFFFF68C7}
+  lastPosition: {0xFFFE09DC, 0xFFF9F34F, 0x2C989}
+  position: {0xFFF6E95B, 0xFFF9CF84, 0x07F09}
+  radius: 0x08000
+  cylinderHeight: 0x14000
+Collision at 0x0ABE7; normal = {0x093CD, 0x093CD, 0x093CD}
+  lastPosition: {0xFFFE09DC, 0xFFF9F34F, 0x2C989}
+  position: {0xFFF6ED92, 0xFFF9CA2D, 0x08327}
+  radius: 0x08000
+  cylinderHeight: 0x14000
+*/
 
 static void testTrimesh_trimesh() {
 	CollisionStaticTrimesh * trimesh1, * trimesh2;
