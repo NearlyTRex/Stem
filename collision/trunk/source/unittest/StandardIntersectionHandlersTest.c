@@ -2743,6 +2743,10 @@ static void testCapsule_trimesh() {
 	                       {0x00000, 0x00000, 0x00000}, {0x00000, 0x00000, 0x20000}, {0x00000, 0x20000, 0x00000},
 	                       {0x00000, 0x00000, 0x00000}, {0x00000, 0x20000, 0x00000}, {0x20000, 0x00000, 0x00000},
 	                       {0x00000, 0x20000, 0x00000}, {0x00000, 0x00000, 0x20000}, {0x20000, 0x00000, 0x00000}};
+	Vector3x vertices2[] = {{0x01000, 0x01000, 0x01000}, {0x20000, 0x00000, 0x00000}, {0x00000, 0x00000, 0x20000},
+	                        {0x01000, 0x01000, 0x01000}, {0x00000, 0x00000, 0x20000}, {0x00000, 0x20000, 0x00000},
+	                        {0x01000, 0x01000, 0x01000}, {0x00000, 0x20000, 0x00000}, {0x20000, 0x00000, 0x00000},
+	                        {0x00000, 0x20000, 0x00000}, {0x00000, 0x00000, 0x20000}, {0x20000, 0x00000, 0x00000}};
 	
 	CollisionStaticTrimesh_init(&trimesh, NULL, NULL, vertices, 12);
 	
@@ -2804,45 +2808,37 @@ static void testCapsule_trimesh() {
 	capsule = initMovingCapsule(VECTOR3x(0x20000, -0x10000, 0x20000), VECTOR3x(0x10000, -0x10000, 0x10000), 0x08000, 0x10000);
 	resetOutParameters();
 	result = intersectionHandler_capsule_trimesh((CollisionObject *) &capsule, (CollisionObject *) &trimesh, &time, &normal, &object1Vector, &object2Vector, &contactArea);
-	assertCollision(result, time, normal, 0x0A57E, VECTOR3x(0x0B506, 0x00000, 0x0B506), VECTOR3x(-0x10000, 0x00000, -0x10000), VECTOR3x_ZERO, 0x00000);
+	assertCollision(result, time, normal, 0x0A57E, VECTOR3x(0x0B505, 0x00000, 0x0B505), VECTOR3x(-0x10000, 0x00000, -0x10000), VECTOR3x_ZERO, 0x00000);
 	
-	// Bug: Returned collision time much too early (was 0x080FB in test case; approximately 0x0939F expected)
+	// Bug: Returned collision time much too early (was 0x080FB in test case; 0x0939F expected)
 	capsule = initMovingCapsule(VECTOR3x(0x2DD1A, 0x082A0, 0x79134), VECTOR3x(0x0FA1C, 0xFFFE6396, 0xFFFC0E06), 0x08000, 0x14000);
 	resetOutParameters();
 	result = intersectionHandler_capsule_trimesh((CollisionObject *) &capsule, (CollisionObject *) &trimesh, &time, &normal, &object1Vector, &object2Vector, &contactArea);
-	assertCollision(result, time, normal, 0x0939F, VECTOR3x(0x0CE92, 0x00000, 0xFFFF68C7), VECTOR3x(-0x1E2FE, -0x21F0A, -0xB832E), VECTOR3x_ZERO, 0x00000);
+	assertCollision(result, time, normal, 0x09392, VECTOR3x(0x0B505, 0x00000, 0x0B505), VECTOR3x(-0x1E2FE, -0x21F0A, -0xB832E), VECTOR3x_ZERO, 0x00000);
 	
-	// Bug: Returned collision time much too early (was 0x09EB3 in test case; approximately 0x0ABE7 expected)
-	capsule = initMovingCapsule(VECTOR3x(0x409DC, 0xFFFDF34F, 0x2C989), VECTOR3x(0xFFFCE95B, 0xFFFDCF84, 0x07F09), 0x08000, 0x14000);
+	CollisionStaticTrimesh_dispose(&trimesh);
+	CollisionStaticTrimesh_init(&trimesh, NULL, NULL, vertices2, 12);
+	
+	// Bug: Returned collision time too late (was 0x04FE5 in test case; 0x042CD expected)
+	capsule = initMovingCapsule(VECTOR3x(0x2043F, 0x04479, 0xFFFBF3E7), VECTOR3x(0xFFFE112B, 0x0180F, 0x98C13), 0x08000, 0x14000);
 	resetOutParameters();
 	result = intersectionHandler_capsule_trimesh((CollisionObject *) &capsule, (CollisionObject *) &trimesh, &time, &normal, &object1Vector, &object2Vector, &contactArea);
-	assertCollision(result, time, normal, 0x0ABE7, VECTOR3x(0x0CE92, 0x00000, 0xFFFF68C7), VECTOR3x(-0x72081, -0x023CB, -0x24A80), VECTOR3x_ZERO, 0x00000);
+	assertCollision(result, time, normal, 0x042CD, VECTOR3x(0x00000, 0x00000, -0x10000), VECTOR3x(-0x3F314, -0x02C6A, 0xD982C), VECTOR3x_ZERO, 0x00000);
+	
+	// Bug: False positive for nonintersecting movement
+	capsule = initMovingCapsule(VECTOR3x(0xFFFDFB65, 0x1C1D4, 0xFFFAFE79), VECTOR3x(0xFFFFB3EE, 0xFFFEBEE0, 0x37D55), 0x08000, 0x14000);
+	resetOutParameters();
+	result = intersectionHandler_capsule_trimesh((CollisionObject *) &capsule, (CollisionObject *) &trimesh, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// Bug: Returned collision time too early (was 0x074CE in test case; 0x0798D expected)
+	capsule = initMovingCapsule(VECTOR3x(0xFFFAE296, 0x1FFFD, 0xFFFB3F5A), VECTOR3x(0x4FFEC, 0xFFFF2024, 0x46F40), 0x08000, 0x14000);
+	resetOutParameters();
+	result = intersectionHandler_capsule_trimesh((CollisionObject *) &capsule, (CollisionObject *) &trimesh, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x0798D, VECTOR3x(0xFFFF600D, 0x00000, 0xFFFF381E), Vector3x_subtract(capsule.position, capsule.lastPosition), VECTOR3x_ZERO, 0x00000);
 	
 	CollisionStaticTrimesh_dispose(&trimesh);
 }
-/*
-Collision at 0x080FB; normal = {0x0CE92, 0x00000, 0xFFFF68C7}
-  lastPosition: {0x2DD1A, 0x082A0, 0x79134}
-  position: {0x0FA1C, 0xFFFE6396, 0xFFFC0E06}
-  radius: 0x08000
-  cylinderHeight: 0x14000
-Collision at 0x0939F; normal = {0x0B506, 0x00000, 0x0B506}
-  lastPosition: {0x2DD1A, 0x082A0, 0x79134}
-  position: {0x0FD5F, 0xFFFE5612, 0xFFFC0BFE}
-  radius: 0x08000
-  cylinderHeight: 0x14000
-
-Collision at 0x09EB3; normal = {0x0CE92, 0x00000, 0xFFFF68C7}
-  lastPosition: {0xFFFE09DC, 0xFFF9F34F, 0x2C989}
-  position: {0xFFF6E95B, 0xFFF9CF84, 0x07F09}
-  radius: 0x08000
-  cylinderHeight: 0x14000
-Collision at 0x0ABE7; normal = {0x093CD, 0x093CD, 0x093CD}
-  lastPosition: {0xFFFE09DC, 0xFFF9F34F, 0x2C989}
-  position: {0xFFF6ED92, 0xFFF9CA2D, 0x08327}
-  radius: 0x08000
-  cylinderHeight: 0x14000
-*/
 
 static void testTrimesh_trimesh() {
 	CollisionStaticTrimesh * trimesh1, * trimesh2;

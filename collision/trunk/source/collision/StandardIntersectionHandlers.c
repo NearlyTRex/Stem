@@ -465,26 +465,34 @@ static bool intersectSweptSphereTriangle(Vector3x lastPosition, Vector3x positio
 	return true;
 }
 
-#define UP_DOT_MAX 0x0FFF0
+#define PLANAR_LENGTH_MIN 0x00010
 
-static bool intersectSweptCylinderWallTrimeshEdge(Vector3x lastPosition, Vector3x position, fixed16_16 radius, fixed16_16 height, Vector3x endpoint1, Vector3x endpoint2, Vector3x normal, fixed16_16 length, fixed16_16 * outTime, Vector3x * outNormal) {
-	Vector3x edgeVector, planarEdgeNormal;
+static bool intersectSweptCylinderWallTrimeshEdge(Vector3x lastPosition, Vector3x position, fixed16_16 radius, fixed16_16 height, Vector3x endpoint1, Vector3x endpoint2, Vector3x normal, Vector3x triangleNormal0, Vector3x triangleNormal1, fixed16_16 length, fixed16_16 * outTime, Vector3x * outNormal) {
+	Vector3x planarEdgeVector, planarEdgeNormal;
+	fixed16_16 planarLength;
 	fixed16_16 distance1, distance2, distance3;
 	fixed16_16 time;
 	Vector3x intersectingCylinderPosition, intersectingEdgePosition;
 	
-	edgeVector = Vector3x_normalized(Vector3x_subtract(endpoint2, endpoint1));
-	if (xabs(Vector3x_dot(edgeVector, VECTOR3x_UP)) > UP_DOT_MAX) {
+	if (triangleNormal0.y == 0x00000 || triangleNormal1.y == 0x00000 ||
+	    (triangleNormal0.y > 0x0000) == (triangleNormal1.y > 0x00000)) {
 		return false;
 	}
-	planarEdgeNormal = normal;
-	planarEdgeNormal.y = 0x00000;
-	if (!Vector3x_normalize(&planarEdgeNormal)) {
+	if (Vector3x_dot(normal, Vector3x_subtract(position, lastPosition)) >= 0x00000) {
 		return false;
 	}
+	
+	planarEdgeVector = Vector3x_subtract(endpoint2, endpoint1);
+	planarEdgeVector.y = 0x00000;
+	planarLength = Vector3x_magnitude(planarEdgeVector);
+	if (planarLength < PLANAR_LENGTH_MIN) {
+		return false;
+	}
+	planarEdgeVector = Vector3x_divideScalar(planarEdgeVector, planarLength);
+	planarEdgeNormal = Vector3x_cross(VECTOR3x_UP, planarEdgeVector);
+	
 	distance1 = Vector3x_dot(planarEdgeNormal, Vector3x_subtract(lastPosition, endpoint1));
 	distance2 = Vector3x_dot(planarEdgeNormal, Vector3x_subtract(position, endpoint1));
-	
 	time = xdiv(distance1 - radius, -distance2 + distance1);
 	if (time > 0x10000) {
 		return false;
@@ -497,8 +505,8 @@ static bool intersectSweptCylinderWallTrimeshEdge(Vector3x lastPosition, Vector3
 	}
 	
 	intersectingCylinderPosition = Vector3x_interpolate(lastPosition, position, time);
-	distance3 = Vector3x_dot(Vector3x_subtract(intersectingCylinderPosition, endpoint1), edgeVector);
-	if (distance3 < 0x00000 || distance3 > length) {
+	distance3 = Vector3x_dot(Vector3x_subtract(intersectingCylinderPosition, endpoint1), planarEdgeVector);
+	if (distance3 < 0x00000 || distance3 > planarLength) {
 		return false;
 	}
 	
@@ -1550,7 +1558,7 @@ bool intersectionHandler_capsule_trimesh(CollisionObject * object1, CollisionObj
 			
 			if (!intersection) {
 				intersection = intersectSweptCylinderWallTrimeshEdge(lastBottomCapPosition, bottomCapPosition, capsule->radius, capsule->cylinderHeight,
-				                                                     vertices[0], vertices[1], trimesh->edges[edgeIndex].normal, trimesh->edges[edgeIndex].length,
+				                                                     vertices[0], vertices[1], trimesh->edges[edgeIndex].normal, trimesh->edges[edgeIndex].triangleNormals[0], trimesh->edges[edgeIndex].triangleNormals[1], trimesh->edges[edgeIndex].length,
 				                                                     &time, &normal);
 			}
 			

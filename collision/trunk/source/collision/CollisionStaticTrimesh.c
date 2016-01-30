@@ -59,6 +59,8 @@ static unsigned int computeEdgeInfo(CollisionStaticTrimesh * self, struct trimes
 						if (!Vector3x_normalize(&self->edges[edgeIndex].normal)) {
 							self->edges[edgeIndex].normal = Vector3x_normalized(edgePerpendicular);
 						}
+						self->edges[edgeIndex].triangleNormals[0] = normal;
+						self->edges[edgeIndex].triangleNormals[1] = connectedNormal;
 						
 						self->edges[edgeIndex].length = Vector3x_magnitude(edgeParallel);
 						edgeParallel = Vector3x_divideScalar(edgeParallel, self->edges[edgeIndex].length);

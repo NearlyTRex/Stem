@@ -42,6 +42,7 @@ struct trimeshVertex {
 struct trimeshConvexEdge {
 	unsigned int vertexIndexes[2];
 	Vector3x normal;
+	Vector3x triangleNormals[2];
 	Quaternionx planarTransform;
 	fixed16_16 length;
 };
