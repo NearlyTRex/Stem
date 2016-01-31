@@ -34,6 +34,7 @@ extern float g_viewRatio;
 extern bool g_shiftKeyDown;
 extern bool g_altKeyDown;
 extern bool g_controlKeyDown;
+extern bool g_spacebarDown;
 extern bool g_fixedRandomSeed;
 extern int g_randomSeed;
 

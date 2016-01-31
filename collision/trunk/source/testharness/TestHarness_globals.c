@@ -28,5 +28,6 @@ float g_viewRatio = 16.0f / 9.0f;
 bool g_shiftKeyDown = false;
 bool g_altKeyDown = false;
 bool g_controlKeyDown = false;
+bool g_spacebarDown = false;
 bool g_fixedRandomSeed = false;
 int g_randomSeed = 0;

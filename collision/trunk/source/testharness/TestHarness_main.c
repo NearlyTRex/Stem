@@ -96,6 +96,9 @@ static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned
 	} else {
 		struct keyEvent event;
 		
+		if (keyCode == KEYBOARD_SPACEBAR) {
+			g_spacebarDown = true;
+		}
 		event.keyCode = keyCode;
 		event.charCode = charCode;
 		event.modifiers = modifiers;
@@ -107,6 +110,9 @@ static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned
 static void Target_keyUp(unsigned int keyCode, unsigned int modifiers) {
 	struct keyEvent event;
 	
+	if (keyCode == KEYBOARD_SPACEBAR) {
+		g_spacebarDown = false;
+	}
 	event.keyCode = keyCode;
 	event.modifiers = modifiers;
 	EventDispatcher_dispatchEvent(screenManager->eventDispatcher, ATOM(EVENT_KEY_UP), &event);

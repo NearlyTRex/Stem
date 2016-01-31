@@ -25,6 +25,7 @@
 #include "collision/CollisionShared.h"
 #include "collision/CollisionSphere.h"
 #include "collision/CollisionStaticTrimesh.h"
+#include "gamemath/Box6f.h"
 #include "gamemath/Matrix4x4f.h"
 #include "gamemath/MouseCoordinateTransforms.h"
 #include "gamemath/Quaternionf.h"
@@ -52,6 +53,12 @@
 
 static struct vertex_p3f_n3f sphereVertexTemplate[SPHERE_VERTEX_COUNT];
 static GLuint sphereIndexTemplate[SPHERE_INDEX_COUNT];
+
+// Improvements:
+// - Show keyboard and mouse controls
+// - Show normals
+// - Back lighting
+// - Axis-locked movement
 
 static void __attribute__((constructor)) initSphereTemplate() {
 	unsigned int columnIndex, rowIndex, faceIndex, indexIndex;
@@ -518,7 +525,236 @@ static void getOpaqueCollisionObjectVertices(SingleFrameScreen3D * self, struct 
 	}
 }
 
+static void getBoxSweepQuadVertices(Vector3f vertex0, Vector3f vertex1, Vector3f vertex2, Vector3f vertex3, Color4f colorStart, Color4f colorEnd, struct vertex_p3f_n3f_c4f * outVertices, GLuint * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount) {
+	if (outVertices != NULL) {
+		struct vertex_p3f_n3f_c4f vertex;
+		Vector3f normal;
+		
+		setVertexColor(&vertex, colorStart);
+		normal = Vector3f_normalized(Vector3f_cross(Vector3f_subtract(vertex1, vertex0), Vector3f_subtract(vertex3, vertex0)));
+		vertex.normal[0] = normal.x;
+		vertex.normal[1] = normal.y;
+		vertex.normal[2] = normal.z;
+		vertex.position[0] = vertex0.x;
+		vertex.position[1] = vertex0.y;
+		vertex.position[2] = vertex0.z;
+		outVertices[*ioVertexCount + 0] = vertex;
+		
+		vertex.position[0] = vertex1.x;
+		vertex.position[1] = vertex1.y;
+		vertex.position[2] = vertex1.z;
+		outVertices[*ioVertexCount + 1] = vertex;
+		
+		setVertexColor(&vertex, colorEnd);
+		vertex.position[0] = vertex2.x;
+		vertex.position[1] = vertex2.y;
+		vertex.position[2] = vertex2.z;
+		outVertices[*ioVertexCount + 2] = vertex;
+		
+		vertex.position[0] = vertex3.x;
+		vertex.position[1] = vertex3.y;
+		vertex.position[2] = vertex3.z;
+		outVertices[*ioVertexCount + 3] = vertex;
+	}
+	if (outIndexes != NULL) {
+		outIndexes[*ioIndexCount + 0] = *ioVertexCount + 0;
+		outIndexes[*ioIndexCount + 1] = *ioVertexCount + 1;
+		outIndexes[*ioIndexCount + 2] = *ioVertexCount + 2;
+		outIndexes[*ioIndexCount + 3] = *ioVertexCount + 2;
+		outIndexes[*ioIndexCount + 4] = *ioVertexCount + 3;
+		outIndexes[*ioIndexCount + 5] = *ioVertexCount + 0;
+	}
+	*ioVertexCount += 4;
+	*ioIndexCount += 6;
+}
+
 static void getBoxSweepVertices(Vector3f lastPosition, Vector3f lastSize, Vector3f position, Vector3f size, Color4f colorStart, Color4f colorEnd, struct vertex_p3f_n3f_c4f * outVertices, GLuint * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount) {
+	Box6f lastBounds, bounds;
+	
+	if (lastPosition.x == position.x && lastPosition.y == position.y && lastPosition.z == position.z &&
+	    lastSize.x == size.x && lastSize.y == size.y && lastSize.z == size.z) {
+		return;
+	}
+	
+	lastBounds = Box6f_fromPositionAndSize(lastPosition, lastSize);
+	bounds = Box6f_fromPositionAndSize(position, size);
+	
+	if (bounds.left <= lastBounds.left) {
+		if (bounds.bottom >= lastBounds.bottom) {
+			getBoxSweepQuadVertices(VECTOR3f(lastBounds.left, lastBounds.bottom, lastBounds.back),
+			                        VECTOR3f(lastBounds.left, lastBounds.bottom, lastBounds.front),
+			                        VECTOR3f(bounds.left, bounds.bottom, bounds.front),
+			                        VECTOR3f(bounds.left, bounds.bottom, bounds.back),
+			                        colorStart, colorEnd, outVertices, outIndexes, ioVertexCount, ioIndexCount);
+		} else if (bounds.top <= lastBounds.top) {
+			getBoxSweepQuadVertices(VECTOR3f(lastBounds.left, lastBounds.top, lastBounds.front),
+			                        VECTOR3f(lastBounds.left, lastBounds.top, lastBounds.back),
+			                        VECTOR3f(bounds.left, bounds.top, bounds.back),
+			                        VECTOR3f(bounds.left, bounds.top, bounds.front),
+			                        colorStart, colorEnd, outVertices, outIndexes, ioVertexCount, ioIndexCount);
+		}
+	} else if (bounds.left >= lastBounds.left) {
+		if (bounds.top >= lastBounds.top) {
+			getBoxSweepQuadVertices(VECTOR3f(lastBounds.left, lastBounds.top, lastBounds.back),
+			                        VECTOR3f(lastBounds.left, lastBounds.top, lastBounds.front),
+			                        VECTOR3f(bounds.left, bounds.top, bounds.front),
+			                        VECTOR3f(bounds.left, bounds.top, bounds.back),
+			                        colorStart, colorEnd, outVertices, outIndexes, ioVertexCount, ioIndexCount);
+		} else if (bounds.bottom <= lastBounds.bottom) {
+			getBoxSweepQuadVertices(VECTOR3f(lastBounds.left, lastBounds.bottom, lastBounds.front),
+			                        VECTOR3f(lastBounds.left, lastBounds.bottom, lastBounds.back),
+			                        VECTOR3f(bounds.left, bounds.bottom, bounds.back),
+			                        VECTOR3f(bounds.left, bounds.bottom, bounds.front),
+			                        colorStart, colorEnd, outVertices, outIndexes, ioVertexCount, ioIndexCount);
+		}
+	}
+	if (bounds.right >= lastBounds.right) {
+		if (bounds.bottom >= lastBounds.bottom) {
+			getBoxSweepQuadVertices(VECTOR3f(lastBounds.right, lastBounds.bottom, lastBounds.front),
+			                        VECTOR3f(lastBounds.right, lastBounds.bottom, lastBounds.back),
+			                        VECTOR3f(bounds.right, bounds.bottom, bounds.back),
+			                        VECTOR3f(bounds.right, bounds.bottom, bounds.front),
+			                        colorStart, colorEnd, outVertices, outIndexes, ioVertexCount, ioIndexCount);
+		} else if (bounds.top <= lastBounds.top) {
+			getBoxSweepQuadVertices(VECTOR3f(lastBounds.right, lastBounds.top, lastBounds.back),
+			                        VECTOR3f(lastBounds.right, lastBounds.top, lastBounds.front),
+			                        VECTOR3f(bounds.right, bounds.top, bounds.front),
+			                        VECTOR3f(bounds.right, bounds.top, bounds.back),
+			                        colorStart, colorEnd, outVertices, outIndexes, ioVertexCount, ioIndexCount);
+		}
+	} else if (bounds.right <= lastBounds.right) {
+		if (bounds.top >= lastBounds.top) {
+			getBoxSweepQuadVertices(VECTOR3f(lastBounds.right, lastBounds.top, lastBounds.front),
+			                        VECTOR3f(lastBounds.right, lastBounds.top, lastBounds.back),
+			                        VECTOR3f(bounds.right, bounds.top, bounds.back),
+			                        VECTOR3f(bounds.right, bounds.top, bounds.front),
+			                        colorStart, colorEnd, outVertices, outIndexes, ioVertexCount, ioIndexCount);
+		} else if (bounds.bottom <= lastBounds.bottom) {
+			getBoxSweepQuadVertices(VECTOR3f(lastBounds.right, lastBounds.bottom, lastBounds.back),
+			                        VECTOR3f(lastBounds.right, lastBounds.bottom, lastBounds.front),
+			                        VECTOR3f(bounds.right, bounds.bottom, bounds.front),
+			                        VECTOR3f(bounds.right, bounds.bottom, bounds.back),
+			                        colorStart, colorEnd, outVertices, outIndexes, ioVertexCount, ioIndexCount);
+		}
+	}
+	
+	if (bounds.back <= lastBounds.back) {
+		if (bounds.bottom >= lastBounds.bottom) {
+			getBoxSweepQuadVertices(VECTOR3f(lastBounds.right, lastBounds.bottom, lastBounds.back),
+			                        VECTOR3f(lastBounds.left, lastBounds.bottom, lastBounds.back),
+			                        VECTOR3f(bounds.left, bounds.bottom, bounds.back),
+			                        VECTOR3f(bounds.right, bounds.bottom, bounds.back),
+			                        colorStart, colorEnd, outVertices, outIndexes, ioVertexCount, ioIndexCount);
+		} else if (bounds.top <= lastBounds.top) {
+			getBoxSweepQuadVertices(VECTOR3f(lastBounds.left, lastBounds.top, lastBounds.back),
+			                        VECTOR3f(lastBounds.right, lastBounds.top, lastBounds.back),
+			                        VECTOR3f(bounds.right, bounds.top, bounds.back),
+			                        VECTOR3f(bounds.left, bounds.top, bounds.back),
+			                        colorStart, colorEnd, outVertices, outIndexes, ioVertexCount, ioIndexCount);
+		}
+	} else if (bounds.back >= lastBounds.back) {
+		if (bounds.top >= lastBounds.top) {
+			getBoxSweepQuadVertices(VECTOR3f(lastBounds.right, lastBounds.top, lastBounds.back),
+			                        VECTOR3f(lastBounds.left, lastBounds.top, lastBounds.back),
+			                        VECTOR3f(bounds.left, bounds.top, bounds.back),
+			                        VECTOR3f(bounds.right, bounds.top, bounds.back),
+			                        colorStart, colorEnd, outVertices, outIndexes, ioVertexCount, ioIndexCount);
+		} else if (bounds.bottom <= lastBounds.bottom) {
+			getBoxSweepQuadVertices(VECTOR3f(lastBounds.left, lastBounds.bottom, lastBounds.back),
+			                        VECTOR3f(lastBounds.right, lastBounds.bottom, lastBounds.back),
+			                        VECTOR3f(bounds.right, bounds.bottom, bounds.back),
+			                        VECTOR3f(bounds.left, bounds.bottom, bounds.back),
+			                        colorStart, colorEnd, outVertices, outIndexes, ioVertexCount, ioIndexCount);
+		}
+	}
+	if (bounds.front >= lastBounds.front) {
+		if (bounds.bottom >= lastBounds.bottom) {
+			getBoxSweepQuadVertices(VECTOR3f(lastBounds.left, lastBounds.bottom, lastBounds.front),
+			                        VECTOR3f(lastBounds.right, lastBounds.bottom, lastBounds.front),
+			                        VECTOR3f(bounds.right, bounds.bottom, bounds.front),
+			                        VECTOR3f(bounds.left, bounds.bottom, bounds.front),
+			                        colorStart, colorEnd, outVertices, outIndexes, ioVertexCount, ioIndexCount);
+		} else if (bounds.top <= lastBounds.top) {
+			getBoxSweepQuadVertices(VECTOR3f(lastBounds.right, lastBounds.top, lastBounds.front),
+			                        VECTOR3f(lastBounds.left, lastBounds.top, lastBounds.front),
+			                        VECTOR3f(bounds.left, bounds.top, bounds.front),
+			                        VECTOR3f(bounds.right, bounds.top, bounds.front),
+			                        colorStart, colorEnd, outVertices, outIndexes, ioVertexCount, ioIndexCount);
+		}
+	} else if (bounds.front <= lastBounds.front) {
+		if (bounds.top >= lastBounds.top) {
+			getBoxSweepQuadVertices(VECTOR3f(lastBounds.left, lastBounds.top, lastBounds.front),
+			                        VECTOR3f(lastBounds.right, lastBounds.top, lastBounds.front),
+			                        VECTOR3f(bounds.right, bounds.top, bounds.front),
+			                        VECTOR3f(bounds.left, bounds.top, bounds.front),
+			                        colorStart, colorEnd, outVertices, outIndexes, ioVertexCount, ioIndexCount);
+		} else if (bounds.bottom <= lastBounds.bottom) {
+			getBoxSweepQuadVertices(VECTOR3f(lastBounds.right, lastBounds.bottom, lastBounds.front),
+			                        VECTOR3f(lastBounds.left, lastBounds.bottom, lastBounds.front),
+			                        VECTOR3f(bounds.left, bounds.bottom, bounds.front),
+			                        VECTOR3f(bounds.right, bounds.bottom, bounds.front),
+			                        colorStart, colorEnd, outVertices, outIndexes, ioVertexCount, ioIndexCount);
+		}
+	}
+	
+	if (bounds.back <= lastBounds.back) {
+		if (bounds.left >= lastBounds.left) {
+			getBoxSweepQuadVertices(VECTOR3f(lastBounds.left, lastBounds.bottom, lastBounds.back),
+			                        VECTOR3f(lastBounds.left, lastBounds.top, lastBounds.back),
+			                        VECTOR3f(bounds.left, bounds.top, bounds.back),
+			                        VECTOR3f(bounds.left, bounds.bottom, bounds.back),
+			                        colorStart, colorEnd, outVertices, outIndexes, ioVertexCount, ioIndexCount);
+		} else if (bounds.right <= lastBounds.right) {
+			getBoxSweepQuadVertices(VECTOR3f(lastBounds.right, lastBounds.top, lastBounds.back),
+			                        VECTOR3f(lastBounds.right, lastBounds.bottom, lastBounds.back),
+			                        VECTOR3f(bounds.right, bounds.bottom, bounds.back),
+			                        VECTOR3f(bounds.right, bounds.top, bounds.back),
+			                        colorStart, colorEnd, outVertices, outIndexes, ioVertexCount, ioIndexCount);
+		}
+	} else if (bounds.back >= lastBounds.back) {
+		if (bounds.right >= lastBounds.right) {
+			getBoxSweepQuadVertices(VECTOR3f(lastBounds.right, lastBounds.bottom, lastBounds.back),
+			                        VECTOR3f(lastBounds.right, lastBounds.top, lastBounds.back),
+			                        VECTOR3f(bounds.right, bounds.top, bounds.back),
+			                        VECTOR3f(bounds.right, bounds.bottom, bounds.back),
+			                        colorStart, colorEnd, outVertices, outIndexes, ioVertexCount, ioIndexCount);
+		} else if (bounds.left <= lastBounds.left) {
+			getBoxSweepQuadVertices(VECTOR3f(lastBounds.left, lastBounds.top, lastBounds.back),
+			                        VECTOR3f(lastBounds.left, lastBounds.bottom, lastBounds.back),
+			                        VECTOR3f(bounds.left, bounds.bottom, bounds.back),
+			                        VECTOR3f(bounds.left, bounds.top, bounds.back),
+			                        colorStart, colorEnd, outVertices, outIndexes, ioVertexCount, ioIndexCount);
+		}
+	}
+	if (bounds.front >= lastBounds.front) {
+		if (bounds.left >= lastBounds.left) {
+			getBoxSweepQuadVertices(VECTOR3f(lastBounds.left, lastBounds.top, lastBounds.front),
+			                        VECTOR3f(lastBounds.left, lastBounds.bottom, lastBounds.front),
+			                        VECTOR3f(bounds.left, bounds.bottom, bounds.front),
+			                        VECTOR3f(bounds.left, bounds.top, bounds.front),
+			                        colorStart, colorEnd, outVertices, outIndexes, ioVertexCount, ioIndexCount);
+		} else if (bounds.right <= lastBounds.right) {
+			getBoxSweepQuadVertices(VECTOR3f(lastBounds.right, lastBounds.bottom, lastBounds.front),
+			                        VECTOR3f(lastBounds.right, lastBounds.top, lastBounds.front),
+			                        VECTOR3f(bounds.right, bounds.top, bounds.front),
+			                        VECTOR3f(bounds.right, bounds.bottom, bounds.front),
+			                        colorStart, colorEnd, outVertices, outIndexes, ioVertexCount, ioIndexCount);
+		}
+	} else if (bounds.front <= lastBounds.front) {
+		if (bounds.right >= lastBounds.right) {
+			getBoxSweepQuadVertices(VECTOR3f(lastBounds.right, lastBounds.top, lastBounds.front),
+			                        VECTOR3f(lastBounds.right, lastBounds.bottom, lastBounds.front),
+			                        VECTOR3f(bounds.right, bounds.bottom, bounds.front),
+			                        VECTOR3f(bounds.right, bounds.top, bounds.front),
+			                        colorStart, colorEnd, outVertices, outIndexes, ioVertexCount, ioIndexCount);
+		} else if (bounds.left <= lastBounds.left) {
+			getBoxSweepQuadVertices(VECTOR3f(lastBounds.left, lastBounds.bottom, lastBounds.front),
+			                        VECTOR3f(lastBounds.left, lastBounds.top, lastBounds.front),
+			                        VECTOR3f(bounds.left, bounds.top, bounds.front),
+			                        VECTOR3f(bounds.left, bounds.bottom, bounds.front),
+			                        colorStart, colorEnd, outVertices, outIndexes, ioVertexCount, ioIndexCount);
+		}
+	}
 }
 
 #define SWEEP_CYLINDER_SUBDIVISIONS 32
@@ -860,16 +1096,22 @@ static bool keyDown(Atom eventID, void * eventData, void * context) {
 	struct keyEvent * event = eventData;
 	
 	switch (event->keyCode) {
-		case KEYBOARD_TAB:
-			if (event->modifiers & MODIFIER_SHIFT_BIT) {
-				self->selectedObjectIndex += self->resolver->objectCount - 1;
-			} else {
-				self->selectedObjectIndex++;
-			}
-			self->selectedObjectIndex %= self->resolver->objectCount;
+		case KEYBOARD_TAB: {
+			size_t selectedObjectIndex = self->selectedObjectIndex;
+			
+			do {
+				if (event->modifiers & MODIFIER_SHIFT_BIT) {
+					selectedObjectIndex += self->resolver->objectCount - 1;
+				} else {
+					selectedObjectIndex++;
+				}
+				selectedObjectIndex %= self->resolver->objectCount;
+			} while (self->resolver->objects[selectedObjectIndex]->shapeType == COLLISION_SHAPE_STATIC_TRIMESH && selectedObjectIndex != self->selectedObjectIndex);
+			
+			self->selectedObjectIndex = selectedObjectIndex;
 			Shell_redisplay();
 			break;
-			
+		}
 		case KEYBOARD_I:
 		case KEYBOARD_J:
 		case KEYBOARD_K:
@@ -948,12 +1190,47 @@ static bool keyDown(Atom eventID, void * eventData, void * context) {
 	return true;
 }
 
+#define DOUBLE_CLICK_INTERVAL 0.25
+#define DOUBLE_CLICK_MAX_DISTANCE 4.0f
+
 static bool mouseDown(Atom eventID, void * eventData, void * context) {
 	SingleFrameScreen3D * self = context;
+	struct mouseEvent * event = eventData;
+	static double lastClickTime;
+	static Vector2f lastClickPosition;
+	double clickTime = Shell_getCurrentTime();
 	
-	self->draggingCamera = g_altKeyDown;
-	Shell_setMouseDeltaMode(true);
+	if (clickTime - lastClickTime < DOUBLE_CLICK_INTERVAL && fabs(event->position.x - lastClickPosition.x) <= DOUBLE_CLICK_MAX_DISTANCE && fabs(event->position.y - lastClickPosition.y) <= DOUBLE_CLICK_MAX_DISTANCE) {
+		CollisionObject * object = self->resolver->objects[self->selectedObjectIndex];
+		switch (object->shapeType) {
+			case COLLISION_SHAPE_BOX_3D: {
+				CollisionBox3D * box = (CollisionBox3D *) object;
+				box->position = box->lastPosition;
+				box->size = box->lastSize;
+				break;
+			}
+			case COLLISION_SHAPE_SPHERE: {
+				CollisionSphere * sphere = (CollisionSphere *) object;
+				sphere->position = sphere->lastPosition;
+				break;
+			}
+			case COLLISION_SHAPE_CAPSULE: {
+				CollisionCapsule * capsule = (CollisionCapsule *) object;
+				capsule->position = capsule->lastPosition;
+				break;
+			}
+		}
+		Shell_redisplay();
+		
+	} else {
+		self->draggingCamera = g_altKeyDown;
+		Shell_setMouseDeltaMode(true);
+	}
 	Shell_redisplay();
+	
+	lastClickTime = clickTime;
+	lastClickPosition = VECTOR2f(event->position.x, event->position.y);
+	
 	return true;
 }
 
@@ -1027,8 +1304,14 @@ static bool mouseDragged(Atom eventID, void * eventData, void * context) {
 					}
 				} else if (g_shiftKeyDown) {
 					box->size = Vector3x_add(box->size, offset);
+					if (g_spacebarDown) {
+						box->lastSize = Vector3x_add(box->lastSize, offset);
+					}
 				} else {
 					box->position = Vector3x_add(box->position, offset);
+					if (g_spacebarDown) {
+						box->lastPosition = Vector3x_add(box->lastPosition, offset);
+					}
 				}
 				break;
 			}
@@ -1040,6 +1323,9 @@ static bool mouseDragged(Atom eventID, void * eventData, void * context) {
 					sphere->lastPosition = Vector3x_add(sphere->lastPosition, offset);
 				} else {
 					sphere->position = Vector3x_add(sphere->position, offset);
+					if (g_spacebarDown) {
+						sphere->lastPosition = Vector3x_add(sphere->lastPosition, offset);
+					}
 				}
 				break;
 			}
@@ -1058,6 +1344,9 @@ static bool mouseDragged(Atom eventID, void * eventData, void * context) {
 					capsule->lastPosition = Vector3x_add(capsule->lastPosition, offset);
 				} else {
 					capsule->position = Vector3x_add(capsule->position, offset);
+					if (g_spacebarDown) {
+						capsule->lastPosition = Vector3x_add(capsule->lastPosition, offset);
+					}
 				}
 				break;
 			}
