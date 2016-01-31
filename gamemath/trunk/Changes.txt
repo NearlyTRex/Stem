@@ -1,4 +1,4 @@
-3.0.0 (2015-12-30)
+3.0.0 (2016-01-31)
  * Added Rect4*.h and Box6*.h for 2D and 3D boundaries, with numeric types matching those provided by Vector*
  * Added VectorConversions.h and RectBoxConversions.h with convenience macros for converting between structure data types and (for vectors) axis counts
  * Added MouseCoordinateTransforms.h

@@ -219,6 +219,217 @@ static void testConstructor() {
 	                box6x.front);
 }
 
+static void testFromPositionAndSize() {
+	Rect4d rect4d;
+	Rect4f rect4f;
+	Rect4i rect4i;
+	Rect4x rect4x;
+	Box6d box6d;
+	Box6f box6f;
+	Box6i box6i;
+	Box6x box6x;
+	
+	rect4d = Rect4d_fromPositionAndSize(VECTOR2d(0.0, 0.0), VECTOR2d(0.0, 0.0));
+	TestCase_assert(rect4d.left == 0.0 &&
+	                rect4d.right == 0.0 &&
+	                rect4d.bottom == 0.0 &&
+	                rect4d.top == 0.0,
+	                "Expected {0.0, 0.0, 0.0, 0.0} but got {%f, %f, %f, %f}",
+	                rect4d.left,
+	                rect4d.right,
+	                rect4d.bottom,
+	                rect4d.top);
+	rect4d = Rect4d_fromPositionAndSize(VECTOR2d(1.0, 3.0), VECTOR2d(1.0, 1.0));
+	TestCase_assert(rect4d.left == 1.0 &&
+	                rect4d.right == 2.0 &&
+	                rect4d.bottom == 3.0 &&
+	                rect4d.top == 4.0,
+	                "Expected {1.0, 2.0, 3.0, 4.0} but got {%f, %f, %f, %f}",
+	                rect4d.left,
+	                rect4d.right,
+	                rect4d.bottom,
+	                rect4d.top);
+	
+	rect4f = Rect4f_fromPositionAndSize(VECTOR2f(0.0f, 0.0f), VECTOR2f(0.0f, 0.0f));
+	TestCase_assert(rect4f.left == 0.0f &&
+	                rect4f.right == 0.0f &&
+	                rect4f.bottom == 0.0f &&
+	                rect4f.top == 0.0f,
+	                "Expected {0.0, 0.0, 0.0, 0.0} but got {%f, %f, %f, %f}",
+	                rect4f.left,
+	                rect4f.right,
+	                rect4f.bottom,
+	                rect4f.top);
+	rect4f = Rect4f_fromPositionAndSize(VECTOR2f(1.0f, 3.0f), VECTOR2f(1.0f, 1.0f));
+	TestCase_assert(rect4f.left == 1.0f &&
+	                rect4f.right == 2.0f &&
+	                rect4f.bottom == 3.0f &&
+	                rect4f.top == 4.0f,
+	                "Expected {1.0, 2.0, 3.0, 4.0} but got {%f, %f, %f, %f}",
+	                rect4f.left,
+	                rect4f.right,
+	                rect4f.bottom,
+	                rect4f.top);
+	
+	rect4i = Rect4i_fromPositionAndSize(VECTOR2i(0, 0), VECTOR2i(0, 0));
+	TestCase_assert(rect4i.left == 0 &&
+	                rect4i.right == 0 &&
+	                rect4i.bottom == 0 &&
+	                rect4i.top == 0,
+	                "Expected {0, 0, 0, 0} but got {%d, %d, %d, %d}",
+	                rect4i.left,
+	                rect4i.right,
+	                rect4i.bottom,
+	                rect4i.top);
+	rect4i = Rect4i_fromPositionAndSize(VECTOR2i(1, 3), VECTOR2i(1, 1));
+	TestCase_assert(rect4i.left == 1 &&
+	                rect4i.right == 2 &&
+	                rect4i.bottom == 3 &&
+	                rect4i.top == 4,
+	                "Expected {1, 2, 3, 4} but got {%d, %d, %d, %d}",
+	                rect4i.left,
+	                rect4i.right,
+	                rect4i.bottom,
+	                rect4i.top);
+	
+	rect4x = Rect4x_fromPositionAndSize(VECTOR2x(0x00000, 0x00000), VECTOR2x(0x00000, 0x00000));
+	TestCase_assert(rect4x.left == 0x00000 &&
+	                rect4x.right == 0x00000 &&
+	                rect4x.bottom == 0x00000 &&
+	                rect4x.top == 0x00000,
+	                "Expected {0x00000, 0x00000, 0x00000, 0x00000} but got {0x%05X, 0x%05X, 0x%05X, 0x%05X}",
+	                rect4x.left,
+	                rect4x.right,
+	                rect4x.bottom,
+	                rect4x.top);
+	rect4x = Rect4x_fromPositionAndSize(VECTOR2x(0x10000, 0x30000), VECTOR2x(0x10000, 0x10000));
+	TestCase_assert(rect4x.left == 0x10000 &&
+	                rect4x.right == 0x20000 &&
+	                rect4x.bottom == 0x30000 &&
+	                rect4x.top == 0x40000,
+	                "Expected {0x10000, 0x20000, 0x30000, 0x40000} but got {0x%05X, 0x%05X, 0x%05X, 0x%05X}",
+	                rect4x.left,
+	                rect4x.right,
+	                rect4x.bottom,
+	                rect4x.top);
+	
+	box6d = Box6d_fromPositionAndSize(VECTOR3d(0.0, 0.0, 0.0), VECTOR3d(0.0, 0.0, 0.0));
+	TestCase_assert(box6d.left == 0.0 &&
+	                box6d.right == 0.0 &&
+	                box6d.bottom == 0.0 &&
+	                box6d.top == 0.0 &&
+	                box6d.back == 0.0 &&
+	                box6d.front == 0.0,
+	                "Expected {0.0, 0.0, 0.0, 0.0, 0.0, 0.0} but got {%f, %f, %f, %f, %f, %f}",
+	                box6d.left,
+	                box6d.right,
+	                box6d.bottom,
+	                box6d.top,
+	                box6d.back,
+	                box6d.front);
+	box6d = Box6d_fromPositionAndSize(VECTOR3d(1.0, 3.0, 5.0), VECTOR3d(1.0, 1.0, 1.0));
+	TestCase_assert(box6d.left == 1.0 &&
+	                box6d.right == 2.0 &&
+	                box6d.bottom == 3.0 &&
+	                box6d.top == 4.0 &&
+	                box6d.back == 5.0 &&
+	                box6d.front == 6.0,
+	                "Expected {1.0, 2.0, 3.0, 4.0, 5.0, 6.0} but got {%f, %f, %f, %f, %f, %f}",
+	                box6d.left,
+	                box6d.right,
+	                box6d.bottom,
+	                box6d.top,
+	                box6d.back,
+	                box6d.front);
+	
+	box6f = Box6f_fromPositionAndSize(VECTOR3f(0.0f, 0.0f, 0.0f), VECTOR3f(0.0f, 0.0f, 0.0f));
+	TestCase_assert(box6f.left == 0.0f &&
+	                box6f.right == 0.0f &&
+	                box6f.bottom == 0.0f &&
+	                box6f.top == 0.0f &&
+	                box6f.back == 0.0f &&
+	                box6f.front == 0.0f,
+	                "Expected {0.0, 0.0, 0.0, 0.0, 0.0, 0.0} but got {%f, %f, %f, %f, %f, %f}",
+	                box6f.left,
+	                box6f.right,
+	                box6f.bottom,
+	                box6f.top,
+	                box6f.back,
+	                box6f.front);
+	box6f = Box6f_fromPositionAndSize(VECTOR3f(1.0f, 3.0f, 5.0f), VECTOR3f(1.0f, 1.0f, 1.0f));
+	TestCase_assert(box6f.left == 1.0f &&
+	                box6f.right == 2.0f &&
+	                box6f.bottom == 3.0f &&
+	                box6f.top == 4.0f &&
+	                box6f.back == 5.0f &&
+	                box6f.front == 6.0f,
+	                "Expected {1.0, 2.0, 3.0, 4.0, 5.0, 6.0} but got {%f, %f, %f, %f, %f, %f}",
+	                box6f.left,
+	                box6f.right,
+	                box6f.bottom,
+	                box6f.top,
+	                box6f.back,
+	                box6f.front);
+	
+	box6i = Box6i_fromPositionAndSize(VECTOR3i(0, 0, 0), VECTOR3i(0, 0, 0));
+	TestCase_assert(box6i.left == 0 &&
+	                box6i.right == 0 &&
+	                box6i.bottom == 0 &&
+	                box6i.top == 0 &&
+	                box6i.back == 0 &&
+	                box6i.front == 0,
+	                "Expected {0, 0, 0, 0, 0, 0} but got {%d, %d, %d, %d, %d, %d}",
+	                box6i.left,
+	                box6i.right,
+	                box6i.bottom,
+	                box6i.top,
+	                box6i.back,
+	                box6i.front);
+	box6i = Box6i_fromPositionAndSize(VECTOR3i(1, 3, 5), VECTOR3i(1, 1, 1));
+	TestCase_assert(box6i.left == 1 &&
+	                box6i.right == 2 &&
+	                box6i.bottom == 3 &&
+	                box6i.top == 4 &&
+	                box6i.back == 5 &&
+	                box6i.front == 6,
+	                "Expected {1, 2, 3, 4, 5, 6} but got {%d, %d, %d, %d, %d, %d}",
+	                box6i.left,
+	                box6i.right,
+	                box6i.bottom,
+	                box6i.top,
+	                box6i.back,
+	                box6i.front);
+	
+	box6x = Box6x_fromPositionAndSize(VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x00000, 0x00000, 0x00000));
+	TestCase_assert(box6x.left == 0x00000 &&
+	                box6x.right == 0x00000 &&
+	                box6x.bottom == 0x00000 &&
+	                box6x.top == 0x00000 &&
+	                box6x.back == 0x00000 &&
+	                box6x.front == 0x00000,
+	                "Expected {0x00000, 0x00000, 0x00000, 0x00000, 0x00000, 0x00000} but got {0x%05X, 0x%05X, 0x%05X, 0x%05X, 0x%05X, 0x%05X}",
+	                box6x.left,
+	                box6x.right,
+	                box6x.bottom,
+	                box6x.top,
+	                box6x.back,
+	                box6x.front);
+	box6x = Box6x_fromPositionAndSize(VECTOR3x(0x10000, 0x30000, 0x50000), VECTOR3x(0x10000, 0x10000, 0x10000));
+	TestCase_assert(box6x.left == 0x10000 &&
+	                box6x.right == 0x20000 &&
+	                box6x.bottom == 0x30000 &&
+	                box6x.top == 0x40000 &&
+	                box6x.back == 0x50000 &&
+	                box6x.front == 0x60000,
+	                "Expected {0x10000, 0x20000, 0x30000, 0x40000, 0x50000, 0x60000} but got {0x%05X, 0x%05X, 0x%05X, 0x%05X, 0x%05X, 0x%05X}",
+	                box6x.left,
+	                box6x.right,
+	                box6x.bottom,
+	                box6x.top,
+	                box6x.back,
+	                box6x.front);
+}
+
 static void testIntersection() {
 	Rect4d rect4d;
 	Rect4f rect4f;
@@ -2280,6 +2491,7 @@ static void testConvenienceAccessors() {
 
 TEST_SUITE(RectBoxTest,
            testConstructor,
+           testFromPositionAndSize,
            testIntersection,
            testUnion,
            testOffset,

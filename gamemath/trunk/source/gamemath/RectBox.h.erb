@@ -24,7 +24,7 @@ else
 end
 -%>
 /*
-  Copyright (c) 2015 Alex Diener
+  Copyright (c) 2016 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -73,6 +73,8 @@ struct <%= class_name %> {
 #define <%= class_name_upper %>(left, right, bottom, top<% if shape_name == "Box6" %>, back, front<% end %>) ((<%= class_name %>) {left, right, bottom, top<% if shape_name == "Box6" %>, back, front<% end %>})
 
 #define <%= class_name_upper %>_EMPTY <%= class_name_upper %>(<%= c0 %>, <%= c0 %>, <%= c0 %>, <%= c0 %><% if shape_name == "Box6" %>, <%= c0 %>, <%= c0 %><% end %>)
+
+<%= class_name %> <%= class_name %>_fromPositionAndSize(<%= vector_type %> position, <%= vector_type %> size);
 
 <%= numeric_type %> <%= class_name %>_getWidth(<%= class_name %> <%= class_argument_name %>);
 <%= numeric_type %> <%= class_name %>_getHeight(<%= class_name %> <%= class_argument_name %>);
