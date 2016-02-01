@@ -1041,9 +1041,8 @@ static bool draw(Atom eventID, void * eventData, void * context) {
 	glUniform3f(GLSLShader_getUniformLocation(self->lightShader, "ambientColor"), 0.1f, 0.1f, 0.105f);
 	glUniform1f(GLSLShader_getUniformLocation(self->lightShader, "specularIntensity"), 0.875f);
 	glUniform1f(GLSLShader_getUniformLocation(self->lightShader, "shininess"), 32.0f);
-	 // TODO: cameraPosition is still wrong somehow
 	cameraPosition = Vector3f_add(Quaternionf_multiplyVector3f(Quaternionx_toQuaternionf(self->cameraDirection), VECTOR3f(0.0f, 0.0f, -xtof(self->cameraDistance))), Vector3x_toVector3f(self->cameraFocus));
-	glUniform3f(GLSLShader_getUniformLocation(self->lightShader, "cameraPosition"), -cameraPosition.x, -cameraPosition.y, -cameraPosition.z);
+	glUniform3f(GLSLShader_getUniformLocation(self->lightShader, "cameraPosition"), cameraPosition.x, cameraPosition.y, -cameraPosition.z);
 	
 	glVertexPointer(3, GL_FLOAT, sizeof(struct vertex_p3f_n3f_c4f), (void *) offsetof(struct vertex_p3f_n3f_c4f, position));
 	glNormalPointer(GL_FLOAT, sizeof(struct vertex_p3f_n3f_c4f), (void *) offsetof(struct vertex_p3f_n3f_c4f, normal));
