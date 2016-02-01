@@ -57,7 +57,6 @@ static GLuint sphereIndexTemplate[SPHERE_INDEX_COUNT];
 // Improvements:
 // - Show keyboard and mouse controls
 // - Show normals
-// - Back lighting
 // - Axis-locked movement
 
 static void __attribute__((constructor)) initSphereTemplate() {
@@ -1035,8 +1034,10 @@ static bool draw(Atom eventID, void * eventData, void * context) {
 	glEnableClientState(GL_COLOR_ARRAY);
 	
 	GLSLShader_activate(self->lightShader);
-	glUniform3f(GLSLShader_getUniformLocation(self->lightShader, "diffusePosition"), 0.0f, 5.0f, 5.0f);
-	glUniform3f(GLSLShader_getUniformLocation(self->lightShader, "diffuseColor"), 1.0f, 1.0f, 0.95f);
+	glUniform3f(GLSLShader_getUniformLocation(self->lightShader, "light0Position"), 0.0f, 8.0f, 8.0f);
+	glUniform3f(GLSLShader_getUniformLocation(self->lightShader, "light0Color"), 1.0f, 1.0f, 0.95f);
+	glUniform3f(GLSLShader_getUniformLocation(self->lightShader, "light1Position"), -1.0f, -2.0f, -8.0f);
+	glUniform3f(GLSLShader_getUniformLocation(self->lightShader, "light1Color"), 0.8f, 0.8f, 0.8f);
 	glUniform3f(GLSLShader_getUniformLocation(self->lightShader, "ambientColor"), 0.1f, 0.1f, 0.105f);
 	glUniform1f(GLSLShader_getUniformLocation(self->lightShader, "specularIntensity"), 0.875f);
 	glUniform1f(GLSLShader_getUniformLocation(self->lightShader, "shininess"), 32.0f);
