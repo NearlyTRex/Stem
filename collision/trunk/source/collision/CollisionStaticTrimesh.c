@@ -122,6 +122,7 @@ static void computeGeometryInfo(CollisionStaticTrimesh * self) {
 	
 	for (vertexIndex = 0; vertexIndex < self->vertexCount; vertexIndex++) {
 		normal = VECTOR3x_ZERO;
+		// TODO: Simple average of triangle normals is inaccurate for vertex normal. Triangle normals need to be weighted. (How?)
 		for (triangleIndex = 0; triangleIndex < self->triangleCount; triangleIndex++) {
 			for (triangleVertexIndex = 0; triangleVertexIndex < 3; triangleVertexIndex++) {
 				if (self->triangles[triangleIndex].vertexIndexes[triangleVertexIndex] == vertexIndex) {

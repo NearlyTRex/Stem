@@ -412,9 +412,14 @@ static bool intersectSweptPoints3D(fixed16_16 x1Start, fixed16_16 x1End,
 	return true;
 }
 
-static bool intersectSweptSphereTrimeshEdge(Vector3x lastPosition, Vector3x position, fixed16_16 radius, Vector3x endpoint1, Vector3x endpoint2, Quaternionx planarTransform, fixed16_16 length, fixed16_16 * outTime, Vector3x * outNormal) {
-	Vector3x normal;
+static bool intersectSweptSphereTrimeshEdge(Vector3x lastPosition, Vector3x position, fixed16_16 radius, Vector3x endpoint1, Vector3x endpoint2, Vector3x triangleNormal0, Vector3x triangleNormal1, Quaternionx planarTransform, fixed16_16 length, fixed16_16 * outTime, Vector3x * outNormal) {
+	Vector3x normal, objectVector;
 	fixed16_16 time;
+	
+	objectVector = Vector3x_subtract(position, lastPosition);
+	if (Vector3x_dot(objectVector, triangleNormal0) >= 0x00000 && Vector3x_dot(objectVector, triangleNormal1) >= 0x00000) {
+		return false;
+	}
 	
 	lastPosition = Quaternionx_multiplyVector3x(planarTransform, Vector3x_subtract(lastPosition, endpoint2));
 	position = Quaternionx_multiplyVector3x(planarTransform, Vector3x_subtract(position, endpoint2));
@@ -440,7 +445,7 @@ static bool intersectSweptSphereTriangle(Vector3x lastPosition, Vector3x positio
 	
 	distance1 = Vector3x_dot(Vector3x_subtract(lastPosition, vertex1), normal);
 	distance2 = Vector3x_dot(Vector3x_subtract(position, vertex1), normal);
-	if (distance1 <= distance2) {
+	if (distance1 < 0x00000 || distance1 <= distance2) {
 		return false;
 	}
 	
@@ -467,7 +472,7 @@ static bool intersectSweptSphereTriangle(Vector3x lastPosition, Vector3x positio
 
 #define PLANAR_LENGTH_MIN 0x00010
 
-static bool intersectSweptCylinderWallTrimeshEdge(Vector3x lastPosition, Vector3x position, fixed16_16 radius, fixed16_16 height, Vector3x endpoint1, Vector3x endpoint2, Vector3x normal, Vector3x triangleNormal0, Vector3x triangleNormal1, fixed16_16 length, fixed16_16 * outTime, Vector3x * outNormal) {
+static bool intersectSweptCylinderWallTrimeshEdge(Vector3x lastPosition, Vector3x position, fixed16_16 radius, fixed16_16 height, Vector3x endpoint1, Vector3x endpoint2, Vector3x triangleNormal0, Vector3x triangleNormal1, fixed16_16 length, fixed16_16 * outTime, Vector3x * outNormal) {
 	Vector3x planarEdgeVector, planarEdgeNormal;
 	fixed16_16 planarLength;
 	fixed16_16 distance1, distance2, distance3;
@@ -476,9 +481,6 @@ static bool intersectSweptCylinderWallTrimeshEdge(Vector3x lastPosition, Vector3
 	
 	if (triangleNormal0.y == 0x00000 || triangleNormal1.y == 0x00000 ||
 	    (triangleNormal0.y > 0x0000) == (triangleNormal1.y > 0x00000)) {
-		return false;
-	}
-	if (Vector3x_dot(normal, Vector3x_subtract(position, lastPosition)) >= 0x00000) {
 		return false;
 	}
 	
@@ -493,6 +495,10 @@ static bool intersectSweptCylinderWallTrimeshEdge(Vector3x lastPosition, Vector3
 	
 	distance1 = Vector3x_dot(planarEdgeNormal, Vector3x_subtract(lastPosition, endpoint1));
 	distance2 = Vector3x_dot(planarEdgeNormal, Vector3x_subtract(position, endpoint1));
+	if (distance1 < 0x00000 || distance1 <= distance2) {
+		return false;
+	}
+	
 	time = xdiv(distance1 - radius, -distance2 + distance1);
 	if (time > 0x10000) {
 		return false;
@@ -510,7 +516,7 @@ static bool intersectSweptCylinderWallTrimeshEdge(Vector3x lastPosition, Vector3
 		return false;
 	}
 	
-	intersectingEdgePosition = Vector3x_interpolate(endpoint1, endpoint2, xdiv(distance3, length));
+	intersectingEdgePosition = Vector3x_interpolate(endpoint1, endpoint2, xdiv(distance3, planarLength));
 	if (intersectingEdgePosition.y < intersectingCylinderPosition.y || intersectingEdgePosition.y > intersectingCylinderPosition.y + height) {
 		return false;
 	}
@@ -1393,7 +1399,7 @@ bool intersectionHandler_sphere_trimesh(CollisionObject * object1, CollisionObje
 		vertices[1] = trimesh->vertices[trimesh->edges[edgeIndex].vertexIndexes[1]].position;
 		if (Box6x_intersectsBox6x(sphereBounds, box6xEnclosing2Points(vertices[0], vertices[1])) &&
 		    intersectSweptSphereTrimeshEdge(sphere->lastPosition, sphere->position, sphere->radius,
-		                                    vertices[0], vertices[1], trimesh->edges[edgeIndex].planarTransform, trimesh->edges[edgeIndex].length,
+		                                    vertices[0], vertices[1], trimesh->edges[edgeIndex].triangleNormals[0], trimesh->edges[edgeIndex].triangleNormals[1], trimesh->edges[edgeIndex].planarTransform, trimesh->edges[edgeIndex].length,
 		                                    &time, &normal)) {
 			if (time < bestTime) {
 				bestTime = time;
@@ -1528,7 +1534,9 @@ bool intersectionHandler_capsule_trimesh(CollisionObject * object1, CollisionObj
 				                                           &time, &normal, &contactArea);
 			}
 			
-			if (intersection && time < bestTime) {
+			// This test is wrong, but what's the right one?
+			// CollisionStaticTrimesh finds triangle normal with the lowest dot product result from vertex normal, that angle can be used in this test somehow?
+			if (intersection && time < bestTime && Vector3x_dot(normal, trimesh->vertices[vertexIndex].normal) >= 0x00000) {
 				bestTime = time;
 				bestNormal = normal;
 			}
@@ -1541,7 +1549,7 @@ bool intersectionHandler_capsule_trimesh(CollisionObject * object1, CollisionObj
 		if (Box6x_intersectsBox6x(capsuleBounds, box6xEnclosing2Points(vertices[0], vertices[1]))) {
 			
 			intersection = intersectSweptSphereTrimeshEdge(lastBottomCapPosition, bottomCapPosition, capsule->radius,
-			                                               vertices[0], vertices[1], trimesh->edges[edgeIndex].planarTransform, trimesh->edges[edgeIndex].length,
+			                                               vertices[0], vertices[1], trimesh->edges[edgeIndex].triangleNormals[0], trimesh->edges[edgeIndex].triangleNormals[1], trimesh->edges[edgeIndex].planarTransform, trimesh->edges[edgeIndex].length,
 			                                               &time, &normal);
 			if (normal.y < 0x00000) {
 				intersection = false;
@@ -1549,7 +1557,7 @@ bool intersectionHandler_capsule_trimesh(CollisionObject * object1, CollisionObj
 			
 			if (!intersection) {
 				intersection = intersectSweptSphereTrimeshEdge(lastTopCapPosition, topCapPosition, capsule->radius,
-				                                               vertices[0], vertices[1], trimesh->edges[edgeIndex].planarTransform, trimesh->edges[edgeIndex].length,
+				                                               vertices[0], vertices[1], trimesh->edges[edgeIndex].triangleNormals[0], trimesh->edges[edgeIndex].triangleNormals[1], trimesh->edges[edgeIndex].planarTransform, trimesh->edges[edgeIndex].length,
 				                                               &time, &normal);
 				if (normal.y > 0x00000) {
 					intersection = false;
@@ -1558,7 +1566,7 @@ bool intersectionHandler_capsule_trimesh(CollisionObject * object1, CollisionObj
 			
 			if (!intersection) {
 				intersection = intersectSweptCylinderWallTrimeshEdge(lastBottomCapPosition, bottomCapPosition, capsule->radius, capsule->cylinderHeight,
-				                                                     vertices[0], vertices[1], trimesh->edges[edgeIndex].normal, trimesh->edges[edgeIndex].triangleNormals[0], trimesh->edges[edgeIndex].triangleNormals[1], trimesh->edges[edgeIndex].length,
+				                                                     vertices[0], vertices[1], trimesh->edges[edgeIndex].triangleNormals[0], trimesh->edges[edgeIndex].triangleNormals[1], trimesh->edges[edgeIndex].length,
 				                                                     &time, &normal);
 			}
 			

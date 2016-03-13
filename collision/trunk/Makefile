@@ -103,7 +103,8 @@ SOURCES_testharness = \
 	source/testharness/SingleFrameScreen2D.c \
 	source/testharness/SingleFrameScreen3D.c \
 	source/testharness/TestHarness_globals.c \
-	source/testharness/TestHarness_main.c
+	source/testharness/TestHarness_main.c \
+	source/testharness/TrimeshViewerScreen.c
 
 # Public-facing include files to be distributed with the library, if any
 INCLUDES = \

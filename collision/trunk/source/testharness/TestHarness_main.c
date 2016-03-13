@@ -26,6 +26,7 @@
 #include "testharness/SingleFrameScreen3D.h"
 #include "testharness/SharedEvents.h"
 #include "testharness/TestHarness_globals.h"
+#include "testharness/TrimeshViewerScreen.h"
 
 #include "gamemath/Vector2i.h"
 #include "glgraphics/GLIncludes.h"
@@ -69,6 +70,7 @@ static ScreenManager * screenManager;
 static SingleFrameScreen2D * singleFrameScreen2D;
 static SingleFrameScreen3D * singleFrameScreen3D;
 static BouncingBallScreen * bouncingBallScreen;
+static TrimeshViewerScreen * trimeshViewerScreen;
 static ResourceManager * resourceManager;
 
 static bool Target_draw() {
@@ -92,6 +94,9 @@ static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned
 		
 	} else if (keyCode == KEYBOARD_3) {
 		ScreenManager_setScreen(screenManager, singleFrameScreen3D);
+		
+	} else if (keyCode == KEYBOARD_4) {
+		ScreenManager_setScreen(screenManager, trimeshViewerScreen);
 		
 	} else {
 		struct keyEvent event;
@@ -257,9 +262,11 @@ void Target_init() {
 	singleFrameScreen2D = SingleFrameScreen2D_create(resourceManager);
 	singleFrameScreen3D = SingleFrameScreen3D_create(resourceManager);
 	bouncingBallScreen = BouncingBallScreen_create(resourceManager);
+	trimeshViewerScreen = TrimeshViewerScreen_create(resourceManager);
 	ScreenManager_addScreen(screenManager, singleFrameScreen2D);
 	ScreenManager_addScreen(screenManager, singleFrameScreen3D);
 	ScreenManager_addScreen(screenManager, bouncingBallScreen);
+	ScreenManager_addScreen(screenManager, trimeshViewerScreen);
 	ScreenManager_setScreen(screenManager, singleFrameScreen2D);
 	
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);

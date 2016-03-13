@@ -57,7 +57,6 @@ static GLuint sphereIndexTemplate[SPHERE_INDEX_COUNT];
 // Improvements:
 // - Show keyboard and mouse controls
 // - Show normals
-// - Axis-locked movement
 
 static void __attribute__((constructor)) initSphereTemplate() {
 	unsigned int columnIndex, rowIndex, faceIndex, indexIndex;
@@ -1176,16 +1175,16 @@ static bool keyDown(Atom eventID, void * eventData, void * context) {
 			}
 			break;
 		}
-		/*
 		case KEYBOARD_D: {
 			CollisionCapsule * capsule = (CollisionCapsule *) self->resolver->objects[4];
-			capsule->lastPosition = VECTOR3x(0xFFFAEA6F, 0xFFFD1A33, 0x186D4);
-			capsule->position = VECTOR3x(0x3C7A0, 0x09D6E, 0x15A57);
+			capsule->lastPosition = VECTOR3x(0x04185, 0x03851, 0x0EF4C);
+			capsule->position = VECTOR3x(0xFFFFFF80, 0x1C842, 0xFFFFF985);
+			capsule->radius = 0x01DB3;
+			capsule->cylinderHeight = 0x03F25;
 			updateCollisions(self);
 			Shell_redisplay();
 			break;
 		}
-		*/
 	}
 	return true;
 }

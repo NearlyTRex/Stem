@@ -2823,7 +2823,7 @@ static void testCapsule_trimesh() {
 	capsule = initMovingCapsule(VECTOR3x(0x2043F, 0x04479, 0xFFFBF3E7), VECTOR3x(0xFFFE112B, 0x0180F, 0x98C13), 0x08000, 0x14000);
 	resetOutParameters();
 	result = intersectionHandler_capsule_trimesh((CollisionObject *) &capsule, (CollisionObject *) &trimesh, &time, &normal, &object1Vector, &object2Vector, &contactArea);
-	assertCollision(result, time, normal, 0x042CD, VECTOR3x(0x00000, 0x00000, -0x10000), VECTOR3x(-0x3F314, -0x02C6A, 0xD982C), VECTOR3x_ZERO, 0x00000);
+	assertCollision(result, time, normal, 0x042CD, VECTOR3x(0x00000, 0x00000, -0x10000), Vector3x_subtract(capsule.position, capsule.lastPosition), VECTOR3x_ZERO, 0x00000);
 	
 	// Bug: False positive for nonintersecting movement
 	capsule = initMovingCapsule(VECTOR3x(0xFFFDFB65, 0x1C1D4, 0xFFFAFE79), VECTOR3x(0xFFFFB3EE, 0xFFFEBEE0, 0x37D55), 0x08000, 0x14000);
@@ -2837,8 +2837,70 @@ static void testCapsule_trimesh() {
 	result = intersectionHandler_capsule_trimesh((CollisionObject *) &capsule, (CollisionObject *) &trimesh, &time, &normal, &object1Vector, &object2Vector, &contactArea);
 	assertCollision(result, time, normal, 0x0798D, VECTOR3x(0xFFFF600D, 0x00000, 0xFFFF381E), Vector3x_subtract(capsule.position, capsule.lastPosition), VECTOR3x_ZERO, 0x00000);
 	
+	// Bug: Returned collision time too late (was 0x08434 in test case; 0x04E41 expected)
+	capsule = initMovingCapsule(VECTOR3x(0xFFFEBF04, 0xFFFF47CE, 0x326F7), VECTOR3x(0x13659, 0x0EBA5, 0xFFFE19C7), 0x08000, 0x14000);
+	resetOutParameters();
+	result = intersectionHandler_capsule_trimesh((CollisionObject *) &capsule, (CollisionObject *) &trimesh, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x04E41, VECTOR3x(-0x10000, 0x00000, 0x00000), Vector3x_subtract(capsule.position, capsule.lastPosition), VECTOR3x_ZERO, 0x00000);
+	
+	// Bug: Returned collision time too late (was 0x08193 in test case; 0x05D4F expected)
+	capsule = initMovingCapsule(VECTOR3x(0xFFFFE253, 0xFFFEB351, 0xFFFDB2C1), VECTOR3x(0x328CB, 0x0386D, 0x2A436), 0x08000, 0x14000);
+	resetOutParameters();
+	result = intersectionHandler_capsule_trimesh((CollisionObject *) &capsule, (CollisionObject *) &trimesh, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x05D4F, VECTOR3x(0x00000, 0x00000, -0x10000), Vector3x_subtract(capsule.position, capsule.lastPosition), VECTOR3x_ZERO, 0x00000);
+	
+	// Capsule moving outward through face should not collide
+	capsule = initMovingCapsule(VECTOR3x(0x043DD, 0x03AC9, 0x0EE2E), VECTOR3x(0xFFFF5FB1, 0x04888, 0x0C4E9), 0x01DB3, 0x03F25);
+	resetOutParameters();
+	result = intersectionHandler_capsule_trimesh((CollisionObject *) &capsule, (CollisionObject *) &trimesh, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// Capsule moving outward through edge (via cap) should not collide
+	capsule = initMovingCapsule(VECTOR3x(0x043DD, 0x03AC9, 0x0EE2E), VECTOR3x(0xFFFF8611, 0xFFFEF661, 0x0DDD0), 0x01DB3, 0x03F25);
+	resetOutParameters();
+	result = intersectionHandler_capsule_trimesh((CollisionObject *) &capsule, (CollisionObject *) &trimesh, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// Capsule moving outward through edge (via cylinder) should not collide
+	capsule = initMovingCapsule(VECTOR3x(0x0536B, 0xFFFFAEE2, 0x0FD3F), VECTOR3x(0x1A1C0, 0xFFFFCD6C, 0x0D3E4), 0x01DB3, 0x03F25);
+	resetOutParameters();
+	result = intersectionHandler_capsule_trimesh((CollisionObject *) &capsule, (CollisionObject *) &trimesh, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// Capsule moving outward through vertex (via cap) should not collide
+	capsule = initMovingCapsule(VECTOR3x(0x04185, 0x03851, 0x0EF4C), VECTOR3x(0xFFFFFF80, 0x1C842, 0xFFFFF985), 0x01DB3, 0x03F25);
+	resetOutParameters();
+	result = intersectionHandler_capsule_trimesh((CollisionObject *) &capsule, (CollisionObject *) &trimesh, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// Capsule moving outward through vertex (via cylinder) should not collide
+	capsule = initMovingCapsule(VECTOR3x(0x043DD, 0x03AC9, 0x0EE2E), VECTOR3x(0xFFFFFEBB, 0xFFFFCC3C, 0x1FB1F), 0x01DB3, 0x03F25);
+	resetOutParameters();
+	result = intersectionHandler_capsule_trimesh((CollisionObject *) &capsule, (CollisionObject *) &trimesh, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// Capsule moving outward through edge (via cap) should not collide
+	capsule = initMovingCapsule(VECTOR3x(0x04185, 0x03851, 0x0EF4C), VECTOR3x(0xFFFFD4C6, 0x1C0A8, 0xFFFFDD57), 0x01DB3, 0x03F25);
+	resetOutParameters();
+	result = intersectionHandler_capsule_trimesh((CollisionObject *) &capsule, (CollisionObject *) &trimesh, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertNoCollision(result);
+	
+	// Bug: False negative for bottom cap passing through vertex
+	capsule = initMovingCapsule(VECTOR3x(0x0DA13, 0x1F0C1, 0x0FD51), VECTOR3x(0xFFFF952B, 0x1F8D3, 0xFFFF8E84), 0x01DB3, 0x03F25);
+	resetOutParameters();
+	result = intersectionHandler_capsule_trimesh((CollisionObject *) &capsule, (CollisionObject *) &trimesh, &time, &normal, &object1Vector, &object2Vector, &contactArea);
+	assertCollision(result, time, normal, 0x0A2CF, VECTOR3x(0x0647D, 0x0A681, 0x0A680), Vector3x_subtract(capsule.position, capsule.lastPosition), VECTOR3x_ZERO, 0x00000);
+	
 	CollisionStaticTrimesh_dispose(&trimesh);
 }
+
+/*
+No collision (expected at ~0x0A2CF; bottom cap passes through vertex
+  lastPosition: {0x0DA13, 0x1F0C1, 0x0FD51}
+  position: {0xFFFF952B, 0x1F8D3, 0xFFFF8E84}
+  radius: 0x01DB3
+  cylinderHeight: 0x03F25
+*/
 
 static void testTrimesh_trimesh() {
 	CollisionStaticTrimesh * trimesh1, * trimesh2;
