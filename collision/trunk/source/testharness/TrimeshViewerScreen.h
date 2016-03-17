@@ -29,16 +29,23 @@ extern "C" {
 typedef struct TrimeshViewerScreen TrimeshViewerScreen;
 
 #include "collision/CollisionStaticTrimesh.h"
+#include "glslshader/GLSLShader.h"
 #include "resourcemanager/ResourceManager.h"
 #include "screenmanager/Screen.h"
 
 #define TrimeshViewerScreen_structContents(self_type) \
 	Screen_structContents(self_type) \
 	\
+	ResourceManager * resourceManager; \
+	GLSLShader * lightShader; \
 	Vector3x cameraFocus; \
 	Quaternionx cameraDirection; \
 	fixed16_16 cameraDistance; \
-	CollisionStaticTrimesh * trimesh;
+	CollisionStaticTrimesh * trimesh; \
+	GLuint vertexBuffer; \
+	GLuint indexBuffer; \
+	unsigned int indexCountTriangle; \
+	unsigned int indexCountNormal;
 
 stemobject_struct_definition(TrimeshViewerScreen)
 

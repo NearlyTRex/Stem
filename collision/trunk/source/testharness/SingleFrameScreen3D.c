@@ -1177,8 +1177,8 @@ static bool keyDown(Atom eventID, void * eventData, void * context) {
 		}
 		case KEYBOARD_D: {
 			CollisionCapsule * capsule = (CollisionCapsule *) self->resolver->objects[4];
-			capsule->lastPosition = VECTOR3x(0x04185, 0x03851, 0x0EF4C);
-			capsule->position = VECTOR3x(0xFFFFFF80, 0x1C842, 0xFFFFF985);
+			capsule->lastPosition = VECTOR3x(0x0DA13, 0x1F0C1, 0x0FD51);
+			capsule->position = VECTOR3x(0xFFFF952B, 0x1F8D3, 0xFFFF8E84);
 			capsule->radius = 0x01DB3;
 			capsule->cylinderHeight = 0x03F25;
 			updateCollisions(self);

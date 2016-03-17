@@ -122,8 +122,8 @@ static void testGeometryInfo() {
 	trimesh = CollisionStaticTrimesh_createWithIndexes(NULL, NULL, vertices1, indexes2, sizeof(indexes2) / sizeof(unsigned int));
 	TestCase_assert(trimesh->vertexCount == 4, "Expected 4 but got %u", trimesh->vertexCount);
 	verifyVertex(trimesh->vertices[0], VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x00000, 0x00000, 0x10000), false, __LINE__);
-	verifyVertex(trimesh->vertices[1], VECTOR3x(0x10000, 0x00000, 0x00000), VECTOR3x(0x05337, 0x05337, 0x0E359), true, __LINE__);
-	verifyVertex(trimesh->vertices[2], VECTOR3x(0x00000, 0x10000, 0x00000), VECTOR3x(0x05337, 0x05337, 0x0E359), true, __LINE__);
+	verifyVertex(trimesh->vertices[1], VECTOR3x(0x10000, 0x00000, 0x00000), VECTOR3x(0x05ED8, 0x05ED8, 0x0DA0E), true, __LINE__);
+	verifyVertex(trimesh->vertices[2], VECTOR3x(0x00000, 0x10000, 0x00000), VECTOR3x(0x05ED8, 0x05ED8, 0x0DA0E), true, __LINE__);
 	verifyVertex(trimesh->vertices[3], VECTOR3x(0x10000, 0x10000, -0x10000), VECTOR3x(0x093CE, 0x093CE, 0x093CE), false, __LINE__);
 	TestCase_assert(trimesh->edgeCount == 1, "Expected 1 but got %u", trimesh->edgeCount);
 	verifyEdge(trimesh->edges[0], 1, 2, VECTOR3x(0x05337, 0x05337, 0x0E359), VECTOR3x(0x00000, 0x00000, 0x10000), VECTOR3x(0x093CD, 0x093CD, 0x093CD), QUATERNIONx(-0x07FFF, -0x07FFF, 0x00000, 0x0B503), 0x16A09, __LINE__);
@@ -135,8 +135,8 @@ static void testGeometryInfo() {
 	trimesh = CollisionStaticTrimesh_createWithIndexes(NULL, NULL, vertices2, indexes2, sizeof(indexes2) / sizeof(unsigned int));
 	TestCase_assert(trimesh->vertexCount == 4, "Expected 4 but got %u", trimesh->vertexCount);
 	verifyVertex(trimesh->vertices[0], VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x00000, 0x00000, 0x10000), false, __LINE__);
-	verifyVertex(trimesh->vertices[1], VECTOR3x(0x10000, 0x00000, 0x00000), VECTOR3x(-0x05337, -0x05337, 0x0E359), false, __LINE__);
-	verifyVertex(trimesh->vertices[2], VECTOR3x(0x00000, 0x10000, 0x00000), VECTOR3x(-0x05337, -0x05337, 0x0E359), false, __LINE__);
+	verifyVertex(trimesh->vertices[1], VECTOR3x(0x10000, 0x00000, 0x00000), VECTOR3x(-0x05ED8, -0x05ED8, 0x0DA0E), false, __LINE__);
+	verifyVertex(trimesh->vertices[2], VECTOR3x(0x00000, 0x10000, 0x00000), VECTOR3x(-0x05ED8, -0x05ED8, 0x0DA0E), false, __LINE__);
 	verifyVertex(trimesh->vertices[3], VECTOR3x(0x10000, 0x10000, 0x10000), VECTOR3x(-0x093CE, -0x093CE, 0x093CE), false, __LINE__);
 	TestCase_assert(trimesh->edgeCount == 0, "Expected 0 but got %u", trimesh->edgeCount);
 	TestCase_assert(trimesh->triangleCount == 2, "Expected 2 but got %u", trimesh->triangleCount);
@@ -155,8 +155,8 @@ static void testVertexUniq() {
 	trimesh = CollisionStaticTrimesh_create(NULL, NULL, vertices, 6);
 	TestCase_assert(trimesh->vertexCount == 4, "Expected 4 but got %u", trimesh->vertexCount);
 	verifyVertex(trimesh->vertices[0], VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x00000, 0x00000, 0x10000), false, __LINE__);
-	verifyVertex(trimesh->vertices[1], VECTOR3x(0x10000, 0x00000, 0x00000), VECTOR3x(0x05337, 0x05337, 0x0E359), true, __LINE__);
-	verifyVertex(trimesh->vertices[2], VECTOR3x(0x00000, 0x10000, 0x00000), VECTOR3x(0x05337, 0x05337, 0x0E359), true, __LINE__);
+	verifyVertex(trimesh->vertices[1], VECTOR3x(0x10000, 0x00000, 0x00000), VECTOR3x(0x05ED8, 0x05ED8, 0x0DA0E), true, __LINE__);
+	verifyVertex(trimesh->vertices[2], VECTOR3x(0x00000, 0x10000, 0x00000), VECTOR3x(0x05ED8, 0x05ED8, 0x0DA0E), true, __LINE__);
 	verifyVertex(trimesh->vertices[3], VECTOR3x(0x10000, 0x10000, -0x10000), VECTOR3x(0x093CE, 0x093CE, 0x093CE), false, __LINE__);
 	TestCase_assert(trimesh->triangleCount == 2, "Expected 2 but got %u", trimesh->triangleCount);
 	verifyTriangle(trimesh->triangles[0], 0, 1, 2, UINT_MAX, 1, UINT_MAX, VECTOR3x(0x00000, 0x00000, 0x10000), __LINE__);
@@ -165,10 +165,10 @@ static void testVertexUniq() {
 	
 	trimesh = CollisionStaticTrimesh_create(NULL, NULL, vertices, 9);
 	TestCase_assert(trimesh->vertexCount == 4, "Expected 4 but got %u", trimesh->vertexCount);
-	verifyVertex(trimesh->vertices[0], VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x00000, -0x0EC84, 0x061F8), true, __LINE__);
-	verifyVertex(trimesh->vertices[1], VECTOR3x(0x10000, 0x00000, 0x00000), VECTOR3x(0x08C73, -0x01F91, 0x0D3B3), true, __LINE__);
-	verifyVertex(trimesh->vertices[2], VECTOR3x(0x00000, 0x10000, 0x00000), VECTOR3x(0x05337, 0x05337, 0x0E359), true, __LINE__);
-	verifyVertex(trimesh->vertices[3], VECTOR3x(0x10000, 0x10000, -0x10000), VECTOR3x(0x0F3FB, -0x036D6, -0x036D6), true, __LINE__);
+	verifyVertex(trimesh->vertices[0], VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x00000, 0xFFFF65CE, 0x0CC5B), true, __LINE__);
+	verifyVertex(trimesh->vertices[1], VECTOR3x(0x10000, 0x00000, 0x00000), VECTOR3x(0x0B908, 0xFFFF6518, 0x05579), true, __LINE__);
+	verifyVertex(trimesh->vertices[2], VECTOR3x(0x00000, 0x10000, 0x00000), VECTOR3x(0x05ED8, 0x05ED8, 0x0DA0E), true, __LINE__);
+	verifyVertex(trimesh->vertices[3], VECTOR3x(0x10000, 0x10000, -0x10000), VECTOR3x(0x0EE04, 0x042AA, 0x042AA), true, __LINE__);
 	TestCase_assert(trimesh->triangleCount == 3, "Expected 3 but got %u", trimesh->triangleCount);
 	verifyTriangle(trimesh->triangles[0], 0, 1, 2, 2, 1, UINT_MAX, VECTOR3x(0x00000, 0x00000, 0x10000), __LINE__);
 	verifyTriangle(trimesh->triangles[1], 2, 1, 3, 0, 2, UINT_MAX, VECTOR3x(0x093CD, 0x093CD, 0x093CD), __LINE__);
@@ -178,8 +178,8 @@ static void testVertexUniq() {
 	trimesh = CollisionStaticTrimesh_createWithIndexes(NULL, NULL, vertices, indexes, 6);
 	TestCase_assert(trimesh->vertexCount == 4, "Expected 4 but got %u", trimesh->vertexCount);
 	verifyVertex(trimesh->vertices[0], VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x00000, 0x00000, 0x10000), false, __LINE__);
-	verifyVertex(trimesh->vertices[1], VECTOR3x(0x10000, 0x00000, 0x00000), VECTOR3x(0x05337, 0x05337, 0x0E359), true, __LINE__);
-	verifyVertex(trimesh->vertices[2], VECTOR3x(0x00000, 0x10000, 0x00000), VECTOR3x(0x05337, 0x05337, 0x0E359), true, __LINE__);
+	verifyVertex(trimesh->vertices[1], VECTOR3x(0x10000, 0x00000, 0x00000), VECTOR3x(0x05ED8, 0x05ED8, 0x0DA0E), true, __LINE__);
+	verifyVertex(trimesh->vertices[2], VECTOR3x(0x00000, 0x10000, 0x00000), VECTOR3x(0x05ED8, 0x05ED8, 0x0DA0E), true, __LINE__);
 	verifyVertex(trimesh->vertices[3], VECTOR3x(0x10000, 0x10000, -0x10000), VECTOR3x(0x093CE, 0x093CE, 0x093CE), false, __LINE__);
 	TestCase_assert(trimesh->triangleCount == 2, "Expected 2 but got %u", trimesh->triangleCount);
 	verifyTriangle(trimesh->triangles[0], 0, 1, 2, UINT_MAX, 1, UINT_MAX, VECTOR3x(0x00000, 0x00000, 0x10000), __LINE__);
@@ -188,10 +188,10 @@ static void testVertexUniq() {
 	
 	trimesh = CollisionStaticTrimesh_createWithIndexes(NULL, NULL, vertices, indexes, 9);
 	TestCase_assert(trimesh->vertexCount == 4, "Expected 4 but got %u", trimesh->vertexCount);
-	verifyVertex(trimesh->vertices[0], VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x00000, -0x0EC84, 0x061F8), true, __LINE__);
-	verifyVertex(trimesh->vertices[1], VECTOR3x(0x10000, 0x00000, 0x00000), VECTOR3x(0x08C73, -0x01F91, 0x0D3B3), true, __LINE__);
-	verifyVertex(trimesh->vertices[2], VECTOR3x(0x00000, 0x10000, 0x00000), VECTOR3x(0x05337, 0x05337, 0x0E359), true, __LINE__);
-	verifyVertex(trimesh->vertices[3], VECTOR3x(0x10000, 0x10000, -0x10000), VECTOR3x(0x0F3FB, -0x036D6, -0x036D6), true, __LINE__);
+	verifyVertex(trimesh->vertices[0], VECTOR3x(0x00000, 0x00000, 0x00000), VECTOR3x(0x00000, 0xFFFF65CE, 0x0CC5B), true, __LINE__);
+	verifyVertex(trimesh->vertices[1], VECTOR3x(0x10000, 0x00000, 0x00000), VECTOR3x(0x0B908, 0xFFFF6518, 0x05579), true, __LINE__);
+	verifyVertex(trimesh->vertices[2], VECTOR3x(0x00000, 0x10000, 0x00000), VECTOR3x(0x05ED8, 0x05ED8, 0x0DA0E), true, __LINE__);
+	verifyVertex(trimesh->vertices[3], VECTOR3x(0x10000, 0x10000, -0x10000), VECTOR3x(0x0EE04, 0x042AA, 0x042AA), true, __LINE__);
 	TestCase_assert(trimesh->triangleCount == 3, "Expected 3 but got %u", trimesh->triangleCount);
 	verifyTriangle(trimesh->triangles[0], 0, 1, 2, 2, 1, UINT_MAX, VECTOR3x(0x00000, 0x00000, 0x10000), __LINE__);
 	verifyTriangle(trimesh->triangles[1], 2, 1, 3, 0, 2, UINT_MAX, VECTOR3x(0x093CD, 0x093CD, 0x093CD), __LINE__);

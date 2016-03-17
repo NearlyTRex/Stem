@@ -86,16 +86,16 @@ static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned
 		}
 		EventDispatcher_dispatchEvent(screenManager->eventDispatcher, ATOM(Shell_isFullScreen() ? EVENT_FULLSCREENED : EVENT_WINDOWED), NULL);
 		
-	} else if (keyCode == KEYBOARD_1) {
+	} else if (keyCode == KEYBOARD_1 && !g_shiftKeyDown) {
 		ScreenManager_setScreen(screenManager, singleFrameScreen2D);
 		
-	} else if (keyCode == KEYBOARD_2) {
+	} else if (keyCode == KEYBOARD_2 && !g_shiftKeyDown) {
 		ScreenManager_setScreen(screenManager, bouncingBallScreen);
 		
-	} else if (keyCode == KEYBOARD_3) {
+	} else if (keyCode == KEYBOARD_3 && !g_shiftKeyDown) {
 		ScreenManager_setScreen(screenManager, singleFrameScreen3D);
 		
-	} else if (keyCode == KEYBOARD_4) {
+	} else if (keyCode == KEYBOARD_4 && !g_shiftKeyDown) {
 		ScreenManager_setScreen(screenManager, trimeshViewerScreen);
 		
 	} else {

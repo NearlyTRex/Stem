@@ -742,7 +742,7 @@ static void testSimultaneousCollisionRetestsObjectsAlreadyResolvedInSameIteratio
 	simultaneousRetestCollisionCallbackCalls[0] = 0;
 	simultaneousRetestCollisionCallbackCalls[1] = 0;
 	resolveAllLine = __LINE__; CollisionResolver_resolveAll(collisionResolver);
-	TestCase_assert(simultaneousRetestCollisionCallbackCalls[0] == 1, "Expected 1 but got %u", simultaneousRetestCollisionCallbackCalls[0]);
+	TestCase_assert(simultaneousRetestCollisionCallbackCalls[0] == 1, "Expected 1 but got %u", simultaneousRetestCollisionCallbackCalls[0]); // TODO: This failed once and passed next run with no code changes. Why?
 	TestCase_assert(simultaneousRetestCollisionCallbackCalls[1] == 0, "Expected 0 but got %u", simultaneousRetestCollisionCallbackCalls[1]);
 	
 	CollisionResolver_dispose(collisionResolver);

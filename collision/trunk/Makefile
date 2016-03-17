@@ -100,6 +100,7 @@ SOURCES_unittest_suites = \
 SOURCES_testharness = \
 	source/testharness/BouncingBallScreen.c \
 	source/testharness/ResourceWiring.c \
+	source/testharness/Obj3DModelIO.c \
 	source/testharness/SingleFrameScreen2D.c \
 	source/testharness/SingleFrameScreen3D.c \
 	source/testharness/TestHarness_globals.c \

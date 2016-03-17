@@ -2889,18 +2889,10 @@ static void testCapsule_trimesh() {
 	capsule = initMovingCapsule(VECTOR3x(0x0DA13, 0x1F0C1, 0x0FD51), VECTOR3x(0xFFFF952B, 0x1F8D3, 0xFFFF8E84), 0x01DB3, 0x03F25);
 	resetOutParameters();
 	result = intersectionHandler_capsule_trimesh((CollisionObject *) &capsule, (CollisionObject *) &trimesh, &time, &normal, &object1Vector, &object2Vector, &contactArea);
-	assertCollision(result, time, normal, 0x0A2CF, VECTOR3x(0x0647D, 0x0A681, 0x0A680), Vector3x_subtract(capsule.position, capsule.lastPosition), VECTOR3x_ZERO, 0x00000);
+	assertCollision(result, time, normal, 0x0A334, VECTOR3x(0x05E4C, 0x0A8D7, 0x0A7CC), Vector3x_subtract(capsule.position, capsule.lastPosition), VECTOR3x_ZERO, 0x00000);
 	
 	CollisionStaticTrimesh_dispose(&trimesh);
 }
-
-/*
-No collision (expected at ~0x0A2CF; bottom cap passes through vertex
-  lastPosition: {0x0DA13, 0x1F0C1, 0x0FD51}
-  position: {0xFFFF952B, 0x1F8D3, 0xFFFF8E84}
-  radius: 0x01DB3
-  cylinderHeight: 0x03F25
-*/
 
 static void testTrimesh_trimesh() {
 	CollisionStaticTrimesh * trimesh1, * trimesh2;

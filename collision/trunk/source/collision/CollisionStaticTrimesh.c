@@ -121,12 +121,15 @@ static void computeGeometryInfo(CollisionStaticTrimesh * self) {
 	}
 	
 	for (vertexIndex = 0; vertexIndex < self->vertexCount; vertexIndex++) {
+		// TODO: Might be more efficient with outer loop of triangle instead of vertex
 		normal = VECTOR3x_ZERO;
-		// TODO: Simple average of triangle normals is inaccurate for vertex normal. Triangle normals need to be weighted. (How?)
 		for (triangleIndex = 0; triangleIndex < self->triangleCount; triangleIndex++) {
 			for (triangleVertexIndex = 0; triangleVertexIndex < 3; triangleVertexIndex++) {
 				if (self->triangles[triangleIndex].vertexIndexes[triangleVertexIndex] == vertexIndex) {
-					normal = Vector3x_add(normal, self->triangles[triangleIndex].normal);
+					Vector3x edgeVector1 = Vector3x_normalized(Vector3x_subtract(self->vertices[self->triangles[triangleIndex].vertexIndexes[(triangleVertexIndex + 1) % 3]].position, self->vertices[self->triangles[triangleIndex].vertexIndexes[triangleVertexIndex]].position));
+					Vector3x edgeVector2 = Vector3x_normalized(Vector3x_subtract(self->vertices[self->triangles[triangleIndex].vertexIndexes[triangleVertexIndex]].position, self->vertices[self->triangles[triangleIndex].vertexIndexes[(triangleVertexIndex + 2) % 3]].position));
+					fixed16_16 contribution = xacos(-Vector3x_dot(edgeVector1, edgeVector2));
+					normal = Vector3x_add(normal, Vector3x_multiplyScalar(self->triangles[triangleIndex].normal, contribution));
 					break;
 				}
 			}
