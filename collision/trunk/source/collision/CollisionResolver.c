@@ -271,6 +271,12 @@ static void checkForCycles(CollisionResolver * self) {
 		}
 		
 		if (matchFound) {
+			if (self->private_ivar(cycleDetectionBuffer)[objectPairIndex * 2 + 0]->resolutionFailureCallback != NULL) {
+				self->private_ivar(cycleDetectionBuffer)[objectPairIndex * 2 + 0]->resolutionFailureCallback(self->private_ivar(cycleDetectionBuffer)[objectPairIndex * 2 + 0], self->private_ivar(cycleDetectionBuffer)[objectPairIndex * 2 + 1]);
+			}
+			if (self->private_ivar(cycleDetectionBuffer)[objectPairIndex * 2 + 1]->resolutionFailureCallback != NULL) {
+				self->private_ivar(cycleDetectionBuffer)[objectPairIndex * 2 + 1]->resolutionFailureCallback(self->private_ivar(cycleDetectionBuffer)[objectPairIndex * 2 + 1], self->private_ivar(cycleDetectionBuffer)[objectPairIndex * 2 + 0]);
+			}
 			self->private_ivar(cycleDetectionBuffer)[objectPairIndex * 2 + 0]->private_ivar(unresolvable) = true;
 			self->private_ivar(cycleDetectionBuffer)[objectPairIndex * 2 + 1]->private_ivar(unresolvable) = true;
 			continue;

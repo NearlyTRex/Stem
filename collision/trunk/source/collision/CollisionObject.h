@@ -58,6 +58,12 @@ typedef void (* CollisionCallback)(CollisionRecord collision, fixed16_16 timesli
 	void * owner; \
 	int shapeType; \
 	CollisionCallback collisionCallback; \
+	\
+	/* If normal resolution fails to prevent object penetration, this function (if not NULL, which is the default) is called, */ \
+	/* and this object will no longer be able to collide with collidingObject for the rest of the timeslice being processed. */ \
+	/* This a debugging facility to indicate a faulty collisionCallback implementation, and should not be used for normal logic. */ \
+	void (* resolutionFailureCallback)(CollisionObject * self, CollisionObject * collidingObject); \
+	\
 	bool private_ivar(markedForRemoval); \
 	bool private_ivar(unresolvable); \
 	\

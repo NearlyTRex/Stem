@@ -753,6 +753,7 @@ static void testSimultaneousCollisionRetestsObjectsAlreadyResolvedInSameIteratio
 }
 
 static unsigned int unresolvableCollisionCallbackCalls[4];
+static unsigned int resolutionFailureCallbackCalls[2];
 
 static bool unresolvableIntersectionHandler1(CollisionObject * object1, CollisionObject * object2, fixed16_16 * outTime, Vector3x * outNormal, Vector3x * outObject1Vector, Vector3x * outObject2Vector, fixed16_16 * outContactArea) {
 	if (object2 == testObjects[1]) {
@@ -796,6 +797,18 @@ static void unresolvableCollisionCallback(CollisionRecord collision, fixed16_16 
 	unresolvableCollisionCallbackCalls[object2Index]++;
 }
 
+static void resolutionFailureCallback1(CollisionObject * self, CollisionObject * collidingObject) {
+	TestCase_assert(self == testObjects[0], "Expected %p but got %p", testObjects[0], self);
+	TestCase_assert(collidingObject == testObjects[1], "Expected %p but got %p", testObjects[1], collidingObject);
+	resolutionFailureCallbackCalls[0]++;
+}
+
+static void resolutionFailureCallback2(CollisionObject * self, CollisionObject * collidingObject) {
+	TestCase_assert(self == testObjects[1], "Expected %p but got %p", testObjects[1], self);
+	TestCase_assert(collidingObject == testObjects[0], "Expected %p but got %p", testObjects[0], collidingObject);
+	resolutionFailureCallbackCalls[1]++;
+}
+
 static void testUnresolvableDetection() {
 	CollisionResolver * collisionResolver;
 	IntersectionManager * intersectionManager;
@@ -819,8 +832,13 @@ static void testUnresolvableDetection() {
 	
 	// Objects 0 and 1 collide at time 0 and don't resolve themselves. Objects 0 and 2 want to collide at time 0.5, but won't get a chance if 0 and 1 use all the iterations.
 	memset(unresolvableCollisionCallbackCalls, 0, sizeof(unresolvableCollisionCallbackCalls));
+	memset(resolutionFailureCallbackCalls, 0, sizeof(resolutionFailureCallbackCalls));
+	testObjects[0]->resolutionFailureCallback = resolutionFailureCallback1;
+	testObjects[1]->resolutionFailureCallback = resolutionFailureCallback2;
 	resolveAllLine = __LINE__; CollisionResolver_resolveAll(collisionResolver);
 	TestCase_assert(unresolvableCollisionCallbackCalls[2] == 1, "Expected 1 but got %u", unresolvableCollisionCallbackCalls[2]);
+	TestCase_assert(resolutionFailureCallbackCalls[0] == 2, "Expected 2 but got %u\n", resolutionFailureCallbackCalls[0]);
+	TestCase_assert(resolutionFailureCallbackCalls[1] == 2, "Expected 2 but got %u\n", resolutionFailureCallbackCalls[1]);
 	
 	// Pairs 0<->1 and 0<->2 alternately intersect each iteration at time 0. Pair 0<->3 intersects at time 0.5.
 	IntersectionManager_setHandler(intersectionManager, 0, 1, unresolvableIntersectionHandler2);
@@ -828,6 +846,7 @@ static void testUnresolvableDetection() {
 	IntersectionManager_setHandler(intersectionManager, 0, 3, unresolvableIntersectionHandler2);
 	CollisionResolver_addObject(collisionResolver, testObjects[3]);
 	memset(unresolvableCollisionCallbackCalls, 0, sizeof(unresolvableCollisionCallbackCalls));
+	testObjects[0]->resolutionFailureCallback = testObjects[1]->resolutionFailureCallback = NULL;
 	resolveAllLine = __LINE__; CollisionResolver_resolveAll(collisionResolver);
 	TestCase_assert(unresolvableCollisionCallbackCalls[3] == 1, "Expected 1 but got %u", unresolvableCollisionCallbackCalls[3]);
 	

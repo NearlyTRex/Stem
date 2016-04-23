@@ -58,8 +58,8 @@ struct IntersectionHandlerEntry {
 
 stemobject_struct_definition(IntersectionManager)
 
-IntersectionManager * IntersectionManager_create();
-IntersectionManager * IntersectionManager_createWithStandardHandlers();
+IntersectionManager * IntersectionManager_create(void);
+IntersectionManager * IntersectionManager_createWithStandardHandlers(void);
 bool IntersectionManager_init(IntersectionManager * self);
 bool IntersectionManager_initWithStandardHandlers(IntersectionManager * self);
 void IntersectionManager_dispose(IntersectionManager * self);

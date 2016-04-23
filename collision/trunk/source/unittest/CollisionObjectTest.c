@@ -8,6 +8,7 @@ static void verifyInit(int line, CollisionObject * collisionObject, void * owner
 	TestCase_assert(collisionObject->shapeType == shapeType, "Expected %d but got %d (line %d)", shapeType, collisionObject->shapeType, line);
 	TestCase_assert(collisionObject->owner == owner, "Expected %p but got %p (line %d)", owner, collisionObject->owner, line);
 	TestCase_assert(collisionObject->collisionCallback == collisionCallback, "Expected %p but got %p (line %d)", collisionCallback, collisionObject->collisionCallback, line);
+	TestCase_assert(collisionObject->resolutionFailureCallback == NULL, "Expected NULL but got %p (line %d)", collisionObject->resolutionFailureCallback, line);
 	TestCase_assert(collisionObject->ownMask == 0x1, "Expected 0x1 but got 0x%X (line %d)", collisionObject->ownMask, line);
 	TestCase_assert(collisionObject->collidableMask == 0xFFFFFFFF, "Expected 0xFFFFFFFF but got 0x%X (line %d)", collisionObject->collidableMask, line);
 	TestCase_assert(collisionObject->interpolate == NULL, "Expected NULL but got %p (line %d)", collisionObject->interpolate, line);
