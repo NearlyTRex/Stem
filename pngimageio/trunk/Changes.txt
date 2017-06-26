@@ -1,3 +1,6 @@
+1.2.1 (2017-06-26)
+ * Updated for libpng 1.6.29 and zlib 1.2.11
+
 1.2.0 (2014-06-29)
  * Updated for libpng 1.6.12
  * Added support for modern Xcode/iOS SDK versions
