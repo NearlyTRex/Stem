@@ -3,7 +3,7 @@ PROJECT_NAME = vorbisaudioio
 # VERSION_MAJOR, VERSION_MINOR, and VERSION_TWEAK are available as preprocessor macros for all source files in the project
 VERSION_MAJOR = 1
 VERSION_MINOR = 0
-VERSION_TWEAK = 3
+VERSION_TWEAK = 4
 PROJECT_VERSION = ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_TWEAK}
 
 LIBRARY_TARGETS = library
@@ -39,9 +39,9 @@ STEM_LIBRARY_DEPENDENCIES = \
 # THIRDPARTY_LIBRARY_DEPENDENCIES is specified as ${PROJECT_NAME}/${PROJECT_VERSION} for each thirdparty library to be linked when building
 # Patterns: THIRDPARTY_LIBRARY_DEPENDENCIES, THIRDPARTY_LIBRARY_DEPENDENCIES_${target}, THIRDPARTY_LIBRARY_DEPENDENCIES_${platform}, THIRDPARTY_LIBRARY_DEPENDENCIES_${target}_${platform}
 THIRDPARTY_LIBRARY_DEPENDENCIES = \
-	libogg/1.2.2/libogg.a \
-	libvorbis/1.3.2/libvorbisfile.a \
-	libvorbis/1.3.2/libvorbis.a
+	libogg/1.3.2/libogg.a \
+	libvorbis/1.3.5/libvorbisfile.a \
+	libvorbis/1.3.5/libvorbis.a
 
 # Additional build prerequisites per target
 # Patterns: PREREQS, PREREQS_${target}
