@@ -39,9 +39,9 @@ STEM_LIBRARY_DEPENDENCIES_unittest = unittest/latest
 
 # THIRDPARTY_LIBRARY_DEPENDENCIES is specified as ${PROJECT_NAME}/${PROJECT_VERSION} for each thirdparty library to be linked when building
 # Patterns: THIRDPARTY_LIBRARY_DEPENDENCIES, THIRDPARTY_LIBRARY_DEPENDENCIES_${target}, THIRDPARTY_LIBRARY_DEPENDENCIES_${platform}, THIRDPARTY_LIBRARY_DEPENDENCIES_${target}_${platform}
-THIRDPARTY_LIBRARY_DEPENDENCIES = libpng/1.6.12/libpng.a
-THIRDPARTY_LIBRARY_DEPENDENCIES_win32 = zlib/1.2.3/libz.a
-THIRDPARTY_LIBRARY_DEPENDENCIES_win64 = zlib/1.2.3/libz.a
+THIRDPARTY_LIBRARY_DEPENDENCIES = libpng/1.6.29/libpng.a
+THIRDPARTY_LIBRARY_DEPENDENCIES_win32 = zlib/1.2.11/libz.a
+THIRDPARTY_LIBRARY_DEPENDENCIES_win64 = zlib/1.2.11/libz.a
 
 # Additional build prerequisites per target
 # Patterns: PREREQS, PREREQS_${target}
