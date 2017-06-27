@@ -206,6 +206,10 @@ Vector2f GLTextureAtlas_getEntryDimensions(GLTextureAtlas * self, const char * k
 		} else if (height == GLTEXTUREATLAS_SIZE_AUTO) {
 			dimensions.x = width;
 			dimensions.y = (entry.top - entry.bottom) * width / (entry.right - entry.left) * self->texture->pixelHeight / self->texture->pixelWidth;
+			
+		} else {
+			dimensions.x = width;
+			dimensions.y = height;
 		}
 	}
 	

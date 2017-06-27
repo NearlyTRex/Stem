@@ -67,8 +67,7 @@ STEM_LIBRARY_DEPENDENCIES_testharness_iphoneos = eaglshell/latest
 
 # THIRDPARTY_LIBRARY_DEPENDENCIES is specified as ${PROJECT_NAME}/${PROJECT_VERSION} for each thirdparty library to be linked when building
 # Patterns: THIRDPARTY_LIBRARY_DEPENDENCIES, THIRDPARTY_LIBRARY_DEPENDENCIES_${target}, THIRDPARTY_LIBRARY_DEPENDENCIES_${platform}, THIRDPARTY_LIBRARY_DEPENDENCIES_${target}_${platform}
-THIRDPARTY_LIBRARY_DEPENDENCIES_library = libpng/1.6.12/libpng.a
-THIRDPARTY_LIBRARY_DEPENDENCIES_testharness = libpng/1.6.12/libpng.a
+THIRDPARTY_LIBRARY_DEPENDENCIES = 
 
 # Additional build prerequisites per target
 # Patterns: PREREQS, PREREQS_${target}

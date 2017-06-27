@@ -1,5 +1,6 @@
-1.2.1 (2015-12-16)
+1.2.1 (2017-06-26)
  * Removed the baseIndex parameter from GLTextureAtlas_getVertices() and GLTextureAtlas_getVerticesWithColor(). It's now inferred from ioVertexCount.
+ * Removed explicit libpng version choice, instead deferring to whichever version pngimageio uses.
 
 1.2.0 (2014-11-20)
  * Removed GLTextureAtlas_getIndexes, and merged its functionality with GLTextureAtlas_getVertices
