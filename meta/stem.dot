@@ -3,22 +3,23 @@ digraph stem {
 	node [shape=box];
 	edge [dir=back];
 	
-	"3dmath" -> glgraphics;
+	gamemath -> {collision; serialization};
 	preferences;
-	serialization -> {binaryserialization; glfont; gltexture; inputcontroller; jsonserialization}
+	serialization -> {binaryserialization; dynamictypes; glbitmapfont; gltexture; inputcontroller; jsonserialization}
 	shell -> {eaglshell; glutshell; nsopenglshell; stubshell; wglshell; glxshell};
-	stemobject -> {bitmapimage; glgraphics; inputcontroller; pcmaudio; resourcemanager; serialization; utilities};
+	stemobject -> {bitmapimage; collision; dynamictypes; inputcontroller; pcmaudio; resourcemanager; serialization; utilities};
 	unittest -> template_stemlib;
 	gamepad;
 	
 	bitmapimage -> pngimageio;
 	glgraphics -> {eaglshell; gltexture; glutshell; glslshader; nsopenglshell};
 	pcmaudio -> vorbisaudioio;
-	utilities -> {jsonio; pngimageio; preferences; statecontroller; binaryserialization; glslshader; vorbisaudioio; inputcontroller; serialization};
+	utilities -> {jsonio; pngimageio; preferences; screenmanager; binaryserialization; glslshader; vorbisaudioio; inputcontroller; serialization; dynamictypes};
+	
+	dynamictypes -> preferences;
 	
 	gamepad -> inputcontroller;
 	gltexture -> glbitmapfont;
-	glfont -> glbitmapfont;
 	jsonio -> {jsonserialization; preferences};
 	
 	shell [group="shells"];
@@ -35,7 +36,6 @@ digraph stem {
 	
 	glgraphics [group="opengl"];
 	gltexture [group="opengl"];
-	glfont [group="opengl"];
 	glbitmapfont [group="opengl"];
 	glslshader [group="opengl"];
 	
