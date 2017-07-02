@@ -533,7 +533,7 @@ static void testCopy() {
 	value = valueCreateFixed16_16(0x00000);
 	copy = valueCopy(&value);
 	TestCase_assert(copy.type == DATA_TYPE_FIXED_16_16, "Expected %d but got %d", DATA_TYPE_FIXED_16_16, copy.type);
-	TestCase_assert(copy.value.fixed == 0.0, "Expected 0.0 but got %f", copy.value.fixed);
+	TestCase_assert(copy.value.fixed == 0x00000, "Expected 0x00000 but got 0x%05X", copy.value.fixed);
 	valueDispose(&value);
 	valueDispose(&copy);
 	value = valueCreateFixed16_16(FIXED_16_16_MIN);
@@ -678,7 +678,7 @@ static void testCopy() {
 	array = valueGetArray(&value); \
 	assArray = valueGetAssociativeArray(&value)
 
-#define assertAllPrimitiveTypes(expectedBooleanValue, expectedIntegerValue, expectedFixedValue, expectedFloatValue) \
+#define assertAllPrimitiveTypes(expectedBooleanValue, expectedIntegerValue, expectedFloatValue, expectedFixedValue) \
 	TestCase_assert(boolean == expectedBooleanValue, "Expected %s but got %s (boolean)", expectedBooleanValue ? "true" : "false", boolean ? "true" : "false"); \
 	TestCase_assert(int8 == expectedIntegerValue, "Expected %d but got %d (int8)", (int8_t) expectedIntegerValue, int8); \
 	TestCase_assert(uint8 == expectedIntegerValue, "Expected %u but got %u (uint8)", (uint8_t) expectedIntegerValue, uint8); \
@@ -704,7 +704,7 @@ static void testCopy() {
 	assertAllPointerTypesSeparate(expectedValue, expectedValue, expectedValue, expectedValue, expectedValue, expectedValue)
 
 #define assertAllTypes(expectedBooleanValue, expectedIntegerValue, expectedFloatValue, expectedFixedValue, expectedPointerValue) \
-	assertAllPrimitiveTypes(expectedBooleanValue, expectedIntegerValue, expectedFixedValue, expectedFloatValue); \
+	assertAllPrimitiveTypes(expectedBooleanValue, expectedIntegerValue, expectedFloatValue, expectedFixedValue); \
 	assertAllPointerTypes(expectedPointerValue)
 
 static void testConversions() {
