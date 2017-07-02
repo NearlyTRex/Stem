@@ -166,7 +166,7 @@ static void testNumberValues() {
 	TestCase_assert(node->subitems[10].type == JSON_TYPE_STRING, "Expected %d but got %d", JSON_TYPE_STRING, node->subitems[10].type);
 	TestCase_assert(node->subitems[10].key == NULL, "Expected NULL but got %p", node->subitems[10].key);
 	TestCase_assert(node->subitems[10].stringLength == 7, "Expected 7 but got " SIZE_T_FORMAT, node->subitems[10].stringLength);
-	TestCase_assert(!strcmp(node->subitems[10].value.string, "0xA0000"), "Expected \"0xA0000\" but got \"\"", node->subitems[10].value.string);
+	TestCase_assert(!strcmp(node->subitems[10].value.string, "0xA0000"), "Expected \"0xA0000\" but got \"%s\"", node->subitems[10].value.string);
 	JSONNode_dispose(node);
 	
 	context = JSONSerializationContext_create();
@@ -226,7 +226,7 @@ static void testNumberValues() {
 	TestCase_assert(node->subitems[10].type == JSON_TYPE_STRING, "Expected %d but got %d", JSON_TYPE_STRING, node->subitems[10].type);
 	TestCase_assert(node->subitems[10].key == NULL, "Expected NULL but got %p", node->subitems[10].key);
 	TestCase_assert(node->subitems[10].stringLength == 10, "Expected 10 but got " SIZE_T_FORMAT, node->subitems[10].stringLength);
-	TestCase_assert(!strcmp(node->subitems[10].value.string, "0x80000002"), "Expected \"0x80000002\" but got \"\"", node->subitems[10].value.string);
+	TestCase_assert(!strcmp(node->subitems[10].value.string, "0x80000002"), "Expected \"0x80000002\" but got \"%s\"", node->subitems[10].value.string);
 	JSONNode_dispose(node);
 }
 
