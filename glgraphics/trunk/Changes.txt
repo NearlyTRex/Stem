@@ -1,5 +1,9 @@
-1.4.0 (2015-01-11)
- * Removed library_noglew. Whether glew is used or not now depends on platform: win32, win64, linux32, and linux64 use it, while macosx, iphoneos, and iphonesimulator do not.
+2.0.0 (2017-10-22)
+ * Library signficantly repurposed. Rather than a thin layer of glue used by the shell, glgraphics now contains a full OpenGL renderer and associated utilities and data models.
+ * Removed library_noglew. Glew is now handled entirely by shell implementations.
+ * Removed GLGraphics, whose primary purpose was for initializing glew. GLGraphics_getOpenGLAPIVersion() no longer exists.
+ * Adopted GLSLShader, which no longer lives in its own library.
+ * New classes added: Renderer, Renderable, MeshRenderable, Material, OrbitCameraController, AnimationState. See ReadMe.txt for deatils on each.
 
 1.3.1 (2014-11-20)
  * Added Color4f to VertexTypes.h

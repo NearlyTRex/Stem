@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2014 Alex Diener
+  Copyright (c) 2017 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -20,22 +20,27 @@
   Alex Diener alex@ludobloom.com
 */
 
-#ifndef __GLGraphics_H__
-#define __GLGraphics_H__
+#ifndef __Material_H__
+#define __Material_H__
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-enum GLAPIVersion {
-	GL_API_VERSION_DESKTOP_1,
-	GL_API_VERSION_DESKTOP_2,
-	GL_API_VERSION_DESKTOP_3,
-	GL_API_VERSION_ES1,
-	GL_API_VERSION_ES2
-};
+typedef struct Material Material;
 
-void GLGraphics_init(enum GLAPIVersion apiVersion);
-enum GLAPIVersion GLGraphics_getOpenGLAPIVersion();
+#include "glgraphics/GLSLShader.h"
+#include "stemobject/StemObject.h"
+
+#define Material_structContents(self_type) \
+	StemObject_structContents(self_type) \
+	\
+	GLSLShader * shader; /* Nope; material shouldn't contain a shader, only properties passed to Renderer's built-in shaders */
+
+stemobject_struct_definition(Material)
+
+Material * Material_create(GLSLShader * shader);
+bool Material_init(Material * self, GLSLShader * shader);
+void Material_dispose(Material * self);
 
 #ifdef __cplusplus
 }

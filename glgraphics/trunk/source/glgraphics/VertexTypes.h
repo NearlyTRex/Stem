@@ -29,6 +29,30 @@ extern "C" {
 #include "glgraphics/GLIncludes.h"
 #include <stdint.h>
 
+// TODO: This is incomplete; is it even useful for anything?
+#define VERTEX_MASK_P2F (1 << 0)
+#define VERTEX_MASK_P3F (1 << 1)
+#define VERTEX_MASK_P4F (1 << 0 | 1 << 1)
+#define VERTEX_MASK_T2F (1 << 2)
+#define VERTEX_MASK_T3F (1 << 3)
+#define VERTEX_MASK_T4F (1 << 2 | 1 << 3)
+#define VERTEX_MASK_N3F (1 << 4)
+#define VERTEX_MASK_C3F (1 << 5)
+#define VERTEX_MASK_C4F (1 << 5 | 1 << 6)
+
+#define VERTEX_TYPE_P2F             (VERTEX_MASK_P2F)
+#define VERTEX_TYPE_P2F_T2F         (VERTEX_MASK_P2F | VERTEX_MASK_T2F)
+#define VERTEX_TYPE_P2F_C4F         (VERTEX_MASK_P2F | VERTEX_MASK_C4F)
+#define VERTEX_TYPE_P2F_T2F_C4F     (VERTEX_MASK_P2F | VERTEX_MASK_T2F | VERTEX_MASK_C4F)
+#define VERTEX_TYPE_P3F             (VERTEX_MASK_P3F)
+#define VERTEX_TYPE_P3F_T2F         (VERTEX_MASK_P3F | VERTEX_MASK_T2F)
+#define VERTEX_TYPE_P3F_C4F         (VERTEX_MASK_P3F | VERTEX_MASK_C4F)
+#define VERTEX_TYPE_P3F_T2F_C4F     (VERTEX_MASK_P3F | VERTEX_MASK_T2F | VERTEX_MASK_C4F)
+#define VERTEX_TYPE_P3F_N3F         (VERTEX_MASK_P3F | VERTEX_MASK_N3F)
+#define VERTEX_TYPE_P3F_N3F_C4F     (VERTEX_MASK_P3F | VERTEX_MASK_N3F | VERTEX_MASK_C4F)
+#define VERTEX_TYPE_P3F_T2F_N3F     (VERTEX_MASK_P3F | VERTEX_MASK_T2F | VERTEX_MASK_N3F)
+#define VERTEX_TYPE_P3F_T2F_N3F_C4F (VERTEX_MASK_P3F | VERTEX_MASK_T2F | VERTEX_MASK_N3F | VERTEX_MASK_C4F)
+
 // Vertices can be interchangeably represented as arrays of multiples of the appropriate
 // number of floats for the type, or as one of the structures defined below.
 
@@ -96,6 +120,16 @@ struct vertex_p3f_t2f_n3f_c4f {
 	GLfloat texCoords[2];
 	GLfloat normal[3];
 	GLfloat color[4];
+};
+
+// TODO: This doesn't conform to everything above for other vertex types
+struct vertex_p3f_t2f_n3f_c4f_b4u_w4f {
+	GLfloat position[3];
+	GLfloat texCoords[2];
+	GLfloat normal[3];
+	GLfloat color[4];
+	GLuint boneIndexes[4];
+	GLfloat boneWeights[4];
 };
 
 typedef struct Color4f {

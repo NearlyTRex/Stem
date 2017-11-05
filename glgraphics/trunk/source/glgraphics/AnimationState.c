@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2015 Alex Diener
+  Copyright (c) 2017 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -20,27 +20,30 @@
   Alex Diener alex@ludobloom.com
 */
 
-#include "glgraphics/GLGraphics.h"
-#include <stdbool.h>
-#ifndef __APPLE__
-#include "glgraphics/GLIncludes.h"
-#include <stdio.h>
-#endif
+#include "glgraphics/AnimationState.h"
+#include <stdlib.h>
 
-static enum GLAPIVersion openGLAPIVersion = GL_API_VERSION_DESKTOP_1;
+#define SUPERCLASS StemObject
 
-void GLGraphics_init(enum GLAPIVersion apiVersion) {
-#ifndef __APPLE__
-	GLenum glewStatus;
-	
-	glewStatus = glewInit();
-	if (glewStatus != GLEW_OK) {
-		fprintf(stderr, "Warning: glewInit() failed: %s\n", glewGetErrorString(glewStatus));
-	}
-#endif
-	openGLAPIVersion = apiVersion;
+AnimationState * AnimationState_create(Armature * armature) {
+	stemobject_create_implementation(AnimationState, init, armature)
 }
 
-enum GLAPIVersion GLGraphics_getOpenGLAPIVersion() {
-	return openGLAPIVersion;
+bool AnimationState_init(AnimationState * self, Armature * armature) {
+	unsigned int boneIndex;
+	
+	call_super(init, self);
+	self->dispose = AnimationState_dispose;
+	self->armature = armature;
+	for (boneIndex = 0; boneIndex < armature->boneCount; boneIndex++) {
+		self->boneStates[boneIndex].offset = VECTOR3f_ZERO;
+		self->boneStates[boneIndex].scale = VECTOR3f(1.0f, 1.0f, 1.0f);
+		self->boneStates[boneIndex].rotation = QUATERNIONf_IDENTITY;
+		self->boneStates[boneIndex].absoluteMatrix = MATRIX4x4f_IDENTITY;
+	}
+	return true;
+}
+
+void AnimationState_dispose(AnimationState * self) {
+	call_super(dispose, self);
 }
