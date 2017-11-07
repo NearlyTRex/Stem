@@ -22,19 +22,50 @@
 
 #include "glgraphics/Animation.h"
 #include <stdlib.h>
+#include <string.h>
 
 #define SUPERCLASS StemObject
 
-Animation * Animation_create() {
-	stemobject_create_implementation(Animation, init)
+Animation * Animation_create(Atom name, Armature * armature, unsigned int keyframeCount, struct AnimationKeyframe * keyframes) {
+	stemobject_create_implementation(Animation, init, name, armature, keyframeCount, keyframes)
 }
 
-bool Animation_init(Animation * self) {
+bool Animation_init(Animation * self, Atom name, Armature * armature, unsigned int keyframeCount, struct AnimationKeyframe * keyframes) {
+	unsigned int keyframeIndex;
+	
 	call_super(init, self);
 	self->dispose = Animation_dispose;
+	self->name = name;
+	self->armature = armature;
+	self->keyframeCount = keyframeCount;
+	self->keyframes = malloc(sizeof(*self->keyframes) * keyframeCount);
+	for (keyframeIndex = 0; keyframeIndex < keyframeCount; keyframeIndex++) {
+		self->keyframes[keyframeIndex].interval = keyframes[keyframeIndex].interval;
+		self->keyframes[keyframeIndex].boneCount = keyframes[keyframeIndex].boneCount;
+		self->keyframes[keyframeIndex].bones = malloc(sizeof(*self->keyframes[keyframeIndex].bones) * keyframes[keyframeIndex].boneCount);
+		memcpy(self->keyframes[keyframeIndex].bones, keyframes[keyframeIndex].bones, sizeof(*self->keyframes[keyframeIndex].bones) * keyframes[keyframeIndex].boneCount);
+	}
 	return true;
 }
 
 void Animation_dispose(Animation * self) {
+	unsigned int keyframeIndex;
+	
+	for (keyframeIndex = 0; keyframeIndex < self->keyframeCount; keyframeIndex++) {
+		free(self->keyframes[keyframeIndex].bones);
+	}
+	free(self->keyframes);
 	call_super(dispose, self);
+}
+
+AnimationState * Animation_createAnimationStateAtTime(Animation * self, double animationTime) {
+	AnimationState * animationState;
+	
+	animationState = AnimationState_create(self->armature);
+	Animation_setAnimationStateAtTime(self, animationState, animationTime);
+	return animationState;
+}
+
+void Animation_setAnimationStateAtTime(Animation * self, AnimationState * animationState, double animationTime) {
+	// magic happens here
 }

@@ -51,7 +51,9 @@ stemobject_struct_definition(AnimationState)
 
 AnimationState * AnimationState_create(Armature * armature);
 bool AnimationState_init(AnimationState * self, Armature * armature);
+void AnimationState_initCopy(AnimationState * self, AnimationState * original);
 void AnimationState_dispose(AnimationState * self);
+AnimationState * AnimationState_copy(AnimationState * self);
 
 #ifdef __cplusplus
 }

@@ -1,4 +1,5 @@
 #include "gamemath/Matrix4x4f.h"
+#include "glgraphics/Animation.h"
 #include "glgraphics/GLIncludes.h"
 #include "glgraphics/MeshRenderable.h"
 #include "glgraphics/OrbitCameraController.h"
@@ -27,11 +28,19 @@
 #include <unistd.h>
 
 static Renderer * renderer;
+static MeshRenderable * renderable;
+static Animation * animation;
 static OrbitCameraController * cameraController;
 static bool shiftKeyDown, controlKeyDown;
 static unsigned int viewWidth = 1280, viewHeight = 720;
+static double animationStartTime;
 
 static bool Target_draw() {
+	if (renderable->animationState != NULL) {
+		Animation_setAnimationStateAtTime(animation, renderable->animationState, Shell_getCurrentTime() - animationStartTime);
+		Shell_redisplay();
+	}
+	
 	Renderer_clear(renderer);
 	Renderer_setViewMatrix(renderer, OrbitCameraController_getMatrix(cameraController));
 	Renderer_beginDrawing(renderer);
@@ -41,7 +50,6 @@ static bool Target_draw() {
 }
 
 static void initScene1() {
-	MeshRenderable * renderable;
 	struct vertex_p3f_t2f_n3f_c4f vertices[] = {
 		{{-1.0f, -1.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f, 1.0f, 1.0f}},
 		{{1.0f, -1.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f, 1.0f, 1.0f}},
@@ -59,6 +67,9 @@ static void initScene1() {
 	Renderer_setLights(renderer, VECTOR3f(0.0f, 8.0f, 8.0f), COLOR4f(1.0f, 1.0f, 0.95f, 1.0f), VECTOR3f(-1.0f, -2.0f, -8.0f), COLOR4f(0.8f, 0.8f, 0.8f, 1.0f), COLOR4f(0.1f, 0.1f, 0.105f, 1.0f));
 	Renderer_setProjectionMatrix(renderer, Matrix4x4f_perspective(MATRIX4x4f_IDENTITY, 60.0f, (float) viewWidth / (float) viewHeight, 0.5f, 100.0f));
 	
+	if (renderable != NULL) {
+		MeshRenderable_dispose(renderable);
+	}
 	renderable = MeshRenderable_createStatic(vertices, sizeof(vertices) / sizeof(struct vertex_p3f_t2f_n3f_c4f), indexes, sizeof(indexes) / sizeof(GLuint), NULL);
 	Renderer_addRenderable(renderer, RENDER_LAYER_3D_OPAQUE, (Renderable *) renderable);
 	
@@ -69,22 +80,36 @@ static void initScene1() {
 }
 
 static void initScene2() {
-	MeshRenderable * renderable;
-	/*
 	struct vertex_p3f_t2f_n3f_c4f_b4u_w4f vertices[] = {
-		{{-1.0f, -1.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0, 0, 0, 0}, {1.0f, 0.0f, 0.0f, 0.0f}},
-		{{1.0f, -1.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0, 0, 0, 0}, {1.0f, 0.0f, 0.0f, 0.0f}},
-		{{-1.0f, 1.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0, 0, 0, 0}, {1.0f, 0.0f, 0.0f, 0.0f}}
-	};
-	*/
-	struct vertex_p3f_t2f_n3f_c4f vertices[] = {
-		{{-1.0f, -1.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f, 1.0f, 1.0f}},
-		{{1.0f, -1.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f, 1.0f, 1.0f}},
-		{{-1.0f, 1.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f, 1.0f, 1.0f}}
+		{{0.0f, -1.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0, 0, 0, 0}, {1.0f, 0.0f, 0.0f, 0.0f}},
+		{{-1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0, 0, 0, 0}, {1.0f, 0.0f, 0.0f, 0.0f}},
+		{{1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0, 0, 0, 0}, {1.0f, 0.0f, 0.0f, 0.0f}},
+		{{0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {1, 0, 0, 0}, {1.0f, 0.0f, 0.0f, 0.0f}}
 	};
 	GLuint indexes[] = {
-		0, 1, 2
+		0, 2, 1,
+		1, 2, 3
 	};
+	Armature * armature;
+	Animation * animation;
+	struct ArmatureBone bones[] = {
+		{ATOM("root"), BONE_INDEX_NOT_FOUND, VECTOR3f(0.0f, 0.0f, 0.0f)},
+		{ATOM("boneLower"), 0, VECTOR3f(0.0f, -1.0f, 0.0f)},
+		{ATOM("boneUpper"), 0, VECTOR3f(0.0f, 1.0f, 0.0f)}
+	};
+	struct AnimationBoneKeyframe frame1Bones[] = {
+		{1, {-1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f}, QUATERNIONf_IDENTITY, {0.0f, 0.0f}, {0.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f}, {0.0f, 0.0f}},
+		{2, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f}, QUATERNIONf_IDENTITY, {0.0f, 0.0f}, {0.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f}, {0.0f, 0.0f}}
+	};
+	struct AnimationBoneKeyframe frame2Bones[] = {
+		{1, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f}, QUATERNIONf_IDENTITY, {0.0f, 0.0f}, {0.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f}, {0.0f, 0.0f}},
+		{2, {-1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f}, QUATERNIONf_IDENTITY, {0.0f, 0.0f}, {0.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f}, {0.0f, 0.0f}}
+	};
+	struct AnimationKeyframe keyframes[] = {
+		{1.0f, sizeof(frame1Bones) / sizeof(frame1Bones[0]), frame1Bones},
+		{0.5f, sizeof(frame2Bones) / sizeof(frame2Bones[0]), frame2Bones}
+	};
+	AnimationState * animationState;
 	
 	if (renderer != NULL) {
 		Renderer_dispose(renderer);
@@ -94,8 +119,16 @@ static void initScene2() {
 	Renderer_setLights(renderer, VECTOR3f(0.0f, 8.0f, 8.0f), COLOR4f(1.0f, 1.0f, 0.95f, 1.0f), VECTOR3f(-1.0f, -2.0f, -8.0f), COLOR4f(0.8f, 0.8f, 0.8f, 1.0f), COLOR4f(0.1f, 0.1f, 0.105f, 1.0f));
 	Renderer_setProjectionMatrix(renderer, Matrix4x4f_perspective(MATRIX4x4f_IDENTITY, 60.0f, (float) viewWidth / (float) viewHeight, 0.5f, 100.0f));
 	
-	renderable = MeshRenderable_createStatic(vertices, sizeof(vertices) / sizeof(struct vertex_p3f_t2f_n3f_c4f), indexes, sizeof(indexes) / sizeof(GLuint), NULL);
+	if (renderable != NULL) {
+		MeshRenderable_dispose(renderable);
+	}
+	armature = Armature_create(sizeof(bones) / sizeof(bones[0]), bones);
+	animation = Animation_create(ATOM("animation"), armature, sizeof(keyframes) / sizeof(keyframes[0]), keyframes);
+	animationState = Animation_createAnimationStateAtTime(animation, 0.0);
+	renderable = MeshRenderable_createAnimated(vertices, sizeof(vertices) / sizeof(struct vertex_p3f_t2f_n3f_c4f), indexes, sizeof(indexes) / sizeof(GLuint), NULL, animationState);
+	AnimationState_dispose(animationState);
 	Renderer_addRenderable(renderer, RENDER_LAYER_3D_OPAQUE, (Renderable *) renderable);
+	animationStartTime = Shell_getCurrentTime();
 	
 	if (cameraController != NULL) {
 		OrbitCameraController_dispose(cameraController);

@@ -29,47 +29,44 @@ extern "C" {
 typedef struct Animation Animation;
 
 #include "stemobject/StemObject.h"
-#include "gamemath/Quaternionf.h"
-#include "gamemath/Vector3f.h"
+#include "glgraphics/AnimationState.h"
 
-// TODO: Use AnimationState structs, probably
-/*
-struct AnimationBoneState {
-	unsigned int boneID;
+// TODO: Bezier handles for individual components?
+struct AnimationBoneKeyframe {
+	unsigned int boneIndex;
 	Vector3f offset;
+	Vector2f incomingOffsetBezierHandle;
+	Vector2f outgoingOffsetBezierHandle;
 	Quaternionf rotation;
-};
-
-struct AnimationMorphState {
-	unsigned int morphID;
-	float weight;
-};
-*/
-
-struct AnimationFrame {
-	unsigned int boneStateCount;
-	struct AnimationBoneState * boneStates;
-	unsigned int morphStateCount;
-	struct AnimationMorphState * morphStates;
+	Vector2f incomingRotationBezierHandle;
+	Vector2f outgoingRotationBezierHandle;
+	Vector3f scale;
+	Vector2f incomingScaleBezierHandle;
+	Vector2f outgoingScaleBezierHandle;
 };
 
 struct AnimationKeyframe {
 	double interval;
-	struct AnimationFrame frame;
+	unsigned int boneCount;
+	struct AnimationBoneKeyframe * bones;
 };
 
 #define Animation_structContents(self_type) \
 	StemObject_structContents(self_type) \
 	\
-	const char * name; \
+	Atom name; \
+	Armature * armature; \
 	unsigned int keyframeCount; \
 	struct AnimationKeyframe * keyframes;
 
 stemobject_struct_definition(Animation)
 
-Animation * Animation_create();
-bool Animation_init(Animation * self);
+// keyframes is copied; caller retains ownership of their copy. armature is referenced and not copied.
+Animation * Animation_create(Atom name, Armature * armature, unsigned int keyframeCount, struct AnimationKeyframe * keyframes);
+bool Animation_init(Animation * self, Atom name, Armature * armature, unsigned int keyframeCount, struct AnimationKeyframe * keyframes);
 void Animation_dispose(Animation * self);
+AnimationState * Animation_createAnimationStateAtTime(Animation * self, double animationTime);
+void Animation_setAnimationStateAtTime(Animation * self, AnimationState * animationState, double animationTime);
 
 #ifdef __cplusplus
 }

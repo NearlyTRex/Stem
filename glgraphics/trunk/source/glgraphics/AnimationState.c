@@ -22,6 +22,7 @@
 
 #include "glgraphics/AnimationState.h"
 #include <stdlib.h>
+#include <string.h>
 
 #define SUPERCLASS StemObject
 
@@ -29,12 +30,16 @@ AnimationState * AnimationState_create(Armature * armature) {
 	stemobject_create_implementation(AnimationState, init, armature)
 }
 
+static void sharedInit(AnimationState * self) {
+	call_super(init, self);
+	self->dispose = AnimationState_dispose;
+}
+
 bool AnimationState_init(AnimationState * self, Armature * armature) {
 	unsigned int boneIndex;
 	
-	call_super(init, self);
-	self->dispose = AnimationState_dispose;
 	self->armature = armature;
+	self->boneStates = malloc(sizeof(*self->boneStates) * armature->boneCount);
 	for (boneIndex = 0; boneIndex < armature->boneCount; boneIndex++) {
 		self->boneStates[boneIndex].offset = VECTOR3f_ZERO;
 		self->boneStates[boneIndex].scale = VECTOR3f(1.0f, 1.0f, 1.0f);
@@ -44,6 +49,17 @@ bool AnimationState_init(AnimationState * self, Armature * armature) {
 	return true;
 }
 
+void AnimationState_initCopy(AnimationState * self, AnimationState * original) {
+	sharedInit(self);
+	self->armature = original->armature;
+	self->boneStates = malloc(sizeof(*self->boneStates) * self->armature->boneCount);
+	memcpy(self->boneStates, original->boneStates, sizeof(*self->boneStates) * self->armature->boneCount);
+}
+
 void AnimationState_dispose(AnimationState * self) {
 	call_super(dispose, self);
+}
+
+AnimationState * AnimationState_copy(AnimationState * self) {
+	stemobject_copy_implementation(AnimationState, initCopy)
 }

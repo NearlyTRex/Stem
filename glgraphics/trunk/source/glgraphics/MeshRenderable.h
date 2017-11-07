@@ -51,6 +51,7 @@ typedef struct MeshRenderable MeshRenderable;
 stemobject_struct_definition(MeshRenderable)
 
 // Accessor for dictionary of shader uniforms?
+// animationState is copied, and used as a template for allocating bone states. After initializing an animated mesh, its animation state can be updated without reallocation by using Animation_setAnimationStateAtTime().
 MeshRenderable * MeshRenderable_createStatic(struct vertex_p3f_t2f_n3f_c4f * vertices, unsigned int vertexCount, GLuint * indexes, unsigned int indexCount, Material * material);
 MeshRenderable * MeshRenderable_createAnimated(struct vertex_p3f_t2f_n3f_c4f_b4u_w4f * vertices, unsigned int vertexCount, GLuint * indexes, unsigned int indexCount, Material * material, AnimationState * animationState);
 bool MeshRenderable_initStatic(MeshRenderable * self, struct vertex_p3f_t2f_n3f_c4f * vertices, unsigned int vertexCount, GLuint * indexes, unsigned int indexCount, Material * material);
