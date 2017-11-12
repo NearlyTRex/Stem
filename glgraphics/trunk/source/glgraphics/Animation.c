@@ -21,6 +21,8 @@
 */
 
 #include "glgraphics/Animation.h"
+#include <assert.h>
+#include <math.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -37,9 +39,12 @@ bool Animation_init(Animation * self, Atom name, Armature * armature, unsigned i
 	self->dispose = Animation_dispose;
 	self->name = name;
 	self->armature = armature;
+	assert(keyframeCount > 0);
+	self->animationLength = 0.0;
 	self->keyframeCount = keyframeCount;
 	self->keyframes = malloc(sizeof(*self->keyframes) * keyframeCount);
 	for (keyframeIndex = 0; keyframeIndex < keyframeCount; keyframeIndex++) {
+		self->animationLength += keyframes[keyframeIndex].interval;
 		self->keyframes[keyframeIndex].interval = keyframes[keyframeIndex].interval;
 		self->keyframes[keyframeIndex].boneCount = keyframes[keyframeIndex].boneCount;
 		self->keyframes[keyframeIndex].bones = malloc(sizeof(*self->keyframes[keyframeIndex].bones) * keyframes[keyframeIndex].boneCount);
@@ -66,6 +71,140 @@ AnimationState * Animation_createAnimationStateAtTime(Animation * self, double a
 	return animationState;
 }
 
+static bool Animation_findBoneKeyframes(Animation * self, unsigned int boneIndex, double animationTime, unsigned int * outKeyframeIndexLeft, unsigned int * outBoneKeyframeIndexLeft, unsigned int * outKeyframeIndexRight, unsigned int * outBoneKeyframeIndexRight, float * outKeyframeWeight) {
+	double keyframeTime = 0.0, keyframeTimeLeft = 0.0, keyframeTimeRight = 0.0;
+	unsigned int keyframeIndex, keyframeIndexLeft = 0, keyframeIndexRight = 0;
+	unsigned int boneKeyframeIndex, boneKeyframeIndexLeft = BONE_INDEX_NOT_FOUND, boneKeyframeIndexRight = BONE_INDEX_NOT_FOUND;
+	
+	// Search for keyframe with an entry for this bone closest to animationTime
+	for (keyframeIndex = 0; keyframeIndex < self->keyframeCount && keyframeTime < animationTime; keyframeIndex++) {
+		for (boneKeyframeIndex = 0; boneKeyframeIndex < self->keyframes[keyframeIndex].boneCount; boneKeyframeIndex++) {
+			if (self->keyframes[keyframeIndex].bones[boneKeyframeIndex].boneIndex == boneIndex) {
+				keyframeIndexLeft = keyframeIndex;
+				keyframeTimeLeft = keyframeTime;
+				boneKeyframeIndexLeft = boneKeyframeIndex;
+				break;
+			}
+		}
+		keyframeTime += self->keyframes[keyframeIndex].interval;
+	}
+	if (boneKeyframeIndexLeft == BONE_INDEX_NOT_FOUND) {
+		// If the bone isn't specified prior to animationTime, find the latest specification past it, if any
+		for (; keyframeIndex < self->keyframeCount; keyframeIndex++) {
+			for (boneKeyframeIndex = 0; boneKeyframeIndex < self->keyframes[keyframeIndex].boneCount; boneKeyframeIndex++) {
+				if (self->keyframes[keyframeIndex].bones[boneKeyframeIndex].boneIndex == boneIndex) {
+					keyframeIndexLeft = keyframeIndex;
+					keyframeTimeLeft = keyframeTime;
+					boneKeyframeIndexLeft = boneKeyframeIndex;
+					break;
+				}
+			}
+			keyframeTime += self->keyframes[keyframeIndex].interval;
+		}
+	}
+	if (boneKeyframeIndexLeft == BONE_INDEX_NOT_FOUND) {
+		// This bone isn't specified in this animation
+		return false;
+	}
+	
+	// Search for the next appearance of this bone in a keyframe
+	keyframeTime = keyframeTimeLeft + self->keyframes[keyframeIndexLeft].interval;
+	for (keyframeIndex = keyframeIndexLeft + 1; keyframeIndex < self->keyframeCount; keyframeIndex++) {
+		for (boneKeyframeIndex = 0; boneKeyframeIndex < self->keyframes[keyframeIndex].boneCount; boneKeyframeIndex++) {
+			if (self->keyframes[keyframeIndex].bones[boneKeyframeIndex].boneIndex == boneIndex) {
+				keyframeIndexRight = keyframeIndex;
+				keyframeTimeRight = keyframeTime;
+				boneKeyframeIndexRight = boneKeyframeIndex;
+				break;
+			}
+		}
+		keyframeTime += self->keyframes[keyframeIndex].interval;
+		if (boneKeyframeIndexRight != BONE_INDEX_NOT_FOUND) {
+			break;
+		}
+	}
+	if (boneKeyframeIndexRight == BONE_INDEX_NOT_FOUND) {
+		// Wrap search around to the beginning if necessary
+		for (keyframeIndex = 0; keyframeIndex < keyframeIndexLeft; keyframeIndex++) {
+			for (boneKeyframeIndex = 0; boneKeyframeIndex < self->keyframes[keyframeIndex].boneCount; boneKeyframeIndex++) {
+				if (self->keyframes[keyframeIndex].bones[boneKeyframeIndex].boneIndex == boneIndex) {
+					keyframeIndexRight = keyframeIndex;
+					keyframeTimeRight = keyframeTime;
+					boneKeyframeIndexRight = boneKeyframeIndex;
+					break;
+				}
+			}
+			keyframeTime += self->keyframes[keyframeIndex].interval;
+			if (boneKeyframeIndexRight != BONE_INDEX_NOT_FOUND) {
+				break;
+			}
+		}
+	}
+	if (boneKeyframeIndexRight == BONE_INDEX_NOT_FOUND) {
+		keyframeIndexRight = keyframeIndexLeft;
+		boneKeyframeIndexRight = boneKeyframeIndexLeft;
+		keyframeTimeRight = keyframeTimeLeft;
+	}
+	
+	*outKeyframeIndexLeft = keyframeIndexLeft;
+	*outBoneKeyframeIndexLeft = boneKeyframeIndexLeft;
+	*outKeyframeIndexRight = keyframeIndexRight;
+	*outBoneKeyframeIndexRight = boneKeyframeIndexRight;
+	// TODO: There may be degenerate cases in here. Shouldn't left and right be swapped if animationTime is outside them?
+	if (keyframeTimeLeft == keyframeTimeRight) {
+		*outKeyframeWeight = 0.0f;
+	} else if (keyframeTimeLeft < keyframeTimeRight) {
+		if (animationTime < keyframeTimeLeft) {
+			// Degenerate
+			*outKeyframeWeight = 0.0f;
+		} else if (animationTime < keyframeTimeRight) {
+			*outKeyframeWeight = (animationTime - keyframeTimeLeft) / (keyframeTimeRight - keyframeTimeLeft);
+		} else {
+			// Degenerate
+			*outKeyframeWeight = 1.0f;
+		}
+	} else {
+		if (animationTime < keyframeTimeRight) {
+			*outKeyframeWeight = (animationTime - (keyframeTimeLeft - self->animationLength)) / (keyframeTimeRight - (keyframeTimeLeft - self->animationLength));
+		} else if (animationTime < keyframeTimeLeft) {
+			// Degenerate
+			*outKeyframeWeight = 0.0f;
+		} else {
+			*outKeyframeWeight = (animationTime - keyframeTimeLeft) / ((keyframeTimeRight + self->animationLength) - keyframeTimeLeft);
+		}
+	}
+	return true;
+}
+
 void Animation_setAnimationStateAtTime(Animation * self, AnimationState * animationState, double animationTime) {
-	// magic happens here
+	unsigned int boneIndex;
+	unsigned int keyframeIndexLeft = 0, keyframeIndexRight = 0;
+	unsigned int boneKeyframeIndexLeft, boneKeyframeIndexRight;
+	float keyframeWeight;
+	struct AnimationBoneState boneState, identityBoneState = {
+		VECTOR3f_ZERO, VECTOR3f_ZERO, QUATERNIONf_IDENTITY, MATRIX4x4f_IDENTITY
+	};
+	
+	assert(self->armature->boneCount == animationState->armature->boneCount);
+	
+	animationTime = fmod(animationTime, self->animationLength);
+	if (animationTime < 0.0) {
+		animationTime += self->animationLength;
+	}
+	
+	boneState.absoluteMatrix = MATRIX4x4f_IDENTITY;
+	for (boneIndex = 0; boneIndex < self->armature->boneCount; boneIndex++) {
+		if (Animation_findBoneKeyframes(self, boneIndex, animationTime, &keyframeIndexLeft, &boneKeyframeIndexLeft, &keyframeIndexRight, &boneKeyframeIndexRight, &keyframeWeight)) {
+			// Interpolate bone based on keyframes
+			// TODO: Apply bezier curve to keyframeWeight for each property
+			boneState.offset = Vector3f_interpolate(self->keyframes[keyframeIndexLeft].bones[boneKeyframeIndexLeft].offset, self->keyframes[keyframeIndexRight].bones[boneKeyframeIndexRight].offset, keyframeWeight);
+			boneState.scale = Vector3f_interpolate(self->keyframes[keyframeIndexLeft].bones[boneKeyframeIndexLeft].scale, self->keyframes[keyframeIndexRight].bones[boneKeyframeIndexRight].scale, keyframeWeight);
+			boneState.rotation = Quaternionf_slerp(self->keyframes[keyframeIndexLeft].bones[boneKeyframeIndexLeft].rotation, self->keyframes[keyframeIndexRight].bones[boneKeyframeIndexRight].rotation, keyframeWeight);
+			animationState->boneStates[boneIndex] = boneState;
+		} else {
+			// Animation blending would probably happen here, but since this bone isn't specified, for now just set to identity
+			animationState->boneStates[boneIndex] = identityBoneState;
+		}
+	}
+	AnimationState_computeMatrixes(animationState);
 }

@@ -38,7 +38,7 @@ typedef struct Armature Armature;
 struct ArmatureBone {
 	Atom boneID;
 	unsigned int parentIndex;
-	Vector3f offset;
+	Vector3f position;
 };
 
 #define Armature_structContents(self_type) \

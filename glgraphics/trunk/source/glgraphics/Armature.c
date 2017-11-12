@@ -23,9 +23,7 @@
 #include "glgraphics/Armature.h"
 #include <stdlib.h>
 #include <string.h>
-#ifdef DEBUG
 #include <assert.h>
-#endif
 
 #define SUPERCLASS StemObject
 
@@ -40,7 +38,7 @@ bool Armature_init(Armature * self, unsigned int boneCount, struct ArmatureBone 
 	self->bones = malloc(sizeof(*self->bones) * boneCount);
 	memcpy(self->bones, bones, sizeof(*self->bones) * boneCount);
 	
-#ifdef DEBUG
+#ifndef NDEBUG
 	unsigned int boneIndex;
 	
 	for (boneIndex = 0; boneIndex < boneCount; boneIndex++) {

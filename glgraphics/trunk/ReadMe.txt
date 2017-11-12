@@ -71,7 +71,7 @@ AnimationState \
 	Bone transform list
 	Morph reference list
 	Morph weight list
-
+MISSING: Animation collection, AnimationStateController or equivalent, animation transitions
 
 Shape keys/morph targets are pretty tricky. Ideas:
 - Organize vertices into groups which own morph sets, up to some limit in the vertex shader. Different glDrawElements calls for each group.
@@ -82,8 +82,12 @@ Shape keys/morph targets are pretty tricky. Ideas:
 
 Constraints and control objects are Blender-only. Exported animations can be flattened.
 
-ANIMATION STUFF
-0. Bone hierarchy model
-1. Get basic hard-coded model with one bone playing a single linearly interpolated animation rendering
-2. Animation blending (transitions, multiple active)
-3. Morphing
+
+
+
+TODO:
+- Implement bezier curve interpolation
+- Implement bone animated vertex shader
+- Better set of animated test data
+- Animation blending
+- Morphing

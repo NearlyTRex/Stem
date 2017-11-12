@@ -1,7 +1,9 @@
 2.0.0 (2017-10-22)
  * Library signficantly repurposed. Rather than a thin layer of glue used by the shell, glgraphics now contains a full OpenGL renderer and associated utilities and data models.
+ * Updated code for compatibility with OpenGL 3.2 core.
  * Removed library_noglew. Glew is now handled entirely by shell implementations.
  * Removed GLGraphics, whose primary purpose was for initializing glew. GLGraphics_getOpenGLAPIVersion() no longer exists.
+ * Removed GLUtilties, which was unused and incompatible with OpenGL 3.2 core.
  * Adopted GLSLShader, which no longer lives in its own library.
  * New classes added: Renderer, Renderable, MeshRenderable, Material, OrbitCameraController, AnimationState. See ReadMe.txt for deatils on each.
 

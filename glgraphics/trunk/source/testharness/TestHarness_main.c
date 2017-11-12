@@ -59,10 +59,7 @@ static void initScene1() {
 		0, 1, 2
 	};
 	
-	if (renderer != NULL) {
-		Renderer_dispose(renderer);
-	}
-	renderer = Renderer_create();
+	Renderer_clearAllRenderables(renderer);
 	Renderer_setClearColor(renderer, COLOR4f(0.0f, 0.125f, 0.25f, 0.0f));
 	Renderer_setLights(renderer, VECTOR3f(0.0f, 8.0f, 8.0f), COLOR4f(1.0f, 1.0f, 0.95f, 1.0f), VECTOR3f(-1.0f, -2.0f, -8.0f), COLOR4f(0.8f, 0.8f, 0.8f, 1.0f), COLOR4f(0.1f, 0.1f, 0.105f, 1.0f));
 	Renderer_setProjectionMatrix(renderer, Matrix4x4f_perspective(MATRIX4x4f_IDENTITY, 60.0f, (float) viewWidth / (float) viewHeight, 0.5f, 100.0f));
@@ -91,19 +88,18 @@ static void initScene2() {
 		1, 2, 3
 	};
 	Armature * armature;
-	Animation * animation;
 	struct ArmatureBone bones[] = {
 		{ATOM("root"), BONE_INDEX_NOT_FOUND, VECTOR3f(0.0f, 0.0f, 0.0f)},
 		{ATOM("boneLower"), 0, VECTOR3f(0.0f, -1.0f, 0.0f)},
 		{ATOM("boneUpper"), 0, VECTOR3f(0.0f, 1.0f, 0.0f)}
 	};
 	struct AnimationBoneKeyframe frame1Bones[] = {
-		{1, {-1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f}, QUATERNIONf_IDENTITY, {0.0f, 0.0f}, {0.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f}, {0.0f, 0.0f}},
-		{2, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f}, QUATERNIONf_IDENTITY, {0.0f, 0.0f}, {0.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f}, {0.0f, 0.0f}}
+		{1, {-1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f}, {0.0f, 0.0f}, QUATERNIONf_IDENTITY, {0.0f, 0.0f}, {0.0f, 0.0f}},
+		{2, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f}, {0.0f, 0.0f}, QUATERNIONf_IDENTITY, {0.0f, 0.0f}, {0.0f, 0.0f}}
 	};
 	struct AnimationBoneKeyframe frame2Bones[] = {
-		{1, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f}, QUATERNIONf_IDENTITY, {0.0f, 0.0f}, {0.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f}, {0.0f, 0.0f}},
-		{2, {-1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f}, QUATERNIONf_IDENTITY, {0.0f, 0.0f}, {0.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f}, {0.0f, 0.0f}}
+		{1, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f}, {0.0f, 0.0f}, QUATERNIONf_IDENTITY, {0.0f, 0.0f}, {0.0f, 0.0f}},
+		{2, {-1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f}, {0.0f, 0.0f}, QUATERNIONf_IDENTITY, {0.0f, 0.0f}, {0.0f, 0.0f}}
 	};
 	struct AnimationKeyframe keyframes[] = {
 		{1.0f, sizeof(frame1Bones) / sizeof(frame1Bones[0]), frame1Bones},
@@ -111,10 +107,7 @@ static void initScene2() {
 	};
 	AnimationState * animationState;
 	
-	if (renderer != NULL) {
-		Renderer_dispose(renderer);
-	}
-	renderer = Renderer_create();
+	Renderer_clearAllRenderables(renderer);
 	Renderer_setClearColor(renderer, COLOR4f(0.25f, 0.0f, 0.125f, 0.0f));
 	Renderer_setLights(renderer, VECTOR3f(0.0f, 8.0f, 8.0f), COLOR4f(1.0f, 1.0f, 0.95f, 1.0f), VECTOR3f(-1.0f, -2.0f, -8.0f), COLOR4f(0.8f, 0.8f, 0.8f, 1.0f), COLOR4f(0.1f, 0.1f, 0.105f, 1.0f));
 	Renderer_setProjectionMatrix(renderer, Matrix4x4f_perspective(MATRIX4x4f_IDENTITY, 60.0f, (float) viewWidth / (float) viewHeight, 0.5f, 100.0f));
@@ -221,6 +214,7 @@ static void registerShellCallbacks() {
 #if defined(STEM_PLATFORM_macosx)
 void NSOpenGLTarget_configure(int argc, const char ** argv, struct NSOpenGLShellConfiguration * configuration) {
 	configuration->windowTitle = "GLGraphics";
+	configuration->useGLCoreProfile = true;
 #elif defined(STEM_PLATFORM_iphonesimulator) || defined(STEM_PLATFORM_iphoneos)
 void EAGLTarget_configure(int argc, char ** argv, struct EAGLShellConfiguration * configuration) {
 #elif defined(STEM_PLATFORM_win32) || defined(STEM_PLATFORM_win64)
@@ -239,6 +233,7 @@ void GLUTTarget_configure(int argc, const char ** argv, struct GLUTShellConfigur
 
 void Target_init() {
 	chdir(Shell_getResourcePath());
+	renderer = Renderer_create();
 	initScene1();
 	Shell_mainLoop();
 }

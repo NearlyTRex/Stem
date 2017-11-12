@@ -63,3 +63,22 @@ void AnimationState_dispose(AnimationState * self) {
 AnimationState * AnimationState_copy(AnimationState * self) {
 	stemobject_copy_implementation(AnimationState, initCopy)
 }
+
+void AnimationState_computeMatrixes(AnimationState * self) {
+	unsigned int boneIndex;
+	Matrix4x4f matrix;
+	
+	for (boneIndex = 0; boneIndex < self->armature->boneCount; boneIndex++) {
+		if (self->armature->bones[boneIndex].parentIndex == BONE_INDEX_NOT_FOUND) {
+			matrix = MATRIX4x4f_IDENTITY;
+		} else {
+			matrix = self->boneStates[self->armature->bones[boneIndex].parentIndex].absoluteMatrix;
+		}
+		Matrix4x4f_scale(&matrix, self->boneStates[boneIndex].scale.x, self->boneStates[boneIndex].scale.y, self->boneStates[boneIndex].scale.z);
+		Matrix4x4f_translate(&matrix, self->boneStates[boneIndex].offset.x, self->boneStates[boneIndex].offset.y, self->boneStates[boneIndex].offset.z);
+		Matrix4x4f_translate(&matrix, self->armature->bones[boneIndex].position.x, self->armature->bones[boneIndex].position.y, self->armature->bones[boneIndex].position.z);
+		Matrix4x4f_multiply(&matrix, Quaternionf_toMatrix(self->boneStates[boneIndex].rotation));
+		Matrix4x4f_translate(&matrix, -self->armature->bones[boneIndex].position.x, -self->armature->bones[boneIndex].position.y, -self->armature->bones[boneIndex].position.z);
+		self->boneStates[boneIndex].absoluteMatrix = matrix;
+	}
+}

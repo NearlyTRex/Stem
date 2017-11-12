@@ -20,7 +20,7 @@ HUMAN_READABLE_TARGET_NAME_testharness = GLGraphics
 PLATFORMS = macosx iphonesimulator iphoneos linux32 linux64 win32 win64
 
 # Patterns: CCFLAGS, CCFLAGS_${target}, CCFLAGS_${configuration}, CCFLAGS_${platform}, CCFLAGS_${target}_${configuration}, CCFLAGS_${target}_${platform}, CCFLAGS_${configuration}_${platform}, CCFLAGS_${target}_${configuration}_${platform}
-CCFLAGS = -I build/intermediate/generated
+CCFLAGS = -I build/intermediate/generated -DUSE_GL3
 
 # Patterns: LINKFLAGS, LINKFLAGS_${target}, LINKFLAGS_${configuration}, LINKFLAGS_${platform}, LINKFLAGS_${target}_${configuration}, LINKFLAGS_${target}_${platform}, LINKFLAGS_${configuration}_${platform}
 LINKFLAGS = 
@@ -58,7 +58,6 @@ SOURCES_library = \
 	source/${PROJECT_NAME}/AnimationState.c \
 	source/${PROJECT_NAME}/Armature.c \
 	source/${PROJECT_NAME}/GLSLShader.c \
-	source/${PROJECT_NAME}/GLUtilities.c \
 	source/${PROJECT_NAME}/Material.c \
 	source/${PROJECT_NAME}/MeshRenderable.c \
 	source/${PROJECT_NAME}/OrbitCameraController.c \
@@ -68,7 +67,6 @@ SOURCES_library = \
 # Executable targets named "unittest" should usually specify only SOURCES_unittest_suites, which must contain only test suite files.
 # If files other than test suites are required, specify SOURCES_unittest.
 SOURCES_unittest_suites = \
-	source/unittest/GLUtilitiesTest.c \
 	source/unittest/RenderableTest.c \
 	source/unittest/VertexTypesTest.c
 
@@ -82,7 +80,6 @@ INCLUDES = \
 	source/${PROJECT_NAME}/Armature.h \
 	source/${PROJECT_NAME}/GLIncludes.h \
 	source/${PROJECT_NAME}/GLSLShader.h \
-	source/${PROJECT_NAME}/GLUtilities.h \
 	source/${PROJECT_NAME}/Material.h \
 	source/${PROJECT_NAME}/MeshRenderable.h \
 	source/${PROJECT_NAME}/OrbitCameraController.h \
@@ -94,12 +91,8 @@ INCLUDES = \
 RESOURCES = 
 
 # Pattern: ANALYZER_EXCLUDE_SOURCES_${analyzer}
-ANALYZER_EXCLUDE_SOURCES_clang = \
-	source/${PROJECT_NAME}/GLGraphics.c \
-	source/${PROJECT_NAME}/GLUtilities.c
+ANALYZER_EXCLUDE_SOURCES_clang = 
 ANALYZER_EXCLUDE_SOURCES_splint = \
-	source/${PROJECT_NAME}/GLGraphics.c \
-	source/${PROJECT_NAME}/GLUtilities.c \
 	${SOURCES_unittest_suites}
 
 CLANGFLAGS = -I build/intermediate/generated

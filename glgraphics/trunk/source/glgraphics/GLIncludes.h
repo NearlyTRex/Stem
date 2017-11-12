@@ -37,9 +37,14 @@ extern "C" {
 		#include <OpenGLES/ES2/glext.h>
 	#elif TARGET_OS_MAC
 		#define TARGET_OPENGL_ES 0
-		#include <OpenGL/gl.h>
-		#include <OpenGL/glu.h>
-		#include <OpenGL/glext.h>
+		#ifdef USE_GL3
+			#include <OpenGL/gl3.h>
+			#include <OpenGL/gl3ext.h>
+		#else
+			#include <OpenGL/gl.h>
+			#include <OpenGL/glu.h>
+			#include <OpenGL/glext.h>
+		#endif
 	#else
 		#error Unknown platform (__APPLE__, but not TARGET_OS_MAC or TARGET_OS_IPHONE)
 	#endif

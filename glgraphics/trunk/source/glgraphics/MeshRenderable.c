@@ -38,14 +38,14 @@ void sharedInit(MeshRenderable * self, void * vertices, size_t verticesSize, GLu
 	call_super(init, self, RENDERABLE_MESH);
 	self->dispose = MeshRenderable_dispose;
 	
-	glGenBuffersARB(1, &self->vertexBufferID);
-	glGenBuffersARB(1, &self->indexBufferID);
-	glBindBufferARB(GL_ARRAY_BUFFER, self->vertexBufferID);
-	glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER, self->indexBufferID);
-	glBufferDataARB(GL_ARRAY_BUFFER, verticesSize, vertices, GL_STATIC_DRAW);
-	glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER, sizeof(*indexes) * indexCount, indexes, GL_STATIC_DRAW);
-	glBindBufferARB(GL_ARRAY_BUFFER, 0);
-	glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER, 0);
+	glGenBuffers(1, &self->vertexBufferID);
+	glGenBuffers(1, &self->indexBufferID);
+	glBindBuffer(GL_ARRAY_BUFFER, self->vertexBufferID);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self->indexBufferID);
+	glBufferData(GL_ARRAY_BUFFER, verticesSize, vertices, GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(*indexes) * indexCount, indexes, GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	self->transform = MATRIX4x4f_IDENTITY;
 	self->material = material;
 	self->indexCount = indexCount;
@@ -96,7 +96,7 @@ bool MeshRenderable_initAnimated(MeshRenderable * self, struct vertex_p3f_t2f_n3
 	
 	sharedInit(self, vertices, sizeof(*vertices) * vertexCount, indexes, indexCount, material);
 	self->hasAnimationData = true;
-	self->animationState = animationState;
+	self->animationState = AnimationState_copy(animationState);
 	
 	for (index = 0; index < indexCount; index++) {
 		GLfloat * position = vertices[indexes[index]].position;
@@ -125,7 +125,10 @@ bool MeshRenderable_initAnimated(MeshRenderable * self, struct vertex_p3f_t2f_n3
 }
 
 void MeshRenderable_dispose(MeshRenderable * self) {
-	glDeleteBuffersARB(1, &self->vertexBufferID);
-	glDeleteBuffersARB(1, &self->indexBufferID);
+	glDeleteBuffers(1, &self->vertexBufferID);
+	glDeleteBuffers(1, &self->indexBufferID);
+	if (self->animationState != NULL) {
+		AnimationState_dispose(self->animationState);
+	}
 	call_super(dispose, self);
 }

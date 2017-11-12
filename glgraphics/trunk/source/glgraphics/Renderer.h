@@ -49,6 +49,7 @@ struct RenderLayer {
 #define Renderer_structContents(self_type) \
 	StemObject_structContents(self_type) \
 	\
+	GLuint vaoID; \
 	struct RenderLayer layers[RENDER_LAYER_COUNT]; \
 	Vector3f light0Position; \
 	Color4f light0Color; \
@@ -68,6 +69,8 @@ void Renderer_dispose(Renderer * self);
 
 void Renderer_addRenderable(Renderer * self, RenderLayerID layer, Renderable * renderable);
 void Renderer_removeRenderable(Renderer * self, RenderLayerID layer, Renderable * renderable);
+void Renderer_clearRenderables(Renderer * self, RenderLayerID layer);
+void Renderer_clearAllRenderables(Renderer * self);
 void Renderer_setClearColor(Renderer * self, Color4f color);
 void Renderer_clear(Renderer * self);
 void Renderer_setProjectionMatrix(Renderer * self, Matrix4x4f matrix);

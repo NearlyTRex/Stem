@@ -35,8 +35,14 @@
 
 #define SUPERCLASS StemObject
 
-#define VERTEX_ATTRIB_BONE_IDS 1
-#define VERTEX_ATTRIB_BONE_WEIGHTS 2
+enum {
+	VERTEX_ATTRIB_POSITION,
+	VERTEX_ATTRIB_TEXTURE_COORD,
+	VERTEX_ATTRIB_NORMAL,
+	VERTEX_ATTRIB_COLOR,
+	VERTEX_ATTRIB_BONE_ID,
+	VERTEX_ATTRIB_BONE_WEIGHT
+};
 
 Renderer * Renderer_create() {
 	stemobject_create_implementation(Renderer, init)
@@ -47,6 +53,9 @@ bool Renderer_init(Renderer * self) {
 	
 	call_super(init, self);
 	self->dispose = Renderer_dispose;
+	// TODO: Maybe Renderables should each have their own VAO
+	glGenVertexArrays(1, &self->vaoID);
+	glBindVertexArray(self->vaoID);
 	for (renderLayerIndex = 0; renderLayerIndex < RENDER_LAYER_COUNT; renderLayerIndex++) {
 		self->layers[renderLayerIndex].renderableCount = 0;
 		self->layers[renderLayerIndex].allocatedCount = 0;
@@ -54,8 +63,20 @@ bool Renderer_init(Renderer * self) {
 	}
 	self->projectionMatrix = MATRIX4x4f_IDENTITY;
 	self->viewMatrix = MATRIX4x4f_IDENTITY;
-	self->shaderStatic = GLSLShader_create(STATIC_StaticVertexShader, sizeof(STATIC_StaticVertexShader), STATIC_LitSurfaceFragmentShader, sizeof(STATIC_LitSurfaceFragmentShader), NULL);
-	self->shaderAnimated = GLSLShader_create(STATIC_AnimatedVertexShader, sizeof(STATIC_AnimatedVertexShader), STATIC_LitSurfaceFragmentShader, sizeof(STATIC_LitSurfaceFragmentShader), "boneIDs", VERTEX_ATTRIB_BONE_IDS, "boneWeights", VERTEX_ATTRIB_BONE_WEIGHTS, NULL);
+	self->shaderStatic = GLSLShader_create(STATIC_StaticVertexShader, sizeof(STATIC_StaticVertexShader), STATIC_LitSurfaceFragmentShader, sizeof(STATIC_LitSurfaceFragmentShader),
+		"inPosition", VERTEX_ATTRIB_POSITION,
+		"inTexCoord", VERTEX_ATTRIB_TEXTURE_COORD,
+		"inNormal", VERTEX_ATTRIB_NORMAL,
+		"inColor", VERTEX_ATTRIB_COLOR,
+	NULL);
+	self->shaderAnimated = GLSLShader_create(STATIC_AnimatedVertexShader, sizeof(STATIC_AnimatedVertexShader), STATIC_LitSurfaceFragmentShader, sizeof(STATIC_LitSurfaceFragmentShader),
+		"inPosition", VERTEX_ATTRIB_POSITION,
+		"inTexCoord", VERTEX_ATTRIB_TEXTURE_COORD,
+		"inNormal", VERTEX_ATTRIB_NORMAL,
+		"inColor", VERTEX_ATTRIB_COLOR,
+		"inBoneID", VERTEX_ATTRIB_BONE_ID,
+		"inBoneWeight", VERTEX_ATTRIB_BONE_WEIGHT,
+	NULL);
 	return true;
 }
 
@@ -67,6 +88,8 @@ void Renderer_dispose(Renderer * self) {
 	}
 	GLSLShader_dispose(self->shaderStatic);
 	GLSLShader_dispose(self->shaderAnimated);
+	glBindVertexArray(0);
+	glDeleteVertexArrays(1, &self->vaoID);
 	call_super(dispose, self);
 }
 
@@ -98,6 +121,20 @@ void Renderer_removeRenderable(Renderer * self, RenderLayerID layer, Renderable 
 				}
 			}
 		}
+	}
+}
+
+void Renderer_clearRenderables(Renderer * self, RenderLayerID layer) {
+	if (layer < RENDER_LAYER_COUNT) {
+		self->layers[layer].renderableCount = 0;
+	}
+}
+
+void Renderer_clearAllRenderables(Renderer * self) {
+	unsigned int layerIndex;
+	
+	for (layerIndex = 0; layerIndex < RENDER_LAYER_COUNT; layerIndex++) {
+		Renderer_clearRenderables(self, layerIndex);
 	}
 }
 
@@ -169,42 +206,42 @@ void Renderer_drawSingle(Renderer * self, Renderable * renderable) {
 				// Pass animation uniforms to shader, if any (might not be any uniforms; possibly attributes only)
 			}
 			
-			// TODO: Can this all be done by the renderable? Should it?
-			glBindBufferARB(GL_ARRAY_BUFFER, mesh->vertexBufferID);
-			glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER, mesh->indexBufferID);
-			glEnableClientState(GL_VERTEX_ARRAY);
-			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-			glEnableClientState(GL_NORMAL_ARRAY);
-			glEnableClientState(GL_COLOR_ARRAY);
+			// TODO: Can this all be done by the renderable? Should it? Probably in a VAO
+			glBindBuffer(GL_ARRAY_BUFFER, mesh->vertexBufferID);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->indexBufferID);
+			glEnableVertexAttribArray(VERTEX_ATTRIB_POSITION);
+			glEnableVertexAttribArray(VERTEX_ATTRIB_TEXTURE_COORD);
+			glEnableVertexAttribArray(VERTEX_ATTRIB_NORMAL);
+			glEnableVertexAttribArray(VERTEX_ATTRIB_COLOR);
 			
 			if (mesh->hasAnimationData) {
-				glVertexPointer(3, GL_FLOAT, sizeof(struct vertex_p3f_t2f_n3f_c4f_b4u_w4f), (void *) offsetof(struct vertex_p3f_t2f_n3f_c4f_b4u_w4f, position));
-				glTexCoordPointer(2, GL_FLOAT, sizeof(struct vertex_p3f_t2f_n3f_c4f_b4u_w4f), (void *) offsetof(struct vertex_p3f_t2f_n3f_c4f_b4u_w4f, texCoords));
-				glNormalPointer(GL_FLOAT, sizeof(struct vertex_p3f_t2f_n3f_c4f_b4u_w4f), (void *) offsetof(struct vertex_p3f_t2f_n3f_c4f_b4u_w4f, normal));
-				glColorPointer(4, GL_FLOAT, sizeof(struct vertex_p3f_t2f_n3f_c4f_b4u_w4f), (void *) offsetof(struct vertex_p3f_t2f_n3f_c4f_b4u_w4f, color));
-				glVertexAttribPointer(VERTEX_ATTRIB_BONE_IDS, 4, GL_UNSIGNED_INT, GL_FALSE, sizeof(struct vertex_p3f_t2f_n3f_c4f_b4u_w4f), (void *) offsetof(struct vertex_p3f_t2f_n3f_c4f_b4u_w4f, boneIndexes));
-				glVertexAttribPointer(VERTEX_ATTRIB_BONE_WEIGHTS, 4, GL_FLOAT, GL_FALSE, sizeof(struct vertex_p3f_t2f_n3f_c4f_b4u_w4f), (void *) offsetof(struct vertex_p3f_t2f_n3f_c4f_b4u_w4f, boneWeights));
-				glEnableVertexAttribArray(VERTEX_ATTRIB_BONE_IDS);
-				glEnableVertexAttribArray(VERTEX_ATTRIB_BONE_WEIGHTS);
+				glEnableVertexAttribArray(VERTEX_ATTRIB_BONE_ID);
+				glEnableVertexAttribArray(VERTEX_ATTRIB_BONE_WEIGHT);
+				glVertexAttribPointer(VERTEX_ATTRIB_POSITION, 3, GL_FLOAT, GL_FALSE, sizeof(struct vertex_p3f_t2f_n3f_c4f_b4u_w4f), (void *) offsetof(struct vertex_p3f_t2f_n3f_c4f_b4u_w4f, position));
+				glVertexAttribPointer(VERTEX_ATTRIB_TEXTURE_COORD, 2, GL_FLOAT, GL_FALSE, sizeof(struct vertex_p3f_t2f_n3f_c4f_b4u_w4f), (void *) offsetof(struct vertex_p3f_t2f_n3f_c4f_b4u_w4f, texCoords));
+				glVertexAttribPointer(VERTEX_ATTRIB_NORMAL, 3, GL_FLOAT, GL_FALSE, sizeof(struct vertex_p3f_t2f_n3f_c4f_b4u_w4f), (void *) offsetof(struct vertex_p3f_t2f_n3f_c4f_b4u_w4f, normal));
+				glVertexAttribPointer(VERTEX_ATTRIB_COLOR, 4, GL_FLOAT, GL_FALSE, sizeof(struct vertex_p3f_t2f_n3f_c4f_b4u_w4f), (void *) offsetof(struct vertex_p3f_t2f_n3f_c4f_b4u_w4f, color));
+				glVertexAttribPointer(VERTEX_ATTRIB_BONE_ID, 4, GL_UNSIGNED_INT, GL_FALSE, sizeof(struct vertex_p3f_t2f_n3f_c4f_b4u_w4f), (void *) offsetof(struct vertex_p3f_t2f_n3f_c4f_b4u_w4f, boneIndexes));
+				glVertexAttribPointer(VERTEX_ATTRIB_BONE_WEIGHT, 4, GL_FLOAT, GL_FALSE, sizeof(struct vertex_p3f_t2f_n3f_c4f_b4u_w4f), (void *) offsetof(struct vertex_p3f_t2f_n3f_c4f_b4u_w4f, boneWeights));
 			} else {
-				glVertexPointer(3, GL_FLOAT, sizeof(struct vertex_p3f_t2f_n3f_c4f), (void *) offsetof(struct vertex_p3f_t2f_n3f_c4f, position));
-				glTexCoordPointer(2, GL_FLOAT, sizeof(struct vertex_p3f_t2f_n3f_c4f), (void *) offsetof(struct vertex_p3f_t2f_n3f_c4f, texCoords));
-				glNormalPointer(GL_FLOAT, sizeof(struct vertex_p3f_t2f_n3f_c4f), (void *) offsetof(struct vertex_p3f_t2f_n3f_c4f, normal));
-				glColorPointer(4, GL_FLOAT, sizeof(struct vertex_p3f_t2f_n3f_c4f), (void *) offsetof(struct vertex_p3f_t2f_n3f_c4f, color));
+				glVertexAttribPointer(VERTEX_ATTRIB_POSITION, 3, GL_FLOAT, GL_FALSE, sizeof(struct vertex_p3f_t2f_n3f_c4f), (void *) offsetof(struct vertex_p3f_t2f_n3f_c4f, position));
+				glVertexAttribPointer(VERTEX_ATTRIB_TEXTURE_COORD, 2, GL_FLOAT, GL_FALSE, sizeof(struct vertex_p3f_t2f_n3f_c4f), (void *) offsetof(struct vertex_p3f_t2f_n3f_c4f, texCoords));
+				glVertexAttribPointer(VERTEX_ATTRIB_NORMAL, 3, GL_FLOAT, GL_FALSE, sizeof(struct vertex_p3f_t2f_n3f_c4f), (void *) offsetof(struct vertex_p3f_t2f_n3f_c4f, normal));
+				glVertexAttribPointer(VERTEX_ATTRIB_COLOR, 4, GL_FLOAT, GL_FALSE, sizeof(struct vertex_p3f_t2f_n3f_c4f), (void *) offsetof(struct vertex_p3f_t2f_n3f_c4f, color));
 			}
 			
 			glDrawElements(GL_TRIANGLES, mesh->indexCount, GL_UNSIGNED_INT, 0);
 			
-			glBindBufferARB(GL_ARRAY_BUFFER, 0);
-			glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER, 0);
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 			GLSLShader_deactivate(shader);
-			glDisableClientState(GL_VERTEX_ARRAY);
-			glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-			glDisableClientState(GL_NORMAL_ARRAY);
-			glDisableClientState(GL_COLOR_ARRAY);
+			glDisableVertexAttribArray(VERTEX_ATTRIB_POSITION);
+			glDisableVertexAttribArray(VERTEX_ATTRIB_TEXTURE_COORD);
+			glDisableVertexAttribArray(VERTEX_ATTRIB_NORMAL);
+			glDisableVertexAttribArray(VERTEX_ATTRIB_COLOR);
 			if (mesh->hasAnimationData) {
-				glDisableVertexAttribArray(VERTEX_ATTRIB_BONE_IDS);
-				glDisableVertexAttribArray(VERTEX_ATTRIB_BONE_WEIGHTS);
+				glDisableVertexAttribArray(VERTEX_ATTRIB_BONE_ID);
+				glDisableVertexAttribArray(VERTEX_ATTRIB_BONE_WEIGHT);
 			}
 			
 			break;

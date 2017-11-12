@@ -32,17 +32,21 @@ typedef struct Animation Animation;
 #include "glgraphics/AnimationState.h"
 
 // TODO: Bezier handles for individual components?
+// Bezier handles exist in a coordinate space where {0, 0} is the left keyframe, and {1, 1} is the right keyframe.
+// The input linear weight value is taken as the x coordinate, and the y value at that location is the output curved weight.
+// Curves that go outside the range of 0-1 on the x axis are clipped. Curves that have control points passing each other
+// will have their control points clipped to ensure that the curve cannot overlap itself on the time (x) axis.
 struct AnimationBoneKeyframe {
 	unsigned int boneIndex;
 	Vector3f offset;
 	Vector2f incomingOffsetBezierHandle;
 	Vector2f outgoingOffsetBezierHandle;
-	Quaternionf rotation;
-	Vector2f incomingRotationBezierHandle;
-	Vector2f outgoingRotationBezierHandle;
 	Vector3f scale;
 	Vector2f incomingScaleBezierHandle;
 	Vector2f outgoingScaleBezierHandle;
+	Quaternionf rotation;
+	Vector2f incomingRotationBezierHandle;
+	Vector2f outgoingRotationBezierHandle;
 };
 
 struct AnimationKeyframe {
@@ -56,6 +60,7 @@ struct AnimationKeyframe {
 	\
 	Atom name; \
 	Armature * armature; \
+	double animationLength; \
 	unsigned int keyframeCount; \
 	struct AnimationKeyframe * keyframes;
 
