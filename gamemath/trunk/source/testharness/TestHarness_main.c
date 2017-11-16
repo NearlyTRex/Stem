@@ -1,85 +1,179 @@
-#include <math.h>
-#include <stdbool.h>
+#include "gamemath/BezierCurve.h"
+#include "gamemath/Matrix4x4f.h"
+#include "gamemath/MouseCoordinateTransforms.h"
+#include "shell/Shell.h"
+#include "shell/ShellCallbacks.h"
+#include "shell/ShellKeyCodes.h"
+
+#if defined(STEM_PLATFORM_macosx)
+#include "nsopenglshell/NSOpenGLShell.h"
+#include "nsopenglshell/NSOpenGLTarget.h"
+#elif defined(STEM_PLATFORM_iphonesimulator) || defined(STEM_PLATFORM_iphoneos)
+#include "eaglshell/EAGLShell.h"
+#include "eaglshell/EAGLTarget.h"
+#elif defined(STEM_PLATFORM_win32) || defined(STEM_PLATFORM_win64)
+#include "wglshell/WGLShell.h"
+#include "wglshell/WGLTarget.h"
+#elif defined(STEM_PLATFORM_linux32) || defined(STEM_PLATFORM_linux64)
+#include "glxshell/GLXShell.h"
+#include "glxshell/GLXTarget.h"
+#else
+#include "glutshell/GLUTTarget.h"
+#endif
+
+#ifdef __APPLE__
+#include <OpenGL/gl.h>
+#else
+#include <GL/gl.h>
+#endif
+
 #include <stdio.h>
-#include <stdlib.h>
 #include <unistd.h>
-#include "gamemath/FixedPoint.h"
 
-#if defined(__APPLE__)
-#include <mach/mach.h>
-#include <mach/mach_time.h>
-#elif defined(__linux)
-#include <time.h>
-#elif defined(WIN32)
-#include <windows.h>
-#endif
+#define SAMPLE_COUNT 40
+#define SELECTION_RADIUS 0.025f
 
-static double getCurrentTime() {
-#if defined(__APPLE__)
-	static mach_timebase_info_data_t timebaseInfo;
+static unsigned int viewWidth = 1280, viewHeight = 720;
+static Vector2f points[4];
+static Vector2f dragOrigin;
+static unsigned int selectedPoint;
+
+static bool Target_draw() {
+	unsigned int sampleIndex;
+	Vector2f sample;
 	
-	if (timebaseInfo.denom == 0) {
-		mach_timebase_info(&timebaseInfo);
+	glClear(GL_COLOR_BUFFER_BIT);
+	glColor4f(0.0f, 1.0f, 0.0f, 1.0f);
+	glBegin(GL_LINES);
+	glVertex2f(points[0].x, points[0].y);
+	glVertex2f(points[1].x, points[1].y);
+	glVertex2f(points[2].x, points[2].y);
+	glVertex2f(points[3].x, points[3].y);
+	glEnd();
+	
+	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+	glBegin(GL_LINE_STRIP);
+	for (sampleIndex = 0; sampleIndex < SAMPLE_COUNT; sampleIndex++) {
+		sample = BezierCurve_sample(points[0], points[1], points[2], points[3], sampleIndex / (float) (SAMPLE_COUNT - 1));
+		glVertex2f(sample.x, sample.y);
 	}
-	return mach_absolute_time() * (double) timebaseInfo.numer / timebaseInfo.denom * 0.000000001;
+	glEnd();
 	
-#elif defined(WIN32)
-	static LARGE_INTEGER frequency;
-	LARGE_INTEGER currentTime;
+	glColor4f(1.0f, 1.0f, 0.0f, 1.0f);
+	glBegin(GL_LINE_LOOP);
+	glVertex2f(points[selectedPoint].x - SELECTION_RADIUS, points[selectedPoint].y);
+	glVertex2f(points[selectedPoint].x, points[selectedPoint].y - SELECTION_RADIUS);
+	glVertex2f(points[selectedPoint].x + SELECTION_RADIUS, points[selectedPoint].y);
+	glVertex2f(points[selectedPoint].x, points[selectedPoint].y + SELECTION_RADIUS);
+	glEnd();
 	
-	if (frequency.QuadPart == 0) {
-		QueryPerformanceFrequency(&frequency);
-	}
-	QueryPerformanceCounter(&currentTime);
-	
-	return (double) currentTime.QuadPart / frequency.QuadPart;
-	
-#elif defined(__linux)
-	struct timespec currentTime;
-	
-	clock_gettime(CLOCK_MONOTONIC, &currentTime);
-	return currentTime.tv_sec + currentTime.tv_nsec * 0.000000001;
-#endif
+	return true;
 }
 
-int main(int argc, char ** argv) {
-	unsigned long testCount = 2000000, testIndex;
-	double startTime, timeSys, timeFixed;
-	volatile float resultf;
-	volatile fixed16_16 resultx;
-	
-	if (argc > 1) {
-		if (!sscanf(argv[1], "%lu", &testCount)) {
-			fprintf(stderr, "Couldn't parse \"%s\" as unsigned int\n", argv[1]);
-		}
+static void resetBezier() {
+	points[0] = VECTOR2f(-0.75f, -0.75f);
+	points[1] = VECTOR2f(-0.75f, 0.75f);
+	points[2] = VECTOR2f(0.75f, 0.75f);
+	points[3] = VECTOR2f(0.75f, -0.75f);
+}
+
+static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned int modifiers, bool isRepeat) {
+	switch (keyCode) {
+		case KEYBOARD_R:
+			resetBezier();
+			Shell_redisplay();
+			break;
+		case KEYBOARD_TAB:
+			if (modifiers & MODIFIER_SHIFT_BIT) {
+				selectedPoint = (selectedPoint + 3) % 4;
+			} else {
+				selectedPoint = (selectedPoint + 1) % 4;
+			}
+			Shell_redisplay();
+			break;
 	}
+}
+
+static void Target_keyUp(unsigned int keyCode, unsigned int modifiers) {
+}
+
+static void Target_keyModifiersChanged(unsigned int modifiers) {
+}
+
+static void Target_mouseDown(unsigned int buttonNumber, float x, float y) {
+	dragOrigin = transformMousePosition_signedCenter(VECTOR2f(x, y), viewWidth, viewHeight, 1.0f);
+}
+
+static void Target_mouseUp(unsigned int buttonNumber, float x, float y) {
+}
+
+static void Target_mouseMoved(float x, float y) {
+}
+
+static void Target_mouseDragged(unsigned int buttonMask, float x, float y) {
+	Vector2f position = transformMousePosition_signedCenter(VECTOR2f(x, y), viewWidth, viewHeight, 1.0f);
+	points[selectedPoint].x += position.x - dragOrigin.x;
+	points[selectedPoint].y += position.y - dragOrigin.y;
+	dragOrigin = position;
+	Shell_redisplay();
+}
+
+static void Target_scrollWheel(int deltaX, int deltaY) {
+}
+
+static void Target_resized(unsigned int newWidth, unsigned int newHeight) {
+	float ratio;
 	
-#define RUN_TEST(TEST_CODE, INTERVAL_VAR) \
-	startTime = getCurrentTime(); \
-	for (testIndex = 0; testIndex < testCount; testIndex++) { \
-		TEST_CODE; \
-	} \
-	INTERVAL_VAR = getCurrentTime() - startTime; \
-	printf("Performing \"" #TEST_CODE "\" %lu times took %f seconds\n", testCount, INTERVAL_VAR);
-	
-#define RUN_TWO_TESTS(TEST_CODE_SYS, TEST_CODE_FIXED) \
-	RUN_TEST(TEST_CODE_SYS, timeSys) \
-	RUN_TEST(TEST_CODE_FIXED, timeFixed) \
-	printf("Ratio (fixed / system): %f\n\n", timeFixed / timeSys);
-	
-	RUN_TWO_TESTS(resultf = 0.125f * 13.0f, resultx = xmul(0x2000, 0xD0000))
-	RUN_TWO_TESTS(resultf = 7.0f / 13.0f, resultx = xdiv(0x70000, 0xD0000))
-	RUN_TWO_TESTS(resultf = sqrtf(5.432f), resultx = xsqrt(0x56430))
-	RUN_TWO_TESTS(resultf = expf(1.5f), resultx = xexp(0x18000))
-	RUN_TWO_TESTS(resultf = logf(1.5f), resultx = xlog(0x18000))
-	RUN_TWO_TESTS(resultf = powf(1.5f, 1.5f), resultx = xpow(0x18000, 0x18000))
-	RUN_TWO_TESTS(resultf = sinf(1.0f), resultx = xsin(0x10000))
-	RUN_TWO_TESTS(resultf = cosf(1.0f), resultx = xcos(0x10000))
-	RUN_TWO_TESTS(resultf = tanf(1.0f), resultx = xtan(0x10000))
-	RUN_TWO_TESTS(resultf = asinf(0.5f), resultx = xasin(0x8000))
-	RUN_TWO_TESTS(resultf = acosf(0.5f), resultx = xacos(0x8000))
-	RUN_TWO_TESTS(resultf = atanf(0.5f), resultx = xatan(0x8000))
-	RUN_TWO_TESTS(resultf = atan2f(0.5f, 1.0f), resultx = xatan2(0x8000, 0x10000))
-	
-	return EXIT_SUCCESS;
+	viewWidth = newWidth;
+	viewHeight = newHeight;
+	ratio = (float) viewWidth / viewHeight;
+	glViewport(0, 0, viewWidth, viewHeight);
+	glMatrixMode(GL_PROJECTION);
+	glLoadMatrixf(Matrix4x4f_ortho(MATRIX4x4f_IDENTITY, -ratio, ratio, -1.0f, 1.0f, -1.0f, 1.0f).m);
+	glMatrixMode(GL_MODELVIEW);
+}
+
+static void Target_backgrounded() {
+}
+
+static void Target_foregrounded() {
+}
+
+static void registerShellCallbacks() {
+	Shell_drawFunc(Target_draw);
+	Shell_resizeFunc(Target_resized);
+	Shell_keyDownFunc(Target_keyDown);
+	Shell_keyUpFunc(Target_keyUp);
+	Shell_keyModifiersChangedFunc(Target_keyModifiersChanged);
+	Shell_mouseDownFunc(Target_mouseDown);
+	Shell_mouseUpFunc(Target_mouseUp);
+	Shell_mouseMovedFunc(Target_mouseMoved);
+	Shell_mouseDraggedFunc(Target_mouseDragged);
+	Shell_scrollWheelFunc(Target_scrollWheel);
+	Shell_backgroundedFunc(Target_backgrounded);
+	Shell_foregroundedFunc(Target_foregrounded);
+}
+
+#if defined(STEM_PLATFORM_macosx)
+void NSOpenGLTarget_configure(int argc, const char ** argv, struct NSOpenGLShellConfiguration * configuration) {
+	configuration->windowTitle = "GameMath";
+#elif defined(STEM_PLATFORM_iphonesimulator) || defined(STEM_PLATFORM_iphoneos)
+void EAGLTarget_configure(int argc, char ** argv, struct EAGLShellConfiguration * configuration) {
+#elif defined(STEM_PLATFORM_win32) || defined(STEM_PLATFORM_win64)
+void WGLTarget_configure(void * instance, void * prevInstance, char * commandLine, int command, int argc, const char ** argv, struct WGLShellConfiguration * configuration) {
+	configuration->windowTitle = "GameMath";
+#elif defined(STEM_PLATFORM_linux32) || defined(STEM_PLATFORM_linux64)
+void GLXTarget_configure(int argc, const char ** argv, struct GLXShellConfiguration * configuration) {
+	configuration->windowTitle = "GameMath";
+#else
+void GLUTTarget_configure(int argc, const char ** argv, struct GLUTShellConfiguration * configuration) {
+	configuration->windowTitle = "GameMath";
+#endif
+	registerShellCallbacks();
+}
+
+void Target_init() {
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	resetBezier();
+	Shell_mainLoop();
 }
