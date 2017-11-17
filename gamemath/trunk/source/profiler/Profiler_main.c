@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include "gamemath/BezierCurve.h"
 #include "gamemath/FixedPoint.h"
 
 #if defined(__APPLE__)
@@ -47,6 +48,8 @@ int main(int argc, char ** argv) {
 	double startTime, timeSys, timeFixed;
 	volatile float resultf;
 	volatile fixed16_16 resultx;
+	volatile Vector2f resultv2;
+	Vector2f p0 = {0.0f, 0.0f}, p1 = {1.0f, 0.0f}, p2 = {0.0f, 1.0f}, p3 = {1.0f, 1.0f};
 	
 	if (argc > 1) {
 		if (!sscanf(argv[1], "%lu", &testCount)) {
@@ -80,6 +83,8 @@ int main(int argc, char ** argv) {
 	RUN_TWO_TESTS(resultf = acosf(0.5f), resultx = xacos(0x8000))
 	RUN_TWO_TESTS(resultf = atanf(0.5f), resultx = xatan(0x8000))
 	RUN_TWO_TESTS(resultf = atan2f(0.5f, 1.0f), resultx = xatan2(0x8000, 0x10000))
+	
+	RUN_TEST(resultv2 = BezierCurve_sample(p0, p1, p2, p3, 0.5f), timeSys);
 	
 	return EXIT_SUCCESS;
 }

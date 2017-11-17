@@ -24,9 +24,23 @@
 #include <math.h>
 #include <stdlib.h>
 
-// TODO: Profile this implementation vs. raw math without function calls
 Vector2f BezierCurve_sample(Vector2f p0, Vector2f p1, Vector2f p2, Vector2f p3, float value) {
-	return Vector2f_interpolate(Vector2f_interpolate(Vector2f_interpolate(p0, p1, value), Vector2f_interpolate(p1, p2, value), value), Vector2f_interpolate(Vector2f_interpolate(p1, p2, value), Vector2f_interpolate(p2, p3, value), value), value);
+	Vector2f midp0p1, midp1p2, midp2p3, midMid1, midMid2, result;
+	float valueInverse = 1.0f - value;
+	
+	midp0p1.x = p0.x * valueInverse + p1.x * value;
+	midp0p1.y = p0.y * valueInverse + p1.y * value;
+	midp1p2.x = p1.x * valueInverse + p2.x * value;
+	midp1p2.y = p1.y * valueInverse + p2.y * value;
+	midp2p3.x = p2.x * valueInverse + p3.x * value;
+	midp2p3.y = p2.y * valueInverse + p3.y * value;
+	midMid1.x = midp0p1.x * valueInverse + midp1p2.x * value;
+	midMid1.y = midp0p1.y * valueInverse + midp1p2.y * value;
+	midMid2.x = midp1p2.x * valueInverse + midp2p3.x * value;
+	midMid2.y = midp1p2.y * valueInverse + midp2p3.y * value;
+	result.x = midMid1.x * valueInverse + midMid2.x * value;
+	result.y = midMid1.y * valueInverse + midMid2.y * value;
+	return result;
 }
 
 float BezierCurve_sampleXAtY(Vector2f p0, Vector2f p1, Vector2f p2, Vector2f p3, float y, unsigned int iterations) {
