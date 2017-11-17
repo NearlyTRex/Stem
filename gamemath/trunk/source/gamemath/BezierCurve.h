@@ -33,12 +33,12 @@ extern "C" {
 // p0 and p3 are endpoints; p1 is p0's control point, p2 is p3's control point
 Vector2f BezierCurve_sample(Vector2f p0, Vector2f p1, Vector2f p2, Vector2f p3, float value);
 
-// Finds the y value of the curve at the specified x coordinate, if possible. Results may be inaccurate for self-overlapping curves.
+// Finds the x value of the curve at the specified y coordinate, if possible. Results may be inaccurate for self-overlapping curves.
 // iterations specifies how many subdivisions to use when searching; a higher value will take longer but return a more accurate value.
-float BezierCurve_sampleAtX(Vector2f p0, Vector2f p1, Vector2f p2, Vector2f p3, float x, unsigned int iterations);
+float BezierCurve_sampleXAtY(Vector2f p0, Vector2f p1, Vector2f p2, Vector2f p3, float y, unsigned int iterations);
 
 // Same as above, with x and y axes reversed.
-float BezierCurve_sampleAtY(Vector2f p0, Vector2f p1, Vector2f p2, Vector2f p3, float y, unsigned int iterations);
+float BezierCurve_sampleYAtX(Vector2f p0, Vector2f p1, Vector2f p2, Vector2f p3, float x, unsigned int iterations);
 
 // Fills outSamples with coordinates along the curve, by sampling linearly. Segment spacing is not adjusted.
 void BezierCurve_getSamples(Vector2f p0, Vector2f p1, Vector2f p2, Vector2f p3, Vector2f * outSamples, unsigned int sampleCount);

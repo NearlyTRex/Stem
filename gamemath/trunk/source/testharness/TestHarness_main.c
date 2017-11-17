@@ -31,16 +31,20 @@
 #include <unistd.h>
 
 #define SAMPLE_COUNT 40
+#define SAMPLE_ITERATIONS 8
 #define SELECTION_RADIUS 0.025f
+#define PROJECTION_RADIUS 0.0375f
 
 static unsigned int viewWidth = 1280, viewHeight = 720;
-static Vector2f points[4];
+static float viewRatio = 1.7777f;
+static Vector2f points[5];
 static Vector2f dragOrigin;
 static unsigned int selectedPoint;
 
 static bool Target_draw() {
 	unsigned int sampleIndex;
 	Vector2f sample;
+	float projectedX, projectedY;
 	
 	glClear(GL_COLOR_BUFFER_BIT);
 	glColor4f(0.0f, 1.0f, 0.0f, 1.0f);
@@ -49,6 +53,14 @@ static bool Target_draw() {
 	glVertex2f(points[1].x, points[1].y);
 	glVertex2f(points[2].x, points[2].y);
 	glVertex2f(points[3].x, points[3].y);
+	glEnd();
+	
+	glColor4f(0.0f, 0.0f, 1.0f, 1.0f);
+	glBegin(GL_LINES);
+	glVertex2f(-viewRatio, points[4].y);
+	glVertex2f(viewRatio, points[4].y);
+	glVertex2f(points[4].x, -1.0f);
+	glVertex2f(points[4].x, 1.0f);
 	glEnd();
 	
 	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
@@ -67,14 +79,32 @@ static bool Target_draw() {
 	glVertex2f(points[selectedPoint].x, points[selectedPoint].y + SELECTION_RADIUS);
 	glEnd();
 	
+	projectedX = BezierCurve_sampleXAtY(points[0], points[1], points[2], points[3], points[4].y, SAMPLE_ITERATIONS);
+	glColor4f(1.0f, 0.0f, 1.0f, 1.0f);
+	glBegin(GL_LINE_LOOP);
+	glVertex2f(projectedX - PROJECTION_RADIUS, points[4].y);
+	glVertex2f(projectedX, points[4].y - PROJECTION_RADIUS);
+	glVertex2f(projectedX + PROJECTION_RADIUS, points[4].y);
+	glVertex2f(projectedX, points[4].y + PROJECTION_RADIUS);
+	glEnd();
+	
+	projectedY = BezierCurve_sampleYAtX(points[0], points[1], points[2], points[3], points[4].x, SAMPLE_ITERATIONS);
+	glColor4f(0.0f, 1.0f, 1.0f, 1.0f);
+	glBegin(GL_LINE_LOOP);
+	glVertex2f(points[4].x - PROJECTION_RADIUS, projectedY);
+	glVertex2f(points[4].x, projectedY - PROJECTION_RADIUS);
+	glVertex2f(points[4].x + PROJECTION_RADIUS, projectedY);
+	glVertex2f(points[4].x, projectedY + PROJECTION_RADIUS);
+	glEnd();
+	
 	return true;
 }
 
 static void resetBezier() {
 	points[0] = VECTOR2f(-0.75f, -0.75f);
-	points[1] = VECTOR2f(-0.75f, 0.75f);
-	points[2] = VECTOR2f(0.75f, 0.75f);
-	points[3] = VECTOR2f(0.75f, -0.75f);
+	points[1] = VECTOR2f(0.0f, -0.75f);
+	points[2] = VECTOR2f(0.0f, 0.75f);
+	points[3] = VECTOR2f(0.75f, 0.75f);
 }
 
 static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned int modifiers, bool isRepeat) {
@@ -85,9 +115,9 @@ static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned
 			break;
 		case KEYBOARD_TAB:
 			if (modifiers & MODIFIER_SHIFT_BIT) {
-				selectedPoint = (selectedPoint + 3) % 4;
+				selectedPoint = (selectedPoint + sizeof(points) / sizeof(points[0]) - 1) % (sizeof(points) / sizeof(points[0]));
 			} else {
-				selectedPoint = (selectedPoint + 1) % 4;
+				selectedPoint = (selectedPoint + 1) % (sizeof(points) / sizeof(points[0]));
 			}
 			Shell_redisplay();
 			break;
@@ -122,14 +152,12 @@ static void Target_scrollWheel(int deltaX, int deltaY) {
 }
 
 static void Target_resized(unsigned int newWidth, unsigned int newHeight) {
-	float ratio;
-	
 	viewWidth = newWidth;
 	viewHeight = newHeight;
-	ratio = (float) viewWidth / viewHeight;
+	viewRatio = (float) viewWidth / viewHeight;
 	glViewport(0, 0, viewWidth, viewHeight);
 	glMatrixMode(GL_PROJECTION);
-	glLoadMatrixf(Matrix4x4f_ortho(MATRIX4x4f_IDENTITY, -ratio, ratio, -1.0f, 1.0f, -1.0f, 1.0f).m);
+	glLoadMatrixf(Matrix4x4f_ortho(MATRIX4x4f_IDENTITY, -viewRatio, viewRatio, -1.0f, 1.0f, -1.0f, 1.0f).m);
 	glMatrixMode(GL_MODELVIEW);
 }
 
