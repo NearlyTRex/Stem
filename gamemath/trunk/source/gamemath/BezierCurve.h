@@ -28,8 +28,6 @@ extern "C" {
 
 #include "gamemath/Vector2f.h"
 
-// TODO: Fixed point API
-
 // p0 and p3 are endpoints; p1 is p0's control point, p2 is p3's control point
 Vector2f BezierCurve_sample(Vector2f p0, Vector2f p1, Vector2f p2, Vector2f p3, float value);
 
@@ -40,18 +38,8 @@ float BezierCurve_sampleXAtY(Vector2f p0, Vector2f p1, Vector2f p2, Vector2f p3,
 // Same as above, with x and y axes reversed.
 float BezierCurve_sampleYAtX(Vector2f p0, Vector2f p1, Vector2f p2, Vector2f p3, float x, unsigned int iterations);
 
-// Fills outSamples with coordinates along the curve, by sampling linearly. Segment spacing is not adjusted.
+// Fills outSamples with coordinates along the curve, by sampling linearly.
 void BezierCurve_getSamples(Vector2f p0, Vector2f p1, Vector2f p2, Vector2f p3, Vector2f * outSamples, unsigned int sampleCount);
-
-// Fills outSamples with coordinates along the curve, adjusting for spacing so that all points are approximately equidistant.
-// Higher iterations values will return more uniform spacing at the cost of computation time.
-void BezierCurve_getSamplesWithUniformSpacing(Vector2f p0, Vector2f p1, Vector2f p2, Vector2f p3, Vector2f * outSamples, unsigned int sampleCount, unsigned int iterations);
-
-// Fills outSamples with coordinates along the curve, adjusting for straightness so that segments do not have a greater difference
-// in angle than specified by maxRadians. sampleMaxCount specifies the maximum number of elements to write to outSamples; completely
-// filling it may not be necessary to meet the requested straightness. The number of samples written is returned.
-// If maxRadians is 0 or negative, sampling will continue until sampleMaxCount is reached.
-unsigned int BezierCurve_getSamplesWithMaxTurningAngle(Vector2f p0, Vector2f p1, Vector2f p2, Vector2f p3, float maxRadians, Vector2f * outSamples, unsigned int sampleMaxCount);
 
 #ifdef __cplusplus
 }

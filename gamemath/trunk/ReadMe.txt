@@ -1,8 +1,12 @@
 gamemath contains a collection of mathematical functions useful for games and other applications. Included modules:
 
+Barycentric: Coordinate conversions from cartesian to barycentric space and back.
+
+BezierCurve: Some simple functions for working with floating point bezier curves. Intended for graphical effects; not recommended for precise calculations or performance critical code.
+
 FixedPoint: Fractional numbers using integer representation. Useful for cross-platform numeric consistency and uniform precision density.
 
-Interpolation: Floating point values animated over arbitrary curve types. Intended for graphical effects; not recommended for precise calculations or performance critical code.
+Interpolation: Floating point values animated over arbitrary curve functions. Intended for graphical effects; not recommended for precise calculations or performance critical code.
 
 Matrix: Arbitrary 4x4 transformations. For information on matrices: http://ludobloom.com/tutorials/matrix.html
 

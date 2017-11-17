@@ -30,23 +30,36 @@
 #include <stdio.h>
 #include <unistd.h>
 
-#define SAMPLE_COUNT 40
+#define SAMPLE_COUNT_MAX 100
+// TODO: Make this adjustable
 #define SAMPLE_ITERATIONS 8
+
 #define SELECTION_RADIUS 0.025f
 #define PROJECTION_RADIUS 0.0375f
 
 static unsigned int viewWidth = 1280, viewHeight = 720;
-static float viewRatio = 1.7777f;
+static float viewRatio = 1.77778f;
 static Vector2f points[5];
+static Vector2f samples[SAMPLE_COUNT_MAX];
 static Vector2f dragOrigin;
 static unsigned int selectedPoint;
+static bool drawPoints;
+static unsigned int sampleCount = 16;
 
 static bool Target_draw() {
 	unsigned int sampleIndex;
-	Vector2f sample;
 	float projectedX, projectedY;
 	
 	glClear(GL_COLOR_BUFFER_BIT);
+	
+	glColor4f(0.0f, 0.0f, 0.5f, 1.0f);
+	glBegin(GL_LINES);
+	glVertex2f(-viewRatio, points[4].y);
+	glVertex2f(viewRatio, points[4].y);
+	glVertex2f(points[4].x, -1.0f);
+	glVertex2f(points[4].x, 1.0f);
+	glEnd();
+	
 	glColor4f(0.0f, 1.0f, 0.0f, 1.0f);
 	glBegin(GL_LINES);
 	glVertex2f(points[0].x, points[0].y);
@@ -55,21 +68,21 @@ static bool Target_draw() {
 	glVertex2f(points[3].x, points[3].y);
 	glEnd();
 	
-	glColor4f(0.0f, 0.0f, 1.0f, 1.0f);
-	glBegin(GL_LINES);
-	glVertex2f(-viewRatio, points[4].y);
-	glVertex2f(viewRatio, points[4].y);
-	glVertex2f(points[4].x, -1.0f);
-	glVertex2f(points[4].x, 1.0f);
-	glEnd();
-	
 	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 	glBegin(GL_LINE_STRIP);
-	for (sampleIndex = 0; sampleIndex < SAMPLE_COUNT; sampleIndex++) {
-		sample = BezierCurve_sample(points[0], points[1], points[2], points[3], sampleIndex / (float) (SAMPLE_COUNT - 1));
-		glVertex2f(sample.x, sample.y);
+	for (sampleIndex = 0; sampleIndex < sampleCount; sampleIndex++) {
+		glVertex2f(samples[sampleIndex].x, samples[sampleIndex].y);
 	}
 	glEnd();
+	if (drawPoints) {
+		glPointSize(5.0f);
+		glColor4f(0.75f, 1.0f, 0.75f, 1.0f);
+		glBegin(GL_POINTS);
+		for (sampleIndex = 0; sampleIndex < sampleCount; sampleIndex++) {
+			glVertex2f(samples[sampleIndex].x, samples[sampleIndex].y);
+		}
+		glEnd();
+	}
 	
 	glColor4f(1.0f, 1.0f, 0.0f, 1.0f);
 	glBegin(GL_LINE_LOOP);
@@ -100,11 +113,16 @@ static bool Target_draw() {
 	return true;
 }
 
+static void fetchSamples() {
+	BezierCurve_getSamples(points[0], points[1], points[2], points[3], samples, sampleCount);
+}
+
 static void resetBezier() {
 	points[0] = VECTOR2f(-0.75f, -0.75f);
 	points[1] = VECTOR2f(0.0f, -0.75f);
 	points[2] = VECTOR2f(0.0f, 0.75f);
 	points[3] = VECTOR2f(0.75f, 0.75f);
+	fetchSamples();
 }
 
 static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned int modifiers, bool isRepeat) {
@@ -119,6 +137,26 @@ static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned
 			} else {
 				selectedPoint = (selectedPoint + 1) % (sizeof(points) / sizeof(points[0]));
 			}
+			Shell_redisplay();
+			break;
+		case KEYBOARD_P:
+			drawPoints = !drawPoints;
+			Shell_redisplay();
+			break;
+		case KEYBOARD_EQUAL_SIGN:
+			sampleCount++;
+			if (sampleCount > SAMPLE_COUNT_MAX) {
+				sampleCount = SAMPLE_COUNT_MAX;
+			}
+			fetchSamples();
+			Shell_redisplay();
+			break;
+		case KEYBOARD_HYPHEN:
+			sampleCount--;
+			if (sampleCount < 2) {
+				sampleCount = 2;
+			}
+			fetchSamples();
 			Shell_redisplay();
 			break;
 	}
@@ -144,6 +182,7 @@ static void Target_mouseDragged(unsigned int buttonMask, float x, float y) {
 	Vector2f position = transformMousePosition_signedCenter(VECTOR2f(x, y), viewWidth, viewHeight, 1.0f);
 	points[selectedPoint].x += position.x - dragOrigin.x;
 	points[selectedPoint].y += position.y - dragOrigin.y;
+	fetchSamples();
 	dragOrigin = position;
 	Shell_redisplay();
 }
