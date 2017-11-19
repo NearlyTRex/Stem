@@ -23,6 +23,7 @@
 #include "glgraphics/AnimationState.h"
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 #define SUPERCLASS StemObject
 
@@ -40,11 +41,12 @@ bool AnimationState_init(AnimationState * self, Armature * armature) {
 	
 	self->armature = armature;
 	self->boneStates = malloc(sizeof(*self->boneStates) * armature->boneCount);
+	self->computedBoneTransforms = malloc(sizeof(*self->computedBoneTransforms) * self->armature->boneCount);
 	for (boneIndex = 0; boneIndex < armature->boneCount; boneIndex++) {
 		self->boneStates[boneIndex].offset = VECTOR3f_ZERO;
 		self->boneStates[boneIndex].scale = VECTOR3f(1.0f, 1.0f, 1.0f);
 		self->boneStates[boneIndex].rotation = QUATERNIONf_IDENTITY;
-		self->boneStates[boneIndex].absoluteMatrix = MATRIX4x4f_IDENTITY;
+		self->computedBoneTransforms[boneIndex] = MATRIX4x4f_IDENTITY;
 	}
 	return true;
 }
@@ -53,10 +55,14 @@ void AnimationState_initCopy(AnimationState * self, AnimationState * original) {
 	sharedInit(self);
 	self->armature = original->armature;
 	self->boneStates = malloc(sizeof(*self->boneStates) * self->armature->boneCount);
+	self->computedBoneTransforms = malloc(sizeof(*self->computedBoneTransforms) * self->armature->boneCount);
 	memcpy(self->boneStates, original->boneStates, sizeof(*self->boneStates) * self->armature->boneCount);
+	memcpy(self->computedBoneTransforms, original->computedBoneTransforms, sizeof(*self->computedBoneTransforms) * self->armature->boneCount);
 }
 
 void AnimationState_dispose(AnimationState * self) {
+	free(self->boneStates);
+	free(self->computedBoneTransforms);
 	call_super(dispose, self);
 }
 
@@ -64,7 +70,7 @@ AnimationState * AnimationState_copy(AnimationState * self) {
 	stemobject_copy_implementation(AnimationState, initCopy)
 }
 
-void AnimationState_computeMatrixes(AnimationState * self) {
+void AnimationState_computeBoneTransforms(AnimationState * self) {
 	unsigned int boneIndex;
 	Matrix4x4f matrix;
 	
@@ -72,13 +78,14 @@ void AnimationState_computeMatrixes(AnimationState * self) {
 		if (self->armature->bones[boneIndex].parentIndex == BONE_INDEX_NOT_FOUND) {
 			matrix = MATRIX4x4f_IDENTITY;
 		} else {
-			matrix = self->boneStates[self->armature->bones[boneIndex].parentIndex].absoluteMatrix;
+			matrix = self->computedBoneTransforms[self->armature->bones[boneIndex].parentIndex];
 		}
 		Matrix4x4f_scale(&matrix, self->boneStates[boneIndex].scale.x, self->boneStates[boneIndex].scale.y, self->boneStates[boneIndex].scale.z);
 		Matrix4x4f_translate(&matrix, self->boneStates[boneIndex].offset.x, self->boneStates[boneIndex].offset.y, self->boneStates[boneIndex].offset.z);
 		Matrix4x4f_translate(&matrix, self->armature->bones[boneIndex].position.x, self->armature->bones[boneIndex].position.y, self->armature->bones[boneIndex].position.z);
 		Matrix4x4f_multiply(&matrix, Quaternionf_toMatrix(self->boneStates[boneIndex].rotation));
 		Matrix4x4f_translate(&matrix, -self->armature->bones[boneIndex].position.x, -self->armature->bones[boneIndex].position.y, -self->armature->bones[boneIndex].position.z);
-		self->boneStates[boneIndex].absoluteMatrix = matrix;
+		self->computedBoneTransforms[boneIndex] = matrix;
+		//printf("Computed matrix for bone %u:\n\t%f, %f, %f, %f,\n\t%f, %f, %f, %f,\n\t%f, %f, %f, %f,\n\t%f, %f, %f, %f\n", boneIndex, matrix.m[0], matrix.m[4], matrix.m[8], matrix.m[12], matrix.m[1], matrix.m[5], matrix.m[9], matrix.m[13], matrix.m[2], matrix.m[6], matrix.m[10], matrix.m[14], matrix.m[3], matrix.m[7], matrix.m[11], matrix.m[15]);
 	}
 }

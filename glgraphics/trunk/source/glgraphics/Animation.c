@@ -20,6 +20,7 @@
   Alex Diener alex@ludobloom.com
 */
 
+#include "gamemath/BezierCurve.h"
 #include "glgraphics/Animation.h"
 #include <assert.h>
 #include <math.h>
@@ -27,6 +28,7 @@
 #include <string.h>
 
 #define SUPERCLASS StemObject
+#define CURVE_SAMPLE_ITERATIONS 8
 
 Animation * Animation_create(Atom name, Armature * armature, unsigned int keyframeCount, struct AnimationKeyframe * keyframes) {
 	stemobject_create_implementation(Animation, init, name, armature, keyframeCount, keyframes)
@@ -176,13 +178,20 @@ static bool Animation_findBoneKeyframes(Animation * self, unsigned int boneIndex
 	return true;
 }
 
+static inline float curvedKeyframeInterpolationValue(Vector2f leftHandle, Vector2f rightHandle, float value) {
+	if (leftHandle.x == 0.0f && leftHandle.y == 0.0f && rightHandle.x == 1.0f && rightHandle.y == 1.0f) {
+		return value;
+	}
+	return BezierCurve_sampleYAtX(VECTOR2f(0.0f, 0.0f), leftHandle, rightHandle, VECTOR2f(1.0f, 1.0f), value, CURVE_SAMPLE_ITERATIONS);
+}
+
 void Animation_setAnimationStateAtTime(Animation * self, AnimationState * animationState, double animationTime) {
 	unsigned int boneIndex;
 	unsigned int keyframeIndexLeft = 0, keyframeIndexRight = 0;
 	unsigned int boneKeyframeIndexLeft, boneKeyframeIndexRight;
 	float keyframeWeight;
 	struct AnimationBoneState boneState, identityBoneState = {
-		VECTOR3f_ZERO, VECTOR3f_ZERO, QUATERNIONf_IDENTITY, MATRIX4x4f_IDENTITY
+		VECTOR3f_ZERO, {1.0f, 1.0f, 1.0f}, QUATERNIONf_IDENTITY
 	};
 	
 	assert(self->armature->boneCount == animationState->armature->boneCount);
@@ -192,19 +201,21 @@ void Animation_setAnimationStateAtTime(Animation * self, AnimationState * animat
 		animationTime += self->animationLength;
 	}
 	
-	boneState.absoluteMatrix = MATRIX4x4f_IDENTITY;
 	for (boneIndex = 0; boneIndex < self->armature->boneCount; boneIndex++) {
 		if (Animation_findBoneKeyframes(self, boneIndex, animationTime, &keyframeIndexLeft, &boneKeyframeIndexLeft, &keyframeIndexRight, &boneKeyframeIndexRight, &keyframeWeight)) {
 			// Interpolate bone based on keyframes
-			// TODO: Apply bezier curve to keyframeWeight for each property
-			boneState.offset = Vector3f_interpolate(self->keyframes[keyframeIndexLeft].bones[boneKeyframeIndexLeft].offset, self->keyframes[keyframeIndexRight].bones[boneKeyframeIndexRight].offset, keyframeWeight);
-			boneState.scale = Vector3f_interpolate(self->keyframes[keyframeIndexLeft].bones[boneKeyframeIndexLeft].scale, self->keyframes[keyframeIndexRight].bones[boneKeyframeIndexRight].scale, keyframeWeight);
-			boneState.rotation = Quaternionf_slerp(self->keyframes[keyframeIndexLeft].bones[boneKeyframeIndexLeft].rotation, self->keyframes[keyframeIndexRight].bones[boneKeyframeIndexRight].rotation, keyframeWeight);
+			struct AnimationBoneKeyframe boneKeyframeLeft = self->keyframes[keyframeIndexLeft].bones[boneKeyframeIndexLeft];
+			struct AnimationBoneKeyframe boneKeyframeRight = self->keyframes[keyframeIndexRight].bones[boneKeyframeIndexRight];
+			
+			boneState.offset   = Vector3f_interpolate(boneKeyframeLeft.offset,   boneKeyframeRight.offset,   curvedKeyframeInterpolationValue(boneKeyframeLeft.outgoingOffsetBezierHandle,   boneKeyframeRight.incomingOffsetBezierHandle,   keyframeWeight));
+			boneState.scale    = Vector3f_interpolate(boneKeyframeLeft.scale,    boneKeyframeRight.scale,    curvedKeyframeInterpolationValue(boneKeyframeLeft.outgoingScaleBezierHandle,    boneKeyframeRight.incomingScaleBezierHandle,    keyframeWeight));
+			boneState.rotation =    Quaternionf_slerp(boneKeyframeLeft.rotation, boneKeyframeRight.rotation, curvedKeyframeInterpolationValue(boneKeyframeLeft.outgoingRotationBezierHandle, boneKeyframeRight.incomingRotationBezierHandle, keyframeWeight));
 			animationState->boneStates[boneIndex] = boneState;
+			
 		} else {
 			// Animation blending would probably happen here, but since this bone isn't specified, for now just set to identity
 			animationState->boneStates[boneIndex] = identityBoneState;
 		}
 	}
-	AnimationState_computeMatrixes(animationState);
+	AnimationState_computeBoneTransforms(animationState);
 }

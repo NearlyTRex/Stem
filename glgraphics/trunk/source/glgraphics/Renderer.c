@@ -34,6 +34,7 @@
 #include "glgraphics/LitSurfaceFragmentShader.h"
 
 #define SUPERCLASS StemObject
+#define BONE_COUNT_MAX 128
 
 enum {
 	VERTEX_ATTRIB_POSITION,
@@ -203,7 +204,7 @@ void Renderer_drawSingle(Renderer * self, Renderable * renderable) {
 			glUniform1f(GLSLShader_getUniformLocation(shader, "specularIntensity"), 0.875f);
 			glUniform1f(GLSLShader_getUniformLocation(shader, "shininess"), 32.0f);
 			if (mesh->hasAnimationData) {
-				// Pass animation uniforms to shader, if any (might not be any uniforms; possibly attributes only)
+				glUniformMatrix4fv(GLSLShader_getUniformLocation(shader, "boneTransforms"), mesh->animationState->armature->boneCount, GL_FALSE, (GLfloat *) mesh->animationState->computedBoneTransforms);
 			}
 			
 			// TODO: Can this all be done by the renderable? Should it? Probably in a VAO

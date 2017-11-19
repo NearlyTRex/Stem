@@ -38,14 +38,14 @@ struct AnimationBoneState {
 	Vector3f offset;
 	Vector3f scale;
 	Quaternionf rotation;
-	Matrix4x4f absoluteMatrix;
 };
 
 #define AnimationState_structContents(self_type) \
 	StemObject_structContents(self_type) \
 	\
 	Armature * armature; \
-	struct AnimationBoneState * boneStates;
+	struct AnimationBoneState * boneStates; \
+	Matrix4x4f * computedBoneTransforms;
 
 stemobject_struct_definition(AnimationState)
 
@@ -54,7 +54,7 @@ bool AnimationState_init(AnimationState * self, Armature * armature);
 void AnimationState_initCopy(AnimationState * self, AnimationState * original);
 void AnimationState_dispose(AnimationState * self);
 AnimationState * AnimationState_copy(AnimationState * self);
-void AnimationState_computeMatrixes(AnimationState * self);
+void AnimationState_computeBoneTransforms(AnimationState * self);
 
 #ifdef __cplusplus
 }
