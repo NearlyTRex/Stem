@@ -39,6 +39,7 @@ struct ArmatureBone {
 	Atom boneID;
 	unsigned int parentIndex;
 	Vector3f position;
+	// TODO: An endpoint might be useful for drawing the armature and positioning things without needing an extra bone
 };
 
 #define Armature_structContents(self_type) \
