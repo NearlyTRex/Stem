@@ -21,21 +21,54 @@
 */
 
 #include "glgraphics/Material.h"
+#include <assert.h>
 #include <stdlib.h>
 
 #define SUPERCLASS StemObject
 
-Material * Material_create(GLSLShader * shader) {
-	stemobject_create_implementation(Material, init, shader)
+Material * Material_create() {
+	stemobject_create_implementation(Material, init)
 }
 
-bool Material_init(Material * self, GLSLShader * shader) {
+bool Material_init(Material * self) {
 	call_super(init, self);
 	self->dispose = Material_dispose;
-	self->shader = shader;
+	self->colorTextureID = 0;
 	return true;
 }
 
 void Material_dispose(Material * self) {
+	glDeleteTextures(1, &self->colorTextureID);
 	call_super(dispose, self);
+}
+
+void Material_setColorTexture(Material * self, bool nearestNeighborMagnification, unsigned int width, unsigned int height, unsigned int bytesPerRow, void * bitmapData) {
+	GLfloat maxAnisotropy;
+	
+	assert(self->colorTextureID == 0);
+	glGenTextures(1, &self->colorTextureID);
+	
+	glBindTexture(GL_TEXTURE_2D, self->colorTextureID);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	if (nearestNeighborMagnification) {
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	} else {
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	}
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maxAnisotropy);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, maxAnisotropy);
+	
+	if (bytesPerRow % 4 == 0) {
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+	} else if (bytesPerRow % 2 == 0) {
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 2);
+	} else {
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	}
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, bitmapData);
+	glGenerateMipmap(GL_TEXTURE_2D);
+	
+	glBindTexture(GL_TEXTURE_2D, 0);
 }

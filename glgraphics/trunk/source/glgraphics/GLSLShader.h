@@ -33,7 +33,7 @@ typedef struct GLSLShader GLSLShader;
 #define GLSLShader_structContents(self_type) \
 	StemObject_structContents(self_type) \
 	\
-	GLuint program;
+	GLuint programID;
 
 stemobject_struct_definition(GLSLShader)
 
@@ -49,8 +49,6 @@ bool GLSLShader_vinitWithFiles(GLSLShader * self, const char * vshaderFilePath, 
 
 void GLSLShader_dispose(GLSLShader * self);
 GLint GLSLShader_getUniformLocation(GLSLShader * self, const char * uniformName);
-void GLSLShader_activate(GLSLShader * self);
-void GLSLShader_deactivate(GLSLShader * self);
 bool GLSLShader_validate(GLSLShader * self);
 
 #endif

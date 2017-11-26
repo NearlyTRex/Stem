@@ -28,19 +28,23 @@ extern "C" {
 
 typedef struct Material Material;
 
-#include "glgraphics/GLSLShader.h"
+#include "glgraphics/GLIncludes.h"
 #include "stemobject/StemObject.h"
 
 #define Material_structContents(self_type) \
 	StemObject_structContents(self_type) \
 	\
-	GLSLShader * shader; /* Nope; material shouldn't contain a shader, only properties passed to Renderer's built-in shaders */
+	GLuint colorTextureID;
 
 stemobject_struct_definition(Material)
 
-Material * Material_create(GLSLShader * shader);
-bool Material_init(Material * self, GLSLShader * shader);
+Material * Material_create();
+bool Material_init(Material * self);
 void Material_dispose(Material * self);
+
+// TODO: How to handle translucency and premultiplication
+// Implicit: RGBA_8888, GL_UNSIGNED_BYTE, GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR minification, anisotropy on, mipmaps generated
+void Material_setColorTexture(Material * self, bool nearestNeighborMagnification, unsigned int width, unsigned int height, unsigned int bytesPerRow, void * bitmapData);
 
 #ifdef __cplusplus
 }

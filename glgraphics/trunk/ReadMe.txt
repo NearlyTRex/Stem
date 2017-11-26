@@ -14,10 +14,6 @@ GLGraphics provides some miscellaneous general-purpose OpenGL utility code. Incl
 
 SCRATCHPAD
 
-Set renderable properties for GL state. Callback should just call glDrawElements, or do its own self contained state management if it needs something unusual.
-
-gltexture, with its custom serialization, might get obsoleted by some of the work being done here. Could turn into serialization-and-I/O-only support lib that instantiates glgraphics material/texture objects.
-
 Does Renderer even do 2D? Maybe just 3D and leave 2D to something else
 
 
@@ -34,8 +30,6 @@ Does Renderer even do 2D? Maybe just 3D and leave 2D to something else
 [17:43]  <ThemsAllTook> I think the trap I keep falling into is imagining that I'm going to want to render an arbitrary number of things in arbitrarily different ways, when I can probably just constrain myself to a few core concepts (static geometry, animated geometry (using just one specific type of animation), particles, etc.) and have my needs covered
 [17:44]  <ThemsAllTook> It's just really hard for me to coalesce that list of things in my head. This helps a lot.
 
-
-FOR NOW, all interpolation can be linear. Other curves later. Bezier is important.
 
 Mesh \
 	Vertices \
@@ -82,12 +76,30 @@ Shape keys/morph targets are pretty tricky. Ideas:
 
 Constraints and control objects are Blender-only. Exported animations can be flattened.
 
+MATERIAL STUFF
+- Color map (two layers?)
+- Diffuse/specular/reflection map
+- Normal map
+- Displacement map
+- Subsurface scattering (research needed)
+- PBR
+ - Metalness
+ - Roughness
+ - AO
 
 
+
+IMMEDIATE: Model loader turns model into header
 
 TODO:
-- Implement bezier curve interpolation
-- Implement bone animated vertex shader
-- Better set of animated test data
+- Advanced materials
+- Lighting
+- VAO binding in Renderable
 - Animation blending
 - Morphing
+- Callback renderable type
+- Additional camera controllers?
+- Depth sorting/translucency
+- Fog
+- Shadows
+- SSAO

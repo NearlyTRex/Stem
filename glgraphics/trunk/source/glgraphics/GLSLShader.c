@@ -76,7 +76,7 @@ bool GLSLShader_vinit(GLSLShader * self, const char * vshaderSource, size_t vsha
 	call_super(init, self);
 	self->dispose = GLSLShader_dispose;
 	
-	self->program = glCreateProgram();
+	self->programID = glCreateProgram();
 	vertexShader = glCreateShader(GL_VERTEX_SHADER);
 	fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
 	
@@ -110,20 +110,20 @@ bool GLSLShader_vinit(GLSLShader * self, const char * vshaderSource, size_t vsha
 	}
 #endif
 	
-	glAttachShader(self->program, vertexShader);
-	glAttachShader(self->program, fragmentShader);
+	glAttachShader(self->programID, vertexShader);
+	glAttachShader(self->programID, fragmentShader);
 	
 	for (attribName = va_arg(args, const char *); attribName != NULL; attribName = va_arg(args, const char *)) {
 		attribLocation = va_arg(args, GLuint);
-		glBindAttribLocation(self->program, attribLocation, attribName);
+		glBindAttribLocation(self->programID, attribLocation, attribName);
 	}
 	
-	glLinkProgram(self->program);
+	glLinkProgram(self->programID);
 #ifdef DEBUG
-	glGetProgramiv(self->program, GL_INFO_LOG_LENGTH, &logLength);
+	glGetProgramiv(self->programID, GL_INFO_LOG_LENGTH, &logLength);
 	if (logLength > 0) {
 		GLchar * log = malloc(logLength);
-		glGetProgramInfoLog(self->program, logLength, &logLength, log);
+		glGetProgramInfoLog(self->programID, logLength, &logLength, log);
 		if (logLength > 0) {
 			fprintf(stderr, "Program link log:\n%s\n", log);
 		}
@@ -161,30 +161,22 @@ bool GLSLShader_vinitWithFiles(GLSLShader * self, const char * vshaderFilePath, 
 }
 
 void GLSLShader_dispose(GLSLShader * self) {
-	glDeleteProgram(self->program);
+	glDeleteProgram(self->programID);
 	call_super(dispose, self);
 }
 
 GLint GLSLShader_getUniformLocation(GLSLShader * self, const char * uniformName) {
-	return glGetUniformLocation(self->program, uniformName);
-}
-
-void GLSLShader_activate(GLSLShader * self) {
-	glUseProgram(self->program);
-}
-
-void GLSLShader_deactivate(GLSLShader * self) {
-	glUseProgram(0);
+	return glGetUniformLocation(self->programID, uniformName);
 }
 
 bool GLSLShader_validate(GLSLShader * self) {
 	GLint logLength;
 	
-	glValidateProgram(self->program);
-	glGetProgramiv(self->program, GL_INFO_LOG_LENGTH, &logLength);
+	glValidateProgram(self->programID);
+	glGetProgramiv(self->programID, GL_INFO_LOG_LENGTH, &logLength);
 	if (logLength > 0) {
 		GLchar * log = malloc(logLength);
-		glGetProgramInfoLog(self->program, logLength, &logLength, log);
+		glGetProgramInfoLog(self->programID, logLength, &logLength, log);
 		if (logLength > 0) {
 			fprintf(stderr, "Program validation log:\n%s\n", log);
 		}

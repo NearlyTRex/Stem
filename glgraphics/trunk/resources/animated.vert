@@ -17,13 +17,14 @@ uniform mat4 boneTransforms[BONE_COUNT_MAX];
 out vec3 normal;
 out vec3 position;
 out vec4 color;
+out vec2 texCoord;
 
 void main() {
 	vec4 weightedPositions[4];
 	vec3 weightedNormals[4];
 	vec4 weightedPosition;
 	
-	//texCoord = inTexCoord;
+	texCoord = inTexCoord;
 	color = inColor;
 	weightedNormals[0] = mat3(boneTransforms[inBoneID.x]) * inNormal * inBoneWeight.x;
 	weightedNormals[1] = mat3(boneTransforms[inBoneID.y]) * inNormal * inBoneWeight.x;

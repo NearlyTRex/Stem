@@ -192,7 +192,7 @@ void Renderer_drawSingle(Renderer * self, Renderable * renderable) {
 			
 			// TODO: Can this all be done by some intermediary between renderer and material? Should it? (Material only stores a description of visual properties, not shaders or logic)
 			shader = mesh->hasAnimationData ? self->shaderAnimated : self->shaderStatic;
-			GLSLShader_activate(shader);
+			glUseProgram(shader->programID);
 			glUniformMatrix4fv(GLSLShader_getUniformLocation(shader, "projectionTransform"), 1, GL_FALSE, self->projectionMatrix.m);
 			glUniformMatrix4fv(GLSLShader_getUniformLocation(shader, "viewTransform"), 1, GL_FALSE, self->viewMatrix.m);
 			glUniformMatrix4fv(GLSLShader_getUniformLocation(shader, "modelTransform"), 1, GL_FALSE, mesh->transform.m);
@@ -203,6 +203,8 @@ void Renderer_drawSingle(Renderer * self, Renderable * renderable) {
 			glUniform3f(GLSLShader_getUniformLocation(shader, "ambientColor"), self->ambientColor.red, self->ambientColor.green, self->ambientColor.blue);
 			glUniform1f(GLSLShader_getUniformLocation(shader, "specularIntensity"), 0.875f);
 			glUniform1f(GLSLShader_getUniformLocation(shader, "shininess"), 32.0f);
+			glUniform1i(GLSLShader_getUniformLocation(shader, "colorTexture"), 0);
+			glBindTexture(GL_TEXTURE_2D, mesh->material->colorTextureID);
 			if (mesh->hasAnimationData) {
 				glUniformMatrix4fv(GLSLShader_getUniformLocation(shader, "boneTransforms"), mesh->animationState->armature->boneCount, GL_FALSE, (GLfloat *) mesh->animationState->computedBoneTransforms);
 			}
@@ -235,7 +237,8 @@ void Renderer_drawSingle(Renderer * self, Renderable * renderable) {
 			
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-			GLSLShader_deactivate(shader);
+			glBindTexture(GL_TEXTURE_2D, 0);
+			glUseProgram(0);
 			glDisableVertexAttribArray(VERTEX_ATTRIB_POSITION);
 			glDisableVertexAttribArray(VERTEX_ATTRIB_TEXTURE_COORD);
 			glDisableVertexAttribArray(VERTEX_ATTRIB_NORMAL);
