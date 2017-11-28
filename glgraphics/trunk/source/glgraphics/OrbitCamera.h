@@ -20,20 +20,20 @@
   Alex Diener alex@ludobloom.com
 */
 
-#ifndef __OrbitCameraController_H__
-#define __OrbitCameraController_H__
+#ifndef __OrbitCamera_H__
+#define __OrbitCamera_H__
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef struct OrbitCameraController OrbitCameraController;
+typedef struct OrbitCamera OrbitCamera;
 
 #include "gamemath/Matrix4x4f.h"
 #include "gamemath/Quaternionf.h"
 #include "gamemath/Vector3f.h"
 #include "stemobject/StemObject.h"
 
-#define OrbitCameraController_structContents(self_type) \
+#define OrbitCamera_structContents(self_type) \
 	StemObject_structContents(self_type) \
 	\
 	Vector3f cameraFocus; \
@@ -45,17 +45,19 @@ typedef struct OrbitCameraController OrbitCameraController;
 	float offsetSensitivity; \
 	float zoomSensitivity;
 
-stemobject_struct_definition(OrbitCameraController)
+stemobject_struct_definition(OrbitCamera)
 
-OrbitCameraController * OrbitCameraController_create();
-bool OrbitCameraController_init(OrbitCameraController * self);
-void OrbitCameraController_dispose(OrbitCameraController * self);
+OrbitCamera * OrbitCamera_create();
+bool OrbitCamera_init(OrbitCamera * self);
+void OrbitCamera_dispose(OrbitCamera * self);
 
-void OrbitCameraController_rotate(OrbitCameraController * self, float offsetX, float offsetY);
-void OrbitCameraController_offset(OrbitCameraController * self, float offsetX, float offsetY, float offsetZ);
-void OrbitCameraController_zoom(OrbitCameraController * self, float offsetY);
-Vector3f OrbitCameraController_getPosition(OrbitCameraController * self);
-Matrix4x4f OrbitCameraController_getMatrix(OrbitCameraController * self);
+void OrbitCamera_rotate(OrbitCamera * self, float offsetX, float offsetY);
+void OrbitCamera_offset(OrbitCamera * self, float offsetX, float offsetY, float offsetZ);
+void OrbitCamera_zoom(OrbitCamera * self, float offsetY);
+Vector3f OrbitCamera_getPosition(OrbitCamera * self);
+Matrix4x4f OrbitCamera_getMatrix(OrbitCamera * self);
+
+// TODO: Frame bounding box
 
 #ifdef __cplusplus
 }

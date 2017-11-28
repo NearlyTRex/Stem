@@ -185,6 +185,10 @@ void Renderer_drawLayer(Renderer * self, RenderLayerID layer) {
 }
 
 void Renderer_drawSingle(Renderer * self, Renderable * renderable) {
+	if (!renderable->visible) {
+		return;
+	}
+	
 	switch (renderable->type) {
 		case RENDERABLE_MESH: {
 			MeshRenderable * mesh = (MeshRenderable *) renderable;

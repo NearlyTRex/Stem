@@ -21,9 +21,9 @@
 */
 
 #include "glgraphics/AnimationState.h"
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 
 #define SUPERCLASS StemObject
 
@@ -86,6 +86,15 @@ void AnimationState_computeBoneTransforms(AnimationState * self) {
 		Matrix4x4f_multiply(&matrix, Quaternionf_toMatrix(self->boneStates[boneIndex].rotation));
 		Matrix4x4f_translate(&matrix, -self->armature->bones[boneIndex].position.x, -self->armature->bones[boneIndex].position.y, -self->armature->bones[boneIndex].position.z);
 		self->computedBoneTransforms[boneIndex] = matrix;
-		//printf("Computed matrix for bone %u:\n\t%f, %f, %f, %f,\n\t%f, %f, %f, %f,\n\t%f, %f, %f, %f,\n\t%f, %f, %f, %f\n", boneIndex, matrix.m[0], matrix.m[4], matrix.m[8], matrix.m[12], matrix.m[1], matrix.m[5], matrix.m[9], matrix.m[13], matrix.m[2], matrix.m[6], matrix.m[10], matrix.m[14], matrix.m[3], matrix.m[7], matrix.m[11], matrix.m[15]);
 	}
+}
+
+Vector3f AnimationState_getBonePosition(AnimationState * self, unsigned int boneID) {
+	assert(boneID < self->armature->boneCount);
+	return Matrix4x4f_multiplyVector3f(self->computedBoneTransforms[boneID], self->armature->bones[boneID].position);
+}
+
+Vector3f AnimationState_getBoneEndpoint(AnimationState * self, unsigned int boneID) {
+	assert(boneID < self->armature->boneCount);
+	return Matrix4x4f_multiplyVector3f(self->computedBoneTransforms[boneID], self->armature->bones[boneID].endpoint);
 }

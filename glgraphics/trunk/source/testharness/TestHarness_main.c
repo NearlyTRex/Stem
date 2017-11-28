@@ -3,7 +3,7 @@
 #include "glgraphics/GLIncludes.h"
 #include "glgraphics/Material.h"
 #include "glgraphics/MeshRenderable.h"
-#include "glgraphics/OrbitCameraController.h"
+#include "glgraphics/OrbitCamera.h"
 #include "glgraphics/Renderer.h"
 #include "shell/Shell.h"
 #include "shell/ShellCallbacks.h"
@@ -32,8 +32,9 @@
 static Renderer * renderer;
 static Material * material;
 static MeshRenderable * renderable;
+static MeshRenderable * armatureRenderable;
 static Animation * animation;
-static OrbitCameraController * cameraController;
+static OrbitCamera * camera;
 static bool shiftKeyDown, controlKeyDown;
 static unsigned int viewWidth = 1280, viewHeight = 720;
 static double animationStartTime;
@@ -41,11 +42,14 @@ static double animationStartTime;
 static bool Target_draw() {
 	if (renderable->animationState != NULL) {
 		Animation_setAnimationStateAtTime(animation, renderable->animationState, Shell_getCurrentTime() - animationStartTime);
+		if (armatureRenderable != NULL) {
+			Animation_setAnimationStateAtTime(animation, armatureRenderable->animationState, Shell_getCurrentTime() - animationStartTime);
+		}
 		Shell_redisplay();
 	}
 	
 	Renderer_clear(renderer);
-	Renderer_setViewMatrix(renderer, OrbitCameraController_getMatrix(cameraController));
+	Renderer_setViewMatrix(renderer, OrbitCamera_getMatrix(camera));
 	Renderer_beginDrawing(renderer);
 	Renderer_drawLayer(renderer, RENDER_LAYER_3D_OPAQUE);
 	Renderer_endDrawing(renderer);
@@ -73,10 +77,15 @@ static void initScene1() {
 	renderable = MeshRenderable_createStatic(vertices, sizeof(vertices) / sizeof(struct vertex_p3f_t2f_n3f_c4f), indexes, sizeof(indexes) / sizeof(GLuint), material);
 	Renderer_addRenderable(renderer, RENDER_LAYER_3D_OPAQUE, (Renderable *) renderable);
 	
-	if (cameraController != NULL) {
-		OrbitCameraController_dispose(cameraController);
+	if (armatureRenderable != NULL) {
+		MeshRenderable_dispose(armatureRenderable);
+		armatureRenderable = NULL;
 	}
-	cameraController = OrbitCameraController_create();
+	
+	if (camera != NULL) {
+		OrbitCamera_dispose(camera);
+	}
+	camera = OrbitCamera_create();
 }
 
 static void initScene2() {
@@ -92,9 +101,9 @@ static void initScene2() {
 	};
 	Armature * armature;
 	struct ArmatureBone bones[] = {
-		{ATOM("root"), BONE_INDEX_NOT_FOUND, VECTOR3f(0.0f, 0.0f, 0.0f)},
-		{ATOM("boneLower"), 0, VECTOR3f(0.0f, -1.0f, 0.0f)},
-		{ATOM("boneUpper"), 0, VECTOR3f(0.0f, 1.0f, 0.0f)}
+		{ATOM("root"), BONE_INDEX_NOT_FOUND, VECTOR3f(0.0f, 0.0f, 0.0f), VECTOR3f(1.0f, 0.0f, 0.0f)},
+		{ATOM("boneLower"), 0, VECTOR3f(0.0f, -1.0f, 0.0f), VECTOR3f(1.0f, -1.0f, 0.0f)},
+		{ATOM("boneUpper"), 0, VECTOR3f(0.0f, 1.0f, 0.0f), VECTOR3f(1.0f, 1.0f, 0.0f)}
 	};
 	struct AnimationBoneKeyframe frame1Bones[] = {
 		{1, {-1.0f, 0.0f, 0.0f}, {0.5f, 1.0f}, {0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}, {0.0f, 0.0f}, QUATERNIONf_IDENTITY, {1.0f, 0.0f}, {0.0f, 0.0f}},
@@ -124,12 +133,19 @@ static void initScene2() {
 	renderable = MeshRenderable_createAnimated(vertices, sizeof(vertices) / sizeof(struct vertex_p3f_t2f_n3f_c4f), indexes, sizeof(indexes) / sizeof(GLuint), material, animationState);
 	AnimationState_dispose(animationState);
 	Renderer_addRenderable(renderer, RENDER_LAYER_3D_OPAQUE, (Renderable *) renderable);
-	animationStartTime = Shell_getCurrentTime();
 	
-	if (cameraController != NULL) {
-		OrbitCameraController_dispose(cameraController);
+	if (armatureRenderable != NULL) {
+		MeshRenderable_dispose(armatureRenderable);
 	}
-	cameraController = OrbitCameraController_create();
+	armatureRenderable = Armature_createDebugMesh(armature);
+	armatureRenderable->visible = false;
+	Renderer_addRenderable(renderer, RENDER_LAYER_3D_OPAQUE, (Renderable *) armatureRenderable);
+	
+	if (camera != NULL) {
+		OrbitCamera_dispose(camera);
+	}
+	camera = OrbitCamera_create();
+	animationStartTime = Shell_getCurrentTime();
 }
 
 static void initScene3() {
@@ -236,9 +252,9 @@ static void initScene3() {
 	};
 	Armature * armature;
 	struct ArmatureBone bones[] = {
-		{ATOM("root"), BONE_INDEX_NOT_FOUND, VECTOR3f(0.0f, -4.0f, 0.0f)},
-		{ATOM("joint1"), 0, VECTOR3f(0.0f, -1.0f, 0.0f)},
-		{ATOM("joint2"), 1, VECTOR3f(0.0f, 2.0f, 0.0f)}
+		{ATOM("root"), BONE_INDEX_NOT_FOUND, VECTOR3f(0.0f, -4.0f, 0.0f), VECTOR3f(0.0f, -1.0f, 0.0f)},
+		{ATOM("joint1"), 0, VECTOR3f(0.0f, -1.0f, 0.0f), VECTOR3f(0.0f, 2.0f, 0.0f)},
+		{ATOM("joint2"), 1, VECTOR3f(0.0f, 2.0f, 0.0f), VECTOR3f(0.0f, 4.0f, 0.0f)}
 	};
 	struct AnimationBoneKeyframe frame1Bones[] = {
 		{1, {0.0f, 0.0f, 0.0f}, {1.0f, 1.0f}, {0.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}, {0.0f, 0.0f}, QUATERNIONf_IDENTITY, {0.5f, 1.0f}, {0.5f, 0.0f}},
@@ -268,13 +284,20 @@ static void initScene3() {
 	renderable = MeshRenderable_createAnimated(vertices, sizeof(vertices) / sizeof(struct vertex_p3f_t2f_n3f_c4f), indexes, sizeof(indexes) / sizeof(GLuint), material, animationState);
 	AnimationState_dispose(animationState);
 	Renderer_addRenderable(renderer, RENDER_LAYER_3D_OPAQUE, (Renderable *) renderable);
-	animationStartTime = Shell_getCurrentTime();
 	
-	if (cameraController != NULL) {
-		OrbitCameraController_dispose(cameraController);
+	if (armatureRenderable != NULL) {
+		MeshRenderable_dispose(armatureRenderable);
 	}
-	cameraController = OrbitCameraController_create();
-	cameraController->cameraDistance = 10.0f;
+	armatureRenderable = Armature_createDebugMesh(armature);
+	armatureRenderable->visible = false;
+	Renderer_addRenderable(renderer, RENDER_LAYER_3D_OPAQUE, (Renderable *) armatureRenderable);
+	
+	if (camera != NULL) {
+		OrbitCamera_dispose(camera);
+	}
+	camera = OrbitCamera_create();
+	camera->cameraDistance = 10.0f;
+	animationStartTime = Shell_getCurrentTime();
 }
 
 static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned int modifiers, bool isRepeat) {
@@ -290,6 +313,13 @@ static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned
 		case KEYBOARD_3:
 			initScene3();
 			Shell_redisplay();
+			break;
+		case KEYBOARD_TAB:
+			if (armatureRenderable != NULL) {
+				armatureRenderable->visible = !armatureRenderable->visible;
+				renderable->visible = !renderable->visible;
+				Shell_redisplay();
+			}
 			break;
 	}
 }
@@ -316,16 +346,16 @@ static void Target_mouseMoved(float x, float y) {
 static void Target_mouseDragged(unsigned int buttonMask, float x, float y) {
 	if (shiftKeyDown) {
 		if (controlKeyDown) {
-			OrbitCameraController_offset(cameraController, 0.0f, 0.0f, -y);
+			OrbitCamera_offset(camera, 0.0f, 0.0f, -y);
 		} else {
-			OrbitCameraController_offset(cameraController, x, -y, 0.0f);
+			OrbitCamera_offset(camera, x, -y, 0.0f);
 		}
 		
 	} else if (controlKeyDown) {
-		OrbitCameraController_zoom(cameraController, y);
+		OrbitCamera_zoom(camera, y);
 		
 	} else {
-		OrbitCameraController_rotate(cameraController, x, y);
+		OrbitCamera_rotate(camera, x, y);
 	}
 	Shell_redisplay();
 }

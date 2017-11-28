@@ -28,6 +28,7 @@
 bool Renderable_init(Renderable * self, RenderableType type) {
 	call_super(init, self);
 	self->type = type;
+	self->visible = true;
 	self->dispose = Renderable_dispose;
 	return true;
 }

@@ -60,7 +60,7 @@ SOURCES_library = \
 	source/${PROJECT_NAME}/GLSLShader.c \
 	source/${PROJECT_NAME}/Material.c \
 	source/${PROJECT_NAME}/MeshRenderable.c \
-	source/${PROJECT_NAME}/OrbitCameraController.c \
+	source/${PROJECT_NAME}/OrbitCamera.c \
 	source/${PROJECT_NAME}/Renderable.c \
 	source/${PROJECT_NAME}/Renderer.c
 
@@ -82,7 +82,7 @@ INCLUDES = \
 	source/${PROJECT_NAME}/GLSLShader.h \
 	source/${PROJECT_NAME}/Material.h \
 	source/${PROJECT_NAME}/MeshRenderable.h \
-	source/${PROJECT_NAME}/OrbitCameraController.h \
+	source/${PROJECT_NAME}/OrbitCamera.h \
 	source/${PROJECT_NAME}/Renderable.h \
 	source/${PROJECT_NAME}/Renderer.h \
 	source/${PROJECT_NAME}/VertexTypes.h

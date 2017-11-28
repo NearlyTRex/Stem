@@ -98,7 +98,7 @@ TODO:
 - Animation blending
 - Morphing
 - Callback renderable type
-- Additional camera controllers?
+- Additional camera types (camera controller with interpolation)
 - Depth sorting/translucency
 - Fog
 - Shadows

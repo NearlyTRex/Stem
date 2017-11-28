@@ -38,7 +38,8 @@ typedef enum {
 #define Renderable_structContents(self_type) \
 	StemObject_structContents(self_type) \
 	\
-	RenderableType type;
+	RenderableType type; \
+	bool visible;
 
 stemobject_struct_definition(Renderable)
 

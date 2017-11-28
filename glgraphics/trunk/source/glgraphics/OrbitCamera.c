@@ -20,18 +20,18 @@
   Alex Diener alex@ludobloom.com
 */
 
-#include "glgraphics/OrbitCameraController.h"
+#include "glgraphics/OrbitCamera.h"
 #include <stdlib.h>
 
 #define SUPERCLASS StemObject
 
-OrbitCameraController * OrbitCameraController_create() {
-	stemobject_create_implementation(OrbitCameraController, init)
+OrbitCamera * OrbitCamera_create() {
+	stemobject_create_implementation(OrbitCamera, init)
 }
 
-bool OrbitCameraController_init(OrbitCameraController * self) {
+bool OrbitCamera_init(OrbitCamera * self) {
 	call_super(init, self);
-	self->dispose = OrbitCameraController_dispose;
+	self->dispose = OrbitCamera_dispose;
 	self->cameraFocus = VECTOR3f_ZERO;
 	self->cameraDirection = QUATERNIONf_IDENTITY;
 	self->cameraDistance = 5.0f;
@@ -43,16 +43,16 @@ bool OrbitCameraController_init(OrbitCameraController * self) {
 	return true;
 }
 
-void OrbitCameraController_dispose(OrbitCameraController * self) {
+void OrbitCamera_dispose(OrbitCamera * self) {
 	call_super(dispose, self);
 }
 
-void OrbitCameraController_rotate(OrbitCameraController * self, float offsetX, float offsetY) {
+void OrbitCamera_rotate(OrbitCamera * self, float offsetX, float offsetY) {
 	Quaternionf_rotate(&self->cameraDirection, VECTOR3f_UP, offsetX * self->rotateSensitivity);
 	Quaternionf_rotate(&self->cameraDirection, Quaternionf_multiplyVector3f(Quaternionf_inverted(self->cameraDirection), VECTOR3f_RIGHT), offsetY * self->rotateSensitivity);
 }
 
-void OrbitCameraController_offset(OrbitCameraController * self, float offsetX, float offsetY, float offsetZ) {
+void OrbitCamera_offset(OrbitCamera * self, float offsetX, float offsetY, float offsetZ) {
 	Vector3f offset;
 	
 	offset.x = offsetX * self->offsetSensitivity * self->cameraDistance;
@@ -62,7 +62,7 @@ void OrbitCameraController_offset(OrbitCameraController * self, float offsetX, f
 	self->cameraFocus = Vector3f_add(self->cameraFocus, offset);
 }
 
-void OrbitCameraController_zoom(OrbitCameraController * self, float offsetY) {
+void OrbitCamera_zoom(OrbitCamera * self, float offsetY) {
 	self->cameraDistance += offsetY * self->zoomSensitivity * self->cameraDistance;
 	if (self->cameraDistance < self->minDistance) {
 		self->cameraDistance = self->minDistance;
@@ -71,11 +71,11 @@ void OrbitCameraController_zoom(OrbitCameraController * self, float offsetY) {
 	}
 }
 
-Vector3f OrbitCameraController_getPosition(OrbitCameraController * self) {
+Vector3f OrbitCamera_getPosition(OrbitCamera * self) {
 	return Vector3f_add(Quaternionf_multiplyVector3f(self->cameraDirection, VECTOR3f(0.0f, 0.0f, -self->cameraDistance)), self->cameraFocus);
 }
 
-Matrix4x4f OrbitCameraController_getMatrix(OrbitCameraController * self) {
+Matrix4x4f OrbitCamera_getMatrix(OrbitCamera * self) {
 	Matrix4x4f matrix = MATRIX4x4f_IDENTITY;
 	
 	Matrix4x4f_translate(&matrix, 0.0f, 0.0f, -self->cameraDistance);

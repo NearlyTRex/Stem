@@ -30,6 +30,7 @@ typedef struct Armature Armature;
 
 #include "stemobject/StemObject.h"
 #include "gamemath/Vector3f.h"
+#include "glgraphics/MeshRenderable.h"
 #include "utilities/Atom.h"
 #include <limits.h>
 
@@ -39,7 +40,7 @@ struct ArmatureBone {
 	Atom boneID;
 	unsigned int parentIndex;
 	Vector3f position;
-	// TODO: An endpoint might be useful for drawing the armature and positioning things without needing an extra bone
+	Vector3f endpoint;
 };
 
 #define Armature_structContents(self_type) \
@@ -56,6 +57,8 @@ Armature * Armature_create(unsigned int boneCount, struct ArmatureBone * bones);
 bool Armature_init(Armature * self, unsigned int boneCount, struct ArmatureBone * bones);
 void Armature_dispose(Armature * self);
 unsigned int Armature_boneIndexForID(Armature * self, Atom boneID);
+
+MeshRenderable * Armature_createDebugMesh(Armature * self);
 
 #ifdef __cplusplus
 }
