@@ -103,6 +103,8 @@ bool <%= class_name %>_scaleTo(<%= class_name %> * vector, <%= numeric_type %> m
 <%= class_name %> <%= class_name %>_subtract(<%= class_name %> vector1, <%= class_name %> vector2);
 <%= class_name %> <%= class_name %>_multiplyScalar(<%= class_name %> vector, <%= numeric_type %> scalar);
 <%= class_name %> <%= class_name %>_divideScalar(<%= class_name %> vector, <%= numeric_type %> scalar);
+<%= class_name %> <%= class_name %>_multiplyComponents(<%= class_name %> vector1, <%= class_name %> vector2);
+<%= class_name %> <%= class_name %>_divideComponents(<%= class_name %> vector1, <%= class_name %> vector2);
 <% if numeric_type != "int" -%>
 
 <%= class_name %> <%= class_name %>_interpolate(<%= class_name %> left, <%= class_name %> right, <%= numeric_type %> value);

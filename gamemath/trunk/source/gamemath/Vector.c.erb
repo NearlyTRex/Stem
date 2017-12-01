@@ -165,6 +165,14 @@ bool <%= class_name %>_scaleTo(<%= class_name %> * vector, <%= numeric_type %> m
 <%= class_name %> <%= class_name %>_divideScalar(<%= class_name %> vector, <%= numeric_type %> scalar) {
 	return <%= class_name_upper %>(<%= divide("vector.x", "scalar") %><% 1.upto(axis_count - 1) do |axis| %>, <%= divide("vector.#{axis_names[axis]}", "scalar") %><% end %>);
 }
+
+<%= class_name %> <%= class_name %>_multiplyComponents(<%= class_name %> vector1, <%= class_name %> vector2) {
+	return <%= class_name_upper %>(<%= multiply("vector1.x", "vector2.x") %><% 1.upto(axis_count - 1) do |axis| %>, <%= multiply("vector1.#{axis_names[axis]}", "vector2.#{axis_names[axis]}") %><% end %>);
+}
+
+<%= class_name %> <%= class_name %>_divideComponents(<%= class_name %> vector1, <%= class_name %> vector2) {
+	return <%= class_name_upper %>(<%= divide("vector1.x", "vector2.x") %><% 1.upto(axis_count - 1) do |axis| %>, <%= divide("vector1.#{axis_names[axis]}", "vector2.#{axis_names[axis]}") %><% end %>);
+}
 <% if numeric_type != "int" -%>
 
 <%= class_name %> <%= class_name %>_interpolate(<%= class_name %> left, <%= class_name %> right, <%= numeric_type %> value) {

@@ -5,6 +5,7 @@
  * Added Barycentric.h
  * Added BezierCurve.h
  * Added Vector*_invert() and Vector*_inverted()
+ * Added Vector*_multiplyComponents() and Vector*_divideComponents()
  * Renamed Quaternion to Quaternionf, and added Quaternionx for fixed point calculations
  * Renamed Matrix to Matrix4x4f, and added Matrix4x4x for fixed point calculations
  * Fixed multiplications in Vector*x_reflect() and Vector*x_magnitude() giving wildly incorrect results

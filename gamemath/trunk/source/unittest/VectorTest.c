@@ -297,6 +297,16 @@ static void testArithmetic() {
 	vector2 = Vector2f_divideScalar(VECTOR2f(3.0f, 4.0f), -2.0f);
 	assertVector2fApproximate(vector2, -1.5f, -2.0f, EPSILON);
 	
+	vector2 = Vector2f_multiplyComponents(VECTOR2f(1.0f, 2.0f), VECTOR2f(0.5f, 1.5f));
+	assertVector2fApproximate(vector2, 0.5f, 3.0f, EPSILON);
+	vector2 = Vector2f_multiplyComponents(VECTOR2f(3.0f, 4.0f), VECTOR2f(-2.0f, -1.0f));
+	assertVector2fApproximate(vector2, -6.0f, -4.0f, EPSILON);
+	
+	vector2 = Vector2f_divideComponents(VECTOR2f(1.0f, 2.0f), VECTOR2f(0.5f, 2.0f));
+	assertVector2fApproximate(vector2, 2.0f, 1.0f, EPSILON);
+	vector2 = Vector2f_divideComponents(VECTOR2f(3.0f, 4.0f), VECTOR2f(-2.0f, -0.5f));
+	assertVector2fApproximate(vector2, -1.5f, -8.0f, EPSILON);
+	
 	vector3 = Vector3f_add(VECTOR3f(0.0f, 1.0f, 2.0f), VECTOR3f(2.0f, 3.0f, 4.0f));
 	assertVector3fApproximate(vector3, 2.0f, 4.0f, 6.0f, EPSILON);
 	vector3 = Vector3f_add(VECTOR3f(1.5f, 0.5f, -0.5f), VECTOR3f(0.25f, -0.25f, 0.0f));
@@ -317,6 +327,16 @@ static void testArithmetic() {
 	vector3 = Vector3f_divideScalar(VECTOR3f(3.0f, 4.0f, 5.0f), -2.0f);
 	assertVector3fApproximate(vector3, -1.5f, -2.0f, -2.5f, EPSILON);
 	
+	vector3 = Vector3f_multiplyComponents(VECTOR3f(1.0f, 2.0f, 3.0f), VECTOR3f(0.5f, 1.5f, 2.0f));
+	assertVector3fApproximate(vector3, 0.5f, 3.0f, 6.0f, EPSILON);
+	vector3 = Vector3f_multiplyComponents(VECTOR3f(3.0f, 4.0f, 5.0f), VECTOR3f(-2.0f, -1.0f, -0.5f));
+	assertVector3fApproximate(vector3, -6.0f, -4.0f, -2.5f, EPSILON);
+	
+	vector3 = Vector3f_divideComponents(VECTOR3f(1.0f, 2.0f, 3.0f), VECTOR3f(0.5f, 2.0f, 3.0f));
+	assertVector3fApproximate(vector3, 2.0f, 1.0f, 1.0f, EPSILON);
+	vector3 = Vector3f_divideComponents(VECTOR3f(3.0f, 4.0f, 5.0f), VECTOR3f(-2.0f, -0.5f, -2.0f));
+	assertVector3fApproximate(vector3, -1.5f, -8.0f, -2.5f, EPSILON);
+	
 	vector4 = Vector4f_add(VECTOR4f(0.0f, 1.0f, 2.0f, 3.0f), VECTOR4f(2.0f, 3.0f, 4.0f, 5.0f));
 	assertVector4fApproximate(vector4, 2.0f, 4.0f, 6.0f, 8.0f, EPSILON);
 	vector4 = Vector4f_add(VECTOR4f(1.5f, 0.5f, -0.5f, -1.5f), VECTOR4f(0.25f, -0.25f, 0.0f, 0.1f));
@@ -336,6 +356,16 @@ static void testArithmetic() {
 	assertVector4fApproximate(vector4, 2.0f, 4.0f, 6.0f, 8.0f, EPSILON);
 	vector4 = Vector4f_divideScalar(VECTOR4f(3.0f, 4.0f, 5.0f, 6.0f), -2.0f);
 	assertVector4fApproximate(vector4, -1.5f, -2.0f, -2.5f, -3.0f, EPSILON);
+	
+	vector4 = Vector4f_multiplyComponents(VECTOR4f(1.0f, 2.0f, 3.0f, 4.0f), VECTOR4f(0.5f, 1.5f, 2.0f, 2.5f));
+	assertVector4fApproximate(vector4, 0.5f, 3.0f, 6.0f, 10.0f, EPSILON);
+	vector4 = Vector4f_multiplyComponents(VECTOR4f(3.0f, 4.0f, 5.0f, 6.0f), VECTOR4f(-2.0f, -1.0f, -0.5f, -1.5f));
+	assertVector4fApproximate(vector4, -6.0f, -4.0f, -2.5f, -9.0f, EPSILON);
+	
+	vector4 = Vector4f_divideComponents(VECTOR4f(1.0f, 2.0f, 3.0f, 4.0f), VECTOR4f(0.5f, 2.0f, 3.0f, 4.0f));
+	assertVector4fApproximate(vector4, 2.0f, 1.0f, 1.0f, 1.0f, EPSILON);
+	vector4 = Vector4f_divideComponents(VECTOR4f(3.0f, 4.0f, 5.0f, 6.0f), VECTOR4f(-2.0f, -0.5f, -2.0f, -0.5f));
+	assertVector4fApproximate(vector4, -1.5f, -8.0f, -2.5f, -12.0f, EPSILON);
 }
 
 static void testInterpolate() {
