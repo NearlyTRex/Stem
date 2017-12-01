@@ -37,13 +37,18 @@ static Animation * animation;
 static OrbitCamera * camera;
 static bool shiftKeyDown, controlKeyDown;
 static unsigned int viewWidth = 1280, viewHeight = 720;
-static double animationStartTime;
+static double animationStartTime, lastAnimationTime;
+static bool animating;
 
 static bool Target_draw() {
-	if (renderable->animationState != NULL) {
-		Animation_setAnimationStateAtTime(animation, renderable->animationState, Shell_getCurrentTime() - animationStartTime);
+	if (animating && renderable->animationState != NULL) {
+		AnimationState_resetAllBones(renderable->animationState);
+		Animation_poseAnimationStateAtTime(animation, renderable->animationState, Shell_getCurrentTime() - animationStartTime, 1.0f);
+		AnimationState_computeBoneTransforms(renderable->animationState);
 		if (armatureRenderable != NULL) {
-			Animation_setAnimationStateAtTime(animation, armatureRenderable->animationState, Shell_getCurrentTime() - animationStartTime);
+			AnimationState_resetAllBones(armatureRenderable->animationState);
+			Animation_poseAnimationStateAtTime(animation, armatureRenderable->animationState, Shell_getCurrentTime() - animationStartTime, 1.0f);
+			AnimationState_computeBoneTransforms(armatureRenderable->animationState);
 		}
 		Shell_redisplay();
 	}
@@ -146,6 +151,7 @@ static void initScene2() {
 	}
 	camera = OrbitCamera_create();
 	animationStartTime = Shell_getCurrentTime();
+	animating = true;
 }
 
 static void initScene3() {
@@ -298,6 +304,7 @@ static void initScene3() {
 	camera = OrbitCamera_create();
 	camera->cameraDistance = 10.0f;
 	animationStartTime = Shell_getCurrentTime();
+	animating = true;
 }
 
 static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned int modifiers, bool isRepeat) {
@@ -318,6 +325,16 @@ static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned
 			if (armatureRenderable != NULL) {
 				armatureRenderable->visible = !armatureRenderable->visible;
 				renderable->visible = !renderable->visible;
+				Shell_redisplay();
+			}
+			break;
+		case KEYBOARD_A:
+			if (animating) {
+				animating = false;
+				lastAnimationTime = Shell_getCurrentTime();
+			} else {
+				animating = true;
+				animationStartTime += Shell_getCurrentTime() - lastAnimationTime;
 				Shell_redisplay();
 			}
 			break;

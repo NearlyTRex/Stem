@@ -70,8 +70,15 @@ stemobject_struct_definition(Animation)
 Animation * Animation_create(Atom name, Armature * armature, unsigned int keyframeCount, struct AnimationKeyframe * keyframes);
 bool Animation_init(Animation * self, Atom name, Armature * armature, unsigned int keyframeCount, struct AnimationKeyframe * keyframes);
 void Animation_dispose(Animation * self);
+
+// Allocates an AnimationState and initializes it with a pose at the specified time. The caller is responsible for freeing the result.
 AnimationState * Animation_createAnimationStateAtTime(Animation * self, double animationTime);
-void Animation_setAnimationStateAtTime(Animation * self, AnimationState * animationState, double animationTime);
+
+// Computes a pose at the specified time and writes the offset, scale, and rotation of each bone to animationState.
+// Poses are applied additively. You should call AnimationState_resetAllBones() before calling this function to start from the identity transformation.
+// This function does not call AnimationState_computeBoneTransforms(). The caller is responsible for calling it before rendering.
+// weight specifies the portion of this animation to apply to animationState, where 1.0 applies it completely, and 0.0 doesn't apply at all.
+void Animation_poseAnimationStateAtTime(Animation * self, AnimationState * animationState, double animationTime, float weight);
 
 #ifdef __cplusplus
 }

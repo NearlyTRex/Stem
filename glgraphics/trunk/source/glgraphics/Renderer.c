@@ -193,6 +193,7 @@ void Renderer_drawSingle(Renderer * self, Renderable * renderable) {
 		case RENDERABLE_MESH: {
 			MeshRenderable * mesh = (MeshRenderable *) renderable;
 			GLSLShader * shader;
+			Vector3f cameraPosition;
 			
 			// TODO: Can this all be done by some intermediary between renderer and material? Should it? (Material only stores a description of visual properties, not shaders or logic)
 			shader = mesh->hasAnimationData ? self->shaderAnimated : self->shaderStatic;
@@ -207,6 +208,8 @@ void Renderer_drawSingle(Renderer * self, Renderable * renderable) {
 			glUniform3f(GLSLShader_getUniformLocation(shader, "ambientColor"), self->ambientColor.red, self->ambientColor.green, self->ambientColor.blue);
 			glUniform1f(GLSLShader_getUniformLocation(shader, "specularIntensity"), 0.875f);
 			glUniform1f(GLSLShader_getUniformLocation(shader, "shininess"), 32.0f);
+			cameraPosition = Matrix4x4f_multiplyVector3f(self->viewMatrix, VECTOR3f_ZERO);
+			glUniform3f(GLSLShader_getUniformLocation(shader, "cameraPosition"), cameraPosition.x, cameraPosition.y, cameraPosition.z);
 			glUniform1i(GLSLShader_getUniformLocation(shader, "colorTexture"), 0);
 			glBindTexture(GL_TEXTURE_2D, mesh->material->colorTextureID);
 			if (mesh->hasAnimationData) {

@@ -70,6 +70,17 @@ AnimationState * AnimationState_copy(AnimationState * self) {
 	stemobject_copy_implementation(AnimationState, initCopy)
 }
 
+void AnimationState_resetAllBones(AnimationState * self) {
+	unsigned int boneIndex;
+	struct AnimationBoneState identityBoneState = {
+		VECTOR3f_ZERO, {1.0f, 1.0f, 1.0f}, QUATERNIONf_IDENTITY
+	};
+	
+	for (boneIndex = 0; boneIndex < self->armature->boneCount; boneIndex++) {
+		self->boneStates[boneIndex] = identityBoneState;
+	}
+}
+
 void AnimationState_computeBoneTransforms(AnimationState * self) {
 	unsigned int boneIndex;
 	Matrix4x4f matrix;

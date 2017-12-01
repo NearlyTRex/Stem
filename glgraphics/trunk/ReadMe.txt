@@ -92,14 +92,17 @@ MATERIAL STUFF
 IMMEDIATE: Model loader turns model into header
 
 TODO:
+- VAO binding in Renderable
+- Controller object with graph logic?
+- IK
 - Advanced materials
 - Lighting
-- VAO binding in Renderable
-- Animation blending
-- Morphing
+- Morphing? (maybe better to do without)
 - Callback renderable type
 - Additional camera types (camera controller with interpolation)
 - Depth sorting/translucency
 - Fog
 - Shadows
 - SSAO
+- Fluid simulation
+- Cloth simulation

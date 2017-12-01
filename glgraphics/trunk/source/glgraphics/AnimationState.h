@@ -54,6 +54,7 @@ bool AnimationState_init(AnimationState * self, Armature * armature);
 void AnimationState_initCopy(AnimationState * self, AnimationState * original);
 void AnimationState_dispose(AnimationState * self);
 AnimationState * AnimationState_copy(AnimationState * self);
+void AnimationState_resetAllBones(AnimationState * self);
 void AnimationState_computeBoneTransforms(AnimationState * self);
 Vector3f AnimationState_getBonePosition(AnimationState * self, unsigned int boneID);
 Vector3f AnimationState_getBoneEndpoint(AnimationState * self, unsigned int boneID);

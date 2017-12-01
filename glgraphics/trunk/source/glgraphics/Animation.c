@@ -69,7 +69,7 @@ AnimationState * Animation_createAnimationStateAtTime(Animation * self, double a
 	AnimationState * animationState;
 	
 	animationState = AnimationState_create(self->armature);
-	Animation_setAnimationStateAtTime(self, animationState, animationTime);
+	Animation_poseAnimationStateAtTime(self, animationState, animationTime, 1.0f);
 	return animationState;
 }
 
@@ -185,14 +185,12 @@ static inline float curvedKeyframeInterpolationValue(Vector2f leftHandle, Vector
 	return BezierCurve_sampleYAtX(VECTOR2f(0.0f, 0.0f), leftHandle, rightHandle, VECTOR2f(1.0f, 1.0f), value, CURVE_SAMPLE_ITERATIONS);
 }
 
-void Animation_setAnimationStateAtTime(Animation * self, AnimationState * animationState, double animationTime) {
+void Animation_poseAnimationStateAtTime(Animation * self, AnimationState * animationState, double animationTime, float weight) {
 	unsigned int boneIndex;
 	unsigned int keyframeIndexLeft = 0, keyframeIndexRight = 0;
 	unsigned int boneKeyframeIndexLeft, boneKeyframeIndexRight;
 	float keyframeWeight;
-	struct AnimationBoneState boneState, identityBoneState = {
-		VECTOR3f_ZERO, {1.0f, 1.0f, 1.0f}, QUATERNIONf_IDENTITY
-	};
+	struct AnimationBoneState boneState;
 	
 	assert(self->armature->boneCount == animationState->armature->boneCount);
 	
@@ -210,12 +208,10 @@ void Animation_setAnimationStateAtTime(Animation * self, AnimationState * animat
 			boneState.offset   = Vector3f_interpolate(boneKeyframeLeft.offset,   boneKeyframeRight.offset,   curvedKeyframeInterpolationValue(boneKeyframeLeft.outgoingOffsetBezierHandle,   boneKeyframeRight.incomingOffsetBezierHandle,   keyframeWeight));
 			boneState.scale    = Vector3f_interpolate(boneKeyframeLeft.scale,    boneKeyframeRight.scale,    curvedKeyframeInterpolationValue(boneKeyframeLeft.outgoingScaleBezierHandle,    boneKeyframeRight.incomingScaleBezierHandle,    keyframeWeight));
 			boneState.rotation =    Quaternionf_slerp(boneKeyframeLeft.rotation, boneKeyframeRight.rotation, curvedKeyframeInterpolationValue(boneKeyframeLeft.outgoingRotationBezierHandle, boneKeyframeRight.incomingRotationBezierHandle, keyframeWeight));
-			animationState->boneStates[boneIndex] = boneState;
 			
-		} else {
-			// Animation blending would probably happen here, but since this bone isn't specified, for now just set to identity
-			animationState->boneStates[boneIndex] = identityBoneState;
+			animationState->boneStates[boneIndex].offset   = Vector3f_add(animationState->boneStates[boneIndex].offset, Vector3f_multiplyScalar(boneState.offset, weight));
+			animationState->boneStates[boneIndex].scale    = Vector3f_multiplyComponents(animationState->boneStates[boneIndex].scale, Vector3f_interpolate(VECTOR3f(1.0f, 1.0f, 1.0f), boneState.scale, weight));
+			Quaternionf_multiply(&animationState->boneStates[boneIndex].rotation, Quaternionf_slerp(QUATERNIONf_IDENTITY, boneState.rotation, weight));
 		}
 	}
-	AnimationState_computeBoneTransforms(animationState);
 }
