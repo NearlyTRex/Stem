@@ -37,6 +37,7 @@ typedef unsigned int RenderLayerID;
 #include "stemobject/StemObject.h"
 #include "gamemath/Matrix4x4f.h"
 #include "glgraphics/GLSLShader.h"
+#include "glgraphics/Material.h"
 #include "glgraphics/Renderable.h"
 #include "glgraphics/VertexTypes.h"
 
@@ -59,7 +60,8 @@ struct RenderLayer {
 	Matrix4x4f projectionMatrix; \
 	Matrix4x4f viewMatrix; \
 	GLSLShader * shaderStatic; \
-	GLSLShader * shaderAnimated;
+	GLSLShader * shaderAnimated; \
+	Material * nullMaterial;
 
 stemobject_struct_definition(Renderer)
 

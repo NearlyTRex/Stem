@@ -51,6 +51,7 @@ Renderer * Renderer_create() {
 
 bool Renderer_init(Renderer * self) {
 	int renderLayerIndex;
+	unsigned char nullMaterialColor[4] = {0xFF, 0xFF, 0xFF, 0xFF};
 	
 	call_super(init, self);
 	self->dispose = Renderer_dispose;
@@ -78,6 +79,8 @@ bool Renderer_init(Renderer * self) {
 		"inBoneID", VERTEX_ATTRIB_BONE_ID,
 		"inBoneWeight", VERTEX_ATTRIB_BONE_WEIGHT,
 	NULL);
+	self->nullMaterial = Material_create();
+	Material_setColorTexture(self->nullMaterial, true, 1, 1, 4, nullMaterialColor);
 	return true;
 }
 
@@ -91,6 +94,7 @@ void Renderer_dispose(Renderer * self) {
 	GLSLShader_dispose(self->shaderAnimated);
 	glBindVertexArray(0);
 	glDeleteVertexArrays(1, &self->vaoID);
+	Material_dispose(self->nullMaterial);
 	call_super(dispose, self);
 }
 
@@ -211,7 +215,11 @@ void Renderer_drawSingle(Renderer * self, Renderable * renderable) {
 			cameraPosition = Matrix4x4f_multiplyVector3f(self->viewMatrix, VECTOR3f_ZERO);
 			glUniform3f(GLSLShader_getUniformLocation(shader, "cameraPosition"), cameraPosition.x, cameraPosition.y, cameraPosition.z);
 			glUniform1i(GLSLShader_getUniformLocation(shader, "colorTexture"), 0);
-			glBindTexture(GL_TEXTURE_2D, mesh->material->colorTextureID);
+			if (mesh->material == NULL) {
+				glBindTexture(GL_TEXTURE_2D, self->nullMaterial->colorTextureID);
+			} else {
+				glBindTexture(GL_TEXTURE_2D, mesh->material->colorTextureID);
+			}
 			if (mesh->hasAnimationData) {
 				glUniformMatrix4fv(GLSLShader_getUniformLocation(shader, "boneTransforms"), mesh->animationState->armature->boneCount, GL_FALSE, (GLfloat *) mesh->animationState->computedBoneTransforms);
 			}

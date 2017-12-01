@@ -93,8 +93,8 @@ IMMEDIATE: Model loader turns model into header
 
 TODO:
 - VAO binding in Renderable
-- Controller object with graph logic?
-- IK
+- Animation controller object with graph logic?
+- IK (https://www.webcitation.org/60uCFHqC2?url=http://freespace.virgin.net/hugo.elias/models/m_ik2.htm)
 - Advanced materials
 - Lighting
 - Morphing? (maybe better to do without)
