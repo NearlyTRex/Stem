@@ -21,6 +21,7 @@
 */
 
 #include "glgraphics/OrbitCamera.h"
+#include <math.h>
 #include <stdlib.h>
 
 #define SUPERCLASS StemObject
@@ -68,6 +69,17 @@ void OrbitCamera_zoom(OrbitCamera * self, float offsetY) {
 		self->cameraDistance = self->minDistance;
 	} else if (self->cameraDistance > self->maxDistance) {
 		self->cameraDistance = self->maxDistance;
+	}
+}
+
+void OrbitCamera_frameBoundingBox(OrbitCamera * self, Box6f bounds, float fovY, float ratio) {
+	float radius = sqrtf((bounds.right - bounds.left) * (bounds.right - bounds.left) + (bounds.top - bounds.bottom) * (bounds.top - bounds.bottom) + (bounds.front - bounds.back) * (bounds.front - bounds.back)) * 0.5f;
+	
+	// TODO: Doesn't really work. How to do better?
+	self->cameraFocus = Box6f_getCenter(bounds);
+	self->cameraDistance = radius * tanf(fovY * M_PI / 180.0f);
+	if (ratio < 1.0f) {
+		self->cameraDistance /= ratio;
 	}
 }
 

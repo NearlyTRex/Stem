@@ -33,6 +33,7 @@ static Renderer * renderer;
 static Material * material;
 static MeshRenderable * renderable;
 static MeshRenderable * armatureRenderable;
+static Armature * armature;
 static Animation * animation;
 static OrbitCamera * camera;
 static bool shiftKeyDown, controlKeyDown;
@@ -104,7 +105,6 @@ static void initScene2() {
 		0, 2, 1,
 		1, 2, 3
 	};
-	Armature * armature;
 	struct ArmatureBone bones[] = {
 		{ATOM("root"), BONE_INDEX_NOT_FOUND, VECTOR3f(0.0f, 0.0f, 0.0f), VECTOR3f(1.0f, 0.0f, 0.0f)},
 		{ATOM("boneLower"), 0, VECTOR3f(0.0f, -1.0f, 0.0f), VECTOR3f(1.0f, -1.0f, 0.0f)},
@@ -131,6 +131,12 @@ static void initScene2() {
 	
 	if (renderable != NULL) {
 		MeshRenderable_dispose(renderable);
+	}
+	if (armature != NULL) {
+		Armature_dispose(armature);
+	}
+	if (animation != NULL) {
+		Animation_dispose(animation);
 	}
 	armature = Armature_create(sizeof(bones) / sizeof(bones[0]), bones);
 	animation = Animation_create(ATOM("animation"), armature, sizeof(keyframes) / sizeof(keyframes[0]), keyframes);
@@ -256,7 +262,6 @@ static void initScene3() {
 		
 		52, 53, 54, 54, 55, 52
 	};
-	Armature * armature;
 	struct ArmatureBone bones[] = {
 		{ATOM("root"), BONE_INDEX_NOT_FOUND, VECTOR3f(0.0f, -4.0f, 0.0f), VECTOR3f(0.0f, -1.0f, 0.0f)},
 		{ATOM("joint1"), 0, VECTOR3f(0.0f, -1.0f, 0.0f), VECTOR3f(0.0f, 2.0f, 0.0f)},
@@ -283,6 +288,12 @@ static void initScene3() {
 	
 	if (renderable != NULL) {
 		MeshRenderable_dispose(renderable);
+	}
+	if (armature != NULL) {
+		Armature_dispose(armature);
+	}
+	if (animation != NULL) {
+		Animation_dispose(animation);
 	}
 	armature = Armature_create(sizeof(bones) / sizeof(bones[0]), bones);
 	animation = Animation_create(ATOM("animation"), armature, sizeof(keyframes) / sizeof(keyframes[0]), keyframes);
@@ -337,6 +348,10 @@ static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned
 				animationStartTime += Shell_getCurrentTime() - lastAnimationTime;
 				Shell_redisplay();
 			}
+			break;
+		case KEYBOARD_C:
+			OrbitCamera_frameBoundingBox(camera, renderable->bounds, 60.0f, (float) viewWidth / (float) viewHeight);
+			Shell_redisplay();
 			break;
 	}
 }

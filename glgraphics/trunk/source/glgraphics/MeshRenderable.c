@@ -21,6 +21,8 @@
 */
 
 #include "glgraphics/MeshRenderable.h"
+#include "glgraphics/Renderer.h"
+#include <stddef.h>
 #include <stdlib.h>
 #include <float.h>
 
@@ -37,15 +39,21 @@ MeshRenderable * MeshRenderable_createAnimated(struct vertex_p3f_t2f_n3f_c4f_b4u
 void sharedInit(MeshRenderable * self, void * vertices, size_t verticesSize, GLuint * indexes, unsigned int indexCount, Material * material) {
 	call_super(init, self, RENDERABLE_MESH);
 	self->dispose = MeshRenderable_dispose;
+	self->getBoundingBox = MeshRenderable_getBoundingBox;
 	
+	glGenVertexArrays(1, &self->vaoID);
+	glBindVertexArray(self->vaoID);
 	glGenBuffers(1, &self->vertexBufferID);
 	glGenBuffers(1, &self->indexBufferID);
 	glBindBuffer(GL_ARRAY_BUFFER, self->vertexBufferID);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self->indexBufferID);
 	glBufferData(GL_ARRAY_BUFFER, verticesSize, vertices, GL_STATIC_DRAW);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(*indexes) * indexCount, indexes, GL_STATIC_DRAW);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	glEnableVertexAttribArray(VERTEX_ATTRIB_POSITION);
+	glEnableVertexAttribArray(VERTEX_ATTRIB_TEXTURE_COORD);
+	glEnableVertexAttribArray(VERTEX_ATTRIB_NORMAL);
+	glEnableVertexAttribArray(VERTEX_ATTRIB_COLOR);
+	
 	self->transform = MATRIX4x4f_IDENTITY;
 	self->material = material;
 	self->indexCount = indexCount;
@@ -64,6 +72,11 @@ bool MeshRenderable_initStatic(MeshRenderable * self, struct vertex_p3f_t2f_n3f_
 	sharedInit(self, vertices, sizeof(*vertices) * vertexCount, indexes, indexCount, material);
 	self->hasAnimationData = false;
 	self->animationState = NULL;
+	
+	glVertexAttribPointer(VERTEX_ATTRIB_POSITION, 3, GL_FLOAT, GL_FALSE, sizeof(struct vertex_p3f_t2f_n3f_c4f), (void *) offsetof(struct vertex_p3f_t2f_n3f_c4f, position));
+	glVertexAttribPointer(VERTEX_ATTRIB_TEXTURE_COORD, 2, GL_FLOAT, GL_FALSE, sizeof(struct vertex_p3f_t2f_n3f_c4f), (void *) offsetof(struct vertex_p3f_t2f_n3f_c4f, texCoords));
+	glVertexAttribPointer(VERTEX_ATTRIB_NORMAL, 3, GL_FLOAT, GL_FALSE, sizeof(struct vertex_p3f_t2f_n3f_c4f), (void *) offsetof(struct vertex_p3f_t2f_n3f_c4f, normal));
+	glVertexAttribPointer(VERTEX_ATTRIB_COLOR, 4, GL_FLOAT, GL_FALSE, sizeof(struct vertex_p3f_t2f_n3f_c4f), (void *) offsetof(struct vertex_p3f_t2f_n3f_c4f, color));
 	
 	for (index = 0; index < indexCount; index++) {
 		GLfloat * position = vertices[indexes[index]].position;
@@ -98,6 +111,15 @@ bool MeshRenderable_initAnimated(MeshRenderable * self, struct vertex_p3f_t2f_n3
 	self->hasAnimationData = true;
 	self->animationState = AnimationState_copy(animationState);
 	
+	glEnableVertexAttribArray(VERTEX_ATTRIB_BONE_ID);
+	glEnableVertexAttribArray(VERTEX_ATTRIB_BONE_WEIGHT);
+	glVertexAttribPointer(VERTEX_ATTRIB_POSITION, 3, GL_FLOAT, GL_FALSE, sizeof(struct vertex_p3f_t2f_n3f_c4f_b4u_w4f), (void *) offsetof(struct vertex_p3f_t2f_n3f_c4f_b4u_w4f, position));
+	glVertexAttribPointer(VERTEX_ATTRIB_TEXTURE_COORD, 2, GL_FLOAT, GL_FALSE, sizeof(struct vertex_p3f_t2f_n3f_c4f_b4u_w4f), (void *) offsetof(struct vertex_p3f_t2f_n3f_c4f_b4u_w4f, texCoords));
+	glVertexAttribPointer(VERTEX_ATTRIB_NORMAL, 3, GL_FLOAT, GL_FALSE, sizeof(struct vertex_p3f_t2f_n3f_c4f_b4u_w4f), (void *) offsetof(struct vertex_p3f_t2f_n3f_c4f_b4u_w4f, normal));
+	glVertexAttribPointer(VERTEX_ATTRIB_COLOR, 4, GL_FLOAT, GL_FALSE, sizeof(struct vertex_p3f_t2f_n3f_c4f_b4u_w4f), (void *) offsetof(struct vertex_p3f_t2f_n3f_c4f_b4u_w4f, color));
+	glVertexAttribPointer(VERTEX_ATTRIB_BONE_ID, 4, GL_UNSIGNED_INT, GL_FALSE, sizeof(struct vertex_p3f_t2f_n3f_c4f_b4u_w4f), (void *) offsetof(struct vertex_p3f_t2f_n3f_c4f_b4u_w4f, boneIndexes));
+	glVertexAttribPointer(VERTEX_ATTRIB_BONE_WEIGHT, 4, GL_FLOAT, GL_FALSE, sizeof(struct vertex_p3f_t2f_n3f_c4f_b4u_w4f), (void *) offsetof(struct vertex_p3f_t2f_n3f_c4f_b4u_w4f, boneWeights));
+	
 	for (index = 0; index < indexCount; index++) {
 		GLfloat * position = vertices[indexes[index]].position;
 		
@@ -127,8 +149,14 @@ bool MeshRenderable_initAnimated(MeshRenderable * self, struct vertex_p3f_t2f_n3
 void MeshRenderable_dispose(MeshRenderable * self) {
 	glDeleteBuffers(1, &self->vertexBufferID);
 	glDeleteBuffers(1, &self->indexBufferID);
+	glDeleteVertexArrays(1, &self->vaoID);
 	if (self->animationState != NULL) {
 		AnimationState_dispose(self->animationState);
 	}
 	call_super(dispose, self);
 }
+
+Box6f MeshRenderable_getBoundingBox(MeshRenderable * self) {
+	return self->bounds;
+}
+

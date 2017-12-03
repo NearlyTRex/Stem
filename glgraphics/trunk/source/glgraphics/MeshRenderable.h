@@ -41,6 +41,7 @@ typedef struct MeshRenderable MeshRenderable;
 	\
 	Material * material; \
 	bool hasAnimationData; \
+	GLuint vaoID; \
 	GLuint vertexBufferID; \
 	GLuint indexBufferID; \
 	unsigned int indexCount; \
@@ -56,6 +57,7 @@ MeshRenderable * MeshRenderable_createAnimated(struct vertex_p3f_t2f_n3f_c4f_b4u
 bool MeshRenderable_initStatic(MeshRenderable * self, struct vertex_p3f_t2f_n3f_c4f * vertices, unsigned int vertexCount, GLuint * indexes, unsigned int indexCount, Material * material);
 bool MeshRenderable_initAnimated(MeshRenderable * self, struct vertex_p3f_t2f_n3f_c4f_b4u_w4f * vertices, unsigned int vertexCount, GLuint * indexes, unsigned int indexCount, Material * material, AnimationState * animationState);
 void MeshRenderable_dispose(MeshRenderable * self);
+Box6f MeshRenderable_getBoundingBox(MeshRenderable * self);
 
 #ifdef __cplusplus
 }

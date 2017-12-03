@@ -28,6 +28,7 @@ extern "C" {
 
 typedef struct OrbitCamera OrbitCamera;
 
+#include "gamemath/Box6f.h"
 #include "gamemath/Matrix4x4f.h"
 #include "gamemath/Quaternionf.h"
 #include "gamemath/Vector3f.h"
@@ -54,10 +55,9 @@ void OrbitCamera_dispose(OrbitCamera * self);
 void OrbitCamera_rotate(OrbitCamera * self, float offsetX, float offsetY);
 void OrbitCamera_offset(OrbitCamera * self, float offsetX, float offsetY, float offsetZ);
 void OrbitCamera_zoom(OrbitCamera * self, float offsetY);
+void OrbitCamera_frameBoundingBox(OrbitCamera * self, Box6f bounds, float fovY, float ratio);
 Vector3f OrbitCamera_getPosition(OrbitCamera * self);
 Matrix4x4f OrbitCamera_getMatrix(OrbitCamera * self);
-
-// TODO: Frame bounding box
 
 #ifdef __cplusplus
 }

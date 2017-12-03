@@ -24,7 +24,6 @@
 #include "glgraphics/GLIncludes.h"
 #include "glgraphics/MeshRenderable.h"
 #include "glgraphics/VertexTypes.h"
-#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -36,15 +35,6 @@
 #define SUPERCLASS StemObject
 #define BONE_COUNT_MAX 128
 
-enum {
-	VERTEX_ATTRIB_POSITION,
-	VERTEX_ATTRIB_TEXTURE_COORD,
-	VERTEX_ATTRIB_NORMAL,
-	VERTEX_ATTRIB_COLOR,
-	VERTEX_ATTRIB_BONE_ID,
-	VERTEX_ATTRIB_BONE_WEIGHT
-};
-
 Renderer * Renderer_create() {
 	stemobject_create_implementation(Renderer, init)
 }
@@ -55,9 +45,6 @@ bool Renderer_init(Renderer * self) {
 	
 	call_super(init, self);
 	self->dispose = Renderer_dispose;
-	// TODO: Maybe Renderables should each have their own VAO
-	glGenVertexArrays(1, &self->vaoID);
-	glBindVertexArray(self->vaoID);
 	for (renderLayerIndex = 0; renderLayerIndex < RENDER_LAYER_COUNT; renderLayerIndex++) {
 		self->layers[renderLayerIndex].renderableCount = 0;
 		self->layers[renderLayerIndex].allocatedCount = 0;
@@ -93,7 +80,6 @@ void Renderer_dispose(Renderer * self) {
 	GLSLShader_dispose(self->shaderStatic);
 	GLSLShader_dispose(self->shaderAnimated);
 	glBindVertexArray(0);
-	glDeleteVertexArrays(1, &self->vaoID);
 	Material_dispose(self->nullMaterial);
 	call_super(dispose, self);
 }
@@ -199,7 +185,6 @@ void Renderer_drawSingle(Renderer * self, Renderable * renderable) {
 			GLSLShader * shader;
 			Vector3f cameraPosition;
 			
-			// TODO: Can this all be done by some intermediary between renderer and material? Should it? (Material only stores a description of visual properties, not shaders or logic)
 			shader = mesh->hasAnimationData ? self->shaderAnimated : self->shaderStatic;
 			glUseProgram(shader->programID);
 			glUniformMatrix4fv(GLSLShader_getUniformLocation(shader, "projectionTransform"), 1, GL_FALSE, self->projectionMatrix.m);
@@ -215,53 +200,22 @@ void Renderer_drawSingle(Renderer * self, Renderable * renderable) {
 			cameraPosition = Matrix4x4f_multiplyVector3f(self->viewMatrix, VECTOR3f_ZERO);
 			glUniform3f(GLSLShader_getUniformLocation(shader, "cameraPosition"), cameraPosition.x, cameraPosition.y, cameraPosition.z);
 			glUniform1i(GLSLShader_getUniformLocation(shader, "colorTexture"), 0);
+			if (mesh->hasAnimationData) {
+				glUniformMatrix4fv(GLSLShader_getUniformLocation(shader, "boneTransforms"), mesh->animationState->armature->boneCount, GL_FALSE, (GLfloat *) mesh->animationState->computedBoneTransforms);
+			}
+			
+			glBindVertexArray(mesh->vaoID);
 			if (mesh->material == NULL) {
 				glBindTexture(GL_TEXTURE_2D, self->nullMaterial->colorTextureID);
 			} else {
 				glBindTexture(GL_TEXTURE_2D, mesh->material->colorTextureID);
 			}
-			if (mesh->hasAnimationData) {
-				glUniformMatrix4fv(GLSLShader_getUniformLocation(shader, "boneTransforms"), mesh->animationState->armature->boneCount, GL_FALSE, (GLfloat *) mesh->animationState->computedBoneTransforms);
-			}
-			
-			// TODO: Can this all be done by the renderable? Should it? Probably in a VAO
-			glBindBuffer(GL_ARRAY_BUFFER, mesh->vertexBufferID);
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->indexBufferID);
-			glEnableVertexAttribArray(VERTEX_ATTRIB_POSITION);
-			glEnableVertexAttribArray(VERTEX_ATTRIB_TEXTURE_COORD);
-			glEnableVertexAttribArray(VERTEX_ATTRIB_NORMAL);
-			glEnableVertexAttribArray(VERTEX_ATTRIB_COLOR);
-			
-			if (mesh->hasAnimationData) {
-				glEnableVertexAttribArray(VERTEX_ATTRIB_BONE_ID);
-				glEnableVertexAttribArray(VERTEX_ATTRIB_BONE_WEIGHT);
-				glVertexAttribPointer(VERTEX_ATTRIB_POSITION, 3, GL_FLOAT, GL_FALSE, sizeof(struct vertex_p3f_t2f_n3f_c4f_b4u_w4f), (void *) offsetof(struct vertex_p3f_t2f_n3f_c4f_b4u_w4f, position));
-				glVertexAttribPointer(VERTEX_ATTRIB_TEXTURE_COORD, 2, GL_FLOAT, GL_FALSE, sizeof(struct vertex_p3f_t2f_n3f_c4f_b4u_w4f), (void *) offsetof(struct vertex_p3f_t2f_n3f_c4f_b4u_w4f, texCoords));
-				glVertexAttribPointer(VERTEX_ATTRIB_NORMAL, 3, GL_FLOAT, GL_FALSE, sizeof(struct vertex_p3f_t2f_n3f_c4f_b4u_w4f), (void *) offsetof(struct vertex_p3f_t2f_n3f_c4f_b4u_w4f, normal));
-				glVertexAttribPointer(VERTEX_ATTRIB_COLOR, 4, GL_FLOAT, GL_FALSE, sizeof(struct vertex_p3f_t2f_n3f_c4f_b4u_w4f), (void *) offsetof(struct vertex_p3f_t2f_n3f_c4f_b4u_w4f, color));
-				glVertexAttribPointer(VERTEX_ATTRIB_BONE_ID, 4, GL_UNSIGNED_INT, GL_FALSE, sizeof(struct vertex_p3f_t2f_n3f_c4f_b4u_w4f), (void *) offsetof(struct vertex_p3f_t2f_n3f_c4f_b4u_w4f, boneIndexes));
-				glVertexAttribPointer(VERTEX_ATTRIB_BONE_WEIGHT, 4, GL_FLOAT, GL_FALSE, sizeof(struct vertex_p3f_t2f_n3f_c4f_b4u_w4f), (void *) offsetof(struct vertex_p3f_t2f_n3f_c4f_b4u_w4f, boneWeights));
-			} else {
-				glVertexAttribPointer(VERTEX_ATTRIB_POSITION, 3, GL_FLOAT, GL_FALSE, sizeof(struct vertex_p3f_t2f_n3f_c4f), (void *) offsetof(struct vertex_p3f_t2f_n3f_c4f, position));
-				glVertexAttribPointer(VERTEX_ATTRIB_TEXTURE_COORD, 2, GL_FLOAT, GL_FALSE, sizeof(struct vertex_p3f_t2f_n3f_c4f), (void *) offsetof(struct vertex_p3f_t2f_n3f_c4f, texCoords));
-				glVertexAttribPointer(VERTEX_ATTRIB_NORMAL, 3, GL_FLOAT, GL_FALSE, sizeof(struct vertex_p3f_t2f_n3f_c4f), (void *) offsetof(struct vertex_p3f_t2f_n3f_c4f, normal));
-				glVertexAttribPointer(VERTEX_ATTRIB_COLOR, 4, GL_FLOAT, GL_FALSE, sizeof(struct vertex_p3f_t2f_n3f_c4f), (void *) offsetof(struct vertex_p3f_t2f_n3f_c4f, color));
-			}
 			
 			glDrawElements(GL_TRIANGLES, mesh->indexCount, GL_UNSIGNED_INT, 0);
 			
-			glBindBuffer(GL_ARRAY_BUFFER, 0);
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 			glBindTexture(GL_TEXTURE_2D, 0);
 			glUseProgram(0);
-			glDisableVertexAttribArray(VERTEX_ATTRIB_POSITION);
-			glDisableVertexAttribArray(VERTEX_ATTRIB_TEXTURE_COORD);
-			glDisableVertexAttribArray(VERTEX_ATTRIB_NORMAL);
-			glDisableVertexAttribArray(VERTEX_ATTRIB_COLOR);
-			if (mesh->hasAnimationData) {
-				glDisableVertexAttribArray(VERTEX_ATTRIB_BONE_ID);
-				glDisableVertexAttribArray(VERTEX_ATTRIB_BONE_WEIGHT);
-			}
+			glBindVertexArray(0);
 			
 			break;
 		}

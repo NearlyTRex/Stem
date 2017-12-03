@@ -92,11 +92,14 @@ MATERIAL STUFF
 IMMEDIATE: Model loader turns model into header
 
 TODO:
-- VAO binding in Renderable
+- Camera work:
+ - Frame bounding box in OrbitCamera
+ - Camera interpolation (controller object interpolates between different camera objects)
+ - Other cameras: First person, follow behind/ahead
 - Animation controller object with graph logic?
 - IK (https://www.webcitation.org/60uCFHqC2?url=http://freespace.virgin.net/hugo.elias/models/m_ik2.htm)
 - Advanced materials
-- Lighting
+- Better lighting
 - Morphing? (maybe better to do without)
 - Callback renderable type
 - Additional camera types (camera controller with interpolation)

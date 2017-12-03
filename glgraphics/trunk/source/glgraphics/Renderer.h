@@ -34,6 +34,15 @@ typedef unsigned int RenderLayerID;
 #define RENDER_LAYER_2D 2
 #define RENDER_LAYER_COUNT 3
 
+enum {
+	VERTEX_ATTRIB_POSITION,
+	VERTEX_ATTRIB_TEXTURE_COORD,
+	VERTEX_ATTRIB_NORMAL,
+	VERTEX_ATTRIB_COLOR,
+	VERTEX_ATTRIB_BONE_ID,
+	VERTEX_ATTRIB_BONE_WEIGHT
+};
+
 #include "stemobject/StemObject.h"
 #include "gamemath/Matrix4x4f.h"
 #include "glgraphics/GLSLShader.h"
@@ -50,7 +59,6 @@ struct RenderLayer {
 #define Renderer_structContents(self_type) \
 	StemObject_structContents(self_type) \
 	\
-	GLuint vaoID; \
 	struct RenderLayer layers[RENDER_LAYER_COUNT]; \
 	Vector3f light0Position; \
 	Color4f light0Color; \

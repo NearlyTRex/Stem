@@ -31,7 +31,6 @@ typedef struct Animation Animation;
 #include "stemobject/StemObject.h"
 #include "glgraphics/AnimationState.h"
 
-// TODO: Bezier handles for individual components?
 // Bezier handles exist in a coordinate space where {0, 0} is the left keyframe, and {1, 1} is the right keyframe.
 // The input linear weight value is taken as the x coordinate, and the y value at that location is the output curved weight.
 // Curves that go outside the range of 0-1 on the x axis are clipped. Curves that have control points passing each other
