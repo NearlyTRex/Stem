@@ -29,6 +29,8 @@
 #include <stdio.h>
 #include <unistd.h>
 
+#define PROJECTION_FOV 60.0f
+
 static Renderer * renderer;
 static Material * material;
 static MeshRenderable * renderable;
@@ -75,7 +77,7 @@ static void initScene1() {
 	Renderer_clearAllRenderables(renderer);
 	Renderer_setClearColor(renderer, COLOR4f(0.0f, 0.125f, 0.25f, 0.0f));
 	Renderer_setLights(renderer, VECTOR3f(0.0f, 8.0f, 8.0f), COLOR4f(1.0f, 1.0f, 0.95f, 1.0f), VECTOR3f(-1.0f, -2.0f, -8.0f), COLOR4f(0.8f, 0.8f, 0.8f, 1.0f), COLOR4f(0.1f, 0.1f, 0.105f, 1.0f));
-	Renderer_setProjectionMatrix(renderer, Matrix4x4f_perspective(MATRIX4x4f_IDENTITY, 60.0f, (float) viewWidth / (float) viewHeight, 0.5f, 100.0f));
+	Renderer_setProjectionMatrix(renderer, Matrix4x4f_perspective(MATRIX4x4f_IDENTITY, PROJECTION_FOV, (float) viewWidth / (float) viewHeight, 0.5f, 100.0f));
 	
 	if (renderable != NULL) {
 		MeshRenderable_dispose(renderable);
@@ -127,7 +129,7 @@ static void initScene2() {
 	Renderer_clearAllRenderables(renderer);
 	Renderer_setClearColor(renderer, COLOR4f(0.25f, 0.0f, 0.125f, 0.0f));
 	Renderer_setLights(renderer, VECTOR3f(0.0f, 8.0f, 8.0f), COLOR4f(1.0f, 1.0f, 0.95f, 1.0f), VECTOR3f(-1.0f, -2.0f, -8.0f), COLOR4f(0.8f, 0.8f, 0.8f, 1.0f), COLOR4f(0.1f, 0.1f, 0.105f, 1.0f));
-	Renderer_setProjectionMatrix(renderer, Matrix4x4f_perspective(MATRIX4x4f_IDENTITY, 60.0f, (float) viewWidth / (float) viewHeight, 0.5f, 100.0f));
+	Renderer_setProjectionMatrix(renderer, Matrix4x4f_perspective(MATRIX4x4f_IDENTITY, PROJECTION_FOV, (float) viewWidth / (float) viewHeight, 0.5f, 100.0f));
 	
 	if (renderable != NULL) {
 		MeshRenderable_dispose(renderable);
@@ -284,7 +286,7 @@ static void initScene3() {
 	Renderer_clearAllRenderables(renderer);
 	Renderer_setClearColor(renderer, COLOR4f(0.125f, 0.0625f, 0.0f, 0.0f));
 	Renderer_setLights(renderer, VECTOR3f(2.0f, 8.0f, 8.0f), COLOR4f(1.0f, 1.0f, 0.95f, 1.0f), VECTOR3f(-3.0f, -2.0f, -8.0f), COLOR4f(0.8f, 0.8f, 0.8f, 1.0f), COLOR4f(0.1f, 0.1f, 0.105f, 1.0f));
-	Renderer_setProjectionMatrix(renderer, Matrix4x4f_perspective(MATRIX4x4f_IDENTITY, 60.0f, (float) viewWidth / (float) viewHeight, 0.5f, 100.0f));
+	Renderer_setProjectionMatrix(renderer, Matrix4x4f_perspective(MATRIX4x4f_IDENTITY, PROJECTION_FOV, (float) viewWidth / (float) viewHeight, 0.5f, 100.0f));
 	
 	if (renderable != NULL) {
 		MeshRenderable_dispose(renderable);
@@ -350,7 +352,7 @@ static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned
 			}
 			break;
 		case KEYBOARD_C:
-			OrbitCamera_frameBoundingBox(camera, renderable->bounds, 60.0f, (float) viewWidth / (float) viewHeight);
+			OrbitCamera_frameBoundingBox(camera, renderable->bounds, PROJECTION_FOV, (float) viewWidth / (float) viewHeight);
 			Shell_redisplay();
 			break;
 	}
@@ -400,7 +402,7 @@ static void Target_resized(unsigned int newWidth, unsigned int newHeight) {
 	viewHeight = newHeight;
 	glViewport(0, 0, viewWidth, viewHeight);
 	if (renderer != NULL) {
-		Renderer_setProjectionMatrix(renderer, Matrix4x4f_perspective(MATRIX4x4f_IDENTITY, 60.0f, (float) viewWidth / (float) viewHeight, 0.5f, 100.0f));
+		Renderer_setProjectionMatrix(renderer, Matrix4x4f_perspective(MATRIX4x4f_IDENTITY, PROJECTION_FOV, (float) viewWidth / (float) viewHeight, 0.5f, 100.0f));
 	}
 }
 

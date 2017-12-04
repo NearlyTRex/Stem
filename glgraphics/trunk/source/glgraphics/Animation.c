@@ -73,38 +73,38 @@ AnimationState * Animation_createAnimationStateAtTime(Animation * self, double a
 	return animationState;
 }
 
-static bool Animation_findBoneKeyframes(Animation * self, unsigned int boneIndex, double animationTime, unsigned int * outKeyframeIndexLeft, unsigned int * outBoneKeyframeIndexLeft, unsigned int * outKeyframeIndexRight, unsigned int * outBoneKeyframeIndexRight, float * outKeyframeWeight) {
+static bool Animation_findBoneKeyframes(Animation * self, unsigned int boneIndex, double animationTime, unsigned int * outKeyframeIndexLeft, unsigned int * outKeyframeBoneIndexLeft, unsigned int * outKeyframeIndexRight, unsigned int * outKeyframeBoneIndexRight, float * outKeyframeWeight) {
 	double keyframeTime = 0.0, keyframeTimeLeft = 0.0, keyframeTimeRight = 0.0;
 	unsigned int keyframeIndex, keyframeIndexLeft = 0, keyframeIndexRight = 0;
-	unsigned int boneKeyframeIndex, boneKeyframeIndexLeft = BONE_INDEX_NOT_FOUND, boneKeyframeIndexRight = BONE_INDEX_NOT_FOUND;
+	unsigned int keyframeBoneIndex, keyframeBoneIndexLeft = BONE_INDEX_NOT_FOUND, keyframeBoneIndexRight = BONE_INDEX_NOT_FOUND;
 	
 	// Search for keyframe with an entry for this bone closest to animationTime
 	for (keyframeIndex = 0; keyframeIndex < self->keyframeCount && keyframeTime < animationTime; keyframeIndex++) {
-		for (boneKeyframeIndex = 0; boneKeyframeIndex < self->keyframes[keyframeIndex].boneCount; boneKeyframeIndex++) {
-			if (self->keyframes[keyframeIndex].bones[boneKeyframeIndex].boneIndex == boneIndex) {
+		for (keyframeBoneIndex = 0; keyframeBoneIndex < self->keyframes[keyframeIndex].boneCount; keyframeBoneIndex++) {
+			if (self->keyframes[keyframeIndex].bones[keyframeBoneIndex].boneIndex == boneIndex) {
 				keyframeIndexLeft = keyframeIndex;
 				keyframeTimeLeft = keyframeTime;
-				boneKeyframeIndexLeft = boneKeyframeIndex;
+				keyframeBoneIndexLeft = keyframeBoneIndex;
 				break;
 			}
 		}
 		keyframeTime += self->keyframes[keyframeIndex].interval;
 	}
-	if (boneKeyframeIndexLeft == BONE_INDEX_NOT_FOUND) {
+	if (keyframeBoneIndexLeft == BONE_INDEX_NOT_FOUND) {
 		// If the bone isn't specified prior to animationTime, find the latest specification past it, if any
 		for (; keyframeIndex < self->keyframeCount; keyframeIndex++) {
-			for (boneKeyframeIndex = 0; boneKeyframeIndex < self->keyframes[keyframeIndex].boneCount; boneKeyframeIndex++) {
-				if (self->keyframes[keyframeIndex].bones[boneKeyframeIndex].boneIndex == boneIndex) {
+			for (keyframeBoneIndex = 0; keyframeBoneIndex < self->keyframes[keyframeIndex].boneCount; keyframeBoneIndex++) {
+				if (self->keyframes[keyframeIndex].bones[keyframeBoneIndex].boneIndex == boneIndex) {
 					keyframeIndexLeft = keyframeIndex;
 					keyframeTimeLeft = keyframeTime;
-					boneKeyframeIndexLeft = boneKeyframeIndex;
+					keyframeBoneIndexLeft = keyframeBoneIndex;
 					break;
 				}
 			}
 			keyframeTime += self->keyframes[keyframeIndex].interval;
 		}
 	}
-	if (boneKeyframeIndexLeft == BONE_INDEX_NOT_FOUND) {
+	if (keyframeBoneIndexLeft == BONE_INDEX_NOT_FOUND) {
 		// This bone isn't specified in this animation
 		return false;
 	}
@@ -112,47 +112,47 @@ static bool Animation_findBoneKeyframes(Animation * self, unsigned int boneIndex
 	// Search for the next appearance of this bone in a keyframe
 	keyframeTime = keyframeTimeLeft + self->keyframes[keyframeIndexLeft].interval;
 	for (keyframeIndex = keyframeIndexLeft + 1; keyframeIndex < self->keyframeCount; keyframeIndex++) {
-		for (boneKeyframeIndex = 0; boneKeyframeIndex < self->keyframes[keyframeIndex].boneCount; boneKeyframeIndex++) {
-			if (self->keyframes[keyframeIndex].bones[boneKeyframeIndex].boneIndex == boneIndex) {
+		for (keyframeBoneIndex = 0; keyframeBoneIndex < self->keyframes[keyframeIndex].boneCount; keyframeBoneIndex++) {
+			if (self->keyframes[keyframeIndex].bones[keyframeBoneIndex].boneIndex == boneIndex) {
 				keyframeIndexRight = keyframeIndex;
 				keyframeTimeRight = keyframeTime;
-				boneKeyframeIndexRight = boneKeyframeIndex;
+				keyframeBoneIndexRight = keyframeBoneIndex;
 				break;
 			}
 		}
 		keyframeTime += self->keyframes[keyframeIndex].interval;
-		if (boneKeyframeIndexRight != BONE_INDEX_NOT_FOUND) {
+		if (keyframeBoneIndexRight != BONE_INDEX_NOT_FOUND) {
 			break;
 		}
 	}
-	if (boneKeyframeIndexRight == BONE_INDEX_NOT_FOUND) {
+	if (keyframeBoneIndexRight == BONE_INDEX_NOT_FOUND) {
 		// Wrap search around to the beginning if necessary
 		for (keyframeIndex = 0; keyframeIndex < keyframeIndexLeft; keyframeIndex++) {
-			for (boneKeyframeIndex = 0; boneKeyframeIndex < self->keyframes[keyframeIndex].boneCount; boneKeyframeIndex++) {
-				if (self->keyframes[keyframeIndex].bones[boneKeyframeIndex].boneIndex == boneIndex) {
+			for (keyframeBoneIndex = 0; keyframeBoneIndex < self->keyframes[keyframeIndex].boneCount; keyframeBoneIndex++) {
+				if (self->keyframes[keyframeIndex].bones[keyframeBoneIndex].boneIndex == boneIndex) {
 					keyframeIndexRight = keyframeIndex;
 					keyframeTimeRight = keyframeTime;
-					boneKeyframeIndexRight = boneKeyframeIndex;
+					keyframeBoneIndexRight = keyframeBoneIndex;
 					break;
 				}
 			}
 			keyframeTime += self->keyframes[keyframeIndex].interval;
-			if (boneKeyframeIndexRight != BONE_INDEX_NOT_FOUND) {
+			if (keyframeBoneIndexRight != BONE_INDEX_NOT_FOUND) {
 				break;
 			}
 		}
 	}
-	if (boneKeyframeIndexRight == BONE_INDEX_NOT_FOUND) {
+	if (keyframeBoneIndexRight == BONE_INDEX_NOT_FOUND) {
 		keyframeIndexRight = keyframeIndexLeft;
-		boneKeyframeIndexRight = boneKeyframeIndexLeft;
+		keyframeBoneIndexRight = keyframeBoneIndexLeft;
 		keyframeTimeRight = keyframeTimeLeft;
 	}
 	
 	*outKeyframeIndexLeft = keyframeIndexLeft;
-	*outBoneKeyframeIndexLeft = boneKeyframeIndexLeft;
+	*outkeyframeBoneIndexLeft = keyframeBoneIndexLeft;
 	*outKeyframeIndexRight = keyframeIndexRight;
-	*outBoneKeyframeIndexRight = boneKeyframeIndexRight;
-	// TODO: There may be degenerate cases in here. Shouldn't left and right be swapped if animationTime is outside them?
+	*outkeyframeBoneIndexRight = keyframeBoneIndexRight;
+	// TODO: There may be degenerate cases in here. Shouldn't left and right be swapped if animationTime is outside them? Maybe that's impossible?
 	if (keyframeTimeLeft == keyframeTimeRight) {
 		*outKeyframeWeight = 0.0f;
 	} else if (keyframeTimeLeft < keyframeTimeRight) {
@@ -188,7 +188,7 @@ static inline float curvedKeyframeInterpolationValue(Vector2f leftHandle, Vector
 void Animation_poseAnimationStateAtTime(Animation * self, AnimationState * animationState, double animationTime, float weight) {
 	unsigned int boneIndex;
 	unsigned int keyframeIndexLeft = 0, keyframeIndexRight = 0;
-	unsigned int boneKeyframeIndexLeft, boneKeyframeIndexRight;
+	unsigned int keyframeBoneIndexLeft, keyframeBoneIndexRight;
 	float keyframeWeight;
 	struct AnimationBoneState boneState;
 	
@@ -200,10 +200,10 @@ void Animation_poseAnimationStateAtTime(Animation * self, AnimationState * anima
 	}
 	
 	for (boneIndex = 0; boneIndex < self->armature->boneCount; boneIndex++) {
-		if (Animation_findBoneKeyframes(self, boneIndex, animationTime, &keyframeIndexLeft, &boneKeyframeIndexLeft, &keyframeIndexRight, &boneKeyframeIndexRight, &keyframeWeight)) {
+		if (Animation_findBoneKeyframes(self, boneIndex, animationTime, &keyframeIndexLeft, &keyframeBoneIndexLeft, &keyframeIndexRight, &keyframeBoneIndexRight, &keyframeWeight)) {
 			// Interpolate bone based on keyframes
-			struct AnimationBoneKeyframe boneKeyframeLeft = self->keyframes[keyframeIndexLeft].bones[boneKeyframeIndexLeft];
-			struct AnimationBoneKeyframe boneKeyframeRight = self->keyframes[keyframeIndexRight].bones[boneKeyframeIndexRight];
+			struct AnimationBoneKeyframe boneKeyframeLeft = self->keyframes[keyframeIndexLeft].bones[keyframeBoneIndexLeft];
+			struct AnimationBoneKeyframe boneKeyframeRight = self->keyframes[keyframeIndexRight].bones[keyframeBoneIndexRight];
 			
 			boneState.offset   = Vector3f_interpolate(boneKeyframeLeft.offset,   boneKeyframeRight.offset,   curvedKeyframeInterpolationValue(boneKeyframeLeft.outgoingOffsetBezierHandle,   boneKeyframeRight.incomingOffsetBezierHandle,   keyframeWeight));
 			boneState.scale    = Vector3f_interpolate(boneKeyframeLeft.scale,    boneKeyframeRight.scale,    curvedKeyframeInterpolationValue(boneKeyframeLeft.outgoingScaleBezierHandle,    boneKeyframeRight.incomingScaleBezierHandle,    keyframeWeight));

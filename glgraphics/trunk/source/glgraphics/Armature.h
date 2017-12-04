@@ -46,6 +46,7 @@ struct ArmatureBone {
 #define Armature_structContents(self_type) \
 	StemObject_structContents(self_type) \
 	\
+	Atom name; \
 	unsigned int boneCount; \
 	struct ArmatureBone * bones;
 
