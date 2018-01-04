@@ -42,6 +42,7 @@ Renderer * Renderer_create() {
 bool Renderer_init(Renderer * self) {
 	int renderLayerIndex;
 	unsigned char nullMaterialColor[4] = {0xFF, 0xFF, 0xFF, 0xFF};
+	unsigned char nullMaterialNormal[4] = {0x00, 0x00, 0xFF, 0xFF};
 	
 	call_super(init, self);
 	self->dispose = Renderer_dispose;
@@ -68,6 +69,7 @@ bool Renderer_init(Renderer * self) {
 	NULL);
 	self->nullMaterial = Material_create();
 	Material_setColorTexture(self->nullMaterial, true, 1, 1, 4, nullMaterialColor);
+	Material_setNormalTexture(self->nullMaterial, true, 1, 1, 4, nullMaterialNormal);
 	return true;
 }
 
@@ -185,7 +187,7 @@ void Renderer_drawSingle(Renderer * self, Renderable * renderable) {
 			GLSLShader * shader;
 			Vector3f cameraPosition;
 			
-			shader = mesh->hasAnimationData ? self->shaderAnimated : self->shaderStatic;
+			shader = mesh->animationState == NULL ? self->shaderStatic : self->shaderAnimated;
 			glUseProgram(shader->programID);
 			glUniformMatrix4fv(GLSLShader_getUniformLocation(shader, "projectionTransform"), 1, GL_FALSE, self->projectionMatrix.m);
 			glUniformMatrix4fv(GLSLShader_getUniformLocation(shader, "viewTransform"), 1, GL_FALSE, self->viewMatrix.m);
@@ -200,18 +202,18 @@ void Renderer_drawSingle(Renderer * self, Renderable * renderable) {
 			cameraPosition = Matrix4x4f_multiplyVector3f(self->viewMatrix, VECTOR3f_ZERO);
 			glUniform3f(GLSLShader_getUniformLocation(shader, "cameraPosition"), cameraPosition.x, cameraPosition.y, cameraPosition.z);
 			glUniform1i(GLSLShader_getUniformLocation(shader, "colorTexture"), 0);
-			if (mesh->hasAnimationData) {
+			if (mesh->animationState != NULL) {
 				glUniformMatrix4fv(GLSLShader_getUniformLocation(shader, "boneTransforms"), mesh->animationState->armature->boneCount, GL_FALSE, (GLfloat *) mesh->animationState->computedBoneTransforms);
 			}
 			
-			glBindVertexArray(mesh->vaoID);
+			glBindVertexArray(mesh->vertexBuffer->vaoID);
 			if (mesh->material == NULL) {
 				glBindTexture(GL_TEXTURE_2D, self->nullMaterial->colorTextureID);
 			} else {
 				glBindTexture(GL_TEXTURE_2D, mesh->material->colorTextureID);
 			}
 			
-			glDrawElements(GL_TRIANGLES, mesh->indexCount, GL_UNSIGNED_INT, 0);
+			glDrawElements(GL_TRIANGLES, mesh->vertexBuffer->indexCount, GL_UNSIGNED_INT, 0);
 			
 			glBindTexture(GL_TEXTURE_2D, 0);
 			glUseProgram(0);

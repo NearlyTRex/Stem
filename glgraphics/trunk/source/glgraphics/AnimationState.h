@@ -54,10 +54,22 @@ bool AnimationState_init(AnimationState * self, Armature * armature);
 void AnimationState_initCopy(AnimationState * self, AnimationState * original);
 void AnimationState_dispose(AnimationState * self);
 AnimationState * AnimationState_copy(AnimationState * self);
+
+// Resets the offset, scale, and rotation of all bones to the identity. Does not affect computedBoneTransforms.
 void AnimationState_resetAllBones(AnimationState * self);
+
+// Computes a matrix for each bone and stores it in computedBoneTransforms. This is not done automatically.
 void AnimationState_computeBoneTransforms(AnimationState * self);
+
+// Returns the base position of the specified bone after being transformed by its parent chain.
+// AnimationState_computeBoneTransforms must be called before using this function.
 Vector3f AnimationState_getBonePosition(AnimationState * self, unsigned int boneID);
+
+// Same as above, but for the endpoint of the bone rather than the base position.
 Vector3f AnimationState_getBoneEndpoint(AnimationState * self, unsigned int boneID);
+
+// Adds the transforms in state to the transforms in self
+void AnimationState_combine(AnimationState * self, AnimationState * state);
 
 #ifdef __cplusplus
 }

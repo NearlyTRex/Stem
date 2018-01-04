@@ -33,22 +33,18 @@ typedef enum {
 	RENDERABLE_DYNAMIC_MESH
 } RenderableType;
 
-#include "gamemath/Box6f.h"
 #include "stemobject/StemObject.h"
 
 #define Renderable_structContents(self_type) \
 	StemObject_structContents(self_type) \
 	\
 	RenderableType type; \
-	bool visible; \
-	\
-	Box6f (* getBoundingBox)(self_type * self);
+	bool visible;
 
 stemobject_struct_definition(Renderable)
 
 bool Renderable_init(Renderable * self, RenderableType type);
 void Renderable_dispose(Renderable * self);
-Box6f Renderable_getBoundingBox(Renderable * self);
 
 #ifdef __cplusplus
 }

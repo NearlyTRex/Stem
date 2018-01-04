@@ -34,7 +34,8 @@ typedef struct Material Material;
 #define Material_structContents(self_type) \
 	StemObject_structContents(self_type) \
 	\
-	GLuint colorTextureID;
+	GLuint colorTextureID; \
+	GLuint normalTextureID;
 
 stemobject_struct_definition(Material)
 
@@ -45,6 +46,7 @@ void Material_dispose(Material * self);
 // TODO: How to handle translucency and premultiplication
 // Implicit: RGBA_8888, GL_UNSIGNED_BYTE, GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR minification, anisotropy on, mipmaps generated
 void Material_setColorTexture(Material * self, bool nearestNeighborMagnification, unsigned int width, unsigned int height, unsigned int bytesPerRow, void * bitmapData);
+void Material_setNormalTexture(Material * self, bool nearestNeighborMagnification, unsigned int width, unsigned int height, unsigned int bytesPerRow, void * bitmapData);
 
 #ifdef __cplusplus
 }

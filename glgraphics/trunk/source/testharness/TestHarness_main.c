@@ -33,10 +33,14 @@
 
 static Renderer * renderer;
 static Material * material;
+static Material * armatureMaterial;
+static VertexBuffer * vertexBuffer;
+static VertexBuffer * armatureVertexBuffer;
 static MeshRenderable * renderable;
 static MeshRenderable * armatureRenderable;
 static Armature * armature;
 static Animation * animation;
+static AnimationState * animationState;
 static OrbitCamera * camera;
 static bool shiftKeyDown, controlKeyDown;
 static unsigned int viewWidth = 1280, viewHeight = 720;
@@ -48,11 +52,6 @@ static bool Target_draw() {
 		AnimationState_resetAllBones(renderable->animationState);
 		Animation_poseAnimationStateAtTime(animation, renderable->animationState, Shell_getCurrentTime() - animationStartTime, 1.0f);
 		AnimationState_computeBoneTransforms(renderable->animationState);
-		if (armatureRenderable != NULL) {
-			AnimationState_resetAllBones(armatureRenderable->animationState);
-			Animation_poseAnimationStateAtTime(animation, armatureRenderable->animationState, Shell_getCurrentTime() - animationStartTime, 1.0f);
-			AnimationState_computeBoneTransforms(armatureRenderable->animationState);
-		}
 		Shell_redisplay();
 	}
 	
@@ -82,13 +81,12 @@ static void initScene1() {
 	if (renderable != NULL) {
 		MeshRenderable_dispose(renderable);
 	}
-	renderable = MeshRenderable_createStatic(vertices, sizeof(vertices) / sizeof(struct vertex_p3f_t2f_n3f_c4f), indexes, sizeof(indexes) / sizeof(GLuint), material);
-	Renderer_addRenderable(renderer, RENDER_LAYER_3D_OPAQUE, (Renderable *) renderable);
-	
-	if (armatureRenderable != NULL) {
-		MeshRenderable_dispose(armatureRenderable);
-		armatureRenderable = NULL;
+	if (vertexBuffer != NULL) {
+		VertexBuffer_dispose(vertexBuffer);
 	}
+	vertexBuffer = VertexBuffer_createPTNC(vertices, sizeof(vertices) / sizeof(struct vertex_p3f_t2f_n3f_c4f), indexes, sizeof(indexes) / sizeof(GLuint));
+	renderable = MeshRenderable_create(vertexBuffer, material, NULL, MATRIX4x4f_IDENTITY);
+	Renderer_addRenderable(renderer, RENDER_LAYER_3D_OPAQUE, (Renderable *) renderable);
 	
 	if (camera != NULL) {
 		OrbitCamera_dispose(camera);
@@ -108,9 +106,9 @@ static void initScene2() {
 		1, 2, 3
 	};
 	struct ArmatureBone bones[] = {
-		{ATOM("root"), BONE_INDEX_NOT_FOUND, VECTOR3f(0.0f, 0.0f, 0.0f), VECTOR3f(1.0f, 0.0f, 0.0f)},
-		{ATOM("boneLower"), 0, VECTOR3f(0.0f, -1.0f, 0.0f), VECTOR3f(1.0f, -1.0f, 0.0f)},
-		{ATOM("boneUpper"), 0, VECTOR3f(0.0f, 1.0f, 0.0f), VECTOR3f(1.0f, 1.0f, 0.0f)}
+		{ATOM("root"), BONE_INDEX_NOT_FOUND, VECTOR3f(0.0f, 0.0f, 0.0f), VECTOR3f(1.0f, 0.0f, 0.0f), 0.0f},
+		{ATOM("boneLower"), 0, VECTOR3f(0.0f, -1.0f, 0.0f), VECTOR3f(1.0f, -1.0f, 0.0f), 0.0f},
+		{ATOM("boneUpper"), 0, VECTOR3f(0.0f, 1.0f, 0.0f), VECTOR3f(1.0f, 1.0f, 0.0f), 0.0f}
 	};
 	struct AnimationBoneKeyframe frame1Bones[] = {
 		{1, {-1.0f, 0.0f, 0.0f}, {0.5f, 1.0f}, {0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}, {0.0f, 0.0f}, QUATERNIONf_IDENTITY, {1.0f, 0.0f}, {0.0f, 0.0f}},
@@ -124,33 +122,43 @@ static void initScene2() {
 		{1.0f, sizeof(frame1Bones) / sizeof(frame1Bones[0]), frame1Bones},
 		{0.5f, sizeof(frame2Bones) / sizeof(frame2Bones[0]), frame2Bones}
 	};
-	AnimationState * animationState;
 	
 	Renderer_clearAllRenderables(renderer);
 	Renderer_setClearColor(renderer, COLOR4f(0.25f, 0.0f, 0.125f, 0.0f));
 	Renderer_setLights(renderer, VECTOR3f(0.0f, 8.0f, 8.0f), COLOR4f(1.0f, 1.0f, 0.95f, 1.0f), VECTOR3f(-1.0f, -2.0f, -8.0f), COLOR4f(0.8f, 0.8f, 0.8f, 1.0f), COLOR4f(0.1f, 0.1f, 0.105f, 1.0f));
 	Renderer_setProjectionMatrix(renderer, Matrix4x4f_perspective(MATRIX4x4f_IDENTITY, PROJECTION_FOV, (float) viewWidth / (float) viewHeight, 0.5f, 100.0f));
 	
-	if (renderable != NULL) {
-		MeshRenderable_dispose(renderable);
-	}
 	if (armature != NULL) {
 		Armature_dispose(armature);
 	}
 	if (animation != NULL) {
 		Animation_dispose(animation);
 	}
+	if (animationState != NULL) {
+		AnimationState_dispose(animationState);
+	}
+	if (vertexBuffer != NULL) {
+		VertexBuffer_dispose(vertexBuffer);
+	}
+	if (renderable != NULL) {
+		MeshRenderable_dispose(renderable);
+	}
 	armature = Armature_create(sizeof(bones) / sizeof(bones[0]), bones);
-	animation = Animation_create(ATOM("animation"), armature, sizeof(keyframes) / sizeof(keyframes[0]), keyframes);
-	animationState = Animation_createAnimationStateAtTime(animation, 0.0);
-	renderable = MeshRenderable_createAnimated(vertices, sizeof(vertices) / sizeof(struct vertex_p3f_t2f_n3f_c4f), indexes, sizeof(indexes) / sizeof(GLuint), material, animationState);
-	AnimationState_dispose(animationState);
+	animation = Animation_create(ATOM("animation"), true, sizeof(keyframes) / sizeof(keyframes[0]), keyframes, 0, NULL);
+	animationState = AnimationState_create(armature);
+	Animation_poseAnimationStateAtTime(animation, animationState, 0.0, 1.0f);
+	vertexBuffer = VertexBuffer_createPTNCBW(vertices, sizeof(vertices) / sizeof(struct vertex_p3f_t2f_n3f_c4f_b4u_w4f), indexes, sizeof(indexes) / sizeof(GLuint));
+	renderable = MeshRenderable_create(vertexBuffer, material, animationState, MATRIX4x4f_IDENTITY);
 	Renderer_addRenderable(renderer, RENDER_LAYER_3D_OPAQUE, (Renderable *) renderable);
 	
+	if (armatureVertexBuffer != NULL ){
+		VertexBuffer_dispose(armatureVertexBuffer);
+	}
 	if (armatureRenderable != NULL) {
 		MeshRenderable_dispose(armatureRenderable);
 	}
-	armatureRenderable = Armature_createDebugMesh(armature);
+	armatureVertexBuffer = Armature_createDebugVertexBuffer(armature);
+	armatureRenderable = MeshRenderable_create(armatureVertexBuffer, armatureMaterial, animationState, MATRIX4x4f_IDENTITY);
 	armatureRenderable->visible = false;
 	Renderer_addRenderable(renderer, RENDER_LAYER_3D_OPAQUE, (Renderable *) armatureRenderable);
 	
@@ -265,9 +273,9 @@ static void initScene3() {
 		52, 53, 54, 54, 55, 52
 	};
 	struct ArmatureBone bones[] = {
-		{ATOM("root"), BONE_INDEX_NOT_FOUND, VECTOR3f(0.0f, -4.0f, 0.0f), VECTOR3f(0.0f, -1.0f, 0.0f)},
-		{ATOM("joint1"), 0, VECTOR3f(0.0f, -1.0f, 0.0f), VECTOR3f(0.0f, 2.0f, 0.0f)},
-		{ATOM("joint2"), 1, VECTOR3f(0.0f, 2.0f, 0.0f), VECTOR3f(0.0f, 4.0f, 0.0f)}
+		{ATOM("root"), BONE_INDEX_NOT_FOUND, VECTOR3f(0.0f, -4.0f, 0.0f), VECTOR3f(0.0f, -1.0f, 0.0f), 0.0f},
+		{ATOM("joint1"), 0, VECTOR3f(0.0f, -1.0f, 0.0f), VECTOR3f(0.0f, 2.0f, 0.0f), 0.0f},
+		{ATOM("joint2"), 1, VECTOR3f(0.0f, 2.0f, 0.0f), VECTOR3f(0.0f, 4.0f, 0.0f), M_PI * 0.5f}
 	};
 	struct AnimationBoneKeyframe frame1Bones[] = {
 		{1, {0.0f, 0.0f, 0.0f}, {1.0f, 1.0f}, {0.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}, {0.0f, 0.0f}, QUATERNIONf_IDENTITY, {0.5f, 1.0f}, {0.5f, 0.0f}},
@@ -281,33 +289,43 @@ static void initScene3() {
 		{0.5f, sizeof(frame1Bones) / sizeof(frame1Bones[0]), frame1Bones},
 		{0.5f, sizeof(frame2Bones) / sizeof(frame2Bones[0]), frame2Bones}
 	};
-	AnimationState * animationState;
 	
 	Renderer_clearAllRenderables(renderer);
 	Renderer_setClearColor(renderer, COLOR4f(0.125f, 0.0625f, 0.0f, 0.0f));
 	Renderer_setLights(renderer, VECTOR3f(2.0f, 8.0f, 8.0f), COLOR4f(1.0f, 1.0f, 0.95f, 1.0f), VECTOR3f(-3.0f, -2.0f, -8.0f), COLOR4f(0.8f, 0.8f, 0.8f, 1.0f), COLOR4f(0.1f, 0.1f, 0.105f, 1.0f));
 	Renderer_setProjectionMatrix(renderer, Matrix4x4f_perspective(MATRIX4x4f_IDENTITY, PROJECTION_FOV, (float) viewWidth / (float) viewHeight, 0.5f, 100.0f));
 	
-	if (renderable != NULL) {
-		MeshRenderable_dispose(renderable);
-	}
 	if (armature != NULL) {
 		Armature_dispose(armature);
 	}
 	if (animation != NULL) {
 		Animation_dispose(animation);
 	}
+	if (animationState != NULL) {
+		AnimationState_dispose(animationState);
+	}
+	if (vertexBuffer != NULL) {
+		VertexBuffer_dispose(vertexBuffer);
+	}
+	if (renderable != NULL) {
+		MeshRenderable_dispose(renderable);
+	}
 	armature = Armature_create(sizeof(bones) / sizeof(bones[0]), bones);
-	animation = Animation_create(ATOM("animation"), armature, sizeof(keyframes) / sizeof(keyframes[0]), keyframes);
-	animationState = Animation_createAnimationStateAtTime(animation, 0.0);
-	renderable = MeshRenderable_createAnimated(vertices, sizeof(vertices) / sizeof(struct vertex_p3f_t2f_n3f_c4f), indexes, sizeof(indexes) / sizeof(GLuint), material, animationState);
-	AnimationState_dispose(animationState);
+	animation = Animation_create(ATOM("animation"), true, sizeof(keyframes) / sizeof(keyframes[0]), keyframes, 0, NULL);
+	animationState = AnimationState_create(armature);
+	Animation_poseAnimationStateAtTime(animation, animationState, 0.0, 1.0f);
+	vertexBuffer = VertexBuffer_createPTNCBW(vertices, sizeof(vertices) / sizeof(struct vertex_p3f_t2f_n3f_c4f_b4u_w4f), indexes, sizeof(indexes) / sizeof(GLuint));
+	renderable = MeshRenderable_create(vertexBuffer, material, animationState, MATRIX4x4f_IDENTITY);
 	Renderer_addRenderable(renderer, RENDER_LAYER_3D_OPAQUE, (Renderable *) renderable);
 	
+	if (armatureVertexBuffer != NULL ){
+		VertexBuffer_dispose(armatureVertexBuffer);
+	}
 	if (armatureRenderable != NULL) {
 		MeshRenderable_dispose(armatureRenderable);
 	}
-	armatureRenderable = Armature_createDebugMesh(armature);
+	armatureVertexBuffer = Armature_createDebugVertexBuffer(armature);
+	armatureRenderable = MeshRenderable_create(armatureVertexBuffer, armatureMaterial, animationState, MATRIX4x4f_IDENTITY);
 	armatureRenderable->visible = false;
 	Renderer_addRenderable(renderer, RENDER_LAYER_3D_OPAQUE, (Renderable *) armatureRenderable);
 	
@@ -352,7 +370,8 @@ static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned
 			}
 			break;
 		case KEYBOARD_C:
-			OrbitCamera_frameBoundingBox(camera, renderable->bounds, PROJECTION_FOV, (float) viewWidth / (float) viewHeight);
+			// TODO: Reimplement bounding box mechanism for MeshRenderable/VertexBuffer
+			//OrbitCamera_frameBoundingBox(camera, renderable->bounds, PROJECTION_FOV, (float) viewWidth / (float) viewHeight);
 			Shell_redisplay();
 			break;
 	}
@@ -452,12 +471,15 @@ void Target_init() {
 		0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0xFF,
 		0x00, 0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF
 	};
+	unsigned char boneColor[4] = {0xFF, 0xFF, 0xEF, 0xFF};
 	
 	chdir(Shell_getResourcePath());
 	
 	renderer = Renderer_create();
 	material = Material_create();
 	Material_setColorTexture(material, true, 2, 2, 8, checkerboardPixels);
+	armatureMaterial = Material_create();
+	Material_setColorTexture(armatureMaterial, false, 1, 1, 4, boneColor);
 	
 	initScene1();
 	Shell_mainLoop();

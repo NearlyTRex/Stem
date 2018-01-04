@@ -49,29 +49,40 @@ struct AnimationBoneKeyframe {
 };
 
 struct AnimationKeyframe {
-	double interval;
+	double interval; // Relative time until next keyframe
 	unsigned int boneCount;
 	struct AnimationBoneKeyframe * bones;
+};
+
+struct AnimationMarker {
+	double time; // Absolute time from beginning of animation
+	Atom name;
 };
 
 #define Animation_structContents(self_type) \
 	StemObject_structContents(self_type) \
 	\
 	Atom name; \
-	Armature * armature; \
-	double animationLength; \
+	bool loop; \
+	double private_ivar(animationLength); \
 	unsigned int keyframeCount; \
-	struct AnimationKeyframe * keyframes;
+	struct AnimationKeyframe * keyframes; \
+	unsigned int markerCount; \
+	struct AnimationMarker * markers;
 
 stemobject_struct_definition(Animation)
 
-// keyframes is copied; caller retains ownership of their copy. armature is referenced and not copied.
-Animation * Animation_create(Atom name, Armature * armature, unsigned int keyframeCount, struct AnimationKeyframe * keyframes);
-bool Animation_init(Animation * self, Atom name, Armature * armature, unsigned int keyframeCount, struct AnimationKeyframe * keyframes);
+// keyframes and markers are copied; caller retains ownership of what they passed.
+Animation * Animation_create(Atom name, bool loop, unsigned int keyframeCount, struct AnimationKeyframe * keyframes, unsigned int markerCount, struct AnimationMarker * markers);
+bool Animation_init(Animation * self, Atom name, bool loop, unsigned int keyframeCount, struct AnimationKeyframe * keyframes, unsigned int markerCount, struct AnimationMarker * markers);
 void Animation_dispose(Animation * self);
 
-// Allocates an AnimationState and initializes it with a pose at the specified time. The caller is responsible for freeing the result.
-AnimationState * Animation_createAnimationStateAtTime(Animation * self, double animationTime);
+// Returns the total time it takes to complete one loop of animation. The sum of all keyframe intervals.
+double Animation_getLength(Animation * self);
+
+// Returns the most recent marker at the specified time, or NULL if no markers exist. If there are no markers at the beginning
+// of the animation and loop is true, search will wrap around the the end and return the latest marker in the animation.
+struct AnimationMarker * AnimationState_getMarkerAtTime(Animation * self, double time);
 
 // Computes a pose at the specified time and writes the offset, scale, and rotation of each bone to animationState.
 // Poses are applied additively. You should call AnimationState_resetAllBones() before calling this function to start from the identity transformation.

@@ -30,14 +30,9 @@ bool Renderable_init(Renderable * self, RenderableType type) {
 	self->type = type;
 	self->visible = true;
 	self->dispose = Renderable_dispose;
-	self->getBoundingBox = Renderable_getBoundingBox;
 	return true;
 }
 
 void Renderable_dispose(Renderable * self) {
 	call_super(dispose, self);
-}
-
-Box6f Renderable_getBoundingBox(Renderable * self) {
-	return BOX6f_EMPTY;
 }

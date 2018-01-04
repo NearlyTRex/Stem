@@ -29,35 +29,25 @@ extern "C" {
 typedef struct MeshRenderable MeshRenderable;
 
 #include "gamemath/Matrix4x4f.h"
-#include "gamemath/Box6f.h"
 #include "glgraphics/AnimationState.h"
-#include "glgraphics/GLIncludes.h"
 #include "glgraphics/Material.h"
 #include "glgraphics/Renderable.h"
-#include "glgraphics/VertexTypes.h"
+#include "glgraphics/VertexBuffer.h"
 
 #define MeshRenderable_structContents(self_type) \
 	Renderable_structContents(self_type) \
 	\
+	VertexBuffer * vertexBuffer; \
 	Material * material; \
-	bool hasAnimationData; \
-	GLuint vaoID; \
-	GLuint vertexBufferID; \
-	GLuint indexBufferID; \
-	unsigned int indexCount; \
-	Box6f bounds; \
-	Matrix4x4f transform; \
-	AnimationState * animationState;
+	AnimationState * animationState; \
+	Matrix4x4f transform;
 
 stemobject_struct_definition(MeshRenderable)
 
-// animationState is copied, and used as a template for allocating bone states. After initializing an animated mesh, its animation state can be updated without reallocation by using Animation_poseAnimationStateAtTime().
-MeshRenderable * MeshRenderable_createStatic(struct vertex_p3f_t2f_n3f_c4f * vertices, unsigned int vertexCount, GLuint * indexes, unsigned int indexCount, Material * material);
-MeshRenderable * MeshRenderable_createAnimated(struct vertex_p3f_t2f_n3f_c4f_b4u_w4f * vertices, unsigned int vertexCount, GLuint * indexes, unsigned int indexCount, Material * material, AnimationState * animationState);
-bool MeshRenderable_initStatic(MeshRenderable * self, struct vertex_p3f_t2f_n3f_c4f * vertices, unsigned int vertexCount, GLuint * indexes, unsigned int indexCount, Material * material);
-bool MeshRenderable_initAnimated(MeshRenderable * self, struct vertex_p3f_t2f_n3f_c4f_b4u_w4f * vertices, unsigned int vertexCount, GLuint * indexes, unsigned int indexCount, Material * material, AnimationState * animationState);
+// If animationState is NULL, vertexBuffer must be in PTNC format. If animationState is non-NULL, vertexBuffer must be in PTNCBW format.
+MeshRenderable * MeshRenderable_create(VertexBuffer * vertexBuffer, Material * material, AnimationState * animationState, Matrix4x4f transform);
+bool MeshRenderable_init(MeshRenderable * self, VertexBuffer * vertexBuffer, Material * material, AnimationState * animationState, Matrix4x4f transform);
 void MeshRenderable_dispose(MeshRenderable * self);
-Box6f MeshRenderable_getBoundingBox(MeshRenderable * self);
 
 #ifdef __cplusplus
 }

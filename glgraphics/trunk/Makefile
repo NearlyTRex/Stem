@@ -62,7 +62,8 @@ SOURCES_library = \
 	source/${PROJECT_NAME}/MeshRenderable.c \
 	source/${PROJECT_NAME}/OrbitCamera.c \
 	source/${PROJECT_NAME}/Renderable.c \
-	source/${PROJECT_NAME}/Renderer.c
+	source/${PROJECT_NAME}/Renderer.c \
+	source/${PROJECT_NAME}/VertexBuffer.c
 
 # Executable targets named "unittest" should usually specify only SOURCES_unittest_suites, which must contain only test suite files.
 # If files other than test suites are required, specify SOURCES_unittest.
@@ -85,6 +86,7 @@ INCLUDES = \
 	source/${PROJECT_NAME}/OrbitCamera.h \
 	source/${PROJECT_NAME}/Renderable.h \
 	source/${PROJECT_NAME}/Renderer.h \
+	source/${PROJECT_NAME}/VertexBuffer.h \
 	source/${PROJECT_NAME}/VertexTypes.h
 
 # Patterns: RESOURCES, RESOURCES_${target}, RESOURCES_${platform}, RESOURCES_${target}_${platform}

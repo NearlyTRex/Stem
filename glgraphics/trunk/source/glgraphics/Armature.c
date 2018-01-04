@@ -70,7 +70,7 @@ unsigned int Armature_boneIndexForID(Armature * self, Atom boneID) {
 	return BONE_INDEX_NOT_FOUND;
 }
 
-MeshRenderable * Armature_createDebugMesh(Armature * self) {
+VertexBuffer * Armature_createDebugVertexBuffer(Armature * self) {
 	struct vertex_p3f_t2f_n3f_c4f_b4u_w4f boneVertices[] = {
 		{{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}, {-0.7071067811865476f, -0.7071067811865476f, 0.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0, 0, 0, 0}, {1.0f, 0.0f, 0.0f, 0.0f}},
 		{{-0.1f, 0.1f, 0.1f}, {0.0f, 0.0f}, {-0.7071067811865476f, -0.7071067811865476f, 0.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0, 0, 0, 0}, {1.0f, 0.0f, 0.0f, 0.0f}},
@@ -111,9 +111,7 @@ MeshRenderable * Armature_createDebugMesh(Armature * self) {
 	GLuint * indexes;
 	unsigned int boneIndex, vertexIndex, indexIndex;
 	struct vertex_p3f_t2f_n3f_c4f_b4u_w4f vertex;
-	MeshRenderable * mesh;
-	static Material * boneMaterial;
-	AnimationState * animationState;
+	VertexBuffer * vertexBuffer;
 	size_t boneVertexCount, boneIndexCount;
 	Matrix4x4f matrix;
 	Vector3f axis, boneVector, position, normal;
@@ -162,16 +160,9 @@ MeshRenderable * Armature_createDebugMesh(Armature * self) {
 		}
 	}
 	
-	if (boneMaterial == NULL) {
-		unsigned char boneColor[4] = {0xFF, 0xFF, 0xEF, 0xFF};
-		boneMaterial = Material_create();
-		Material_setColorTexture(boneMaterial, false, 1, 1, 4, boneColor);
-	}
-	animationState = AnimationState_create(self);
-	mesh = MeshRenderable_createAnimated(vertices, sizeof(boneVertices) / sizeof(boneVertices[0]) * self->boneCount, indexes, sizeof(boneIndexes) / sizeof(boneIndexes[0]) * self->boneCount, boneMaterial, animationState);
-	AnimationState_dispose(animationState);
+	vertexBuffer = VertexBuffer_createPTNCBW(vertices, sizeof(boneVertices) / sizeof(boneVertices[0]) * self->boneCount, indexes, sizeof(boneIndexes) / sizeof(boneIndexes[0]) * self->boneCount);
 	free(vertices);
 	free(indexes);
 	
-	return mesh;
+	return vertexBuffer;
 }

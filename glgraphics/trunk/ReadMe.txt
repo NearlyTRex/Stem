@@ -14,23 +14,6 @@ GLGraphics provides some miscellaneous general-purpose OpenGL utility code. Incl
 
 SCRATCHPAD
 
-Does Renderer even do 2D? Maybe just 3D and leave 2D to something else
-
-
-[17:38]  <ThemsAllTook> Say I'm drawing a room, and a character walking from one side of it to the other. The room is just a static pile of vertices with a material or something; simple enough.
-[17:38]  <ThemsAllTook> The character includes some animation data that needs to be passed on to the vertex shader, and some sort of extra animation state information needs to get there too somehow.
-[17:38]  <ThemsAllTook> Does the renderer have a concept of animation data? How does it know which shader to use and how to shuffle the data around?
-[17:39]  <KatieHuber> just a flag on the model to say "animated" or not
-[17:40]  <KatieHuber> (animated models will have different vertex structure from static ones anyway, so always a different shader)
-[17:40]  <KatieHuber> the game will submit "draw this object with this model and this state" for every object
-[17:40]  <KatieHuber> for static objects, "state" is likely just a xform matrix
-[17:40]  <KatieHuber> for animated, the full matrix palette, probably
-[17:41]  <ThemsAllTook> OK, great, this is starting to make some sense
-[17:41]  <KatieHuber> or it could just be an animation name and time and the renderer could calculate the palette
-[17:43]  <ThemsAllTook> I think the trap I keep falling into is imagining that I'm going to want to render an arbitrary number of things in arbitrarily different ways, when I can probably just constrain myself to a few core concepts (static geometry, animated geometry (using just one specific type of animation), particles, etc.) and have my needs covered
-[17:44]  <ThemsAllTook> It's just really hard for me to coalesce that list of things in my head. This helps a lot.
-
-
 Mesh \
 	Vertices \
 		Position
@@ -78,9 +61,10 @@ Constraints and control objects are Blender-only. Exported animations can be fla
 
 MATERIAL STUFF
 - Color map (two layers?)
-- Diffuse/specular/reflection map
+- Specular map
 - Normal map
 - Displacement map
+- Occlusion map
 - Subsurface scattering (research needed)
 - PBR
  - Metalness
@@ -88,15 +72,11 @@ MATERIAL STUFF
  - AO
 
 
-
-IMMEDIATE: Model loader turns model into header
-
 TODO:
 - Camera work:
- - Frame bounding box in OrbitCamera
  - Camera interpolation (controller object interpolates between different camera objects)
  - Other cameras: First person, follow behind/ahead
-- Animation controller object with graph logic?
+- Animation controller object with graph logic? Also event dispatching
 - IK (https://www.webcitation.org/60uCFHqC2?url=http://freespace.virgin.net/hugo.elias/models/m_ik2.htm)
 - Advanced materials
 - Better lighting
@@ -104,8 +84,59 @@ TODO:
 - Callback renderable type
 - Additional camera types (camera controller with interpolation)
 - Depth sorting/translucency
+- Culling
 - Fog
 - Shadows
 - SSAO
 - Fluid simulation
 - Cloth simulation
+- VR
+
+
+SceneModel needs:
+- Load from file
+- Write to file
+- Initialize from obj, glTF, possibly other formats
+- Create MeshRenderable, Material, Armature, Animation
+- Create CollisionTrimesh
+- Merge or cross reference multiple SceneModels
+
+SceneModel lives in glgraphics
+Classes that can initialize from SceneModel data have their own initialization functions that pull from SceneModel; SceneModel doesn't push to them
+ResourceManager needs to be rewritten to work with SceneModel needs, plus audio, level data, etc.
+- Keep data around for a while when reference count drops to 0. Purge when memory pressure is detected, or some amount of time has elapsed.
+- To measure memory pressure, ResourceManager needs to know how large each item is
+- Background thread could perform unloading, kicked off by next resource request for old-enough 0-reference items
+Blob mechanism should maybe be its own thing? Useful for other stuff
+
+SceneModel * scene = SceneModelIO_loadFile("test.stem3d");
+MeshRenderable * renderable = MeshRenderable_createFromScene(scene, ATOM("myMesh"));
+
+New idea: Granular export. Each type of data has its own format and data models.
+- Armature
+- Animation
+- Mesh
+- Texture
+- Layout (includes light data?)
+
+SceneLayout becomes new StemObject
+MeshData becomes new StemObject (or just struct?), and is the basis for instantiating MeshRenderable and CollisionTrimesh
+TextureData same as above
+Material, Armature, and Animation need to be compatible with above organization
+
+
+NOPE! MeshRenderable knows nothing about MeshData. Wiring code needs to load resources and instantiate MeshRenderable. Use ResourceManager and implement handlers in glgraphics?
+Nope. Resources don't reference other resources; only IDs. When working with hierarchical data, load from ResourceManager directly, or have each resource passed into function as argument. No resources contain direct references to other resources.
+
+
+GPU object manager? Reference counted respository of textures, VBOs, shaders, etc. with ID lookup, purge policy
+MeshRenderable becomes MeshState
+May need ReferenceCount logic in utilities
+
+
+
+	renderer = Renderer_create();
+	resourceManager = ResourceManager_create();
+	GLGraphics_addResourceHandlers(resourceManager);
+	renderable = MeshRenderable_create(material, animationState, vertexBuffer);
+	Renderer_addRenderable(renderer, RENDER_LAYER_3D_OPAQUE, (Renderable *) renderable);

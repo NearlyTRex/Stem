@@ -84,6 +84,7 @@ void AnimationState_resetAllBones(AnimationState * self) {
 void AnimationState_computeBoneTransforms(AnimationState * self) {
 	unsigned int boneIndex;
 	Matrix4x4f matrix;
+	Quaternionf boneBaseOrientation, boneRotation;
 	
 	for (boneIndex = 0; boneIndex < self->armature->boneCount; boneIndex++) {
 		if (self->armature->bones[boneIndex].parentIndex == BONE_INDEX_NOT_FOUND) {
@@ -94,7 +95,9 @@ void AnimationState_computeBoneTransforms(AnimationState * self) {
 		Matrix4x4f_scale(&matrix, self->boneStates[boneIndex].scale.x, self->boneStates[boneIndex].scale.y, self->boneStates[boneIndex].scale.z);
 		Matrix4x4f_translate(&matrix, self->boneStates[boneIndex].offset.x, self->boneStates[boneIndex].offset.y, self->boneStates[boneIndex].offset.z);
 		Matrix4x4f_translate(&matrix, self->armature->bones[boneIndex].position.x, self->armature->bones[boneIndex].position.y, self->armature->bones[boneIndex].position.z);
-		Matrix4x4f_multiply(&matrix, Quaternionf_toMatrix(self->boneStates[boneIndex].rotation));
+		boneBaseOrientation = Quaternionf_fromAxisAngle(Vector3f_normalized(Vector3f_subtract(self->armature->bones[boneIndex].endpoint, self->armature->bones[boneIndex].position)), self->armature->bones[boneIndex].roll);
+		boneRotation = Quaternionf_multiplied(Quaternionf_multiplied(boneBaseOrientation, self->boneStates[boneIndex].rotation), Quaternionf_inverted(boneBaseOrientation));
+		Matrix4x4f_multiply(&matrix, Quaternionf_toMatrix(boneRotation));
 		Matrix4x4f_translate(&matrix, -self->armature->bones[boneIndex].position.x, -self->armature->bones[boneIndex].position.y, -self->armature->bones[boneIndex].position.z);
 		self->computedBoneTransforms[boneIndex] = matrix;
 	}
@@ -108,4 +111,16 @@ Vector3f AnimationState_getBonePosition(AnimationState * self, unsigned int bone
 Vector3f AnimationState_getBoneEndpoint(AnimationState * self, unsigned int boneID) {
 	assert(boneID < self->armature->boneCount);
 	return Matrix4x4f_multiplyVector3f(self->computedBoneTransforms[boneID], self->armature->bones[boneID].endpoint);
+}
+
+// TODO: Test
+void AnimationState_combine(AnimationState * self, AnimationState * state) {
+	unsigned int boneIndex;
+	
+	assert(self->armature->boneCount == state->armature->boneCount);
+	for (boneIndex = 0; boneIndex < self->armature->boneCount; boneIndex++) {
+		self->boneStates[boneIndex].offset = Vector3f_add(self->boneStates[boneIndex].offset, state->boneStates[boneIndex].offset);
+		self->boneStates[boneIndex].scale = Vector3f_multiplyComponents(self->boneStates[boneIndex].scale, state->boneStates[boneIndex].scale);
+		self->boneStates[boneIndex].rotation = Quaternionf_multiplied(self->boneStates[boneIndex].rotation, state->boneStates[boneIndex].rotation);
+	}
 }

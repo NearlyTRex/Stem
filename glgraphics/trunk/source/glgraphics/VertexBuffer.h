@@ -20,47 +20,33 @@
   Alex Diener alex@ludobloom.com
 */
 
-#ifndef __Armature_H__
-#define __Armature_H__
+#ifndef __VertexBuffer_H__
+#define __VertexBuffer_H__
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef struct Armature Armature;
+typedef struct VertexBuffer VertexBuffer;
 
+#include "glgraphics/GLIncludes.h"
+#include "glgraphics/VertexTypes.h"
 #include "stemobject/StemObject.h"
-#include "gamemath/Vector3f.h"
-#include "glgraphics/VertexBuffer.h"
-#include "utilities/Atom.h"
-#include <limits.h>
 
-#define BONE_INDEX_NOT_FOUND UINT_MAX
-
-struct ArmatureBone {
-	Atom boneID;
-	unsigned int parentIndex;
-	Vector3f position;
-	Vector3f endpoint;
-	float roll; // radian rotation around position - endpoint
-};
-
-#define Armature_structContents(self_type) \
+#define VertexBuffer_structContents(self_type) \
 	StemObject_structContents(self_type) \
 	\
-	Atom name; \
-	unsigned int boneCount; \
-	struct ArmatureBone * bones;
+	GLuint vaoID; \
+	GLuint vertexBufferID; \
+	GLuint indexBufferID; \
+	unsigned int indexCount;
 
-stemobject_struct_definition(Armature)
+stemobject_struct_definition(VertexBuffer)
 
-// bones is copied; caller retains ownership of their copy
-// In a correctly formed armature, all parent indexes must be less than the bone referencing them.
-Armature * Armature_create(unsigned int boneCount, struct ArmatureBone * bones);
-bool Armature_init(Armature * self, unsigned int boneCount, struct ArmatureBone * bones);
-void Armature_dispose(Armature * self);
-unsigned int Armature_boneIndexForID(Armature * self, Atom boneID);
-
-VertexBuffer * Armature_createDebugVertexBuffer(Armature * self);
+VertexBuffer * VertexBuffer_createPTNC(struct vertex_p3f_t2f_n3f_c4f * vertices, unsigned int vertexCount, GLuint * indexes, unsigned int indexCount);
+VertexBuffer * VertexBuffer_createPTNCBW(struct vertex_p3f_t2f_n3f_c4f_b4u_w4f * vertices, unsigned int vertexCount, GLuint * indexes, unsigned int indexCount);
+bool VertexBuffer_initPTNC(VertexBuffer * self, struct vertex_p3f_t2f_n3f_c4f * vertices, unsigned int vertexCount, GLuint * indexes, unsigned int indexCount);
+bool VertexBuffer_initPTNCBW(VertexBuffer * self, struct vertex_p3f_t2f_n3f_c4f_b4u_w4f * vertices, unsigned int vertexCount, GLuint * indexes, unsigned int indexCount);
+void VertexBuffer_dispose(VertexBuffer * self);
 
 #ifdef __cplusplus
 }

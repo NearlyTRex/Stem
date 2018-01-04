@@ -28,29 +28,36 @@
 #include <string.h>
 
 #define SUPERCLASS StemObject
-#define CURVE_SAMPLE_ITERATIONS 8
+#define CURVE_SAMPLE_ITERATIONS 8 // TODO: ivar
 
-Animation * Animation_create(Atom name, Armature * armature, unsigned int keyframeCount, struct AnimationKeyframe * keyframes) {
-	stemobject_create_implementation(Animation, init, name, armature, keyframeCount, keyframes)
+Animation * Animation_create(Atom name, bool loop, unsigned int keyframeCount, struct AnimationKeyframe * keyframes, unsigned int markerCount, struct AnimationMarker * markers) {
+	stemobject_create_implementation(Animation, init, name, loop, keyframeCount, keyframes, markerCount, markers)
 }
 
-bool Animation_init(Animation * self, Atom name, Armature * armature, unsigned int keyframeCount, struct AnimationKeyframe * keyframes) {
+bool Animation_init(Animation * self, Atom name, bool loop, unsigned int keyframeCount, struct AnimationKeyframe * keyframes, unsigned int markerCount, struct AnimationMarker * markers) {
 	unsigned int keyframeIndex;
 	
 	call_super(init, self);
 	self->dispose = Animation_dispose;
 	self->name = name;
-	self->armature = armature;
+	self->loop = loop;
 	assert(keyframeCount > 0);
-	self->animationLength = 0.0;
+	self->private_ivar(animationLength) = 0.0;
 	self->keyframeCount = keyframeCount;
 	self->keyframes = malloc(sizeof(*self->keyframes) * keyframeCount);
 	for (keyframeIndex = 0; keyframeIndex < keyframeCount; keyframeIndex++) {
-		self->animationLength += keyframes[keyframeIndex].interval;
+		self->private_ivar(animationLength) += keyframes[keyframeIndex].interval;
 		self->keyframes[keyframeIndex].interval = keyframes[keyframeIndex].interval;
 		self->keyframes[keyframeIndex].boneCount = keyframes[keyframeIndex].boneCount;
 		self->keyframes[keyframeIndex].bones = malloc(sizeof(*self->keyframes[keyframeIndex].bones) * keyframes[keyframeIndex].boneCount);
 		memcpy(self->keyframes[keyframeIndex].bones, keyframes[keyframeIndex].bones, sizeof(*self->keyframes[keyframeIndex].bones) * keyframes[keyframeIndex].boneCount);
+	}
+	self->markerCount = markerCount;
+	if (self->markerCount == 0) {
+		self->markers = NULL;
+	} else {
+		self->markers = malloc(sizeof(*self->markers) * markerCount);
+		memcpy(self->markers, markers, sizeof(*self->markers) * markerCount);
 	}
 	return true;
 }
@@ -62,15 +69,30 @@ void Animation_dispose(Animation * self) {
 		free(self->keyframes[keyframeIndex].bones);
 	}
 	free(self->keyframes);
+	free(self->markers);
 	call_super(dispose, self);
 }
 
-AnimationState * Animation_createAnimationStateAtTime(Animation * self, double animationTime) {
-	AnimationState * animationState;
+double Animation_getLength(Animation * self) {
+	return self->private_ivar(animationLength);
+}
+
+struct AnimationMarker * AnimationState_getMarkerAtTime(Animation * self, double time) {
+	unsigned int markerIndex;
+	struct AnimationMarker * bestMarker = NULL;
 	
-	animationState = AnimationState_create(self->armature);
-	Animation_poseAnimationStateAtTime(self, animationState, animationTime, 1.0f);
-	return animationState;
+	for (markerIndex = 0; markerIndex < self->markerCount; markerIndex++) {
+		if (self->markers[markerIndex].time <= time) {
+			if (bestMarker == NULL || bestMarker->time < self->markers[markerIndex].time) {
+				bestMarker = &self->markers[markerIndex];
+			}
+		} else if (self->loop) {
+			if (bestMarker == NULL || (bestMarker->time > time && self->markers[markerIndex].time > bestMarker->time)) {
+				bestMarker = &self->markers[markerIndex];
+			}
+		}
+	}
+	return bestMarker;
 }
 
 static bool Animation_findBoneKeyframes(Animation * self, unsigned int boneIndex, double animationTime, unsigned int * outKeyframeIndexLeft, unsigned int * outKeyframeBoneIndexLeft, unsigned int * outKeyframeIndexRight, unsigned int * outKeyframeBoneIndexRight, float * outKeyframeWeight) {
@@ -92,6 +114,7 @@ static bool Animation_findBoneKeyframes(Animation * self, unsigned int boneIndex
 	}
 	if (keyframeBoneIndexLeft == BONE_INDEX_NOT_FOUND) {
 		// If the bone isn't specified prior to animationTime, find the latest specification past it, if any
+		// TODO: loop
 		for (; keyframeIndex < self->keyframeCount; keyframeIndex++) {
 			for (keyframeBoneIndex = 0; keyframeBoneIndex < self->keyframes[keyframeIndex].boneCount; keyframeBoneIndex++) {
 				if (self->keyframes[keyframeIndex].bones[keyframeBoneIndex].boneIndex == boneIndex) {
@@ -149,9 +172,9 @@ static bool Animation_findBoneKeyframes(Animation * self, unsigned int boneIndex
 	}
 	
 	*outKeyframeIndexLeft = keyframeIndexLeft;
-	*outkeyframeBoneIndexLeft = keyframeBoneIndexLeft;
+	*outKeyframeBoneIndexLeft = keyframeBoneIndexLeft;
 	*outKeyframeIndexRight = keyframeIndexRight;
-	*outkeyframeBoneIndexRight = keyframeBoneIndexRight;
+	*outKeyframeBoneIndexRight = keyframeBoneIndexRight;
 	// TODO: There may be degenerate cases in here. Shouldn't left and right be swapped if animationTime is outside them? Maybe that's impossible?
 	if (keyframeTimeLeft == keyframeTimeRight) {
 		*outKeyframeWeight = 0.0f;
@@ -167,12 +190,12 @@ static bool Animation_findBoneKeyframes(Animation * self, unsigned int boneIndex
 		}
 	} else {
 		if (animationTime < keyframeTimeRight) {
-			*outKeyframeWeight = (animationTime - (keyframeTimeLeft - self->animationLength)) / (keyframeTimeRight - (keyframeTimeLeft - self->animationLength));
+			*outKeyframeWeight = (animationTime - (keyframeTimeLeft - self->private_ivar(animationLength))) / (keyframeTimeRight - (keyframeTimeLeft - self->private_ivar(animationLength)));
 		} else if (animationTime < keyframeTimeLeft) {
 			// Degenerate
 			*outKeyframeWeight = 0.0f;
 		} else {
-			*outKeyframeWeight = (animationTime - keyframeTimeLeft) / ((keyframeTimeRight + self->animationLength) - keyframeTimeLeft);
+			*outKeyframeWeight = (animationTime - keyframeTimeLeft) / ((keyframeTimeRight + self->private_ivar(animationLength)) - keyframeTimeLeft);
 		}
 	}
 	return true;
@@ -192,14 +215,13 @@ void Animation_poseAnimationStateAtTime(Animation * self, AnimationState * anima
 	float keyframeWeight;
 	struct AnimationBoneState boneState;
 	
-	assert(self->armature->boneCount == animationState->armature->boneCount);
-	
-	animationTime = fmod(animationTime, self->animationLength);
+	// TODO: loop
+	animationTime = fmod(animationTime, self->private_ivar(animationLength));
 	if (animationTime < 0.0) {
-		animationTime += self->animationLength;
+		animationTime += self->private_ivar(animationLength);
 	}
 	
-	for (boneIndex = 0; boneIndex < self->armature->boneCount; boneIndex++) {
+	for (boneIndex = 0; boneIndex < animationState->armature->boneCount; boneIndex++) {
 		if (Animation_findBoneKeyframes(self, boneIndex, animationTime, &keyframeIndexLeft, &keyframeBoneIndexLeft, &keyframeIndexRight, &keyframeBoneIndexRight, &keyframeWeight)) {
 			// Interpolate bone based on keyframes
 			struct AnimationBoneKeyframe boneKeyframeLeft = self->keyframes[keyframeIndexLeft].bones[keyframeBoneIndexLeft];

@@ -107,6 +107,12 @@ struct vertex_p3f_t2f_n3f_c4f_b4u_w4f {
 	GLfloat boneWeights[4];
 };
 
+typedef struct Color3f {
+	GLfloat red;
+	GLfloat green;
+	GLfloat blue;
+} Color3f;
+
 typedef struct Color4f {
 	GLfloat red;
 	GLfloat green;
@@ -116,7 +122,16 @@ typedef struct Color4f {
 
 #pragma pack(pop)
 
+#define COLOR3f(red, green, blue) ((Color3f) {red, green, blue})
 #define COLOR4f(red, green, blue, alpha) ((Color4f) {red, green, blue, alpha})
+
+static inline Color3f Color3f_fromRGB888(unsigned char red, unsigned char green, unsigned char blue) {
+	return (Color3f) {red / (float) 0xFF, green / (float) 0xFF, blue / (float) 0xFF};
+}
+
+static inline Color3f Color3f_fromRGB24(uint32_t rgb) {
+	return (Color3f) {(rgb >> 16) / (float) 0xFF, (rgb >> 8 & 0xFF) / (float) 0xFF, (rgb & 0xFF) / (float) 0xFF};
+}
 
 static inline Color4f Color4f_fromRGBA8888(unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha) {
 	return (Color4f) {red / (float) 0xFF, green / (float) 0xFF, blue / (float) 0xFF, alpha / (float) 0xFF};

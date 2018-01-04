@@ -34,21 +34,23 @@ bool Material_init(Material * self) {
 	call_super(init, self);
 	self->dispose = Material_dispose;
 	self->colorTextureID = 0;
+	self->normalTextureID = 0;
 	return true;
 }
 
 void Material_dispose(Material * self) {
 	glDeleteTextures(1, &self->colorTextureID);
+	glDeleteTextures(1, &self->normalTextureID);
 	call_super(dispose, self);
 }
 
-void Material_setColorTexture(Material * self, bool nearestNeighborMagnification, unsigned int width, unsigned int height, unsigned int bytesPerRow, void * bitmapData) {
+void createTexture(GLuint * textureID, bool nearestNeighborMagnification, unsigned int width, unsigned int height, unsigned int bytesPerRow, void * bitmapData) {
 	GLfloat maxAnisotropy;
 	
-	assert(self->colorTextureID == 0);
-	glGenTextures(1, &self->colorTextureID);
+	assert(*textureID == 0);
+	glGenTextures(1, textureID);
 	
-	glBindTexture(GL_TEXTURE_2D, self->colorTextureID);
+	glBindTexture(GL_TEXTURE_2D, *textureID);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	if (nearestNeighborMagnification) {
@@ -71,4 +73,12 @@ void Material_setColorTexture(Material * self, bool nearestNeighborMagnification
 	glGenerateMipmap(GL_TEXTURE_2D);
 	
 	glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+void Material_setColorTexture(Material * self, bool nearestNeighborMagnification, unsigned int width, unsigned int height, unsigned int bytesPerRow, void * bitmapData) {
+	createTexture(&self->colorTextureID, nearestNeighborMagnification, width, height, bytesPerRow, bitmapData);
+}
+
+void Material_setNormalTexture(Material * self, bool nearestNeighborMagnification, unsigned int width, unsigned int height, unsigned int bytesPerRow, void * bitmapData) {
+	createTexture(&self->normalTextureID, nearestNeighborMagnification, width, height, bytesPerRow, bitmapData);
 }
