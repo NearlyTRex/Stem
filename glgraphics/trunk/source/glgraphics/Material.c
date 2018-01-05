@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2017 Alex Diener
+  Copyright (c) 2018 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -26,13 +26,17 @@
 
 #define SUPERCLASS StemObject
 
-Material * Material_create() {
-	stemobject_create_implementation(Material, init)
+Material * Material_create(Color4f color, float specularity, float shininess, float emissiveness) {
+	stemobject_create_implementation(Material, init, color, specularity, shininess, emissiveness)
 }
 
-bool Material_init(Material * self) {
+bool Material_init(Material * self, Color4f color, float specularity, float shininess, float emissiveness) {
 	call_super(init, self);
 	self->dispose = Material_dispose;
+	self->color = color;
+	self->specularity = specularity;
+	self->shininess = shininess;
+	self->emissiveness = emissiveness;
 	self->colorTextureID = 0;
 	self->normalTextureID = 0;
 	return true;

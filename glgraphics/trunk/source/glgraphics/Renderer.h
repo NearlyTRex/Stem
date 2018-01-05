@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2017 Alex Diener
+  Copyright (c) 2018 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages

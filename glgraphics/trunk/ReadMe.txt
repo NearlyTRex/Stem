@@ -109,9 +109,6 @@ ResourceManager needs to be rewritten to work with SceneModel needs, plus audio,
 - Background thread could perform unloading, kicked off by next resource request for old-enough 0-reference items
 Blob mechanism should maybe be its own thing? Useful for other stuff
 
-SceneModel * scene = SceneModelIO_loadFile("test.stem3d");
-MeshRenderable * renderable = MeshRenderable_createFromScene(scene, ATOM("myMesh"));
-
 New idea: Granular export. Each type of data has its own format and data models.
 - Armature
 - Animation
@@ -123,20 +120,18 @@ SceneLayout becomes new StemObject
 MeshData becomes new StemObject (or just struct?), and is the basis for instantiating MeshRenderable and CollisionTrimesh
 TextureData same as above
 Material, Armature, and Animation need to be compatible with above organization
-
-
-NOPE! MeshRenderable knows nothing about MeshData. Wiring code needs to load resources and instantiate MeshRenderable. Use ResourceManager and implement handlers in glgraphics?
-Nope. Resources don't reference other resources; only IDs. When working with hierarchical data, load from ResourceManager directly, or have each resource passed into function as argument. No resources contain direct references to other resources.
-
-
-GPU object manager? Reference counted respository of textures, VBOs, shaders, etc. with ID lookup, purge policy
-MeshRenderable becomes MeshState
 May need ReferenceCount logic in utilities
 
 
-
-	renderer = Renderer_create();
-	resourceManager = ResourceManager_create();
-	GLGraphics_addResourceHandlers(resourceManager);
-	renderable = MeshRenderable_create(material, animationState, vertexBuffer);
-	Renderer_addRenderable(renderer, RENDER_LAYER_3D_OPAQUE, (Renderable *) renderable);
+DATA STRUCTURE STATUS
+- Animation: √
+- Armature: √
+- Material: X
+ - Work out how to reference textures
+ - Light interaction properties (color, specularity, emissiveness)
+- Mesh: X
+ - MeshRenderable not suitable for serialization. MeshData might be almost? How to create MeshRenderable from MeshData?
+- SceneLayout: +
+ - Maybe good enough. Open question: How are meshes found by name? Who keeps list?
+ - Lights need refinement. Possibly additional types, attenuation, other properties
+- Texture: ? (is this a different thing than Material?)

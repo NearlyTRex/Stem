@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2017 Alex Diener
+  Copyright (c) 2018 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -53,8 +53,8 @@ struct ArmatureBone {
 
 stemobject_struct_definition(Armature)
 
-// bones is copied; caller retains ownership of their copy
-// In a correctly formed armature, all parent indexes must be less than the bone referencing them.
+// bones is copied
+// In a correctly formed armature, all parent indexes must be less than the index of the bone referencing them.
 Armature * Armature_create(unsigned int boneCount, struct ArmatureBone * bones);
 bool Armature_init(Armature * self, unsigned int boneCount, struct ArmatureBone * bones);
 void Armature_dispose(Armature * self);

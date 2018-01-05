@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2017 Alex Diener
+  Copyright (c) 2018 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -29,18 +29,26 @@ extern "C" {
 typedef struct Material Material;
 
 #include "glgraphics/GLIncludes.h"
+#include "glgraphics/VertexTypes.h"
 #include "stemobject/StemObject.h"
 
 #define Material_structContents(self_type) \
 	StemObject_structContents(self_type) \
 	\
+	Color4f color; \
+	float specularity; \
+	float shininess; \
+	float emissiveness; \
 	GLuint colorTextureID; \
 	GLuint normalTextureID;
 
 stemobject_struct_definition(Material)
 
-Material * Material_create();
-bool Material_init(Material * self);
+// specularity (0-1) determines blend portion of specular highlight
+// shininess (0-inf) determines specular highlight spread
+// emissiveness (0-1) determines ambient emission of color
+Material * Material_create(Color4f color, float specularity, float shininess, float emissiveness);
+bool Material_init(Material * self, Color4f color, float specularity, float shininess, float emissiveness);
 void Material_dispose(Material * self);
 
 // TODO: How to handle translucency and premultiplication

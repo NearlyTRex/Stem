@@ -476,9 +476,9 @@ void Target_init() {
 	chdir(Shell_getResourcePath());
 	
 	renderer = Renderer_create();
-	material = Material_create();
+	material = Material_create(COLOR4f(1.0f, 1.0f, 1.0f, 1.0f), 0.875f, 32.0f, 0.0f);
 	Material_setColorTexture(material, true, 2, 2, 8, checkerboardPixels);
-	armatureMaterial = Material_create();
+	armatureMaterial = Material_create(COLOR4f(1.0f, 1.0f, 1.0f, 1.0f), 0.875f, 32.0f, 0.0f);
 	Material_setColorTexture(armatureMaterial, false, 1, 1, 4, boneColor);
 	
 	initScene1();

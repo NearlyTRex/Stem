@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2017 Alex Diener
+  Copyright (c) 2018 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -67,7 +67,7 @@ bool Renderer_init(Renderer * self) {
 		"inBoneID", VERTEX_ATTRIB_BONE_ID,
 		"inBoneWeight", VERTEX_ATTRIB_BONE_WEIGHT,
 	NULL);
-	self->nullMaterial = Material_create();
+	self->nullMaterial = Material_create(COLOR4f(1.0f, 1.0f, 1.0f, 1.0f), 0.875f, 32.0f, 0.0f);
 	Material_setColorTexture(self->nullMaterial, true, 1, 1, 4, nullMaterialColor);
 	Material_setNormalTexture(self->nullMaterial, true, 1, 1, 4, nullMaterialNormal);
 	return true;
@@ -197,8 +197,6 @@ void Renderer_drawSingle(Renderer * self, Renderable * renderable) {
 			glUniform3f(GLSLShader_getUniformLocation(shader, "light1Position"), self->light1Position.x, self->light1Position.y, self->light1Position.z);
 			glUniform3f(GLSLShader_getUniformLocation(shader, "light1Color"), self->light1Color.red, self->light1Color.green, self->light1Color.blue);
 			glUniform3f(GLSLShader_getUniformLocation(shader, "ambientColor"), self->ambientColor.red, self->ambientColor.green, self->ambientColor.blue);
-			glUniform1f(GLSLShader_getUniformLocation(shader, "specularIntensity"), 0.875f);
-			glUniform1f(GLSLShader_getUniformLocation(shader, "shininess"), 32.0f);
 			cameraPosition = Matrix4x4f_multiplyVector3f(self->viewMatrix, VECTOR3f_ZERO);
 			glUniform3f(GLSLShader_getUniformLocation(shader, "cameraPosition"), cameraPosition.x, cameraPosition.y, cameraPosition.z);
 			glUniform1i(GLSLShader_getUniformLocation(shader, "colorTexture"), 0);
@@ -206,18 +204,23 @@ void Renderer_drawSingle(Renderer * self, Renderable * renderable) {
 				glUniformMatrix4fv(GLSLShader_getUniformLocation(shader, "boneTransforms"), mesh->animationState->armature->boneCount, GL_FALSE, (GLfloat *) mesh->animationState->computedBoneTransforms);
 			}
 			
-			glBindVertexArray(mesh->vertexBuffer->vaoID);
+			// TODO: Respect material's color, emissiveness, and normal map
 			if (mesh->material == NULL) {
+				glUniform1f(GLSLShader_getUniformLocation(shader, "specularity"), 0.875f);
+				glUniform1f(GLSLShader_getUniformLocation(shader, "shininess"), 32.0f);
 				glBindTexture(GL_TEXTURE_2D, self->nullMaterial->colorTextureID);
 			} else {
+				glUniform1f(GLSLShader_getUniformLocation(shader, "specularity"), mesh->material->specularity);
+				glUniform1f(GLSLShader_getUniformLocation(shader, "shininess"), mesh->material->shininess);
 				glBindTexture(GL_TEXTURE_2D, mesh->material->colorTextureID);
 			}
 			
+			glBindVertexArray(mesh->vertexBuffer->vaoID);
 			glDrawElements(GL_TRIANGLES, mesh->vertexBuffer->indexCount, GL_UNSIGNED_INT, 0);
+			glBindVertexArray(0);
 			
 			glBindTexture(GL_TEXTURE_2D, 0);
 			glUseProgram(0);
-			glBindVertexArray(0);
 			
 			break;
 		}

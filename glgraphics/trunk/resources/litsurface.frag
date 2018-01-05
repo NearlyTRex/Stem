@@ -10,7 +10,7 @@ uniform vec3 light1Position;
 uniform vec3 light0Color;
 uniform vec3 light1Color;
 uniform vec3 ambientColor;
-uniform float specularIntensity;
+uniform float specularity;
 uniform float shininess;
 uniform vec3 cameraPosition;
 uniform sampler2D colorTexture;
@@ -28,7 +28,7 @@ vec3 applyLight(vec3 lightPosition, vec3 lightColor, vec3 surfaceColor, vec3 nor
 		specularCoefficient = pow(max(0.0, dot(surfaceToCamera, reflect(-surfaceToLight, normal))), shininess);
 	}
 	
-	return surfaceColor * lightColor * brightness + vec3(specularCoefficient * specularIntensity);
+	return surfaceColor * lightColor * brightness + vec3(specularCoefficient * specularity);
 }
 
 void main() {

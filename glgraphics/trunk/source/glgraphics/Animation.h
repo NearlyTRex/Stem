@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2017 Alex Diener
+  Copyright (c) 2018 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -72,7 +72,7 @@ struct AnimationMarker {
 
 stemobject_struct_definition(Animation)
 
-// keyframes and markers are copied; caller retains ownership of what they passed.
+// keyframes and markers are copied
 Animation * Animation_create(Atom name, bool loop, unsigned int keyframeCount, struct AnimationKeyframe * keyframes, unsigned int markerCount, struct AnimationMarker * markers);
 bool Animation_init(Animation * self, Atom name, bool loop, unsigned int keyframeCount, struct AnimationKeyframe * keyframes, unsigned int markerCount, struct AnimationMarker * markers);
 void Animation_dispose(Animation * self);
