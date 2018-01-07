@@ -91,6 +91,7 @@ typedef struct DeserializationContext DeserializationContext;
 	\
 	/* Returned pointers not owned by caller; do not free */ \
 	const char * (* readString)(self_type * self, const char * key); \
+	const char * (* readStringNullable)(self_type * self, const char * key); \
 	const void * (* readBlob)(self_type * self, const char * key, size_t * outLength); \
 	\
 	/* Returned string not owned by caller; do not free */ \

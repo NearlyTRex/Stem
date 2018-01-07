@@ -68,6 +68,7 @@ bool TestDeserializationContext_init(TestDeserializationContext * self, jmp_buf 
 	self->readBitfield32 = TestDeserializationContext_readBitfield32;
 	self->readBitfield64 = TestDeserializationContext_readBitfield64;
 	self->readString = TestDeserializationContext_readString;
+	self->readStringNullable = TestDeserializationContext_readStringNullable;
 	self->readBlob = TestDeserializationContext_readBlob;
 	self->readNextDictionaryKey = TestDeserializationContext_readNextDictionaryKey;
 	self->hasDictionaryKey = TestDeserializationContext_hasDictionaryKey;
@@ -115,6 +116,7 @@ static char * functionNameForPtr(TestDeserializationContext * self, void * funct
 	tryFunctionName(readBitfield32)
 	tryFunctionName(readBitfield64)
 	tryFunctionName(readString)
+	tryFunctionName(readStringNullable)
 	tryFunctionName(readBlob)
 	tryFunctionName(readNextDictionaryKey)
 	tryFunctionName(hasDictionaryKey)
@@ -379,6 +381,12 @@ const char * TestDeserializationContext_readString(TestDeserializationContext * 
 	return self->expectedCalls[self->nextExpectedCallIndex - 1].returnValue.stringValue;
 }
 
+const char * TestDeserializationContext_readStringNullable(TestDeserializationContext * self, const char * key) {
+	verifyCallIsInSequence(self, self->readStringNullable, key);
+	failIfRequested(self);
+	return self->expectedCalls[self->nextExpectedCallIndex - 1].returnValue.stringValue;
+}
+
 const void * TestDeserializationContext_readBlob(TestDeserializationContext * self, const char * key, size_t * outLength) {
 	verifyCallIsInSequence(self, self->readBlob, key);
 	failIfRequested(self);
@@ -455,6 +463,9 @@ void TestDeserializationContext_expectCall(TestDeserializationContext * self, vo
 		self->expectedCalls[self->numExpectedCalls].returnValue.enumValue = va_arg(args, int);
 		
 	} else if (functionPtr == self->readString) {
+		self->expectedCalls[self->numExpectedCalls].returnValue.stringValue = va_arg(args, char *);
+		
+	} else if (functionPtr == self->readStringNullable) {
 		self->expectedCalls[self->numExpectedCalls].returnValue.stringValue = va_arg(args, char *);
 		
 	} else if (functionPtr == self->readBlob) {

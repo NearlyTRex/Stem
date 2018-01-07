@@ -35,6 +35,7 @@ static void testInit() {
 	TestCase_assert(context.readBitfield32 == NULL, "Expected NULL but got %p", context.readBitfield32);
 	TestCase_assert(context.readBitfield64 == NULL, "Expected NULL but got %p", context.readBitfield64);
 	TestCase_assert(context.readString == NULL, "Expected NULL but got %p", context.readString);
+	TestCase_assert(context.readStringNullable == NULL, "Expected NULL but got %p", context.readStringNullable);
 	TestCase_assert(context.readBlob == NULL, "Expected NULL but got %p", context.readBlob);
 	TestCase_assert(context.readNextDictionaryKey == NULL, "Expected NULL but got %p", context.readNextDictionaryKey);
 	TestCase_assert(context.hasDictionaryKey == NULL, "Expected NULL but got %p", context.hasDictionaryKey);

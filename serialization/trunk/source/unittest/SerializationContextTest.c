@@ -35,6 +35,7 @@ static void testInit() {
 	TestCase_assert(context.writeBitfield32 == NULL, "Expected NULL but got %p", context.writeBitfield32);
 	TestCase_assert(context.writeBitfield64 == NULL, "Expected NULL but got %p", context.writeBitfield64);
 	TestCase_assert(context.writeString == NULL, "Expected NULL but got %p", context.writeString);
+	TestCase_assert(context.writeStringNullable == NULL, "Expected NULL but got %p", context.writeStringNullable);
 	TestCase_assert(context.writeBlob == NULL, "Expected NULL but got %p", context.writeBlob);
 }
 

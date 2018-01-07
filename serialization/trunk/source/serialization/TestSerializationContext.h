@@ -107,6 +107,7 @@ void TestSerializationContext_writeBitfield16(TestSerializationContext * self, c
 void TestSerializationContext_writeBitfield32(TestSerializationContext * self, const char * key, uint32_t value, ...) __attribute__((sentinel));
 void TestSerializationContext_writeBitfield64(TestSerializationContext * self, const char * key, uint64_t value, ...) __attribute__((sentinel));
 void TestSerializationContext_writeString(TestSerializationContext * self, const char * key, const char * value);
+void TestSerializationContext_writeStringNullable(TestSerializationContext * self, const char * key, const char * value);
 void TestSerializationContext_writeBlob(TestSerializationContext * self, const char * key, const void * value, size_t length);
 
 // selfPtr, functionPtr, key (if applicable), value (if applicable), additional args (if applicable)

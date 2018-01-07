@@ -57,6 +57,7 @@ bool DeserializationContext_init(DeserializationContext * self) {
 	self->readBitfield32 = NULL;
 	self->readBitfield64 = NULL;
 	self->readString = NULL;
+	self->readStringNullable = NULL;
 	self->readBlob = NULL;
 	self->readNextDictionaryKey = NULL;
 	self->hasDictionaryKey = NULL;

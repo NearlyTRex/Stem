@@ -76,6 +76,7 @@ typedef struct SerializationContext SerializationContext;
 	void (* struct_fptr_sentinel writeBitfield64)(self_type * self, const char * key, uint64_t value, ...); \
 	\
 	void (* writeString)(self_type * self, const char * key, const char * value); \
+	void (* writeStringNullable)(self_type * self, const char * key, const char * value); \
 	void (* writeBlob)(self_type * self, const char * key, const void * bytes, size_t length);
 
 stemobject_struct_definition(SerializationContext)

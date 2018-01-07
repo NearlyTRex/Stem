@@ -70,6 +70,7 @@ bool TestSerializationContext_init(TestSerializationContext * self, jmp_buf * se
 	self->writeBitfield32 = TestSerializationContext_writeBitfield32;
 	self->writeBitfield64 = TestSerializationContext_writeBitfield64;
 	self->writeString = TestSerializationContext_writeString;
+	self->writeStringNullable = TestSerializationContext_writeStringNullable;
 	self->writeBlob = TestSerializationContext_writeBlob;
 	self->expectCall = TestSerializationContext_expectCall;
 	self->failNthCall = TestSerializationContext_failNthCall;
@@ -115,6 +116,7 @@ static char * functionNameForPtr(TestSerializationContext * self, void * functio
 	tryFunctionName(writeBitfield32)
 	tryFunctionName(writeBitfield64)
 	tryFunctionName(writeString)
+	tryFunctionName(writeStringNullable)
 	tryFunctionName(writeBlob)
 #undef tryFunctionName
 	return "<invalid>";
@@ -249,6 +251,15 @@ static void verifyCallIsInSequence(TestSerializationContext * self, void * funct
 		
 		stringValue = va_arg(args, char *);
 		if (strcmp(self->expectedCalls[self->nextExpectedCallIndex].value.stringValue, stringValue)) {
+			snprintf_safe(self->error, SERIALIZATION_ERROR_MAX, "Arg 3 to call %d (%s) was expected to be \"%s\", but was \"%s\" instead", self->nextExpectedCallIndex, functionNameForPtr(self, functionPtr), self->expectedCalls[self->nextExpectedCallIndex].value.stringValue, stringValue);
+			longjmp(*self->sequenceBreakJmpEnv, 3);
+		}
+		
+	} else if (functionPtr == self->writeStringNullable) {
+		char * stringValue;
+		
+		stringValue = va_arg(args, char *);
+		if (((stringValue == NULL) != (self->expectedCalls[self->nextExpectedCallIndex].value.stringValue == NULL)) || (stringValue != NULL && strcmp(self->expectedCalls[self->nextExpectedCallIndex].value.stringValue, stringValue))) {
 			snprintf_safe(self->error, SERIALIZATION_ERROR_MAX, "Arg 3 to call %d (%s) was expected to be \"%s\", but was \"%s\" instead", self->nextExpectedCallIndex, functionNameForPtr(self, functionPtr), self->expectedCalls[self->nextExpectedCallIndex].value.stringValue, stringValue);
 			longjmp(*self->sequenceBreakJmpEnv, 3);
 		}
@@ -502,6 +513,11 @@ void TestSerializationContext_writeString(TestSerializationContext * self, const
 	failIfRequested(self);
 }
 
+void TestSerializationContext_writeStringNullable(TestSerializationContext * self, const char * key, const char * value) {
+	verifyCallIsInSequence(self, self->writeStringNullable, key, value);
+	failIfRequested(self);
+}
+
 void TestSerializationContext_writeBlob(TestSerializationContext * self, const char * key, const void * value, size_t length) {
 	verifyCallIsInSequence(self, self->writeBlob, key, value, length);
 	failIfRequested(self);
@@ -559,6 +575,9 @@ void TestSerializationContext_expectCall(TestSerializationContext * self, void *
 		self->expectedCalls[self->numExpectedCalls].value.enumValue = va_arg(args, int);
 		
 	} else if (functionPtr == self->writeString) {
+		self->expectedCalls[self->numExpectedCalls].value.stringValue = va_arg(args, const char *);
+		
+	} else if (functionPtr == self->writeStringNullable) {
 		self->expectedCalls[self->numExpectedCalls].value.stringValue = va_arg(args, const char *);
 		
 	} else if (functionPtr == self->writeBlob) {

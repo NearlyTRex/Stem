@@ -56,6 +56,7 @@ bool SerializationContext_init(SerializationContext * self) {
 	self->writeBitfield32 = NULL;
 	self->writeBitfield64 = NULL;
 	self->writeString = NULL;
+	self->writeStringNullable = NULL;
 	self->writeBlob = NULL;
 	return true;
 }

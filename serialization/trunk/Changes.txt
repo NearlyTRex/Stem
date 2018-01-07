@@ -1,5 +1,6 @@
-1.6.0 (2015-09-23)
+1.6.0 (2018-01-07)
  * Added fixed16_16 type to interfaces for serialization and deserialization
+ * Added read/writeStringNullable()
 
 1.5.0 (2014-12-07)
  * Renamed readBytes/writeBytes to readBlob/writeBlob to match DataValue naming convention
