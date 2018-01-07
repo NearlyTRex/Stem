@@ -59,7 +59,9 @@
 	} else { \
 		(TARGET).key = NULL; \
 	} \
-	(TARGET).value.VALUE_FIELD = (VALUE);
+	if ((TYPE) != JSON_TYPE_NULL) { \
+		(TARGET).value.VALUE_FIELD = (VALUE); \
+	}
 
 #define writeNodeCommonArgs(TYPE, VALUE_FIELD) writeNode(self->currentNode->subitems[self->currentNode->value.count], self->currentNode, key, TYPE, VALUE_FIELD, value)
 
@@ -100,6 +102,7 @@ bool JSONSerializationContext_init(JSONSerializationContext * self) {
 	self->writeBitfield32 = JSONSerializationContext_writeBitfield32;
 	self->writeBitfield64 = JSONSerializationContext_writeBitfield64;
 	self->writeString = JSONSerializationContext_writeString;
+	self->writeStringNullable = JSONSerializationContext_writeStringNullable;
 	self->writeBlob = JSONSerializationContext_writeBlob;
 	
 	self->rootNode = NULL;
@@ -588,6 +591,29 @@ void JSONSerializationContext_writeString(JSONSerializationContext * self, const
 	          string,
 	          malloc(self->currentNode->subitems[self->currentNode->value.count].stringLength + 1));
 	strcpy(self->currentNode->subitems[self->currentNode->value.count].value.string, value);
+	self->currentNode->value.count++;
+}
+
+void JSONSerializationContext_writeStringNullable(JSONSerializationContext * self, const char * key, const char * value) {
+	failIfContainerNotStarted()
+	reallocCurrentNodeSubitems();
+	if (value == NULL) {
+		writeNode(self->currentNode->subitems[self->currentNode->value.count],
+		          self->currentNode,
+		          key,
+		          JSON_TYPE_NULL,
+		          string,
+		          NULL);
+	} else {
+		self->currentNode->subitems[self->currentNode->value.count].stringLength = strlen(value);
+		writeNode(self->currentNode->subitems[self->currentNode->value.count],
+		          self->currentNode,
+		          key,
+		          JSON_TYPE_STRING,
+		          string,
+		          malloc(self->currentNode->subitems[self->currentNode->value.count].stringLength + 1));
+		strcpy(self->currentNode->subitems[self->currentNode->value.count].value.string, value);
+	}
 	self->currentNode->value.count++;
 }
 

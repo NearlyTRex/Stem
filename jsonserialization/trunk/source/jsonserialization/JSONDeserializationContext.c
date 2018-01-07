@@ -70,6 +70,7 @@ static void JSONDeserializationContext_init(JSONDeserializationContext * self) {
 	self->readBitfield32 = JSONDeserializationContext_readBitfield32;
 	self->readBitfield64 = JSONDeserializationContext_readBitfield64;
 	self->readString = JSONDeserializationContext_readString;
+	self->readStringNullable = JSONDeserializationContext_readStringNullable;
 	self->readBlob = JSONDeserializationContext_readBlob;
 	self->readNextDictionaryKey = JSONDeserializationContext_readNextDictionaryKey;
 	self->hasDictionaryKey = JSONDeserializationContext_hasDictionaryKey;
@@ -662,6 +663,18 @@ const char * JSONDeserializationContext_readString(JSONDeserializationContext * 
 	getNextNodeIndex(0)
 	_failIfNotOfType(JSON_TYPE_STRING, NULL)
 	return self->currentNode->subitems[nextNodeIndex].value.string;
+}
+
+const char * JSONDeserializationContext_readStringNullable(JSONDeserializationContext * self, const char * key) {
+	size_t nextNodeIndex = 0;
+	
+	getNextNodeIndex(0)
+	if (self->currentNode->subitems[nextNodeIndex].type == JSON_TYPE_STRING) {
+		return self->currentNode->subitems[nextNodeIndex].value.string;
+	} else if (self->currentNode->subitems[nextNodeIndex].type == JSON_TYPE_NULL) {
+		return NULL;
+	}
+	failWithStatus(SERIALIZATION_ERROR_INCORRECT_TYPE, return NULL)
 }
 
 const void * JSONDeserializationContext_readBlob(JSONDeserializationContext * self, const char * key, size_t * outLength) {

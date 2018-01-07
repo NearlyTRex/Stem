@@ -86,6 +86,7 @@ uint16_t JSONDeserializationContext_readBitfield16(JSONDeserializationContext * 
 uint32_t JSONDeserializationContext_readBitfield32(JSONDeserializationContext * self, const char * key, ...) __attribute__((sentinel));
 uint64_t JSONDeserializationContext_readBitfield64(JSONDeserializationContext * self, const char * key, ...) __attribute__((sentinel));
 const char * JSONDeserializationContext_readString(JSONDeserializationContext * self, const char * key);
+const char * JSONDeserializationContext_readStringNullable(JSONDeserializationContext * self, const char * key);
 const void * JSONDeserializationContext_readBlob(JSONDeserializationContext * self, const char * key, size_t * outLength);
 const char * JSONDeserializationContext_readNextDictionaryKey(JSONDeserializationContext * self);
 bool JSONDeserializationContext_hasDictionaryKey(JSONDeserializationContext * self, const char * key);

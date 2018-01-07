@@ -85,6 +85,7 @@ void JSONSerializationContext_writeBitfield16(JSONSerializationContext * self, c
 void JSONSerializationContext_writeBitfield32(JSONSerializationContext * self, const char * key, uint32_t value, ...) __attribute__((sentinel));
 void JSONSerializationContext_writeBitfield64(JSONSerializationContext * self, const char * key, uint64_t value, ...) __attribute__((sentinel));
 void JSONSerializationContext_writeString(JSONSerializationContext * self, const char * key, const char * value);
+void JSONSerializationContext_writeStringNullable(JSONSerializationContext * self, const char * key, const char * value);
 void JSONSerializationContext_writeBlob(JSONSerializationContext * self, const char * key, const void * value, size_t length);
 
 #ifdef __cplusplus
