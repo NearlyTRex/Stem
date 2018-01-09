@@ -575,7 +575,9 @@ const char * BinaryDeserializationContext_readStringNullable(BinaryDeserializati
 	if (controlByte == 0) {
 		return NULL;
 	}
-	// TODO: Return error if controlByte > 1
+	if (controlByte != 1) {
+		failWithStatus(BINARY_SERIALIZATION_ERROR_INVALID_NULLABLE_STRING_CONTROL_BYTE, return NULL)
+	}
 	return readStringInternal(self);
 }
 
@@ -587,6 +589,9 @@ const void * BinaryDeserializationContext_readBlob(BinaryDeserializationContext 
 	checkCanReadValue(4, return NULL)
 	
 	length = readUInt32Internal(self);
+	if (length == 0xFFFFFFFFu) {
+		return NULL;
+	}
 	if (length + self->position <= self->length) {
 		value = (const void *) self->bytes + self->position;
 		self->position += length;

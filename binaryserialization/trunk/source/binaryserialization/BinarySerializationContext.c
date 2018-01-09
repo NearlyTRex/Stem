@@ -534,6 +534,10 @@ void BinarySerializationContext_writeStringNullable(BinarySerializationContext *
 
 void BinarySerializationContext_writeBlob(BinarySerializationContext * self, const char * key, const void * value, size_t length) {
 	writePreamble(self, key);
-	writeUInt32Internal(self, length);
-	memwrite(&self->memwriteContext, length, value);
+	if (value == NULL) {
+		writeUInt32Internal(self, 0xFFFFFFFFu);
+	} else {
+		writeUInt32Internal(self, length);
+		memwrite(&self->memwriteContext, length, value);
+	}
 }

@@ -24,8 +24,3 @@ struct dictionary {
 	} entries[count];
 	...values;
 };
-
-TODO: Dictionary value offsets should be relative to the beginning of the value list, not the beginning of the dictionary, if possible
-TODO: Remove useless little endian mode?
-TODO: Make blobs nullable (must update jsonserialization too!)
-TODO: For the above two changes to make sense, the binary format itself needs a version number. Repurpose 'Stem' signature and add version field.

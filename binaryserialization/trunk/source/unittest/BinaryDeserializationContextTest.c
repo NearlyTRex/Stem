@@ -176,9 +176,13 @@ static void testInitErrors() {
 	const void * value; \
 	size_t length; \
 	value = context->readBlob(context, KEY, &length); \
-	TestCase_assert(value != NULL, "Expected non-NULL but got NULL"); \
-	TestCase_assert(length == EXPECTED_LENGTH, "Expected " SIZE_T_FORMAT " but got " SIZE_T_FORMAT, (size_t) EXPECTED_LENGTH, length); \
-	TestCase_assert(!memcmp(value, (EXPECTED_VALUE), EXPECTED_LENGTH), "Expected \"%s\" but got \"%s\"", (char *) (EXPECTED_VALUE), (char *) value); \
+	if ((EXPECTED_VALUE) == NULL) { \
+		TestCase_assert(value == NULL, "Expected NULL but got %p", value); \
+	} else { \
+		TestCase_assert(value != NULL, "Expected non-NULL but got NULL"); \
+		TestCase_assert(length == EXPECTED_LENGTH, "Expected " SIZE_T_FORMAT " but got " SIZE_T_FORMAT, (size_t) EXPECTED_LENGTH, length); \
+		TestCase_assert(!memcmp(value, (EXPECTED_VALUE), EXPECTED_LENGTH), "Expected \"%s\" but got \"%s\"", (char *) (EXPECTED_VALUE), (char *) value); \
+	} \
 	TestCase_assert(context->status == SERIALIZATION_ERROR_OK, "Got error from operation that should have succeeded: %d", context->status); \
 }
 
@@ -380,31 +384,35 @@ static void testBlobValues() {
 	
 	context = BinaryDeserializationContext_createWithBytes(
 		"Stem"
-		"\x00\x00\x00\x02"
+		"\x00\x00\x00\x03"
 		"\x00\x00\x00\x03" "foo"
-		"\x00\x00\x00\x0D" "Hello, world!",
-		32
+		"\x00\x00\x00\x0D" "Hello, world!"
+		"\xFF\xFF\xFF\xFF",
+		36
 	);
 	TestCase_assert(context != NULL, "Expected non-NULL but got NULL");
 	if (context == NULL) {return;} // Suppress clang warning
-	beginAndVerifyArray("", 2)
+	beginAndVerifyArray("", 3)
 	readAndVerifyBlob("", "foo", 3)
 	readAndVerifyBlob("", "Hello, world!", 13)
+	readAndVerifyBlob("", NULL, 0)
 	context->endArray(context);
 	context->dispose(context);
 	
 	context = BinaryDeserializationContext_createWithBytes(
 		"metS"
-		"\x02\x00\x00\x00"
+		"\x03\x00\x00\x00"
 		"\x03\x00\x00\x00" "foo"
-		"\x0D\x00\x00\x00" "Hello, world!",
-		32
+		"\x0D\x00\x00\x00" "Hello, world!"
+		"\xFF\xFF\xFF\xFF",
+		36
 	);
 	TestCase_assert(context != NULL, "Expected non-NULL but got NULL");
 	if (context == NULL) {return;} // Suppress clang warning
-	beginAndVerifyArray("", 2)
+	beginAndVerifyArray("", 3)
 	readAndVerifyBlob("", "foo", 3)
 	readAndVerifyBlob("", "Hello, world!", 13)
+	readAndVerifyBlob("", NULL, 0)
 	context->endArray(context);
 	context->dispose(context);
 }
@@ -1928,6 +1936,8 @@ static void testErrorReporting() {
 	_testFailure("Stem", 4, SERIALIZATION_ERROR_NO_CONTAINER_STARTED, context->beginStructure(context, ""); context->endStructure(context);, context->readBitfield16(context, "key", NULL);)
 	_testFailure("Stem", 4, SERIALIZATION_ERROR_NO_CONTAINER_STARTED, context->beginStructure(context, ""); context->endStructure(context);, context->readBitfield32(context, "key", NULL);)
 	_testFailure("Stem", 4, SERIALIZATION_ERROR_NO_CONTAINER_STARTED, context->beginStructure(context, ""); context->endStructure(context);, context->readBitfield64(context, "key", NULL);)
+	
+	_testFailure("Stem\x02", 5, BINARY_SERIALIZATION_ERROR_INVALID_NULLABLE_STRING_CONTROL_BYTE, context->beginStructure(context, "");, context->readStringNullable(context, "key");)
 	
 #undef _testFailure
 }

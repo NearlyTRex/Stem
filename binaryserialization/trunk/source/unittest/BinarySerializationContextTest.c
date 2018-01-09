@@ -347,17 +347,19 @@ static void testBlobValues() {
 	context->beginArray(context, "key");
 	context->writeBlob(context, "item", "foo", 3);
 	context->writeBlob(context, "item", "Hello, world!", 13);
+	context->writeBlob(context, "item", NULL, 0);
 	context->endArray(context);
 	TestCase_assert(context->status == SERIALIZATION_ERROR_OK, "Unexpected error %d", context->status);
 	bytes = BinarySerializationContext_writeToBytes(context, &length);
 	context->dispose(context);
 	TestCase_assert(bytes != NULL, "Expected non-NULL but got NULL");
 	if (bytes == NULL) {return;} // Suppress clang warning
-	TestCase_assert(length == 32, "Expected 32 but got " SIZE_T_FORMAT, length);
+	TestCase_assert(length == 36, "Expected 36 but got " SIZE_T_FORMAT, length);
 	assertBytesMatch(bytes, "Stem"
-	                        "\x00\x00\x00\x02"
+	                        "\x00\x00\x00\x03"
 	                        "\x00\x00\x00\x03" "foo"
-	                        "\x00\x00\x00\x0D" "Hello, world!", length);
+	                        "\x00\x00\x00\x0D" "Hello, world!"
+	                        "\xFF\xFF\xFF\xFF", length);
 	free(bytes);
 	
 	context = BinarySerializationContext_create(false);
@@ -366,17 +368,19 @@ static void testBlobValues() {
 	context->beginArray(context, "key");
 	context->writeBlob(context, "item", "foo", 3);
 	context->writeBlob(context, "item", "Hello, world!", 13);
+	context->writeBlob(context, "item", NULL, 0);
 	context->endArray(context);
 	TestCase_assert(context->status == SERIALIZATION_ERROR_OK, "Unexpected error %d", context->status);
 	bytes = BinarySerializationContext_writeToBytes(context, &length);
 	context->dispose(context);
 	TestCase_assert(bytes != NULL, "Expected non-NULL but got NULL");
 	if (bytes == NULL) {return;} // Suppress clang warning
-	TestCase_assert(length == 32, "Expected 32 but got " SIZE_T_FORMAT, length);
+	TestCase_assert(length == 36, "Expected 36 but got " SIZE_T_FORMAT, length);
 	assertBytesMatch(bytes, "metS"
-	                        "\x02\x00\x00\x00"
+	                        "\x03\x00\x00\x00"
 	                        "\x03\x00\x00\x00" "foo"
-	                        "\x0D\x00\x00\x00" "Hello, world!", length);
+	                        "\x0D\x00\x00\x00" "Hello, world!"
+	                        "\xFF\xFF\xFF\xFF", length);
 	free(bytes);
 }
 
