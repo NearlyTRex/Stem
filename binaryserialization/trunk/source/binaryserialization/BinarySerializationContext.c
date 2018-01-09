@@ -70,6 +70,7 @@ bool BinarySerializationContext_init(BinarySerializationContext * self, bool big
 	self->writeBitfield32 = BinarySerializationContext_writeBitfield32;
 	self->writeBitfield64 = BinarySerializationContext_writeBitfield64;
 	self->writeString = BinarySerializationContext_writeString;
+	self->writeStringNullable = BinarySerializationContext_writeStringNullable;
 	self->writeBlob = BinarySerializationContext_writeBlob;
 	return true;
 }
@@ -515,6 +516,20 @@ void BinarySerializationContext_writeBitfield64(BinarySerializationContext * sel
 void BinarySerializationContext_writeString(BinarySerializationContext * self, const char * key, const char * value) {
 	writePreamble(self, key);
 	memwrite(&self->memwriteContext, strlen(value) + 1, value);
+}
+
+void BinarySerializationContext_writeStringNullable(BinarySerializationContext * self, const char * key, const char * value) {
+	uint8_t controlByte;
+	
+	writePreamble(self, key);
+	if (value == NULL) {
+		controlByte = 0x00;
+		memwrite(&self->memwriteContext, 1, &controlByte);
+	} else {
+		controlByte = 0x01;
+		memwrite(&self->memwriteContext, 1, &controlByte);
+		memwrite(&self->memwriteContext, strlen(value) + 1, value);
+	}
 }
 
 void BinarySerializationContext_writeBlob(BinarySerializationContext * self, const char * key, const void * value, size_t length) {

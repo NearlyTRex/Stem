@@ -83,6 +83,7 @@ uint16_t BinaryDeserializationContext_readBitfield16(BinaryDeserializationContex
 uint32_t BinaryDeserializationContext_readBitfield32(BinaryDeserializationContext * self, const char * key, ...) __attribute__((sentinel));
 uint64_t BinaryDeserializationContext_readBitfield64(BinaryDeserializationContext * self, const char * key, ...) __attribute__((sentinel));
 const char * BinaryDeserializationContext_readString(BinaryDeserializationContext * self, const char * key);
+const char * BinaryDeserializationContext_readStringNullable(BinaryDeserializationContext * self, const char * key);
 const void * BinaryDeserializationContext_readBlob(BinaryDeserializationContext * self, const char * key, size_t * outLength);
 const char * BinaryDeserializationContext_readNextDictionaryKey(BinaryDeserializationContext * self);
 bool BinaryDeserializationContext_hasDictionaryKey(BinaryDeserializationContext * self, const char * key);

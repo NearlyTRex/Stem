@@ -35,6 +35,7 @@ static void verifyInit(BinarySerializationContext * context) {
 	TestCase_assert(context->writeBitfield32 == BinarySerializationContext_writeBitfield32, "Expected %p but got %p", BinarySerializationContext_writeBitfield32, context->writeBitfield32);
 	TestCase_assert(context->writeBitfield64 == BinarySerializationContext_writeBitfield64, "Expected %p but got %p", BinarySerializationContext_writeBitfield64, context->writeBitfield64);
 	TestCase_assert(context->writeString == BinarySerializationContext_writeString, "Expected %p but got %p", BinarySerializationContext_writeString, context->writeString);
+	TestCase_assert(context->writeStringNullable == BinarySerializationContext_writeStringNullable, "Expected %p but got %p", BinarySerializationContext_writeStringNullable, context->writeStringNullable);
 	TestCase_assert(context->writeBlob == BinarySerializationContext_writeBlob, "Expected %p but got %p", BinarySerializationContext_writeBlob, context->writeBlob);
 }
 
@@ -294,17 +295,21 @@ static void testStringValues() {
 	context->beginArray(context, "key");
 	context->writeString(context, "item", "foo");
 	context->writeString(context, "item", "Hello, world!");
+	context->writeStringNullable(context, "item", "null");
+	context->writeStringNullable(context, "item", NULL);
 	context->endArray(context);
 	TestCase_assert(context->status == SERIALIZATION_ERROR_OK, "Unexpected error %d", context->status);
 	bytes = BinarySerializationContext_writeToBytes(context, &length);
 	context->dispose(context);
 	TestCase_assert(bytes != NULL, "Expected non-NULL but got NULL");
 	if (bytes == NULL) {return;} // Suppress clang warning
-	TestCase_assert(length == 26, "Expected 26 but got " SIZE_T_FORMAT, length);
+	TestCase_assert(length == 33, "Expected 33 but got " SIZE_T_FORMAT, length);
 	assertBytesMatch(bytes, "Stem"
-	                        "\x00\x00\x00\x02"
+	                        "\x00\x00\x00\x04"
 	                        "foo\x00"
-	                        "Hello, world!\x00", length);
+	                        "Hello, world!\x00"
+	                        "\x01null\x00"
+	                        "\x00", length);
 	free(bytes);
 	
 	context = BinarySerializationContext_create(false);
@@ -313,17 +318,21 @@ static void testStringValues() {
 	context->beginArray(context, "key");
 	context->writeString(context, "item", "foo");
 	context->writeString(context, "item", "Hello, world!");
+	context->writeStringNullable(context, "item", "null");
+	context->writeStringNullable(context, "item", NULL);
 	context->endArray(context);
 	TestCase_assert(context->status == SERIALIZATION_ERROR_OK, "Unexpected error %d", context->status);
 	bytes = BinarySerializationContext_writeToBytes(context, &length);
 	context->dispose(context);
 	TestCase_assert(bytes != NULL, "Expected non-NULL but got NULL");
 	if (bytes == NULL) {return;} // Suppress clang warning
-	TestCase_assert(length == 26, "Expected 26 but got " SIZE_T_FORMAT, length);
+	TestCase_assert(length == 33, "Expected 33 but got " SIZE_T_FORMAT, length);
 	assertBytesMatch(bytes, "metS"
-	                        "\x02\x00\x00\x00"
+	                        "\x04\x00\x00\x00"
 	                        "foo\x00"
-	                        "Hello, world!\x00", length);
+	                        "Hello, world!\x00"
+	                        "\x01null\x00"
+	                        "\x00", length);
 	free(bytes);
 }
 
@@ -623,6 +632,7 @@ static void testArrays() {
 			context->writeDouble(context, "item", 9);
 			context->writeFixed16_16(context, "item", 0xA0000);
 			context->writeString(context, "item", "10");
+			context->writeStringNullable(context, "item", NULL);
 			context->writeBoolean(context, "item", true);
 			context->writeEnumeration(context, "item", 12, "enum", 12, NULL);
 			context->writeBitfield8(context, "item", 1, "13", NULL);
@@ -636,12 +646,12 @@ static void testArrays() {
 	context->dispose(context);
 	TestCase_assert(bytes != NULL, "Expected non-NULL but got NULL");
 	if (bytes == NULL) {return;} // Suppress clang warning
-	TestCase_assert(length == 89, "Expected 89 but got " SIZE_T_FORMAT, length);
+	TestCase_assert(length == 90, "Expected 90 but got " SIZE_T_FORMAT, length);
 	assertBytesMatch(bytes, "Stem"
 	                        "\x00\x00\x00\x02"
 	                        "\x00\x00\x00\x01"
 	                        "\x00"
-	                        "\x00\x00\x00\x0C"
+	                        "\x00\x00\x00\x0D"
 	                        "\x01"
 	                        "\x00\x00\x00\x06"
 	                        "\x00\x02"
@@ -654,6 +664,7 @@ static void testArrays() {
 	                        "\x40\x22\x00\x00\x00\x00\x00\x00"
 	                        "\x00\x0A\x00\x00"
 	                        "10\x00"
+	                        "\x00"
 	                        "\x01"
 	                        "\x00\x00\x00\x0C"
 	                        "\x01"
@@ -683,6 +694,7 @@ static void testArrays() {
 			context->writeDouble(context, "item", 9);
 			context->writeFixed16_16(context, "item", 0xA0000);
 			context->writeString(context, "item", "10");
+			context->writeStringNullable(context, "item", NULL);
 			context->writeBoolean(context, "item", true);
 			context->writeEnumeration(context, "item", 12, "enum", 12, NULL);
 			context->writeBitfield8(context, "item", 1, "13", NULL);
@@ -696,12 +708,12 @@ static void testArrays() {
 	context->dispose(context);
 	TestCase_assert(bytes != NULL, "Expected non-NULL but got NULL");
 	if (bytes == NULL) {return;} // Suppress clang warning
-	TestCase_assert(length == 89, "Expected 89 but got " SIZE_T_FORMAT, length);
+	TestCase_assert(length == 90, "Expected 90 but got " SIZE_T_FORMAT, length);
 	assertBytesMatch(bytes, "metS"
 	                        "\x02\x00\x00\x00"
 	                        "\x01\x00\x00\x00"
 	                        "\x00"
-	                        "\x0C\x00\x00\x00"
+	                        "\x0D\x00\x00\x00"
 	                        "\x01"
 	                        "\x06\x00\x00\x00"
 	                        "\x02\x00"
@@ -714,6 +726,7 @@ static void testArrays() {
 	                        "\x00\x00\x00\x00\x00\x00\x22\x40"
 	                        "\x00\x00\x0A\x00"
 	                        "10\x00"
+	                        "\x00"
 	                        "\x01"
 	                        "\x0C\x00\x00\x00"
 	                        "\x01"
@@ -781,6 +794,7 @@ static void testStructures() {
 			context->writeDouble(context, "double", 9);
 			context->writeFixed16_16(context, "fixed16_16", 0xA0000);
 			context->writeString(context, "string", "10");
+			context->writeStringNullable(context, "string", NULL);
 			context->writeBoolean(context, "boolean", true);
 			context->writeEnumeration(context, "enumeration", 12, "enum", 12, NULL);
 			context->writeBitfield8(context, "bitfield8", 1, "13", NULL);
@@ -794,7 +808,7 @@ static void testStructures() {
 	context->dispose(context);
 	TestCase_assert(bytes != NULL, "Expected non-NULL but got NULL");
 	if (bytes == NULL) {return;} // Suppress clang warning
-	TestCase_assert(length == 73, "Expected 73 but got " SIZE_T_FORMAT, length);
+	TestCase_assert(length == 74, "Expected 74 but got " SIZE_T_FORMAT, length);
 	assertBytesMatch(bytes, "Stem"
 	                        "\x00"
 	                        "\x01"
@@ -808,6 +822,7 @@ static void testStructures() {
 	                        "\x40\x22\x00\x00\x00\x00\x00\x00"
 	                        "\x00\x0A\x00\x00"
 	                        "10\x00"
+	                        "\x00"
 	                        "\x01"
 	                        "\x00\x00\x00\x0C"
 	                        "\x01"
@@ -837,6 +852,7 @@ static void testStructures() {
 			context->writeDouble(context, "double", 9);
 			context->writeFixed16_16(context, "fixed16_16", 0xA0000);
 			context->writeString(context, "string", "10");
+			context->writeStringNullable(context, "string", NULL);
 			context->writeBoolean(context, "boolean", true);
 			context->writeEnumeration(context, "enumeration", 12, "enum", 12, NULL);
 			context->writeBitfield8(context, "bitfield8", 1, "13", NULL);
@@ -850,7 +866,7 @@ static void testStructures() {
 	context->dispose(context);
 	TestCase_assert(bytes != NULL, "Expected non-NULL but got NULL");
 	if (bytes == NULL) {return;} // Suppress clang warning
-	TestCase_assert(length == 73, "Expected 73 but got " SIZE_T_FORMAT, length);
+	TestCase_assert(length == 74, "Expected 74 but got " SIZE_T_FORMAT, length);
 	assertBytesMatch(bytes, "metS"
 	                        "\x00"
 	                        "\x01"
@@ -864,6 +880,7 @@ static void testStructures() {
 	                        "\x00\x00\x00\x00\x00\x00\x22\x40"
 	                        "\x00\x00\x0A\x00"
 	                        "10\x00"
+	                        "\x00"
 	                        "\x01"
 	                        "\x0C\x00\x00\x00"
 	                        "\x01"
@@ -945,6 +962,7 @@ static void testDictionaries() {
 			context->writeBitfield32(context, "bitfield32", 1, "15", NULL);
 			context->writeBitfield64(context, "bitfield64", 1, "16", NULL);
 			context->writeFixed16_16(context, "fixed16_16", 0xA0000);
+			context->writeStringNullable(context, "string_null", NULL);
 		context->endDictionary(context);
 	context->endDictionary(context);
 	TestCase_assert(context->status == SERIALIZATION_ERROR_OK, "Unexpected error %d", context->status);
@@ -952,9 +970,9 @@ static void testDictionaries() {
 	context->dispose(context);
 	TestCase_assert(bytes != NULL, "Expected non-NULL but got NULL");
 	if (bytes == NULL) {return;} // Suppress clang warning
-	TestCase_assert(length == 357, "Expected 357 but got " SIZE_T_FORMAT, length);
+	TestCase_assert(length == 374, "Expected 374 but got " SIZE_T_FORMAT, length);
 	assertBytesMatch(bytes, "Stem" // 4
-	                        "\x00\x00\x00\x02\x00\x00\x01\x61" // top count/size
+	                        "\x00\x00\x00\x02\x00\x00\x01\x72" // top count/size
 	                        "struct1\x00" // top key 0
 	                        "\x00\x00\x00\x20" // value 0 offset
 	                        "struct2\x00" // top key 1
@@ -964,31 +982,33 @@ static void testDictionaries() {
 	                        "\x00\x00\x00\x11" // struct1 value 0 offset
 	                        "\x00" // int8
 	                        // struct1 end
-	                        "\x00\x00\x00\x0C\x00\x00\x01\x2F" // struct2 count/size
+	                        "\x00\x00\x00\x0D\x00\x00\x01\x40" // struct2 count/size
 	                        "uint8\x00" // struct2 key 0
-	                        "\x00\x00\x00\xA4" // struct2 value 0 offset
+	                        "\x00\x00\x00\xB4" // struct2 value 0 offset
 	                        "struct3\x00" // struct2 key 1
-	                        "\x00\x00\x00\xA5" // struct2 value 1 offset
+	                        "\x00\x00\x00\xB5" // struct2 value 1 offset
 	                        "float\x00" // struct2 key 2
-	                        "\x00\x00\x01\x08" // struct2 value 2 offset
+	                        "\x00\x00\x01\x18" // struct2 value 2 offset
 	                        "double\x00" // struct2 key 3
-	                        "\x00\x00\x01\x0C" // struct2 value 3 offset
+	                        "\x00\x00\x01\x1C" // struct2 value 3 offset
 	                        "string\x00" // struct2 key 4
-	                        "\x00\x00\x01\x14" // struct2 value 4 offset
+	                        "\x00\x00\x01\x24" // struct2 value 4 offset
 	                        "boolean\x00" // struct2 key 5
-	                        "\x00\x00\x01\x17" // struct2 value 5 offset
+	                        "\x00\x00\x01\x27" // struct2 value 5 offset
 	                        "enumeration\x00" // struct2 key 6
-	                        "\x00\x00\x01\x18" // struct2 value 6 offset
+	                        "\x00\x00\x01\x28" // struct2 value 6 offset
 	                        "bitfield8\x00" // struct2 key 7
-	                        "\x00\x00\x01\x1C" // struct2 value 7 offset
+	                        "\x00\x00\x01\x2C" // struct2 value 7 offset
 	                        "bitfield16\x00" // struct2 key 8
-	                        "\x00\x00\x01\x1D" // struct2 value 8 offset
+	                        "\x00\x00\x01\x2D" // struct2 value 8 offset
 	                        "bitfield32\x00" // struct2 key 9
-	                        "\x00\x00\x01\x1F" // struct2 value 9 offset
+	                        "\x00\x00\x01\x2F" // struct2 value 9 offset
 	                        "bitfield64\x00" // struct2 key 10
-	                        "\x00\x00\x01\x23" // struct2 value 10 offset
+	                        "\x00\x00\x01\x33" // struct2 value 10 offset
 	                        "fixed16_16\x00" // struct2 key 11
-	                        "\x00\x00\x01\x2B" // struct2 value 11 offset
+	                        "\x00\x00\x01\x3B" // struct2 value 11 offset
+	                        "string_null\x00" // struct2 key 12
+	                        "\x00\x00\x01\x3F" // struct2 value 12 offset
 	                        "\x01" // uint8
 	                        "\x00\x00\x00\x06\x00\x00\x00\x63" // struct3 count/size
 	                        "int16\x00" // struct3 key 0
@@ -1020,6 +1040,7 @@ static void testDictionaries() {
 	                        "\x00\x00\x00\x01" // bitfield32
 	                        "\x00\x00\x00\x00\x00\x00\x00\x01" // bitfield64
 	                        "\x00\x0A\x00\x00" // fixed16_16
+	                        "\x00" // string_null
 	                        , length);
 	free(bytes);
 	
@@ -1294,6 +1315,7 @@ static void testInvalidOperations() {
 	_testNoTopLevelContainer(writeDouble, 0)
 	_testNoTopLevelContainer(writeFixed16_16, 0)
 	_testNoTopLevelContainer(writeString, "")
+	_testNoTopLevelContainer(writeStringNullable, "")
 	_testNoTopLevelContainer(writeBoolean, false)
 	_testNoTopLevelContainer(writeEnumeration, 0, NULL)
 	_testNoTopLevelContainer(writeBitfield8, 0, NULL)
@@ -1576,6 +1598,7 @@ static void testInvalidOperations() {
 	_testNullObjectKey(Structure, writeDouble, 0)
 	_testNullObjectKey(Structure, writeFixed16_16, 0)
 	_testNullObjectKey(Structure, writeString, "")
+	_testNullObjectKey(Structure, writeStringNullable, "")
 	_testNullObjectKey(Structure, writeBoolean, false)
 	_testNullObjectKey(Structure, writeEnumeration, 0, "enum", 0, NULL)
 	_testNullObjectKey(Structure, writeBitfield8, 0, NULL)
@@ -1599,6 +1622,7 @@ static void testInvalidOperations() {
 	_testNullObjectKey(Dictionary, writeDouble, 0)
 	_testNullObjectKey(Dictionary, writeFixed16_16, 0)
 	_testNullObjectKey(Dictionary, writeString, "")
+	_testNullObjectKey(Dictionary, writeStringNullable, "")
 	_testNullObjectKey(Dictionary, writeBoolean, false)
 	_testNullObjectKey(Dictionary, writeEnumeration, 0, "enum", 0, NULL)
 	_testNullObjectKey(Dictionary, writeBitfield8, 0, NULL)
@@ -1668,6 +1692,7 @@ static void testErrorReporting() {
 	_testFailure(SERIALIZATION_ERROR_NO_CONTAINER_STARTED, , context->writeDouble(context, "key", 0);)
 	_testFailure(SERIALIZATION_ERROR_NO_CONTAINER_STARTED, , context->writeFixed16_16(context, "key", 0);)
 	_testFailure(SERIALIZATION_ERROR_NO_CONTAINER_STARTED, , context->writeString(context, "key", "");)
+	_testFailure(SERIALIZATION_ERROR_NO_CONTAINER_STARTED, , context->writeStringNullable(context, "key", "");)
 	_testFailure(SERIALIZATION_ERROR_NO_CONTAINER_STARTED, , context->writeBoolean(context, "key", false);)
 	_testFailure(SERIALIZATION_ERROR_NO_CONTAINER_STARTED, , context->writeEnumeration(context, "key", 0, "", 0, NULL);)
 	_testFailure(SERIALIZATION_ERROR_NO_CONTAINER_STARTED, , context->writeBitfield8(context, "key", 0, NULL);)
@@ -1687,6 +1712,7 @@ static void testErrorReporting() {
 	_testFailure(SERIALIZATION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->writeDouble(context, "key", 0);)
 	_testFailure(SERIALIZATION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->writeFixed16_16(context, "key", 0);)
 	_testFailure(SERIALIZATION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->writeString(context, "key", "");)
+	_testFailure(SERIALIZATION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->writeStringNullable(context, "key", "");)
 	_testFailure(SERIALIZATION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->writeBoolean(context, "key", false);)
 	_testFailure(SERIALIZATION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->writeEnumeration(context, "key", 0, "", 0, NULL);)
 	_testFailure(SERIALIZATION_ERROR_NO_CONTAINER_STARTED, context->beginArray(context, ""); context->endArray(context);, context->writeBitfield8(context, "key", 0, NULL);)
@@ -1830,6 +1856,9 @@ static void testErrorReporting() {
 	             context->writeString(context, NULL, "");)
 	_testFailure(SERIALIZATION_ERROR_NULL_KEY,
 	             context->beginDictionary(context, "key");,
+	             context->writeStringNullable(context, NULL, "");)
+	_testFailure(SERIALIZATION_ERROR_NULL_KEY,
+	             context->beginDictionary(context, "key");,
 	             context->writeBoolean(context, NULL, false);)
 	_testFailure(SERIALIZATION_ERROR_NULL_KEY,
 	             context->beginDictionary(context, "key");,
@@ -1883,6 +1912,9 @@ static void testErrorReporting() {
 	_testFailure(SERIALIZATION_ERROR_NULL_KEY,
 	             context->beginStructure(context, "key");,
 	             context->writeString(context, NULL, "");)
+	_testFailure(SERIALIZATION_ERROR_NULL_KEY,
+	             context->beginStructure(context, "key");,
+	             context->writeStringNullable(context, NULL, "");)
 	_testFailure(SERIALIZATION_ERROR_NULL_KEY,
 	             context->beginStructure(context, "key");,
 	             context->writeBoolean(context, NULL, false);)
@@ -1944,6 +1976,9 @@ static void testNullKeysAllowedInArrays() {
 	_testFailure(SERIALIZATION_ERROR_OK,
 	             context->beginArray(context, "key");,
 	             context->writeString(context, NULL, "");)
+	_testFailure(SERIALIZATION_ERROR_OK,
+	             context->beginArray(context, "key");,
+	             context->writeStringNullable(context, NULL, "");)
 	_testFailure(SERIALIZATION_ERROR_OK,
 	             context->beginArray(context, "key");,
 	             context->writeBoolean(context, NULL, false);)

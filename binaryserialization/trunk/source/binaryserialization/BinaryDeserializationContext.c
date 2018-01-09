@@ -145,6 +145,7 @@ static void sharedInit(BinaryDeserializationContext * self) {
 	self->readBitfield32 = BinaryDeserializationContext_readBitfield32;
 	self->readBitfield64 = BinaryDeserializationContext_readBitfield64;
 	self->readString = BinaryDeserializationContext_readString;
+	self->readStringNullable = BinaryDeserializationContext_readStringNullable;
 	self->readBlob = BinaryDeserializationContext_readBlob;
 	self->readNextDictionaryKey = BinaryDeserializationContext_readNextDictionaryKey;
 	self->hasDictionaryKey = BinaryDeserializationContext_hasDictionaryKey;
@@ -561,6 +562,20 @@ uint64_t BinaryDeserializationContext_readBitfield64(BinaryDeserializationContex
 const char * BinaryDeserializationContext_readString(BinaryDeserializationContext * self, const char * key) {
 	lookUpKey(key, return NULL)
 	checkCanReadValue(0, return NULL)
+	return readStringInternal(self);
+}
+
+const char * BinaryDeserializationContext_readStringNullable(BinaryDeserializationContext * self, const char * key) {
+	uint8_t controlByte;
+	
+	lookUpKey(key, return NULL)
+	checkCanReadValue(1, return NULL)
+	controlByte = self->bytes[self->position];
+	self->position += 1;
+	if (controlByte == 0) {
+		return NULL;
+	}
+	// TODO: Return error if controlByte > 1
 	return readStringInternal(self);
 }
 

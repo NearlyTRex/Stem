@@ -86,6 +86,7 @@ void BinarySerializationContext_writeBitfield16(BinarySerializationContext * sel
 void BinarySerializationContext_writeBitfield32(BinarySerializationContext * self, const char * key, uint32_t value, ...) __attribute__((sentinel));
 void BinarySerializationContext_writeBitfield64(BinarySerializationContext * self, const char * key, uint64_t value, ...) __attribute__((sentinel));
 void BinarySerializationContext_writeString(BinarySerializationContext * self, const char * key, const char * value);
+void BinarySerializationContext_writeStringNullable(BinarySerializationContext * self, const char * key, const char * value);
 void BinarySerializationContext_writeBlob(BinarySerializationContext * self, const char * key, const void * value, size_t length);
 
 #ifdef __cplusplus

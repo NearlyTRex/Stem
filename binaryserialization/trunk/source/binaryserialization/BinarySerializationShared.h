@@ -44,6 +44,9 @@ extern "C" {
 // writeTo<Bytes|File> called without any data having been serialized
 #define BINARY_SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER 205
 
+// A nullable string starts with a byte other than 0x00 (NULL) or 0x01 (non-NULL)
+#define BINARY_SERIALIZATION_ERROR_INVALID_NULLABLE_STRING_CONTROL_BYTE 206
+
 enum BinarySerializationContainerType {
 	BINARY_SERIALIZATION_CONTAINER_TYPE_STRUCT,
 	BINARY_SERIALIZATION_CONTAINER_TYPE_ARRAY,
