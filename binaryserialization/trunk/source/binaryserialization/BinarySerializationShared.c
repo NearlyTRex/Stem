@@ -43,6 +43,9 @@ const char * BinarySerialization_errorString(int status) {
 		case BINARY_SERIALIZATION_ERROR_NO_TOP_LEVEL_CONTAINER:
 			return "writeTo<Bytes|File> called without any data having been serialized";
 			
+		case BINARY_SERIALIZATION_ERROR_INVALID_NULLABLE_STRING_CONTROL_BYTE:
+			return "Invalid nullable string control byte";
+			
 		default:
 			return Serialization_errorString(status);
 	}
