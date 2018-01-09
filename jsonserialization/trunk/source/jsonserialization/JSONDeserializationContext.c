@@ -671,7 +671,8 @@ const char * JSONDeserializationContext_readStringNullable(JSONDeserializationCo
 	getNextNodeIndex(0)
 	if (self->currentNode->subitems[nextNodeIndex].type == JSON_TYPE_STRING) {
 		return self->currentNode->subitems[nextNodeIndex].value.string;
-	} else if (self->currentNode->subitems[nextNodeIndex].type == JSON_TYPE_NULL) {
+	}
+	if (self->currentNode->subitems[nextNodeIndex].type == JSON_TYPE_NULL) {
 		return NULL;
 	}
 	failWithStatus(SERIALIZATION_ERROR_INCORRECT_TYPE, return NULL)
@@ -682,12 +683,17 @@ const void * JSONDeserializationContext_readBlob(JSONDeserializationContext * se
 	size_t decodedLength;
 	
 	getNextNodeIndex(0)
-	_failIfNotOfType(JSON_TYPE_STRING, NULL)
-	self->ownedBlobs = realloc(self->ownedBlobs, sizeof(void *) * (self->blobCount + 1));
-	decodedLength = decodeBase64(self->currentNode->subitems[nextNodeIndex].value.string, self->currentNode->subitems[nextNodeIndex].stringLength, NULL, 0);
-	decodeBase64(self->currentNode->subitems[nextNodeIndex].value.string, self->currentNode->subitems[nextNodeIndex].stringLength, self->ownedBlobs[self->blobCount] = malloc(decodedLength), decodedLength);
-	*outLength = decodedLength;
-	return self->ownedBlobs[self->blobCount++];
+	if (self->currentNode->subitems[nextNodeIndex].type == JSON_TYPE_STRING) {
+		self->ownedBlobs = realloc(self->ownedBlobs, sizeof(void *) * (self->blobCount + 1));
+		decodedLength = decodeBase64(self->currentNode->subitems[nextNodeIndex].value.string, self->currentNode->subitems[nextNodeIndex].stringLength, NULL, 0);
+		decodeBase64(self->currentNode->subitems[nextNodeIndex].value.string, self->currentNode->subitems[nextNodeIndex].stringLength, self->ownedBlobs[self->blobCount] = malloc(decodedLength), decodedLength);
+		*outLength = decodedLength;
+		return self->ownedBlobs[self->blobCount++];
+	}
+	if (self->currentNode->subitems[nextNodeIndex].type == JSON_TYPE_NULL) {
+		return NULL;
+	}
+	failWithStatus(SERIALIZATION_ERROR_INCORRECT_TYPE, return NULL)
 }
 
 #undef _failIfNotOfType

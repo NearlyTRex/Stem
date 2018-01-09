@@ -335,6 +335,7 @@ static void testBlobValues() {
 	context->beginArray(context, "key");
 	context->writeBlob(context, "item", "foo", 3);
 	context->writeBlob(context, "item", "Hello, world!", 13);
+	context->writeBlob(context, "item", NULL, 0);
 	context->endArray(context);
 	node = JSONSerializationContext_writeToJSONNode(context);
 	context->dispose(context);
@@ -342,16 +343,18 @@ static void testBlobValues() {
 	if (node == NULL) {return;} // Suppress clang warning
 	TestCase_assert(node->type == JSON_TYPE_ARRAY, "Expected %d but got %d", JSON_TYPE_ARRAY, node->type);
 	TestCase_assert(node->key == NULL, "Expected NULL but got \"%s\"", node->key);
-	TestCase_assert(node->value.count == 2, "Expected 2 but got " SIZE_T_FORMAT, node->value.count);
+	TestCase_assert(node->value.count == 3, "Expected 3 but got " SIZE_T_FORMAT, node->value.count);
 	TestCase_assert(node->subitems != NULL, "Expected non-NULL but got NULL");
 	TestCase_assert(node->subitems[0].type == JSON_TYPE_STRING, "Expected %d but got %d", JSON_TYPE_STRING, node->subitems[0].type);
 	TestCase_assert(node->subitems[0].key == NULL, "Expected NULL but got %p", node->subitems[0].key);
 	TestCase_assert(node->subitems[0].stringLength == 4, "Expected 4 but got " SIZE_T_FORMAT, node->subitems[0].stringLength);
 	TestCase_assert(!strcmp(node->subitems[0].value.string, "Zm9v"), "Expected \"Zm9v\" but got \"%s\"", node->subitems[0].value.string);
-	TestCase_assert(node->subitems[1].type == JSON_TYPE_STRING, "Expected %d but got %d", JSON_TYPE_STRING, node->subitems[0].type);
-	TestCase_assert(node->subitems[1].key == NULL, "Expected NULL but got %p", node->subitems[0].key);
-	TestCase_assert(node->subitems[1].stringLength == 20, "Expected 20 but got " SIZE_T_FORMAT, node->subitems[0].stringLength);
+	TestCase_assert(node->subitems[1].type == JSON_TYPE_STRING, "Expected %d but got %d", JSON_TYPE_STRING, node->subitems[1].type);
+	TestCase_assert(node->subitems[1].key == NULL, "Expected NULL but got %p", node->subitems[1].key);
+	TestCase_assert(node->subitems[1].stringLength == 20, "Expected 20 but got " SIZE_T_FORMAT, node->subitems[1].stringLength);
 	TestCase_assert(!strcmp(node->subitems[1].value.string, "SGVsbG8sIHdvcmxkIQ=="), "Expected \"SGVsbG8sIHdvcmxkIQ==\" but got \"%s\"", node->subitems[1].value.string);
+	TestCase_assert(node->subitems[2].type == JSON_TYPE_NULL, "Expected %d but got %d", JSON_TYPE_NULL, node->subitems[2].type);
+	TestCase_assert(node->subitems[2].key == NULL, "Expected NULL but got %p", node->subitems[2].key);
 	JSONNode_dispose(node);
 }
 

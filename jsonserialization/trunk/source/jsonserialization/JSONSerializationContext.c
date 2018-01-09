@@ -622,13 +622,22 @@ void JSONSerializationContext_writeBlob(JSONSerializationContext * self, const c
 	
 	failIfContainerNotStarted()
 	reallocCurrentNodeSubitems();
-	self->currentNode->subitems[self->currentNode->value.count].stringLength = encodeBase64(value, length, NULL, 0);
-	encodeBase64(value, length, encodedString = malloc(self->currentNode->subitems[self->currentNode->value.count].stringLength + 1), self->currentNode->subitems[self->currentNode->value.count].stringLength + 1);
-	writeNode(self->currentNode->subitems[self->currentNode->value.count],
-	          self->currentNode,
-	          key,
-	          JSON_TYPE_STRING,
-	          string,
-	          encodedString);
+	if (value == NULL) {
+		writeNode(self->currentNode->subitems[self->currentNode->value.count],
+		          self->currentNode,
+		          key,
+		          JSON_TYPE_NULL,
+		          string,
+		          NULL);
+	} else {
+		self->currentNode->subitems[self->currentNode->value.count].stringLength = encodeBase64(value, length, NULL, 0);
+		encodeBase64(value, length, encodedString = malloc(self->currentNode->subitems[self->currentNode->value.count].stringLength + 1), self->currentNode->subitems[self->currentNode->value.count].stringLength + 1);
+		writeNode(self->currentNode->subitems[self->currentNode->value.count],
+		          self->currentNode,
+		          key,
+		          JSON_TYPE_STRING,
+		          string,
+		          encodedString);
+	}
 	self->currentNode->value.count++;
 }
