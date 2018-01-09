@@ -30,13 +30,14 @@
 
 #define SUPERCLASS StemObject
 
-Armature * Armature_create(unsigned int boneCount, struct ArmatureBone * bones) {
-	stemobject_create_implementation(Armature, init, boneCount, bones)
+Armature * Armature_create(Atom name, unsigned int boneCount, struct ArmatureBone * bones) {
+	stemobject_create_implementation(Armature, init, name, boneCount, bones)
 }
 
-bool Armature_init(Armature * self, unsigned int boneCount, struct ArmatureBone * bones) {
+bool Armature_init(Armature * self, Atom name, unsigned int boneCount, struct ArmatureBone * bones) {
 	call_super(init, self);
 	self->dispose = Armature_dispose;
+	self->name = name;
 	self->boneCount = boneCount;
 	self->bones = malloc(sizeof(*self->bones) * boneCount);
 	memcpy(self->bones, bones, sizeof(*self->bones) * boneCount);

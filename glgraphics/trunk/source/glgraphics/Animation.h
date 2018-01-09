@@ -36,7 +36,7 @@ typedef struct Animation Animation;
 // Curves that go outside the range of 0-1 on the x axis are clipped. Curves that have control points passing each other
 // will have their control points clipped to ensure that the curve cannot overlap itself on the time (x) axis.
 struct AnimationBoneKeyframe {
-	unsigned int boneIndex;
+	Atom boneID;
 	Vector3f offset;
 	Vector2f incomingOffsetBezierHandle;
 	Vector2f outgoingOffsetBezierHandle;

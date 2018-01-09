@@ -111,12 +111,12 @@ static void initScene2() {
 		{ATOM("boneUpper"), 0, VECTOR3f(0.0f, 1.0f, 0.0f), VECTOR3f(1.0f, 1.0f, 0.0f), 0.0f}
 	};
 	struct AnimationBoneKeyframe frame1Bones[] = {
-		{1, {-1.0f, 0.0f, 0.0f}, {0.5f, 1.0f}, {0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}, {0.0f, 0.0f}, QUATERNIONf_IDENTITY, {1.0f, 0.0f}, {0.0f, 0.0f}},
-		{2, {1.0f, 0.0f, 0.0f}, {1.0f, 1.0f}, {0.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}, {0.0f, 0.0f}, QUATERNIONf_IDENTITY, {1.0f, 0.0f}, {0.0f, 0.0f}}
+		{ATOM("boneLower"), {-1.0f, 0.0f, 0.0f}, {0.5f, 1.0f}, {0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}, {0.0f, 0.0f}, QUATERNIONf_IDENTITY, {1.0f, 0.0f}, {0.0f, 0.0f}},
+		{ATOM("boneUpper"), {1.0f, 0.0f, 0.0f}, {1.0f, 1.0f}, {0.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}, {0.0f, 0.0f}, QUATERNIONf_IDENTITY, {1.0f, 0.0f}, {0.0f, 0.0f}}
 	};
 	struct AnimationBoneKeyframe frame2Bones[] = {
-		{1, {1.0f, 0.0f, 0.0f}, {0.5f, 1.0f}, {0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 0.0f}, {0.0f, 0.0f}, QUATERNIONf_IDENTITY, {1.0f, 0.0f}, {0.0f, 0.0f}},
-		{2, {-1.0f, 0.0f, 0.0f}, {1.0f, 1.0f}, {0.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 0.0f}, {0.0f, 0.0f}, QUATERNIONf_IDENTITY, {1.0f, 0.0f}, {0.0f, 0.0f}}
+		{ATOM("boneLower"), {1.0f, 0.0f, 0.0f}, {0.5f, 1.0f}, {0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 0.0f}, {0.0f, 0.0f}, QUATERNIONf_IDENTITY, {1.0f, 0.0f}, {0.0f, 0.0f}},
+		{ATOM("boneUpper"), {-1.0f, 0.0f, 0.0f}, {1.0f, 1.0f}, {0.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 0.0f}, {0.0f, 0.0f}, QUATERNIONf_IDENTITY, {1.0f, 0.0f}, {0.0f, 0.0f}}
 	};
 	struct AnimationKeyframe keyframes[] = {
 		{1.0f, sizeof(frame1Bones) / sizeof(frame1Bones[0]), frame1Bones},
@@ -143,7 +143,7 @@ static void initScene2() {
 	if (renderable != NULL) {
 		MeshRenderable_dispose(renderable);
 	}
-	armature = Armature_create(sizeof(bones) / sizeof(bones[0]), bones);
+	armature = Armature_create(ATOM("armature"), sizeof(bones) / sizeof(bones[0]), bones);
 	animation = Animation_create(ATOM("animation"), true, sizeof(keyframes) / sizeof(keyframes[0]), keyframes, 0, NULL);
 	animationState = AnimationState_create(armature);
 	Animation_poseAnimationStateAtTime(animation, animationState, 0.0, 1.0f);
@@ -278,12 +278,12 @@ static void initScene3() {
 		{ATOM("joint2"), 1, VECTOR3f(0.0f, 2.0f, 0.0f), VECTOR3f(0.0f, 4.0f, 0.0f), M_PI * 0.5f}
 	};
 	struct AnimationBoneKeyframe frame1Bones[] = {
-		{1, {0.0f, 0.0f, 0.0f}, {1.0f, 1.0f}, {0.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}, {0.0f, 0.0f}, QUATERNIONf_IDENTITY, {0.5f, 1.0f}, {0.5f, 0.0f}},
-		{2, {0.0f, 0.0f, 0.0f}, {1.0f, 1.0f}, {0.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}, {0.0f, 0.0f}, QUATERNIONf_IDENTITY, {0.5f, 1.0f}, {0.5f, 0.0f}}
+		{ATOM("joint1"), {0.0f, 0.0f, 0.0f}, {1.0f, 1.0f}, {0.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}, {0.0f, 0.0f}, QUATERNIONf_IDENTITY, {0.5f, 1.0f}, {0.5f, 0.0f}},
+		{ATOM("joint2"), {0.0f, 0.0f, 0.0f}, {1.0f, 1.0f}, {0.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}, {0.0f, 0.0f}, QUATERNIONf_IDENTITY, {0.5f, 1.0f}, {0.5f, 0.0f}}
 	};
 	struct AnimationBoneKeyframe frame2Bones[] = {
-		{1, {0.0f, 0.0f, 0.0f}, {1.0f, 1.0f}, {0.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}, {0.0f, 0.0f}, Quaternionf_fromAxisAngle(VECTOR3f(0.0f, 0.0f, 1.0f), M_PI * 0.25f), {0.5f, 1.0f}, {0.5f, 0.0f}},
-		{2, {0.0f, 0.0f, 0.0f}, {1.0f, 1.0f}, {0.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}, {0.0f, 0.0f}, Quaternionf_fromAxisAngle(VECTOR3f(0.0f, 0.0f, 1.0f), M_PI * 0.25f), {0.5f, 1.0f}, {0.5f, 0.0f}}
+		{ATOM("joint1"), {0.0f, 0.0f, 0.0f}, {1.0f, 1.0f}, {0.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}, {0.0f, 0.0f}, Quaternionf_fromAxisAngle(VECTOR3f(0.0f, 0.0f, 1.0f), M_PI * 0.25f), {0.5f, 1.0f}, {0.5f, 0.0f}},
+		{ATOM("joint2"), {0.0f, 0.0f, 0.0f}, {1.0f, 1.0f}, {0.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}, {0.0f, 0.0f}, Quaternionf_fromAxisAngle(VECTOR3f(0.0f, 0.0f, 1.0f), M_PI * 0.25f), {0.5f, 1.0f}, {0.5f, 0.0f}}
 	};
 	struct AnimationKeyframe keyframes[] = {
 		{0.5f, sizeof(frame1Bones) / sizeof(frame1Bones[0]), frame1Bones},
@@ -310,7 +310,7 @@ static void initScene3() {
 	if (renderable != NULL) {
 		MeshRenderable_dispose(renderable);
 	}
-	armature = Armature_create(sizeof(bones) / sizeof(bones[0]), bones);
+	armature = Armature_create(ATOM("armature"), sizeof(bones) / sizeof(bones[0]), bones);
 	animation = Animation_create(ATOM("animation"), true, sizeof(keyframes) / sizeof(keyframes[0]), keyframes, 0, NULL);
 	animationState = AnimationState_create(armature);
 	Animation_poseAnimationStateAtTime(animation, animationState, 0.0, 1.0f);
@@ -477,9 +477,9 @@ void Target_init() {
 	
 	renderer = Renderer_create();
 	material = Material_create(COLOR4f(1.0f, 1.0f, 1.0f, 1.0f), 0.875f, 32.0f, 0.0f);
-	Material_setColorTexture(material, true, 2, 2, 8, checkerboardPixels);
+	Material_setColorTexture(material, true, 2, 2, checkerboardPixels);
 	armatureMaterial = Material_create(COLOR4f(1.0f, 1.0f, 1.0f, 1.0f), 0.875f, 32.0f, 0.0f);
-	Material_setColorTexture(armatureMaterial, false, 1, 1, 4, boneColor);
+	Material_setColorTexture(armatureMaterial, false, 1, 1, boneColor);
 	
 	initScene1();
 	Shell_mainLoop();

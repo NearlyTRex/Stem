@@ -55,8 +55,8 @@ stemobject_struct_definition(Armature)
 
 // bones is copied
 // In a correctly formed armature, all parent indexes must be less than the index of the bone referencing them.
-Armature * Armature_create(unsigned int boneCount, struct ArmatureBone * bones);
-bool Armature_init(Armature * self, unsigned int boneCount, struct ArmatureBone * bones);
+Armature * Armature_create(Atom name, unsigned int boneCount, struct ArmatureBone * bones);
+bool Armature_init(Armature * self, Atom name, unsigned int boneCount, struct ArmatureBone * bones);
 void Armature_dispose(Armature * self);
 unsigned int Armature_boneIndexForID(Armature * self, Atom boneID);
 

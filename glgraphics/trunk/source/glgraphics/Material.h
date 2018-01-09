@@ -44,17 +44,18 @@ typedef struct Material Material;
 
 stemobject_struct_definition(Material)
 
-// specularity (0-1) determines blend portion of specular highlight
-// shininess (0-inf) determines specular highlight spread
-// emissiveness (0-1) determines ambient emission of color
+// specularity (0-1) determines blend portion of specular highlight (higher is more visible)
+// shininess (0-inf) determines specular highlight spread (higher is smaller)
+// emissiveness (0-1) determines ambient emission of color (higher is more visible)
 Material * Material_create(Color4f color, float specularity, float shininess, float emissiveness);
 bool Material_init(Material * self, Color4f color, float specularity, float shininess, float emissiveness);
 void Material_dispose(Material * self);
 
 // TODO: How to handle translucency and premultiplication
 // Implicit: RGBA_8888, GL_UNSIGNED_BYTE, GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR minification, anisotropy on, mipmaps generated
-void Material_setColorTexture(Material * self, bool nearestNeighborMagnification, unsigned int width, unsigned int height, unsigned int bytesPerRow, void * bitmapData);
-void Material_setNormalTexture(Material * self, bool nearestNeighborMagnification, unsigned int width, unsigned int height, unsigned int bytesPerRow, void * bitmapData);
+// If magnifyNearest is true GL_TEXTURE_MAX_FILTER is set to GL_NEAREST. Otherwise, GL_TEXTURE_MAG_FILTER is set to GL_LINEAR.
+void Material_setColorTexture(Material * self, bool magnifyNearest, unsigned int width, unsigned int height, void * bitmapData);
+void Material_setNormalTexture(Material * self, bool magnifyNearest, unsigned int width, unsigned int height, void * bitmapData);
 
 #ifdef __cplusplus
 }

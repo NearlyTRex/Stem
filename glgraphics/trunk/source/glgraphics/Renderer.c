@@ -68,8 +68,8 @@ bool Renderer_init(Renderer * self) {
 		"inBoneWeight", VERTEX_ATTRIB_BONE_WEIGHT,
 	NULL);
 	self->nullMaterial = Material_create(COLOR4f(1.0f, 1.0f, 1.0f, 1.0f), 0.875f, 32.0f, 0.0f);
-	Material_setColorTexture(self->nullMaterial, true, 1, 1, 4, nullMaterialColor);
-	Material_setNormalTexture(self->nullMaterial, true, 1, 1, 4, nullMaterialNormal);
+	Material_setColorTexture(self->nullMaterial, true, 1, 1, nullMaterialColor);
+	Material_setNormalTexture(self->nullMaterial, true, 1, 1, nullMaterialNormal);
 	return true;
 }
 

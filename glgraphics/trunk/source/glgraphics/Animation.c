@@ -95,7 +95,7 @@ struct AnimationMarker * AnimationState_getMarkerAtTime(Animation * self, double
 	return bestMarker;
 }
 
-static bool Animation_findBoneKeyframes(Animation * self, unsigned int boneIndex, double animationTime, unsigned int * outKeyframeIndexLeft, unsigned int * outKeyframeBoneIndexLeft, unsigned int * outKeyframeIndexRight, unsigned int * outKeyframeBoneIndexRight, float * outKeyframeWeight) {
+static bool Animation_findBoneKeyframes(Animation * self, Atom boneID, double animationTime, unsigned int * outKeyframeIndexLeft, unsigned int * outKeyframeBoneIndexLeft, unsigned int * outKeyframeIndexRight, unsigned int * outKeyframeBoneIndexRight, float * outKeyframeWeight) {
 	double keyframeTime = 0.0, keyframeTimeLeft = 0.0, keyframeTimeRight = 0.0;
 	unsigned int keyframeIndex, keyframeIndexLeft = 0, keyframeIndexRight = 0;
 	unsigned int keyframeBoneIndex, keyframeBoneIndexLeft = BONE_INDEX_NOT_FOUND, keyframeBoneIndexRight = BONE_INDEX_NOT_FOUND;
@@ -103,7 +103,7 @@ static bool Animation_findBoneKeyframes(Animation * self, unsigned int boneIndex
 	// Search for keyframe with an entry for this bone closest to animationTime
 	for (keyframeIndex = 0; keyframeIndex < self->keyframeCount && keyframeTime < animationTime; keyframeIndex++) {
 		for (keyframeBoneIndex = 0; keyframeBoneIndex < self->keyframes[keyframeIndex].boneCount; keyframeBoneIndex++) {
-			if (self->keyframes[keyframeIndex].bones[keyframeBoneIndex].boneIndex == boneIndex) {
+			if (self->keyframes[keyframeIndex].bones[keyframeBoneIndex].boneID == boneID) {
 				keyframeIndexLeft = keyframeIndex;
 				keyframeTimeLeft = keyframeTime;
 				keyframeBoneIndexLeft = keyframeBoneIndex;
@@ -117,7 +117,7 @@ static bool Animation_findBoneKeyframes(Animation * self, unsigned int boneIndex
 		// TODO: loop
 		for (; keyframeIndex < self->keyframeCount; keyframeIndex++) {
 			for (keyframeBoneIndex = 0; keyframeBoneIndex < self->keyframes[keyframeIndex].boneCount; keyframeBoneIndex++) {
-				if (self->keyframes[keyframeIndex].bones[keyframeBoneIndex].boneIndex == boneIndex) {
+				if (self->keyframes[keyframeIndex].bones[keyframeBoneIndex].boneID == boneID) {
 					keyframeIndexLeft = keyframeIndex;
 					keyframeTimeLeft = keyframeTime;
 					keyframeBoneIndexLeft = keyframeBoneIndex;
@@ -136,7 +136,7 @@ static bool Animation_findBoneKeyframes(Animation * self, unsigned int boneIndex
 	keyframeTime = keyframeTimeLeft + self->keyframes[keyframeIndexLeft].interval;
 	for (keyframeIndex = keyframeIndexLeft + 1; keyframeIndex < self->keyframeCount; keyframeIndex++) {
 		for (keyframeBoneIndex = 0; keyframeBoneIndex < self->keyframes[keyframeIndex].boneCount; keyframeBoneIndex++) {
-			if (self->keyframes[keyframeIndex].bones[keyframeBoneIndex].boneIndex == boneIndex) {
+			if (self->keyframes[keyframeIndex].bones[keyframeBoneIndex].boneID == boneID) {
 				keyframeIndexRight = keyframeIndex;
 				keyframeTimeRight = keyframeTime;
 				keyframeBoneIndexRight = keyframeBoneIndex;
@@ -152,7 +152,7 @@ static bool Animation_findBoneKeyframes(Animation * self, unsigned int boneIndex
 		// Wrap search around to the beginning if necessary
 		for (keyframeIndex = 0; keyframeIndex < keyframeIndexLeft; keyframeIndex++) {
 			for (keyframeBoneIndex = 0; keyframeBoneIndex < self->keyframes[keyframeIndex].boneCount; keyframeBoneIndex++) {
-				if (self->keyframes[keyframeIndex].bones[keyframeBoneIndex].boneIndex == boneIndex) {
+				if (self->keyframes[keyframeIndex].bones[keyframeBoneIndex].boneID == boneID) {
 					keyframeIndexRight = keyframeIndex;
 					keyframeTimeRight = keyframeTime;
 					keyframeBoneIndexRight = keyframeBoneIndex;
@@ -222,7 +222,7 @@ void Animation_poseAnimationStateAtTime(Animation * self, AnimationState * anima
 	}
 	
 	for (boneIndex = 0; boneIndex < animationState->armature->boneCount; boneIndex++) {
-		if (Animation_findBoneKeyframes(self, boneIndex, animationTime, &keyframeIndexLeft, &keyframeBoneIndexLeft, &keyframeIndexRight, &keyframeBoneIndexRight, &keyframeWeight)) {
+		if (Animation_findBoneKeyframes(self, animationState->armature->bones[boneIndex].boneID, animationTime, &keyframeIndexLeft, &keyframeBoneIndexLeft, &keyframeIndexRight, &keyframeBoneIndexRight, &keyframeWeight)) {
 			// Interpolate bone based on keyframes
 			struct AnimationBoneKeyframe boneKeyframeLeft = self->keyframes[keyframeIndexLeft].bones[keyframeBoneIndexLeft];
 			struct AnimationBoneKeyframe boneKeyframeRight = self->keyframes[keyframeIndexRight].bones[keyframeBoneIndexRight];

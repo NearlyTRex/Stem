@@ -48,7 +48,7 @@ void Material_dispose(Material * self) {
 	call_super(dispose, self);
 }
 
-void createTexture(GLuint * textureID, bool nearestNeighborMagnification, unsigned int width, unsigned int height, unsigned int bytesPerRow, void * bitmapData) {
+void createTexture(GLuint * textureID, bool magnifyNearest, unsigned int width, unsigned int height, void * bitmapData) {
 	GLfloat maxAnisotropy;
 	
 	assert(*textureID == 0);
@@ -57,7 +57,7 @@ void createTexture(GLuint * textureID, bool nearestNeighborMagnification, unsign
 	glBindTexture(GL_TEXTURE_2D, *textureID);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	if (nearestNeighborMagnification) {
+	if (magnifyNearest) {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	} else {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -66,23 +66,17 @@ void createTexture(GLuint * textureID, bool nearestNeighborMagnification, unsign
 	glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maxAnisotropy);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, maxAnisotropy);
 	
-	if (bytesPerRow % 4 == 0) {
-		glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
-	} else if (bytesPerRow % 2 == 0) {
-		glPixelStorei(GL_UNPACK_ALIGNMENT, 2);
-	} else {
-		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-	}
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, bitmapData);
 	glGenerateMipmap(GL_TEXTURE_2D);
 	
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void Material_setColorTexture(Material * self, bool nearestNeighborMagnification, unsigned int width, unsigned int height, unsigned int bytesPerRow, void * bitmapData) {
-	createTexture(&self->colorTextureID, nearestNeighborMagnification, width, height, bytesPerRow, bitmapData);
+void Material_setColorTexture(Material * self, bool magnifyNearest, unsigned int width, unsigned int height, void * bitmapData) {
+	createTexture(&self->colorTextureID, magnifyNearest, width, height, bitmapData);
 }
 
-void Material_setNormalTexture(Material * self, bool nearestNeighborMagnification, unsigned int width, unsigned int height, unsigned int bytesPerRow, void * bitmapData) {
-	createTexture(&self->normalTextureID, nearestNeighborMagnification, width, height, bytesPerRow, bitmapData);
+void Material_setNormalTexture(Material * self, bool magnifyNearest, unsigned int width, unsigned int height, void * bitmapData) {
+	createTexture(&self->normalTextureID, magnifyNearest, width, height, bitmapData);
 }
