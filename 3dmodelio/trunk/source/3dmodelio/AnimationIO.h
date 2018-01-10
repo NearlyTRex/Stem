@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2017 Alex Diener
+  Copyright (c) 2018 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -20,26 +20,22 @@
   Alex Diener alex@ludobloom.com
 */
 
-#ifndef __GLTFNode_H__
-#define __GLTFNode_H__
+#ifndef __AnimationIO_H__
+#define __AnimationIO_H__
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef struct GLTFNode GLTFNode;
+#include "glgraphics/Animation.h"
+#include "serialization/DeserializationContext.h"
+#include "serialization/SerializationContext.h"
 
-#include "stemobject/StemObject.h"
-#include "3dmodel/GLTFContainer.h"
+#define ANIMATION_SERIALIZATION_FORMAT_VERSION 0
+#define ANIMATION_SERIALIZATION_FORMAT_TYPE "animation"
 
-#define GLTFNode_structContents(self_type) \
-	GLTFContainer * container; \
-	StemObject_structContents(self_type)
-
-stemobject_struct_definition(GLTFNode)
-
-GLTFNode * GLTFNode_create(GLTFContainer * container);
-bool GLTFNode_init(GLTFNode * self, GLTFContainer * container);
-void GLTFNode_dispose(GLTFNode * self);
+Animation * Animation_deserialize(compat_type(DeserializationContext *) deserializationContext);
+bool Animation_loadSerializedData(Animation * self, compat_type(DeserializationContext *) deserializationContext);
+void Animation_serialize(Animation * self, compat_type(SerializationContext *) serializationContext);
 
 #ifdef __cplusplus
 }

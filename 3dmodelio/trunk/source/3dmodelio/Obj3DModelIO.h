@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2017 Alex Diener
+  Copyright (c) 2018 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -26,11 +26,11 @@
 extern "C" {
 #endif
 
-#include "glgraphics/MeshRenderable.h"
+#include "3dmodelio/MeshData.h"
 #include <stdlib.h>
 
-MeshRenderable * Obj3DModelIO_loadFile(const char * filePath);
-MeshRenderable * Obj3DModelIO_loadData(const char * data, size_t length);
+MeshData * Obj3DModelIO_loadFile(const char * filePath);
+MeshData * Obj3DModelIO_loadData(const char * data, size_t length);
 
 #ifdef __cplusplus
 }

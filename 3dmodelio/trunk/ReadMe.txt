@@ -22,3 +22,17 @@ Export model as header suitable for creating StaticMeshModel
 TASKS:
 - Load and render an animated model
 - Figure out materials and lighting
+
+
+Need custom format. glTF importer would be nice, but not a top priority. Doesn't export animation markers, separate curves for x/y/z, limited material properties. Maybe could extend exporter?
+
+Tricky stuff: Managing armatures and animations shared between multiple SceneModels. Use IDs/names to bind instead of pointers?
+
+
+ORDER:
+- Data structure
+- Import
+- Export
+- Normal mapping
+- Materials/lighting?
+- Animations

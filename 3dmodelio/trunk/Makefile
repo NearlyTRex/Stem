@@ -35,7 +35,7 @@ PROJECT_LIBRARY_DEPENDENCIES_testharness = library
 STEM_LIBRARY_DEPENDENCIES = \
 	gamemath/latest \
 	glgraphics/latest \
-	jsonio/latest \
+	serialization/latest \
 	stemobject/latest \
 	utilities/latest
 STEM_LIBRARY_DEPENDENCIES_unittest = unittest/latest
@@ -51,7 +51,12 @@ THIRDPARTY_LIBRARY_DEPENDENCIES =
 PREREQS = 
 
 SOURCES_library = \
-	source/${PROJECT_NAME}/Obj3DModelIO.c
+	source/${PROJECT_NAME}/AnimationIO.c \
+	source/${PROJECT_NAME}/ArmatureIO.c \
+	source/${PROJECT_NAME}/MaterialData.c \
+	source/${PROJECT_NAME}/MeshData.c \
+	source/${PROJECT_NAME}/Obj3DModelIO.c \
+	source/${PROJECT_NAME}/SceneLayout.c
 
 # Executable targets named "unittest" should usually specify only SOURCES_unittest_suites, which must contain only test suite files.
 # If files other than test suites are required, specify SOURCES_unittest.
@@ -62,7 +67,12 @@ SOURCES_testharness = \
 
 # Public-facing include files to be distributed with the library, if any
 INCLUDES = \
-	source/${PROJECT_NAME}/Obj3DModelIO.h
+	source/${PROJECT_NAME}/AnimationIO.h \
+	source/${PROJECT_NAME}/ArmatureIO.h \
+	source/${PROJECT_NAME}/MaterialData.h \
+	source/${PROJECT_NAME}/MeshData.h \
+	source/${PROJECT_NAME}/Obj3DModelIO.h \
+	source/${PROJECT_NAME}/SceneLayout.h
 
 # Patterns: RESOURCES, RESOURCES_${target}, RESOURCES_${platform}, RESOURCES_${target}_${platform}
 RESOURCES_testharness = \

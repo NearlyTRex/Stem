@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2017 Alex Diener
+  Copyright (c) 2018 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -20,29 +20,22 @@
   Alex Diener alex@ludobloom.com
 */
 
-#ifndef __GLTFScene_H__
-#define __GLTFScene_H__
+#ifndef __ArmatureIO_H__
+#define __ArmatureIO_H__
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef struct GLTFScene GLTFScene;
+#include "glgraphics/Armature.h"
+#include "serialization/DeserializationContext.h"
+#include "serialization/SerializationContext.h"
 
-#include "stemobject/StemObject.h"
-#include "3dmodel/GLTFContainer.h"
+#define ARMATURE_SERIALIZATION_FORMAT_VERSION 0
+#define ARMATURE_SERIALIZATION_FORMAT_TYPE "armature"
 
-#define GLTFScene_structContents(self_type) \
-	GLTFContainer * container; \
-	char * name; \
-	unsigned int nodeCount; \
-	unsigned int * nodes; \
-	StemObject_structContents(self_type)
-
-stemobject_struct_definition(GLTFScene)
-
-GLTFScene * GLTFScene_create(GLTFContainer * container);
-bool GLTFScene_init(GLTFScene * self, GLTFContainer * container);
-void GLTFScene_dispose(GLTFScene * self);
+Armature * Armature_deserialize(compat_type(DeserializationContext *) deserializationContext);
+bool Armature_loadSerializedData(Armature * self, compat_type(DeserializationContext *) deserializationContext);
+void Armature_serialize(Armature * self, compat_type(SerializationContext *) serializationContext);
 
 #ifdef __cplusplus
 }

@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2017 Alex Diener
+  Copyright (c) 2018 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -151,10 +151,10 @@ static void readFaceVertex(const char * data, size_t length, size_t * ioCharInde
 	}
 }
 
-MeshRenderable * Obj3DModelIO_loadFile(const char * filePath) {
+MeshData * Obj3DModelIO_loadFile(const char * filePath) {
 	char * fileContents;
 	size_t fileLength = 0;
-	MeshRenderable * result;
+	MeshData * result;
 	
 	fileContents = readFileSimple(filePath, &fileLength);
 	if (fileContents == NULL) {
@@ -165,7 +165,7 @@ MeshRenderable * Obj3DModelIO_loadFile(const char * filePath) {
 	return result;
 }
 
-MeshRenderable * Obj3DModelIO_loadData(const char * data, size_t length) {
+MeshData * Obj3DModelIO_loadData(const char * data, size_t length) {
 	size_t charIndex = 0;
 	size_t positionCount = 0, positionAllocatedCount = 1024;
 	Vector3f * positions = malloc(sizeof(Vector3f) * positionAllocatedCount);
@@ -176,7 +176,7 @@ MeshRenderable * Obj3DModelIO_loadData(const char * data, size_t length) {
 	int face[9];
 	struct vertex_p3f_t2f_n3f_c4f * vertices, vertex;
 	GLuint * indexes;
-	MeshRenderable * result;
+	MeshData * result;
 	
 	// TODO: This code is unsafe for malformed obj files
 	for (;;) {
@@ -288,7 +288,6 @@ MeshRenderable * Obj3DModelIO_loadData(const char * data, size_t length) {
 		}
 	}
 	
-	// TODO: uniq vertex/normal/texCoord triples
 	vertices = malloc(sizeof(*vertices) * faceCount * 3);
 	indexes = malloc(sizeof(GLuint) * faceCount * 3);
 	vertex.texCoords[0] = 0.0f;
@@ -322,8 +321,7 @@ MeshRenderable * Obj3DModelIO_loadData(const char * data, size_t length) {
 	free(normals);
 	free(faces);
 	
-	result = MeshRenderable_createStatic(vertices, faceCount * 3, indexes, faceCount * 3, NULL);
-	free(vertices);
-	free(indexes);
+	result = calloc(1, sizeof(*result));
+	result = MeshData_create(NULL, vertices, faceCount * 3, true, false, indexes, faceCount * 3, true, false, NULL, NULL);
 	return result;
 }

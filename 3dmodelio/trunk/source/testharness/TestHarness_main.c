@@ -131,6 +131,8 @@ void GLUTTarget_configure(int argc, const char ** argv, struct GLUTShellConfigur
 }
 
 void Target_init() {
+	MeshData * meshData;
+	VertexBuffer * vertexBuffer;
 	MeshRenderable * renderable;
 	
 	chdir(Shell_getResourcePath());
@@ -138,7 +140,10 @@ void Target_init() {
 	Renderer_setClearColor(renderer, COLOR4f(0.0f, 0.125f, 0.25f, 0.0f));
 	Renderer_setLights(renderer, VECTOR3f(0.0f, 8.0f, 8.0f), COLOR4f(1.0f, 1.0f, 0.95f, 1.0f), VECTOR3f(-1.0f, -2.0f, -8.0f), COLOR4f(0.8f, 0.8f, 0.8f, 1.0f), COLOR4f(0.1f, 0.1f, 0.105f, 1.0f));
 	
-	renderable = Obj3DModelIO_loadFile("suzanne.obj");
+	meshData = Obj3DModelIO_loadFile("suzanne.obj");
+	vertexBuffer = VertexBuffer_createPTNC(meshData->vertices, meshData->vertexCount, meshData->indexes, meshData->indexCount);
+	renderable = MeshRenderable_create(vertexBuffer, NULL, NULL, MATRIX4x4f_IDENTITY);
+	MeshData_dispose(meshData);
 	Renderer_addRenderable(renderer, RENDER_LAYER_3D_OPAQUE, (Renderable *) renderable);
 	
 	cameraController = OrbitCamera_create();
