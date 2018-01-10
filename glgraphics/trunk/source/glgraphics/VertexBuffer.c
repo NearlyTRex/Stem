@@ -27,15 +27,15 @@
 
 #define SUPERCLASS StemObject
 
-VertexBuffer * VertexBuffer_createPTNC(struct vertex_p3f_t2f_n3f_c4f * vertices, unsigned int vertexCount, GLuint * indexes, unsigned int indexCount) {
+VertexBuffer * VertexBuffer_createPTNC(const struct vertex_p3f_t2f_n3f_c4f * vertices, unsigned int vertexCount, const GLuint * indexes, unsigned int indexCount) {
 	stemobject_create_implementation(VertexBuffer, initPTNC, vertices, vertexCount, indexes, indexCount)
 }
 
-VertexBuffer * VertexBuffer_createPTNCBW(struct vertex_p3f_t2f_n3f_c4f_b4u_w4f * vertices, unsigned int vertexCount, GLuint * indexes, unsigned int indexCount) {
+VertexBuffer * VertexBuffer_createPTNCBW(const struct vertex_p3f_t2f_n3f_c4f_b4u_w4f * vertices, unsigned int vertexCount, const GLuint * indexes, unsigned int indexCount) {
 	stemobject_create_implementation(VertexBuffer, initPTNCBW, vertices, vertexCount, indexes, indexCount)
 }
 
-static void sharedInit(VertexBuffer * self, void * vertices, size_t verticesSize, GLuint * indexes, unsigned int indexCount) {
+static void sharedInit(VertexBuffer * self, const void * vertices, size_t verticesSize, const GLuint * indexes, unsigned int indexCount) {
 	call_super(init, self);
 	self->dispose = VertexBuffer_dispose;
 	
@@ -51,7 +51,7 @@ static void sharedInit(VertexBuffer * self, void * vertices, size_t verticesSize
 	self->indexCount = indexCount;
 }
 
-bool VertexBuffer_initPTNC(VertexBuffer * self, struct vertex_p3f_t2f_n3f_c4f * vertices, unsigned int vertexCount, GLuint * indexes, unsigned int indexCount) {
+bool VertexBuffer_initPTNC(VertexBuffer * self, const struct vertex_p3f_t2f_n3f_c4f * vertices, unsigned int vertexCount, const GLuint * indexes, unsigned int indexCount) {
 	sharedInit(self, vertices, sizeof(*vertices) * vertexCount, indexes, indexCount);
 	
 	glEnableVertexAttribArray(VERTEX_ATTRIB_POSITION);
@@ -67,7 +67,7 @@ bool VertexBuffer_initPTNC(VertexBuffer * self, struct vertex_p3f_t2f_n3f_c4f * 
 	return true;
 }
 
-bool VertexBuffer_initPTNCBW(VertexBuffer * self, struct vertex_p3f_t2f_n3f_c4f_b4u_w4f * vertices, unsigned int vertexCount, GLuint * indexes, unsigned int indexCount) {
+bool VertexBuffer_initPTNCBW(VertexBuffer * self, const struct vertex_p3f_t2f_n3f_c4f_b4u_w4f * vertices, unsigned int vertexCount, const GLuint * indexes, unsigned int indexCount) {
 	sharedInit(self, vertices, sizeof(*vertices) * vertexCount, indexes, indexCount);
 	
 	glEnableVertexAttribArray(VERTEX_ATTRIB_POSITION);

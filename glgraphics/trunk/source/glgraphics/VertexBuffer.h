@@ -42,10 +42,10 @@ typedef struct VertexBuffer VertexBuffer;
 
 stemobject_struct_definition(VertexBuffer)
 
-VertexBuffer * VertexBuffer_createPTNC(struct vertex_p3f_t2f_n3f_c4f * vertices, unsigned int vertexCount, GLuint * indexes, unsigned int indexCount);
-VertexBuffer * VertexBuffer_createPTNCBW(struct vertex_p3f_t2f_n3f_c4f_b4u_w4f * vertices, unsigned int vertexCount, GLuint * indexes, unsigned int indexCount);
-bool VertexBuffer_initPTNC(VertexBuffer * self, struct vertex_p3f_t2f_n3f_c4f * vertices, unsigned int vertexCount, GLuint * indexes, unsigned int indexCount);
-bool VertexBuffer_initPTNCBW(VertexBuffer * self, struct vertex_p3f_t2f_n3f_c4f_b4u_w4f * vertices, unsigned int vertexCount, GLuint * indexes, unsigned int indexCount);
+VertexBuffer * VertexBuffer_createPTNC(const struct vertex_p3f_t2f_n3f_c4f * vertices, unsigned int vertexCount, const GLuint * indexes, unsigned int indexCount);
+VertexBuffer * VertexBuffer_createPTNCBW(const struct vertex_p3f_t2f_n3f_c4f_b4u_w4f * vertices, unsigned int vertexCount, const GLuint * indexes, unsigned int indexCount);
+bool VertexBuffer_initPTNC(VertexBuffer * self, const struct vertex_p3f_t2f_n3f_c4f * vertices, unsigned int vertexCount, const GLuint * indexes, unsigned int indexCount);
+bool VertexBuffer_initPTNCBW(VertexBuffer * self, const struct vertex_p3f_t2f_n3f_c4f_b4u_w4f * vertices, unsigned int vertexCount, const GLuint * indexes, unsigned int indexCount);
 void VertexBuffer_dispose(VertexBuffer * self);
 
 #ifdef __cplusplus

@@ -55,8 +55,8 @@ struct AnimationKeyframe {
 };
 
 struct AnimationMarker {
-	double time; // Absolute time from beginning of animation
 	Atom name;
+	double time; // Absolute time from beginning of animation
 };
 
 #define Animation_structContents(self_type) \
