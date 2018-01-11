@@ -151,6 +151,19 @@ static void readFaceVertex(const char * data, size_t length, size_t * ioCharInde
 	}
 }
 
+static char * readString(const char * data, size_t length, size_t * ioCharIndex) {
+	size_t lastCharIndex = *ioCharIndex;
+	char * result;
+	
+	while (*ioCharIndex < length && (data[*ioCharIndex] != '\r' && data[*ioCharIndex] != '\n')) {
+		++*ioCharIndex;
+	}
+	result = malloc(*ioCharIndex - lastCharIndex);
+	memcpy(result, data + lastCharIndex, *ioCharIndex - lastCharIndex);
+	result[*ioCharIndex - lastCharIndex] = '\x00';
+	return result;
+}
+
 MeshData * Obj3DModelIO_loadFile(const char * filePath) {
 	char * fileContents;
 	size_t fileLength = 0;
@@ -167,6 +180,7 @@ MeshData * Obj3DModelIO_loadFile(const char * filePath) {
 
 MeshData * Obj3DModelIO_loadData(const char * data, size_t length) {
 	size_t charIndex = 0;
+	char * objectName = NULL;
 	size_t positionCount = 0, positionAllocatedCount = 1024;
 	Vector3f * positions = malloc(sizeof(Vector3f) * positionAllocatedCount);
 	size_t normalCount = 0, normalAllocatedCount = 1024;
@@ -193,12 +207,19 @@ MeshData * Obj3DModelIO_loadData(const char * data, size_t length) {
 			case OBJ_TOKEN_COMMENT:
 			case OBJ_TOKEN_MTLLIB:
 			case OBJ_TOKEN_USEMTL:
-			case OBJ_TOKEN_OBJECT:
 			case OBJ_TOKEN_GROUP:
 			case OBJ_TOKEN_SMOOTH_SHADING:
 			case OBJ_TOKEN_TEXTURE_COORD: // TODO: Load texture coords
 			case OBJ_TOKEN_UNKNOWN:
 				skipToNextLine(data, length, &charIndex);
+				break;
+				
+			case OBJ_TOKEN_OBJECT:
+				skipWhitespace(data, length, &charIndex);
+				if (objectName != NULL) {
+					free(objectName);
+				}
+				objectName = readString(data, length, &charIndex);
 				break;
 				
 			case OBJ_TOKEN_VERTEX:
@@ -322,6 +343,6 @@ MeshData * Obj3DModelIO_loadData(const char * data, size_t length) {
 	free(faces);
 	
 	result = calloc(1, sizeof(*result));
-	result = MeshData_create(NULL, vertices, faceCount * 3, true, false, indexes, faceCount * 3, true, false, NULL, NULL);
+	result = MeshData_create(objectName == NULL ? NULL : Atom_fromString(objectName), vertices, faceCount * 3, true, false, indexes, faceCount * 3, true, false, NULL, NULL);
 	return result;
 }
