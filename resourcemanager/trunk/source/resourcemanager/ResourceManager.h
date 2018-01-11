@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2013 Alex Diener
+  Copyright (c) 2018 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -20,72 +20,97 @@
   Alex Diener adiener@sacredsoftware.net
 */
 
-#ifndef __RESOURCE_MANAGER_H__
-#define __RESOURCE_MANAGER_H__
+#ifndef __ResourceManager_H__
+#define __ResourceManager_H__
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef struct ResourceManager ResourceManager;
 
 #include "stemobject/StemObject.h"
+#include "utilities/Atom.h"
 #include <stdlib.h>
 
+enum ResourceManagerPurgePolicy {
+	PURGE_IMMEDIATE, // Resources are unloaded inside ResourceManager_releaseResource() when their reference count drops to 0.
+	PURGE_DEFERRED, // Resources are unloaded in ResourceManager_purge*() if their reference count has dropped to 0.
+	PURGE_NEVER // Resources are never unloaded.
+};
+
 struct ResourceManager_typeHandler {
-	char * typeName;
-	void * (* loadFunction)(const char * resourceName, void * context);
+	Atom typeName;
+	void * (* loadFunction)(Atom resourceName, void * context);
 	void (* unloadFunction)(void * resource, void * context);
+	enum ResourceManagerPurgePolicy purgePolicy;
 	void * context;
 };
 
 struct ResourceManager_resource {
-	const char * typeName;
-	char * resourceName;
+	Atom resourceName;
 	void * resource;
+	unsigned int typeHandlerIndex;
 	unsigned int referenceCount;
+	double zeroReferenceTime;
 };
 
 #define ResourceManager_structContents(self_type) \
 	StemObject_structContents(self_type) \
 	\
+	double (* timeFunction)(void); \
 	size_t typeHandlerCount; \
+	size_t private_ivar(typeHandlerAllocatedCount); \
 	struct ResourceManager_typeHandler * typeHandlers; \
 	size_t resourceCount; \
-	struct ResourceManager_resource * resources; \
-	\
-	void (* addTypeHandler)(self_type * self, \
-	                        const char * typeName, \
-	                        void * (* loadFunction)(const char * resourceName, void * context), \
-	                        void (* unloadFunction)(void * resource, void * context), \
-	                        void * context); \
-	void (* addResource)(self_type * self, \
-	                     const char * typeName, \
-	                     const char * resourceName, \
-	                     void * resource); \
-	void * (* referenceResource)(self_type * self, \
-	                             const char * typeName, \
-	                             const char * resourceName); \
-	void (* releaseResource)(self_type * self, \
-	                         const char * typeName, \
-	                         const char * resourceName);
+	size_t private_ivar(resourceAllocatedCount); \
+	struct ResourceManager_resource * resources;
 
 stemobject_struct_definition(ResourceManager)
 
-ResourceManager * ResourceManager_create();
-bool ResourceManager_init(ResourceManager * self);
+// timeFunction should be a function that returns a monotonically-increasing time value in seconds, such as Shell_getCurrentTime().
+ResourceManager * ResourceManager_create(double (* timeFunction)(void));
+bool ResourceManager_init(ResourceManager * self, double (* timeFunction)(void));
 void ResourceManager_dispose(ResourceManager * self);
 
+// Registers a type name with ResourceManager, defining callbacks to be invoked when this type of resource needs to be loaded or unloaded.
+// The pointer returned from loadFunction will be returned from ResourceManager_referenceResource, and will be passed to unloadFunction
+// when the resource needs to be unloaded.
 void ResourceManager_addTypeHandler(ResourceManager * self,
-                                    const char * typeName,
-                                    void * (* loadFunction)(const char * resourceName, void * context),
+                                    Atom typeName,
+                                    void * (* loadFunction)(Atom resourceName, void * context),
                                     void (* unloadFunction)(void * resource, void * context),
+                                    enum ResourceManagerPurgePolicy purgePolicy,
                                     void * context);
-void ResourceManager_addResource(ResourceManager * self,
-                                 const char * typeName,
-                                 const char * resourceName,
-                                 void * resource);
-void * ResourceManager_referenceResource(ResourceManager * self,
-                                         const char * typeName,
-                                         const char * resourceName);
-void ResourceManager_releaseResource(ResourceManager * self,
-                                     const char * typeName,
-                                     const char * resourceName);
 
+// Adds a loaded resource to ResourceManager with an initial reference count of 1. This is an alternative to having a resource loaded
+// using the loadFunction callback provided to ResourceManager_addTypeHandler. The unloadFunction, if one is defined for this type, will
+// still be called as normal for this resource if its reference count drops to 0 and the resource is purged.
+void ResourceManager_addResource(ResourceManager * self,
+                                 Atom typeName,
+                                 Atom resourceName,
+                                 void * resource);
+
+// Fetches and returns the named resource, incrementing its reference count by 1. If the resource is not currently loaded, the
+// loadFunction callback defined for typeName will be invoked to load it. Call ResourceManager_releaseResource after you've finished
+// using it to allow it to be unloaded if necessary.
+void * ResourceManager_referenceResource(ResourceManager * self,
+                                         Atom typeName,
+                                         Atom resourceName);
+
+// Decrements the reference count of the named resource by 1. If the resource's reference count drops to 0 and the type has a purge
+// policy of PURGE_IMMEDIATE, the unloadFunction callback defined for that type is called and the resource is unloaded.
+void ResourceManager_releaseResource(ResourceManager * self,
+                                     Atom typeName,
+                                     Atom resourceName);
+
+// Unloads all resources whose reference counts have dropped to 0, for types that have the PURGE_DEFERRED policy.
+void ResourceManager_purgeAll(ResourceManager * self);
+
+// Unloads all resources whose reference counts dropped to 0 longer ago than the specified number of seconds, for types that have
+// the PURGE_DEFERRED policy.
+void ResourceManager_purgeAllOlderThan(ResourceManager * self, double age);
+
+#ifdef __cplusplus
+}
+#endif
 #endif

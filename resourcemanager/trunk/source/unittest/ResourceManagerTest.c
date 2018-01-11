@@ -1,48 +1,45 @@
 #include "unittest/TestSuite.h"
 #include "resourcemanager/ResourceManager.h"
 
+static double currentTime;
+
+static double timeFunction() {
+	return currentTime;
+}
+
 static void testInit() {
 	ResourceManager resourceManager, * resourceManagerPtr;
 	bool success;
 	
 	memset(&resourceManager, 0x00, sizeof(resourceManager));
-	success = ResourceManager_init(&resourceManager);
+	success = ResourceManager_init(&resourceManager, timeFunction);
 	TestCase_assert(success, "Expected true but got false");
 	TestCase_assert(resourceManager.dispose == ResourceManager_dispose, "Expected %p but got %p", ResourceManager_dispose, resourceManager.dispose);
-	TestCase_assert(resourceManager.addTypeHandler == ResourceManager_addTypeHandler, "Expected %p but got %p", ResourceManager_addTypeHandler, resourceManager.addTypeHandler);
-	TestCase_assert(resourceManager.addResource == ResourceManager_addResource, "Expected %p but got %p", ResourceManager_addResource, resourceManager.addResource);
-	TestCase_assert(resourceManager.referenceResource == ResourceManager_referenceResource, "Expected %p but got %p", ResourceManager_referenceResource, resourceManager.referenceResource);
-	TestCase_assert(resourceManager.releaseResource == ResourceManager_releaseResource, "Expected %p but got %p", ResourceManager_releaseResource, resourceManager.releaseResource);
+	TestCase_assert(resourceManager.timeFunction == timeFunction, "Expected %p but got %p", timeFunction, resourceManager.timeFunction);
 	resourceManager.dispose(&resourceManager);
 	
 	memset(&resourceManager, 0xFF, sizeof(resourceManager));
-	success = ResourceManager_init(&resourceManager);
+	success = ResourceManager_init(&resourceManager, timeFunction);
 	TestCase_assert(success, "Expected true but got false");
 	TestCase_assert(resourceManager.dispose == ResourceManager_dispose, "Expected %p but got %p", ResourceManager_dispose, resourceManager.dispose);
-	TestCase_assert(resourceManager.addTypeHandler == ResourceManager_addTypeHandler, "Expected %p but got %p", ResourceManager_addTypeHandler, resourceManager.addTypeHandler);
-	TestCase_assert(resourceManager.addResource == ResourceManager_addResource, "Expected %p but got %p", ResourceManager_addResource, resourceManager.addResource);
-	TestCase_assert(resourceManager.referenceResource == ResourceManager_referenceResource, "Expected %p but got %p", ResourceManager_referenceResource, resourceManager.referenceResource);
-	TestCase_assert(resourceManager.releaseResource == ResourceManager_releaseResource, "Expected %p but got %p", ResourceManager_releaseResource, resourceManager.releaseResource);
+	TestCase_assert(resourceManager.timeFunction == timeFunction, "Expected %p but got %p", timeFunction, resourceManager.timeFunction);
 	resourceManager.dispose(&resourceManager);
 	
-	resourceManagerPtr = ResourceManager_create();
+	resourceManagerPtr = ResourceManager_create(timeFunction);
 	TestCase_assert(resourceManagerPtr != NULL, "Expected non-NULL but got NULL");
 	if (resourceManagerPtr == NULL) { return; } // Suppress clang warning
 	TestCase_assert(resourceManagerPtr->dispose == ResourceManager_dispose, "Expected %p but got %p", ResourceManager_dispose, resourceManagerPtr->dispose);
-	TestCase_assert(resourceManagerPtr->addTypeHandler == ResourceManager_addTypeHandler, "Expected %p but got %p", ResourceManager_addTypeHandler, resourceManagerPtr->addTypeHandler);
-	TestCase_assert(resourceManagerPtr->addResource == ResourceManager_addResource, "Expected %p but got %p", ResourceManager_addResource, resourceManagerPtr->addResource);
-	TestCase_assert(resourceManagerPtr->referenceResource == ResourceManager_referenceResource, "Expected %p but got %p", ResourceManager_referenceResource, resourceManagerPtr->referenceResource);
-	TestCase_assert(resourceManagerPtr->releaseResource == ResourceManager_releaseResource, "Expected %p but got %p", ResourceManager_releaseResource, resourceManagerPtr->releaseResource);
+	TestCase_assert(resourceManagerPtr->timeFunction == timeFunction, "Expected %p but got %p", timeFunction, resourceManagerPtr->timeFunction);
 	resourceManagerPtr->dispose(resourceManagerPtr);
 }
 
 static char * loadContext;
-static char * resourceNameToLoad;
+static Atom resourceNameToLoad;
 static void * resourceToLoad;
 static unsigned int loadResourceCalls;
 static unsigned int unloadResourceCalls;
 
-static void * loadResource(const char * resourceName, void * context) {
+static void * loadResource(Atom resourceName, void * context) {
 	loadResourceCalls++;
 	TestCase_assert(resourceName == resourceNameToLoad, "Expected %p but got %p", resourceNameToLoad, resourceName);
 	TestCase_assert(context == loadContext, "Expected %p but got %p", loadContext, context);
@@ -62,27 +59,27 @@ static void testAddResource() {
 	loadResourceCalls = 0;
 	unloadResourceCalls = 0;
 	
-	resourceManager = ResourceManager_create();
+	resourceManager = ResourceManager_create(timeFunction);
 	TestCase_assert(resourceManager != NULL, "Expected non-NULL but got NULL");
 	if (resourceManager == NULL) { return; } // Suppress clang warning
 	
-	resourceNameToLoad = "bar";
+	resourceNameToLoad = ATOM("bar");
 	resourceToLoad = "foo";
-	resourceManager->addResource(resourceManager, "type", resourceNameToLoad, resourceToLoad);
-	resource = resourceManager->referenceResource(resourceManager, "type", "resource");
+	ResourceManager_addResource(resourceManager, ATOM("type"), resourceNameToLoad, resourceToLoad);
+	resource = ResourceManager_referenceResource(resourceManager, ATOM("type"), "resource");
 	TestCase_assert(resource == NULL, "Expected NULL but got %p", resource);
 	
 	loadContext = NULL;
-	resourceManager->addTypeHandler(resourceManager, "type", loadResource, unloadResource, loadContext);
-	resourceManager->addResource(resourceManager, "type", resourceNameToLoad, resourceToLoad);
-	resource = resourceManager->referenceResource(resourceManager, "type", resourceNameToLoad);
+	ResourceManager_addTypeHandler(resourceManager, ATOM("type"), loadResource, unloadResource, PURGE_IMMEDIATE, loadContext);
+	ResourceManager_addResource(resourceManager, ATOM("type"), resourceNameToLoad, resourceToLoad);
+	resource = ResourceManager_referenceResource(resourceManager, ATOM("type"), resourceNameToLoad);
 	TestCase_assert(resource == resourceToLoad, "Expected %p but got %p", resourceToLoad, resource);
 	TestCase_assert(loadResourceCalls == 0, "Expected 0 but got %u", loadResourceCalls);
 	
-	resourceManager->releaseResource(resourceManager, "type", resourceNameToLoad);
+	ResourceManager_releaseResource(resourceManager, ATOM("type"), resourceNameToLoad);
 	TestCase_assert(unloadResourceCalls == 0, "Expected 0 but got %u", unloadResourceCalls);
 	
-	resourceManager->releaseResource(resourceManager, "type", resourceNameToLoad);
+	ResourceManager_releaseResource(resourceManager, ATOM("type"), resourceNameToLoad);
 	TestCase_assert(unloadResourceCalls == 1, "Expected 1 but got %u", unloadResourceCalls);
 	
 	resourceManager->dispose(resourceManager);
@@ -95,40 +92,40 @@ static void testReferenceResource() {
 	loadResourceCalls = 0;
 	unloadResourceCalls = 0;
 	
-	resourceManager = ResourceManager_create();
+	resourceManager = ResourceManager_create(timeFunction);
 	TestCase_assert(resourceManager != NULL, "Expected non-NULL but got NULL");
 	if (resourceManager == NULL) { return; } // Suppress clang warning
-	resource = resourceManager->referenceResource(resourceManager, "type", resourceNameToLoad);
+	resource = ResourceManager_referenceResource(resourceManager, ATOM("type"), resourceNameToLoad);
 	TestCase_assert(resource == NULL, "Expected NULL but got %p", resource);
 	
 	loadContext = "bar";
-	resourceNameToLoad = "resource";
+	resourceNameToLoad = ATOM("resource");
 	resourceToLoad = "baz";
-	resourceManager->addTypeHandler(resourceManager, "type", loadResource, unloadResource, loadContext);
+	ResourceManager_addTypeHandler(resourceManager, ATOM("type"), loadResource, unloadResource, PURGE_IMMEDIATE, loadContext);
 	
-	resourceManager->releaseResource(resourceManager, "type", "resource");
+	ResourceManager_releaseResource(resourceManager, ATOM("type"), ATOM("resource"));
 	TestCase_assert(unloadResourceCalls == 0, "Expected 0 but got %u", unloadResourceCalls);
 	
 	TestCase_assert(loadResourceCalls == 0, "Expected 0 but got %u", loadResourceCalls);
-	resource = resourceManager->referenceResource(resourceManager, "type", resourceNameToLoad);
+	resource = ResourceManager_referenceResource(resourceManager, ATOM("type"), resourceNameToLoad);
 	TestCase_assert(resource == resourceToLoad, "Expected %p but got %p", resourceToLoad, resource);
 	TestCase_assert(loadResourceCalls == 1, "Expected 1 but got %u", loadResourceCalls);
 	
-	resource = resourceManager->referenceResource(resourceManager, "type", resourceNameToLoad);
+	resource = ResourceManager_referenceResource(resourceManager, ATOM("type"), resourceNameToLoad);
 	TestCase_assert(resource == resourceToLoad, "Expected %p but got %p", resourceToLoad, resource);
 	TestCase_assert(loadResourceCalls == 1, "Expected 1 but got %u", loadResourceCalls);
 	
-	resourceManager->releaseResource(resourceManager, "type", "resource");
+	ResourceManager_releaseResource(resourceManager, ATOM("type"), ATOM("resource"));
 	TestCase_assert(unloadResourceCalls == 0, "Expected 0 but got %u", unloadResourceCalls);
 	
-	resourceManager->releaseResource(resourceManager, "type", "resource");
+	ResourceManager_releaseResource(resourceManager, ATOM("type"), ATOM("resource"));
 	TestCase_assert(unloadResourceCalls == 1, "Expected 1 but got %u", unloadResourceCalls);
 	
-	resource = resourceManager->referenceResource(resourceManager, "type", resourceNameToLoad);
+	resource = ResourceManager_referenceResource(resourceManager, ATOM("type"), resourceNameToLoad);
 	TestCase_assert(resource == resourceToLoad, "Expected %p but got %p", resourceToLoad, resource);
 	TestCase_assert(loadResourceCalls == 2, "Expected 2 but got %u", loadResourceCalls);
 	
-	resourceManager->releaseResource(resourceManager, "type", "resource");
+	ResourceManager_releaseResource(resourceManager, ATOM("type"), ATOM("resource"));
 	TestCase_assert(unloadResourceCalls == 2, "Expected 2 but got %u", unloadResourceCalls);
 	
 	resourceManager->dispose(resourceManager);
@@ -138,22 +135,22 @@ static void testOptionalityOfCallbacks() {
 	ResourceManager * resourceManager;
 	void * resource;
 	
-	resourceManager = ResourceManager_create();
+	resourceManager = ResourceManager_create(timeFunction);
 	TestCase_assert(resourceManager != NULL, "Expected non-NULL but got NULL");
 	if (resourceManager == NULL) { return; } // Suppress clang warning
 	
 	loadContext = NULL;
 	loadResourceCalls = 0;
 	unloadResourceCalls = 0;
-	resourceManager->addTypeHandler(resourceManager, "load only", loadResource, NULL, NULL);
-	resourceManager->addTypeHandler(resourceManager, "unload only", NULL, unloadResource, NULL);
+	ResourceManager_addTypeHandler(resourceManager, ATOM("load only"), loadResource, NULL, PURGE_IMMEDIATE, NULL);
+	ResourceManager_addTypeHandler(resourceManager, ATOM("unload only"), NULL, unloadResource, PURGE_IMMEDIATE, NULL);
 	
-	resource = resourceManager->referenceResource(resourceManager, "unload only", "foo");
+	resource = ResourceManager_referenceResource(resourceManager, ATOM("unload only"), ATOM("foo"));
 	TestCase_assert(resource == NULL, "Expected NULL but got %p", resource);
 	TestCase_assert(loadResourceCalls == 0, "Expected 0 but got %u", loadResourceCalls);
 	
-	resourceManager->addResource(resourceManager, "load only", "foo", "bar");
-	resourceManager->releaseResource(resourceManager, "load only", "foo");
+	ResourceManager_addResource(resourceManager, ATOM("load only"), ATOM("foo"), "bar");
+	ResourceManager_releaseResource(resourceManager, ATOM("load only"), ATOM("foo"));
 	TestCase_assert(unloadResourceCalls == 0, "Expected 0 but got %u", unloadResourceCalls);
 	
 	resourceManager->dispose(resourceManager);
@@ -162,22 +159,74 @@ static void testOptionalityOfCallbacks() {
 static void testNULLResources() {
 	ResourceManager * resourceManager;
 	
-	resourceManager = ResourceManager_create();
+	resourceManager = ResourceManager_create(timeFunction);
 	TestCase_assert(resourceManager != NULL, "Expected non-NULL but got NULL");
 	if (resourceManager == NULL) { return; } // Suppress clang warning
 	
-	resourceManager->addTypeHandler(resourceManager, "type", loadResource, unloadResource, loadContext);
-	resourceNameToLoad = "resource";
+	ResourceManager_addTypeHandler(resourceManager, ATOM("type"), loadResource, unloadResource, PURGE_IMMEDIATE, loadContext);
+	resourceNameToLoad = ATOM("resource");
 	resourceToLoad = NULL;
 	
-	resourceManager->referenceResource(resourceManager, "type", resourceNameToLoad);
+	ResourceManager_referenceResource(resourceManager, ATOM("type"), resourceNameToLoad);
 	TestCase_assert(resourceManager->resourceCount == 0, "Expected 0 but got %u\n", (unsigned int) resourceManager->resourceCount);
 	
 	resourceToLoad = "!NULL";
-	resourceManager->referenceResource(resourceManager, "type", resourceNameToLoad);
+	ResourceManager_referenceResource(resourceManager, ATOM("type"), resourceNameToLoad);
 	TestCase_assert(resourceManager->resourceCount == 1, "Expected 1 but got %u\n", (unsigned int) resourceManager->resourceCount);
 	
 	resourceManager->dispose(resourceManager);
+}
+
+static void testPurge() {
+	ResourceManager * resourceManager;
+	
+	resourceManager = ResourceManager_create(timeFunction);
+	TestCase_assert(resourceManager != NULL, "Expected non-NULL but got NULL");
+	if (resourceManager == NULL) { return; } // Suppress clang warning
+	
+	ResourceManager_addTypeHandler(resourceManager, ATOM("type_immediate"), loadResource, unloadResource, PURGE_IMMEDIATE, loadContext);
+	ResourceManager_addTypeHandler(resourceManager, ATOM("type_deferred"), loadResource, unloadResource, PURGE_DEFERRED, loadContext);
+	ResourceManager_addTypeHandler(resourceManager, ATOM("type_never"), loadResource, unloadResource, PURGE_NEVER, loadContext);
+	resourceNameToLoad = ATOM("test");
+	resourceToLoad = "hi";
+	
+	ResourceManager_referenceResource(resourceManager, ATOM("type_immediate"), resourceNameToLoad);
+	unloadResourceCalls = 0;
+	ResourceManager_releaseResource(resourceManager, ATOM("type_immediate"), resourceNameToLoad);
+	TestCase_assert(unloadResourceCalls == 1, "Expected 1 but got %u", unloadResourceCalls);
+	
+	ResourceManager_referenceResource(resourceManager, ATOM("type_deferred"), resourceNameToLoad);
+	unloadResourceCalls = 0;
+	ResourceManager_purgeAll(resourceManager);
+	ResourceManager_releaseResource(resourceManager, ATOM("type_deferred"), resourceNameToLoad);
+	TestCase_assert(unloadResourceCalls == 0, "Expected 0 but got %u", unloadResourceCalls);
+	ResourceManager_purgeAll(resourceManager);
+	TestCase_assert(unloadResourceCalls == 1, "Expected 1 but got %u", unloadResourceCalls);
+	
+	currentTime = 0.0;
+	ResourceManager_referenceResource(resourceManager, ATOM("type_deferred"), resourceNameToLoad);
+	unloadResourceCalls = 0;
+	ResourceManager_releaseResource(resourceManager, ATOM("type_deferred"), resourceNameToLoad);
+	ResourceManager_purgeAllOlderThan(resourceManager, 1.0);
+	TestCase_assert(unloadResourceCalls == 0, "Expected 0 but got %u", unloadResourceCalls);
+	currentTime = 2.0;
+	ResourceManager_purgeAllOlderThan(resourceManager, 3.0);
+	TestCase_assert(unloadResourceCalls == 0, "Expected 0 but got %u", unloadResourceCalls);
+	ResourceManager_purgeAllOlderThan(resourceManager, 1.0);
+	TestCase_assert(unloadResourceCalls == 1, "Expected 1 but got %u", unloadResourceCalls);
+	
+	ResourceManager_referenceResource(resourceManager, ATOM("type_never"), resourceNameToLoad);
+	unloadResourceCalls = 0;
+	currentTime = 0.0;
+	ResourceManager_releaseResource(resourceManager, ATOM("type_never"), resourceNameToLoad);
+	TestCase_assert(unloadResourceCalls == 0, "Expected 0 but got %u", unloadResourceCalls);
+	ResourceManager_purgeAll(resourceManager);
+	TestCase_assert(unloadResourceCalls == 0, "Expected 0 but got %u", unloadResourceCalls);
+	currentTime = 2.0;
+	ResourceManager_purgeAllOlderThan(resourceManager, 1.0);
+	TestCase_assert(unloadResourceCalls == 0, "Expected 0 but got %u", unloadResourceCalls);
+	
+	ResourceManager_dispose(resourceManager);
 }
 
 TEST_SUITE(ResourceManagerTest,
@@ -185,4 +234,5 @@ TEST_SUITE(ResourceManagerTest,
            testAddResource,
            testReferenceResource,
            testOptionalityOfCallbacks,
-           testNULLResources)
+           testNULLResources,
+           testPurge)

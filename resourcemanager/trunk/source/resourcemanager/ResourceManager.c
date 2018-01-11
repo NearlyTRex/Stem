@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2013 Alex Diener
+  Copyright (c) 2018 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -21,158 +21,197 @@
 */
 
 #include "resourcemanager/ResourceManager.h"
+#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 #define SUPERCLASS StemObject
 
-ResourceManager * ResourceManager_create() {
-	stemobject_create_implementation(ResourceManager, init)
+ResourceManager * ResourceManager_create(double (* timeFunction)(void)) {
+	stemobject_create_implementation(ResourceManager, init, timeFunction)
 }
 
-bool ResourceManager_init(ResourceManager * self) {
+bool ResourceManager_init(ResourceManager * self, double (* timeFunction)(void)) {
 	call_super(init, self);
 	
+	self->timeFunction = timeFunction;
 	self->typeHandlerCount = 0;
-	self->typeHandlers = NULL;
+	self->private_ivar(typeHandlerAllocatedCount) = 8;
+	self->typeHandlers = malloc(sizeof(*self->typeHandlers) * self->private_ivar(typeHandlerAllocatedCount));
 	self->resourceCount = 0;
-	self->resources = NULL;
+	self->private_ivar(resourceAllocatedCount) = 32;
+	self->resources = malloc(sizeof(*self->resources) * self->private_ivar(resourceAllocatedCount));
 	
 	self->dispose = ResourceManager_dispose;
-	self->addTypeHandler = ResourceManager_addTypeHandler;
-	self->addResource = ResourceManager_addResource;
-	self->referenceResource = ResourceManager_referenceResource;
-	self->releaseResource = ResourceManager_releaseResource;
 	return true;
 }
 
+static void unloadResource(ResourceManager * self, unsigned int resourceIndex) {
+	if (self->typeHandlers[self->resources[resourceIndex].typeHandlerIndex].unloadFunction != NULL) {
+		self->typeHandlers[self->resources[resourceIndex].typeHandlerIndex].unloadFunction(self->resources[resourceIndex].resource, self->typeHandlers[self->resources[resourceIndex].typeHandlerIndex].context);
+	}
+	self->resourceCount--;
+	for (; resourceIndex < self->resourceCount; resourceIndex++) {
+		self->resources[resourceIndex] = self->resources[resourceIndex + 1];
+	}
+}
+
 void ResourceManager_dispose(ResourceManager * self) {
-	unsigned int typeHandlerIndex;
 	unsigned int resourceIndex;
 	
-	for (typeHandlerIndex = 0; typeHandlerIndex < self->typeHandlerCount; typeHandlerIndex++) {
-		free(self->typeHandlers[typeHandlerIndex].typeName);
-	}
-	free(self->typeHandlers);
-	
-	for (resourceIndex = 0; resourceIndex < self->resourceCount; resourceIndex++) {
-		free(self->resources[resourceIndex].resourceName);
+	for (resourceIndex = self->resourceCount - 1; resourceIndex < self->resourceCount; resourceIndex--) {
+		unloadResource(self, resourceIndex);
 	}
 	free(self->resources);
+	free(self->typeHandlers);
 	
 	call_super(dispose, self);
 }
 
 void ResourceManager_addTypeHandler(ResourceManager * self,
-                                    const char * typeName,
-                                    void * (* loadFunction)(const char * resourceName, void * context),
+                                    Atom typeName,
+                                    void * (* loadFunction)(Atom resourceName, void * context),
                                     void (* unloadFunction)(void * resource, void * context),
+                                    enum ResourceManagerPurgePolicy purgePolicy,
                                     void * context) {
 	unsigned int typeHandlerIndex;
 	
 	for (typeHandlerIndex = 0; typeHandlerIndex < self->typeHandlerCount; typeHandlerIndex++) {
-		if (!strcmp(self->typeHandlers[typeHandlerIndex].typeName, typeName)) {
+		if (self->typeHandlers[typeHandlerIndex].typeName == typeName) {
 			return;
 		}
 	}
-	self->typeHandlers = realloc(self->typeHandlers, sizeof(struct ResourceManager_typeHandler) * (self->typeHandlerCount + 1));
-	self->typeHandlers[self->typeHandlerCount].typeName = malloc(strlen(typeName) + 1);
-	strcpy(self->typeHandlers[self->typeHandlerCount].typeName, typeName);
+	if (self->private_ivar(typeHandlerAllocatedCount) <= self->typeHandlerCount) {
+		self->private_ivar(typeHandlerAllocatedCount) *= 2;
+		self->typeHandlers = realloc(self->typeHandlers, sizeof(*self->typeHandlers) * self->private_ivar(typeHandlerAllocatedCount));
+	}
+	self->typeHandlers[self->typeHandlerCount].typeName = typeName;
 	self->typeHandlers[self->typeHandlerCount].loadFunction = loadFunction;
 	self->typeHandlers[self->typeHandlerCount].unloadFunction = unloadFunction;
+	self->typeHandlers[self->typeHandlerCount].purgePolicy = purgePolicy;
 	self->typeHandlers[self->typeHandlerCount].context = context;
 	self->typeHandlerCount++;
 }
 
-static void addResourceInternal(ResourceManager * self, const char * typeName, const char * resourceName, void * resource) {
+static void addResourceInternal(ResourceManager * self, unsigned int typeHandlerIndex, Atom resourceName, void * resource) {
 	unsigned int resourceIndex;
 	
 	for (resourceIndex = 0; resourceIndex < self->resourceCount; resourceIndex++) {
-		if (!strcmp(self->resources[resourceIndex].typeName, typeName) && !strcmp(self->resources[resourceIndex].resourceName, resourceName)) {
+		if (self->resources[resourceIndex].typeHandlerIndex == typeHandlerIndex && self->resources[resourceIndex].resourceName == resourceName) {
 			return;
 		}
 	}
 	
-	self->resources = realloc(self->resources, sizeof(struct ResourceManager_resource) * (self->resourceCount + 1));
-	self->resources[self->resourceCount].typeName = typeName;
-	self->resources[self->resourceCount].resourceName = malloc(strlen(resourceName) + 1);
-	strcpy(self->resources[self->resourceCount].resourceName, resourceName);
+	if (self->private_ivar(resourceAllocatedCount) <= self->resourceCount) {
+		self->private_ivar(resourceAllocatedCount) *= 2;
+		self->resources = realloc(self->resources, sizeof(*self->resources) * self->private_ivar(resourceAllocatedCount));
+	}
+	self->resources[self->resourceCount].resourceName = resourceName;
 	self->resources[self->resourceCount].resource = resource;
+	self->resources[self->resourceCount].typeHandlerIndex = typeHandlerIndex;
 	self->resources[self->resourceCount].referenceCount = 1;
 	self->resourceCount++;
 }
 
 void ResourceManager_addResource(ResourceManager * self,
-                                 const char * typeName,
-                                 const char * resourceName,
+                                 Atom typeName,
+                                 Atom resourceName,
                                  void * resource) {
 	unsigned int typeHandlerIndex;
 	
 	for (typeHandlerIndex = 0; typeHandlerIndex < self->typeHandlerCount; typeHandlerIndex++) {
-		if (!strcmp(self->typeHandlers[typeHandlerIndex].typeName, typeName)) {
-			addResourceInternal(self, self->typeHandlers[typeHandlerIndex].typeName, resourceName, resource);
+		if (self->typeHandlers[typeHandlerIndex].typeName == typeName) {
+			addResourceInternal(self, typeHandlerIndex, resourceName, resource);
 			break;
 		}
 	}
 }
 
 void * ResourceManager_referenceResource(ResourceManager * self,
-                                         const char * typeName,
-                                         const char * resourceName) {
+                                         Atom typeName,
+                                         Atom resourceName) {
 	unsigned int resourceIndex;
 	unsigned int typeHandlerIndex;
+	void * resource;
+	
+	for (typeHandlerIndex = 0; typeHandlerIndex < self->typeHandlerCount; typeHandlerIndex++) {
+		if (self->typeHandlers[typeHandlerIndex].typeName == typeName) {
+			break;
+		}
+	}
+	if (typeHandlerIndex >= self->typeHandlerCount) {
+		return NULL;
+	}
 	
 	for (resourceIndex = 0; resourceIndex < self->resourceCount; resourceIndex++) {
-		if (!strcmp(self->resources[resourceIndex].typeName, typeName) && !strcmp(self->resources[resourceIndex].resourceName, resourceName)) {
+		if (self->resources[resourceIndex].typeHandlerIndex == typeHandlerIndex && self->resources[resourceIndex].resourceName == resourceName) {
 			self->resources[resourceIndex].referenceCount++;
 			return self->resources[resourceIndex].resource;
 		}
 	}
 	
-	for (typeHandlerIndex = 0; typeHandlerIndex < self->typeHandlerCount; typeHandlerIndex++) {
-		if (!strcmp(self->typeHandlers[typeHandlerIndex].typeName, typeName)) {
-			void * resource;
-			
-			if (self->typeHandlers[typeHandlerIndex].loadFunction == NULL) {
-				return NULL;
-			}
-			resource = self->typeHandlers[typeHandlerIndex].loadFunction(resourceName, self->typeHandlers[typeHandlerIndex].context);
-			if (resource != NULL) {
-				addResourceInternal(self, self->typeHandlers[typeHandlerIndex].typeName, resourceName, resource);
-			}
-			return resource;
-		}
+	if (self->typeHandlers[typeHandlerIndex].loadFunction == NULL) {
+		return NULL;
 	}
-	
-	return NULL;
+	resource = self->typeHandlers[typeHandlerIndex].loadFunction(resourceName, self->typeHandlers[typeHandlerIndex].context);
+	if (resource != NULL) {
+		addResourceInternal(self, typeHandlerIndex, resourceName, resource);
+	}
+	return resource;
 }
 
 void ResourceManager_releaseResource(ResourceManager * self,
-                                     const char * typeName,
-                                     const char * resourceName) {
-	unsigned int resourceIndex;
+                                     Atom typeName,
+                                     Atom resourceName) {
+	unsigned int resourceIndex, typeHandlerIndex;
+	
+	for (typeHandlerIndex = 0; typeHandlerIndex < self->typeHandlerCount; typeHandlerIndex++) {
+		if (self->typeHandlers[typeHandlerIndex].typeName == typeName) {
+			break;
+		}
+	}
+	if (typeHandlerIndex >= self->typeHandlerCount) {
+		return;
+	}
 	
 	for (resourceIndex = 0; resourceIndex < self->resourceCount; resourceIndex++) {
-		if (!strcmp(self->resources[resourceIndex].typeName, typeName) && !strcmp(self->resources[resourceIndex].resourceName, resourceName)) {
+		if (self->resources[resourceIndex].typeHandlerIndex == typeHandlerIndex && self->resources[resourceIndex].resourceName == resourceName) {
+			if (self->resources[resourceIndex].referenceCount == 0) {
+				fprintf(stderr, "Warning: Resource \"%s\" of type \"%s\" overreleased\n", resourceName, typeName);
+				break;
+			}
 			self->resources[resourceIndex].referenceCount--;
 			if (self->resources[resourceIndex].referenceCount == 0) {
-				unsigned int typeHandlerIndex;
-				
-				for (typeHandlerIndex = 0; typeHandlerIndex < self->typeHandlerCount; typeHandlerIndex++) {
-					if (!strcmp(self->typeHandlers[typeHandlerIndex].typeName, typeName)) {
-						if (self->typeHandlers[typeHandlerIndex].unloadFunction != NULL) {
-							self->typeHandlers[typeHandlerIndex].unloadFunction(self->resources[resourceIndex].resource, self->typeHandlers[typeHandlerIndex].context);
-						}
-						free(self->resources[resourceIndex].resourceName);
-						self->resourceCount--;
-						for (; resourceIndex < self->resourceCount; resourceIndex++) {
-							self->resources[resourceIndex] = self->resources[resourceIndex + 1];
-						}
-						break;
-					}
+				if (self->typeHandlers[self->resources[resourceIndex].typeHandlerIndex].purgePolicy == PURGE_IMMEDIATE) {
+					unloadResource(self, resourceIndex);
+				} else if (self->typeHandlers[self->resources[resourceIndex].typeHandlerIndex].purgePolicy == PURGE_DEFERRED) {
+					self->resources[resourceIndex].zeroReferenceTime = self->timeFunction();
 				}
 			}
 			break;
+		}
+	}
+}
+
+void ResourceManager_purgeAll(ResourceManager * self) {
+	unsigned int resourceIndex;
+	
+	for (resourceIndex = self->resourceCount - 1; resourceIndex < self->resourceCount; resourceIndex--) {
+		if (self->resources[resourceIndex].referenceCount == 0 &&
+		    self->typeHandlers[self->resources[resourceIndex].typeHandlerIndex].purgePolicy == PURGE_DEFERRED) {
+			unloadResource(self, resourceIndex);
+		}
+	}
+}
+
+void ResourceManager_purgeAllOlderThan(ResourceManager * self, double age) {
+	unsigned int resourceIndex;
+	double currentTime = self->timeFunction();
+	
+	for (resourceIndex = self->resourceCount - 1; resourceIndex < self->resourceCount; resourceIndex--) {
+		if (self->resources[resourceIndex].referenceCount == 0 &&
+		    self->typeHandlers[self->resources[resourceIndex].typeHandlerIndex].purgePolicy == PURGE_DEFERRED &&
+		    self->resources[resourceIndex].zeroReferenceTime + age <= currentTime) {
+			unloadResource(self, resourceIndex);
 		}
 	}
 }
