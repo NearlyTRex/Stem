@@ -39,7 +39,10 @@ STEM_LIBRARY_DEPENDENCIES = \
 	stemobject/latest \
 	utilities/latest
 STEM_LIBRARY_DEPENDENCIES_unittest = unittest/latest
-STEM_LIBRARY_DEPENDENCIES_testharness = shell/latest
+STEM_LIBRARY_DEPENDENCIES_testharness = \
+	jsonserialization/latest \
+	resourcemanager/latest \
+	shell/latest
 STEM_LIBRARY_DEPENDENCIES_testharness_macosx = nsopenglshell/latest
 
 # THIRDPARTY_LIBRARY_DEPENDENCIES is specified as ${PROJECT_NAME}/${PROJECT_VERSION} for each thirdparty library to be linked when building

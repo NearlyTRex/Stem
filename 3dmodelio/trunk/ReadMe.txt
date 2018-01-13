@@ -2,6 +2,8 @@
 
 TODO: More info here
 
+Note: MeshData packs vertices and indexes in little endian format only
+
 TASKS:
 - Load and render an animated model
 - Figure out materials and lighting

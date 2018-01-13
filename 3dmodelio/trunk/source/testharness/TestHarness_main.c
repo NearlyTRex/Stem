@@ -4,6 +4,7 @@
 #include "glgraphics/MeshRenderable.h"
 #include "glgraphics/OrbitCamera.h"
 #include "glgraphics/Renderer.h"
+#include "jsonserialization/JSONDeserializationContext.h"
 #include "shell/Shell.h"
 #include "shell/ShellCallbacks.h"
 #include "shell/ShellKeyCodes.h"
@@ -24,9 +25,12 @@
 #include "glutshell/GLUTTarget.h"
 #endif
 
+#include <limits.h>
 #include <stdio.h>
 #include <unistd.h>
 
+static VertexBuffer * vertexBuffer;
+static MeshRenderable * renderable;
 static Renderer * renderer;
 static OrbitCamera * cameraController;
 static bool shiftKeyDown, controlKeyDown;
@@ -40,7 +44,38 @@ static bool Target_draw() {
 	return true;
 }
 
+static void useMesh(MeshData * meshData) {
+	Renderer_clearAllRenderables(renderer);
+	if (renderable != NULL) {
+		MeshRenderable_dispose(renderable);
+	}
+	if (vertexBuffer != NULL) {
+		VertexBuffer_dispose(vertexBuffer);
+	}
+	
+	vertexBuffer = VertexBuffer_createPTNC(meshData->vertices, meshData->vertexCount, meshData->indexes, meshData->indexCount);
+	renderable = MeshRenderable_create(vertexBuffer, NULL, NULL, MATRIX4x4f_IDENTITY);
+	Renderer_addRenderable(renderer, RENDER_LAYER_3D_OPAQUE, (Renderable *) renderable);
+}
+
 static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned int modifiers, bool isRepeat) {
+	switch (keyCode) {
+		case KEYBOARD_O: {
+			char filePath[PATH_MAX];
+			
+			if (Shell_openFileDialog(NULL, filePath, PATH_MAX)) {
+				MeshData * meshData;
+				JSONDeserializationContext * deserializationContext;
+				
+				deserializationContext = JSONDeserializationContext_createWithFile(filePath);
+				meshData = MeshData_deserialize(deserializationContext);
+				useMesh(meshData);
+				MeshData_dispose(meshData);
+				Shell_redisplay();
+			}
+			break;
+		}
+	}
 }
 
 static void Target_keyUp(unsigned int keyCode, unsigned int modifiers) {
@@ -132,8 +167,6 @@ void GLUTTarget_configure(int argc, const char ** argv, struct GLUTShellConfigur
 
 void Target_init() {
 	MeshData * meshData;
-	VertexBuffer * vertexBuffer;
-	MeshRenderable * renderable;
 	
 	chdir(Shell_getResourcePath());
 	renderer = Renderer_create();
@@ -141,10 +174,8 @@ void Target_init() {
 	Renderer_setLights(renderer, VECTOR3f(0.0f, 8.0f, 8.0f), COLOR4f(1.0f, 1.0f, 0.95f, 1.0f), VECTOR3f(-1.0f, -2.0f, -8.0f), COLOR4f(0.8f, 0.8f, 0.8f, 1.0f), COLOR4f(0.1f, 0.1f, 0.105f, 1.0f));
 	
 	meshData = Obj3DModelIO_loadFile("suzanne.obj");
-	vertexBuffer = VertexBuffer_createPTNC(meshData->vertices, meshData->vertexCount, meshData->indexes, meshData->indexCount);
-	renderable = MeshRenderable_create(vertexBuffer, NULL, NULL, MATRIX4x4f_IDENTITY);
+	useMesh(meshData);
 	MeshData_dispose(meshData);
-	Renderer_addRenderable(renderer, RENDER_LAYER_3D_OPAQUE, (Renderable *) renderable);
 	
 	cameraController = OrbitCamera_create();
 	
