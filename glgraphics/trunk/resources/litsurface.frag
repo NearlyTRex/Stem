@@ -17,18 +17,16 @@ uniform sampler2D colorTexture;
 
 out vec4 fragColor;
 
-vec3 applyLight(vec3 lightPosition, vec3 lightColor, vec3 surfaceColor, vec3 normal, vec3 surfacePosition, vec3 surfaceToCamera) {
+vec3 applyLight(vec3 lightPosition, vec3 lightColor, vec3 ambientColor, vec3 surfaceColor, vec3 normal, vec3 surfacePosition, vec3 surfaceToCamera) {
 	vec3 surfaceToLight = normalize(lightPosition - surfacePosition);
-	float lightDistance = length(surfaceToLight);
-	float brightness = dot(normal, surfaceToLight) / lightDistance;
-	brightness = clamp(brightness, 0, 1);
+	float diffuseStrength = max(dot(normal, surfaceToLight), 0.0);
+	vec3 diffuseColor = diffuseStrength * lightColor;
 	
-	float specularCoefficient = 0.0;
-	if (brightness > 0.0) {
-		specularCoefficient = pow(max(0.0, dot(surfaceToCamera, reflect(-surfaceToLight, normal))), shininess);
-	}
+	vec3 reflection = reflect(-surfaceToLight, normal);
+	float specularStrength = pow(max(0.0, dot(surfaceToCamera, reflect(-surfaceToLight, normal))), shininess);
+	vec3 specularColor = specularity * specularStrength * lightColor;
 	
-	return surfaceColor * lightColor * brightness + vec3(specularCoefficient * specularity);
+	return (ambientColor + diffuseColor + specularColor) * surfaceColor;
 }
 
 void main() {
@@ -38,8 +36,8 @@ void main() {
 	vec3 surfaceToCamera = normalize(cameraPosition - position);
 	
 	textureColor = texture(colorTexture, texCoord) * color;
-	litColor = applyLight(light0Position, light0Color, textureColor.rgb, scaledNormal, position, surfaceToCamera);
-	litColor += applyLight(light1Position, light1Color, textureColor.rgb, scaledNormal, position, surfaceToCamera);
+	litColor = applyLight(light0Position, light0Color, ambientColor, textureColor.rgb, scaledNormal, position, surfaceToCamera);
+	litColor += applyLight(light1Position, light1Color, ambientColor, textureColor.rgb, scaledNormal, position, surfaceToCamera);
 	
-	fragColor = vec4(litColor + ambientColor * textureColor.rgb, textureColor.a);
+	fragColor = vec4(litColor, textureColor.a);
 }

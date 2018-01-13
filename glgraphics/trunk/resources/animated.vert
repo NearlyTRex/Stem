@@ -36,6 +36,7 @@ void main() {
 	weightedPositions[2] = boneTransforms[inBoneID.z] * vec4(inPosition, 1.0) * inBoneWeight.z;
 	weightedPositions[3] = boneTransforms[inBoneID.w] * vec4(inPosition, 1.0) * inBoneWeight.w;
 	weightedPosition = weightedPositions[0] + weightedPositions[1] + weightedPositions[2] + weightedPositions[3];
-	position = vec3(weightedPosition);
+	position = vec3(modelTransform * weightedPosition);
+	normal = mat3(transpose(inverse(modelTransform))) * normal;
 	gl_Position = projectionTransform * viewTransform * modelTransform * weightedPosition;
 }

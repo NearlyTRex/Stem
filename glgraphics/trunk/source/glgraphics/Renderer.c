@@ -192,13 +192,14 @@ void Renderer_drawSingle(Renderer * self, Renderable * renderable) {
 			glUniformMatrix4fv(GLSLShader_getUniformLocation(shader, "projectionTransform"), 1, GL_FALSE, self->projectionMatrix.m);
 			glUniformMatrix4fv(GLSLShader_getUniformLocation(shader, "viewTransform"), 1, GL_FALSE, self->viewMatrix.m);
 			glUniformMatrix4fv(GLSLShader_getUniformLocation(shader, "modelTransform"), 1, GL_FALSE, mesh->transform.m);
+			// TODO: Compute normal matrix so vertex shader doesn't have to; see https://learnopengl.com/#!Lighting/Basic-Lighting
 			glUniform3f(GLSLShader_getUniformLocation(shader, "light0Position"), self->light0Position.x, self->light0Position.y, self->light0Position.z);
 			glUniform3f(GLSLShader_getUniformLocation(shader, "light0Color"), self->light0Color.red, self->light0Color.green, self->light0Color.blue);
 			glUniform3f(GLSLShader_getUniformLocation(shader, "light1Position"), self->light1Position.x, self->light1Position.y, self->light1Position.z);
 			glUniform3f(GLSLShader_getUniformLocation(shader, "light1Color"), self->light1Color.red, self->light1Color.green, self->light1Color.blue);
 			glUniform3f(GLSLShader_getUniformLocation(shader, "ambientColor"), self->ambientColor.red, self->ambientColor.green, self->ambientColor.blue);
-			cameraPosition = Matrix4x4f_multiplyVector3f(self->viewMatrix, VECTOR3f_ZERO);
-			glUniform3f(GLSLShader_getUniformLocation(shader, "cameraPosition"), cameraPosition.x, cameraPosition.y, cameraPosition.z);
+			cameraPosition = Matrix4x4f_multiplyVector3f(Matrix4x4f_inverted(self->viewMatrix), VECTOR3f_ZERO);
+			glUniform3f(GLSLShader_getUniformLocation(shader, "cameraPosition"), cameraPosition.x, cameraPosition.y, -cameraPosition.z);
 			glUniform1i(GLSLShader_getUniformLocation(shader, "colorTexture"), 0);
 			if (mesh->animationState != NULL) {
 				glUniformMatrix4fv(GLSLShader_getUniformLocation(shader, "boneTransforms"), mesh->animationState->armature->boneCount, GL_FALSE, (GLfloat *) mesh->animationState->computedBoneTransforms);

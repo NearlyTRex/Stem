@@ -15,9 +15,9 @@ out vec4 color;
 out vec2 texCoord;
 
 void main() {
-	position = inPosition;
 	texCoord = inTexCoord;
-	normal = inNormal;
 	color = inColor;
+	normal = mat3(transpose(inverse(modelTransform))) * inNormal;
+	position = vec3(modelTransform * vec4(inPosition, 1.0));
 	gl_Position = projectionTransform * viewTransform * modelTransform * vec4(inPosition, 1.0);
 }
