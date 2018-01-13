@@ -28,6 +28,7 @@ extern "C" {
 
 typedef struct VertexBuffer VertexBuffer;
 
+#include "gamemath/Box6f.h"
 #include "glgraphics/GLIncludes.h"
 #include "glgraphics/VertexTypes.h"
 #include "stemobject/StemObject.h"
@@ -38,7 +39,8 @@ typedef struct VertexBuffer VertexBuffer;
 	GLuint vaoID; \
 	GLuint vertexBufferID; \
 	GLuint indexBufferID; \
-	unsigned int indexCount;
+	unsigned int indexCount; \
+	Box6f bounds;
 
 stemobject_struct_definition(VertexBuffer)
 

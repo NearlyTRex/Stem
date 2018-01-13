@@ -91,6 +91,6 @@ Matrix4x4f OrbitCamera_getMatrix(OrbitCamera * self) {
 	
 	Matrix4x4f_translate(&matrix, 0.0f, 0.0f, -self->cameraDistance);
 	Matrix4x4f_multiply(&matrix, Quaternionf_toMatrix(self->cameraDirection));
-	Matrix4x4f_translate(&matrix, self->cameraFocus.x, self->cameraFocus.y, self->cameraFocus.z);
+	Matrix4x4f_translate(&matrix, -self->cameraFocus.x, -self->cameraFocus.y, -self->cameraFocus.z);
 	return matrix;
 }

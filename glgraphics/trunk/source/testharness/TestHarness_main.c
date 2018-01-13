@@ -369,9 +369,8 @@ static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned
 				Shell_redisplay();
 			}
 			break;
-		case KEYBOARD_C:
-			// TODO: Reimplement bounding box mechanism for MeshRenderable/VertexBuffer
-			//OrbitCamera_frameBoundingBox(camera, renderable->bounds, PROJECTION_FOV, (float) viewWidth / (float) viewHeight);
+		case KEYBOARD_F:
+			OrbitCamera_frameBoundingBox(camera, renderable->vertexBuffer->bounds, PROJECTION_FOV, (float) viewWidth / (float) viewHeight);
 			Shell_redisplay();
 			break;
 	}
@@ -399,9 +398,9 @@ static void Target_mouseMoved(float x, float y) {
 static void Target_mouseDragged(unsigned int buttonMask, float x, float y) {
 	if (shiftKeyDown) {
 		if (controlKeyDown) {
-			OrbitCamera_offset(camera, 0.0f, 0.0f, -y);
+			OrbitCamera_offset(camera, 0.0f, 0.0f, y);
 		} else {
-			OrbitCamera_offset(camera, x, -y, 0.0f);
+			OrbitCamera_offset(camera, -x, y, 0.0f);
 		}
 		
 	} else if (controlKeyDown) {
