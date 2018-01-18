@@ -32,6 +32,7 @@ PROJECT_LIBRARY_DEPENDENCIES_testharness = library
 # STEM_LIBRARY_DEPENDENCIES is specified as ${PROJECT_NAME}/${PROJECT_VERSION} for each stem library to be linked when building
 # Patterns: STEM_LIBRARY_DEPENDENCIES, STEM_LIBRARY_DEPENDENCIES_${target}, STEM_LIBRARY_DEPENDENCIES_${platform}, STEM_LIBRARY_DEPENDENCIES_${target}_${platform}
 STEM_LIBRARY_DEPENDENCIES = \
+	dynamictypes/latest \
 	stemobject/latest \
 	utilities/latest
 STEM_LIBRARY_DEPENDENCIES_unittest = unittest/latest
@@ -45,11 +46,13 @@ THIRDPARTY_LIBRARY_DEPENDENCIES =
 PREREQS = 
 
 SOURCES_library = \
+	source/${PROJECT_NAME}/FileCatalog.c \
 	source/${PROJECT_NAME}/ResourceManager.c
 
 # Executable targets named "unittest" should usually specify only SOURCES_unittest_suites, which must contain only test suite files.
 # If files other than test suites are required, specify SOURCES_unittest.
 SOURCES_unittest_suites = \
+	source/unittest/FileCatalogTest.c \
 	source/unittest/ResourceManagerTest.c
 
 SOURCES_testharness = \
@@ -57,6 +60,7 @@ SOURCES_testharness = \
 
 # Public-facing include files to be distributed with the library, if any
 INCLUDES = \
+	source/${PROJECT_NAME}/FileCatalog.h \
 	source/${PROJECT_NAME}/ResourceManager.h
 
 # Patterns: RESOURCES, RESOURCES_${target}, RESOURCES_${platform}, RESOURCES_${target}_${platform}

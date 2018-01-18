@@ -1,6 +1,7 @@
 2.0.0 (2018-01-10)
  * Added finer control over when resources are purged after their reference counts drop to 0.
  * Type names and resource names are now Atoms.
+ * Added FileCatalog.
 
 1.0.4 (2014-06-29)
  * Added support for modern Xcode/iOS SDK versions

@@ -1,8 +1,4 @@
-= Overview =
-
 ResourceManager is a StemObject subclass that provides facilities for managing the loading, retrieval, and unloading of resources. The definition of "resource" is completely up to the client; ResourceManager represents resources as void * and provides hooks for the loading and unloading of them to be implemented by the calling code.
-
-= Basic Usage =
 
 After instantiating a ResourceManager, you must add one or more type handlers in order to be able to do anything meaningful with it. A type handler includes a type name string, an optional callback that loads a resource of that type, an optional callback that unloads a resource of that type, a purge policy, and a context pointer. The context pointer is passed to both the loadFunction and the unloadFunction when they are called.
 
@@ -17,7 +13,9 @@ Some considerations when choosing a purge policy:
 - Most resources should be marked PURGE_DEFERRED. By using ResourceManager_purgeAllOlderThan(), unreferenced resources can stick around for a short time after the last user has released them, so the new users can reference them without having to unload and reload in between.
 - Resources should only be marked PURGE_NEVER if they need to stay loaded for the program's entire execution time.
 
-= Example =
+FileCatalog is provided as a convenient way to map resource names to files. Its usage is optional.
+
+Example usage:
 
 #include "pngimageio/PNGImageIO.h"
 #include "resourcemanager/ResourceManager.h"
