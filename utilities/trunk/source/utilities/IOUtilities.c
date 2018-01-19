@@ -233,6 +233,49 @@ const char * temporaryFilePath(const char * fileNameTemplate, int * outFD) {
 	return AutoFreePool_add(fileName);
 }
 
+const char * getFileExtension(const char * path) {
+	unsigned int charIndex, length;
+	
+	length = strlen(path);
+	for (charIndex = length; charIndex > 0; charIndex--) {
+		if (path[charIndex - 1] == '.') {
+			return path + charIndex;
+		}
+		if (path[charIndex - 1] == '/') {
+			break;
+		}
+	}
+	return path + length;
+}
+
+const char * getLastPathComponent(const char * path) {
+	unsigned int charIndex;
+	
+	for (charIndex = strlen(path) - 1; charIndex > 0; charIndex--) {
+		if (path[charIndex - 1] == '/') {
+			return path + charIndex;
+		}
+	}
+	return path;
+}
+
+const char * getDirectory(const char * path) {
+	unsigned int charIndex;
+	char * result;
+	
+	for (charIndex = strlen(path) - 1; charIndex > 0; charIndex--) {
+		if (path[charIndex - 1] == '/') {
+			break;
+		}
+	}
+	if (charIndex == 0 && path[0] == '/') {
+		return path;
+	}
+	result = malloc(charIndex + 1);
+	strncpy_safe(result, path, charIndex + 1);
+	return AutoFreePool_add(result);
+}
+
 int snprintf_safe(char * restrict str, size_t size, const char * restrict format, ...) {
 	va_list ap;
 	int result;

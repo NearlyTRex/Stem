@@ -64,6 +64,20 @@ int snprintf_safe(char * restrict str, size_t size, const char * restrict format
 int vsnprintf_safe(char * restrict str, size_t size, const char * restrict format, va_list ap);
 char * strncpy_safe(char * restrict dst, const char * restrict src, size_t n);
 
+// Returns the trailing portion of path after the last . character, if any; otherwise returns an empty string.
+// The returned string is a pointer into path, so it does not need to be freed, but it will be invalidated if path is freed.
+const char * getFileExtension(const char * path);
+
+// Returns the file or directory name at the end of path. If the last character is a path separator (/), it will be included.
+// The returned string is a pointer into path, so it does not need to be freed, but it will be invalidated if path is freed.
+const char * getLastPathComponent(const char * path);
+
+// Returns a new string constructed by removing the file or directory name at the end of path, resulting in the path to the
+// directory containing that file. The direct opposite of getLastPathComponent(), except in the case of a path specifying
+// the root directory (/), in which case the string is returned unaltered.
+// The returned string is allocated and added to AutoFreePool, so it should not be freed directly by the caller.
+const char * getDirectory(const char * path);
+
 // Writes each byte in blob as a two-character hex string in outString, up to maxLength, returning outString
 char * printHexString(const void * blob, size_t length, char * outString, size_t maxLength);
 

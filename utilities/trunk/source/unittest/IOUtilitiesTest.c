@@ -301,6 +301,55 @@ static void testTemporaryFilePath() {
 	unlink(path);
 }
 
+static void testFilePathFunctions() {
+	const char * path, * result;
+	
+	path = "abcd";
+	result = getFileExtension(path);
+	TestCase_assert(result == path + 4, "Expected %p but got %p", path + 4, result);
+	path = "Hello.txt";
+	result = getFileExtension(path);
+	TestCase_assert(result == path + 6, "Expected %p but got %p", path + 6, result);
+	path = "/path/to/Hello.txt";
+	result = getFileExtension(path);
+	TestCase_assert(result == path + 15, "Expected %p but got %p", path + 15, result);
+	path = "/test.dir/";
+	result = getFileExtension(path);
+	TestCase_assert(result == path + 10, "Expected %p but got %p", path + 10, result);
+	path = ".ext";
+	result = getFileExtension(path);
+	TestCase_assert(result == path + 1, "Expected %p but got %p", path + 1, result);
+	
+	path = "abcd";
+	result = getLastPathComponent(path);
+	TestCase_assert(result == path, "Expected %p but got %p", path, result);
+	path = "/path/to/Hello.txt";
+	result = getLastPathComponent(path);
+	TestCase_assert(result == path + 9, "Expected %p but got %p", path + 9, result);
+	path = "local/path/to/a directory/";
+	result = getLastPathComponent(path);
+	TestCase_assert(result == path + 14, "Expected %p but got %p", path + 14, result);
+	path = "/";
+	result = getLastPathComponent(path);
+	TestCase_assert(result == path, "Expected %p but got %p", path, result);
+	
+	path = "abcd";
+	result = getDirectory(path);
+	TestCase_assert(!strcmp(result, ""), "Expected \"\" but got \"%s\"", result);
+	path = "abcd/efgh";
+	result = getDirectory(path);
+	TestCase_assert(!strcmp(result, "abcd/"), "Expected \"abcd/\" but got \"%s\"", result);
+	path = "/path/to/something";
+	result = getDirectory(path);
+	TestCase_assert(!strcmp(result, "/path/to/"), "Expected \"/path/to/\" but got \"%s\"", result);
+	path = "/path";
+	result = getDirectory(path);
+	TestCase_assert(!strcmp(result, "/"), "Expected \"/\" but got \"%s\"", result);
+	path = "/";
+	result = getDirectory(path);
+	TestCase_assert(!strcmp(result, "/"), "Expected \"/\" but got \"%s\"", result);
+}
+
 static void testEndianSwapping() {
 	uint16_t value16;
 	uint32_t value32;
@@ -404,6 +453,7 @@ TEST_SUITE(IOUtilitiesTest,
            testReadFileSimple,
            testWriteFileSimple,
            testTemporaryFilePath,
+           testFilePathFunctions,
            testEndianSwapping,
            testSafeStringFunctions,
            testPrintHexString)

@@ -1,8 +1,9 @@
-1.9.1 (2015-07-03)
+1.9.1 (2018-01-19)
  * Added FIXED_16_16_FORMAT to printfFormats.h
+ * Added getFileExtension, getLastPathComponent, and getDirectory to IOUtilities
 
 1.9.0 (2014-12-04)
- * HashTable moved from utilities to structureddata
+ * HashTable moved from utilities to structureddata (edit: structureddata is now known as dynamictypes)
  * Added Base64 encoder/decoder
  * Added snprintf_safe, vsnprintf_safe, strncpy_safe, and printHexString to IOUtilities.
  * Added FixedIntervalRunLoop_setTolerance.
