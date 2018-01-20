@@ -1,6 +1,8 @@
-2.1.1 (2015-02-08)
+2.1.1 (2017-10-18)
  * Fixed vertically flipped coordinates in mouse delta mode (Y axis now runs top to bottom to match non-delta mouse coordinates)
  * Set a minimum size on the main window to work around OS X crash when resizing the window too small
+ * Removed glgraphics dependency. GLGraphics_init() is no longer called.
+ * Added useGLCoreProfile field to NSOpenGLShellConfiguration.
 
 2.1.0 (2014-12-13)
  * Updated for shell 2.1.0 (adds Shell_setVSync (which replaces NSOpenGLShell_setVSync), Shell_openFileDialog, Shell_saveFileDialog, Shell_systemBeep, Shell_getSafeWindowRect, Shell_confirmQuitFunc, and isRepeat argument to Shell_keyDownFunc callback)

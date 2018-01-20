@@ -45,6 +45,7 @@ int main(int argc, const char ** argv) {
 	g_configuration.windowHeight = 600;
 	g_configuration.windowTitle = "Change configuration->windowTitle in NSOpenGLTarget_configure()!";
 	g_configuration.fullScreenMenuItem = false;
+	g_configuration.useGLCoreProfile = false;
 	g_configuration.displayMode.doubleBuffer = true;
 	g_configuration.displayMode.depthBuffer = false;
 	g_configuration.displayMode.depthBits = 32;

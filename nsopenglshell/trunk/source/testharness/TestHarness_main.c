@@ -7,7 +7,6 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
-#include "glgraphics/GLGraphics.h"
 #include "shell/ShellBatteryInfo.h"
 #include "shell/ShellKeyCodes.h"
 #include "shell/ShellThreads.h"
@@ -450,6 +449,5 @@ void NSOpenGLTarget_configure(int argc, const char ** argv, struct NSOpenGLShell
 
 void Target_init() {
 	printf("Target_init()\n");
-	printf("GLGraphics_getOpenGLAPIVersion(): %d\n", GLGraphics_getOpenGLAPIVersion());
 	Shell_mainLoop();
 }

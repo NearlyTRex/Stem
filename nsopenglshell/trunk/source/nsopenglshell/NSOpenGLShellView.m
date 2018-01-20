@@ -23,7 +23,6 @@
 #import "nsopenglshell/NSOpenGLShellView.h"
 #include "nsopenglshell/NSOpenGLShellCallbacks.h"
 #import "nsopenglshell/NSOpenGLShellApplication.h"
-#include "glgraphics/GLGraphics.h"
 #include "shell/Shell.h"
 #include "shell/ShellKeyCodes.h"
 #include <OpenGL/glu.h>
@@ -43,7 +42,7 @@
 
 - (id) initWithFrame: (NSRect) frame configuration: (struct NSOpenGLShellConfiguration) configuration {
 	NSOpenGLPixelFormat * pixelFormat;
-	NSOpenGLPixelFormatAttribute attributes[13];
+	NSOpenGLPixelFormatAttribute attributes[15];
 	unsigned int numAttributes = 0;
 	
 	if (configuration.displayMode.doubleBuffer) {
@@ -68,23 +67,19 @@
 		attributes[numAttributes++] = NSOpenGLPFASamples;
 		attributes[numAttributes++] = configuration.displayMode.samples;
 	}
+	if (configuration.useGLCoreProfile) {
+		attributes[numAttributes++] = NSOpenGLPFAOpenGLProfile;
+		attributes[numAttributes++] = NSOpenGLProfileVersion3_2Core;
+	}
 	attributes[numAttributes++] = NSOpenGLPFAAccelerated;
 	attributes[numAttributes++] = NSOpenGLPFANoRecovery;
 	attributes[numAttributes] = 0;
 	pixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes: attributes];
 	if ((self = [super initWithFrame: frame pixelFormat: pixelFormat]) != nil) {
-		const char * glExtensions;
-		
 		if ([self respondsToSelector: @selector(setWantsBestResolutionOpenGLSurface:)]) {
 			[self setWantsBestResolutionOpenGLSurface: YES];
 		}
 		[[self openGLContext] makeCurrentContext];
-		glExtensions = (const char *) glGetString(GL_EXTENSIONS);
-		if (!strstr("GL_ARB_shader_objects", glExtensions) || strstr("GMA", (char *) glGetString(GL_RENDERER))) {
-			GLGraphics_init(GL_API_VERSION_DESKTOP_1);
-		} else {
-			GLGraphics_init(GL_API_VERSION_DESKTOP_2);
-		}
 		
 		vsyncWindow = VSYNC_DEFAULT_WINDOW;
 		vsyncFullscreen = VSYNC_DEFAULT_FULLSCREEN;

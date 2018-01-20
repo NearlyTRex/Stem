@@ -38,6 +38,7 @@ struct NSOpenGLShellConfiguration {
 	bool fullScreenMenuItem; // If set to true, the Window menu will contain an Enter Full Screen item which calls Shell_enterFullScreen when selected. Default is false.
 	bool vsyncWindowed; // Can be changed after configure by calling NSOpenGLShell_setVSync()
 	bool vsyncFullScreen; // Can be changed after configure by calling NSOpenGLShell_setVSync()
+	bool useGLCoreProfile; // If set, creates an OpenGL 3.2 Core Profile context
 	struct {
 		bool doubleBuffer;          // NSOpenGLPFADoubleBuffer
 		bool depthBuffer;           // NSOpenGLPFADepthSize > 0
