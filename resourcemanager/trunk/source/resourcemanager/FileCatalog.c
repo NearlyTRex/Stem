@@ -72,6 +72,18 @@ const char * FileCatalog_getFilePath(FileCatalog * self, Atom type, Atom name) {
 	return nameData->value.string;
 }
 
+const char ** FileCatalog_listTypes(FileCatalog * self, size_t * outCount) {
+	return hashGetKeys(self->private_ivar(catalog), outCount);
+}
+
+const char ** FileCatalog_listNamesForType(FileCatalog * self, Atom type, size_t * outCount) {
+	if (!hashHas(self->private_ivar(catalog), type)) {
+		*outCount = 0;
+		return NULL;
+	}
+	return hashGetKeys(hashGet(self->private_ivar(catalog), type)->value.hashTable, outCount);
+}
+
 FileCatalog * FileCatalog_deserialize(compat_type(DeserializationContext *) deserializationContext) {
 	stemobject_deserialize_implementation(FileCatalog, deserializationContext, loadSerializedData)
 }

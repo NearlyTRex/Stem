@@ -2,6 +2,8 @@
 #include "serialization/TestDeserializationContext.h"
 #include "serialization/TestSerializationContext.h"
 #include "unittest/TestSuite.h"
+#include "utilities/printfFormats.h"
+#include <limits.h>
 #include <string.h>
 
 static void verifyInit(FileCatalog * fileCatalog, const char * basePath) {
@@ -61,6 +63,56 @@ static void testGetFilePath() {
 	TestCase_assert(path == NULL, "Expected NULL but got %p", path);
 	
 	FileCatalog_dispose(fileCatalog);
+}
+
+static void testListing() {
+	FileCatalog * fileCatalog;
+	const char ** items;
+	size_t itemCount;
+	
+	fileCatalog = FileCatalog_create("");
+	
+	itemCount = SIZE_T_MAX;
+	items = FileCatalog_listTypes(fileCatalog, &itemCount);
+	TestCase_assert(itemCount == 0, "Expected 0 but got " SIZE_T_FORMAT, itemCount);
+	free(items);
+	
+	FileCatalog_setFilePath(fileCatalog, ATOM("type1"), ATOM("name1"), "a");
+	FileCatalog_setFilePath(fileCatalog, ATOM("type1"), ATOM("name2"), "b");
+	FileCatalog_setFilePath(fileCatalog, ATOM("type2"), ATOM("name1"), "c");
+	
+	itemCount = SIZE_T_MAX;
+	items = FileCatalog_listTypes(fileCatalog, &itemCount);
+	TestCase_assert(itemCount == 2, "Expected 2 but got " SIZE_T_FORMAT, itemCount);
+	TestCase_assert(items != NULL, "Expected non-NULL but got NULL");
+	TestCase_assert(items[0] != NULL, "Expected non-NULL but got NULL");
+	TestCase_assert(!strcmp(items[0], "type1"), "Expected \"type1\" but got \"%s\"", items[0]);
+	TestCase_assert(items[1] != NULL, "Expected non-NULL but got NULL");
+	TestCase_assert(!strcmp(items[1], "type2"), "Expected \"type2\" but got \"%s\"", items[1]);
+	free(items);
+	
+	itemCount = SIZE_T_MAX;
+	items = FileCatalog_listNamesForType(fileCatalog, ATOM("type1"), &itemCount);
+	TestCase_assert(itemCount == 2, "Expected 2 but got " SIZE_T_FORMAT, itemCount);
+	TestCase_assert(items != NULL, "Expected non-NULL but got NULL");
+	TestCase_assert(items[0] != NULL, "Expected non-NULL but got NULL");
+	TestCase_assert(!strcmp(items[0], "name2"), "Expected \"name2\" but got \"%s\"", items[0]);
+	TestCase_assert(items[1] != NULL, "Expected non-NULL but got NULL");
+	TestCase_assert(!strcmp(items[1], "name1"), "Expected \"name1\" but got \"%s\"", items[1]);
+	free(items);
+	
+	itemCount = SIZE_T_MAX;
+	items = FileCatalog_listNamesForType(fileCatalog, ATOM("type2"), &itemCount);
+	TestCase_assert(itemCount == 1, "Expected 1 but got " SIZE_T_FORMAT, itemCount);
+	TestCase_assert(items != NULL, "Expected non-NULL but got NULL");
+	TestCase_assert(items[0] != NULL, "Expected non-NULL but got NULL");
+	TestCase_assert(!strcmp(items[0], "name1"), "Expected \"name1\" but got \"%s\"", items[0]);
+	free(items);
+	
+	itemCount = SIZE_T_MAX;
+	items = FileCatalog_listNamesForType(fileCatalog, ATOM("invalid"), &itemCount);
+	TestCase_assert(itemCount == 0, "Expected 0 but got " SIZE_T_FORMAT, itemCount);
+	free(items);
 }
 
 static void testDeserialization() {
@@ -313,6 +365,7 @@ static void testFormatVerification() {
 TEST_SUITE(FileCatalogTest,
            testInit,
            testGetFilePath,
+           testListing,
            testDeserialization,
            testSerialization,
            testFormatVerification)

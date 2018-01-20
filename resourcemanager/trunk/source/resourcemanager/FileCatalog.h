@@ -45,11 +45,25 @@ typedef struct FileCatalog FileCatalog;
 
 stemobject_struct_definition(FileCatalog)
 
+// basePath is copied
 FileCatalog * FileCatalog_create(const char * basePath);
 bool FileCatalog_init(FileCatalog * self, const char * basePath);
 void FileCatalog_dispose(FileCatalog * self);
+
+// Adds or updates a path with the specified type/name key
 void FileCatalog_setFilePath(FileCatalog * self, Atom type, Atom name, const char * path);
+
+// Returns the path for the specified type/name key. The returned pointer is owned by FileCatalog and should not be freed.
 const char * FileCatalog_getFilePath(FileCatalog * self, Atom type, Atom name);
+
+// The pointer returned from the following two functions must be freed by the caller.
+// NOTE: Although types and names are Atoms in FileCatalog's API, the returned strings in this list are not. If you want
+// to pass them to FileCatalog functions, you must use Atom_fromString() on them first.
+const char ** FileCatalog_listTypes(FileCatalog * self, size_t * outCount);
+
+// See notes for FileCatalog_listTypes().
+// Returns an empty list if the specified type doesn't exist in this catalog.
+const char ** FileCatalog_listNamesForType(FileCatalog * self, Atom type, size_t * outCount);
 
 FileCatalog * FileCatalog_deserialize(compat_type(DeserializationContext *) deserializationContext);
 bool FileCatalog_loadSerializedData(FileCatalog * self, compat_type(DeserializationContext *) deserializationContext);
