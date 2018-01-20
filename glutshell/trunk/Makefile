@@ -3,7 +3,7 @@ PROJECT_NAME = glutshell
 # VERSION_MAJOR, VERSION_MINOR, and VERSION_TWEAK are available as preprocessor macros for all source files in the project
 VERSION_MAJOR = 2
 VERSION_MINOR = 1
-VERSION_TWEAK = 0
+VERSION_TWEAK = 1
 PROJECT_VERSION = ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_TWEAK}
 
 LIBRARY_TARGETS = library
@@ -21,10 +21,10 @@ PLATFORMS = macosx linux32 linux64 win32 win64
 
 # Patterns: CCFLAGS, CCFLAGS_${target}, CCFLAGS_${configuration}, CCFLAGS_${platform}, CCFLAGS_${target}_${configuration}, CCFLAGS_${target}_${platform}, CCFLAGS_${configuration}_${platform}, CCFLAGS_${target}_${configuration}_${platform}
 CCFLAGS_macosx = -Wno-deprecated-declarations -Wno-int-to-void-pointer-cast
-CCFLAGS_linux32 = -Wno-int-to-pointer-cast -Wno-pointer-to-int-cast -Wno-unused-result
-CCFLAGS_linux64 = -Wno-int-to-pointer-cast -Wno-pointer-to-int-cast -Wno-unused-result
-CCFLAGS_win32 = -DFREEGLUT_STATIC
-CCFLAGS_win64 = -DFREEGLUT_STATIC
+CCFLAGS_linux32 = -Wno-int-to-pointer-cast -Wno-pointer-to-int-cast -Wno-unused-result -DGLEW_STATIC
+CCFLAGS_linux64 = -Wno-int-to-pointer-cast -Wno-pointer-to-int-cast -Wno-unused-result -DGLEW_STATIC
+CCFLAGS_win32 = -DFREEGLUT_STATIC -DGLEW_STATIC
+CCFLAGS_win64 = -DFREEGLUT_STATIC -DGLEW_STATIC
 
 # Patterns: LINKFLAGS, LINKFLAGS_${target}, LINKFLAGS_${platform}, LINKFLAGS_${target}_${platform}
 LINKFLAGS_library_macosx = -framework OpenGL -framework GLUT -framework CoreFoundation -framework ApplicationServices
@@ -40,12 +40,14 @@ PROJECT_LIBRARY_DEPENDENCIES_testharness = library
 # STEM_LIBRARY_DEPENDENCIES is specified as ${PROJECT_NAME}/${PROJECT_VERSION} for each stem library to be linked when building
 # Patterns: STEM_LIBRARY_DEPENDENCIES, STEM_LIBRARY_DEPENDENCIES_${target}, STEM_LIBRARY_DEPENDENCIES_${platform}, STEM_LIBRARY_DEPENDENCIES_${target}_${platform}
 STEM_LIBRARY_DEPENDENCIES = \
-	glgraphics/latest \
 	shell/latest
 
 # THIRDPARTY_LIBRARY_DEPENDENCIES is specified as ${PROJECT_NAME}/${PROJECT_VERSION} for each thirdparty library to be linked when building
 # Patterns: THIRDPARTY_LIBRARY_DEPENDENCIES, THIRDPARTY_LIBRARY_DEPENDENCIES_${target}, THIRDPARTY_LIBRARY_DEPENDENCIES_${platform}, THIRDPARTY_LIBRARY_DEPENDENCIES_${target}_${platform}
-THIRDPARTY_LIBRARY_DEPENDENCIES = glew/1.5.4/libglew.a
+THIRDPARTY_LIBRARY_DEPENDENCIES_win32 = glew/1.5.4/libglew.a
+THIRDPARTY_LIBRARY_DEPENDENCIES_win64 = glew/1.5.4/libglew.a
+THIRDPARTY_LIBRARY_DEPENDENCIES_linux32 = glew/1.5.4/libglew.a
+THIRDPARTY_LIBRARY_DEPENDENCIES_linux64 = glew/1.5.4/libglew.a
 
 # Additional build prerequisites per target
 # Patterns: PREREQS, PREREQS_${target}

@@ -58,7 +58,6 @@
 #include <windows.h>
 #endif
 
-#include "glgraphics/GLGraphics.h"
 #include "shell/ShellBatteryInfo.h"
 #include "shell/ShellCallbacks.h"
 #include "shell/ShellKeyCodes.h"
@@ -901,10 +900,16 @@ int main(int argc, char ** argv) {
 	
 #ifdef __APPLE__
 	CGSetLocalEventsSuppressionInterval(0.0); // Without this, mouse delta mode only sends events every 0.25 seconds on 10.8
+#else
+	GLenum glewStatus;
+	
+	glewStatus = glewInit();
+	if (glewStatus != GLEW_OK) {
+		fprintf(stderr, "Warning: glewInit() failed: %s\n", glewGetErrorString(glewStatus));
+	}
 #endif
 	
 	setVSync(vsyncWindow);
-	GLGraphics_init(GL_API_VERSION_DESKTOP_1);
 	
 	Target_init(argc, argv);
 	

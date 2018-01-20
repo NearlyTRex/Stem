@@ -7,7 +7,6 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
-#include "glgraphics/GLGraphics.h"
 #include "shell/ShellBatteryInfo.h"
 #include "shell/ShellKeyCodes.h"
 #include "shell/ShellThreads.h"
@@ -464,6 +463,5 @@ void GLUTTarget_configure(int argc, const char ** argv, struct GLUTShellConfigur
 
 void Target_init() {
 	printf("Target_init()\n");
-	printf("GLGraphics_getOpenGLAPIVersion(): %d\n", GLGraphics_getOpenGLAPIVersion());
 	Shell_mainLoop();
 }
