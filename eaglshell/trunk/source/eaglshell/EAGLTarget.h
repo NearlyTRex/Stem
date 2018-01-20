@@ -38,6 +38,7 @@ struct EAGLShellConfiguration {
 	   on PowerVR MBX hardware), exit() will be called. */
 	enum EAGLShellOpenGLVersion preferredOpenGLAPIVersion;
 	
+	// TODO: Standardize names (ex. depthBuffer instead of depthAttachment)
 	struct {
 		/* kEAGLDrawablePropertyRetainedBacking */
 		bool retainedBacking;

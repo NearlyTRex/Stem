@@ -26,7 +26,6 @@
 #import <QuartzCore/QuartzCore.h>
 #include "shell/Shell.h"
 #include "shell/ShellCallbacks.h"
-#include "glgraphics/GLGraphics.h"
 
 #ifndef __IPHONE_3_1
 @interface CADisplayLink : NSObject {
@@ -137,8 +136,6 @@
 				glFramebufferRenderbufferOES(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, stencilBuffer);
 			}
 		}
-		
-		GLGraphics_init(chosenOpenGLVersion == EAGLShellOpenGLVersion_ES2 ? GL_API_VERSION_ES2 : GL_API_VERSION_ES1);
 		
 		animating = NO;
 		displayLinkSupported = [[[UIDevice currentDevice] systemVersion] compare: @"3.1" options: NSNumericSearch] != NSOrderedAscending;

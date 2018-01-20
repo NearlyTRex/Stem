@@ -1,3 +1,6 @@
+3.0.1 (2018-01-20)
+ * Removed glgraphics dependency
+
 3.0.0 (2015-01-18)
  * Updated for shell 2.0.0 (adds multiple display support, scroll wheel events, registered callbacks for input events)
  * Added stubs for shell 2.1.0 functions (Shell_setVSync, Shell_openFileDialog, Shell_saveFileDialog, Shell_systemBeep, Shell_getSafeWindowRect, Shell_confirmQuitFunc, and isRepeat argument to Shell_keyDownFunc callback)
