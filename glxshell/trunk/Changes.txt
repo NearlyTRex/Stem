@@ -1,5 +1,6 @@
-2.1.1 (2015-02-19)
+2.1.1 (2017-10-18)
  * GLXShellConfiguration's windowWidth and windowHeight are now unsigned
+ * Removed glgraphics dependency. Glew is now initialized directly by glxshell, and GLGraphics_init() is no longer called.
 
 2.1.0 (2014-12-13)
  * Updated for shell 2.1.0 (adds Shell_setVSync (which replaces GLXShell_setVSync), Shell_openFileDialog, Shell_saveFileDialog, Shell_systemBeep, Shell_getSafeWindowRect, Shell_confirmQuitFunc, and isRepeat argument to Shell_keyDownFunc callback)

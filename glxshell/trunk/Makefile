@@ -21,6 +21,7 @@ PLATFORMS = linux32 linux64
 
 # Patterns: CCFLAGS, CCFLAGS_${target}, CCFLAGS_${configuration}, CCFLAGS_${platform}, CCFLAGS_${target}_${configuration}, CCFLAGS_${target}_${platform}, CCFLAGS_${configuration}_${platform}, CCFLAGS_${target}_${configuration}_${platform}
 CCFLAGS = ${shell pkg-config --cflags gtk+-3.0} -Wno-int-to-pointer-cast -Wno-pointer-to-int-cast
+CCFLAGS_library = -DGLEW_STATIC
 
 # Patterns: LINKFLAGS, LINKFLAGS_${target}, LINKFLAGS_${configuration}, LINKFLAGS_${platform}, LINKFLAGS_${target}_${configuration}, LINKFLAGS_${target}_${platform}, LINKFLAGS_${configuration}_${platform}
 LINKFLAGS_library = -lrt -lpthread -lX11 -lGLU -lGL -lm ${shell pkg-config --libs gtk+-3.0}
@@ -32,7 +33,6 @@ PROJECT_LIBRARY_DEPENDENCIES_testharness = library
 # STEM_LIBRARY_DEPENDENCIES is specified as ${PROJECT_NAME}/${PROJECT_VERSION} for each stem library to be linked when building
 # Patterns: STEM_LIBRARY_DEPENDENCIES, STEM_LIBRARY_DEPENDENCIES_${target}, STEM_LIBRARY_DEPENDENCIES_${platform}, STEM_LIBRARY_DEPENDENCIES_${target}_${platform}
 STEM_LIBRARY_DEPENDENCIES = \
-	glgraphics/latest \
 	shell/latest
 
 # THIRDPARTY_LIBRARY_DEPENDENCIES is specified as ${PROJECT_NAME}/${PROJECT_VERSION} for each thirdparty library to be linked when building

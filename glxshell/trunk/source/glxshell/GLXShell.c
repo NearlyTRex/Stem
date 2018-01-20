@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2014 Alex Diener
+  Copyright (c) 2017 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -20,10 +20,20 @@
   Alex Diener alex@ludobloom.com
 */
 
+#define GLEW_STATIC 1
+#include "GL/glew.h"
+// glxew.h includes X.h, which defines Atom and Screen, causing conflicts with the Atom in utilities and the Screen in screenmanager
+#define Atom Atom_not
+#define Screen Screen_not
+#include "GL/glxew.h"
+#undef Atom
+#undef Screen
+#include <GL/gl.h>
+#include <GL/glu.h>
+#include <GL/glext.h>
 #include "glxshell/GLXShell.h"
 #include "glxshell/GLXShellCallbacks.h"
 #include "glxshell/GLXTarget.h"
-#include "glgraphics/GLGraphics.h"
 #include "shell/ShellBatteryInfo.h"
 #include "shell/ShellCallbacks.h"
 #include "shell/ShellKeyCodes.h"
@@ -1357,7 +1367,11 @@ int main(int argc, char ** argv) {
 	glXMakeCurrent(display, window, context);
 	
 	setVSync(vsyncWindow);
-	GLGraphics_init(GL_API_VERSION_DESKTOP_1);
+	
+	GLenum glewStatus = glewInit();
+	if (glewStatus != GLEW_OK) {
+		fprintf(stderr, "Warning: glewInit() failed: %s\n", glewGetErrorString(glewStatus));
+	}
 	
 	Target_init(argc, argv);
 	
