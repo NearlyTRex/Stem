@@ -59,6 +59,18 @@ static bool Target_draw() {
 	return true;
 }
 
+static void setMaterialTexture(Material * material, const char * textureResourceName, enum MaterialTextureType textureType, bool magnifyNearest) {
+	BitmapImage * colorImage;
+	
+	colorImage = ResourceManager_referenceResource(resourceManager, ATOM("png"), textureResourceName);
+	if (colorImage != NULL) {
+		Material_setTexture(material, textureType, magnifyNearest, colorImage->width, colorImage->height, colorImage->pixels);
+		ResourceManager_releaseResource(resourceManager, ATOM("png"), textureResourceName);
+	} else {
+		fprintf(stderr, "Couldn't load color texture image \"%s\"\n", textureResourceName);
+	}
+}
+
 static void useMesh(MeshData * meshData) {
 	if (material != NULL) {
 		Material_dispose(material);
@@ -80,26 +92,10 @@ static void useMesh(MeshData * meshData) {
 		if (materialData != NULL) {
 			material = Material_create(materialData->color, materialData->specularity, materialData->shininess, materialData->emissiveness);
 			if (materialData->colorMapName != NULL) {
-				BitmapImage * colorImage;
-				
-				colorImage = ResourceManager_referenceResource(resourceManager, ATOM("png"), materialData->colorMapName);
-				if (colorImage != NULL) {
-					Material_setColorTexture(material, materialData->magnifyColorMapNearest, colorImage->width, colorImage->height, colorImage->pixels);
-					ResourceManager_releaseResource(resourceManager, ATOM("png"), materialData->colorMapName);
-				} else {
-					fprintf(stderr, "Couldn't load color texture image \"%s\" for material \"%s\" in mesh \"%s\"\n", materialData->colorMapName, meshData->materialName, meshData->name);
-				}
+				setMaterialTexture(material, materialData->colorMapName, MaterialTextureType_color, materialData->magnifyColorMapNearest);
 			}
 			if (materialData->normalMapName != NULL) {
-				BitmapImage * normalImage;
-				
-				normalImage = ResourceManager_referenceResource(resourceManager, ATOM("png"), materialData->normalMapName);
-				if (normalImage != NULL) {
-					Material_setNormalTexture(material, materialData->magnifyColorMapNearest, normalImage->width, normalImage->height, normalImage->pixels);
-					ResourceManager_releaseResource(resourceManager, ATOM("png"), materialData->normalMapName);
-				} else {
-					fprintf(stderr, "Couldn't load normal texture image \"%s\" for material \"%s\" in mesh \"%s\"\n", materialData->normalMapName, meshData->materialName, meshData->name);
-				}
+				setMaterialTexture(material, materialData->normalMapName, MaterialTextureType_normal, materialData->magnifyNormalMapNearest);
 			}
 		} else {
 			fprintf(stderr, "Couldn't load material \"%s\" for mesh \"%s\"\n", meshData->materialName, meshData->name);
@@ -235,7 +231,7 @@ static void loadFileCatalog(const char * filePath) {
 static void loadObjFile(const char * filePath) {
 	MeshData * meshData;
 	
-	meshData = Obj3DModelIO_loadFile("suzanne.obj");
+	meshData = Obj3DModelIO_loadFile(filePath);
 	useMesh(meshData);
 	MeshData_dispose(meshData);
 }
