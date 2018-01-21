@@ -57,8 +57,8 @@ struct SceneMesh {
 	Quaternionf rotation;
 };
 
-#define SCENELAYOUT_SERIALIZATION_FORMAT_VERSION 0
-#define SCENELAYOUT_SERIALIZATION_FORMAT_TYPE "scene"
+#define SCENELAYOUT_FORMAT_VERSION 0
+#define SCENELAYOUT_FORMAT_TYPE "scene"
 
 #define SceneLayout_structContents(self_type) \
 	StemObject_structContents(self_type) \

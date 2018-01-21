@@ -34,8 +34,8 @@ typedef struct MaterialData MaterialData;
 #include "stemobject/StemObject.h"
 #include "utilities/Atom.h"
 
-#define MATERIALDATA_SERIALIZATION_FORMAT_VERSION 0
-#define MATERIALDATA_SERIALIZATION_FORMAT_TYPE "material"
+#define MATERIALDATA_FORMAT_VERSION 0
+#define MATERIALDATA_FORMAT_TYPE "material"
 
 #define MaterialData_structContents(self_type) \
 	StemObject_structContents(self_type) \

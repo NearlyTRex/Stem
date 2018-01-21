@@ -85,13 +85,13 @@ bool MeshData_loadSerializedData(MeshData * self, compat_type(DeserializationCon
 	const void * vertices;
 	const GLuint * indexes;
 	
-	context->beginStructure(context, "mesh");
+	context->beginStructure(context, MESHDATA_FORMAT_TYPE);
 	formatVersion = context->readUInt16(context, "format_version");
-	if (context->status != SERIALIZATION_ERROR_OK || formatVersion > MESHDATA_SERIALIZATION_FORMAT_VERSION) {
+	if (context->status != SERIALIZATION_ERROR_OK || formatVersion > MESHDATA_FORMAT_VERSION) {
 		return false;
 	}
 	formatType = context->readString(context, "format_type");
-	if (context->status != SERIALIZATION_ERROR_OK || strcmp(formatType, MESHDATA_SERIALIZATION_FORMAT_TYPE)) {
+	if (context->status != SERIALIZATION_ERROR_OK || strcmp(formatType, MESHDATA_FORMAT_TYPE)) {
 		return false;
 	}
 	
@@ -111,7 +111,7 @@ bool MeshData_loadSerializedData(MeshData * self, compat_type(DeserializationCon
 	} else {
 		vertexCount = verticesSize / sizeof(struct vertex_p3f_t2f_n3f_c4f_b4u_w4f);
 	}
-	MeshData_init(self, Atom_fromString(nameString), vertices, vertexCount, true, false, indexes, indexesSize / sizeof(GLuint), true, false, Atom_fromString(armatureNameString), Atom_fromString(materialNameString));
+	MeshData_init(self, Atom_fromString(nameString), vertices, vertexCount, true, true, indexes, indexesSize / sizeof(GLuint), true, true, Atom_fromString(armatureNameString), Atom_fromString(materialNameString));
 	return true;
 }
 
@@ -119,9 +119,9 @@ void MeshData_serialize(MeshData * self, compat_type(SerializationContext *) ser
 	SerializationContext * context = serializationContext;
 	size_t vertexSize;
 	
-	context->beginStructure(context, "mesh");
-	context->writeUInt16(context, "format_version", MESHDATA_SERIALIZATION_FORMAT_VERSION);
-	context->writeString(context, "format_type", MESHDATA_SERIALIZATION_FORMAT_TYPE);
+	context->beginStructure(context, MESHDATA_FORMAT_TYPE);
+	context->writeUInt16(context, "format_version", MESHDATA_FORMAT_VERSION);
+	context->writeString(context, "format_type", MESHDATA_FORMAT_TYPE);
 	context->writeStringNullable(context, "name", self->name);
 	context->writeStringNullable(context, "armature", self->armatureName);
 	context->writeStringNullable(context, "material", self->materialName);

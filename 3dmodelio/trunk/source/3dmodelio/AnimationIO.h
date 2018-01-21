@@ -30,8 +30,8 @@ extern "C" {
 #include "serialization/DeserializationContext.h"
 #include "serialization/SerializationContext.h"
 
-#define ANIMATION_SERIALIZATION_FORMAT_VERSION 0
-#define ANIMATION_SERIALIZATION_FORMAT_TYPE "animation"
+#define ANIMATION_FORMAT_VERSION 0
+#define ANIMATION_FORMAT_TYPE "animation"
 
 Animation * Animation_deserialize(compat_type(DeserializationContext *) deserializationContext);
 bool Animation_loadSerializedData(Animation * self, compat_type(DeserializationContext *) deserializationContext);

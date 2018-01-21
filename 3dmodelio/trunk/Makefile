@@ -40,7 +40,9 @@ STEM_LIBRARY_DEPENDENCIES = \
 	utilities/latest
 STEM_LIBRARY_DEPENDENCIES_unittest = unittest/latest
 STEM_LIBRARY_DEPENDENCIES_testharness = \
+	binaryserialization/latest \
 	jsonserialization/latest \
+	pngimageio/latest \
 	resourcemanager/latest \
 	shell/latest
 STEM_LIBRARY_DEPENDENCIES_testharness_macosx = nsopenglshell/latest

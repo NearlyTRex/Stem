@@ -36,13 +36,13 @@ bool Animation_loadSerializedData(Animation * self, compat_type(DeserializationC
 	struct AnimationMarker * markers;
 	bool loop, success;
 	
-	context->beginStructure(context, "animation");
+	context->beginStructure(context, ANIMATION_FORMAT_TYPE);
 	formatVersion = context->readUInt16(context, "format_version");
-	if (context->status != SERIALIZATION_ERROR_OK || formatVersion > ANIMATION_SERIALIZATION_FORMAT_VERSION) {
+	if (context->status != SERIALIZATION_ERROR_OK || formatVersion > ANIMATION_FORMAT_VERSION) {
 		return false;
 	}
 	formatType = context->readString(context, "format_type");
-	if (context->status != SERIALIZATION_ERROR_OK || strcmp(formatType, ANIMATION_SERIALIZATION_FORMAT_TYPE)) {
+	if (context->status != SERIALIZATION_ERROR_OK || strcmp(formatType, ANIMATION_FORMAT_TYPE)) {
 		return false;
 	}
 	
@@ -155,9 +155,9 @@ void Animation_serialize(Animation * self, compat_type(SerializationContext *) s
 	SerializationContext * context = serializationContext;
 	unsigned int keyframeIndex, boneIndex, markerIndex;
 	
-	context->beginStructure(context, "animation");
-	context->writeUInt16(context, "format_version", ANIMATION_SERIALIZATION_FORMAT_VERSION);
-	context->writeString(context, "format_type", ANIMATION_SERIALIZATION_FORMAT_TYPE);
+	context->beginStructure(context, ANIMATION_FORMAT_TYPE);
+	context->writeUInt16(context, "format_version", ANIMATION_FORMAT_VERSION);
+	context->writeString(context, "format_type", ANIMATION_FORMAT_TYPE);
 	context->writeStringNullable(context, "name", self->name);
 	context->writeBoolean(context, "loop", self->loop);
 	context->beginArray(context, "keyframes");

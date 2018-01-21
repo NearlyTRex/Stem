@@ -35,8 +35,8 @@ typedef struct MeshData MeshData;
 #include "stemobject/StemObject.h"
 #include "utilities/Atom.h"
 
-#define MESHDATA_SERIALIZATION_FORMAT_VERSION 0
-#define MESHDATA_SERIALIZATION_FORMAT_TYPE "mesh"
+#define MESHDATA_FORMAT_VERSION 0
+#define MESHDATA_FORMAT_TYPE "mesh"
 
 #define MeshData_structContents(self_type) \
 	StemObject_structContents(self_type) \

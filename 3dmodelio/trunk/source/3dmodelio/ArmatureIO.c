@@ -35,13 +35,13 @@ bool Armature_loadSerializedData(Armature * self, compat_type(DeserializationCon
 	struct ArmatureBone * bones;
 	bool success;
 	
-	context->beginStructure(context, "armature");
+	context->beginStructure(context, ARMATURE_FORMAT_TYPE);
 	formatVersion = context->readUInt16(context, "format_version");
-	if (context->status != SERIALIZATION_ERROR_OK || formatVersion > ARMATURE_SERIALIZATION_FORMAT_VERSION) {
+	if (context->status != SERIALIZATION_ERROR_OK || formatVersion > ARMATURE_FORMAT_VERSION) {
 		return false;
 	}
 	formatType = context->readString(context, "format_type");
-	if (context->status != SERIALIZATION_ERROR_OK || strcmp(formatType, ARMATURE_SERIALIZATION_FORMAT_TYPE)) {
+	if (context->status != SERIALIZATION_ERROR_OK || strcmp(formatType, ARMATURE_FORMAT_TYPE)) {
 		return false;
 	}
 	
@@ -104,9 +104,9 @@ void Armature_serialize(Armature * self, compat_type(SerializationContext *) ser
 	SerializationContext * context = serializationContext;
 	unsigned int boneIndex;
 	
-	context->beginStructure(context, "armature");
-	context->writeUInt16(context, "format_version", ARMATURE_SERIALIZATION_FORMAT_VERSION);
-	context->writeString(context, "format_type", ARMATURE_SERIALIZATION_FORMAT_TYPE);
+	context->beginStructure(context, ARMATURE_FORMAT_TYPE);
+	context->writeUInt16(context, "format_version", ARMATURE_FORMAT_VERSION);
+	context->writeString(context, "format_type", ARMATURE_FORMAT_TYPE);
 	context->writeStringNullable(context, "name", self->name);
 	context->beginDictionary(context, "bones");
 	for (boneIndex = 0; boneIndex < self->boneCount; boneIndex++) {

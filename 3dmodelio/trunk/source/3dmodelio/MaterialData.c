@@ -63,13 +63,13 @@ bool MaterialData_loadSerializedData(MaterialData * self, compat_type(Deserializ
 	uint16_t formatVersion;
 	const char * formatType, * nameString, * colorMapNameString = NULL, * normalMapNameString = NULL;
 	
-	context->beginStructure(context, "material");
+	context->beginStructure(context, MATERIALDATA_FORMAT_TYPE);
 	formatVersion = context->readUInt16(context, "format_version");
-	if (context->status != SERIALIZATION_ERROR_OK || formatVersion > MATERIALDATA_SERIALIZATION_FORMAT_VERSION) {
+	if (context->status != SERIALIZATION_ERROR_OK || formatVersion > MATERIALDATA_FORMAT_VERSION) {
 		return false;
 	}
 	formatType = context->readString(context, "format_type");
-	if (context->status != SERIALIZATION_ERROR_OK || strcmp(formatType, MATERIALDATA_SERIALIZATION_FORMAT_TYPE)) {
+	if (context->status != SERIALIZATION_ERROR_OK || strcmp(formatType, MATERIALDATA_FORMAT_TYPE)) {
 		return false;
 	}
 	
@@ -115,9 +115,9 @@ bool MaterialData_loadSerializedData(MaterialData * self, compat_type(Deserializ
 void MaterialData_serialize(MaterialData * self, compat_type(SerializationContext *) serializationContext) {
 	SerializationContext * context = serializationContext;
 	
-	context->beginStructure(context, "material");
-	context->writeUInt16(context, "format_version", MATERIALDATA_SERIALIZATION_FORMAT_VERSION);
-	context->writeString(context, "format_type", MATERIALDATA_SERIALIZATION_FORMAT_TYPE);
+	context->beginStructure(context, MATERIALDATA_FORMAT_TYPE);
+	context->writeUInt16(context, "format_version", MATERIALDATA_FORMAT_VERSION);
+	context->writeString(context, "format_type", MATERIALDATA_FORMAT_TYPE);
 	context->writeStringNullable(context, "name", self->name);
 	context->beginStructure(context, "color");
 	context->writeFloat(context, "red", self->color.red);

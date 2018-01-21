@@ -9,9 +9,9 @@ TASKS:
 - Figure out materials and lighting
 
 ORDER:
-- Data structure
-- Import
-- Export
+√ Data structure
+√ Import
+√ Export
 - Normal mapping
 - Materials/lighting?
 - Animations

@@ -66,7 +66,10 @@ def get_primitives(blender_mesh):
 				normal = swizzle_position(vertex.normal)
 			else:
 				normal = swizzle_position(blender_polygon.normal)
-			tex_coord = (0.0, 0.0)
+			if blender_mesh.uv_layers.active:
+				tex_coord = blender_mesh.uv_layers.active.data[loop_index].uv
+			else:
+				tex_coord = (0.0, 0.0)
 			color = (1.0, 1.0, 1.0, 1.0)
 			#bones = (0, 0, 0, 0)
 			#weights = (1.0, 0.0, 0.0, 0.0)

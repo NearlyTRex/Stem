@@ -73,13 +73,13 @@ bool SceneLayout_loadSerializedData(SceneLayout * self, compat_type(Deserializat
 	struct SceneMesh * meshes;
 	struct SceneLight * lights;
 	
-	context->beginStructure(context, "scene");
+	context->beginStructure(context, SCENELAYOUT_FORMAT_TYPE);
 	formatVersion = context->readUInt16(context, "format_version");
-	if (context->status != SERIALIZATION_ERROR_OK || formatVersion > SCENELAYOUT_SERIALIZATION_FORMAT_VERSION) {
+	if (context->status != SERIALIZATION_ERROR_OK || formatVersion > SCENELAYOUT_FORMAT_VERSION) {
 		return false;
 	}
 	formatType = context->readString(context, "format_type");
-	if (context->status != SERIALIZATION_ERROR_OK || strcmp(formatType, SCENELAYOUT_SERIALIZATION_FORMAT_TYPE)) {
+	if (context->status != SERIALIZATION_ERROR_OK || strcmp(formatType, SCENELAYOUT_FORMAT_TYPE)) {
 		return false;
 	}
 	
@@ -174,9 +174,9 @@ void SceneLayout_serialize(SceneLayout * self, compat_type(SerializationContext 
 	SerializationContext * context = serializationContext;
 	unsigned int meshIndex, lightIndex;
 	
-	context->beginStructure(context, "scene");
-	context->writeUInt16(context, "format_version", SCENELAYOUT_SERIALIZATION_FORMAT_VERSION);
-	context->writeString(context, "format_type", SCENELAYOUT_SERIALIZATION_FORMAT_TYPE);
+	context->beginStructure(context, SCENELAYOUT_FORMAT_TYPE);
+	context->writeUInt16(context, "format_version", SCENELAYOUT_FORMAT_VERSION);
+	context->writeString(context, "format_type", SCENELAYOUT_FORMAT_TYPE);
 	context->writeStringNullable(context, "name", self->name);
 	context->beginDictionary(context, "meshes");
 	for (meshIndex = 0; meshIndex < self->meshCount; meshIndex++) {

@@ -30,8 +30,8 @@ extern "C" {
 #include "serialization/DeserializationContext.h"
 #include "serialization/SerializationContext.h"
 
-#define ARMATURE_SERIALIZATION_FORMAT_VERSION 0
-#define ARMATURE_SERIALIZATION_FORMAT_TYPE "armature"
+#define ARMATURE_FORMAT_VERSION 0
+#define ARMATURE_FORMAT_TYPE "armature"
 
 Armature * Armature_deserialize(compat_type(DeserializationContext *) deserializationContext);
 bool Armature_loadSerializedData(Armature * self, compat_type(DeserializationContext *) deserializationContext);
