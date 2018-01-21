@@ -32,6 +32,11 @@ typedef struct Material Material;
 #include "glgraphics/VertexTypes.h"
 #include "stemobject/StemObject.h"
 
+enum MaterialTextureType {
+	MaterialTextureType_color,
+	MaterialTextureType_normal
+};
+
 #define Material_structContents(self_type) \
 	StemObject_structContents(self_type) \
 	\
@@ -54,8 +59,7 @@ void Material_dispose(Material * self);
 // TODO: How to handle translucency and premultiplication
 // Implicit: RGBA_8888, GL_UNSIGNED_BYTE, GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR minification, anisotropy on, mipmaps generated
 // If magnifyNearest is true GL_TEXTURE_MAX_FILTER is set to GL_NEAREST. Otherwise, GL_TEXTURE_MAG_FILTER is set to GL_LINEAR.
-void Material_setColorTexture(Material * self, bool magnifyNearest, unsigned int width, unsigned int height, void * bitmapData);
-void Material_setNormalTexture(Material * self, bool magnifyNearest, unsigned int width, unsigned int height, void * bitmapData);
+void Material_setTexture(Material * self, enum MaterialTextureType type, bool magnifyNearest, unsigned int width, unsigned int height, void * bitmapData);
 
 #ifdef __cplusplus
 }

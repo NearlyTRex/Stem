@@ -48,8 +48,18 @@ void Material_dispose(Material * self) {
 	call_super(dispose, self);
 }
 
-void createTexture(GLuint * textureID, bool magnifyNearest, unsigned int width, unsigned int height, void * bitmapData) {
+void Material_setTexture(Material * self, enum MaterialTextureType type, bool magnifyNearest, unsigned int width, unsigned int height, void * bitmapData) {
+	GLuint * textureID = NULL;
 	GLfloat maxAnisotropy;
+	
+	switch (type) {
+		case MaterialTextureType_color:
+			textureID = &self->colorTextureID;
+			break;
+		case MaterialTextureType_normal:
+			textureID = &self->normalTextureID;
+			break;
+	}
 	
 	assert(*textureID == 0);
 	glGenTextures(1, textureID);
@@ -71,12 +81,4 @@ void createTexture(GLuint * textureID, bool magnifyNearest, unsigned int width, 
 	glGenerateMipmap(GL_TEXTURE_2D);
 	
 	glBindTexture(GL_TEXTURE_2D, 0);
-}
-
-void Material_setColorTexture(Material * self, bool magnifyNearest, unsigned int width, unsigned int height, void * bitmapData) {
-	createTexture(&self->colorTextureID, magnifyNearest, width, height, bitmapData);
-}
-
-void Material_setNormalTexture(Material * self, bool magnifyNearest, unsigned int width, unsigned int height, void * bitmapData) {
-	createTexture(&self->normalTextureID, magnifyNearest, width, height, bitmapData);
 }
