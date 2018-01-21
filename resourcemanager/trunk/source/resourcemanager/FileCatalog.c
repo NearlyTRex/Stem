@@ -21,31 +21,38 @@
 */
 
 #include "resourcemanager/FileCatalog.h"
+#include "utilities/AutoFreePool.h"
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #define SUPERCLASS StemObject
 
-FileCatalog * FileCatalog_create(const char * basePath) {
-	stemobject_create_implementation(FileCatalog, init, basePath)
+FileCatalog * FileCatalog_create() {
+	stemobject_create_implementation(FileCatalog, init)
 }
 
-static void sharedInit(FileCatalog * self, const char * basePath) {
+static void sharedInit(FileCatalog * self) {
 	call_super(init, self);
 	self->dispose = FileCatalog_dispose;
-	self->basePath = strdup(basePath);
+	self->private_ivar(basePath) = NULL;
 }
 
-bool FileCatalog_init(FileCatalog * self, const char * basePath) {
-	sharedInit(self, basePath);
+bool FileCatalog_init(FileCatalog * self) {
+	sharedInit(self);
 	self->private_ivar(catalog) = hashCreate();
 	return true;
 }
 
 void FileCatalog_dispose(FileCatalog * self) {
-	free(self->basePath);
+	free(self->private_ivar(basePath));
 	hashDispose(self->private_ivar(catalog));
 	call_super(dispose, self);
+}
+
+void FileCatalog_setBasePath(FileCatalog * self, const char * basePath) {
+	free(self->private_ivar(basePath));
+	self->private_ivar(basePath) = strdup(basePath);
 }
 
 void FileCatalog_setFilePath(FileCatalog * self, Atom type, Atom name, const char * path) {
@@ -60,6 +67,9 @@ void FileCatalog_setFilePath(FileCatalog * self, Atom type, Atom name, const cha
 
 const char * FileCatalog_getFilePath(FileCatalog * self, Atom type, Atom name) {
 	DataValue * typeHashData, * nameData;
+	const char * filePath;
+	char * result;
+	size_t basePathLength, filePathLength;
 	
 	typeHashData = hashGet(self->private_ivar(catalog), type);
 	if (typeHashData == NULL) {
@@ -69,7 +79,17 @@ const char * FileCatalog_getFilePath(FileCatalog * self, Atom type, Atom name) {
 	if (nameData == NULL) {
 		return NULL;
 	}
-	return nameData->value.string;
+	filePath = nameData->value.string;
+	
+	if (self->private_ivar(basePath) == NULL || self->private_ivar(basePath)[0] == '\x00' || filePath[0] == '/') {
+		return filePath;
+	}
+	basePathLength = strlen(self->private_ivar(basePath));
+	filePathLength = strlen(filePath);
+	result = malloc(basePathLength + (self->private_ivar(basePath)[basePathLength - 1] == '/' ? 0 : 1) + filePathLength + 1);
+	sprintf(result, "%s%s%s", self->private_ivar(basePath), self->private_ivar(basePath)[basePathLength - 1] == '/' ? "" : "/", filePath);
+	
+	return AutoFreePool_add(result);
 }
 
 const char ** FileCatalog_listTypes(FileCatalog * self, size_t * outCount) {
@@ -91,7 +111,7 @@ FileCatalog * FileCatalog_deserialize(compat_type(DeserializationContext *) dese
 bool FileCatalog_loadSerializedData(FileCatalog * self, compat_type(DeserializationContext *) deserializationContext) {
 	DeserializationContext * context = deserializationContext;
 	uint16_t formatVersion;
-	const char * formatType, * basePathString, * typeString, * nameString, * pathString;
+	const char * formatType, * typeString, * nameString, * pathString;
 	size_t typeCount, typeIndex, nameCount, nameIndex;
 	HashTable * catalog, * typeHash;
 	
@@ -105,7 +125,6 @@ bool FileCatalog_loadSerializedData(FileCatalog * self, compat_type(Deserializat
 		return false;
 	}
 	
-	basePathString = context->readString(context, "base_path");
 	catalog = hashCreate();
 	typeCount = context->beginDictionary(context, "types");
 	for (typeIndex = 0; typeIndex < typeCount; typeIndex++) {
@@ -141,7 +160,7 @@ bool FileCatalog_loadSerializedData(FileCatalog * self, compat_type(Deserializat
 		return false;
 	}
 	
-	sharedInit(self, basePathString);
+	sharedInit(self);
 	self->private_ivar(catalog) = catalog;
 	
 	return true;
@@ -156,7 +175,6 @@ void FileCatalog_serialize(FileCatalog * self, compat_type(SerializationContext 
 	context->beginStructure(context, FILECATALOG_FORMAT_TYPE);
 	context->writeUInt16(context, "format_version", FILECATALOG_FORMAT_VERSION);
 	context->writeString(context, "format_type", FILECATALOG_FORMAT_TYPE);
-	context->writeString(context, "base_path", self->basePath);
 	context->beginDictionary(context, "types");
 	types = hashGetKeys(self->private_ivar(catalog), &typeCount);
 	for (typeIndex = 0; typeIndex < typeCount; typeIndex++) {

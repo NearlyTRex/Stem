@@ -40,20 +40,26 @@ typedef struct FileCatalog FileCatalog;
 #define FileCatalog_structContents(self_type) \
 	StemObject_structContents(self_type) \
 	\
-	char * basePath; \
+	char * private_ivar(basePath); \
 	HashTable * private_ivar(catalog);
 
 stemobject_struct_definition(FileCatalog)
 
-// basePath is copied
-FileCatalog * FileCatalog_create(const char * basePath);
-bool FileCatalog_init(FileCatalog * self, const char * basePath);
+FileCatalog * FileCatalog_create();
+bool FileCatalog_init(FileCatalog * self);
 void FileCatalog_dispose(FileCatalog * self);
+
+// Sets the base path for file paths returned from FileCatalog_getFilePath(). This is usually the directory that contains a
+// file catalog that has been deserialized. The base path will be prepended to all non-absolute paths returned from
+// FileCatalog_getFilePath().
+void FileCatalog_setBasePath(FileCatalog * self, const char * basePath);
 
 // Adds or updates a path with the specified type/name key
 void FileCatalog_setFilePath(FileCatalog * self, Atom type, Atom name, const char * path);
 
-// Returns the path for the specified type/name key. The returned pointer is owned by FileCatalog and should not be freed.
+// Returns the path for the specified type/name key. The returned pointer is not owned by the caller and should not be freed.
+// If FileCatalog_setBasePath() has been called and the path being referenced is local, the base path will be prepended to
+// the path returned from this function. Absolute paths are not affected.
 const char * FileCatalog_getFilePath(FileCatalog * self, Atom type, Atom name);
 
 // The pointer returned from the following two functions must be freed by the caller.

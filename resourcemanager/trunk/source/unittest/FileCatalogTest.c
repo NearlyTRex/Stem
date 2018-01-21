@@ -6,11 +6,9 @@
 #include <limits.h>
 #include <string.h>
 
-static void verifyInit(FileCatalog * fileCatalog, const char * basePath) {
+static void verifyInit(FileCatalog * fileCatalog) {
 	TestCase_assert(fileCatalog != NULL, "Expected non-NULL but got NULL");
 	TestCase_assert(fileCatalog->dispose == FileCatalog_dispose, "Expected %p but got %p", FileCatalog_dispose, fileCatalog->dispose);
-	TestCase_assert(fileCatalog->basePath != NULL, "Expected non-NULL but got NULL");
-	TestCase_assert(!strcmp(fileCatalog->basePath, basePath), "Expected \"%s\" but got \"%s\"", basePath, fileCatalog->basePath);
 }
 
 static void testInit() {
@@ -18,19 +16,19 @@ static void testInit() {
 	bool success;
 	
 	memset(&fileCatalog, 0x00, sizeof(fileCatalog));
-	success = FileCatalog_init(&fileCatalog, "abcd");
+	success = FileCatalog_init(&fileCatalog);
 	TestCase_assert(success, "Expected true but got false");
-	verifyInit(&fileCatalog, "abcd");
+	verifyInit(&fileCatalog);
 	FileCatalog_dispose(&fileCatalog);
 	
 	memset(&fileCatalog, 0xFF, sizeof(fileCatalog));
-	success = FileCatalog_init(&fileCatalog, "efgh");
+	success = FileCatalog_init(&fileCatalog);
 	TestCase_assert(success, "Expected true but got false");
-	verifyInit(&fileCatalog, "efgh");
+	verifyInit(&fileCatalog);
 	FileCatalog_dispose(&fileCatalog);
 	
-	fileCatalogPtr = FileCatalog_create("ijkl");
-	verifyInit(fileCatalogPtr, "ijkl");
+	fileCatalogPtr = FileCatalog_create();
+	verifyInit(fileCatalogPtr);
 	FileCatalog_dispose(fileCatalogPtr);
 }
 
@@ -38,7 +36,7 @@ static void testGetFilePath() {
 	FileCatalog * fileCatalog;
 	const char * path;
 	
-	fileCatalog = FileCatalog_create("");
+	fileCatalog = FileCatalog_create();
 	path = FileCatalog_getFilePath(fileCatalog, ATOM("type1"), ATOM("name1"));
 	TestCase_assert(path == NULL, "Expected NULL but got %p", path);
 	path = FileCatalog_getFilePath(fileCatalog, ATOM("type1"), ATOM("name2"));
@@ -65,12 +63,39 @@ static void testGetFilePath() {
 	FileCatalog_dispose(fileCatalog);
 }
 
+static void testSetBasePath() {
+	FileCatalog * fileCatalog;
+	const char * path;
+	
+	fileCatalog = FileCatalog_create();
+	FileCatalog_setFilePath(fileCatalog, ATOM("type"), ATOM("file1"), "local/file");
+	FileCatalog_setFilePath(fileCatalog, ATOM("type"), ATOM("file2"), "/absolute/file");
+	
+	FileCatalog_setBasePath(fileCatalog, "directory");
+	path = FileCatalog_getFilePath(fileCatalog, ATOM("type"), ATOM("file1"));
+	TestCase_assert(path != NULL, "Expected non-NULL but got NULL", path);
+	TestCase_assert(!strcmp(path, "directory/local/file"), "Expected \"directory/local/file\" but got \"%s\"", path);
+	path = FileCatalog_getFilePath(fileCatalog, ATOM("type"), ATOM("file2"));
+	TestCase_assert(path != NULL, "Expected non-NULL but got NULL", path);
+	TestCase_assert(!strcmp(path, "/absolute/file"), "Expected \"/absolute/file\" but got \"%s\"", path);
+	
+	FileCatalog_setBasePath(fileCatalog, "/dir/");
+	path = FileCatalog_getFilePath(fileCatalog, ATOM("type"), ATOM("file1"));
+	TestCase_assert(path != NULL, "Expected non-NULL but got NULL", path);
+	TestCase_assert(!strcmp(path, "/dir/local/file"), "Expected \"/dir/local/file\" but got \"%s\"", path);
+	path = FileCatalog_getFilePath(fileCatalog, ATOM("type"), ATOM("file2"));
+	TestCase_assert(path != NULL, "Expected non-NULL but got NULL", path);
+	TestCase_assert(!strcmp(path, "/absolute/file"), "Expected \"/absolute/file\" but got \"%s\"", path);
+	
+	FileCatalog_dispose(fileCatalog);
+}
+
 static void testListing() {
 	FileCatalog * fileCatalog;
 	const char ** items;
 	size_t itemCount;
 	
-	fileCatalog = FileCatalog_create("");
+	fileCatalog = FileCatalog_create();
 	
 	itemCount = SIZE_T_MAX;
 	items = FileCatalog_listTypes(fileCatalog, &itemCount);
@@ -131,7 +156,6 @@ static void testDeserialization() {
 	context->expectCall(context, context->beginStructure, FILECATALOG_FORMAT_TYPE);
 	context->expectCall(context, context->readUInt16, "format_version", FILECATALOG_FORMAT_VERSION);
 	context->expectCall(context, context->readString, "format_type", FILECATALOG_FORMAT_TYPE);
-	context->expectCall(context, context->readString, "base_path", "");
 	context->expectCall(context, context->beginDictionary, "types", 0);
 	context->expectCall(context, context->endDictionary);
 	context->expectCall(context, context->endStructure);
@@ -141,7 +165,7 @@ static void testDeserialization() {
 	context->finish(context);
 	context->dispose(context);
 	
-	verifyInit(&fileCatalog, "");
+	verifyInit(&fileCatalog);
 	FileCatalog_dispose(&fileCatalog);
 	
 	context = TestDeserializationContext_create(&jmpEnv);
@@ -152,7 +176,6 @@ static void testDeserialization() {
 	context->expectCall(context, context->beginStructure, FILECATALOG_FORMAT_TYPE);
 	context->expectCall(context, context->readUInt16, "format_version", FILECATALOG_FORMAT_VERSION);
 	context->expectCall(context, context->readString, "format_type", FILECATALOG_FORMAT_TYPE);
-	context->expectCall(context, context->readString, "base_path", "");
 	context->expectCall(context, context->beginDictionary, "types", 0);
 	context->expectCall(context, context->endDictionary);
 	context->expectCall(context, context->endStructure);
@@ -162,7 +185,7 @@ static void testDeserialization() {
 	context->finish(context);
 	context->dispose(context);
 	
-	verifyInit(fileCatalogPtr, "");
+	verifyInit(fileCatalogPtr);
 	FileCatalog_dispose(fileCatalogPtr);
 	
 	context = TestDeserializationContext_create(&jmpEnv);
@@ -173,7 +196,6 @@ static void testDeserialization() {
 	context->expectCall(context, context->beginStructure, FILECATALOG_FORMAT_TYPE);
 	context->expectCall(context, context->readUInt16, "format_version", FILECATALOG_FORMAT_VERSION);
 	context->expectCall(context, context->readString, "format_type", FILECATALOG_FORMAT_TYPE);
-	context->expectCall(context, context->readString, "base_path", "base");
 	context->expectCall(context, context->beginDictionary, "types", 2);
 	context->expectCall(context, context->readNextDictionaryKey, "type1");
 	context->expectCall(context, context->beginDictionary, "type1", 2);
@@ -195,7 +217,7 @@ static void testDeserialization() {
 	context->finish(context);
 	context->dispose(context);
 	
-	verifyInit(fileCatalogPtr, "base");
+	verifyInit(fileCatalogPtr);
 	path = FileCatalog_getFilePath(fileCatalogPtr, ATOM("type1"), ATOM("name1"));
 	TestCase_assert(path != NULL, "Expected non-NULL but got NULL", path);
 	TestCase_assert(!strcmp(path, "a"), "Expected \"a\" but got \"%s\"", path);
@@ -214,7 +236,6 @@ static void testDeserialization() {
 	context->expectCall(context, context->beginStructure, FILECATALOG_FORMAT_TYPE);
 	context->expectCall(context, context->readUInt16, "format_version", FILECATALOG_FORMAT_VERSION);
 	context->expectCall(context, context->readString, "format_type", FILECATALOG_FORMAT_TYPE);
-	context->expectCall(context, context->readString, "base_path", "base");
 	context->expectCall(context, context->beginDictionary, "types", 1);
 	context->expectCall(context, context->readNextDictionaryKey, "type1");
 	context->expectCall(context, context->beginDictionary, "type1", 1);
@@ -224,7 +245,7 @@ static void testDeserialization() {
 	context->expectCall(context, context->endDictionary);
 	context->expectCall(context, context->endStructure);
 	
-	for (failIndex = 0; failIndex < 12; failIndex++) {
+	for (failIndex = 0; failIndex < 11; failIndex++) {
 		context->rewind(context);
 		context->failNthCall(context, failIndex, 1);
 		fileCatalogPtr = FileCatalog_deserialize(context);
@@ -243,13 +264,12 @@ static void testSerialization() {
 		TestCase_assert(false, "%s", context->error);
 	}
 	
-	fileCatalog = FileCatalog_create("abc");
+	fileCatalog = FileCatalog_create();
 	FileCatalog_setFilePath(fileCatalog, ATOM("type1"), ATOM("name1"), "a");
 	
 	context->expectCall(context, context->beginStructure, FILECATALOG_FORMAT_TYPE);
 	context->expectCall(context, context->writeUInt16, "format_version", FILECATALOG_FORMAT_VERSION);
 	context->expectCall(context, context->writeString, "format_type", FILECATALOG_FORMAT_TYPE);
-	context->expectCall(context, context->writeString, "base_path", "abc");
 	context->expectCall(context, context->beginDictionary, "types");
 	context->expectCall(context, context->beginDictionary, "type1");
 	context->expectCall(context, context->writeString, "name1", "a");
@@ -268,7 +288,7 @@ static void testSerialization() {
 		TestCase_assert(false, "%s", context->error);
 	}
 	
-	fileCatalog = FileCatalog_create("def");
+	fileCatalog = FileCatalog_create();
 	FileCatalog_setFilePath(fileCatalog, ATOM("type1"), ATOM("name1"), "a");
 	FileCatalog_setFilePath(fileCatalog, ATOM("type1"), ATOM("name2"), "b");
 	FileCatalog_setFilePath(fileCatalog, ATOM("type2"), ATOM("name1"), "c");
@@ -276,7 +296,6 @@ static void testSerialization() {
 	context->expectCall(context, context->beginStructure, FILECATALOG_FORMAT_TYPE);
 	context->expectCall(context, context->writeUInt16, "format_version", FILECATALOG_FORMAT_VERSION);
 	context->expectCall(context, context->writeString, "format_type", FILECATALOG_FORMAT_TYPE);
-	context->expectCall(context, context->writeString, "base_path", "def");
 	context->expectCall(context, context->beginDictionary, "types");
 	context->expectCall(context, context->beginDictionary, "type1");
 	context->expectCall(context, context->writeString, "name2", "b");
@@ -308,7 +327,6 @@ static void testFormatVerification() {
 	context->expectCall(context, context->beginStructure, FILECATALOG_FORMAT_TYPE);
 	context->expectCall(context, context->readUInt16, "format_version", FILECATALOG_FORMAT_VERSION);
 	context->expectCall(context, context->readString, "format_type", FILECATALOG_FORMAT_TYPE);
-	context->expectCall(context, context->readString, "base_path", "");
 	context->expectCall(context, context->beginDictionary, "types", 0);
 	context->expectCall(context, context->endDictionary);
 	context->expectCall(context, context->endStructure);
@@ -329,7 +347,6 @@ static void testFormatVerification() {
 	context->expectCall(context, context->beginStructure, FILECATALOG_FORMAT_TYPE);
 	context->expectCall(context, context->readUInt16, "format_version", FILECATALOG_FORMAT_VERSION + 1);
 	context->expectCall(context, context->readString, "format_type", FILECATALOG_FORMAT_TYPE);
-	context->expectCall(context, context->readString, "base_path", "");
 	context->expectCall(context, context->beginDictionary, "types", 0);
 	context->expectCall(context, context->endDictionary);
 	context->expectCall(context, context->endStructure);
@@ -349,7 +366,6 @@ static void testFormatVerification() {
 	context->expectCall(context, context->beginStructure, FILECATALOG_FORMAT_TYPE);
 	context->expectCall(context, context->readUInt16, "format_version", FILECATALOG_FORMAT_VERSION);
 	context->expectCall(context, context->readString, "format_type", FILECATALOG_FORMAT_TYPE "_not");
-	context->expectCall(context, context->readString, "base_path", "");
 	context->expectCall(context, context->beginDictionary, "types", 0);
 	context->expectCall(context, context->endDictionary);
 	context->expectCall(context, context->endStructure);
@@ -365,6 +381,7 @@ static void testFormatVerification() {
 TEST_SUITE(FileCatalogTest,
            testInit,
            testGetFilePath,
+           testSetBasePath,
            testListing,
            testDeserialization,
            testSerialization,
