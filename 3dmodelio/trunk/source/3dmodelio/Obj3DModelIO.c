@@ -188,7 +188,7 @@ MeshData * Obj3DModelIO_loadData(const char * data, size_t length) {
 	size_t faceCount = 0, faceAllocatedCount = 1024;
 	int * faces = malloc(sizeof(int) * faceAllocatedCount * 9);
 	int face[9];
-	struct vertex_p3f_t2f_n3f_c4f * vertices, vertex;
+	struct vertex_p3f_t2f_n3f_x4f_c4f * vertices, vertex;
 	GLuint * indexes;
 	MeshData * result;
 	
@@ -317,6 +317,10 @@ MeshData * Obj3DModelIO_loadData(const char * data, size_t length) {
 	vertex.color[1] = 1.0f;
 	vertex.color[2] = 1.0f;
 	vertex.color[3] = 1.0f;
+	vertex.tangent[0] = 0.0f;
+	vertex.tangent[1] = 0.0f;
+	vertex.tangent[2] = 0.0f;
+	vertex.tangent[3] = 1.0f;
 	for (size_t faceIndex = 0; faceIndex < faceCount; faceIndex++) {
 		for (size_t vertexIndex = 0; vertexIndex < 3; vertexIndex++) {
 			vertex.position[0] = positions[faces[faceIndex * 9 + vertexIndex * 3 + 0] - 1].x;

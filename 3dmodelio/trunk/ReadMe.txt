@@ -6,12 +6,12 @@ Note: MeshData packs vertices and indexes in little endian format only
 
 TASKS:
 - Load and render an animated model
-- Figure out materials and lighting
+- Clean up resource management system
 
 ORDER:
 √ Data structure
 √ Import
 √ Export
-- Normal mapping
-- Materials/lighting?
+√ Normal mapping
+√ Materials/lighting?
 - Animations

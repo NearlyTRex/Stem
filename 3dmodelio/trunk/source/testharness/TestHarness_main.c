@@ -41,7 +41,6 @@
 
 static ResourceManager * resourceManager;
 static FileCatalog * fileCatalog;
-static char * fileCatalogPath;
 static VertexBuffer * vertexBuffer;
 static MeshRenderable * renderable;
 static Material * material;
@@ -101,7 +100,7 @@ static void useMesh(MeshData * meshData) {
 			fprintf(stderr, "Couldn't load material \"%s\" for mesh \"%s\"\n", meshData->materialName, meshData->name);
 		}
 	}
-	vertexBuffer = VertexBuffer_createPTNC(meshData->vertices, meshData->vertexCount, meshData->indexes, meshData->indexCount);
+	vertexBuffer = VertexBuffer_createPTNXC(meshData->vertices, meshData->vertexCount, meshData->indexes, meshData->indexCount);
 	renderable = MeshRenderable_create(vertexBuffer, material, NULL, MATRIX4x4f_IDENTITY);
 	Renderer_addRenderable(renderer, RENDER_LAYER_3D_OPAQUE, (Renderable *) renderable);
 	Shell_redisplay();
@@ -187,7 +186,7 @@ static void unloadMaterialResource(void * resource, void * context) {
 }
 
 void * loadPNGResource(const char * resourceName, void * context) {
-	return PNGImageIO_loadPNGFile(filePathForResource(resourceName, ATOM("png")), PNG_PIXEL_FORMAT_AUTOMATIC, true);
+	return PNGImageIO_loadPNGFile(filePathForResource(resourceName, ATOM("png")), BITMAP_PIXEL_FORMAT_RGBA_8888, true);
 }
 
 void unloadPNGResource(void * resource, void * context) {
@@ -198,10 +197,6 @@ static void loadFileCatalog(const char * filePath) {
 	if (fileCatalog != NULL) {
 		FileCatalog_dispose(fileCatalog);
 	}
-	if (fileCatalogPath != NULL) {
-		free(fileCatalogPath);
-		fileCatalogPath = NULL;
-	}
 	fileCatalog = deserializeFile(filePath, (void * (*)(void *)) FileCatalog_deserialize);
 	
 	if (fileCatalog != NULL) {
@@ -210,6 +205,7 @@ static void loadFileCatalog(const char * filePath) {
 		
 		FileCatalog_setBasePath(fileCatalog, getDirectory(filePath));
 		
+		// Temporarily, just load the first mesh in the file, if any
 		meshNames = FileCatalog_listNamesForType(fileCatalog, ATOM("mesh"), &meshCount);
 		if (meshCount > 0) {
 			MeshData * meshData;

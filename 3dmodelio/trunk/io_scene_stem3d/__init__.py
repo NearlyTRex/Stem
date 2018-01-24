@@ -24,10 +24,14 @@ def escape_string(string):
 def swizzle_position(vector):
 	return mathutils.Vector((vector[0], vector[2], -vector[1]))
 
+def swizzle_tangent(vector):
+	return mathutils.Vector((vector[0], vector[2], -vector[1], 1.0))
+
 def get_primitives(blender_mesh):
 	vertices = []
 	indexes = []
 	
+	blender_mesh.calc_tangents()
 	index = 0
 	for blender_polygon in blender_mesh.polygons:
 		loop_index_list = []
@@ -52,11 +56,27 @@ def get_primitives(blender_mesh):
 		else:
 			continue
 		
+		face_normal = blender_polygon.normal
+		face_tangent = mathutils.Vector((0.0, 0.0, 0.0))
+		for loop_index in blender_polygon.loop_indices:
+			vertex = blender_mesh.loops[loop_index]
+			face_tangent += vertex.tangent
+		face_tangent.normalize()
+		
+		flip_tangent = False
+		for loop_index in blender_polygon.loop_indices:
+			vertex_index = blender_mesh.loops[loop_index].vertex_index
+			vertex = blender_mesh.vertices[vertex_index].co
+			if vertex[0] < 0.0:
+				flip_tangent = True
+				break
+		
 		for loop_index in loop_index_list:
 			vertex_index = blender_mesh.loops[loop_index].vertex_index
 			vertex = blender_mesh.vertices[vertex_index]
 			position = None
 			normal = None
+			tangent = None
 			tex_coord = None
 			color = None
 			bones = None
@@ -64,8 +84,12 @@ def get_primitives(blender_mesh):
 			position = swizzle_position(vertex.co)
 			if blender_polygon.use_smooth:
 				normal = swizzle_position(vertex.normal)
+				tangent = swizzle_tangent(blender_mesh.loops[loop_index].tangent)
 			else:
-				normal = swizzle_position(blender_polygon.normal)
+				normal = swizzle_position(face_normal)
+				tangent = swizzle_tangent(face_tangent)
+			if flip_tangent:
+				tangent[3] = -tangent[3]
 			if blender_mesh.uv_layers.active:
 				tex_coord = blender_mesh.uv_layers.active.data[loop_index].uv
 			else:
@@ -73,7 +97,7 @@ def get_primitives(blender_mesh):
 			color = (1.0, 1.0, 1.0, 1.0)
 			#bones = (0, 0, 0, 0)
 			#weights = (1.0, 0.0, 0.0, 0.0)
-			vertices.append([position, normal, tex_coord, color])
+			vertices.append([position, tex_coord, normal, tangent, color])
 			indexes.append(index)
 			index += 1
 	
@@ -84,9 +108,10 @@ def encode_vertices(vertices):
 	vertex_size = 12 * 4
 	for vertex in vertices:
 		vertices_packed += struct.pack("<fff", vertex[0][0], vertex[0][1], vertex[0][2])
-		vertices_packed += struct.pack("<ff", vertex[2][0], vertex[2][1])
-		vertices_packed += struct.pack("<fff", vertex[1][0], vertex[1][1], vertex[1][2])
+		vertices_packed += struct.pack("<ff", vertex[1][0], vertex[1][1])
+		vertices_packed += struct.pack("<fff", vertex[2][0], vertex[2][1], vertex[2][2])
 		vertices_packed += struct.pack("<ffff", vertex[3][0], vertex[3][1], vertex[3][2], vertex[3][3])
+		vertices_packed += struct.pack("<ffff", vertex[4][0], vertex[4][1], vertex[4][2], vertex[4][3])
 	
 	encoded_string = base64.encodestring(vertices_packed)
 	return encoded_string.replace(b"\n", b"")

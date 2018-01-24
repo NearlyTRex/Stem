@@ -54,7 +54,7 @@ typedef struct MeshData MeshData;
 stemobject_struct_definition(MeshData)
 
 // vertices and indexes are copied
-// If armatureName is NULL, vertexBuffer must be in PTNC format. If armatureName is non-NULL, vertexBuffer must be in PTNCBW format.
+// If armatureName is NULL, vertexBuffer must be in PTNXC format. If armatureName is non-NULL, vertexBuffer must be in PTNXCBW format.
 MeshData * MeshData_create(Atom name, const void * vertices, unsigned int vertexCount, bool takeOwnershipOfVertices, bool copyVertices, const GLuint * indexes, unsigned int indexCount, bool takeOwnershipOfIndexes, bool copyIndexes, Atom armatureName, Atom materialName);
 bool MeshData_init(MeshData * self, Atom name, const void * vertices, unsigned int vertexCount, bool takeOwnershipOfVertices, bool copyVertices, const GLuint * indexes, unsigned int indexCount, bool takeOwnershipOfIndexes, bool copyIndexes, Atom armatureName, Atom materialName);
 void MeshData_dispose(MeshData * self);
