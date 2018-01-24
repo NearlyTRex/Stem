@@ -73,21 +73,24 @@ MATERIAL STUFF
 
 
 TODO:
+- Animation controller object with graph logic? Also event dispatching
+- IK (https://www.webcitation.org/60uCFHqC2?url=http://freespace.virgin.net/hugo.elias/models/m_ik2.htm)
+- Advanced materials (color and emissiveness not respected right now)
+- Advanced lighting (research needed)
+- Depth sorting/translucency
+- Fluid simulation
+- VR
+
+LOWER PRIORITY:
 - Camera work:
  - Camera interpolation (controller object interpolates between different camera objects)
  - Other cameras: First person, follow behind/ahead
-- Animation controller object with graph logic? Also event dispatching
-- IK (https://www.webcitation.org/60uCFHqC2?url=http://freespace.virgin.net/hugo.elias/models/m_ik2.htm)
-- Advanced materials
-- Advanced lighting
 - Morphing? (maybe better to do without)
+- Possible normal map optimization: Do all lighting calculations in tangent space, so fragment shader doesn't have to do a matrix multiplication per fragment
+- Calculate normal matrix in renderer instead of vertex shader
 - Callback renderable type
-- Additional camera types (camera controller with interpolation)
-- Depth sorting/translucency
 - Culling
 - Fog
 - Shadows
 - SSAO
-- Fluid simulation
 - Cloth simulation
-- VR

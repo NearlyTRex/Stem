@@ -42,7 +42,7 @@ Renderer * Renderer_create() {
 bool Renderer_init(Renderer * self) {
 	int renderLayerIndex;
 	unsigned char nullMaterialColor[4] = {0xFF, 0xFF, 0xFF, 0xFF};
-	unsigned char nullMaterialNormal[4] = {0x00, 0x00, 0xFF, 0xFF};
+	unsigned char nullMaterialNormal[4] = {0x7F, 0x7F, 0xFF, 0xFF};
 	
 	call_super(init, self);
 	self->dispose = Renderer_dispose;
@@ -57,12 +57,14 @@ bool Renderer_init(Renderer * self) {
 		"inPosition", VERTEX_ATTRIB_POSITION,
 		"inTexCoord", VERTEX_ATTRIB_TEXTURE_COORD,
 		"inNormal", VERTEX_ATTRIB_NORMAL,
+		"inTangent", VERTEX_ATTRIB_TANGENT,
 		"inColor", VERTEX_ATTRIB_COLOR,
 	NULL);
 	self->shaderAnimated = GLSLShader_create(STATIC_AnimatedVertexShader, sizeof(STATIC_AnimatedVertexShader), STATIC_LitSurfaceFragmentShader, sizeof(STATIC_LitSurfaceFragmentShader),
 		"inPosition", VERTEX_ATTRIB_POSITION,
 		"inTexCoord", VERTEX_ATTRIB_TEXTURE_COORD,
 		"inNormal", VERTEX_ATTRIB_NORMAL,
+		"inTangent", VERTEX_ATTRIB_TANGENT,
 		"inColor", VERTEX_ATTRIB_COLOR,
 		"inBoneID", VERTEX_ATTRIB_BONE_ID,
 		"inBoneWeight", VERTEX_ATTRIB_BONE_WEIGHT,
@@ -201,25 +203,35 @@ void Renderer_drawSingle(Renderer * self, Renderable * renderable) {
 			cameraPosition = Matrix4x4f_multiplyVector3f(Matrix4x4f_inverted(self->viewMatrix), VECTOR3f_ZERO);
 			glUniform3f(GLSLShader_getUniformLocation(shader, "cameraPosition"), cameraPosition.x, cameraPosition.y, -cameraPosition.z);
 			glUniform1i(GLSLShader_getUniformLocation(shader, "colorTexture"), 0);
+			glUniform1i(GLSLShader_getUniformLocation(shader, "normalTexture"), 1);
 			if (mesh->animationState != NULL) {
 				glUniformMatrix4fv(GLSLShader_getUniformLocation(shader, "boneTransforms"), mesh->animationState->armature->boneCount, GL_FALSE, (GLfloat *) mesh->animationState->computedBoneTransforms);
 			}
 			
-			// TODO: Respect material's color, emissiveness, and normal map
+			// TODO: Respect material's color and emissiveness
 			if (mesh->material == NULL) {
 				glUniform1f(GLSLShader_getUniformLocation(shader, "specularity"), 0.875f);
 				glUniform1f(GLSLShader_getUniformLocation(shader, "shininess"), 32.0f);
+				glActiveTexture(GL_TEXTURE0);
 				glBindTexture(GL_TEXTURE_2D, self->nullMaterial->colorTextureID);
+				glActiveTexture(GL_TEXTURE1);
+				glBindTexture(GL_TEXTURE_2D, self->nullMaterial->normalTextureID);
 			} else {
 				glUniform1f(GLSLShader_getUniformLocation(shader, "specularity"), mesh->material->specularity);
 				glUniform1f(GLSLShader_getUniformLocation(shader, "shininess"), mesh->material->shininess);
+				glActiveTexture(GL_TEXTURE0);
 				glBindTexture(GL_TEXTURE_2D, mesh->material->colorTextureID);
+				glActiveTexture(GL_TEXTURE1);
+				glBindTexture(GL_TEXTURE_2D, mesh->material->normalTextureID);
 			}
 			
 			glBindVertexArray(mesh->vertexBuffer->vaoID);
 			glDrawElements(GL_TRIANGLES, mesh->vertexBuffer->indexCount, GL_UNSIGNED_INT, 0);
 			glBindVertexArray(0);
 			
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, 0);
+			glActiveTexture(GL_TEXTURE1);
 			glBindTexture(GL_TEXTURE_2D, 0);
 			glUseProgram(0);
 			
