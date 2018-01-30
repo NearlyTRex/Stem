@@ -58,12 +58,18 @@ struct ResourceManager_resource {
 	StemObject_structContents(self_type) \
 	\
 	double (* timeFunction)(void); \
+	\
 	size_t typeHandlerCount; \
 	size_t private_ivar(typeHandlerAllocatedCount); \
 	struct ResourceManager_typeHandler * typeHandlers; \
+	\
 	size_t resourceCount; \
 	size_t private_ivar(resourceAllocatedCount); \
-	struct ResourceManager_resource * resources;
+	struct ResourceManager_resource * resources; \
+	\
+	size_t searchPathCount; \
+	size_t private_ivar(searchPathAllocatedCount); \
+	char ** searchPaths;
 
 stemobject_struct_definition(ResourceManager)
 
@@ -109,6 +115,19 @@ void ResourceManager_purgeAll(ResourceManager * self);
 // Unloads all resources whose reference counts dropped to 0 longer ago than the specified number of seconds, for types that have
 // the PURGE_DEFERRED policy.
 void ResourceManager_purgeAllOlderThan(ResourceManager * self, double age);
+
+// Adds a location to be searched when using ResourceManager_resolveFilePath. The latest added paths are searched first.
+// The working directory is not automatically searched. To include it in searches, call this function with an argument of ".".
+void ResourceManager_addSearchPath(ResourceManager * self, const char * path);
+
+// Removes a location from the search list. Does nothing if ResourceManager doesn't already know about the specified path.
+void ResourceManager_removeSearchPath(ResourceManager * self, const char * path);
+
+// Attempts to resolve a local file name/path to a location on disk, using any search paths established by calls to
+// ResourceManager_addSearchPath. The latest added paths are searched first. If no file with the specified name exists in any
+// known search path, returns NULL. The returned string is allocated and added to AutoFreePool, so it should not be freed
+// directly by the caller.
+const char * ResourceManager_resolveFilePath(ResourceManager * self, const char * fileName);
 
 #ifdef __cplusplus
 }

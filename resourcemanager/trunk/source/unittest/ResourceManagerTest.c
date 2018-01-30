@@ -1,5 +1,6 @@
 #include "unittest/TestSuite.h"
 #include "resourcemanager/ResourceManager.h"
+#include <string.h>
 
 static double currentTime;
 
@@ -229,10 +230,55 @@ static void testPurge() {
 	ResourceManager_dispose(resourceManager);
 }
 
+static void testSearchPaths() {
+	ResourceManager * resourceManager;
+	const char * resolvedPath;
+	
+	resourceManager = ResourceManager_create(timeFunction);
+	resolvedPath = ResourceManager_resolveFilePath(resourceManager, "emptyfile");
+	TestCase_assert(resolvedPath == NULL, "Expected NULL but got \"%s\"", resolvedPath);
+	resolvedPath = ResourceManager_resolveFilePath(resourceManager, "emptyfile2");
+	TestCase_assert(resolvedPath == NULL, "Expected NULL but got \"%s\"", resolvedPath);
+	
+	ResourceManager_addSearchPath(resourceManager, ".");
+	resolvedPath = ResourceManager_resolveFilePath(resourceManager, "emptyfile");
+	TestCase_assert(resolvedPath != NULL, "Expected non-NULL but got NULL");
+	TestCase_assert(!strcmp(resolvedPath, "./emptyfile"), "Expected \"./emptyfile\", but got \"%s\"", resolvedPath);
+	resolvedPath = ResourceManager_resolveFilePath(resourceManager, "emptyfile2");
+	TestCase_assert(resolvedPath != NULL, "Expected non-NULL but got NULL");
+	TestCase_assert(!strcmp(resolvedPath, "./emptyfile2"), "Expected \"./emptyfile2\", but got \"%s\"", resolvedPath);
+	
+	ResourceManager_addSearchPath(resourceManager, "subdir");
+	resolvedPath = ResourceManager_resolveFilePath(resourceManager, "emptyfile");
+	TestCase_assert(resolvedPath != NULL, "Expected non-NULL but got NULL");
+	TestCase_assert(!strcmp(resolvedPath, "subdir/emptyfile"), "Expected \"subdir/emptyfile\", but got \"%s\"", resolvedPath);
+	resolvedPath = ResourceManager_resolveFilePath(resourceManager, "emptyfile2");
+	TestCase_assert(resolvedPath != NULL, "Expected non-NULL but got NULL");
+	TestCase_assert(!strcmp(resolvedPath, "./emptyfile2"), "Expected \"./emptyfile2\", but got \"%s\"", resolvedPath);
+	
+	ResourceManager_removeSearchPath(resourceManager, ".");
+	resolvedPath = ResourceManager_resolveFilePath(resourceManager, "emptyfile");
+	TestCase_assert(resolvedPath != NULL, "Expected non-NULL but got NULL");
+	TestCase_assert(!strcmp(resolvedPath, "subdir/emptyfile"), "Expected \"subdir/emptyfile\", but got \"%s\"", resolvedPath);
+	resolvedPath = ResourceManager_resolveFilePath(resourceManager, "emptyfile2");
+	TestCase_assert(resolvedPath == NULL, "Expected NULL but got \"%s\"", resolvedPath);
+	
+	ResourceManager_addSearchPath(resourceManager, ".");
+	resolvedPath = ResourceManager_resolveFilePath(resourceManager, "emptyfile");
+	TestCase_assert(resolvedPath != NULL, "Expected non-NULL but got NULL");
+	TestCase_assert(!strcmp(resolvedPath, "./emptyfile"), "Expected \"./emptyfile\", but got \"%s\"", resolvedPath);
+	resolvedPath = ResourceManager_resolveFilePath(resourceManager, "emptyfile2");
+	TestCase_assert(resolvedPath != NULL, "Expected non-NULL but got NULL");
+	TestCase_assert(!strcmp(resolvedPath, "./emptyfile2"), "Expected \"./emptyfile2\", but got \"%s\"", resolvedPath);
+	
+	ResourceManager_dispose(resourceManager);
+}
+
 TEST_SUITE(ResourceManagerTest,
            testInit,
            testAddResource,
            testReferenceResource,
            testOptionalityOfCallbacks,
            testNULLResources,
-           testPurge)
+           testPurge,
+           testSearchPaths)

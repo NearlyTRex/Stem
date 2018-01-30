@@ -64,7 +64,10 @@ INCLUDES = \
 	source/${PROJECT_NAME}/ResourceManager.h
 
 # Patterns: RESOURCES, RESOURCES_${target}, RESOURCES_${platform}, RESOURCES_${target}_${platform}
-RESOURCES = 
+RESOURCES_unittest = \
+	resources/emptyfile \
+	resources/emptyfile2 \
+	resources/subdir
 
 # Pattern: ANALYZER_EXCLUDE_SOURCES_${analyzer}
 ANALYZER_EXCLUDE_SOURCES_clang = 

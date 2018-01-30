@@ -21,10 +21,19 @@
 */
 
 #include "resourcemanager/ResourceManager.h"
+#include "utilities/AutoFreePool.h"
+#include "utilities/IOUtilities.h"
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <sys/stat.h>
 
 #define SUPERCLASS StemObject
+
+// TODO: Some sort of mechanism for threadsafe preloading?
+// Preloading probably wants to place resources in a loaded, 0 reference count, nonpurgeable state, though with some special way to purge
+// Careful order of operations to allow for atomic list access and lock-free multithreading
 
 ResourceManager * ResourceManager_create(double (* timeFunction)(void)) {
 	stemobject_create_implementation(ResourceManager, init, timeFunction)
@@ -34,12 +43,18 @@ bool ResourceManager_init(ResourceManager * self, double (* timeFunction)(void))
 	call_super(init, self);
 	
 	self->timeFunction = timeFunction;
+	
 	self->typeHandlerCount = 0;
 	self->private_ivar(typeHandlerAllocatedCount) = 8;
 	self->typeHandlers = malloc(sizeof(*self->typeHandlers) * self->private_ivar(typeHandlerAllocatedCount));
+	
 	self->resourceCount = 0;
 	self->private_ivar(resourceAllocatedCount) = 32;
 	self->resources = malloc(sizeof(*self->resources) * self->private_ivar(resourceAllocatedCount));
+	
+	self->searchPathCount = 0;
+	self->private_ivar(searchPathAllocatedCount) = 4;
+	self->searchPaths = malloc(sizeof(*self->searchPaths) * self->private_ivar(searchPathAllocatedCount));
 	
 	self->dispose = ResourceManager_dispose;
 	return true;
@@ -56,13 +71,17 @@ static void unloadResource(ResourceManager * self, unsigned int resourceIndex) {
 }
 
 void ResourceManager_dispose(ResourceManager * self) {
-	unsigned int resourceIndex;
+	size_t resourceIndex, searchPathIndex;
 	
 	for (resourceIndex = self->resourceCount - 1; resourceIndex < self->resourceCount; resourceIndex--) {
 		unloadResource(self, resourceIndex);
 	}
 	free(self->resources);
 	free(self->typeHandlers);
+	for (searchPathIndex = 0; searchPathIndex < self->searchPathCount; searchPathIndex++) {
+		free(self->searchPaths[searchPathIndex]);
+	}
+	free(self->searchPaths);
 	
 	call_super(dispose, self);
 }
@@ -214,4 +233,42 @@ void ResourceManager_purgeAllOlderThan(ResourceManager * self, double age) {
 			unloadResource(self, resourceIndex);
 		}
 	}
+}
+
+
+void ResourceManager_addSearchPath(ResourceManager * self, const char * path) {
+	if (self->searchPathCount >= self->private_ivar(searchPathAllocatedCount)) {
+		self->private_ivar(searchPathAllocatedCount) *= 2;
+		self->searchPaths = realloc(self->searchPaths, sizeof(*self->searchPaths) * self->private_ivar(searchPathAllocatedCount));
+	}
+	self->searchPaths[self->searchPathCount++] = strdup(path);
+}
+
+void ResourceManager_removeSearchPath(ResourceManager * self, const char * path) {
+	size_t searchPathIndex;
+	
+	for (searchPathIndex = 0; searchPathIndex < self->searchPathCount; searchPathIndex++) {
+		if (!strcmp(self->searchPaths[searchPathIndex], path)) {
+			free(self->searchPaths[searchPathIndex]);
+			self->searchPathCount--;
+			for (; searchPathIndex < self->searchPathCount; searchPathIndex++) {
+				self->searchPaths[searchPathIndex] = self->searchPaths[searchPathIndex + 1];
+			}
+			break;
+		}
+	}
+}
+
+const char * ResourceManager_resolveFilePath(ResourceManager * self, const char * fileName) {
+	size_t searchPathIndex;
+	char testPath[PATH_MAX];
+	struct stat statbuf;
+	
+	for (searchPathIndex = self->searchPathCount - 1; searchPathIndex < self->searchPathCount; searchPathIndex--) {
+		snprintf_safe(testPath, PATH_MAX, "%s/%s", self->searchPaths[searchPathIndex], fileName);
+		if (!stat(testPath, &statbuf)) {
+			return AutoFreePool_add(strdup(testPath));
+		}
+	}
+	return NULL;
 }
