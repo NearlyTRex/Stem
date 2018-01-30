@@ -9,11 +9,11 @@
 #include "glgraphics/Renderer.h"
 #include "jsonserialization/JSONDeserializationContext.h"
 #include "pngimageio/PNGImageIO.h"
-#include "resourcemanager/FileCatalog.h"
 #include "resourcemanager/ResourceManager.h"
 #include "shell/Shell.h"
 #include "shell/ShellCallbacks.h"
 #include "shell/ShellKeyCodes.h"
+#include "utilities/AutoFreePool.h"
 #include "utilities/IOUtilities.h"
 
 #if defined(STEM_PLATFORM_macosx)
@@ -40,7 +40,6 @@
 #define PROJECTION_FOV 60.0f
 
 static ResourceManager * resourceManager;
-static FileCatalog * fileCatalog;
 static VertexBuffer * vertexBuffer;
 static MeshRenderable * renderable;
 static Material * material;
@@ -55,6 +54,7 @@ static bool Target_draw() {
 	Renderer_beginDrawing(renderer);
 	Renderer_drawLayer(renderer, RENDER_LAYER_3D_OPAQUE);
 	Renderer_endDrawing(renderer);
+	AutoFreePool_empty();
 	return true;
 }
 
@@ -142,9 +142,7 @@ static DeserializationContext * guessDeserializationType(const char * filePath) 
 static const char * filePathForResource(Atom resourceName, Atom type) {
 	const char * filePath = NULL;
 	
-	if (fileCatalog != NULL) {
-		filePath = FileCatalog_getFilePath(fileCatalog, type, resourceName);
-	}
+	filePath = ResourceManager_resolveFilePath(resourceManager, resourceName);
 	if (filePath == NULL) {
 		filePath = resourceName;
 	}
@@ -193,37 +191,6 @@ void unloadPNGResource(void * resource, void * context) {
 	BitmapImage_dispose(resource);
 }
 
-static void loadFileCatalog(const char * filePath) {
-	if (fileCatalog != NULL) {
-		FileCatalog_dispose(fileCatalog);
-	}
-	fileCatalog = deserializeFile(filePath, (void * (*)(void *)) FileCatalog_deserialize);
-	
-	if (fileCatalog != NULL) {
-		size_t meshCount = 0;
-		const char ** meshNames;
-		
-		FileCatalog_setBasePath(fileCatalog, getDirectory(filePath));
-		
-		// Temporarily, just load the first mesh in the file, if any
-		meshNames = FileCatalog_listNamesForType(fileCatalog, ATOM("mesh"), &meshCount);
-		if (meshCount > 0) {
-			MeshData * meshData;
-			
-			meshData = ResourceManager_referenceResource(resourceManager, ATOM("mesh"), ATOM(meshNames[0]));
-			if (meshData == NULL) {
-				fprintf(stderr, "Couldn't load mesh \"%s\"\n", meshNames[0]);
-			} else {
-				useMesh(meshData);
-				ResourceManager_releaseResource(resourceManager, ATOM("mesh"), ATOM(meshNames[0]));
-			}
-		} else {
-			fprintf(stderr, "File catalog \"%s\" doesn't appear to contain any meshes; not displaying anything\n", filePath);
-		}
-		free(meshNames);
-	}
-}
-
 static void loadObjFile(const char * filePath) {
 	MeshData * meshData;
 	
@@ -240,15 +207,13 @@ static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned
 			if (Shell_openFileDialog(NULL, filePath, PATH_MAX)) {
 				const char * fileExtension = getFileExtension(filePath);
 				
-				if (!strcmp(fileExtension, "catalog")) {
-					loadFileCatalog(filePath);
-					
-				} else if (!strcmp(fileExtension, "obj")) {
+				if (!strcmp(fileExtension, "obj")) {
 					loadObjFile(filePath);
 					
 				} else if (!strcmp(fileExtension, "mesh")) {
 					MeshData * meshData = deserializeFile(filePath, (void * (*)(void *)) MeshData_deserialize);
 					if (meshData != NULL) {
+						ResourceManager_addSearchPath(resourceManager, getDirectory(filePath));
 						useMesh(meshData);
 						MeshData_dispose(meshData);
 					}

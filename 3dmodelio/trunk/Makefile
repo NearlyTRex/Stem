@@ -7,17 +7,21 @@ VERSION_TWEAK = 0
 PROJECT_VERSION = ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_TWEAK}
 
 LIBRARY_TARGETS = library
-EXECUTABLE_TARGETS = unittest
+EXECUTABLE_TARGETS = meshutils unittest
 APPLICATION_TARGETS = testharness
 
 # TARGET_NAME_${target} required for each target of any type; HUMAN_READABLE_TARGET_NAME_${target} required for each application target. Default values for TARGET_NAME_* shown below.
 #TARGET_NAME_library = libstem_${PROJECT_NAME}
 #TARGET_NAME_unittest = ${PROJECT_NAME}_unittest
 #TARGET_NAME_testharness = ${PROJECT_NAME}_testharness
+TARGET_NAME_meshutils = meshutils
 HUMAN_READABLE_TARGET_NAME_testharness = 3D\ Model\ IO
 
 # Patterns: PLATFORMS, PLATFORMS_${target}
 PLATFORMS = macosx iphonesimulator iphoneos linux32 linux64 win32 win64
+PLATFORMS_meshutils = macosx linux32, linux64 win32 win64
+TARGET_PLATFORMS_meshutils = ${filter ${TARGET_PLATFORMS},${PLATFORMS_meshutils}}
+CONFIGURATIONS_meshutils = debug profile
 
 # Patterns: CCFLAGS, CCFLAGS_${target}, CCFLAGS_${configuration}, CCFLAGS_${platform}, CCFLAGS_${target}_${configuration}, CCFLAGS_${target}_${platform}, CCFLAGS_${configuration}_${platform}, CCFLAGS_${target}_${configuration}_${platform}
 CCFLAGS = 
@@ -28,6 +32,7 @@ LINKFLAGS =
 # PROJECT_LIBRARY_DEPENDENCIES_* refers to entries in LIBRARY_TARGETS to be linked when building the specified target
 # Patterns: PROJECT_LIBRARY_DEPENDENCIES_${target}, PROJECT_LIBRARY_DEPENDENCIES_${target}_${platform}
 PROJECT_LIBRARY_DEPENDENCIES_unittest = library
+PROJECT_LIBRARY_DEPENDENCIES_meshutils = library
 PROJECT_LIBRARY_DEPENDENCIES_testharness = library
 
 # STEM_LIBRARY_DEPENDENCIES is specified as ${PROJECT_NAME}/${PROJECT_VERSION} for each stem library to be linked when building
@@ -45,6 +50,9 @@ STEM_LIBRARY_DEPENDENCIES_testharness = \
 	pngimageio/latest \
 	resourcemanager/latest \
 	shell/latest
+STEM_LIBRARY_DEPENDENCIES_meshutils = \
+	binaryserialization/latest \
+	jsonserialization/latest
 STEM_LIBRARY_DEPENDENCIES_testharness_macosx = nsopenglshell/latest
 
 # THIRDPARTY_LIBRARY_DEPENDENCIES is specified as ${PROJECT_NAME}/${PROJECT_VERSION} for each thirdparty library to be linked when building
@@ -62,6 +70,9 @@ SOURCES_library = \
 	source/${PROJECT_NAME}/MeshData.c \
 	source/${PROJECT_NAME}/Obj3DModelIO.c \
 	source/${PROJECT_NAME}/SceneLayout.c
+
+SOURCES_meshutils = \
+	source/meshutils.c
 
 # Executable targets named "unittest" should usually specify only SOURCES_unittest_suites, which must contain only test suite files.
 # If files other than test suites are required, specify SOURCES_unittest.
@@ -92,7 +103,7 @@ PLIST_FILE_testharness_macosx = resources/Info_testharness_macosx.plist
 PLIST_FILE_testharness_iphonesimulator = resources/Info_testharness_iphone.plist
 PLIST_FILE_testharness_iphoneos = resources/Info_testharness_iphone.plist
 
-INSTALLED_TARGETS = library testharness
+INSTALLED_TARGETS = library testharness meshutils
 
 # Postamble to invoke stemconfig makefile. Do not modify.
 UNAME = ${shell uname}
