@@ -46,13 +46,11 @@ THIRDPARTY_LIBRARY_DEPENDENCIES =
 PREREQS = 
 
 SOURCES_library = \
-	source/${PROJECT_NAME}/FileCatalog.c \
 	source/${PROJECT_NAME}/ResourceManager.c
 
 # Executable targets named "unittest" should usually specify only SOURCES_unittest_suites, which must contain only test suite files.
 # If files other than test suites are required, specify SOURCES_unittest.
 SOURCES_unittest_suites = \
-	source/unittest/FileCatalogTest.c \
 	source/unittest/ResourceManagerTest.c
 
 SOURCES_testharness = \
@@ -60,7 +58,6 @@ SOURCES_testharness = \
 
 # Public-facing include files to be distributed with the library, if any
 INCLUDES = \
-	source/${PROJECT_NAME}/FileCatalog.h \
 	source/${PROJECT_NAME}/ResourceManager.h
 
 # Patterns: RESOURCES, RESOURCES_${target}, RESOURCES_${platform}, RESOURCES_${target}_${platform}
