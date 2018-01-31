@@ -274,6 +274,29 @@ static void testSearchPaths() {
 	ResourceManager_dispose(resourceManager);
 }
 
+static void testDuplicateSearchPaths() {
+	ResourceManager * resourceManager;
+	const char * resolvedPath;
+	
+	resourceManager = ResourceManager_create(timeFunction);
+	resolvedPath = ResourceManager_resolveFilePath(resourceManager, "emptyfile");
+	TestCase_assert(resolvedPath == NULL, "Expected NULL but got \"%s\"", resolvedPath);
+	
+	ResourceManager_addSearchPath(resourceManager, ".");
+	resolvedPath = ResourceManager_resolveFilePath(resourceManager, "emptyfile");
+	TestCase_assert(resolvedPath != NULL, "Expected non-NULL but got NULL");
+	TestCase_assert(!strcmp(resolvedPath, "./emptyfile"), "Expected \"./emptyfile\", but got \"%s\"", resolvedPath);
+	
+	ResourceManager_addSearchPath(resourceManager, ".");
+	resolvedPath = ResourceManager_resolveFilePath(resourceManager, "emptyfile");
+	TestCase_assert(resolvedPath != NULL, "Expected non-NULL but got NULL");
+	TestCase_assert(!strcmp(resolvedPath, "./emptyfile"), "Expected \"./emptyfile\", but got \"%s\"", resolvedPath);
+	
+	ResourceManager_removeSearchPath(resourceManager, ".");
+	resolvedPath = ResourceManager_resolveFilePath(resourceManager, "emptyfile");
+	TestCase_assert(resolvedPath == NULL, "Expected NULL but got \"%s\"", resolvedPath);
+}
+
 TEST_SUITE(ResourceManagerTest,
            testInit,
            testAddResource,
@@ -281,4 +304,5 @@ TEST_SUITE(ResourceManagerTest,
            testOptionalityOfCallbacks,
            testNULLResources,
            testPurge,
-           testSearchPaths)
+           testSearchPaths,
+           testDuplicateSearchPaths)

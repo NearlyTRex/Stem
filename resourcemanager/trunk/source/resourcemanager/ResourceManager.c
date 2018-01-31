@@ -237,6 +237,13 @@ void ResourceManager_purgeAllOlderThan(ResourceManager * self, double age) {
 
 
 void ResourceManager_addSearchPath(ResourceManager * self, const char * path) {
+	size_t searchPathIndex;
+	
+	for (searchPathIndex = 0; searchPathIndex < self->searchPathCount; searchPathIndex++) {
+		if (!strcmp(self->searchPaths[searchPathIndex], path)) {
+			return;
+		}
+	}
 	if (self->searchPathCount >= self->private_ivar(searchPathAllocatedCount)) {
 		self->private_ivar(searchPathAllocatedCount) *= 2;
 		self->searchPaths = realloc(self->searchPaths, sizeof(*self->searchPaths) * self->private_ivar(searchPathAllocatedCount));

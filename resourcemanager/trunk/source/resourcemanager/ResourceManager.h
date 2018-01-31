@@ -118,6 +118,7 @@ void ResourceManager_purgeAllOlderThan(ResourceManager * self, double age);
 
 // Adds a location to be searched when using ResourceManager_resolveFilePath. The latest added paths are searched first.
 // The working directory is not automatically searched. To include it in searches, call this function with an argument of ".".
+// If the path has already been added as a search path, this function does nothing.
 void ResourceManager_addSearchPath(ResourceManager * self, const char * path);
 
 // Removes a location from the search list. Does nothing if ResourceManager doesn't already know about the specified path.
