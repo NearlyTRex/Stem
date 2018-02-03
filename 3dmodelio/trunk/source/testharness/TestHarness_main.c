@@ -43,6 +43,9 @@ static ResourceManager * resourceManager;
 static VertexBuffer * vertexBuffer;
 static MeshRenderable * renderable;
 static Material * material;
+static VertexBuffer * debugVertexBuffer;
+static MeshRenderable * debugRenderable;
+static Material * debugMaterial;
 static Renderer * renderer;
 static OrbitCamera * camera;
 static bool shiftKeyDown, controlKeyDown;
@@ -68,6 +71,77 @@ static void setMaterialTexture(Material * material, const char * textureResource
 	} else {
 		fprintf(stderr, "Couldn't load color texture image \"%s\"\n", textureResourceName);
 	}
+}
+
+#define DEBUG_SCALE 0.05f
+
+void addDebugRenderable(MeshData * meshData) {
+	unsigned int vertexIndex;
+	struct vertex_p3f_t2f_n3f_x4f_c4f * vertices, vertex;
+	const struct vertex_p3f_t2f_n3f_x4f_c4f * meshVertices;
+	GLuint * indexes;
+	
+	if (debugMaterial != NULL) {
+		Material_dispose(debugMaterial);
+	}
+	if (debugRenderable != NULL) {
+		MeshRenderable_dispose(debugRenderable);
+	}
+	if (debugVertexBuffer != NULL) {
+		VertexBuffer_dispose(debugVertexBuffer);
+	}
+	
+	vertex.normal[0] = 0.0f;
+	vertex.normal[1] = 0.0f;
+	vertex.normal[2] = 0.0f;
+	vertex.texCoords[0] = 0.0f;
+	vertex.texCoords[1] = 0.0f;
+	vertex.color[0] = 1.0f;
+	vertex.color[1] = 1.0f;
+	vertex.color[2] = 0.0f;
+	vertex.color[3] = 1.0f;
+	vertex.tangent[0] = 0.0f;
+	vertex.tangent[1] = 0.0f;
+	vertex.tangent[2] = 0.0f;
+	vertex.tangent[3] = 1.0f;
+	
+	vertices = malloc(sizeof(*vertices) * meshData->vertexCount * 4);
+	indexes = malloc(sizeof(*indexes) * meshData->vertexCount * 4);
+	meshVertices = meshData->vertices;
+	for (vertexIndex = 0; vertexIndex < meshData->vertexCount; vertexIndex++) {
+		vertex.position[0] = meshVertices[vertexIndex].position[0];
+		vertex.position[1] = meshVertices[vertexIndex].position[1];
+		vertex.position[2] = meshVertices[vertexIndex].position[2];
+		vertex.color[0] = 1.0f;
+		vertex.color[1] = 0.0f;
+		vertices[vertexIndex * 4 + 0] = vertex;
+		vertex.color[0] = 0.0f;
+		vertex.color[1] = 1.0f;
+		vertices[vertexIndex * 4 + 2] = vertex;
+		
+		vertex.position[0] = meshVertices[vertexIndex].position[0] + meshVertices[vertexIndex].normal[0] * DEBUG_SCALE;
+		vertex.position[1] = meshVertices[vertexIndex].position[1] + meshVertices[vertexIndex].normal[1] * DEBUG_SCALE;
+		vertex.position[2] = meshVertices[vertexIndex].position[2] + meshVertices[vertexIndex].normal[2] * DEBUG_SCALE;
+		vertex.color[0] = 1.0f;
+		vertex.color[1] = 0.0f;
+		vertices[vertexIndex * 4 + 1] = vertex;
+		vertex.position[0] = meshVertices[vertexIndex].position[0] + meshVertices[vertexIndex].tangent[0] * DEBUG_SCALE;
+		vertex.position[1] = meshVertices[vertexIndex].position[1] + meshVertices[vertexIndex].tangent[1] * DEBUG_SCALE;
+		vertex.position[2] = meshVertices[vertexIndex].position[2] + meshVertices[vertexIndex].tangent[2] * DEBUG_SCALE;
+		vertex.color[0] = 0.0f;
+		vertex.color[1] = 1.0f;
+		vertices[vertexIndex * 4 + 3] = vertex;
+		
+		indexes[vertexIndex * 4 + 0] = vertexIndex * 4 + 0;
+		indexes[vertexIndex * 4 + 1] = vertexIndex * 4 + 1;
+		indexes[vertexIndex * 4 + 2] = vertexIndex * 4 + 2;
+		indexes[vertexIndex * 4 + 3] = vertexIndex * 4 + 3;
+	}
+	
+	debugMaterial = Material_create(COLOR4f(1.0f, 1.0f, 1.0f, 1.0f), 0.0f, 0.0f, 1.0f);
+	debugVertexBuffer = VertexBuffer_createPTNXC(vertices, meshData->vertexCount * 4, indexes, meshData->vertexCount * 4);
+	debugRenderable = MeshRenderable_create(GL_LINES, debugVertexBuffer, debugMaterial, NULL, MATRIX4x4f_IDENTITY);
+	Renderer_addRenderable(renderer, RENDER_LAYER_3D_OPAQUE, (Renderable *) debugRenderable);
 }
 
 static void useMesh(MeshData * meshData) {
@@ -101,8 +175,11 @@ static void useMesh(MeshData * meshData) {
 		}
 	}
 	vertexBuffer = VertexBuffer_createPTNXC(meshData->vertices, meshData->vertexCount, meshData->indexes, meshData->indexCount);
-	renderable = MeshRenderable_create(vertexBuffer, material, NULL, MATRIX4x4f_IDENTITY);
+	renderable = MeshRenderable_create(GL_TRIANGLES, vertexBuffer, material, NULL, MATRIX4x4f_IDENTITY);
 	Renderer_addRenderable(renderer, RENDER_LAYER_3D_OPAQUE, (Renderable *) renderable);
+	
+	addDebugRenderable(meshData);
+	
 	Shell_redisplay();
 }
 

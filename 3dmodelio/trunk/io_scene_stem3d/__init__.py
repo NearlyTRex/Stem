@@ -5,6 +5,7 @@ import mathutils
 import mathutils.geometry
 import struct
 import re
+import subprocess
 
 from bpy.props import (StringProperty)
 from bpy_extras.io_utils import (ExportHelper)
@@ -125,17 +126,99 @@ def encode_indexes(indexes):
 	encoded_string = base64.encodestring(indexes_packed)
 	return encoded_string.replace(b"\n", b"")
 
-def write_mesh(file_path, blender_mesh):
+def find_material_name(blender_mesh):
+	material_name = None
+	for blender_object in bpy.data.objects:
+		if blender_object.type == 'MESH' and blender_object.data == blender_mesh:
+			material_name = blender_object.active_material.name
+			break
+	return material_name
+
+def write_mesh(context, file_path, blender_mesh, binary_format):
 	vertices, indexes = get_primitives(blender_mesh)
 	file = open(file_path, "wb")
 	file.write(b"{\n\t\"format_version\": 0,\n\t\"format_type\": \"mesh\",\n\t\"name\": \"")
 	file.write(escape_string(blender_mesh.name).encode())
-	file.write(b"\",\n\t\"armature\": null,\n\t\"material\": null,\n\t\"vertices\": \"")
+	file.write(b"\",\n\t\"armature\": null,\n\t\"material\": ")
+	material_name = find_material_name(blender_mesh)
+	if material_name is not None:
+		file.write(b"\"" + material_name.encode() + b".material\"")
+	else:
+		file.write(b"null")
+	file.write(b",\n\t\"vertices\": \"")
 	file.write(encode_vertices(vertices))
 	file.write(b"\",\n\t\"indexes\": \"")
 	file.write(encode_indexes(indexes))
 	file.write(b"\"\n}")
 	file.close()
+
+def write_image(context, file_path, blender_image):
+	context.scene.render.image_settings.file_format = 'PNG'
+	context.scene.render.image_settings.color_depth = '8'
+	blender_image.save_render(file_path, context.scene)
+
+def write_material(context, file_path, blender_material, binary_format):
+	file = open(file_path, "wb")
+	file.write(b"{\n\t\"format_version\": 0,\n\t\"format_type\": \"material\",\n\t\"name\": \"")
+	file.write(escape_string(blender_material.name).encode())
+	file.write(b"\",\n\t\"color\": {\"red\": ")
+	file.write(str(blender_material.diffuse_color[0] * blender_material.diffuse_intensity).encode())
+	file.write(b", \"green\": ")
+	file.write(str(blender_material.diffuse_color[1] * blender_material.diffuse_intensity).encode())
+	file.write(b", \"blue\": ")
+	file.write(str(blender_material.diffuse_color[2] * blender_material.diffuse_intensity).encode())
+	file.write(b", \"alpha\": ")
+	if blender_material.use_transparency:
+		file.write(str(blender_material.alpha).encode())
+	else:
+		file.write(b"1.0")
+	file.write(b"},\n\t\"specularity\": ")
+	file.write(str(blender_material.specular_intensity).encode())
+	file.write(b",\n\t\"shininess\": ")
+	file.write(str(128.0 * (float(blender_material.specular_hardness) - 1.0) / 510.0).encode())
+	file.write(b",\n\t\"emissiveness\": ")
+	file.write(str(blender_material.emit).encode())
+	file.write(b",\n\t\"textures\": {\n\t\t\"color_map\": {\n\t\t\t\"name\": ")
+	
+	color_map_name = None
+	normal_map_name = None
+	bump_map_name = None
+	bump_strength = 0.0
+	for blender_texture_slot in blender_material.texture_slots:
+		if blender_texture_slot and blender_texture_slot.texture and blender_texture_slot.texture.type == 'IMAGE' and blender_texture_slot.texture.image is not None:
+			texture_name = blender_texture_slot.texture.image.name + ".png"
+			write_image(context, os.path.join(os.path.dirname(file_path), texture_name), blender_texture_slot.texture.image)
+			
+			if blender_texture_slot.use_map_color_diffuse:
+				color_map_name = texture_name
+			if blender_texture_slot.use_map_normal:
+				if blender_texture_slot.texture.use_normal_map:
+					normal_map_name = texture_name
+				else:
+					bump_map_name = texture_name
+					bump_strength = blender_texture_slot.normal_factor
+	
+	if color_map_name is not None:
+		file.write(b"\"" + color_map_name.encode() + b"\"")
+	else:
+		file.write(b"null")
+	file.write(b",\n\t\t\t\"magnify_nearest\": false\n\t\t},\n\t\t\"normal_map\": {\n\t\t\t\"name\": ")
+	if normal_map_name is not None:
+		file.write(b"\"" + normal_map_name.encode() + b"\"")
+	else:
+		file.write(b"null")
+	file.write(b",\n\t\t\t\"magnify_nearest\": false\n\t\t}\n\t}\n}")
+	file.close()
+	
+	if bump_map_name is not None and normal_map_name is not None:
+		normal_map_path = os.path.join(os.path.dirname(file_path), normal_map_name)
+		bump_normal_map_path = os.path.join(os.path.dirname(file_path), os.path.splitext(bump_map_name)[0] + "_converted.png")
+		bump_map_path = os.path.join(os.path.dirname(file_path), bump_map_name)
+		bump2normal_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "bump2normal")
+		subprocess.run([bump2normal_path, bump_map_path, bump_normal_map_path, str(bump_strength * 32)])
+		subprocess.run([bump2normal_path, "--merge", bump_normal_map_path, normal_map_path, normal_map_path])
+		os.unlink(bump_normal_map_path)
+		os.unlink(bump_map_path)
 
 class ExportStem3D(bpy.types.Operator, ExportHelper):
 	bl_idname = 'export_scene.stem3d'
@@ -147,8 +230,20 @@ class ExportStem3D(bpy.types.Operator, ExportHelper):
 	export_format = 'ASCII'
 	
 	def execute(self, context):
-		file_path = bpy.path.ensure_ext(self.filepath, self.filename_ext)
-		write_mesh(file_path, bpy.data.meshes[0])
+		try:
+			os.mkdir(self.filepath)
+		except FileExistsError:
+			pass
+		
+		#file_path = bpy.path.ensure_ext(self.filepath, self.filename_ext)
+		for blender_mesh in bpy.data.meshes:
+			write_mesh(context, os.path.join(self.filepath, bpy.path.ensure_ext(blender_mesh.name, ".mesh")), blender_mesh, False)
+		for blender_material in bpy.data.materials:
+			write_material(context, os.path.join(self.filepath, bpy.path.ensure_ext(blender_material.name, ".material")), blender_material, False)
+		#for blender_armature in bpy.data.armatures:
+		#	write_armature(self.filepath, blender_armature)
+		#for blender_texture in bpy.data.textures:
+		#	write_texture(self.filepath, blender_texture)
 		return {'FINISHED'}
 
 def register():
