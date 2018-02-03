@@ -25,14 +25,15 @@
 
 #define SUPERCLASS Renderable
 
-MeshRenderable * MeshRenderable_create(VertexBuffer * vertexBuffer, Material * material, AnimationState * animationState, Matrix4x4f transform) {
-	stemobject_create_implementation(MeshRenderable, init, vertexBuffer, material, animationState, transform)
+MeshRenderable * MeshRenderable_create(GLenum primitiveType, VertexBuffer * vertexBuffer, Material * material, AnimationState * animationState, Matrix4x4f transform) {
+	stemobject_create_implementation(MeshRenderable, init, primitiveType, vertexBuffer, material, animationState, transform)
 }
 
-bool MeshRenderable_init(MeshRenderable * self, VertexBuffer * vertexBuffer, Material * material, AnimationState * animationState, Matrix4x4f transform) {
+bool MeshRenderable_init(MeshRenderable * self, GLenum primitiveType, VertexBuffer * vertexBuffer, Material * material, AnimationState * animationState, Matrix4x4f transform) {
 	call_super(init, self, RENDERABLE_MESH);
 	self->dispose = MeshRenderable_dispose;
 	
+	self->primitiveType = primitiveType;
 	self->vertexBuffer = vertexBuffer;
 	self->transform = transform;
 	self->material = material;

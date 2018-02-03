@@ -12,6 +12,7 @@ uniform vec3 light1Color;
 uniform vec3 ambientColor;
 uniform float specularity;
 uniform float shininess;
+uniform float emissiveness;
 uniform vec3 cameraPosition;
 uniform sampler2D colorTexture;
 uniform sampler2D normalTexture;
@@ -44,5 +45,5 @@ void main() {
 	litColor = applyLight(light0Position, light0Color, ambientColor, textureColor.rgb, adjustedNormal, position, surfaceToCamera);
 	litColor += applyLight(light1Position, light1Color, ambientColor, textureColor.rgb, adjustedNormal, position, surfaceToCamera);
 	
-	fragColor = vec4(litColor, textureColor.a);
+	fragColor = vec4(emissiveness * vec3(textureColor) + (1.0 - emissiveness) * litColor, textureColor.a);
 }

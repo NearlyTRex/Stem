@@ -208,10 +208,11 @@ void Renderer_drawSingle(Renderer * self, Renderable * renderable) {
 				glUniformMatrix4fv(GLSLShader_getUniformLocation(shader, "boneTransforms"), mesh->animationState->armature->boneCount, GL_FALSE, (GLfloat *) mesh->animationState->computedBoneTransforms);
 			}
 			
-			// TODO: Respect material's color and emissiveness
+			// TODO: Respect material's color
 			if (mesh->material == NULL) {
 				glUniform1f(GLSLShader_getUniformLocation(shader, "specularity"), 0.875f);
 				glUniform1f(GLSLShader_getUniformLocation(shader, "shininess"), 32.0f);
+				glUniform1f(GLSLShader_getUniformLocation(shader, "emissiveness"), 0.0f);
 				glActiveTexture(GL_TEXTURE0);
 				glBindTexture(GL_TEXTURE_2D, self->nullMaterial->colorTextureID);
 				glActiveTexture(GL_TEXTURE1);
@@ -219,14 +220,23 @@ void Renderer_drawSingle(Renderer * self, Renderable * renderable) {
 			} else {
 				glUniform1f(GLSLShader_getUniformLocation(shader, "specularity"), mesh->material->specularity);
 				glUniform1f(GLSLShader_getUniformLocation(shader, "shininess"), mesh->material->shininess);
+				glUniform1f(GLSLShader_getUniformLocation(shader, "emissiveness"), mesh->material->emissiveness);
 				glActiveTexture(GL_TEXTURE0);
-				glBindTexture(GL_TEXTURE_2D, mesh->material->colorTextureID);
+				if (mesh->material->colorTextureID == 0) {
+					glBindTexture(GL_TEXTURE_2D, self->nullMaterial->colorTextureID);
+				} else {
+					glBindTexture(GL_TEXTURE_2D, mesh->material->colorTextureID);
+				}
 				glActiveTexture(GL_TEXTURE1);
-				glBindTexture(GL_TEXTURE_2D, mesh->material->normalTextureID);
+				if (mesh->material->normalTextureID == 0) {
+					glBindTexture(GL_TEXTURE_2D, self->nullMaterial->normalTextureID);
+				} else {
+					glBindTexture(GL_TEXTURE_2D, mesh->material->normalTextureID);
+				}
 			}
 			
 			glBindVertexArray(mesh->vertexBuffer->vaoID);
-			glDrawElements(GL_TRIANGLES, mesh->vertexBuffer->indexCount, GL_UNSIGNED_INT, 0);
+			glDrawElements(mesh->primitiveType, mesh->vertexBuffer->indexCount, GL_UNSIGNED_INT, 0);
 			glBindVertexArray(0);
 			
 			glActiveTexture(GL_TEXTURE0);
