@@ -174,11 +174,12 @@ static void useMesh(MeshData * meshData) {
 			fprintf(stderr, "Couldn't load material \"%s\" for mesh \"%s\"\n", meshData->materialName, meshData->name);
 		}
 	}
+	printf("%u vertices, %u indexes\n", meshData->vertexCount, meshData->indexCount);
 	vertexBuffer = VertexBuffer_createPTNXC(meshData->vertices, meshData->vertexCount, meshData->indexes, meshData->indexCount);
 	renderable = MeshRenderable_create(GL_TRIANGLES, vertexBuffer, material, NULL, MATRIX4x4f_IDENTITY);
 	Renderer_addRenderable(renderer, RENDER_LAYER_3D_OPAQUE, (Renderable *) renderable);
 	
-	addDebugRenderable(meshData);
+	//addDebugRenderable(meshData);
 	
 	Shell_redisplay();
 }

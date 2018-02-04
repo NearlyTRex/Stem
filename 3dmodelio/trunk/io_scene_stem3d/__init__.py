@@ -1,4 +1,5 @@
 import bpy
+import bmesh
 import os
 import base64
 import mathutils
@@ -237,7 +238,13 @@ class ExportStem3D(bpy.types.Operator, ExportHelper):
 		
 		#file_path = bpy.path.ensure_ext(self.filepath, self.filename_ext)
 		for blender_mesh in bpy.data.meshes:
-			write_mesh(context, os.path.join(self.filepath, bpy.path.ensure_ext(blender_mesh.name, ".mesh")), blender_mesh, False)
+			blender_mesh_copy = blender_mesh.copy()
+			triangulated_mesh = bmesh.new()
+			triangulated_mesh.from_mesh(blender_mesh_copy)
+			bmesh.ops.triangulate(triangulated_mesh, faces=triangulated_mesh.faces[:], quad_method=0, ngon_method=0)
+			triangulated_mesh.to_mesh(blender_mesh_copy)
+			triangulated_mesh.free()
+			write_mesh(context, os.path.join(self.filepath, bpy.path.ensure_ext(blender_mesh.name, ".mesh")), blender_mesh_copy, False)
 		for blender_material in bpy.data.materials:
 			write_material(context, os.path.join(self.filepath, bpy.path.ensure_ext(blender_material.name, ".material")), blender_material, False)
 		#for blender_armature in bpy.data.armatures:

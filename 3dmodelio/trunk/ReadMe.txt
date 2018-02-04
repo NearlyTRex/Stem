@@ -12,7 +12,10 @@ TASKS:
 - Export options for io_scene_stem3d:
  - Binary format
  - Mirror tangents
- - Uniq vertices
- - Auto-triangulate?
+ - Uniq vertices? (Would have to call meshutil; Python too slow)
  - Export SceneLayout, texture PNGs, material, armature
+- Improve bump2normal:
+ - Output doesn't quite match Blender bump mapping. Figure out why.
+ - Strength option might not make sense; why have to multiply by 32?
+ - Convolution filter?
 - Animation

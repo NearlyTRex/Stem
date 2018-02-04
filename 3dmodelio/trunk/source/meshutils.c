@@ -30,10 +30,10 @@
 #include "jsonserialization/JSONSerializationContext.h"
 
 static const char * inFileName, * outFileName;
-static bool writeBinary;
+static bool writeBinary, uniqVertices;
 
 static void printUsage() {
-	fprintf(stderr, "Usage: meshutils -o outfile [--binary | --json] infile\n");
+	fprintf(stderr, "Usage: meshutils -o outfile [--binary | --json] [--uniq] infile\n");
 }
 
 static void parseArgs(int argc, char ** argv) {
@@ -58,6 +58,9 @@ static void parseArgs(int argc, char ** argv) {
 			
 		} else if (!strcmp(argv[argIndex], "--json")) {
 			writeBinary = false;
+			
+		} else if (!strcmp(argv[argIndex], "--uniq")) {
+			uniqVertices = true;
 			
 		} else {
 			if (inFileName != NULL) {
@@ -121,6 +124,39 @@ static void * deserializeFile(const char * filePath, void * (* deserializeFuncti
 	return result;
 }
 
+static void removeDuplicateVertices(MeshData * meshData) {
+	unsigned int vertexIndex, vertexIndex2, vertexIndex3, indexIndex;
+	struct vertex_p3f_t2f_n3f_x4f_c4f * vertices, vertex, vertex2;
+	GLuint * indexes;
+	
+	// TODO: Support for PTNXCBW meshes
+	vertices = (struct vertex_p3f_t2f_n3f_x4f_c4f *) meshData->vertices;
+	indexes = (GLuint *) meshData->indexes;
+	for (vertexIndex = 0; vertexIndex < meshData->vertexCount; vertexIndex++) {
+		vertex = vertices[vertexIndex];
+		for (vertexIndex2 = vertexIndex + 1; vertexIndex2 < meshData->vertexCount; vertexIndex2++) {
+			vertex2 = vertices[vertexIndex2];
+			if (vertex.position[0] == vertex2.position[0] && vertex.position[1] == vertex2.position[1] && vertex.position[2] == vertex2.position[2] &&
+			    vertex.texCoords[0] == vertex2.texCoords[0] && vertex.texCoords[1] == vertex2.texCoords[1] &&
+			    vertex.normal[0] == vertex2.normal[0] && vertex.normal[1] == vertex2.normal[1] && vertex.normal[2] == vertex2.normal[2] &&
+			    vertex.tangent[0] == vertex2.tangent[0] && vertex.tangent[1] == vertex2.tangent[1] && vertex.tangent[2] == vertex2.tangent[2] && vertex.tangent[3] == vertex2.tangent[3] &&
+			    vertex.color[0] == vertex2.color[0] && vertex.color[1] == vertex2.color[1] && vertex.color[2] == vertex2.color[2] && vertex.color[3] == vertex2.color[3]) {
+				meshData->vertexCount--;
+				for (vertexIndex3 = vertexIndex2; vertexIndex3 < meshData->vertexCount; vertexIndex3++) {
+					vertices[vertexIndex3] = vertices[vertexIndex3 + 1];
+				}
+				for (indexIndex = 0; indexIndex < meshData->indexCount; indexIndex++) {
+					if (indexes[indexIndex] == vertexIndex2) {
+						indexes[indexIndex] = vertexIndex;
+					} else if (indexes[indexIndex] > vertexIndex2) {
+						indexes[indexIndex]--;
+					}
+				}
+			}
+		}
+	}
+}
+
 int main(int argc, char ** argv) {
 	MeshData * meshData;
 	
@@ -134,6 +170,10 @@ int main(int argc, char ** argv) {
 	meshData = deserializeFile(inFileName, (void * (*)(void *)) MeshData_deserialize);
 	if (meshData == NULL) {
 		fprintf(stderr, "Couldn't load input mesh\n");
+	}
+	
+	if (uniqVertices) {
+		removeDuplicateVertices(meshData);
 	}
 	
 	if (writeBinary) {
