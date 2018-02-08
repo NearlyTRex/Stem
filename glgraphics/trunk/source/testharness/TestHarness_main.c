@@ -470,15 +470,13 @@ void Target_init() {
 		0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0xFF,
 		0x00, 0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF
 	};
-	unsigned char boneColor[4] = {0xFF, 0xFF, 0xEF, 0xFF};
 	
 	chdir(Shell_getResourcePath());
 	
 	renderer = Renderer_create();
 	material = Material_create(COLOR4f(1.0f, 1.0f, 1.0f, 1.0f), 0.875f, 32.0f, 0.0f);
 	Material_setTexture(material, MaterialTextureType_color, true, 2, 2, checkerboardPixels);
-	armatureMaterial = Material_create(COLOR4f(1.0f, 1.0f, 1.0f, 1.0f), 0.875f, 32.0f, 0.0f);
-	Material_setTexture(armatureMaterial, MaterialTextureType_color, false, 1, 1, boneColor);
+	armatureMaterial = Material_create(COLOR4f(1.0f, 1.0f, 0.9375f, 1.0f), 0.875f, 32.0f, 0.0f);
 	
 	initScene1();
 	Shell_mainLoop();

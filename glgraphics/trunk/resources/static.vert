@@ -9,6 +9,7 @@ in vec4 inColor;
 uniform mat4 projectionTransform;
 uniform mat4 viewTransform;
 uniform mat4 modelTransform;
+uniform vec4 materialColor;
 
 out vec3 position;
 out vec4 color;
@@ -20,7 +21,7 @@ void main() {
 	mat3 normalMatrix;
 	
 	texCoord = inTexCoord;
-	color = inColor;
+	color = inColor * materialColor;
 	
 	normalMatrix = mat3(transpose(inverse(modelTransform))); // TODO: Calculate this outside the shader
 	normal = normalMatrix * inNormal;

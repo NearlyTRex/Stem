@@ -75,8 +75,8 @@ MATERIAL STUFF
 TODO:
 - Animation controller object with graph logic? Also event dispatching
 - IK (https://www.webcitation.org/60uCFHqC2?url=http://freespace.virgin.net/hugo.elias/models/m_ik2.htm)
-- Advanced materials (color and emissiveness not respected right now)
 - Advanced lighting (research needed)
+ - Idea: Keep multiple fragment shaders compiled and ready; on CPU, compute the number of influencing lights for each object, and select shader with appropriate number of lights in it to draw that object, up to a reasonable maximum
 - Depth sorting/translucency
 - Fluid simulation
 - VR

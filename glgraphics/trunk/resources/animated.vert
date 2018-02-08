@@ -13,6 +13,7 @@ in vec4 inBoneWeight;
 uniform mat4 projectionTransform;
 uniform mat4 viewTransform;
 uniform mat4 modelTransform;
+uniform vec4 materialColor;
 uniform mat4 boneTransforms[BONE_COUNT_MAX];
 
 out vec3 position;
@@ -28,7 +29,7 @@ void main() {
 	mat3 normalMatrix;
 	
 	texCoord = inTexCoord;
-	color = inColor;
+	color = inColor * materialColor;
 	
 	weightedNormals[0] = mat3(boneTransforms[inBoneID.x]) * inNormal * inBoneWeight.x;
 	weightedNormals[1] = mat3(boneTransforms[inBoneID.y]) * inNormal * inBoneWeight.x;

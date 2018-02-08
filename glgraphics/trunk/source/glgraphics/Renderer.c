@@ -208,11 +208,11 @@ void Renderer_drawSingle(Renderer * self, Renderable * renderable) {
 				glUniformMatrix4fv(GLSLShader_getUniformLocation(shader, "boneTransforms"), mesh->animationState->armature->boneCount, GL_FALSE, (GLfloat *) mesh->animationState->computedBoneTransforms);
 			}
 			
-			// TODO: Respect material's color
 			if (mesh->material == NULL) {
 				glUniform1f(GLSLShader_getUniformLocation(shader, "specularity"), 0.875f);
 				glUniform1f(GLSLShader_getUniformLocation(shader, "shininess"), 32.0f);
 				glUniform1f(GLSLShader_getUniformLocation(shader, "emissiveness"), 0.0f);
+				glUniform4f(GLSLShader_getUniformLocation(shader, "materialColor"), 1.0f, 1.0f, 1.0f, 1.0f);
 				glActiveTexture(GL_TEXTURE0);
 				glBindTexture(GL_TEXTURE_2D, self->nullMaterial->colorTextureID);
 				glActiveTexture(GL_TEXTURE1);
@@ -221,6 +221,7 @@ void Renderer_drawSingle(Renderer * self, Renderable * renderable) {
 				glUniform1f(GLSLShader_getUniformLocation(shader, "specularity"), mesh->material->specularity);
 				glUniform1f(GLSLShader_getUniformLocation(shader, "shininess"), mesh->material->shininess);
 				glUniform1f(GLSLShader_getUniformLocation(shader, "emissiveness"), mesh->material->emissiveness);
+				glUniform4f(GLSLShader_getUniformLocation(shader, "materialColor"), mesh->material->color.red, mesh->material->color.green, mesh->material->color.blue, mesh->material->color.alpha);
 				glActiveTexture(GL_TEXTURE0);
 				if (mesh->material->colorTextureID == 0) {
 					glBindTexture(GL_TEXTURE_2D, self->nullMaterial->colorTextureID);
