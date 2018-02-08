@@ -294,6 +294,21 @@ static void testDuplicateSearchPaths() {
 	ResourceManager_removeSearchPath(resourceManager, ".");
 	resolvedPath = ResourceManager_resolveFilePath(resourceManager, "emptyfile");
 	TestCase_assert(resolvedPath == NULL, "Expected NULL but got \"%s\"", resolvedPath);
+	
+	ResourceManager_dispose(resourceManager);
+}
+
+static void testSearchPathsRemoveExtraSlash() {
+	ResourceManager * resourceManager;
+	const char * resolvedPath;
+	
+	resourceManager = ResourceManager_create(timeFunction);
+	ResourceManager_addSearchPath(resourceManager, "subdir/");
+	resolvedPath = ResourceManager_resolveFilePath(resourceManager, "emptyfile");
+	TestCase_assert(resolvedPath != NULL, "Expected non-NULL but got NULL");
+	TestCase_assert(!strcmp(resolvedPath, "subdir/emptyfile"), "Expected \"subdir/emptyfile\", but got \"%s\"", resolvedPath);
+	
+	ResourceManager_dispose(resourceManager);
 }
 
 TEST_SUITE(ResourceManagerTest,
@@ -304,4 +319,5 @@ TEST_SUITE(ResourceManagerTest,
            testNULLResources,
            testPurge,
            testSearchPaths,
-           testDuplicateSearchPaths)
+           testDuplicateSearchPaths,
+           testSearchPathsRemoveExtraSlash)

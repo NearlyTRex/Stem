@@ -271,7 +271,7 @@ const char * ResourceManager_resolveFilePath(ResourceManager * self, const char 
 	struct stat statbuf;
 	
 	for (searchPathIndex = self->searchPathCount - 1; searchPathIndex < self->searchPathCount; searchPathIndex--) {
-		snprintf_safe(testPath, PATH_MAX, "%s/%s", self->searchPaths[searchPathIndex], fileName);
+		snprintf_safe(testPath, PATH_MAX, "%s%s%s", self->searchPaths[searchPathIndex], self->searchPaths[searchPathIndex][strlen(self->searchPaths[searchPathIndex]) - 1] == '/' ? "" : "/", fileName);
 		if (!stat(testPath, &statbuf)) {
 			return AutoFreePool_add(strdup(testPath));
 		}
