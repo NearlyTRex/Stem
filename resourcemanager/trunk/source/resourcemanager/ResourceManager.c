@@ -178,24 +178,20 @@ void * ResourceManager_referenceResource(ResourceManager * self,
 	return resource;
 }
 
+void ResourceManager_unrecognizedRelease(ResourceManager * self, void * resource) {
+	fprintf(stderr, "Warning: Resource %p was requested to be released, but ResourceManager %p doesn't currently know about it. Break on ResourceManager_unrecognizedRelease to debug.\n", resource, self);
+}
+
 void ResourceManager_releaseResource(ResourceManager * self,
-                                     Atom typeName,
-                                     Atom resourceName) {
-	unsigned int resourceIndex, typeHandlerIndex;
-	
-	for (typeHandlerIndex = 0; typeHandlerIndex < self->typeHandlerCount; typeHandlerIndex++) {
-		if (self->typeHandlers[typeHandlerIndex].typeName == typeName) {
-			break;
-		}
-	}
-	if (typeHandlerIndex >= self->typeHandlerCount) {
-		return;
-	}
+                                     void * resource) {
+	unsigned int resourceIndex;
+	bool found = false;
 	
 	for (resourceIndex = 0; resourceIndex < self->resourceCount; resourceIndex++) {
-		if (self->resources[resourceIndex].typeHandlerIndex == typeHandlerIndex && self->resources[resourceIndex].resourceName == resourceName) {
+		if (self->resources[resourceIndex].resource == resource) {
+			found = true;
 			if (self->resources[resourceIndex].referenceCount == 0) {
-				fprintf(stderr, "Warning: Resource \"%s\" of type \"%s\" overreleased\n", resourceName, typeName);
+				fprintf(stderr, "Warning: Resource \"%s\" of type \"%s\" (%p) overreleased\n", self->resources[resourceIndex].resourceName, self->typeHandlers[self->resources[resourceIndex].typeHandlerIndex].typeName, resource);
 				break;
 			}
 			self->resources[resourceIndex].referenceCount--;
@@ -208,6 +204,9 @@ void ResourceManager_releaseResource(ResourceManager * self,
 			}
 			break;
 		}
+	}
+	if (!found) {
+		ResourceManager_unrecognizedRelease(self, resource);
 	}
 }
 

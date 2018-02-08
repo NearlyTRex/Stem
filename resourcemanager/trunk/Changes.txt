@@ -1,7 +1,8 @@
 2.0.0 (2018-01-10)
  * Added finer control over when resources are purged after their reference counts drop to 0.
- * Type names and resource names are now Atoms.
  * Added search path management capabilities to ResourceManager.
+ * Type names and resource names are now Atoms. Calls to ResourceManager_addTypeHandler, ResourceManager_addResource, and ResourceManager_referenceResource should be updated.
+ * ResourceManager_releaseResource now takes a resource pointer instead of typeName and resourceName. An implication of this is that all pointers returned from ResourceManager_referenceResource must be unique. If the same pointer can be returned from ResourceManager_referenceResource with different typeName/resourceName pairs, ResourceManager_releaseResource may release the wrong one.
 
 1.0.4 (2014-06-29)
  * Added support for modern Xcode/iOS SDK versions

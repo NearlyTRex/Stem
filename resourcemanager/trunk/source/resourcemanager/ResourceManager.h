@@ -103,11 +103,10 @@ void * ResourceManager_referenceResource(ResourceManager * self,
                                          Atom typeName,
                                          Atom resourceName);
 
-// Decrements the reference count of the named resource by 1. If the resource's reference count drops to 0 and the type has a purge
+// Decrements the reference count of the specified resource by 1. If the resource's reference count drops to 0 and the type has a purge
 // policy of PURGE_IMMEDIATE, the unloadFunction callback defined for that type is called and the resource is unloaded.
 void ResourceManager_releaseResource(ResourceManager * self,
-                                     Atom typeName,
-                                     Atom resourceName);
+                                     void * resource);
 
 // Unloads all resources whose reference counts have dropped to 0, for types that have the PURGE_DEFERRED policy.
 void ResourceManager_purgeAll(ResourceManager * self);
