@@ -124,12 +124,11 @@ static void * deserializeFile(const char * filePath, void * (* deserializeFuncti
 	return result;
 }
 
-static void removeDuplicateVertices(MeshData * meshData) {
+static void removeDuplicateVerticesPTNXC(MeshData * meshData) {
 	unsigned int vertexIndex, vertexIndex2, vertexIndex3, indexIndex;
 	struct vertex_p3f_t2f_n3f_x4f_c4f * vertices, vertex, vertex2;
 	GLuint * indexes;
 	
-	// TODO: Support for PTNXCBW meshes
 	vertices = (struct vertex_p3f_t2f_n3f_x4f_c4f *) meshData->vertices;
 	indexes = (GLuint *) meshData->indexes;
 	for (vertexIndex = 0; vertexIndex < meshData->vertexCount; vertexIndex++) {
@@ -154,6 +153,48 @@ static void removeDuplicateVertices(MeshData * meshData) {
 				}
 			}
 		}
+	}
+}
+
+static void removeDuplicateVerticesPTNXCBW(MeshData * meshData) {
+	unsigned int vertexIndex, vertexIndex2, vertexIndex3, indexIndex;
+	struct vertex_p3f_t2f_n3f_x4f_c4f_b4u_w4f * vertices, vertex, vertex2;
+	GLuint * indexes;
+	
+	vertices = (struct vertex_p3f_t2f_n3f_x4f_c4f_b4u_w4f *) meshData->vertices;
+	indexes = (GLuint *) meshData->indexes;
+	for (vertexIndex = 0; vertexIndex < meshData->vertexCount; vertexIndex++) {
+		vertex = vertices[vertexIndex];
+		for (vertexIndex2 = vertexIndex + 1; vertexIndex2 < meshData->vertexCount; vertexIndex2++) {
+			vertex2 = vertices[vertexIndex2];
+			if (vertex.position[0] == vertex2.position[0] && vertex.position[1] == vertex2.position[1] && vertex.position[2] == vertex2.position[2] &&
+			    vertex.texCoords[0] == vertex2.texCoords[0] && vertex.texCoords[1] == vertex2.texCoords[1] &&
+			    vertex.normal[0] == vertex2.normal[0] && vertex.normal[1] == vertex2.normal[1] && vertex.normal[2] == vertex2.normal[2] &&
+			    vertex.tangent[0] == vertex2.tangent[0] && vertex.tangent[1] == vertex2.tangent[1] && vertex.tangent[2] == vertex2.tangent[2] && vertex.tangent[3] == vertex2.tangent[3] &&
+			    vertex.color[0] == vertex2.color[0] && vertex.color[1] == vertex2.color[1] && vertex.color[2] == vertex2.color[2] && vertex.color[3] == vertex2.color[3] &&
+			    vertex.boneIndexes[0] == vertex2.boneIndexes[0] && vertex.boneIndexes[1] == vertex2.boneIndexes[1] && vertex.boneIndexes[2] == vertex2.boneIndexes[2] && vertex.boneIndexes[3] == vertex2.boneIndexes[3] &&
+			    vertex.boneWeights[0] == vertex2.boneWeights[0] && vertex.boneWeights[1] == vertex2.boneWeights[1] && vertex.boneWeights[2] == vertex2.boneWeights[2] && vertex.boneWeights[3] == vertex2.boneWeights[3]) {
+				meshData->vertexCount--;
+				for (vertexIndex3 = vertexIndex2; vertexIndex3 < meshData->vertexCount; vertexIndex3++) {
+					vertices[vertexIndex3] = vertices[vertexIndex3 + 1];
+				}
+				for (indexIndex = 0; indexIndex < meshData->indexCount; indexIndex++) {
+					if (indexes[indexIndex] == vertexIndex2) {
+						indexes[indexIndex] = vertexIndex;
+					} else if (indexes[indexIndex] > vertexIndex2) {
+						indexes[indexIndex]--;
+					}
+				}
+			}
+		}
+	}
+}
+
+static void removeDuplicateVertices(MeshData * meshData) {
+	if (meshData->armatureName == NULL) {
+		removeDuplicateVerticesPTNXC(meshData);
+	} else {
+		removeDuplicateVerticesPTNXCBW(meshData);
 	}
 }
 

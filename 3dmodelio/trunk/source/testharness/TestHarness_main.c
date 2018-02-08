@@ -1,3 +1,4 @@
+#include "3dmodelio/ArmatureIO.h"
 #include "3dmodelio/MaterialData.h"
 #include "3dmodelio/MeshData.h"
 #include "3dmodelio/Obj3DModelIO.h"
@@ -15,6 +16,7 @@
 #include "shell/ShellKeyCodes.h"
 #include "utilities/AutoFreePool.h"
 #include "utilities/IOUtilities.h"
+#include "utilities/Ranrot.h"
 
 #if defined(STEM_PLATFORM_macosx)
 #include "nsopenglshell/NSOpenGLShell.h"
@@ -36,13 +38,19 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include <time.h>
 
 #define PROJECTION_FOV 60.0f
 
 static ResourceManager * resourceManager;
 static VertexBuffer * vertexBuffer;
+static VertexBuffer * armatureVertexBuffer;
 static MeshRenderable * renderable;
+static MeshRenderable * armatureRenderable;
 static Material * material;
+static Material * armatureMaterial;
+static Armature * armature;
+static AnimationState * animationState;
 static VertexBuffer * debugVertexBuffer;
 static MeshRenderable * debugRenderable;
 static Material * debugMaterial;
@@ -67,7 +75,7 @@ static void setMaterialTexture(Material * material, const char * textureResource
 	colorImage = ResourceManager_referenceResource(resourceManager, ATOM("png"), textureResourceName);
 	if (colorImage != NULL) {
 		Material_setTexture(material, textureType, magnifyNearest, colorImage->width, colorImage->height, colorImage->pixels);
-		ResourceManager_releaseResource(resourceManager, ATOM("png"), textureResourceName);
+		ResourceManager_releaseResource(resourceManager, colorImage);
 	} else {
 		fprintf(stderr, "Couldn't load color texture image \"%s\"\n", textureResourceName);
 	}
@@ -145,18 +153,35 @@ void addDebugRenderable(MeshData * meshData) {
 }
 
 static void useMesh(MeshData * meshData) {
+	Renderer_clearAllRenderables(renderer);
+	
 	if (material != NULL) {
 		Material_dispose(material);
 		material = NULL;
 	}
-	
-	Renderer_clearAllRenderables(renderer);
+	if (armature != NULL) {
+		ResourceManager_releaseResource(resourceManager, armature);
+		armature = NULL;
+	}
+	if (animationState != NULL) {
+		AnimationState_dispose(animationState);
+		animationState = NULL;
+	}
 	if (renderable != NULL) {
 		MeshRenderable_dispose(renderable);
 	}
 	if (vertexBuffer != NULL) {
 		VertexBuffer_dispose(vertexBuffer);
 	}
+	if (armatureVertexBuffer != NULL ){
+		VertexBuffer_dispose(armatureVertexBuffer);
+	}
+	if (armatureRenderable != NULL) {
+		MeshRenderable_dispose(armatureRenderable);
+		armatureRenderable = NULL;
+	}
+	
+	ResourceManager_purgeAll(resourceManager);
 	
 	if (meshData->materialName != NULL) {
 		MaterialData * materialData;
@@ -170,13 +195,33 @@ static void useMesh(MeshData * meshData) {
 			if (materialData->normalMapName != NULL) {
 				setMaterialTexture(material, materialData->normalMapName, MaterialTextureType_normal, materialData->magnifyNormalMapNearest);
 			}
+			ResourceManager_releaseResource(resourceManager, materialData);
 		} else {
 			fprintf(stderr, "Couldn't load material \"%s\" for mesh \"%s\"\n", meshData->materialName, meshData->name);
 		}
 	}
+	
+	if (meshData->armatureName != NULL) {
+		armature = ResourceManager_referenceResource(resourceManager, ATOM("armature"), meshData->armatureName);
+		if (armature != NULL) {
+			animationState = AnimationState_create(armature);
+			armatureVertexBuffer = Armature_createDebugVertexBuffer(armature);
+			armatureRenderable = MeshRenderable_create(GL_TRIANGLES, armatureVertexBuffer, armatureMaterial, animationState, MATRIX4x4f_IDENTITY);
+			armatureRenderable->visible = false;
+			Renderer_addRenderable(renderer, RENDER_LAYER_3D_OPAQUE, (Renderable *) armatureRenderable);
+		} else {
+			// TODO: Why is this path getting double slash?
+			fprintf(stderr, "Couldn't load armature \"%s\" for mesh \"%s\"\n", meshData->armatureName, meshData->name);
+		}
+	}
+	
 	printf("%u vertices, %u indexes\n", meshData->vertexCount, meshData->indexCount);
-	vertexBuffer = VertexBuffer_createPTNXC(meshData->vertices, meshData->vertexCount, meshData->indexes, meshData->indexCount);
-	renderable = MeshRenderable_create(GL_TRIANGLES, vertexBuffer, material, NULL, MATRIX4x4f_IDENTITY);
+	if (animationState != NULL) {
+		vertexBuffer = VertexBuffer_createPTNXCBW(meshData->vertices, meshData->vertexCount, meshData->indexes, meshData->indexCount);
+	} else {
+		vertexBuffer = VertexBuffer_createPTNXC(meshData->vertices, meshData->vertexCount, meshData->indexes, meshData->indexCount);
+	}
+	renderable = MeshRenderable_create(GL_TRIANGLES, vertexBuffer, material, animationState, MATRIX4x4f_IDENTITY);
 	Renderer_addRenderable(renderer, RENDER_LAYER_3D_OPAQUE, (Renderable *) renderable);
 	
 	//addDebugRenderable(meshData);
@@ -269,6 +314,14 @@ void unloadPNGResource(void * resource, void * context) {
 	BitmapImage_dispose(resource);
 }
 
+static void * loadArmatureResource(Atom resourceName, void * context) {
+	return deserializeFile(filePathForResource(resourceName, ATOM("armature")), (void * (*)(void *)) Armature_deserialize);
+}
+
+static void unloadArmatureResource(void * resource, void * context) {
+	Armature_dispose(resource);
+}
+
 static void loadObjFile(const char * filePath) {
 	MeshData * meshData;
 	
@@ -302,10 +355,41 @@ static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned
 			}
 			break;
 		}
+		case KEYBOARD_TAB:
+			if (armatureRenderable != NULL) {
+				armatureRenderable->visible = !armatureRenderable->visible;
+				renderable->visible = !renderable->visible;
+				Shell_redisplay();
+			}
+			break;
 		case KEYBOARD_F:
 			OrbitCamera_frameBoundingBox(camera, renderable->vertexBuffer->bounds, PROJECTION_FOV, (float) viewWidth / (float) viewHeight);
 			Shell_redisplay();
 			break;
+		case KEYBOARD_P: {
+			if (animationState == NULL) {
+				break;
+			}
+			if (modifiers & MODIFIER_SHIFT_BIT) {
+				AnimationState_resetAllBones(animationState);
+			} else {
+				unsigned int boneIndex;
+				float angle;
+				Vector3f axis;
+				
+				for (boneIndex = 0; boneIndex < armature->boneCount; boneIndex++) {
+					axis.x = frand(1.0f);
+					axis.y = frand(1.0f);
+					axis.z = frand(1.0f);
+					angle = frand(0.05f);
+					Vector3f_normalize(&axis);
+					Quaternionf_rotate(&animationState->boneStates[boneIndex].rotation, axis, angle);
+				}
+			}
+			AnimationState_computeBoneTransforms(animationState);
+			Shell_redisplay();
+			break;
+		}
 	}
 }
 
@@ -399,6 +483,8 @@ void GLUTTarget_configure(int argc, const char ** argv, struct GLUTShellConfigur
 }
 
 void Target_init() {
+	sdrand(time(NULL));
+	stirrand(50);
 	chdir(Shell_getResourcePath());
 	renderer = Renderer_create();
 	Renderer_setClearColor(renderer, COLOR4f(0.0f, 0.125f, 0.25f, 0.0f));
@@ -408,6 +494,9 @@ void Target_init() {
 	ResourceManager_addTypeHandler(resourceManager, ATOM("mesh"), loadMeshResource, unloadMeshResource, PURGE_DEFERRED, NULL);
 	ResourceManager_addTypeHandler(resourceManager, ATOM("material"), loadMaterialResource, unloadMaterialResource, PURGE_DEFERRED, NULL);
 	ResourceManager_addTypeHandler(resourceManager, ATOM("png"), loadPNGResource, unloadPNGResource, PURGE_DEFERRED, NULL);
+	ResourceManager_addTypeHandler(resourceManager, ATOM("armature"), loadArmatureResource, unloadArmatureResource, PURGE_DEFERRED, NULL);
+	
+	armatureMaterial = Material_create(COLOR4f(1.0f, 1.0f, 0.9375f, 1.0f), 0.875f, 32.0f, 0.0f);
 	
 	loadObjFile("suzanne.obj");
 	camera = OrbitCamera_create();

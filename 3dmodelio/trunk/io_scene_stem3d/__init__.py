@@ -29,9 +29,14 @@ def swizzle_position(vector):
 def swizzle_tangent(vector):
 	return mathutils.Vector((vector[0], vector[2], -vector[1], 1.0))
 
-def get_primitives(blender_mesh):
+def get_primitives(blender_mesh, blender_vertex_groups, armature_object):
 	vertices = []
 	indexes = []
+	
+	bone_name_map = {}
+	if armature_object is not None:
+		for bone in armature_object.data.bones:
+			bone_name_map[bone.name] = len(bone_name_map)
 	
 	blender_mesh.calc_tangents()
 	index = 0
@@ -97,15 +102,29 @@ def get_primitives(blender_mesh):
 			else:
 				tex_coord = (0.0, 0.0)
 			color = (1.0, 1.0, 1.0, 1.0)
-			#bones = (0, 0, 0, 0)
-			#weights = (1.0, 0.0, 0.0, 0.0)
-			vertices.append([position, tex_coord, normal, tangent, color])
+			
+			bones = []
+			weights = []
+			if vertex.groups is not None and armature_object is not None:
+				for vertex_group in vertex.groups:
+					if bone_name_map.get(blender_vertex_groups[vertex_group.group].name) is not None:
+						bones.append(bone_name_map[blender_vertex_groups[vertex_group.group].name])
+						weights.append(vertex_group.weight)
+			
+			if len(bones) == 0:
+				bones.append(0)
+				weights.append(1.0)
+			while len(bones) < 4:
+				bones.append(0)
+				weights.append(0.0)
+			
+			vertices.append([position, tex_coord, normal, tangent, color, bones, weights])
 			indexes.append(index)
 			index += 1
 	
 	return vertices, indexes
 
-def encode_vertices(vertices):
+def pack_vertices(vertices, write_ptnxcbw):
 	vertices_packed = bytearray()
 	vertex_size = 12 * 4
 	for vertex in vertices:
@@ -114,44 +133,68 @@ def encode_vertices(vertices):
 		vertices_packed += struct.pack("<fff", vertex[2][0], vertex[2][1], vertex[2][2])
 		vertices_packed += struct.pack("<ffff", vertex[3][0], vertex[3][1], vertex[3][2], vertex[3][3])
 		vertices_packed += struct.pack("<ffff", vertex[4][0], vertex[4][1], vertex[4][2], vertex[4][3])
-	
-	encoded_string = base64.encodestring(vertices_packed)
-	return encoded_string.replace(b"\n", b"")
+		if write_ptnxcbw:
+			vertices_packed += struct.pack("<IIII", vertex[5][0], vertex[5][1], vertex[5][2], vertex[5][3])
+			vertices_packed += struct.pack("<ffff", vertex[6][0], vertex[6][1], vertex[6][2], vertex[6][3])
+	return vertices_packed
 
-def encode_indexes(indexes):
+def pack_indexes(indexes):
 	indexes_packed = bytearray()
 	index_size = 4
 	for index in indexes:
 		indexes_packed += struct.pack("<I", index)
-	
-	encoded_string = base64.encodestring(indexes_packed)
-	return encoded_string.replace(b"\n", b"")
+	return indexes_packed
 
-def find_material_name(blender_mesh):
-	material_name = None
+def encode_base64(bytes):
+	encoded_bytes = base64.encodestring(bytes)
+	return encoded_bytes.replace(b"\n", b"")
+
+def find_blender_object(blender_data):
 	for blender_object in bpy.data.objects:
-		if blender_object.type == 'MESH' and blender_object.data == blender_mesh:
-			material_name = blender_object.active_material.name
-			break
-	return material_name
+		if blender_object.data == blender_data:
+			return blender_object
+	return None
+
+def format_json_float(value):
+	return format(value, 'f')
 
 def write_mesh(context, file_path, blender_mesh, binary_format):
-	vertices, indexes = get_primitives(blender_mesh)
+	blender_object = find_blender_object(blender_mesh)
+	
+	blender_mesh_triangulated_copy = blender_mesh.copy()
+	triangulated_mesh = bmesh.new()
+	triangulated_mesh.from_mesh(blender_mesh_triangulated_copy)
+	bmesh.ops.triangulate(triangulated_mesh, faces=triangulated_mesh.faces[:], quad_method=0, ngon_method=0)
+	triangulated_mesh.to_mesh(blender_mesh_triangulated_copy)
+	triangulated_mesh.free()
+	
 	file = open(file_path, "wb")
 	file.write(b"{\n\t\"format_version\": 0,\n\t\"format_type\": \"mesh\",\n\t\"name\": \"")
 	file.write(escape_string(blender_mesh.name).encode())
-	file.write(b"\",\n\t\"armature\": null,\n\t\"material\": ")
-	material_name = find_material_name(blender_mesh)
-	if material_name is not None:
-		file.write(b"\"" + material_name.encode() + b".material\"")
+	
+	file.write(b"\",\n\t\"armature\": ")
+	armature_object = blender_object.find_armature()
+	if armature_object is not None:
+		file.write(b"\"" + armature_object.data.name.encode() + b".armature\"")
 	else:
 		file.write(b"null")
+	
+	file.write(b",\n\t\"material\": ")
+	if blender_object.active_material is not None:
+		file.write(b"\"" + blender_object.active_material.name.encode() + b".material\"")
+	else:
+		file.write(b"null")
+	
+	vertices, indexes = get_primitives(blender_mesh_triangulated_copy, blender_object.vertex_groups, armature_object)
+	
 	file.write(b",\n\t\"vertices\": \"")
-	file.write(encode_vertices(vertices))
+	file.write(encode_base64(pack_vertices(vertices, armature_object is not None)))
 	file.write(b"\",\n\t\"indexes\": \"")
-	file.write(encode_indexes(indexes))
+	file.write(encode_base64(pack_indexes(indexes)))
 	file.write(b"\"\n}")
 	file.close()
+	
+	bpy.data.meshes.remove(blender_mesh_triangulated_copy)
 
 def write_image(context, file_path, blender_image):
 	context.scene.render.image_settings.file_format = 'PNG'
@@ -163,22 +206,26 @@ def write_material(context, file_path, blender_material, binary_format):
 	file.write(b"{\n\t\"format_version\": 0,\n\t\"format_type\": \"material\",\n\t\"name\": \"")
 	file.write(escape_string(blender_material.name).encode())
 	file.write(b"\",\n\t\"color\": {\"red\": ")
-	file.write(str(blender_material.diffuse_color[0] * blender_material.diffuse_intensity).encode())
+	#TODO: Something seems wrong with these color calculations. Intensity-only for now.
+	#file.write(format_json_float(blender_material.diffuse_color[0] * blender_material.diffuse_intensity).encode())
+	file.write(format_json_float(blender_material.diffuse_intensity).encode())
 	file.write(b", \"green\": ")
-	file.write(str(blender_material.diffuse_color[1] * blender_material.diffuse_intensity).encode())
+	#file.write(format_json_float(blender_material.diffuse_color[1] * blender_material.diffuse_intensity).encode())
+	file.write(format_json_float(blender_material.diffuse_intensity).encode())
 	file.write(b", \"blue\": ")
-	file.write(str(blender_material.diffuse_color[2] * blender_material.diffuse_intensity).encode())
+	#file.write(format_json_float(blender_material.diffuse_color[2] * blender_material.diffuse_intensity).encode())
+	file.write(format_json_float(blender_material.diffuse_intensity).encode())
 	file.write(b", \"alpha\": ")
 	if blender_material.use_transparency:
-		file.write(str(blender_material.alpha).encode())
+		file.write(format_json_float(blender_material.alpha).encode())
 	else:
 		file.write(b"1.0")
 	file.write(b"},\n\t\"specularity\": ")
-	file.write(str(blender_material.specular_intensity).encode())
+	file.write(format_json_float(blender_material.specular_intensity).encode())
 	file.write(b",\n\t\"shininess\": ")
-	file.write(str(128.0 * (float(blender_material.specular_hardness) - 1.0) / 510.0).encode())
+	file.write(format_json_float(128.0 * (float(blender_material.specular_hardness) - 1.0) / 510.0).encode())
 	file.write(b",\n\t\"emissiveness\": ")
-	file.write(str(blender_material.emit).encode())
+	file.write(format_json_float(blender_material.emit).encode())
 	file.write(b",\n\t\"textures\": {\n\t\t\"color_map\": {\n\t\t\t\"name\": ")
 	
 	color_map_name = None
@@ -221,6 +268,46 @@ def write_material(context, file_path, blender_material, binary_format):
 		os.unlink(bump_normal_map_path)
 		os.unlink(bump_map_path)
 
+def write_armature(context, file_path, blender_armature, binary_format):
+	#Armature must be in edit mode to be able to retrieve edit_bones. Armature must be visible to have its mode changed.
+	blender_object = find_blender_object(blender_armature)
+	if blender_object is not None:
+		last_active = bpy.context.scene.objects.active
+		was_hidden = blender_object.hide
+		last_mode = bpy.context.object.mode
+		
+		bpy.context.scene.objects.active = blender_object
+		blender_object.hide = False
+		bpy.ops.object.mode_set(mode='EDIT')
+	
+	file = open(file_path, "wb")
+	file.write(b"{\n\t\"format_version\": 0,\n\t\"format_type\": \"armature\",\n\t\"name\": \"")
+	file.write(escape_string(blender_armature.name).encode())
+	file.write(b"\",\n\t\"bones\": {")
+	first_bone = True
+	for bone in blender_armature.edit_bones:
+		if first_bone:
+			first_bone = False
+		else:
+			file.write(b",")
+		file.write(b"\n\t\t\"" + bone.name.encode() + b"\": {")
+		file.write(b"\n\t\t\t\"parent\": ")
+		if bone.parent is not None:
+			file.write(b"\"" + bone.parent.name.encode() + b"\"")
+		else:
+			file.write(b"null")
+		file.write(b",\n\t\t\t\"position\": {\"x\": " + format_json_float(bone.head[0]).encode() + b", \"y\": " + format_json_float(bone.head[2]).encode() + b", \"z\": " + format_json_float(-bone.head[1]).encode() + b"},")
+		file.write(b"\n\t\t\t\"endpoint\": {\"x\": " + format_json_float(bone.tail[0]).encode() + b", \"y\": " + format_json_float(bone.tail[2]).encode() + b", \"z\": " + format_json_float(-bone.tail[1]).encode() + b"},")
+		file.write(b"\n\t\t\t\"roll\": " + format_json_float(bone.roll).encode() + b"\n\t\t}")
+	file.write(b"\n\t}\n}")
+	file.close()
+	
+	#Restore armature properties if they were modified above.
+	if blender_object is not None:
+		blender_object.hide = was_hidden
+		bpy.ops.object.mode_set(mode=last_mode)
+		bpy.context.scene.objects.active = last_active
+
 class ExportStem3D(bpy.types.Operator, ExportHelper):
 	bl_idname = 'export_scene.stem3d'
 	bl_label = 'Export Stem3D'
@@ -236,21 +323,12 @@ class ExportStem3D(bpy.types.Operator, ExportHelper):
 		except FileExistsError:
 			pass
 		
-		#file_path = bpy.path.ensure_ext(self.filepath, self.filename_ext)
 		for blender_mesh in bpy.data.meshes:
-			blender_mesh_copy = blender_mesh.copy()
-			triangulated_mesh = bmesh.new()
-			triangulated_mesh.from_mesh(blender_mesh_copy)
-			bmesh.ops.triangulate(triangulated_mesh, faces=triangulated_mesh.faces[:], quad_method=0, ngon_method=0)
-			triangulated_mesh.to_mesh(blender_mesh_copy)
-			triangulated_mesh.free()
-			write_mesh(context, os.path.join(self.filepath, bpy.path.ensure_ext(blender_mesh.name, ".mesh")), blender_mesh_copy, False)
+			write_mesh(context, os.path.join(self.filepath, bpy.path.ensure_ext(blender_mesh.name, ".mesh")), blender_mesh, False)
 		for blender_material in bpy.data.materials:
 			write_material(context, os.path.join(self.filepath, bpy.path.ensure_ext(blender_material.name, ".material")), blender_material, False)
-		#for blender_armature in bpy.data.armatures:
-		#	write_armature(self.filepath, blender_armature)
-		#for blender_texture in bpy.data.textures:
-		#	write_texture(self.filepath, blender_texture)
+		for blender_armature in bpy.data.armatures:
+			write_armature(context, os.path.join(self.filepath, bpy.path.ensure_ext(blender_armature.name, ".armature")), blender_armature, False)
 		return {'FINISHED'}
 
 def register():

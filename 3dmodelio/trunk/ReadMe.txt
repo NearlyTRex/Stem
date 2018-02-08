@@ -7,13 +7,16 @@ TODO: More info here
 Note: MeshData packs vertices and indexes in little endian format only
 
 TASKS:
-- Export armatures
+- Export SceneLayout
+- Why doesn't my model render the way Blender does? Colors are darker, light seems to react differently
 - Unit tests might be nice?
 - Export options for io_scene_stem3d:
- - Binary format
- - Mirror tangents
- - Uniq vertices? (Would have to call meshutil; Python too slow)
- - Export SceneLayout, texture PNGs, material, armature
+ - Binary format boolean
+ - Mirror tangents boolean
+ - Uniq vertices boolean? (Would have to call meshutil; Python too slow)
+ - Create stem3d directory boolean
+ - Replace files boolean
+ - Select objects to export
 - Improve bump2normal:
  - Output doesn't quite match Blender bump mapping. Figure out why.
  - Strength option might not make sense; why have to multiply by 32?

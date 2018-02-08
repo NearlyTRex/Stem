@@ -59,7 +59,7 @@ bool Armature_loadSerializedData(Armature * self, compat_type(DeserializationCon
 			bones[boneIndex].parentIndex = BONE_INDEX_NOT_FOUND;
 		} else {
 			for (boneIndex2 = 0; boneIndex2 < boneIndex; boneIndex2++) {
-				if (!strcmp(bones[bones[boneIndex].parentIndex].boneID, parentString)) {
+				if (!strcmp(bones[boneIndex2].boneID, parentString)) {
 					bones[boneIndex].parentIndex = boneIndex2;
 					break;
 				}
