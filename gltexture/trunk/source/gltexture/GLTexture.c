@@ -21,7 +21,6 @@
 */
 
 #include "gltexture/GLTexture.h"
-#include "glgraphics/GLGraphics.h"
 #include <string.h>
 
 #define SUPERCLASS StemObject
@@ -178,15 +177,7 @@ void GLTexture_setImage(GLTexture * self, GLint mipmapLevel, GLsizei width, GLsi
 	
 #if !TARGET_OPENGL_ES
 	if (self->autoMipmap) {
-		switch (GLGraphics_getOpenGLAPIVersion()) {
-			case GL_API_VERSION_DESKTOP_1:
-			case GL_API_VERSION_DESKTOP_2:
-			case GL_API_VERSION_DESKTOP_3:
-				glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
-				break;
-			default:
-				break;
-		}
+		glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
 	}
 #endif
 	
@@ -194,18 +185,7 @@ void GLTexture_setImage(GLTexture * self, GLint mipmapLevel, GLsizei width, GLsi
 	
 #if TARGET_OPENGL_ES
 	if (self->autoMipmap) {
-		switch (GLGraphics_getOpenGLAPIVersion()) {
-			case GL_API_VERSION_ES1:
-				glGenerateMipmapOES(GL_TEXTURE_2D);
-				break;
-				
-			case GL_API_VERSION_ES2:
-				glGenerateMipmap(GL_TEXTURE_2D);
-				break;
-				
-			default:
-				break;
-		}
+		glGenerateMipmap(GL_TEXTURE_2D);
 	}
 #endif
 
@@ -264,17 +244,13 @@ void GLTexture_activate(GLTexture * self) {
 			glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 			break;
 	}
-	if (GLGraphics_getOpenGLAPIVersion() != GL_API_VERSION_ES2) {
-		glEnable(GL_TEXTURE_2D);
-	}
+	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, self->textureName);
 }
 
 void GLTexture_deactivate(GLTexture * self) {
 	glBindTexture(GL_TEXTURE_2D, 0);
-	if (GLGraphics_getOpenGLAPIVersion() != GL_API_VERSION_ES2) {
-		glDisable(GL_TEXTURE_2D);
-	}
+	glDisable(GL_TEXTURE_2D);
 	switch (self->autoBlendMode) {
 		case AUTO_BLEND_MODE_NONE:
 		case AUTO_BLEND_MODE_OPAQUE:

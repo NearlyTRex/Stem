@@ -1,5 +1,6 @@
 1.2.1 (2017-06-26)
  * Removed the baseIndex parameter from GLTextureAtlas_getVertices() and GLTextureAtlas_getVerticesWithColor(). It's now inferred from ioVertexCount.
+  * Transition: Delete argument 7 from calls to GLTextureAtlas_getVertices() (arg 8 from GLBitmapFont_getVerticesWithColor()), and pass the direct pointer to vertices and indexes without offsetting it.
  * Removed explicit libpng version choice, instead deferring to whichever version pngimageio uses.
 
 1.2.0 (2014-11-20)
