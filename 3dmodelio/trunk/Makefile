@@ -54,10 +54,14 @@ STEM_LIBRARY_DEPENDENCIES_meshutils = \
 	binaryserialization/latest \
 	jsonserialization/latest
 STEM_LIBRARY_DEPENDENCIES_testharness_macosx = nsopenglshell/latest
+STEM_LIBRARY_DEPENDENCIES_testharness_win32 = wglshell/latest
+STEM_LIBRARY_DEPENDENCIES_testharness_win64 = wglshell/latest
 
 # THIRDPARTY_LIBRARY_DEPENDENCIES is specified as ${PROJECT_NAME}/${PROJECT_VERSION} for each thirdparty library to be linked when building
 # Patterns: THIRDPARTY_LIBRARY_DEPENDENCIES, THIRDPARTY_LIBRARY_DEPENDENCIES_${target}, THIRDPARTY_LIBRARY_DEPENDENCIES_${platform}, THIRDPARTY_LIBRARY_DEPENDENCIES_${target}_${platform}
 THIRDPARTY_LIBRARY_DEPENDENCIES = 
+THIRDPARTY_LIBRARY_DEPENDENCIES_win32 = glew/2.0.0/libglew.a
+THIRDPARTY_LIBRARY_DEPENDENCIES_win64 = glew/2.0.0/libglew.a
 
 # Additional build prerequisites per target
 # Patterns: PREREQS, PREREQS_${target}

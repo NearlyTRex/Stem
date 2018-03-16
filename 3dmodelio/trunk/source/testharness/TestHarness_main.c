@@ -471,6 +471,7 @@ void EAGLTarget_configure(int argc, char ** argv, struct EAGLShellConfiguration 
 #elif defined(STEM_PLATFORM_win32) || defined(STEM_PLATFORM_win64)
 void WGLTarget_configure(void * instance, void * prevInstance, char * commandLine, int command, int argc, const char ** argv, struct WGLShellConfiguration * configuration) {
 	configuration->windowTitle = "3DModelIO";
+	configuration->useGLCoreProfile = true;
 #elif defined(STEM_PLATFORM_linux32) || defined(STEM_PLATFORM_linux64)
 void GLXTarget_configure(int argc, const char ** argv, struct GLXShellConfiguration * configuration) {
 	configuration->windowTitle = "3DModelIO";

@@ -96,6 +96,11 @@ bool Animation_loadSerializedData(Animation * self, compat_type(DeserializationC
 			keyframes[keyframeIndex].bones[boneIndex].outgoingRotationBezierHandle.y = context->readFloat(context, "y_out");
 			context->endStructure(context);
 			context->endStructure(context);
+			
+			if (context->status != SERIALIZATION_ERROR_OK) {
+				break;
+			}
+			keyframes[keyframeIndex].bones[boneIndex].boneID = Atom_fromString(boneIDString);
 		}
 		context->endDictionary(context);
 		context->endStructure(context);
@@ -103,7 +108,6 @@ bool Animation_loadSerializedData(Animation * self, compat_type(DeserializationC
 		if (context->status != SERIALIZATION_ERROR_OK) {
 			break;
 		}
-		keyframes[keyframeIndex].bones[boneIndex].boneID = Atom_fromString(boneIDString);
 	}
 	context->endArray(context);
 	
