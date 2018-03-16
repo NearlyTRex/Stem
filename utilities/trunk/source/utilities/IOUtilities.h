@@ -74,8 +74,9 @@ const char * getLastPathComponent(const char * path);
 
 // Returns a new string constructed by removing the file or directory name at the end of path, resulting in the path to the
 // directory containing that file. The direct opposite of getLastPathComponent(), except in the case of a path specifying
-// the root directory (/), in which case the string is returned unaltered.
+// the root directory (/), in which case the string is returned unaltered. Includes the trailing path separator character.
 // The returned string is allocated and added to AutoFreePool, so it should not be freed directly by the caller.
+// On Windows, backslashes are treated the same as slashes. Root directory can start with a drive letter, slash, or backslash.
 const char * getDirectory(const char * path);
 
 // Writes each byte in blob as a two-character hex string in outString, up to maxLength, returning outString

@@ -244,6 +244,11 @@ const char * getFileExtension(const char * path) {
 		if (path[charIndex - 1] == '/') {
 			break;
 		}
+#if defined(STEM_PLATFORM_win32) || defined(STEM_PLATFORM_win64)
+		if (path[charIndex - 1] == '\\') {
+			break;
+		}
+#endif
 	}
 	return path + length;
 }
@@ -255,6 +260,11 @@ const char * getLastPathComponent(const char * path) {
 		if (path[charIndex - 1] == '/') {
 			return path + charIndex;
 		}
+#if defined(STEM_PLATFORM_win32) || defined(STEM_PLATFORM_win64)
+		if (path[charIndex - 1] == '\\') {
+			return path + charIndex;
+		}
+#endif
 	}
 	return path;
 }
@@ -262,15 +272,34 @@ const char * getLastPathComponent(const char * path) {
 const char * getDirectory(const char * path) {
 	unsigned int charIndex;
 	char * result;
+	size_t length;
 	
-	for (charIndex = strlen(path) - 1; charIndex > 0; charIndex--) {
+	length = strlen(path);
+	for (charIndex = length - 1; charIndex > 0; charIndex--) {
 		if (path[charIndex - 1] == '/') {
 			break;
 		}
+#if defined(STEM_PLATFORM_win32) || defined(STEM_PLATFORM_win64)
+		if (path[charIndex - 1] == '\\') {
+			break;
+		}
+#endif
 	}
 	if (charIndex == 0 && path[0] == '/') {
 		return path;
 	}
+#if defined(STEM_PLATFORM_win32) || defined(STEM_PLATFORM_win64)
+	if (charIndex == 0) {
+		if (path[0] == '\\') {
+			return path;
+		}
+		if (length >= 2 && ((path[0] >= 'a' && path[0] <= 'z') || (path[0] >= 'A' && path[0] <= 'Z')) && path[1] == ':') {
+			if (length == 2 || (length == 3 && (path[2] == '/' || path[2] == '\\'))) {
+				return path;
+			}
+		}
+	}
+#endif
 	result = malloc(charIndex + 1);
 	strncpy_safe(result, path, charIndex + 1);
 	return AutoFreePool_add(result);

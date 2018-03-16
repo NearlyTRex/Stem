@@ -348,6 +348,62 @@ static void testFilePathFunctions() {
 	path = "/";
 	result = getDirectory(path);
 	TestCase_assert(!strcmp(result, "/"), "Expected \"/\" but got \"%s\"", result);
+	
+#if defined(STEM_PLATFORM_win32) || defined(STEM_PLATFORM_win64)
+	path = "C:\\path\\to\\Hello.txt";
+	result = getFileExtension(path);
+	TestCase_assert(result == path + 17, "Expected %p but got %p", path + 17, result);
+	path = "\\test.dir\\";
+	result = getFileExtension(path);
+	TestCase_assert(result == path + 10, "Expected %p but got %p", path + 10, result);
+	
+	path = "D:\\path\\to\\Hello.txt";
+	result = getLastPathComponent(path);
+	TestCase_assert(result == path + 11, "Expected %p but got %p", path + 11, result);
+	path = "local\\path\\to\\a directory\\";
+	result = getLastPathComponent(path);
+	TestCase_assert(result == path + 14, "Expected %p but got %p", path + 14, result);
+	path = "F:\\";
+	result = getLastPathComponent(path);
+	TestCase_assert(result == path, "Expected %p but got %p", path, result);
+	path = "G:";
+	result = getLastPathComponent(path);
+	TestCase_assert(result == path, "Expected %p but got %p", path, result);
+	
+	path = "abcd\\efgh";
+	result = getDirectory(path);
+	TestCase_assert(!strcmp(result, "abcd\\"), "Expected \"abcd\\\" but got \"%s\"", result);
+	path = "\\path\\to\\something";
+	result = getDirectory(path);
+	TestCase_assert(!strcmp(result, "\\path\\to\\"), "Expected \"\\path\\to\\\" but got \"%s\"", result);
+	path = "C:\\path\\to\\something";
+	result = getDirectory(path);
+	TestCase_assert(!strcmp(result, "C:\\path\\to\\"), "Expected \"\\path\\to\\\" but got \"%s\"", result);
+	path = "\\path";
+	result = getDirectory(path);
+	TestCase_assert(!strcmp(result, "\\"), "Expected \"\\\" but got \"%s\"", result);
+	path = "D:\\path";
+	result = getDirectory(path);
+	TestCase_assert(!strcmp(result, "D:\\"), "Expected \"D:\\\" but got \"%s\"", result);
+	path = "\\";
+	result = getDirectory(path);
+	TestCase_assert(!strcmp(result, "\\"), "Expected \"\\\" but got \"%s\"", result);
+	path = "A:\\";
+	result = getDirectory(path);
+	TestCase_assert(!strcmp(result, "A:\\"), "Expected \"A:\\\" but got \"%s\"", result);
+	path = "a:\\";
+	result = getDirectory(path);
+	TestCase_assert(!strcmp(result, "a:\\"), "Expected \"a:\\\" but got \"%s\"", result);
+	path = "Z:";
+	result = getDirectory(path);
+	TestCase_assert(!strcmp(result, "Z:"), "Expected \"Z:\" but got \"%s\"", result);
+	path = "z:";
+	result = getDirectory(path);
+	TestCase_assert(!strcmp(result, "z:"), "Expected \"z:\" but got \"%s\"", result);
+	path = "D:/";
+	result = getDirectory(path);
+	TestCase_assert(!strcmp(result, "D:/"), "Expected \"D:/\" but got \"%s\"", result);
+#endif
 }
 
 static void testEndianSwapping() {
