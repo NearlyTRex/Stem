@@ -166,8 +166,9 @@ static void testInitErrors() {
 	if ((EXPECTED_VALUE) == NULL) { \
 		TestCase_assert(value == NULL, "Expected NULL but got \"%s\"", value); \
 	} else { \
+		const char * expectedValue = (EXPECTED_VALUE); \
 		TestCase_assert(value != NULL, "Expected non-NULL but got NULL"); \
-		TestCase_assert(!strcmp(value, (EXPECTED_VALUE)), "Expected \"%s\" but got \"%s\"", (EXPECTED_VALUE), value); \
+		TestCase_assert(!strcmp(value, expectedValue), "Expected \"%s\" but got \"%s\"", expectedValue, value); \
 	} \
 	TestCase_assert(context->status == SERIALIZATION_ERROR_OK, "Got error from operation that should have succeeded: %d", context->status); \
 }
@@ -179,9 +180,10 @@ static void testInitErrors() {
 	if ((EXPECTED_VALUE) == NULL) { \
 		TestCase_assert(value == NULL, "Expected NULL but got %p", value); \
 	} else { \
+		const void * expectedValue = (EXPECTED_VALUE); \
 		TestCase_assert(value != NULL, "Expected non-NULL but got NULL"); \
 		TestCase_assert(length == EXPECTED_LENGTH, "Expected " SIZE_T_FORMAT " but got " SIZE_T_FORMAT, (size_t) EXPECTED_LENGTH, length); \
-		TestCase_assert(!memcmp(value, (EXPECTED_VALUE), EXPECTED_LENGTH), "Expected \"%s\" but got \"%s\"", (char *) (EXPECTED_VALUE), (char *) value); \
+		TestCase_assert(!memcmp(value, expectedValue, EXPECTED_LENGTH), "Expected \"%s\" but got \"%s\"", (char *) expectedValue, (char *) value); \
 	} \
 	TestCase_assert(context->status == SERIALIZATION_ERROR_OK, "Got error from operation that should have succeeded: %d", context->status); \
 }
