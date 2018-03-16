@@ -1407,6 +1407,7 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prevInstance, PSTR commandLine,
 		fprintf(stderr, "Warning: glewInit() failed: %s\n", glewGetErrorString(glewStatus));
 	}
 	
+	glExtensions = glGetString(GL_EXTENSIONS);
 	if (!strstr((char *) glExtensions, "WGL_EXT_swap_control") && !strstr(wglGetExtensionsStringEXT(), "WGL_EXT_swap_control")) {
 		wglSwapIntervalEXT(1);
 	}

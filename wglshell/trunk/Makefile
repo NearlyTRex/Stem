@@ -24,6 +24,7 @@ CCFLAGS = -DGLEW_STATIC
 
 # Patterns: LINKFLAGS, LINKFLAGS_${target}, LINKFLAGS_${configuration}, LINKFLAGS_${platform}, LINKFLAGS_${target}_${configuration}, LINKFLAGS_${target}_${platform}, LINKFLAGS_${configuration}_${platform}
 LINKFLAGS_library = -lopengl32 -lglu32 -lwinmm -lgdi32 -lpowrprof -lcomdlg32
+LINKFLAGS_library_win64 = -mwindows
 
 # PROJECT_LIBRARY_DEPENDENCIES_* refers to entries in LIBRARY_TARGETS to be linked when building the specified target
 # Patterns: PROJECT_LIBRARY_DEPENDENCIES_${target}, PROJECT_LIBRARY_DEPENDENCIES_${target}_${platform}
