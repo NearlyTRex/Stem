@@ -75,6 +75,9 @@ DataValue * hashGet(HashTable * hash, const char * key);
     exists, it will be overwritten. */
 void hashSet(HashTable * hash, const char * key, DataValue value);
 
+/** Returns the number of items in the hash. */
+size_t hashGetCount(HashTable * hash);
+
 /** Returns an array containing all keys that exist in the hash table. The caller is responsible for freeing
     the returned pointer. However, the elements contained in this array must NOT be freed; only the array
     itself.
