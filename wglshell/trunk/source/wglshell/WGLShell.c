@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2014 Alex Diener
+  Copyright (c) 2017 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -20,8 +20,11 @@
   Alex Diener alex@ludobloom.com
 */
 
-#include "glgraphics/GLGraphics.h"
-#include "glgraphics/GLIncludes.h"
+#include "GL/glew.h"
+#include "GL/wglew.h"
+#include <GL/gl.h>
+#include <GL/glu.h>
+#include <GL/glext.h>
 #include "shell/Shell.h"
 #include "shell/ShellBatteryInfo.h"
 #include "shell/ShellCallbacks.h"
@@ -1399,12 +1402,11 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prevInstance, PSTR commandLine,
 		}
 	}
 	
-	glExtensions = glGetString(GL_EXTENSIONS);
-	if (!strstr((char *) glExtensions, "GL_ARB_shader_objects") || strstr((char *) glGetString(GL_RENDERER), "GMA")) {
-		GLGraphics_init(GL_API_VERSION_DESKTOP_1);
-	} else {
-		GLGraphics_init(GL_API_VERSION_DESKTOP_2);
+	GLenum glewStatus = glewInit();
+	if (glewStatus != GLEW_OK) {
+		fprintf(stderr, "Warning: glewInit() failed: %s\n", glewGetErrorString(glewStatus));
 	}
+	
 	if (!strstr((char *) glExtensions, "WGL_EXT_swap_control") && !strstr(wglGetExtensionsStringEXT(), "WGL_EXT_swap_control")) {
 		wglSwapIntervalEXT(1);
 	}

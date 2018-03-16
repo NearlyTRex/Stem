@@ -6,7 +6,6 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
-#include "glgraphics/GLGraphics.h"
 #include "shell/ShellBatteryInfo.h"
 #include "shell/ShellCallbacks.h"
 #include "shell/ShellKeyCodes.h"
@@ -428,6 +427,5 @@ void WGLTarget_configure(void * instance, void * prevInstance, char * commandLin
 
 void Target_init() {
 	printf("Target_init()\n");
-	printf("GLGraphics_getOpenGLAPIVersion(): %d\n", GLGraphics_getOpenGLAPIVersion());
 	Shell_mainLoop();
 }
