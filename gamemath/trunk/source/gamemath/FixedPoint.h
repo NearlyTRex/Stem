@@ -93,7 +93,7 @@ static inline fixed16_16 fixed16_16_multiply(fixed16_16 lhs, fixed16_16 rhs) {
 	int64_t product = (int64_t) lhs * (int64_t) rhs;
 	
 	if (lhs == FIXED_16_16_INF || lhs == FIXED_16_16_NINF || rhs == FIXED_16_16_INF || rhs == FIXED_16_16_NINF) {
-		return (lhs > 0 == rhs > 0) ? FIXED_16_16_INF : FIXED_16_16_NINF;
+		return ((lhs > 0) == (rhs > 0)) ? FIXED_16_16_INF : FIXED_16_16_NINF;
 	}
 	
 	if (product < 0) {
@@ -118,7 +118,7 @@ static inline fixed16_16 fixed16_16_divide(fixed16_16 lhs, fixed16_16 rhs) {
 	}
 	
 	if (lhs == FIXED_16_16_INF || lhs == FIXED_16_16_NINF || rhs == FIXED_16_16_INF || rhs == FIXED_16_16_NINF) {
-		return (lhs > 0 == rhs > 0) ? FIXED_16_16_INF : FIXED_16_16_NINF;
+		return ((lhs > 0) == (rhs > 0)) ? FIXED_16_16_INF : FIXED_16_16_NINF;
 	}
 	
 	if (rhs == 0) {

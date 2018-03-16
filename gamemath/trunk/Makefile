@@ -25,6 +25,8 @@ CONFIGURATIONS_profiler = profile
 
 # Patterns: CCFLAGS, CCFLAGS_${target}, CCFLAGS_${configuration}, CCFLAGS_${platform}, CCFLAGS_${target}_${configuration}, CCFLAGS_${target}_${platform}, CCFLAGS_${configuration}_${platform}, CCFLAGS_${target}_${configuration}_${platform}
 CCFLAGS = -I build/intermediate/generated
+CCFLAGS_win32 = -Wno-unused-but-set-variable
+CCFLAGS_win64 = -Wno-unused-but-set-variable
 CCFLAGS_linux32 = -Wno-unused-but-set-variable
 CCFLAGS_linux64 = -Wno-unused-but-set-variable
 
@@ -43,6 +45,8 @@ PROJECT_LIBRARY_DEPENDENCIES_testharness = library
 STEM_LIBRARY_DEPENDENCIES_unittest = unittest/latest
 STEM_LIBRARY_DEPENDENCIES_testharness = shell/latest
 STEM_LIBRARY_DEPENDENCIES_testharness_macosx = nsopenglshell/latest
+STEM_LIBRARY_DEPENDENCIES_testharness_win32 = wglshell/latest
+STEM_LIBRARY_DEPENDENCIES_testharness_win64 = wglshell/latest
 
 # THIRDPARTY_LIBRARY_DEPENDENCIES is specified as ${PROJECT_NAME}/${PROJECT_VERSION} for each thirdparty library to be linked when building
 # Patterns: THIRDPARTY_LIBRARY_DEPENDENCIES, THIRDPARTY_LIBRARY_DEPENDENCIES_${target}, THIRDPARTY_LIBRARY_DEPENDENCIES_${platform}, THIRDPARTY_LIBRARY_DEPENDENCIES_${target}_${platform}
