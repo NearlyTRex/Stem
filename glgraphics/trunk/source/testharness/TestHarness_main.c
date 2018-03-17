@@ -95,7 +95,7 @@ static void initScene1() {
 }
 
 static void initScene2() {
-	struct vertex_p3f_t2f_n3f_x4f_c4f_b4u_w4f vertices[] = {
+	struct vertex_p3f_t2f_n3f_x4f_c4f_b4f_w4f vertices[] = {
 		{{0.0f, -1.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f, 0.0f, 1.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {1, 0, 0, 0}, {1.0f, 0.0f, 0.0f, 0.0f}},
 		{{-1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f, 0.0f, 1.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0, 0, 0, 0}, {1.0f, 0.0f, 0.0f, 0.0f}},
 		{{1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f, 0.0f, 1.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0, 0, 0, 0}, {1.0f, 0.0f, 0.0f, 0.0f}},
@@ -147,7 +147,7 @@ static void initScene2() {
 	animation = Animation_create(ATOM("animation"), true, sizeof(keyframes) / sizeof(keyframes[0]), keyframes, 0, NULL);
 	animationState = AnimationState_create(armature);
 	Animation_poseAnimationStateAtTime(animation, animationState, 0.0, 1.0f);
-	vertexBuffer = VertexBuffer_createPTNXCBW(vertices, sizeof(vertices) / sizeof(struct vertex_p3f_t2f_n3f_x4f_c4f_b4u_w4f), indexes, sizeof(indexes) / sizeof(GLuint));
+	vertexBuffer = VertexBuffer_createPTNXCBW(vertices, sizeof(vertices) / sizeof(struct vertex_p3f_t2f_n3f_x4f_c4f_b4f_w4f), indexes, sizeof(indexes) / sizeof(GLuint));
 	renderable = MeshRenderable_create(GL_TRIANGLES, vertexBuffer, material, animationState, MATRIX4x4f_IDENTITY);
 	Renderer_addRenderable(renderer, RENDER_LAYER_3D_OPAQUE, (Renderable *) renderable);
 	
@@ -171,7 +171,7 @@ static void initScene2() {
 }
 
 static void initScene3() {
-	struct vertex_p3f_t2f_n3f_x4f_c4f_b4u_w4f vertices[] = {
+	struct vertex_p3f_t2f_n3f_x4f_c4f_b4f_w4f vertices[] = {
 		{{-1.0f, -4.0f, -1.0f}, {1.0f, 0.0f}, {0.0f, -1.0f, 0.0f}, {-1.0f, 0.0f, 0.0f, 1.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0, 0, 0, 0}, {1.0f, 0.0f, 0.0f, 0.0f}},
 		{{1.0f, -4.0f, -1.0f},  {0.0f, 0.0f}, {0.0f, -1.0f, 0.0f}, {-1.0f, 0.0f, 0.0f, 1.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0, 0, 0, 0}, {1.0f, 0.0f, 0.0f, 0.0f}},
 		{{1.0f, -4.0f, 1.0f},   {0.0f, 1.0f}, {0.0f, -1.0f, 0.0f}, {-1.0f, 0.0f, 0.0f, 1.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0, 0, 0, 0}, {1.0f, 0.0f, 0.0f, 0.0f}},
@@ -314,7 +314,7 @@ static void initScene3() {
 	animation = Animation_create(ATOM("animation"), true, sizeof(keyframes) / sizeof(keyframes[0]), keyframes, 0, NULL);
 	animationState = AnimationState_create(armature);
 	Animation_poseAnimationStateAtTime(animation, animationState, 0.0, 1.0f);
-	vertexBuffer = VertexBuffer_createPTNXCBW(vertices, sizeof(vertices) / sizeof(struct vertex_p3f_t2f_n3f_x4f_c4f_b4u_w4f), indexes, sizeof(indexes) / sizeof(GLuint));
+	vertexBuffer = VertexBuffer_createPTNXCBW(vertices, sizeof(vertices) / sizeof(struct vertex_p3f_t2f_n3f_x4f_c4f_b4f_w4f), indexes, sizeof(indexes) / sizeof(GLuint));
 	renderable = MeshRenderable_create(GL_TRIANGLES, vertexBuffer, material, animationState, MATRIX4x4f_IDENTITY);
 	Renderer_addRenderable(renderer, RENDER_LAYER_3D_OPAQUE, (Renderable *) renderable);
 	
@@ -454,6 +454,7 @@ void EAGLTarget_configure(int argc, char ** argv, struct EAGLShellConfiguration 
 #elif defined(STEM_PLATFORM_win32) || defined(STEM_PLATFORM_win64)
 void WGLTarget_configure(void * instance, void * prevInstance, char * commandLine, int command, int argc, const char ** argv, struct WGLShellConfiguration * configuration) {
 	configuration->windowTitle = "GLGraphics";
+	configuration->useGLCoreProfile = true;
 #elif defined(STEM_PLATFORM_linux32) || defined(STEM_PLATFORM_linux64)
 void GLXTarget_configure(int argc, const char ** argv, struct GLXShellConfiguration * configuration) {
 	configuration->windowTitle = "GLGraphics";

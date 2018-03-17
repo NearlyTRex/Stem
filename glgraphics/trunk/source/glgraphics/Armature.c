@@ -72,7 +72,7 @@ unsigned int Armature_boneIndexForID(Armature * self, Atom boneID) {
 }
 
 VertexBuffer * Armature_createDebugVertexBuffer(Armature * self) {
-	struct vertex_p3f_t2f_n3f_x4f_c4f_b4u_w4f boneVertices[] = {
+	struct vertex_p3f_t2f_n3f_x4f_c4f_b4f_w4f boneVertices[] = {
 		{{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}, {-0.7071067811865476f, -0.7071067811865476f, 0.0f}, {0.0f, -0.7071067811865476f, -0.7071067811865476f, 1.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0, 0, 0, 0}, {1.0f, 0.0f, 0.0f, 0.0f}},
 		{{-0.1f, 0.1f, 0.1f}, {0.0f, 0.0f}, {-0.7071067811865476f, -0.7071067811865476f, 0.0f}, {0.0f, -0.7071067811865476f, -0.7071067811865476f, 1.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0, 0, 0, 0}, {1.0f, 0.0f, 0.0f, 0.0f}},
 		{{-0.1f, 0.1f, -0.1f}, {0.0f, 0.0f}, {-0.7071067811865476f, -0.7071067811865476f, 0.0f}, {0.0f, -0.7071067811865476f, -0.7071067811865476f, 1.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0, 0, 0, 0}, {1.0f, 0.0f, 0.0f, 0.0f}},
@@ -108,10 +108,10 @@ VertexBuffer * Armature_createDebugVertexBuffer(Armature * self) {
 	GLuint boneIndexes[] = {
 		0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23
 	};
-	struct vertex_p3f_t2f_n3f_x4f_c4f_b4u_w4f * vertices;
+	struct vertex_p3f_t2f_n3f_x4f_c4f_b4f_w4f * vertices;
 	GLuint * indexes;
 	unsigned int boneIndex, vertexIndex, indexIndex;
-	struct vertex_p3f_t2f_n3f_x4f_c4f_b4u_w4f vertex;
+	struct vertex_p3f_t2f_n3f_x4f_c4f_b4f_w4f vertex;
 	VertexBuffer * vertexBuffer;
 	size_t boneVertexCount, boneIndexCount;
 	Matrix4x4f matrix;

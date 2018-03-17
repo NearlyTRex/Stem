@@ -31,7 +31,7 @@ extern "C" {
 
 // Vertices can be interchangeably represented as arrays of multiples of the appropriate
 // number of floats for the type, or as one of the structures defined below.
-// TODO: Most of these formats are vestigial; consider removing everything except p3f_t2f_n3f_x4f_c4f and p3f_t2f_n3f_x4f_c4f_b4u_w4f
+// TODO: Most of these formats are vestigial; consider removing everything except p3f_t2f_n3f_x4f_c4f and p3f_t2f_n3f_x4f_c4f_b4f_w4f
 
 #pragma pack(push, 4)
 
@@ -100,13 +100,13 @@ struct vertex_p3f_t2f_n3f_x4f_c4f {
 	GLfloat color[4];
 };
 
-struct vertex_p3f_t2f_n3f_x4f_c4f_b4u_w4f {
+struct vertex_p3f_t2f_n3f_x4f_c4f_b4f_w4f {
 	GLfloat position[3];
 	GLfloat texCoords[2];
 	GLfloat normal[3];
 	GLfloat tangent[4];
 	GLfloat color[4];
-	GLuint boneIndexes[4];
+	GLfloat boneIndexes[4];
 	GLfloat boneWeights[4];
 };
 

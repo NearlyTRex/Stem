@@ -32,7 +32,7 @@ VertexBuffer * VertexBuffer_createPTNXC(const struct vertex_p3f_t2f_n3f_x4f_c4f 
 	stemobject_create_implementation(VertexBuffer, initPTNXC, vertices, vertexCount, indexes, indexCount)
 }
 
-VertexBuffer * VertexBuffer_createPTNXCBW(const struct vertex_p3f_t2f_n3f_x4f_c4f_b4u_w4f * vertices, unsigned int vertexCount, const GLuint * indexes, unsigned int indexCount) {
+VertexBuffer * VertexBuffer_createPTNXCBW(const struct vertex_p3f_t2f_n3f_x4f_c4f_b4f_w4f * vertices, unsigned int vertexCount, const GLuint * indexes, unsigned int indexCount) {
 	stemobject_create_implementation(VertexBuffer, initPTNXCBW, vertices, vertexCount, indexes, indexCount)
 }
 
@@ -96,7 +96,7 @@ bool VertexBuffer_initPTNXC(VertexBuffer * self, const struct vertex_p3f_t2f_n3f
 	return true;
 }
 
-bool VertexBuffer_initPTNXCBW(VertexBuffer * self, const struct vertex_p3f_t2f_n3f_x4f_c4f_b4u_w4f * vertices, unsigned int vertexCount, const GLuint * indexes, unsigned int indexCount) {
+bool VertexBuffer_initPTNXCBW(VertexBuffer * self, const struct vertex_p3f_t2f_n3f_x4f_c4f_b4f_w4f * vertices, unsigned int vertexCount, const GLuint * indexes, unsigned int indexCount) {
 	sharedInit(self, vertices, sizeof(*vertices), vertexCount, indexes, indexCount);
 	
 	glEnableVertexAttribArray(VERTEX_ATTRIB_POSITION);
@@ -106,13 +106,13 @@ bool VertexBuffer_initPTNXCBW(VertexBuffer * self, const struct vertex_p3f_t2f_n
 	glEnableVertexAttribArray(VERTEX_ATTRIB_COLOR);
 	glEnableVertexAttribArray(VERTEX_ATTRIB_BONE_ID);
 	glEnableVertexAttribArray(VERTEX_ATTRIB_BONE_WEIGHT);
-	glVertexAttribPointer(VERTEX_ATTRIB_POSITION, 3, GL_FLOAT, GL_FALSE, sizeof(struct vertex_p3f_t2f_n3f_x4f_c4f_b4u_w4f), (void *) offsetof(struct vertex_p3f_t2f_n3f_x4f_c4f_b4u_w4f, position));
-	glVertexAttribPointer(VERTEX_ATTRIB_TEXTURE_COORD, 2, GL_FLOAT, GL_FALSE, sizeof(struct vertex_p3f_t2f_n3f_x4f_c4f_b4u_w4f), (void *) offsetof(struct vertex_p3f_t2f_n3f_x4f_c4f_b4u_w4f, texCoords));
-	glVertexAttribPointer(VERTEX_ATTRIB_NORMAL, 3, GL_FLOAT, GL_FALSE, sizeof(struct vertex_p3f_t2f_n3f_x4f_c4f_b4u_w4f), (void *) offsetof(struct vertex_p3f_t2f_n3f_x4f_c4f_b4u_w4f, normal));
-	glVertexAttribPointer(VERTEX_ATTRIB_TANGENT, 4, GL_FLOAT, GL_FALSE, sizeof(struct vertex_p3f_t2f_n3f_x4f_c4f_b4u_w4f), (void *) offsetof(struct vertex_p3f_t2f_n3f_x4f_c4f_b4u_w4f, tangent));
-	glVertexAttribPointer(VERTEX_ATTRIB_COLOR, 4, GL_FLOAT, GL_FALSE, sizeof(struct vertex_p3f_t2f_n3f_x4f_c4f_b4u_w4f), (void *) offsetof(struct vertex_p3f_t2f_n3f_x4f_c4f_b4u_w4f, color));
-	glVertexAttribPointer(VERTEX_ATTRIB_BONE_ID, 4, GL_UNSIGNED_INT, GL_FALSE, sizeof(struct vertex_p3f_t2f_n3f_x4f_c4f_b4u_w4f), (void *) offsetof(struct vertex_p3f_t2f_n3f_x4f_c4f_b4u_w4f, boneIndexes));
-	glVertexAttribPointer(VERTEX_ATTRIB_BONE_WEIGHT, 4, GL_FLOAT, GL_FALSE, sizeof(struct vertex_p3f_t2f_n3f_x4f_c4f_b4u_w4f), (void *) offsetof(struct vertex_p3f_t2f_n3f_x4f_c4f_b4u_w4f, boneWeights));
+	glVertexAttribPointer(VERTEX_ATTRIB_POSITION, 3, GL_FLOAT, GL_FALSE, sizeof(struct vertex_p3f_t2f_n3f_x4f_c4f_b4f_w4f), (void *) offsetof(struct vertex_p3f_t2f_n3f_x4f_c4f_b4f_w4f, position));
+	glVertexAttribPointer(VERTEX_ATTRIB_TEXTURE_COORD, 2, GL_FLOAT, GL_FALSE, sizeof(struct vertex_p3f_t2f_n3f_x4f_c4f_b4f_w4f), (void *) offsetof(struct vertex_p3f_t2f_n3f_x4f_c4f_b4f_w4f, texCoords));
+	glVertexAttribPointer(VERTEX_ATTRIB_NORMAL, 3, GL_FLOAT, GL_FALSE, sizeof(struct vertex_p3f_t2f_n3f_x4f_c4f_b4f_w4f), (void *) offsetof(struct vertex_p3f_t2f_n3f_x4f_c4f_b4f_w4f, normal));
+	glVertexAttribPointer(VERTEX_ATTRIB_TANGENT, 4, GL_FLOAT, GL_FALSE, sizeof(struct vertex_p3f_t2f_n3f_x4f_c4f_b4f_w4f), (void *) offsetof(struct vertex_p3f_t2f_n3f_x4f_c4f_b4f_w4f, tangent));
+	glVertexAttribPointer(VERTEX_ATTRIB_COLOR, 4, GL_FLOAT, GL_FALSE, sizeof(struct vertex_p3f_t2f_n3f_x4f_c4f_b4f_w4f), (void *) offsetof(struct vertex_p3f_t2f_n3f_x4f_c4f_b4f_w4f, color));
+	glVertexAttribPointer(VERTEX_ATTRIB_BONE_ID, 4, GL_FLOAT, GL_FALSE, sizeof(struct vertex_p3f_t2f_n3f_x4f_c4f_b4f_w4f), (void *) offsetof(struct vertex_p3f_t2f_n3f_x4f_c4f_b4f_w4f, boneIndexes));
+	glVertexAttribPointer(VERTEX_ATTRIB_BONE_WEIGHT, 4, GL_FLOAT, GL_FALSE, sizeof(struct vertex_p3f_t2f_n3f_x4f_c4f_b4f_w4f), (void *) offsetof(struct vertex_p3f_t2f_n3f_x4f_c4f_b4f_w4f, boneWeights));
 	glBindVertexArray(0);
 	
 	return true;
