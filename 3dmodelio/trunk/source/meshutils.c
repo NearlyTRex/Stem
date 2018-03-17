@@ -158,10 +158,10 @@ static void removeDuplicateVerticesPTNXC(MeshData * meshData) {
 
 static void removeDuplicateVerticesPTNXCBW(MeshData * meshData) {
 	unsigned int vertexIndex, vertexIndex2, vertexIndex3, indexIndex;
-	struct vertex_p3f_t2f_n3f_x4f_c4f_b4u_w4f * vertices, vertex, vertex2;
+	struct vertex_p3f_t2f_n3f_x4f_c4f_b4f_w4f * vertices, vertex, vertex2;
 	GLuint * indexes;
 	
-	vertices = (struct vertex_p3f_t2f_n3f_x4f_c4f_b4u_w4f *) meshData->vertices;
+	vertices = (struct vertex_p3f_t2f_n3f_x4f_c4f_b4f_w4f *) meshData->vertices;
 	indexes = (GLuint *) meshData->indexes;
 	for (vertexIndex = 0; vertexIndex < meshData->vertexCount; vertexIndex++) {
 		vertex = vertices[vertexIndex];

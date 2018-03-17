@@ -7,9 +7,11 @@ TODO: More info here
 Note: MeshData packs vertices and indexes in little endian format only
 
 TASKS:
-- Export SceneLayout
 - Why doesn't my model render the way Blender does? Colors are darker, light seems to react differently
+ - Eyelids are all messed up. Normals pointing too downward?
+  - Subdivided to fix, but understanding would be nice
 - Unit tests might be nice?
+- Can't export stem3d without UV map; make work with default Blender cube
 - Export options for io_scene_stem3d:
  - Binary format boolean
  - Mirror tangents boolean
@@ -22,3 +24,15 @@ TASKS:
  - Strength option might not make sense; why have to multiply by 32?
  - Convolution filter?
 - Animation
+ - May need IK constraints to keep feet on ground, possibly even at runtime
+- Export SceneLayout
+
+
+Animation:
+
+Bone constraint panel (in rightmost pane)
+Add IK constraint to target bone
+Chain length (2?)
+May need extra bones in armature for IK chain; naming convention to skip on export? ("NOEXPORT" anywhere in name?)
+Any way for an action to explicitly have a length?
+- Action has a frame_range property, which might work

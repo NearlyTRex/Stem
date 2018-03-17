@@ -39,7 +39,7 @@ bool MeshData_init(MeshData * self, Atom name, const void * vertices, unsigned i
 	if (armatureName == NULL) {
 		vertexSize = sizeof(struct vertex_p3f_t2f_n3f_x4f_c4f);
 	} else {
-		vertexSize = sizeof(struct vertex_p3f_t2f_n3f_x4f_c4f_b4u_w4f);
+		vertexSize = sizeof(struct vertex_p3f_t2f_n3f_x4f_c4f_b4f_w4f);
 	}
 	if (copyVertices) {
 		self->vertices = malloc(vertexSize * vertexCount);
@@ -109,7 +109,7 @@ bool MeshData_loadSerializedData(MeshData * self, compat_type(DeserializationCon
 	if (armatureNameString == NULL) {
 		vertexCount = verticesSize / sizeof(struct vertex_p3f_t2f_n3f_x4f_c4f);
 	} else {
-		vertexCount = verticesSize / sizeof(struct vertex_p3f_t2f_n3f_x4f_c4f_b4u_w4f);
+		vertexCount = verticesSize / sizeof(struct vertex_p3f_t2f_n3f_x4f_c4f_b4f_w4f);
 	}
 	MeshData_init(self, Atom_fromString(nameString), vertices, vertexCount, true, true, indexes, indexesSize / sizeof(GLuint), true, true, Atom_fromString(armatureNameString), Atom_fromString(materialNameString));
 	return true;
@@ -128,7 +128,7 @@ void MeshData_serialize(MeshData * self, compat_type(SerializationContext *) ser
 	if (self->armatureName == NULL) {
 		vertexSize = sizeof(struct vertex_p3f_t2f_n3f_x4f_c4f);
 	} else {
-		vertexSize = sizeof(struct vertex_p3f_t2f_n3f_x4f_c4f_b4u_w4f);
+		vertexSize = sizeof(struct vertex_p3f_t2f_n3f_x4f_c4f_b4f_w4f);
 	}
 	context->writeBlob(context, "vertices", self->vertices, vertexSize * self->vertexCount);
 	context->writeBlob(context, "indexes", self->indexes, sizeof(GLuint) * self->indexCount);
