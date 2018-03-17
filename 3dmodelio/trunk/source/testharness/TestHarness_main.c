@@ -387,12 +387,16 @@ static void registerShellCallbacks() {
 #if defined(STEM_PLATFORM_macosx)
 void NSOpenGLTarget_configure(int argc, const char ** argv, struct NSOpenGLShellConfiguration * configuration) {
 	configuration->windowTitle = "3DModelIO";
+	configuration->windowWidth = viewWidth;
+	configuration->windowHeight = viewHeight;
 	configuration->useGLCoreProfile = true;
 #elif defined(STEM_PLATFORM_iphonesimulator) || defined(STEM_PLATFORM_iphoneos)
 void EAGLTarget_configure(int argc, char ** argv, struct EAGLShellConfiguration * configuration) {
 #elif defined(STEM_PLATFORM_win32) || defined(STEM_PLATFORM_win64)
 void WGLTarget_configure(void * instance, void * prevInstance, char * commandLine, int command, int argc, const char ** argv, struct WGLShellConfiguration * configuration) {
 	configuration->windowTitle = "3DModelIO";
+	configuration->windowWidth = viewWidth;
+	configuration->windowHeight = viewHeight;
 	configuration->useGLCoreProfile = true;
 #elif defined(STEM_PLATFORM_linux32) || defined(STEM_PLATFORM_linux64)
 void GLXTarget_configure(int argc, const char ** argv, struct GLXShellConfiguration * configuration) {
@@ -412,6 +416,7 @@ void Target_init() {
 	renderer = Renderer_create();
 	Renderer_setClearColor(renderer, COLOR4f(0.0f, 0.125f, 0.25f, 0.0f));
 	Renderer_setLights(renderer, VECTOR3f(0.0f, 8.0f, 8.0f), COLOR4f(1.0f, 1.0f, 0.95f, 1.0f), VECTOR3f(-1.0f, -2.0f, -8.0f), COLOR4f(0.8f, 0.8f, 0.8f, 1.0f), COLOR4f(0.1f, 0.1f, 0.105f, 1.0f));
+	Renderer_setProjectionMatrix(renderer, Matrix4x4f_perspective(MATRIX4x4f_IDENTITY, PROJECTION_FOV, (float) viewWidth / (float) viewHeight, 0.02f, 20.0f));
 	
 	resourceManager = ResourceManager_create(Shell_getCurrentTime);
 	ResourceManager_addTypeHandler(resourceManager, ATOM("mesh"), loadMeshResource, unloadMeshResource, PURGE_DEFERRED, NULL);
