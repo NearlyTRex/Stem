@@ -155,6 +155,12 @@ def find_blender_object(blender_data):
 			return blender_object
 	return None
 
+def find_first_blender_object_with_pose():
+	for blender_object in bpy.data.objects:
+		if blender_object.pose is not None:
+			return blender_object
+	return None
+
 def format_json_float(value):
 	return format(value, 'f')
 
@@ -310,6 +316,16 @@ def write_armature(context, file_path, blender_armature, binary_format):
 
 def write_action(context, file_path, blender_action, binary_format):
 	frame_rate = bpy.context.scene.render.fps / bpy.context.scene.render.fps_base
+	blender_object = find_first_blender_object_with_pose() #HACK
+	
+	keyframe_list = []
+	for blender_fcurve in blender_action.fcurves:
+		for blender_keyframe in blender_fcurve.keyframe_points:
+			frame_number = blender_keyframe.co[0]
+			if frame_number not in keyframe_list:
+				keyframe_list.append(frame_number)
+	keyframe_list.sort()
+			
 	file = open(file_path, "wb")
 	file.write(b"{\n\t\"format_version\": 0,\n\t\"format_type\": \"animation\",\n\t\"name\": \"")
 	file.write(escape_string(blender_action.name).encode())
@@ -317,35 +333,41 @@ def write_action(context, file_path, blender_action, binary_format):
 	file.write(b"\",\n\t\"loop\": true,\n\t\"keyframes\": [")
 	
 	first_keyframe = True
-	for fcurve in action.fcurves:
-		#fcurve contains keyframe_points. Does each curve span multiple keyframes?
-		#glTF uses bpy.context.scene.frame_set(frame) and loops through blender_object.pose.bones. May need bpy.ops.nla.bake() first?
+	for keyframe_index in 0..len(keyframe_list):
 		if first_keyframe:
 			first_keyframe = False
 		else:
 			file.write(b",")
-		#keyframe_interval = ??? #TODO
-		file.write(b"\n\t\t{\n\t\t\t\"interval\": " + format_json_float(keyframe_interval).encode() + ",\n\t\t\t\"bones\": {")
+		
+		#glTF uses bpy.ops.nla.bake(); is it necessary?
+		bpy.context.scene.frame_set(keyframe_list[keyframe_index])
+		
+		if keyframe_index >= len(keyframe_list) - 1:
+			keyframe_interval = (keyframe_list[keyframe_index + 1] - keyframe_list[keyframe_index]) / frame_rate
+		else:
+			keyframe_interval = keyframe_list[0] / frame_rate
+		file.write(b"\n\t\t{\n\t\t\t\"interval\": " + format_json_float(keyframe_interval).encode() + b",\n\t\t\t\"bones\": {")
 		
 		first_bone = True
-		for bone in blender_object.pose.bones: #TODO: Which blender_object?
+		for bone in blender_object.pose.bones:
 			if first_bone:
 				first_bone = False
 			else:
 				file.write(b",")
 			file.write(b"\n\t\t\t\t\"" + bone.name.encode() + b"\": {")
 			#TODO: This is probably absolute posed position. Might need to subtract bone.head and parent.bone.head or something?
-			file.write(b"\n\t\t\t\t\t\"offset\": {\"x\": " + format_json_float(bone.head[0]).encode() + ", \"y\": " + format_json_float(bone.head[1]).encode() + ", \"z\": " + format_json_float(bone.head[2]).encode() + "},")
-			#file.write(b"\n\t\t\t\t\t\"offset_curve\": {\"x_in\": " + format_json_float(bone.?????? #TODO: How to get curves? Don't think bbone_* is right
+			#TODO: How to get curves? Don't think bbone_* is right
+			file.write(b"\n\t\t\t\t\t\"offset\": {\"x\": " + format_json_float(bone.head[0]).encode() + b", \"y\": " + format_json_float(bone.head[1]).encode() + b", \"z\": " + format_json_float(bone.head[2]).encode() + b"},")
+			file.write(b"\n\t\t\t\t\t\"offset_curve\": {\"x_in\": 1, \"y_in\": 1, \"x_out\": 0, \"y_out\": 0},")
 			#TODO: Might be absolute
-			file.write(b"\n\t\t\t\t\t\"scale\": {\"x\": " + format_json_float(bone.scale[0]).encode() + ", \"y\": " + format_json_float(bone.scale[1]).encode() + ", \"z\": " + format_json_float(bone.scale[2]).encode() + "},")
-			#file.write(b"\n\t\t\t\t\t\"scale_curve\": {\"x_in\": " + format_json_float(bone.?????? #TODO: How to get curves? Don't think bbone_* is right
+			file.write(b"\n\t\t\t\t\t\"scale\": {\"x\": " + format_json_float(bone.scale[0]).encode() + b", \"y\": " + format_json_float(bone.scale[1]).encode() + b", \"z\": " + format_json_float(bone.scale[2]).encode() + b"},")
+			file.write(b"\n\t\t\t\t\t\"scale_curve\": {\"x_in\": 1, \"y_in\": 1, \"x_out\": 0, \"y_out\": 0},")
 			#TODO: Might be absolute
-			file.write(b"\n\t\t\t\t\t\"rotation\": {\"x\": " + format_json_float(bone.rotation_quaternion[0]).encode() + ", \"y\": " + format_json_float(bone.rotation_quaternion[1]).encode() + ", \"z\": " + format_json_float(bone.rotation_quaternion[2]).encode() + ", \"w\": " + format_json_float(bone.rotation_quaternion[3]).encode() + "},")
-			#file.write(b"\n\t\t\t\t\t\"rotation_curve\": {\"x_in\": " + format_json_float(bone.?????? #TODO: How to get curves? Don't think bbone_* is right
+			file.write(b"\n\t\t\t\t\t\"rotation\": {\"x\": " + format_json_float(bone.rotation_quaternion[0]).encode() + b", \"y\": " + format_json_float(bone.rotation_quaternion[1]).encode() + b", \"z\": " + format_json_float(bone.rotation_quaternion[2]).encode() + b", \"w\": " + format_json_float(bone.rotation_quaternion[3]).encode() + b"},")
+			file.write(b"\n\t\t\t\t\t\"rotation_curve\": {\"x_in\": 1, \"y_in\": 1, \"x_out\": 0, \"y_out\": 0},")
 			file.write(b"\n\t\t\t\t}")
 		
-		file.write(b"\n\t\t}")
+		file.write(b"\n\t\t}\n\t}")
 	
 	file.write(b"\n\t]\n\t\"markers\": {")
 	first_marker = True
@@ -379,8 +401,8 @@ class ExportStem3D(bpy.types.Operator, ExportHelper):
 			write_material(context, os.path.join(self.filepath, bpy.path.ensure_ext(blender_material.name, ".material")), blender_material, False)
 		for blender_armature in bpy.data.armatures:
 			write_armature(context, os.path.join(self.filepath, bpy.path.ensure_ext(blender_armature.name, ".armature")), blender_armature, False)
-		#for blender_action in bpy.data.actions:
-		#	write_action(context, os.path.join(self.filepath, bpy.path.ensure_ext(blender_action.name, ".animation")), blender_action, False)
+		for blender_action in bpy.data.actions:
+			write_action(context, os.path.join(self.filepath, bpy.path.ensure_ext(blender_action.name, ".animation")), blender_action, False)
 		return {'FINISHED'}
 
 def register():

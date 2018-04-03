@@ -1,9 +1,11 @@
+#include "3dmodelio/AnimationIO.h"
 #include "3dmodelio/ArmatureIO.h"
 #include "3dmodelio/MaterialData.h"
 #include "3dmodelio/MeshData.h"
 #include "3dmodelio/Obj3DModelIO.h"
 #include "binaryserialization/BinaryDeserializationContext.h"
 #include "gamemath/Matrix4x4f.h"
+#include "glgraphics/Animation.h"
 #include "glgraphics/GLIncludes.h"
 #include "glgraphics/MeshRenderable.h"
 #include "glgraphics/OrbitCamera.h"
@@ -50,13 +52,23 @@ static MeshRenderable * armatureRenderable;
 static Material * material;
 static Material * armatureMaterial;
 static Armature * armature;
+static Animation * animation;
 static AnimationState * animationState;
 static Renderer * renderer;
 static OrbitCamera * camera;
 static bool shiftKeyDown, controlKeyDown;
 static unsigned int viewWidth = 1280, viewHeight = 720;
+static double animationStartTime, lastAnimationTime;
+static bool animating;
 
 static bool Target_draw() {
+	if (animating && animationState != NULL) {
+		AnimationState_resetAllBones(animationState);
+		Animation_poseAnimationStateAtTime(animation, animationState, Shell_getCurrentTime() - animationStartTime, 1.0f);
+		AnimationState_computeBoneTransforms(animationState);
+		Shell_redisplay();
+	}
+	
 	Renderer_clear(renderer);
 	Renderer_setViewMatrix(renderer, OrbitCamera_getMatrix(camera));
 	Renderer_beginDrawing(renderer);
@@ -88,6 +100,10 @@ static void useMesh(MeshData * meshData) {
 	if (armature != NULL) {
 		ResourceManager_releaseResource(resourceManager, armature);
 		armature = NULL;
+	}
+	if (animation != NULL) {
+		Animation_dispose(animation);
+		animation = NULL;
 	}
 	if (animationState != NULL) {
 		AnimationState_dispose(animationState);
@@ -148,6 +164,16 @@ static void useMesh(MeshData * meshData) {
 	renderable = MeshRenderable_create(GL_TRIANGLES, vertexBuffer, material, animationState, MATRIX4x4f_IDENTITY);
 	Renderer_addRenderable(renderer, RENDER_LAYER_3D_OPAQUE, (Renderable *) renderable);
 	
+	Shell_redisplay();
+}
+
+static void useAnimation(Animation * animationToUse) {
+	if (animation != NULL) {
+		Animation_dispose(animation);
+	}
+	animation = animationToUse;
+	animationStartTime = Shell_getCurrentTime();
+	animating = true;
 	Shell_redisplay();
 }
 
@@ -271,6 +297,12 @@ static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned
 						MeshData_dispose(meshData);
 					}
 					
+				} else if (!strcmp(fileExtension, "animation")) {
+					Animation * loadedAnimation = deserializeFile(filePath, (void * (*)(void *)) Animation_deserialize);
+					if (loadedAnimation != NULL) {
+						useAnimation(loadedAnimation);
+					}
+					
 				} else {
 					fprintf(stderr, "Didn't know how to handle file extension \"%s\"\n", fileExtension);
 				}
@@ -281,6 +313,16 @@ static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned
 			if (armatureRenderable != NULL) {
 				armatureRenderable->visible = !armatureRenderable->visible;
 				renderable->visible = !renderable->visible;
+				Shell_redisplay();
+			}
+			break;
+		case KEYBOARD_A:
+			if (animating) {
+				animating = false;
+				lastAnimationTime = Shell_getCurrentTime();
+			} else {
+				animating = true;
+				animationStartTime += Shell_getCurrentTime() - lastAnimationTime;
 				Shell_redisplay();
 			}
 			break;
