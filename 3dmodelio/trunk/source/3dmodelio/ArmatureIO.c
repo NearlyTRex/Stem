@@ -80,7 +80,12 @@ bool Armature_loadSerializedData(Armature * self, compat_type(DeserializationCon
 		bones[boneIndex].endpoint.y = context->readFloat(context, "y");
 		bones[boneIndex].endpoint.z = context->readFloat(context, "z");
 		context->endStructure(context);
-		bones[boneIndex].roll = context->readFloat(context, "roll");
+		context->beginStructure(context, "base_orientation");
+		bones[boneIndex].baseOrientation.x = context->readFloat(context, "x");
+		bones[boneIndex].baseOrientation.y = context->readFloat(context, "y");
+		bones[boneIndex].baseOrientation.z = context->readFloat(context, "z");
+		bones[boneIndex].baseOrientation.w = context->readFloat(context, "w");
+		context->endStructure(context);
 		context->endStructure(context);
 		if (context->status != SERIALIZATION_ERROR_OK) {
 			break;
@@ -121,6 +126,12 @@ void Armature_serialize(Armature * self, compat_type(SerializationContext *) ser
 		context->writeFloat(context, "x", self->bones[boneIndex].endpoint.x);
 		context->writeFloat(context, "y", self->bones[boneIndex].endpoint.y);
 		context->writeFloat(context, "z", self->bones[boneIndex].endpoint.z);
+		context->endStructure(context);
+		context->beginStructure(context, "base_orientation");
+		context->writeFloat(context, "x", self->bones[boneIndex].baseOrientation.x);
+		context->writeFloat(context, "y", self->bones[boneIndex].baseOrientation.y);
+		context->writeFloat(context, "z", self->bones[boneIndex].baseOrientation.z);
+		context->writeFloat(context, "w", self->bones[boneIndex].baseOrientation.w);
 		context->endStructure(context);
 		context->endStructure(context);
 	}

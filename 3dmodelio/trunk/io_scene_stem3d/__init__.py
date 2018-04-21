@@ -2,6 +2,7 @@ import bpy
 import bmesh
 import os
 import base64
+import math
 import mathutils
 import mathutils.geometry
 import struct
@@ -28,6 +29,9 @@ def swizzle_position(vector):
 
 def swizzle_tangent(vector):
 	return mathutils.Vector((vector[0], vector[2], -vector[1], 1.0))
+
+def swizzle_rotation(quaternion):
+	return mathutils.Quaternion((quaternion[0], quaternion[1], quaternion[3], -quaternion[2]))
 
 def get_primitives(blender_mesh, blender_vertex_groups, armature_object):
 	vertices = []
@@ -304,7 +308,9 @@ def write_armature(context, file_path, blender_armature, binary_format):
 			file.write(b"null")
 		file.write(b",\n\t\t\t\"position\": {\"x\": " + format_json_float(bone.head[0]).encode() + b", \"y\": " + format_json_float(bone.head[2]).encode() + b", \"z\": " + format_json_float(-bone.head[1]).encode() + b"},")
 		file.write(b"\n\t\t\t\"endpoint\": {\"x\": " + format_json_float(bone.tail[0]).encode() + b", \"y\": " + format_json_float(bone.tail[2]).encode() + b", \"z\": " + format_json_float(-bone.tail[1]).encode() + b"},")
-		file.write(b"\n\t\t\t\"roll\": " + format_json_float(bone.roll).encode() + b"\n\t\t}")
+		offset, rotation, scale = bone.matrix.decompose()
+		rotation = swizzle_rotation(rotation)
+		file.write(b"\n\t\t\t\"base_orientation\": {\"x\": " + format_json_float(rotation[1]).encode() + b", \"y\": " + format_json_float(rotation[2]).encode() + b", \"z\": " + format_json_float(rotation[3]).encode() + b", \"w\": " + format_json_float(rotation[0]).encode() + b"}\n\t\t}")
 	file.write(b"\n\t}\n}")
 	file.close()
 	
@@ -314,9 +320,22 @@ def write_armature(context, file_path, blender_armature, binary_format):
 		bpy.ops.object.mode_set(mode=last_mode)
 		bpy.context.scene.objects.active = last_active
 
+def read_pose_bone_state(pose_bone):
+	armature_bone = pose_bone.bone
+	#offset = mathutils.Vector((pose_bone.head[0] - armature_bone.head[0], pose_bone.head[1] - armature_bone.head[1], pose_bone.head[2] - armature_bone.head[2]))
+	offset = mathutils.Vector((0, 0, 0))
+	scale = mathutils.Vector((pose_bone.scale[0], pose_bone.scale[1], pose_bone.scale[2]))
+	pose_quaternion = mathutils.Quaternion((pose_bone.rotation_quaternion[0], pose_bone.rotation_quaternion[1], pose_bone.rotation_quaternion[2], pose_bone.rotation_quaternion[3]))
+	rotation = swizzle_rotation(pose_quaternion)
+	rotation.normalize()
+	
+	return offset, scale, rotation
+
 def write_action(context, file_path, blender_action, binary_format):
 	frame_rate = bpy.context.scene.render.fps / bpy.context.scene.render.fps_base
 	blender_object = find_first_blender_object_with_pose() #HACK
+	saved_action = blender_object.animation_data.action
+	blender_object.animation_data.action = blender_action
 	
 	keyframe_list = []
 	for blender_fcurve in blender_action.fcurves:
@@ -325,15 +344,27 @@ def write_action(context, file_path, blender_action, binary_format):
 			if frame_number not in keyframe_list:
 				keyframe_list.append(frame_number)
 	keyframe_list.sort()
-			
+	
 	file = open(file_path, "wb")
 	file.write(b"{\n\t\"format_version\": 0,\n\t\"format_type\": \"animation\",\n\t\"name\": \"")
 	file.write(escape_string(blender_action.name).encode())
 	#TODO: How to set loop?
 	file.write(b"\",\n\t\"loop\": true,\n\t\"keyframes\": [")
 	
+	affected_bones = []
+	IGNORE_THRESHOLD = 0.00001
+	for keyframe_index in range(len(keyframe_list)):
+		bpy.context.scene.frame_set(keyframe_list[keyframe_index])
+		for pose_bone in blender_object.pose.bones:
+			offset, scale, rotation = read_pose_bone_state(pose_bone)
+			if math.fabs(offset.x) >= IGNORE_THRESHOLD or math.fabs(offset.y) >= IGNORE_THRESHOLD or math.fabs(offset.z) >= IGNORE_THRESHOLD or \
+			   math.fabs(scale.x - 1.0) >= IGNORE_THRESHOLD or math.fabs(scale.y - 1.0) >= IGNORE_THRESHOLD or math.fabs(scale.z - 1.0) >= IGNORE_THRESHOLD or \
+			   math.fabs(rotation.x) >= IGNORE_THRESHOLD or math.fabs(rotation.y) >= IGNORE_THRESHOLD or math.fabs(rotation.z) >= IGNORE_THRESHOLD or math.fabs(rotation.w - 1.0) >= IGNORE_THRESHOLD:
+				if pose_bone.name not in affected_bones:
+					affected_bones.append(pose_bone.name)
+	
 	first_keyframe = True
-	for keyframe_index in 0..len(keyframe_list):
+	for keyframe_index in range(len(keyframe_list)):
 		if first_keyframe:
 			first_keyframe = False
 		else:
@@ -342,34 +373,36 @@ def write_action(context, file_path, blender_action, binary_format):
 		#glTF uses bpy.ops.nla.bake(); is it necessary?
 		bpy.context.scene.frame_set(keyframe_list[keyframe_index])
 		
-		if keyframe_index >= len(keyframe_list) - 1:
+		if keyframe_index < len(keyframe_list) - 1:
 			keyframe_interval = (keyframe_list[keyframe_index + 1] - keyframe_list[keyframe_index]) / frame_rate
 		else:
 			keyframe_interval = keyframe_list[0] / frame_rate
 		file.write(b"\n\t\t{\n\t\t\t\"interval\": " + format_json_float(keyframe_interval).encode() + b",\n\t\t\t\"bones\": {")
 		
 		first_bone = True
-		for bone in blender_object.pose.bones:
+		for pose_bone in blender_object.pose.bones:
+			#TODO: This is imperfect; if a bone ever moves, it'll be encoded every frame, which is nonideal
+			if pose_bone.name not in affected_bones:
+				continue
+			
 			if first_bone:
 				first_bone = False
 			else:
 				file.write(b",")
-			file.write(b"\n\t\t\t\t\"" + bone.name.encode() + b"\": {")
-			#TODO: This is probably absolute posed position. Might need to subtract bone.head and parent.bone.head or something?
-			#TODO: How to get curves? Don't think bbone_* is right
-			file.write(b"\n\t\t\t\t\t\"offset\": {\"x\": " + format_json_float(bone.head[0]).encode() + b", \"y\": " + format_json_float(bone.head[1]).encode() + b", \"z\": " + format_json_float(bone.head[2]).encode() + b"},")
+			file.write(b"\n\t\t\t\t\"" + pose_bone.name.encode() + b"\": {")
+			#TODO: How to get curves? (See gltf2_animate.py:243)
+			offset, scale, rotation = read_pose_bone_state(pose_bone)
+			file.write(b"\n\t\t\t\t\t\"offset\": {\"x\": " + format_json_float(offset.x).encode() + b", \"y\": " + format_json_float(offset.y).encode() + b", \"z\": " + format_json_float(offset.z).encode() + b"},")
 			file.write(b"\n\t\t\t\t\t\"offset_curve\": {\"x_in\": 1, \"y_in\": 1, \"x_out\": 0, \"y_out\": 0},")
-			#TODO: Might be absolute
-			file.write(b"\n\t\t\t\t\t\"scale\": {\"x\": " + format_json_float(bone.scale[0]).encode() + b", \"y\": " + format_json_float(bone.scale[1]).encode() + b", \"z\": " + format_json_float(bone.scale[2]).encode() + b"},")
+			file.write(b"\n\t\t\t\t\t\"scale\": {\"x\": " + format_json_float(scale.x).encode() + b", \"y\": " + format_json_float(scale.y).encode() + b", \"z\": " + format_json_float(scale.z).encode() + b"},")
 			file.write(b"\n\t\t\t\t\t\"scale_curve\": {\"x_in\": 1, \"y_in\": 1, \"x_out\": 0, \"y_out\": 0},")
-			#TODO: Might be absolute
-			file.write(b"\n\t\t\t\t\t\"rotation\": {\"x\": " + format_json_float(bone.rotation_quaternion[0]).encode() + b", \"y\": " + format_json_float(bone.rotation_quaternion[1]).encode() + b", \"z\": " + format_json_float(bone.rotation_quaternion[2]).encode() + b", \"w\": " + format_json_float(bone.rotation_quaternion[3]).encode() + b"},")
-			file.write(b"\n\t\t\t\t\t\"rotation_curve\": {\"x_in\": 1, \"y_in\": 1, \"x_out\": 0, \"y_out\": 0},")
+			file.write(b"\n\t\t\t\t\t\"rotation\": {\"x\": " + format_json_float(rotation.x).encode() + b", \"y\": " + format_json_float(rotation.y).encode() + b", \"z\": " + format_json_float(rotation.z).encode() + b", \"w\": " + format_json_float(rotation.w).encode() + b"},")
+			file.write(b"\n\t\t\t\t\t\"rotation_curve\": {\"x_in\": 1, \"y_in\": 1, \"x_out\": 0, \"y_out\": 0}")
 			file.write(b"\n\t\t\t\t}")
 		
-		file.write(b"\n\t\t}\n\t}")
+		file.write(b"\n\t\t\t}\n\t\t}")
 	
-	file.write(b"\n\t]\n\t\"markers\": {")
+	file.write(b"\n\t],\n\t\"markers\": {")
 	first_marker = True
 	for pose_marker in blender_action.pose_markers:
 		if first_marker:
@@ -379,6 +412,8 @@ def write_action(context, file_path, blender_action, binary_format):
 		file.write(b"\n\t\t\"" + escape_string(pose_marker.name).encode() + b"\": " + format_json_float(pose_marker.frame / frame_rate).encode())
 	file.write(b"\n\t}\n}")
 	file.close()
+	
+	blender_object.animation_data.action = saved_action
 
 class ExportStem3D(bpy.types.Operator, ExportHelper):
 	bl_idname = 'export_scene.stem3d'
