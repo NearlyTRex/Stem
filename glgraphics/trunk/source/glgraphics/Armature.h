@@ -29,6 +29,7 @@ extern "C" {
 typedef struct Armature Armature;
 
 #include "stemobject/StemObject.h"
+#include "gamemath/Quaternionf.h"
 #include "gamemath/Vector3f.h"
 #include "glgraphics/VertexBuffer.h"
 #include "utilities/Atom.h"
@@ -41,7 +42,8 @@ struct ArmatureBone {
 	unsigned int parentIndex;
 	Vector3f position;
 	Vector3f endpoint;
-	float roll; // radian rotation around position - endpoint
+	// Animation quaternions are relative to this. Absolute for relaxed pose.
+	Quaternionf baseOrientation;
 };
 
 #define Armature_structContents(self_type) \

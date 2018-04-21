@@ -48,10 +48,10 @@ static double animationStartTime, lastAnimationTime;
 static bool animating;
 
 static bool Target_draw() {
-	if (animating && renderable->animationState != NULL) {
-		AnimationState_resetAllBones(renderable->animationState);
-		Animation_poseAnimationStateAtTime(animation, renderable->animationState, Shell_getCurrentTime() - animationStartTime, 1.0f);
-		AnimationState_computeBoneTransforms(renderable->animationState);
+	if (animating && animationState != NULL) {
+		AnimationState_resetAllBones(animationState);
+		Animation_poseAnimationStateAtTime(animation, animationState, Shell_getCurrentTime() - animationStartTime, 1.0f);
+		AnimationState_computeBoneTransforms(animationState);
 		Shell_redisplay();
 	}
 	
@@ -106,9 +106,9 @@ static void initScene2() {
 		1, 2, 3
 	};
 	struct ArmatureBone bones[] = {
-		{ATOM("root"), BONE_INDEX_NOT_FOUND, VECTOR3f(0.0f, 0.0f, 0.0f), VECTOR3f(1.0f, 0.0f, 0.0f), 0.0f},
-		{ATOM("boneLower"), 0, VECTOR3f(0.0f, -1.0f, 0.0f), VECTOR3f(1.0f, -1.0f, 0.0f), 0.0f},
-		{ATOM("boneUpper"), 0, VECTOR3f(0.0f, 1.0f, 0.0f), VECTOR3f(1.0f, 1.0f, 0.0f), 0.0f}
+		{ATOM("root"), BONE_INDEX_NOT_FOUND, VECTOR3f(0.0f, 0.0f, 0.0f), VECTOR3f(1.0f, 0.0f, 0.0f), QUATERNIONf_IDENTITY},
+		{ATOM("boneLower"), 0, VECTOR3f(0.0f, -1.0f, 0.0f), VECTOR3f(1.0f, -1.0f, 0.0f), QUATERNIONf_IDENTITY},
+		{ATOM("boneUpper"), 0, VECTOR3f(0.0f, 1.0f, 0.0f), VECTOR3f(1.0f, 1.0f, 0.0f), QUATERNIONf_IDENTITY}
 	};
 	struct AnimationBoneKeyframe frame1Bones[] = {
 		{ATOM("boneLower"), {-1.0f, 0.0f, 0.0f}, {0.5f, 1.0f}, {0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}, {0.0f, 0.0f}, QUATERNIONf_IDENTITY, {1.0f, 0.0f}, {0.0f, 0.0f}},
@@ -273,9 +273,9 @@ static void initScene3() {
 		52, 53, 54, 54, 55, 52
 	};
 	struct ArmatureBone bones[] = {
-		{ATOM("root"), BONE_INDEX_NOT_FOUND, VECTOR3f(0.0f, -4.0f, 0.0f), VECTOR3f(0.0f, -1.0f, 0.0f), 0.0f},
-		{ATOM("joint1"), 0, VECTOR3f(0.0f, -1.0f, 0.0f), VECTOR3f(0.0f, 2.0f, 0.0f), 0.0f},
-		{ATOM("joint2"), 1, VECTOR3f(0.0f, 2.0f, 0.0f), VECTOR3f(0.0f, 4.0f, 0.0f), M_PI * 0.5f}
+		{ATOM("root"), BONE_INDEX_NOT_FOUND, VECTOR3f(0.0f, -4.0f, 0.0f), VECTOR3f(0.0f, -1.0f, 0.0f), QUATERNIONf_IDENTITY},
+		{ATOM("joint1"), 0, VECTOR3f(0.0f, -1.0f, 0.0f), VECTOR3f(0.0f, 2.0f, 0.0f), QUATERNIONf_IDENTITY},
+		{ATOM("joint2"), 1, VECTOR3f(0.0f, 2.0f, 0.0f), VECTOR3f(0.0f, 4.0f, 0.0f), Quaternionf_fromAxisAngle(VECTOR3f(0.0f, 1.0f, 0.0f), M_PI * 0.5)}
 	};
 	struct AnimationBoneKeyframe frame1Bones[] = {
 		{ATOM("joint1"), {0.0f, 0.0f, 0.0f}, {1.0f, 1.0f}, {0.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}, {0.0f, 0.0f}, QUATERNIONf_IDENTITY, {0.5f, 1.0f}, {0.5f, 0.0f}},

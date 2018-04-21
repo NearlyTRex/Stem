@@ -84,7 +84,7 @@ void AnimationState_resetAllBones(AnimationState * self) {
 void AnimationState_computeBoneTransforms(AnimationState * self) {
 	unsigned int boneIndex;
 	Matrix4x4f matrix;
-	Quaternionf boneBaseOrientation, boneRotation;
+	Quaternionf boneRotation;
 	
 	for (boneIndex = 0; boneIndex < self->armature->boneCount; boneIndex++) {
 		if (self->armature->bones[boneIndex].parentIndex == BONE_INDEX_NOT_FOUND) {
@@ -95,8 +95,7 @@ void AnimationState_computeBoneTransforms(AnimationState * self) {
 		Matrix4x4f_scale(&matrix, self->boneStates[boneIndex].scale.x, self->boneStates[boneIndex].scale.y, self->boneStates[boneIndex].scale.z);
 		Matrix4x4f_translate(&matrix, self->boneStates[boneIndex].offset.x, self->boneStates[boneIndex].offset.y, self->boneStates[boneIndex].offset.z);
 		Matrix4x4f_translate(&matrix, self->armature->bones[boneIndex].position.x, self->armature->bones[boneIndex].position.y, self->armature->bones[boneIndex].position.z);
-		boneBaseOrientation = Quaternionf_fromAxisAngle(Vector3f_normalized(Vector3f_subtract(self->armature->bones[boneIndex].endpoint, self->armature->bones[boneIndex].position)), self->armature->bones[boneIndex].roll);
-		boneRotation = Quaternionf_multiplied(Quaternionf_multiplied(boneBaseOrientation, self->boneStates[boneIndex].rotation), Quaternionf_inverted(boneBaseOrientation));
+		boneRotation = Quaternionf_multiplied(Quaternionf_multiplied(self->armature->bones[boneIndex].baseOrientation, self->boneStates[boneIndex].rotation), Quaternionf_inverted(self->armature->bones[boneIndex].baseOrientation));
 		Matrix4x4f_multiply(&matrix, Quaternionf_toMatrix(boneRotation));
 		Matrix4x4f_translate(&matrix, -self->armature->bones[boneIndex].position.x, -self->armature->bones[boneIndex].position.y, -self->armature->bones[boneIndex].position.z);
 		self->computedBoneTransforms[boneIndex] = matrix;
