@@ -11,7 +11,6 @@ TASKS:
  - Eyelids are all messed up. Normals pointing too downward?
   - Subdivided to fix, but understanding would be nice
 - Unit tests might be nice?
-- Can't export stem3d without UV map; make work with default Blender cube
 - Export options for io_scene_stem3d:
  - Binary format boolean
  - Mirror tangents boolean

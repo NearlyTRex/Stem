@@ -42,7 +42,9 @@ def get_primitives(blender_mesh, blender_vertex_groups, armature_object):
 		for bone in armature_object.data.bones:
 			bone_name_map[bone.name] = len(bone_name_map)
 	
-	blender_mesh.calc_tangents()
+	if blender_mesh.uv_layers.active:
+		blender_mesh.calc_tangents()
+	
 	index = 0
 	for blender_polygon in blender_mesh.polygons:
 		loop_index_list = []
@@ -331,18 +333,48 @@ def read_pose_bone_state(pose_bone):
 	
 	return offset, scale, rotation
 
+def parse_bone_data_path(data_path):
+	if data_path is None:
+		return None, None
+	
+	index = data_path.find("[\"")
+	if index == -1:
+		return None, None
+	bone_name = data_path[(index + 2):]
+	index = bone_name.find("\"")
+	if index == -1:
+		return None, None
+	bone_name = bone_name[:(index)]
+	
+	index = data_path.rfind(".")
+	if index == -1:
+		return None, None
+	
+	return bone_name, data_path[(index + 1):]
+
+def transform_curve(curve_points, last_frame_count, next_frame_count):
+	return curve_points[0] / last_frame_count + 1, curve_points[1] + 1, curve_points[2] / next_frame_count, curve_points[3]
+
 def write_action(context, file_path, blender_action, binary_format):
 	frame_rate = bpy.context.scene.render.fps / bpy.context.scene.render.fps_base
 	blender_object = find_first_blender_object_with_pose() #HACK
 	saved_action = blender_object.animation_data.action
 	blender_object.animation_data.action = blender_action
 	
-	keyframe_list = []
+	keyframe_dict = {}
 	for blender_fcurve in blender_action.fcurves:
+		bone_name, transform_type = parse_bone_data_path(blender_fcurve.data_path)
+		if bone_name is None or transform_type is None:
+			continue
 		for blender_keyframe in blender_fcurve.keyframe_points:
 			frame_number = blender_keyframe.co[0]
-			if frame_number not in keyframe_list:
-				keyframe_list.append(frame_number)
+			if frame_number not in keyframe_dict:
+				keyframe_dict[frame_number] = {}
+			if bone_name not in keyframe_dict[frame_number]:
+				keyframe_dict[frame_number][bone_name] = {}
+			keyframe_dict[frame_number][bone_name][transform_type] = (blender_keyframe.handle_left[0] - blender_keyframe.co[0], blender_keyframe.handle_left[1] - blender_keyframe.co[1], blender_keyframe.handle_right[0] - blender_keyframe.co[0], blender_keyframe.handle_right[1] - blender_keyframe.co[1])
+	
+	keyframe_list = list(keyframe_dict.keys())
 	keyframe_list.sort()
 	
 	file = open(file_path, "wb")
@@ -373,10 +405,17 @@ def write_action(context, file_path, blender_action, binary_format):
 		#glTF uses bpy.ops.nla.bake(); is it necessary?
 		bpy.context.scene.frame_set(keyframe_list[keyframe_index])
 		
-		if keyframe_index < len(keyframe_list) - 1:
-			keyframe_interval = (keyframe_list[keyframe_index + 1] - keyframe_list[keyframe_index]) / frame_rate
+		if keyframe_index > 0:
+			last_frame_count = (keyframe_list[keyframe_index] - keyframe_list[keyframe_index - 1])
 		else:
-			keyframe_interval = keyframe_list[0] / frame_rate
+			last_frame_count = keyframe_list[-1]
+		
+		if keyframe_index < len(keyframe_list) - 1:
+			next_frame_count = (keyframe_list[keyframe_index + 1] - keyframe_list[keyframe_index])
+		else:
+			next_frame_count = keyframe_list[0]
+		
+		keyframe_interval = next_frame_count / frame_rate
 		file.write(b"\n\t\t{\n\t\t\t\"interval\": " + format_json_float(keyframe_interval).encode() + b",\n\t\t\t\"bones\": {")
 		
 		first_bone = True
@@ -390,14 +429,24 @@ def write_action(context, file_path, blender_action, binary_format):
 			else:
 				file.write(b",")
 			file.write(b"\n\t\t\t\t\"" + pose_bone.name.encode() + b"\": {")
-			#TODO: How to get curves? (See gltf2_animate.py:243)
 			offset, scale, rotation = read_pose_bone_state(pose_bone)
+			offset_curve = (1, 1, 0, 0)
+			scale_curve = (1, 1, 0, 0)
+			rotation_curve = (1, 1, 0, 0)
+			if pose_bone.name in keyframe_dict[keyframe_list[keyframe_index]]:
+				if "location" in keyframe_dict[keyframe_list[keyframe_index]][pose_bone.name]:
+					location_curve = transform_curve(keyframe_dict[keyframe_list[keyframe_index]][pose_bone.name]["location"], last_frame_count, next_frame_count)
+				if "scale" in keyframe_dict[keyframe_list[keyframe_index]][pose_bone.name]:
+					scale_curve = transform_curve(keyframe_dict[keyframe_list[keyframe_index]][pose_bone.name]["scale"], last_frame_count, next_frame_count)
+				if "rotation_quaternion" in keyframe_dict[keyframe_list[keyframe_index]][pose_bone.name]:
+					rotation_curve = transform_curve(keyframe_dict[keyframe_list[keyframe_index]][pose_bone.name]["rotation_quaternion"], last_frame_count, next_frame_count)
+			
 			file.write(b"\n\t\t\t\t\t\"offset\": {\"x\": " + format_json_float(offset.x).encode() + b", \"y\": " + format_json_float(offset.y).encode() + b", \"z\": " + format_json_float(offset.z).encode() + b"},")
-			file.write(b"\n\t\t\t\t\t\"offset_curve\": {\"x_in\": 1, \"y_in\": 1, \"x_out\": 0, \"y_out\": 0},")
+			file.write(b"\n\t\t\t\t\t\"offset_curve\": {\"x_in\": " + format_json_float(offset_curve[0]).encode() + b", \"y_in\": " + format_json_float(offset_curve[1]).encode() + b", \"x_out\": " + format_json_float(offset_curve[2]).encode() + b", \"y_out\": " + format_json_float(offset_curve[3]).encode() + b"},")
 			file.write(b"\n\t\t\t\t\t\"scale\": {\"x\": " + format_json_float(scale.x).encode() + b", \"y\": " + format_json_float(scale.y).encode() + b", \"z\": " + format_json_float(scale.z).encode() + b"},")
-			file.write(b"\n\t\t\t\t\t\"scale_curve\": {\"x_in\": 1, \"y_in\": 1, \"x_out\": 0, \"y_out\": 0},")
+			file.write(b"\n\t\t\t\t\t\"scale_curve\": {\"x_in\": " + format_json_float(scale_curve[0]).encode() + b", \"y_in\": " + format_json_float(scale_curve[1]).encode() + b", \"x_out\": " + format_json_float(scale_curve[2]).encode() + b", \"y_out\": " + format_json_float(scale_curve[3]).encode() + b"},")
 			file.write(b"\n\t\t\t\t\t\"rotation\": {\"x\": " + format_json_float(rotation.x).encode() + b", \"y\": " + format_json_float(rotation.y).encode() + b", \"z\": " + format_json_float(rotation.z).encode() + b", \"w\": " + format_json_float(rotation.w).encode() + b"},")
-			file.write(b"\n\t\t\t\t\t\"rotation_curve\": {\"x_in\": 1, \"y_in\": 1, \"x_out\": 0, \"y_out\": 0}")
+			file.write(b"\n\t\t\t\t\t\"rotation_curve\": {\"x_in\": " + format_json_float(rotation_curve[0]).encode() + b", \"y_in\": " + format_json_float(rotation_curve[1]).encode() + b", \"x_out\": " + format_json_float(rotation_curve[2]).encode() + b", \"y_out\": " + format_json_float(rotation_curve[3]).encode() + b"}")
 			file.write(b"\n\t\t\t\t}")
 		
 		file.write(b"\n\t\t\t}\n\t\t}")
