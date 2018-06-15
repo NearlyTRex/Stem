@@ -114,7 +114,6 @@ static bool Animation_findBoneKeyframes(Animation * self, Atom boneID, double an
 	}
 	if (keyframeBoneIndexLeft == BONE_INDEX_NOT_FOUND) {
 		// If the bone isn't specified prior to animationTime, find the latest specification past it, if any
-		// TODO: loop
 		for (; keyframeIndex < self->keyframeCount; keyframeIndex++) {
 			for (keyframeBoneIndex = 0; keyframeBoneIndex < self->keyframes[keyframeIndex].boneCount; keyframeBoneIndex++) {
 				if (self->keyframes[keyframeIndex].bones[keyframeBoneIndex].boneID == boneID) {
@@ -215,10 +214,11 @@ void Animation_poseAnimationStateAtTime(Animation * self, AnimationState * anima
 	float keyframeWeight;
 	struct AnimationBoneState boneState;
 	
-	// TODO: loop
-	animationTime = fmod(animationTime, self->private_ivar(animationLength));
-	if (animationTime < 0.0) {
-		animationTime += self->private_ivar(animationLength);
+	if (self->loop) {
+		animationTime = fmod(animationTime, self->private_ivar(animationLength));
+		if (animationTime < 0.0) {
+			animationTime += self->private_ivar(animationLength);
+		}
 	}
 	
 	for (boneIndex = 0; boneIndex < animationState->armature->boneCount; boneIndex++) {
