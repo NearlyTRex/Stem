@@ -35,22 +35,24 @@
 #define SUPERCLASS StemObject
 #define BONE_COUNT_MAX 128
 
-Renderer * Renderer_create() {
-	stemobject_create_implementation(Renderer, init)
+Renderer * Renderer_create(unsigned int layerCount) {
+	stemobject_create_implementation(Renderer, init, layerCount)
 }
 
-bool Renderer_init(Renderer * self) {
-	int renderLayerIndex;
+bool Renderer_init(Renderer * self, unsigned int layerCount) {
+	unsigned int layerIndex;
 	unsigned char nullMaterialColor[4] = {0xFF, 0xFF, 0xFF, 0xFF};
 	unsigned char nullMaterialNormal[4] = {0x7F, 0x7F, 0xFF, 0xFF};
 	
 	call_super(init, self);
 	self->dispose = Renderer_dispose;
-	for (renderLayerIndex = 0; renderLayerIndex < RENDER_LAYER_COUNT; renderLayerIndex++) {
-		self->layers[renderLayerIndex].renderableCount = 0;
-		self->layers[renderLayerIndex].allocatedCount = 0;
-		self->layers[renderLayerIndex].renderables = NULL;
+	self->layers = malloc(sizeof(struct RenderLayer) * layerCount);
+	for (layerIndex = 0; layerIndex < layerCount; layerIndex++) {
+		self->layers[layerIndex].renderableCount = 0;
+		self->layers[layerIndex].allocatedCount = 0;
+		self->layers[layerIndex].renderables = NULL;
 	}
+	self->layerCount = layerCount;
 	self->projectionMatrix = MATRIX4x4f_IDENTITY;
 	self->viewMatrix = MATRIX4x4f_IDENTITY;
 	self->shaderStatic = GLSLShader_create(STATIC_StaticVertexShader, sizeof(STATIC_StaticVertexShader), STATIC_LitSurfaceFragmentShader, sizeof(STATIC_LitSurfaceFragmentShader),
@@ -76,11 +78,12 @@ bool Renderer_init(Renderer * self) {
 }
 
 void Renderer_dispose(Renderer * self) {
-	int renderLayerIndex;
+	unsigned int layerIndex;
 	
-	for (renderLayerIndex = 0; renderLayerIndex < RENDER_LAYER_COUNT; renderLayerIndex++) {
-		free(self->layers[renderLayerIndex].renderables);
+	for (layerIndex = 0; layerIndex < self->layerCount; layerIndex++) {
+		free(self->layers[layerIndex].renderables);
 	}
+	free(self->layers);
 	GLSLShader_dispose(self->shaderStatic);
 	GLSLShader_dispose(self->shaderAnimated);
 	glBindVertexArray(0);
@@ -88,47 +91,53 @@ void Renderer_dispose(Renderer * self) {
 	call_super(dispose, self);
 }
 
-void Renderer_addRenderable(Renderer * self, RenderLayerID layer, Renderable * renderable) {
-	if (layer < RENDER_LAYER_COUNT) {
-		if (self->layers[layer].allocatedCount <= self->layers[layer].renderableCount) {
-			if (self->layers[layer].allocatedCount == 0) {
-				self->layers[layer].allocatedCount = 1;
+void Renderer_addRenderable(Renderer * self, unsigned int layerIndex, Renderable * renderable) {
+	if (layerIndex < self->layerCount) {
+		if (self->layers[layerIndex].allocatedCount <= self->layers[layerIndex].renderableCount) {
+			if (self->layers[layerIndex].allocatedCount == 0) {
+				self->layers[layerIndex].allocatedCount = 1;
 			} else {
-				self->layers[layer].allocatedCount *= 2;
+				self->layers[layerIndex].allocatedCount *= 2;
 			}
-			self->layers[layer].renderables = realloc(self->layers[layer].renderables, sizeof(Renderable *) * self->layers[layer].allocatedCount);
+			self->layers[layerIndex].renderables = realloc(self->layers[layerIndex].renderables, sizeof(Renderable *) * self->layers[layerIndex].allocatedCount);
 		}
-		self->layers[layer].renderables[self->layers[layer].renderableCount++] = renderable;
+		self->layers[layerIndex].renderables[self->layers[layerIndex].renderableCount++] = renderable;
+	} else {
+		fprintf(stderr, "Warning: Renderer_addRenderable called with a layerIndex of %u, while Renderer %p has been initialized with only %u layers\n", layerIndex, self, self->layerCount);
 	}
 }
 
-void Renderer_removeRenderable(Renderer * self, RenderLayerID layer, Renderable * renderable) {
-	if (layer < RENDER_LAYER_COUNT) {
+void Renderer_removeRenderable(Renderer * self, unsigned int layerIndex, Renderable * renderable) {
+	if (layerIndex < self->layerCount) {
 		unsigned int renderableIndex;
 		
-		for (renderableIndex = 0; renderableIndex < self->layers[layer].renderableCount; renderableIndex++) {
-			if (self->layers[layer].renderables[renderableIndex] == renderable) {
+		for (renderableIndex = 0; renderableIndex < self->layers[layerIndex].renderableCount; renderableIndex++) {
+			if (self->layers[layerIndex].renderables[renderableIndex] == renderable) {
 				unsigned int renderableIndex2;
 				
-				self->layers[layer].renderableCount--;
-				for (renderableIndex2 = renderableIndex; renderableIndex2 < self->layers[layer].renderableCount; renderableIndex2++) {
-					self->layers[layer].renderables[renderableIndex2] = self->layers[layer].renderables[renderableIndex2 + 1];
+				self->layers[layerIndex].renderableCount--;
+				for (renderableIndex2 = renderableIndex; renderableIndex2 < self->layers[layerIndex].renderableCount; renderableIndex2++) {
+					self->layers[layerIndex].renderables[renderableIndex2] = self->layers[layerIndex].renderables[renderableIndex2 + 1];
 				}
 			}
 		}
+	} else {
+		fprintf(stderr, "Warning: Renderer_removeRenderable called with a layerIndex of %u, while Renderer %p has been initialized with only %u layers\n", layerIndex, self, self->layerCount);
 	}
 }
 
-void Renderer_clearRenderables(Renderer * self, RenderLayerID layer) {
-	if (layer < RENDER_LAYER_COUNT) {
-		self->layers[layer].renderableCount = 0;
+void Renderer_clearRenderables(Renderer * self, unsigned int layerIndex) {
+	if (layerIndex < self->layerCount) {
+		self->layers[layerIndex].renderableCount = 0;
+	} else {
+		fprintf(stderr, "Warning: Renderer_clearRenderables called with a layerIndex of %u, while Renderer %p has been initialized with only %u layers\n", layerIndex, self, self->layerCount);
 	}
 }
 
 void Renderer_clearAllRenderables(Renderer * self) {
 	unsigned int layerIndex;
 	
-	for (layerIndex = 0; layerIndex < RENDER_LAYER_COUNT; layerIndex++) {
+	for (layerIndex = 0; layerIndex < self->layerCount; layerIndex++) {
 		Renderer_clearRenderables(self, layerIndex);
 	}
 }
@@ -157,24 +166,48 @@ void Renderer_setLights(Renderer * self, Vector3f light0Position, Color4f light0
 	self->ambientColor = ambientColor;
 }
 
-void Renderer_beginDrawing(Renderer * self) {
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
-	glDepthFunc(GL_LEQUAL);
+void Renderer_setDrawMode(Renderer * self, enum RendererDrawMode mode) {
+	switch (mode) {
+		case RENDERER_3D_OPAQUE:
+			glDisable(GL_BLEND);
+			glEnable(GL_DEPTH_TEST);
+			glEnable(GL_CULL_FACE);
+			glDepthFunc(GL_LEQUAL);
+			break;
+			
+		case RENDERER_3D_TRANSLUCENT:
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			glEnable(GL_DEPTH_TEST);
+			glEnable(GL_CULL_FACE);
+			glDepthFunc(GL_LEQUAL);
+			break;
+			
+		case RENDERER_2D_OPAQUE:
+			glDisable(GL_BLEND);
+			glDisable(GL_DEPTH_TEST);
+			glDisable(GL_CULL_FACE);
+			break;
+			
+		case RENDERER_2D_TRANSLUCENT:
+			glEnable(GL_BLEND);
+			// TODO: Options for premultiplication
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			glDisable(GL_DEPTH_TEST);
+			glDisable(GL_CULL_FACE);
+			break;
+	}
 }
 
-void Renderer_endDrawing(Renderer * self) {
-	glDisable(GL_DEPTH_TEST);
-	glDisable(GL_CULL_FACE);
-}
-
-void Renderer_drawLayer(Renderer * self, RenderLayerID layer) {
-	if (layer < RENDER_LAYER_COUNT) {
+void Renderer_drawLayer(Renderer * self, unsigned int layerIndex) {
+	if (layerIndex < self->layerCount) {
 		unsigned int renderableIndex;
 		
-		for (renderableIndex = 0; renderableIndex < self->layers[layer].renderableCount; renderableIndex++) {
-			Renderer_drawSingle(self, self->layers[layer].renderables[renderableIndex]);
+		for (renderableIndex = 0; renderableIndex < self->layers[layerIndex].renderableCount; renderableIndex++) {
+			Renderer_drawSingle(self, self->layers[layerIndex].renderables[renderableIndex]);
 		}
+	} else {
+		fprintf(stderr, "Warning: Renderer_drawLayer called with a layerIndex of %u, while Renderer %p has been initialized with only %u layers\n", layerIndex, self, self->layerCount);
 	}
 }
 

@@ -57,9 +57,8 @@ static bool Target_draw() {
 	
 	Renderer_clear(renderer);
 	Renderer_setViewMatrix(renderer, OrbitCamera_getMatrix(camera));
-	Renderer_beginDrawing(renderer);
-	Renderer_drawLayer(renderer, RENDER_LAYER_3D_OPAQUE);
-	Renderer_endDrawing(renderer);
+	Renderer_setDrawMode(renderer, RENDERER_3D_OPAQUE);
+	Renderer_drawLayer(renderer, 0);
 	return true;
 }
 
@@ -84,9 +83,9 @@ static void initScene1() {
 	if (vertexBuffer != NULL) {
 		VertexBuffer_dispose(vertexBuffer);
 	}
-	vertexBuffer = VertexBuffer_createPTNXC(vertices, sizeof(vertices) / sizeof(struct vertex_p3f_t2f_n3f_x4f_c4f), indexes, sizeof(indexes) / sizeof(GLuint));
+	vertexBuffer = VertexBuffer_createPTNXC(vertices, sizeof(vertices) / sizeof(struct vertex_p3f_t2f_n3f_x4f_c4f), indexes, sizeof(indexes) / sizeof(GLuint), VERTEX_BUFFER_USAGE_STATIC);
 	renderable = MeshRenderable_create(GL_TRIANGLES, vertexBuffer, material, NULL, MATRIX4x4f_IDENTITY);
-	Renderer_addRenderable(renderer, RENDER_LAYER_3D_OPAQUE, (Renderable *) renderable);
+	Renderer_addRenderable(renderer, 0, (Renderable *) renderable);
 	
 	if (camera != NULL) {
 		OrbitCamera_dispose(camera);
@@ -147,9 +146,9 @@ static void initScene2() {
 	animation = Animation_create(ATOM("animation"), true, sizeof(keyframes) / sizeof(keyframes[0]), keyframes, 0, NULL);
 	animationState = AnimationState_create(armature);
 	Animation_poseAnimationStateAtTime(animation, animationState, 0.0, 1.0f);
-	vertexBuffer = VertexBuffer_createPTNXCBW(vertices, sizeof(vertices) / sizeof(struct vertex_p3f_t2f_n3f_x4f_c4f_b4f_w4f), indexes, sizeof(indexes) / sizeof(GLuint));
+	vertexBuffer = VertexBuffer_createPTNXCBW(vertices, sizeof(vertices) / sizeof(struct vertex_p3f_t2f_n3f_x4f_c4f_b4f_w4f), indexes, sizeof(indexes) / sizeof(GLuint), VERTEX_BUFFER_USAGE_STATIC);
 	renderable = MeshRenderable_create(GL_TRIANGLES, vertexBuffer, material, animationState, MATRIX4x4f_IDENTITY);
-	Renderer_addRenderable(renderer, RENDER_LAYER_3D_OPAQUE, (Renderable *) renderable);
+	Renderer_addRenderable(renderer, 0, (Renderable *) renderable);
 	
 	if (armatureVertexBuffer != NULL ){
 		VertexBuffer_dispose(armatureVertexBuffer);
@@ -160,7 +159,7 @@ static void initScene2() {
 	armatureVertexBuffer = Armature_createDebugVertexBuffer(armature);
 	armatureRenderable = MeshRenderable_create(GL_TRIANGLES, armatureVertexBuffer, armatureMaterial, animationState, MATRIX4x4f_IDENTITY);
 	armatureRenderable->visible = false;
-	Renderer_addRenderable(renderer, RENDER_LAYER_3D_OPAQUE, (Renderable *) armatureRenderable);
+	Renderer_addRenderable(renderer, 0, (Renderable *) armatureRenderable);
 	
 	if (camera != NULL) {
 		OrbitCamera_dispose(camera);
@@ -314,9 +313,9 @@ static void initScene3() {
 	animation = Animation_create(ATOM("animation"), true, sizeof(keyframes) / sizeof(keyframes[0]), keyframes, 0, NULL);
 	animationState = AnimationState_create(armature);
 	Animation_poseAnimationStateAtTime(animation, animationState, 0.0, 1.0f);
-	vertexBuffer = VertexBuffer_createPTNXCBW(vertices, sizeof(vertices) / sizeof(struct vertex_p3f_t2f_n3f_x4f_c4f_b4f_w4f), indexes, sizeof(indexes) / sizeof(GLuint));
+	vertexBuffer = VertexBuffer_createPTNXCBW(vertices, sizeof(vertices) / sizeof(struct vertex_p3f_t2f_n3f_x4f_c4f_b4f_w4f), indexes, sizeof(indexes) / sizeof(GLuint), VERTEX_BUFFER_USAGE_STATIC);
 	renderable = MeshRenderable_create(GL_TRIANGLES, vertexBuffer, material, animationState, MATRIX4x4f_IDENTITY);
-	Renderer_addRenderable(renderer, RENDER_LAYER_3D_OPAQUE, (Renderable *) renderable);
+	Renderer_addRenderable(renderer, 0, (Renderable *) renderable);
 	
 	if (armatureVertexBuffer != NULL ){
 		VertexBuffer_dispose(armatureVertexBuffer);
@@ -327,7 +326,7 @@ static void initScene3() {
 	armatureVertexBuffer = Armature_createDebugVertexBuffer(armature);
 	armatureRenderable = MeshRenderable_create(GL_TRIANGLES, armatureVertexBuffer, armatureMaterial, animationState, MATRIX4x4f_IDENTITY);
 	armatureRenderable->visible = false;
-	Renderer_addRenderable(renderer, RENDER_LAYER_3D_OPAQUE, (Renderable *) armatureRenderable);
+	Renderer_addRenderable(renderer, 0, (Renderable *) armatureRenderable);
 	
 	if (camera != NULL) {
 		OrbitCamera_dispose(camera);
@@ -474,7 +473,7 @@ void Target_init() {
 	
 	chdir(Shell_getResourcePath());
 	
-	renderer = Renderer_create();
+	renderer = Renderer_create(1);
 	material = Material_create(COLOR4f(1.0f, 1.0f, 1.0f, 1.0f), 0.875f, 32.0f, 0.0f);
 	Material_setTexture(material, MaterialTextureType_color, true, 2, 2, checkerboardPixels);
 	armatureMaterial = Material_create(COLOR4f(1.0f, 1.0f, 0.9375f, 1.0f), 0.875f, 32.0f, 0.0f);

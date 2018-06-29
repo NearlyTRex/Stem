@@ -63,10 +63,10 @@ void AnimationState_computeBoneTransforms(AnimationState * self);
 
 // Returns the base position of the specified bone after being transformed by its parent chain.
 // AnimationState_computeBoneTransforms must be called before using this function.
-Vector3f AnimationState_getBonePosition(AnimationState * self, unsigned int boneID);
+Vector3f AnimationState_getBonePosition(AnimationState * self, unsigned int boneIndex);
 
 // Same as above, but for the endpoint of the bone rather than the base position.
-Vector3f AnimationState_getBoneEndpoint(AnimationState * self, unsigned int boneID);
+Vector3f AnimationState_getBoneEndpoint(AnimationState * self, unsigned int boneIndex);
 
 // Adds the transforms in state to the transforms in self
 void AnimationState_combine(AnimationState * self, AnimationState * state);

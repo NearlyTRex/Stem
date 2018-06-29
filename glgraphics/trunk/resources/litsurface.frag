@@ -45,5 +45,6 @@ void main() {
 	litColor = applyLight(light0Position, light0Color, ambientColor, textureColor.rgb, adjustedNormal, position, surfaceToCamera);
 	litColor += applyLight(light1Position, light1Color, ambientColor, textureColor.rgb, adjustedNormal, position, surfaceToCamera);
 	
+	// TODO: Specular reflections should override translucency and increase alpha
 	fragColor = vec4(emissiveness * vec3(textureColor) + (1.0 - emissiveness) * litColor, textureColor.a);
 }

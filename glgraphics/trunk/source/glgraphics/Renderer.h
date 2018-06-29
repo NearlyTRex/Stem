@@ -28,11 +28,12 @@ extern "C" {
 
 typedef struct Renderer Renderer;
 
-typedef unsigned int RenderLayerID;
-#define RENDER_LAYER_3D_OPAQUE 0
-#define RENDER_LAYER_3D_TRANSLUCENT 1
-#define RENDER_LAYER_2D 2
-#define RENDER_LAYER_COUNT 3
+enum RendererDrawMode {
+	RENDERER_3D_OPAQUE,
+	RENDERER_3D_TRANSLUCENT,
+	RENDERER_2D_OPAQUE,
+	RENDERER_2D_TRANSLUCENT
+};
 
 enum {
 	VERTEX_ATTRIB_POSITION,
@@ -60,7 +61,8 @@ struct RenderLayer {
 #define Renderer_structContents(self_type) \
 	StemObject_structContents(self_type) \
 	\
-	struct RenderLayer layers[RENDER_LAYER_COUNT]; \
+	struct RenderLayer * layers; \
+	unsigned int layerCount; \
 	Vector3f light0Position; \
 	Color4f light0Color; \
 	Vector3f light1Position; \
@@ -74,23 +76,22 @@ struct RenderLayer {
 
 stemobject_struct_definition(Renderer)
 
-Renderer * Renderer_create();
-bool Renderer_init(Renderer * self);
+Renderer * Renderer_create(unsigned int layerCount);
+bool Renderer_init(Renderer * self, unsigned int layerCount);
 void Renderer_dispose(Renderer * self);
 
-void Renderer_addRenderable(Renderer * self, RenderLayerID layer, Renderable * renderable);
-void Renderer_removeRenderable(Renderer * self, RenderLayerID layer, Renderable * renderable);
-void Renderer_clearRenderables(Renderer * self, RenderLayerID layer);
+void Renderer_addRenderable(Renderer * self, unsigned int layerIndex, Renderable * renderable);
+void Renderer_removeRenderable(Renderer * self, unsigned int layerIndex, Renderable * renderable);
+void Renderer_clearRenderables(Renderer * self, unsigned int layerIndex);
 void Renderer_clearAllRenderables(Renderer * self);
 void Renderer_setClearColor(Renderer * self, Color4f color);
 void Renderer_clear(Renderer * self);
 void Renderer_setProjectionMatrix(Renderer * self, Matrix4x4f matrix);
 void Renderer_setViewMatrix(Renderer * self, Matrix4x4f matrix);
 void Renderer_setLights(Renderer * self, Vector3f light0Position, Color4f light0Color, Vector3f light1Position, Color4f light1Color, Color4f ambientColor);
-void Renderer_beginDrawing(Renderer * self);
-void Renderer_drawLayer(Renderer * self, RenderLayerID layer);
+void Renderer_setDrawMode(Renderer * self, enum RendererDrawMode mode);
+void Renderer_drawLayer(Renderer * self, unsigned int layerIndex);
 void Renderer_drawSingle(Renderer * self, Renderable * renderable);
-void Renderer_endDrawing(Renderer * self);
 
 #ifdef __cplusplus
 }

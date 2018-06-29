@@ -102,14 +102,14 @@ void AnimationState_computeBoneTransforms(AnimationState * self) {
 	}
 }
 
-Vector3f AnimationState_getBonePosition(AnimationState * self, unsigned int boneID) {
-	assert(boneID < self->armature->boneCount);
-	return Matrix4x4f_multiplyVector3f(self->computedBoneTransforms[boneID], self->armature->bones[boneID].position);
+Vector3f AnimationState_getBonePosition(AnimationState * self, unsigned int boneIndex) {
+	assert(boneIndex < self->armature->boneCount);
+	return Matrix4x4f_multiplyVector3f(self->computedBoneTransforms[boneIndex], self->armature->bones[boneIndex].position);
 }
 
-Vector3f AnimationState_getBoneEndpoint(AnimationState * self, unsigned int boneID) {
-	assert(boneID < self->armature->boneCount);
-	return Matrix4x4f_multiplyVector3f(self->computedBoneTransforms[boneID], self->armature->bones[boneID].endpoint);
+Vector3f AnimationState_getBoneEndpoint(AnimationState * self, unsigned int boneIndex) {
+	assert(boneIndex < self->armature->boneCount);
+	return Matrix4x4f_multiplyVector3f(self->computedBoneTransforms[boneIndex], self->armature->bones[boneIndex].endpoint);
 }
 
 // TODO: Test

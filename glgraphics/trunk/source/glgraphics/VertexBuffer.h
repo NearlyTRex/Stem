@@ -28,10 +28,28 @@ extern "C" {
 
 typedef struct VertexBuffer VertexBuffer;
 
+enum VertexBufferAccessMode {
+	VERTEX_BUFFER_ACCESS_MODE_READ_ONLY,
+	VERTEX_BUFFER_ACCESS_MODE_WRITE_ONLY,
+	VERTEX_BUFFER_ACCESS_MODE_READ_WRITE
+};
+
+enum VertexBufferUsageHint {
+	VERTEX_BUFFER_USAGE_STATIC,
+	VERTEX_BUFFER_USAGE_STREAM,
+	VERTEX_BUFFER_USAGE_DYNAMIC
+};
+
+enum VertexBufferDataType {
+	VERTEX_BUFFER_DATA_TYPE_VERTEX,
+	VERTEX_BUFFER_DATA_TYPE_INDEX
+};
+
 #include "gamemath/Box6f.h"
 #include "glgraphics/GLIncludes.h"
 #include "glgraphics/VertexTypes.h"
 #include "stemobject/StemObject.h"
+#include <stdlib.h>
 
 #define VertexBuffer_structContents(self_type) \
 	StemObject_structContents(self_type) \
@@ -39,16 +57,24 @@ typedef struct VertexBuffer VertexBuffer;
 	GLuint vaoID; \
 	GLuint vertexBufferID; \
 	GLuint indexBufferID; \
+	unsigned int vertexCount; \
 	unsigned int indexCount; \
-	Box6f bounds;
+	Box6f bounds; \
+	enum VertexBufferUsageHint usageHint; \
+	size_t private_ivar(vertexSize);
 
 stemobject_struct_definition(VertexBuffer)
 
-VertexBuffer * VertexBuffer_createPTNXC(const struct vertex_p3f_t2f_n3f_x4f_c4f * vertices, unsigned int vertexCount, const GLuint * indexes, unsigned int indexCount);
-VertexBuffer * VertexBuffer_createPTNXCBW(const struct vertex_p3f_t2f_n3f_x4f_c4f_b4f_w4f * vertices, unsigned int vertexCount, const GLuint * indexes, unsigned int indexCount);
-bool VertexBuffer_initPTNXC(VertexBuffer * self, const struct vertex_p3f_t2f_n3f_x4f_c4f * vertices, unsigned int vertexCount, const GLuint * indexes, unsigned int indexCount);
-bool VertexBuffer_initPTNXCBW(VertexBuffer * self, const struct vertex_p3f_t2f_n3f_x4f_c4f_b4f_w4f * vertices, unsigned int vertexCount, const GLuint * indexes, unsigned int indexCount);
+VertexBuffer * VertexBuffer_createPTNXC(const struct vertex_p3f_t2f_n3f_x4f_c4f * vertices, unsigned int vertexCount, const GLuint * indexes, unsigned int indexCount, enum VertexBufferUsageHint usageHint);
+VertexBuffer * VertexBuffer_createPTNXCBW(const struct vertex_p3f_t2f_n3f_x4f_c4f_b4f_w4f * vertices, unsigned int vertexCount, const GLuint * indexes, unsigned int indexCount, enum VertexBufferUsageHint usageHint);
+bool VertexBuffer_initPTNXC(VertexBuffer * self, const struct vertex_p3f_t2f_n3f_x4f_c4f * vertices, unsigned int vertexCount, const GLuint * indexes, unsigned int indexCount, enum VertexBufferUsageHint usageHint);
+bool VertexBuffer_initPTNXCBW(VertexBuffer * self, const struct vertex_p3f_t2f_n3f_x4f_c4f_b4f_w4f * vertices, unsigned int vertexCount, const GLuint * indexes, unsigned int indexCount, enum VertexBufferUsageHint usageHint);
 void VertexBuffer_dispose(VertexBuffer * self);
+
+// vertices must be of the same type this VertexBuffer was initialized with
+void VertexBuffer_bufferData(VertexBuffer * self, const void * vertices, unsigned int vertexCount, const GLuint * indexes, unsigned int indexCount);
+void * VertexBuffer_mapData(VertexBuffer * self, enum VertexBufferDataType dataType, enum VertexBufferAccessMode accessMode);
+void VertexBuffer_unmapData(VertexBuffer * self, enum VertexBufferDataType dataType);
 
 #ifdef __cplusplus
 }

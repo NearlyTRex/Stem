@@ -24,19 +24,19 @@
 #include "glgraphics/VertexBuffer.h"
 #include <float.h>
 #include <stddef.h>
-#include <stdlib.h>
+#include <stdio.h>
 
 #define SUPERCLASS StemObject
 
-VertexBuffer * VertexBuffer_createPTNXC(const struct vertex_p3f_t2f_n3f_x4f_c4f * vertices, unsigned int vertexCount, const GLuint * indexes, unsigned int indexCount) {
-	stemobject_create_implementation(VertexBuffer, initPTNXC, vertices, vertexCount, indexes, indexCount)
+VertexBuffer * VertexBuffer_createPTNXC(const struct vertex_p3f_t2f_n3f_x4f_c4f * vertices, unsigned int vertexCount, const GLuint * indexes, unsigned int indexCount, enum VertexBufferUsageHint usageHint) {
+	stemobject_create_implementation(VertexBuffer, initPTNXC, vertices, vertexCount, indexes, indexCount, usageHint)
 }
 
-VertexBuffer * VertexBuffer_createPTNXCBW(const struct vertex_p3f_t2f_n3f_x4f_c4f_b4f_w4f * vertices, unsigned int vertexCount, const GLuint * indexes, unsigned int indexCount) {
-	stemobject_create_implementation(VertexBuffer, initPTNXCBW, vertices, vertexCount, indexes, indexCount)
+VertexBuffer * VertexBuffer_createPTNXCBW(const struct vertex_p3f_t2f_n3f_x4f_c4f_b4f_w4f * vertices, unsigned int vertexCount, const GLuint * indexes, unsigned int indexCount, enum VertexBufferUsageHint usageHint) {
+	stemobject_create_implementation(VertexBuffer, initPTNXCBW, vertices, vertexCount, indexes, indexCount, usageHint)
 }
 
-static void sharedInit(VertexBuffer * self, const void * vertices, size_t vertexSize, unsigned int vertexCount, const GLuint * indexes, unsigned int indexCount) {
+static void sharedInit(VertexBuffer * self, const void * vertices, size_t vertexSize, unsigned int vertexCount, const GLuint * indexes, unsigned int indexCount, enum VertexBufferUsageHint usageHint) {
 	unsigned int vertexIndex;
 	Vector3f position;
 	
@@ -47,12 +47,10 @@ static void sharedInit(VertexBuffer * self, const void * vertices, size_t vertex
 	glBindVertexArray(self->vaoID);
 	glGenBuffers(1, &self->vertexBufferID);
 	glGenBuffers(1, &self->indexBufferID);
-	glBindBuffer(GL_ARRAY_BUFFER, self->vertexBufferID);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self->indexBufferID);
-	glBufferData(GL_ARRAY_BUFFER, vertexSize * vertexCount, vertices, GL_STATIC_DRAW);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(*indexes) * indexCount, indexes, GL_STATIC_DRAW);
 	
-	self->indexCount = indexCount;
+	self->private_ivar(vertexSize) = vertexSize;
+	self->usageHint = usageHint;
+	VertexBuffer_bufferData(self, vertices, vertexCount, indexes, indexCount);
 	
 	self->bounds = BOX6f(FLT_MAX, -FLT_MAX, FLT_MAX, -FLT_MAX, FLT_MAX, -FLT_MAX);
 	for (vertexIndex = 0; vertexIndex < vertexCount; vertexIndex++) {
@@ -78,8 +76,8 @@ static void sharedInit(VertexBuffer * self, const void * vertices, size_t vertex
 	}
 }
 
-bool VertexBuffer_initPTNXC(VertexBuffer * self, const struct vertex_p3f_t2f_n3f_x4f_c4f * vertices, unsigned int vertexCount, const GLuint * indexes, unsigned int indexCount) {
-	sharedInit(self, vertices, sizeof(*vertices), vertexCount, indexes, indexCount);
+bool VertexBuffer_initPTNXC(VertexBuffer * self, const struct vertex_p3f_t2f_n3f_x4f_c4f * vertices, unsigned int vertexCount, const GLuint * indexes, unsigned int indexCount, enum VertexBufferUsageHint usageHint) {
+	sharedInit(self, vertices, sizeof(*vertices), vertexCount, indexes, indexCount, usageHint);
 	
 	glEnableVertexAttribArray(VERTEX_ATTRIB_POSITION);
 	glEnableVertexAttribArray(VERTEX_ATTRIB_TEXTURE_COORD);
@@ -96,8 +94,8 @@ bool VertexBuffer_initPTNXC(VertexBuffer * self, const struct vertex_p3f_t2f_n3f
 	return true;
 }
 
-bool VertexBuffer_initPTNXCBW(VertexBuffer * self, const struct vertex_p3f_t2f_n3f_x4f_c4f_b4f_w4f * vertices, unsigned int vertexCount, const GLuint * indexes, unsigned int indexCount) {
-	sharedInit(self, vertices, sizeof(*vertices), vertexCount, indexes, indexCount);
+bool VertexBuffer_initPTNXCBW(VertexBuffer * self, const struct vertex_p3f_t2f_n3f_x4f_c4f_b4f_w4f * vertices, unsigned int vertexCount, const GLuint * indexes, unsigned int indexCount, enum VertexBufferUsageHint usageHint) {
+	sharedInit(self, vertices, sizeof(*vertices), vertexCount, indexes, indexCount, usageHint);
 	
 	glEnableVertexAttribArray(VERTEX_ATTRIB_POSITION);
 	glEnableVertexAttribArray(VERTEX_ATTRIB_TEXTURE_COORD);
@@ -123,4 +121,81 @@ void VertexBuffer_dispose(VertexBuffer * self) {
 	glDeleteBuffers(1, &self->indexBufferID);
 	glDeleteVertexArrays(1, &self->vaoID);
 	call_super(dispose, self);
+}
+
+void VertexBuffer_bufferData(VertexBuffer * self, const void * vertices, unsigned int vertexCount, const GLuint * indexes, unsigned int indexCount) {
+	GLenum usageHint;
+	
+	switch (self->usageHint) {
+		case VERTEX_BUFFER_USAGE_STATIC:
+			usageHint = GL_STATIC_DRAW;
+			break;
+		case VERTEX_BUFFER_USAGE_STREAM:
+			usageHint = GL_STREAM_DRAW;
+			break;
+		case VERTEX_BUFFER_USAGE_DYNAMIC:
+			usageHint = GL_DYNAMIC_DRAW;
+			break;
+		default:
+			fprintf(stderr, "Warning: Unknown usage hint %d specified to VertexBuffer_bufferData; defaulting to VERTEX_BUFFER_USAGE_STATIC\n", self->usageHint);
+			usageHint = GL_STATIC_DRAW;
+			break;
+	}
+	glBindBuffer(GL_ARRAY_BUFFER, self->vertexBufferID);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self->indexBufferID);
+	glBufferData(GL_ARRAY_BUFFER, self->private_ivar(vertexSize) * vertexCount, vertices, usageHint);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(*indexes) * indexCount, indexes, usageHint);
+	self->vertexCount = vertexCount;
+	self->indexCount = indexCount;
+}
+
+void * VertexBuffer_mapData(VertexBuffer * self, enum VertexBufferDataType dataType, enum VertexBufferAccessMode accessMode) {
+	GLenum glBufferType;
+	GLenum glAccessMode;
+	
+	switch (dataType) {
+		case VERTEX_BUFFER_DATA_TYPE_VERTEX:
+			glBufferType = GL_ARRAY_BUFFER;
+			break;
+		case VERTEX_BUFFER_DATA_TYPE_INDEX:
+			glBufferType = GL_ELEMENT_ARRAY_BUFFER;
+			break;
+		default:
+			fprintf(stderr, "Warning: Unknown data type %d specified to VertexBuffer_mapData; returning NULL\n", dataType);
+			return NULL;
+	}
+	switch (accessMode) {
+		case VERTEX_BUFFER_ACCESS_MODE_READ_ONLY:
+			glAccessMode = GL_READ_ONLY;
+			break;
+		case VERTEX_BUFFER_ACCESS_MODE_WRITE_ONLY:
+			glAccessMode = GL_WRITE_ONLY;
+			break;
+		case VERTEX_BUFFER_ACCESS_MODE_READ_WRITE:
+			glAccessMode = GL_READ_WRITE;
+			break;
+		default:
+			fprintf(stderr, "Warning: Unknown access mode %d specified to VertexBuffer_mapData; returning NULL\n", accessMode);
+			return NULL;
+	}
+	
+	return glMapBuffer(glBufferType, glAccessMode);
+}
+
+void VertexBuffer_unmapData(VertexBuffer * self, enum VertexBufferDataType dataType) {
+	GLenum glBufferType;
+	
+	switch (dataType) {
+		case VERTEX_BUFFER_DATA_TYPE_VERTEX:
+			glBufferType = GL_ARRAY_BUFFER;
+			break;
+		case VERTEX_BUFFER_DATA_TYPE_INDEX:
+			glBufferType = GL_ELEMENT_ARRAY_BUFFER;
+			break;
+		default:
+			fprintf(stderr, "Warning: Unknown data type %d specified to VertexBuffer_unmapData; doing nothing\n", dataType);
+			return;
+	}
+	
+	glUnmapBuffer(glBufferType);
 }
