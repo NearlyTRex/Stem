@@ -10,6 +10,7 @@ TASKS:
 - Why doesn't my model render the way Blender does? Colors are darker, light seems to react differently
  - Eyelids are all messed up. Normals pointing too downward?
   - Subdivided to fix, but understanding would be nice
+ - Horn normals seem weird, but don't understand why
 - Unit tests might be nice?
 - Export options for io_scene_stem3d:
  - Binary format boolean
@@ -33,5 +34,3 @@ Bone constraint panel (in rightmost pane)
 Add IK constraint to target bone
 Chain length (2?)
 May need extra bones in armature for IK chain; naming convention to skip on export? ("NOEXPORT" anywhere in name?)
-Any way for an action to explicitly have a length?
-- Action has a frame_range property, which might work

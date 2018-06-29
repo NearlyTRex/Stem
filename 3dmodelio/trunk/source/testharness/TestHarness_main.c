@@ -62,7 +62,7 @@ static double animationStartTime, lastAnimationTime;
 static bool animating;
 
 static bool Target_draw() {
-	if (animating && animationState != NULL) {
+	if (animating && animationState != NULL && animation != NULL) {
 		AnimationState_resetAllBones(animationState);
 		Animation_poseAnimationStateAtTime(animation, animationState, Shell_getCurrentTime() - animationStartTime, 1.0f);
 		AnimationState_computeBoneTransforms(animationState);
@@ -71,9 +71,8 @@ static bool Target_draw() {
 	
 	Renderer_clear(renderer);
 	Renderer_setViewMatrix(renderer, OrbitCamera_getMatrix(camera));
-	Renderer_beginDrawing(renderer);
-	Renderer_drawLayer(renderer, RENDER_LAYER_3D_OPAQUE);
-	Renderer_endDrawing(renderer);
+	Renderer_setDrawMode(renderer, RENDERER_3D_OPAQUE);
+	Renderer_drawLayer(renderer, 0);
 	AutoFreePool_empty();
 	return true;
 }
@@ -122,6 +121,7 @@ static void useMesh(MeshData * meshData) {
 		MeshRenderable_dispose(armatureRenderable);
 		armatureRenderable = NULL;
 	}
+	animating = false;
 	
 	ResourceManager_purgeAll(resourceManager);
 	
@@ -150,19 +150,19 @@ static void useMesh(MeshData * meshData) {
 			armatureVertexBuffer = Armature_createDebugVertexBuffer(armature);
 			armatureRenderable = MeshRenderable_create(GL_TRIANGLES, armatureVertexBuffer, armatureMaterial, animationState, MATRIX4x4f_IDENTITY);
 			armatureRenderable->visible = false;
-			Renderer_addRenderable(renderer, RENDER_LAYER_3D_OPAQUE, (Renderable *) armatureRenderable);
+			Renderer_addRenderable(renderer, 0, (Renderable *) armatureRenderable);
 		} else {
 			fprintf(stderr, "Couldn't load armature \"%s\" for mesh \"%s\"\n", meshData->armatureName, meshData->name);
 		}
 	}
 	
 	if (animationState != NULL) {
-		vertexBuffer = VertexBuffer_createPTNXCBW(meshData->vertices, meshData->vertexCount, meshData->indexes, meshData->indexCount);
+		vertexBuffer = VertexBuffer_createPTNXCBW(meshData->vertices, meshData->vertexCount, meshData->indexes, meshData->indexCount, VERTEX_BUFFER_USAGE_STATIC);
 	} else {
-		vertexBuffer = VertexBuffer_createPTNXC(meshData->vertices, meshData->vertexCount, meshData->indexes, meshData->indexCount);
+		vertexBuffer = VertexBuffer_createPTNXC(meshData->vertices, meshData->vertexCount, meshData->indexes, meshData->indexCount, VERTEX_BUFFER_USAGE_STATIC);
 	}
 	renderable = MeshRenderable_create(GL_TRIANGLES, vertexBuffer, material, animationState, MATRIX4x4f_IDENTITY);
-	Renderer_addRenderable(renderer, RENDER_LAYER_3D_OPAQUE, (Renderable *) renderable);
+	Renderer_addRenderable(renderer, 0, (Renderable *) renderable);
 	
 	Shell_redisplay();
 }
@@ -278,6 +278,16 @@ static void loadObjFile(const char * filePath) {
 	MeshData_dispose(meshData);
 }
 
+static void loadStem3DMesh(const char * filePath) {
+	MeshData * meshData = deserializeFile(filePath, (void * (*)(void *)) MeshData_deserialize);
+	
+	if (meshData != NULL) {
+		ResourceManager_addSearchPath(resourceManager, getDirectory(filePath));
+		useMesh(meshData);
+		MeshData_dispose(meshData);
+	}
+}
+
 static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned int modifiers, bool isRepeat) {
 	switch (keyCode) {
 		case KEYBOARD_O: {
@@ -290,12 +300,7 @@ static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned
 					loadObjFile(filePath);
 					
 				} else if (!strcmp(fileExtension, "mesh")) {
-					MeshData * meshData = deserializeFile(filePath, (void * (*)(void *)) MeshData_deserialize);
-					if (meshData != NULL) {
-						ResourceManager_addSearchPath(resourceManager, getDirectory(filePath));
-						useMesh(meshData);
-						MeshData_dispose(meshData);
-					}
+					loadStem3DMesh(filePath);
 					
 				} else if (!strcmp(fileExtension, "animation")) {
 					Animation * loadedAnimation = deserializeFile(filePath, (void * (*)(void *)) Animation_deserialize);
@@ -354,6 +359,10 @@ static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned
 			Shell_redisplay();
 			break;
 		}
+		case KEYBOARD_SPACEBAR:
+			animationStartTime = Shell_getCurrentTime();
+			Shell_redisplay();
+			break;
 	}
 }
 
@@ -455,7 +464,7 @@ void Target_init() {
 	sdrand(time(NULL));
 	stirrand(50);
 	chdir(Shell_getResourcePath());
-	renderer = Renderer_create();
+	renderer = Renderer_create(1);
 	Renderer_setClearColor(renderer, COLOR4f(0.0f, 0.125f, 0.25f, 0.0f));
 	Renderer_setLights(renderer, VECTOR3f(0.0f, 8.0f, 8.0f), COLOR4f(1.0f, 1.0f, 0.95f, 1.0f), VECTOR3f(-1.0f, -2.0f, -8.0f), COLOR4f(0.8f, 0.8f, 0.8f, 1.0f), COLOR4f(0.1f, 0.1f, 0.105f, 1.0f));
 	Renderer_setProjectionMatrix(renderer, Matrix4x4f_perspective(MATRIX4x4f_IDENTITY, PROJECTION_FOV, (float) viewWidth / (float) viewHeight, 0.02f, 20.0f));

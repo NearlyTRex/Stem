@@ -353,6 +353,7 @@ def parse_bone_data_path(data_path):
 	return bone_name, data_path[(index + 1):]
 
 def transform_curve(curve_points, last_frame_count, next_frame_count):
+	#TODO: Might need to also divide curve_points[1] and curve_points[3] by frame counts; test to find out
 	return curve_points[0] / last_frame_count + 1, curve_points[1] + 1, curve_points[2] / next_frame_count, curve_points[3]
 
 def write_action(context, file_path, blender_action, binary_format):
