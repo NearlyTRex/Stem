@@ -1,6 +1,7 @@
 1.9.1 (2018-01-19)
  * Added FIXED_16_16_FORMAT to printfFormats.h
  * Added getFileExtension, getLastPathComponent, and getDirectory to IOUtilities
+ * Added FixedIntervalRunLoop_setTimeScale().
 
 1.9.0 (2014-12-04)
  * HashTable moved from utilities to structureddata (edit: structureddata is now known as dynamictypes)
@@ -16,7 +17,7 @@
  * Added support for modern Xcode/iOS SDK versions
 
 1.8.0 (2014-03-22)
- * utilities no longer depends on shell. ShellMutex usage in Atom and AutoFreePool has been replaced by callbacks which are signature-compatible with ShelMutex if ShellThreads.h is included before Atom.h and AutoFreePool.h.
+ * utilities no longer depends on shell. ShellMutex usage in Atom and AutoFreePool has been replaced by callbacks which are signature-compatible with ShellMutex if ShellThreads.h is included before Atom.h and AutoFreePool.h.
  * Added Atom_registerStaticAddress()
  * HashTable can now set and retrieve raw structs
  * Improved HashTable efficiency, based on st.c

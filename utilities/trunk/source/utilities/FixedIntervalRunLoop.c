@@ -37,8 +37,9 @@ bool FixedIntervalRunLoop_init(FixedIntervalRunLoop * self, double (* timeFuncti
 	self->stepInterval = stepInterval;
 	self->stepCallback = stepCallback;
 	self->stepContext = stepContext;
-	self->lastTime = self->timeFunction();
-	self->slop = 0.0;
+	self->protected_ivar(lastTime) = self->timeFunction();
+	self->timeScale = 1.0;
+	self->protected_ivar(slop) = 0.0;
 	self->tolerance = 0.0;
 	self->paused = false;
 	self->private_ivar(disposedWhileRunning) = NULL;
@@ -62,7 +63,7 @@ unsigned int FixedIntervalRunLoop_run(FixedIntervalRunLoop * self) {
 		return 0;
 	}
 	currentTime = self->timeFunction();
-	interval = (currentTime - self->lastTime) + self->slop;
+	interval = (currentTime - self->protected_ivar(lastTime)) * self->timeScale + self->protected_ivar(slop);
 	
 	self->private_ivar(disposedWhileRunning) = &disposedWhileRunning;
 	while (interval >= self->stepInterval) {
@@ -84,8 +85,8 @@ unsigned int FixedIntervalRunLoop_run(FixedIntervalRunLoop * self) {
 		}
 		interval -= self->stepInterval;
 	}
-	self->slop = interval;
-	self->lastTime = currentTime;
+	self->protected_ivar(slop) = interval;
+	self->protected_ivar(lastTime) = currentTime;
 	self->private_ivar(disposedWhileRunning) = NULL;
 	
 	AutoFreePool_empty();
@@ -103,10 +104,14 @@ void FixedIntervalRunLoop_pause(FixedIntervalRunLoop * self) {
 void FixedIntervalRunLoop_resume(FixedIntervalRunLoop * self) {
 	if (self->paused) {
 		self->paused = false;
-		self->lastTime += self->timeFunction() - self->pauseTime;
+		self->protected_ivar(lastTime) += self->timeFunction() - self->pauseTime;
 	}
 }
 
 void FixedIntervalRunLoop_setTolerance(FixedIntervalRunLoop * self, double tolerance) {
 	self->tolerance = tolerance;
+}
+
+void FixedIntervalRunLoop_setTimeScale(FixedIntervalRunLoop * self, double multiplier) {
+	self->timeScale = multiplier;
 }
