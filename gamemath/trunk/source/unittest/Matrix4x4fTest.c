@@ -175,6 +175,19 @@ static void testMultiply() {
 	                                103.0f, 400.0f, 798.0f,  1240.0f,
 	                                114.0f, 448.0f, 900.0f,  1408.0f,
 	                                125.0f, 496.0f, 1002.0f, 1576.0f, EPSILON);
+	
+	matrix = MATRIX4x4f(1.0f, 7.0f,  19.0f, 37.0f,
+	                    2.0f, 11.0f, 23.0f, 41.0f,
+	                    3.0f, 13.0f, 29.0f, 43.0f,
+	                    5.0f, 17.0f, 31.0f, 47.0f),
+	Matrix4x4f_leftMultiply(&matrix, MATRIX4x4f(0.0f, 4.0f, 8.0f,  12.0f,
+	                                            1.0f, 5.0f, 9.0f,  13.0f,
+	                                            2.0f, 6.0f, 10.0f, 14.0f,
+	                                            3.0f, 7.0f, 11.0f, 15.0f));
+	assertMatrixApproximate(matrix, 92.0f,  352.0f, 696.0f,  1072.0f,
+	                                103.0f, 400.0f, 798.0f,  1240.0f,
+	                                114.0f, 448.0f, 900.0f,  1408.0f,
+	                                125.0f, 496.0f, 1002.0f, 1576.0f, EPSILON);
 }
 
 static void testTranslate() {

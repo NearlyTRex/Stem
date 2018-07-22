@@ -48,7 +48,8 @@ struct interpolationContext {
 	double interval;
 	double startTime;
 	double currentTime;
-	float (* curveFunc)(float value);
+	float (* curveFunc)(float value, void * curveFuncContext);
+	void * curveFuncContext;
 	float startValue;
 	float endValue;
 	float currentValue; // startValue .. endValue, curved
@@ -72,10 +73,10 @@ struct interpolationContext {
    Curve functions are called with values of currentProgress whenever currentValue is being recalculated.
    The return value of the curve function specifies the interpolation point between startValue and endValue
    for the argument passed to it. In order for currentValue to start at startValue and end at endValue, any
-   curve function you implement musyt return 0 for an input of 0 and return 1 for an input of 1. Returning
+   curve function you implement must return 0 for an input of 0 and return 1 for an input of 1. Returning
    other values for these inputs will cause currentValue to start and/or end at a different value than the
    specified startValue and endValue. */
-struct interpolationContext interpolationContextInit(float startValue, float endValue, double interval, bool allowExtrapolation, float (* curveFunc)(float value));
+struct interpolationContext interpolationContextInit(float startValue, float endValue, double interval, bool allowExtrapolation, float (* curveFunc)(float value, void * context), void * curveFuncContext);
 
 /* Initializes the context's startTime field and resets progress to 0. startTime must be set (either by
    calling this function or manually) in order for interpolationSetCurrentTime() to work correctly.
@@ -93,10 +94,11 @@ void interpolationSetCurrentTime(struct interpolationContext * context, double c
 /* Updates currentProgress to the specified value, updating both currentValue and currentTime. */
 void interpolationSetProgress(struct interpolationContext * context, float progress);
 
-float InterpolationCurveFunc_linear(float value);
-float InterpolationCurveFunc_easeInSin(float value);
-float InterpolationCurveFunc_easeOutSin(float value);
-float InterpolationCurveFunc_easeInOutSin(float value);
+// All built-in curve functions ignore context; pass NULL to use
+float InterpolationCurveFunc_linear(float value, void * curveFuncContext);
+float InterpolationCurveFunc_easeInSin(float value, void * curveFuncContext);
+float InterpolationCurveFunc_easeOutSin(float value, void * curveFuncContext);
+float InterpolationCurveFunc_easeInOutSin(float value, void * curveFuncContext);
 
 #ifdef __cplusplus
 }

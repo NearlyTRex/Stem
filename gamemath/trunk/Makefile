@@ -2,7 +2,7 @@ PROJECT_NAME = gamemath
 
 # VERSION_MAJOR, VERSION_MINOR, and VERSION_TWEAK are available as preprocessor macros for all source files in the project
 VERSION_MAJOR = 3
-VERSION_MINOR = 0
+VERSION_MINOR = 1
 VERSION_TWEAK = 0
 PROJECT_VERSION = ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_TWEAK}
 
@@ -83,6 +83,7 @@ SOURCES_library = \
 	source/${PROJECT_NAME}/Matrix4x4f.c \
 	source/${PROJECT_NAME}/Matrix4x4x.c \
 	source/${PROJECT_NAME}/MouseCoordinateTransforms.c \
+	source/${PROJECT_NAME}/ParameterSpline.c \
 	source/${PROJECT_NAME}/Quaternionf.c \
 	source/${PROJECT_NAME}/Quaternionx.c \
 	build/intermediate/generated/${PROJECT_NAME}/Box6d.c \
@@ -116,6 +117,7 @@ SOURCES_unittest_suites = \
 	source/unittest/Matrix4x4fTest.c \
 	source/unittest/Matrix4x4xTest.c \
 	source/unittest/MouseCoordinateTransformsTest.c \
+	source/unittest/ParameterSplineTest.c \
 	source/unittest/RectBoxConversionsTest.c \
 	source/unittest/RectBoxTest.c \
 	source/unittest/QuaternionfTest.c \
@@ -138,6 +140,7 @@ INCLUDES = \
 	source/${PROJECT_NAME}/Matrix4x4f.h \
 	source/${PROJECT_NAME}/Matrix4x4x.h \
 	source/${PROJECT_NAME}/MouseCoordinateTransforms.h \
+	source/${PROJECT_NAME}/ParameterSpline.h \
 	source/${PROJECT_NAME}/Quaternionf.h \
 	source/${PROJECT_NAME}/Quaternionx.h \
 	build/intermediate/generated/${PROJECT_NAME}/Box6d.h \

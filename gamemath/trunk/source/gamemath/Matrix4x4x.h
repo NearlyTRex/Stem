@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2015 Alex Diener
+  Copyright (c) 2018 Alex Diener
   
   This software is provided 'as-is', without any express or implied
   warranty. In no event will the authors be held liable for any damages
@@ -45,6 +45,15 @@ struct Matrix4x4x {
 
 void Matrix4x4x_loadIdentity(Matrix4x4x * matrix1);
 
+// Performs a multiplication of matrix1 with matrix2 and returns the result.
+Matrix4x4x Matrix4x4x_multiplied(Matrix4x4x matrix1, Matrix4x4x matrix2);
+
+// Performs a multiplication of matrix1 with matrix2 and stores the result in matrix1.
+void Matrix4x4x_multiply(Matrix4x4x * matrix1, Matrix4x4x matrix2);
+
+// Performs a multiplication of matrix2 with matrix1 and stores the result in matrix1.
+void Matrix4x4x_leftMultiply(Matrix4x4x * matrix1, Matrix4x4x matrix2);
+
 #define MATRIX4x4x(m0, m4, m8,  m12, \
                    m1, m5, m9,  m13, \
                    m2, m6, m10, m14, \
@@ -55,48 +64,54 @@ void Matrix4x4x_loadIdentity(Matrix4x4x * matrix1);
                         m12, m13, m14, m15}})
 Matrix4x4x Matrix4x4x_fromDirectionVectors(Vector3x right, Vector3x up, Vector3x front);
 
-void Matrix4x4x_multiply(Matrix4x4x * matrix1, Matrix4x4x matrix2);
-Matrix4x4x Matrix4x4x_multiplied(Matrix4x4x matrix1, Matrix4x4x matrix2);
+// Returns a new matrix that can be multiplied with another to transform it as specified.
+Matrix4x4x Matrix4x4x_translationMatrix(fixed16_16 x, fixed16_16 y, fixed16_16 z);
+Matrix4x4x Matrix4x4x_scaleMatrix(fixed16_16 x, fixed16_16 y, fixed16_16 z);
+Matrix4x4x Matrix4x4x_rotationMatrix(struct Vector3x axis, fixed16_16 radians);
+Matrix4x4x Matrix4x4x_shearXMatrix(fixed16_16 y, fixed16_16 z);
+Matrix4x4x Matrix4x4x_shearYMatrix(fixed16_16 x, fixed16_16 z);
+Matrix4x4x Matrix4x4x_shearZMatrix(fixed16_16 x, fixed16_16 y);
+Matrix4x4x Matrix4x4x_perspectiveMatrix(fixed16_16 fovYDegrees, fixed16_16 aspect, fixed16_16 zNear, fixed16_16 zFar);
+Matrix4x4x Matrix4x4x_orthoMatrix(fixed16_16 left, fixed16_16 right, fixed16_16 bottom, fixed16_16 top, fixed16_16 zNear, fixed16_16 zFar);
 
+// Convenience functions to multiply matrix by a constructed transformation and store the result in matrix.
+// To multiply in the other order, construct the transformation yourself and call Matrix_leftMultiply().
 void Matrix4x4x_translate(Matrix4x4x * matrix1, fixed16_16 x, fixed16_16 y, fixed16_16 z);
-Matrix4x4x Matrix4x4x_translated(Matrix4x4x matrix1, fixed16_16 x, fixed16_16 y, fixed16_16 z);
-
 void Matrix4x4x_scale(Matrix4x4x * matrix, fixed16_16 x, fixed16_16 y, fixed16_16 z);
-Matrix4x4x Matrix4x4x_scaled(Matrix4x4x matrix, fixed16_16 x, fixed16_16 y, fixed16_16 z);
-
 void Matrix4x4x_rotate(Matrix4x4x * matrix, struct Vector3x axis, fixed16_16 radians);
-Matrix4x4x Matrix4x4x_rotated(Matrix4x4x matrix, struct Vector3x axis, fixed16_16 radians);
-
 void Matrix4x4x_shearX(Matrix4x4x * matrix, fixed16_16 y, fixed16_16 z);
-Matrix4x4x Matrix4x4x_shearedX(Matrix4x4x matrix, fixed16_16 y, fixed16_16 z);
-
 void Matrix4x4x_shearY(Matrix4x4x * matrix, fixed16_16 x, fixed16_16 z);
-Matrix4x4x Matrix4x4x_shearedY(Matrix4x4x matrix, fixed16_16 x, fixed16_16 z);
-
 void Matrix4x4x_shearZ(Matrix4x4x * matrix, fixed16_16 x, fixed16_16 y);
-Matrix4x4x Matrix4x4x_shearedZ(Matrix4x4x matrix, fixed16_16 x, fixed16_16 y);
-
 void Matrix4x4x_applyPerspective(Matrix4x4x * matrix, fixed16_16 fovYDegrees, fixed16_16 aspect, fixed16_16 zNear, fixed16_16 zFar);
-Matrix4x4x Matrix4x4x_perspective(Matrix4x4x matrix, fixed16_16 fovYDegrees, fixed16_16 aspect, fixed16_16 zNear, fixed16_16 zFar);
-
 void Matrix4x4x_applyOrtho(Matrix4x4x * matrix, fixed16_16 left, fixed16_16 right, fixed16_16 bottom, fixed16_16 top, fixed16_16 zNear, fixed16_16 zFar);
+
+// Convenience functions to multiply matrix by a constructed transformation and return the result.
+// To multiply in the other order, construct the transformation yourself and call Matrix_multiplied() with the target matrix as the second parameter.
+Matrix4x4x Matrix4x4x_translated(Matrix4x4x matrix1, fixed16_16 x, fixed16_16 y, fixed16_16 z);
+Matrix4x4x Matrix4x4x_scaled(Matrix4x4x matrix, fixed16_16 x, fixed16_16 y, fixed16_16 z);
+Matrix4x4x Matrix4x4x_rotated(Matrix4x4x matrix, struct Vector3x axis, fixed16_16 radians);
+Matrix4x4x Matrix4x4x_shearedX(Matrix4x4x matrix, fixed16_16 y, fixed16_16 z);
+Matrix4x4x Matrix4x4x_shearedY(Matrix4x4x matrix, fixed16_16 x, fixed16_16 z);
+Matrix4x4x Matrix4x4x_shearedZ(Matrix4x4x matrix, fixed16_16 x, fixed16_16 y);
+Matrix4x4x Matrix4x4x_perspective(Matrix4x4x matrix, fixed16_16 fovYDegrees, fixed16_16 aspect, fixed16_16 zNear, fixed16_16 zFar);
 Matrix4x4x Matrix4x4x_ortho(Matrix4x4x matrix, fixed16_16 left, fixed16_16 right, fixed16_16 bottom, fixed16_16 top, fixed16_16 zNear, fixed16_16 zFar);
 
-void Matrix4x4x_transpose(Matrix4x4x * matrix);
 Matrix4x4x Matrix4x4x_transposed(Matrix4x4x matrix);
+void Matrix4x4x_transpose(Matrix4x4x * matrix);
 
 fixed16_16 Matrix4x4x_determinant(Matrix4x4x matrix);
 
-void Matrix4x4x_invert(Matrix4x4x * matrix);
 Matrix4x4x Matrix4x4x_inverted(Matrix4x4x matrix);
+void Matrix4x4x_invert(Matrix4x4x * matrix);
 
-void Matrix4x4x_interpolate(Matrix4x4x * left, Matrix4x4x right, fixed16_16 value);
 Matrix4x4x Matrix4x4x_interpolated(Matrix4x4x left, Matrix4x4x right, fixed16_16 value);
+void Matrix4x4x_interpolate(Matrix4x4x * left, Matrix4x4x right, fixed16_16 value);
 
 Vector2x Matrix4x4x_multiplyVector2x(Matrix4x4x matrix, Vector2x vector);
 Vector3x Matrix4x4x_multiplyVector3x(Matrix4x4x matrix, Vector3x vector);
 Vector4x Matrix4x4x_multiplyVector4x(Matrix4x4x matrix, Vector4x vector);
 
+// Performs a vector multiplication treating this as a 3x3 matrix. Despite the name, scale will still be applied as well as rotation.
 Vector3x Matrix4x4x_multiplyVector3x_rotationOnly(Matrix4x4x matrix, Vector3x vector);
 
 #ifdef __cplusplus

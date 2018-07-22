@@ -1,3 +1,8 @@
+3.1.0 (2018-07-21)
+ * Matrix additions: Functions for constructing a transformation without immediately multiplying by it, and a convenience leftMultiply() function.
+ * Added ParameterSpline
+ * Added a context pointer to Interpolation to allow it to be used with ParameterSpline and other things that require extra data
+
 3.0.0 (2016-01-31)
  * Added Rect4*.h and Box6*.h for 2D and 3D boundaries, with numeric types matching those provided by Vector*
  * Added VectorConversions.h and RectBoxConversions.h with convenience macros for converting between structure data types and (for vectors) axis counts

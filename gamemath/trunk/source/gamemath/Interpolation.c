@@ -24,7 +24,7 @@
 #include <math.h>
 #include <stdlib.h>
 
-struct interpolationContext interpolationContextInit(float startValue, float endValue, double interval, bool allowExtrapolation, float (* curveFunc)(float value)) {
+struct interpolationContext interpolationContextInit(float startValue, float endValue, double interval, bool allowExtrapolation, float (* curveFunc)(float value, void * curveFuncContext), void * curveFuncContext) {
 	struct interpolationContext context;
 	
 	context.startValue = startValue;
@@ -33,6 +33,7 @@ struct interpolationContext interpolationContextInit(float startValue, float end
 	context.interval = interval;
 	context.startTime = 0.0;
 	context.curveFunc = curveFunc;
+	context.curveFuncContext = curveFuncContext;
 	interpolationSetProgress(&context, 0.0f);
 	
 	return context;
@@ -67,24 +68,24 @@ void interpolationSetProgress(struct interpolationContext * context, float progr
 	if (context->curveFunc == NULL) {
 		curvedProgress = progress;
 	} else {
-		curvedProgress = context->curveFunc(progress);
+		curvedProgress = context->curveFunc(progress, context->curveFuncContext);
 	}
 	context->currentValue = context->startValue + (context->endValue - context->startValue) * curvedProgress;
 	context->currentTime = context->startTime + context->interval * progress;
 }
 
-float InterpolationCurveFunc_linear(float value) {
+float InterpolationCurveFunc_linear(float value, void * context) {
 	return value;
 }
 
-float InterpolationCurveFunc_easeInSin(float value) {
+float InterpolationCurveFunc_easeInSin(float value, void * context) {
 	return 1.0f - cosf(value * M_PI * 0.5f);
 }
 
-float InterpolationCurveFunc_easeOutSin(float value) {
+float InterpolationCurveFunc_easeOutSin(float value, void * context) {
 	return sinf(value * M_PI * 0.5f);
 }
 
-float InterpolationCurveFunc_easeInOutSin(float value) {
-	return 0.5f * sin(M_PI * (value - 0.5f)) + 0.5f;
+float InterpolationCurveFunc_easeInOutSin(float value, void * context) {
+	return 0.5f * sinf(M_PI * (value - 0.5f)) + 0.5f;
 }
