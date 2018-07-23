@@ -20,6 +20,7 @@ static void verifyInit(FixedIntervalRunLoop * runLoop, double (* timeFunction)()
 	TestCase_assert(runLoop->stepContext == stepContext, "Expected %p but got %p", stepContext, runLoop->stepContext);
 	TestCase_assert(runLoop->timeScale == 1.0, "Expected 1.0 but got %f", runLoop->timeScale);
 	TestCase_assert(runLoop->tolerance == 0.0, "Expected 0.0 but got %f", runLoop->tolerance);
+	TestCase_assert(runLoop->slop == 0.0, "Expected 0.0 but got %f", runLoop->slop);
 	TestCase_assert(!runLoop->paused, "Expected false but got true");
 }
 

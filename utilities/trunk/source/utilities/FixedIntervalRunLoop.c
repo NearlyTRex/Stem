@@ -39,7 +39,7 @@ bool FixedIntervalRunLoop_init(FixedIntervalRunLoop * self, double (* timeFuncti
 	self->stepContext = stepContext;
 	self->protected_ivar(lastTime) = self->timeFunction();
 	self->timeScale = 1.0;
-	self->protected_ivar(slop) = 0.0;
+	self->slop = 0.0;
 	self->tolerance = 0.0;
 	self->paused = false;
 	self->private_ivar(disposedWhileRunning) = NULL;
@@ -63,7 +63,7 @@ unsigned int FixedIntervalRunLoop_run(FixedIntervalRunLoop * self) {
 		return 0;
 	}
 	currentTime = self->timeFunction();
-	interval = (currentTime - self->protected_ivar(lastTime)) * self->timeScale + self->protected_ivar(slop);
+	interval = (currentTime - self->protected_ivar(lastTime)) * self->timeScale + self->slop;
 	
 	self->private_ivar(disposedWhileRunning) = &disposedWhileRunning;
 	while (interval >= self->stepInterval) {
@@ -85,7 +85,7 @@ unsigned int FixedIntervalRunLoop_run(FixedIntervalRunLoop * self) {
 		}
 		interval -= self->stepInterval;
 	}
-	self->protected_ivar(slop) = interval;
+	self->slop = interval;
 	self->protected_ivar(lastTime) = currentTime;
 	self->private_ivar(disposedWhileRunning) = NULL;
 	
