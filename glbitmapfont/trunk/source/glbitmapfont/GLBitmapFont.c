@@ -21,7 +21,6 @@
 */
 
 #include "glbitmapfont/GLBitmapFont.h"
-#include "glgraphics/GLGraphics.h"
 #include <string.h>
 #include <stddef.h>
 #include <stdio.h>

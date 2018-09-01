@@ -3,7 +3,6 @@
 #include "shell/ShellKeyCodes.h"
 #include "gamemath/Matrix4x4f.h"
 #include "glbitmapfont/GLBitmapFont.h"
-#include "glgraphics/GLGraphics.h"
 #include "glgraphics/GLIncludes.h"
 #include "gltexture/GLTexture.h"
 #include "jsonserialization/JSONDeserializationContext.h"
@@ -33,8 +32,8 @@ static GLBitmapFont * font;
 static const char * jsonPath = NULL;
 static size_t lastIndexAtWidth = 0;
 static bool lastLeadingEdge = false;
-static GLint matrixUniform;
-static GLint textureUniform;
+//static GLint matrixUniform;
+//static GLint textureUniform;
 static float scale = 1.0f;
 
 #if defined(STEM_PLATFORM_iphoneos) || defined(STEM_PLATFORM_iphonesimulator)
@@ -97,16 +96,16 @@ static bool Target_draw() {
 	ratio = (float) viewportWidth / viewportHeight;
 	projectionMatrix = Matrix4x4f_ortho(MATRIX4x4f_IDENTITY, -ratio, ratio, -1.0f, 1.0f, -1.0f, 1.0f);
 	
-	if (GLGraphics_getOpenGLAPIVersion() == GL_API_VERSION_ES2) {
+	/*if (GLGraphics_getOpenGLAPIVersion() == GL_API_VERSION_ES2) {
 		glUniformMatrix4fv(matrixUniform, 1, GL_FALSE, projectionMatrix.m);
 		glUniform1i(textureUniform, 0);
 		glVertexAttrib4f(2, 1.0f, 1.0f, 1.0f, 1.0f);
 		
-	} else {
+	} else {*/
 		glMatrixMode(GL_PROJECTION);
 		glLoadMatrixf(projectionMatrix.m);
 		glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-	}
+	//}
 	
 	stringWidth = GLBitmapFont_measureString(font, "Hello, world!", 13);
 	drawString(font, "Hello, world!", 13, 0.1f * scale, stringWidth * -0.05f * scale, 0.0f);
@@ -114,11 +113,11 @@ static bool Target_draw() {
 	stringWidth = GLBitmapFont_measureString(font, freeformText, strlen(freeformText));
 	drawString(font, freeformText, strlen(freeformText), 0.0625f * scale, stringWidth * -0.03125f * scale, -0.0625f * scale);
 	
-	if (GLGraphics_getOpenGLAPIVersion() == GL_API_VERSION_ES2) {
-		glVertexAttrib4f(2, 0.875f, 0.875f, 0.5f, 1.0f);
-	} else {
+	//if (GLGraphics_getOpenGLAPIVersion() == GL_API_VERSION_ES2) {
+	//	glVertexAttrib4f(2, 0.875f, 0.875f, 0.5f, 1.0f);
+	//} else {
 		glColor4f(0.875f, 0.875f, 0.5f, 1.0f);
-	}
+	//}
 	snprintf(indexString, 32, "%u, %s", (unsigned int) lastIndexAtWidth, lastLeadingEdge ? "true" : "false");
 	stringWidth = GLBitmapFont_measureString(font, indexString, strlen(indexString));
 	drawString(font, indexString, strlen(indexString), 0.05f * scale, stringWidth * -0.025f * scale, 0.1f * scale);
@@ -363,7 +362,7 @@ void Target_init() {
 	GLBitmapFont_setTextureAtlas(font, atlas, true);
 	
 	memset(freeformText, 0, FREEFORM_LENGTH_MAX + 1);
-	
+	/*
 	if (GLGraphics_getOpenGLAPIVersion() == GL_API_VERSION_ES2) {
 		void * fileContents;
 		size_t fileLength;
@@ -431,6 +430,6 @@ void Target_init() {
 		glDeleteShader(fragmentShader);
 		glUseProgram(shaderProgram);
 	}
-	
+	*/
 	Shell_mainLoop();
 }
