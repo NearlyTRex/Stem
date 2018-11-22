@@ -73,12 +73,14 @@ MATERIAL STUFF
 
 
 TODO:
+- Fresnel effect
+- No current mechanism for anything other than built-in shaders. Is this a problem?
 - Animation controller object with graph logic? Also event dispatching
 - IK (https://www.webcitation.org/60uCFHqC2?url=http://freespace.virgin.net/hugo.elias/models/m_ik2.htm)
 - Advanced lighting (research needed)
  - Idea: Keep multiple fragment shaders compiled and ready; on CPU, compute the number of influencing lights for each object, and select shader with appropriate number of lights in it to draw that object, up to a reasonable maximum
-- Depth sorting/translucency
-- Fluid simulation
+ - Multipass with deferred lighting
+- Depth sorting
 - VR
 
 LOWER PRIORITY:
@@ -88,9 +90,14 @@ LOWER PRIORITY:
 - Morphing? (maybe better to do without)
 - Possible normal map optimization: Do all lighting calculations in tangent space, so fragment shader doesn't have to do a matrix multiplication per fragment
 - Calculate normal matrix in renderer instead of vertex shader
-- Callback renderable type
 - Culling
 - Fog
 - Shadows
 - SSAO
 - Cloth simulation
+- Instancing
+- Color deficiency shaders
+
+
+ANIMATION STUFF
+- Some animations need to be smarter than just a time value. Quadruped locomotion gives four ground positions. Looking takes a target vector. Blinking, breathing, etc. can be simple, but needs to be blended, and follow different intervals sometimes.

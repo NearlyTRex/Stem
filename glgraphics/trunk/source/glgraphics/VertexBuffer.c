@@ -36,25 +36,13 @@ VertexBuffer * VertexBuffer_createPTNXCBW(const struct vertex_p3f_t2f_n3f_x4f_c4
 	stemobject_create_implementation(VertexBuffer, initPTNXCBW, vertices, vertexCount, indexes, indexCount, usageHint)
 }
 
-static void sharedInit(VertexBuffer * self, const void * vertices, size_t vertexSize, unsigned int vertexCount, const GLuint * indexes, unsigned int indexCount, enum VertexBufferUsageHint usageHint) {
+static void calculateBounds(VertexBuffer * self, const void * vertices) {
 	unsigned int vertexIndex;
 	Vector3f position;
 	
-	call_super(init, self);
-	self->dispose = VertexBuffer_dispose;
-	
-	glGenVertexArrays(1, &self->vaoID);
-	glBindVertexArray(self->vaoID);
-	glGenBuffers(1, &self->vertexBufferID);
-	glGenBuffers(1, &self->indexBufferID);
-	
-	self->private_ivar(vertexSize) = vertexSize;
-	self->usageHint = usageHint;
-	VertexBuffer_bufferData(self, vertices, vertexCount, indexes, indexCount);
-	
 	self->bounds = BOX6f(FLT_MAX, -FLT_MAX, FLT_MAX, -FLT_MAX, FLT_MAX, -FLT_MAX);
-	for (vertexIndex = 0; vertexIndex < vertexCount; vertexIndex++) {
-		position = *((Vector3f *) (vertices + vertexIndex * vertexSize));
+	for (vertexIndex = 0; vertexIndex < self->vertexCount; vertexIndex++) {
+		position = *((Vector3f *) (vertices + vertexIndex * self->private_ivar(vertexSize)));
 		if (position.x < self->bounds.left) {
 			self->bounds.left = position.x;
 		}
@@ -74,6 +62,21 @@ static void sharedInit(VertexBuffer * self, const void * vertices, size_t vertex
 			self->bounds.front = position.z;
 		}
 	}
+}
+
+static void sharedInit(VertexBuffer * self, const void * vertices, size_t vertexSize, unsigned int vertexCount, const GLuint * indexes, unsigned int indexCount, enum VertexBufferUsageHint usageHint) {
+	call_super(init, self);
+	self->dispose = VertexBuffer_dispose;
+	
+	glGenVertexArrays(1, &self->vaoID);
+	glBindVertexArray(self->vaoID);
+	glGenBuffers(1, &self->vertexBufferID);
+	glGenBuffers(1, &self->indexBufferID);
+	
+	self->private_ivar(vertexSize) = vertexSize;
+	self->private_ivar(mappedVertices) = NULL;
+	self->usageHint = usageHint;
+	VertexBuffer_bufferData(self, vertices, vertexCount, indexes, indexCount);
 }
 
 bool VertexBuffer_initPTNXC(VertexBuffer * self, const struct vertex_p3f_t2f_n3f_x4f_c4f * vertices, unsigned int vertexCount, const GLuint * indexes, unsigned int indexCount, enum VertexBufferUsageHint usageHint) {
@@ -147,11 +150,13 @@ void VertexBuffer_bufferData(VertexBuffer * self, const void * vertices, unsigne
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(*indexes) * indexCount, indexes, usageHint);
 	self->vertexCount = vertexCount;
 	self->indexCount = indexCount;
+	calculateBounds(self, vertices);
 }
 
 void * VertexBuffer_mapData(VertexBuffer * self, enum VertexBufferDataType dataType, enum VertexBufferAccessMode accessMode) {
 	GLenum glBufferType;
 	GLenum glAccessMode;
+	void * mappedData;
 	
 	switch (dataType) {
 		case VERTEX_BUFFER_DATA_TYPE_VERTEX:
@@ -179,7 +184,11 @@ void * VertexBuffer_mapData(VertexBuffer * self, enum VertexBufferDataType dataT
 			return NULL;
 	}
 	
-	return glMapBuffer(glBufferType, glAccessMode);
+	mappedData = glMapBuffer(glBufferType, glAccessMode);
+	if (dataType == VERTEX_BUFFER_DATA_TYPE_VERTEX && (accessMode == VERTEX_BUFFER_ACCESS_MODE_WRITE_ONLY || accessMode == VERTEX_BUFFER_ACCESS_MODE_READ_WRITE)) {
+		self->private_ivar(mappedVertices) = mappedData;
+	}
+	return mappedData;
 }
 
 void VertexBuffer_unmapData(VertexBuffer * self, enum VertexBufferDataType dataType) {
@@ -188,6 +197,10 @@ void VertexBuffer_unmapData(VertexBuffer * self, enum VertexBufferDataType dataT
 	switch (dataType) {
 		case VERTEX_BUFFER_DATA_TYPE_VERTEX:
 			glBufferType = GL_ARRAY_BUFFER;
+			if (self->private_ivar(mappedVertices) != NULL) {
+				calculateBounds(self, self->private_ivar(mappedVertices));
+				self->private_ivar(mappedVertices) = NULL;
+			}
 			break;
 		case VERTEX_BUFFER_DATA_TYPE_INDEX:
 			glBufferType = GL_ELEMENT_ARRAY_BUFFER;

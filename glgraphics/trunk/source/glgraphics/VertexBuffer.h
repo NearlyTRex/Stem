@@ -61,7 +61,8 @@ enum VertexBufferDataType {
 	unsigned int indexCount; \
 	Box6f bounds; \
 	enum VertexBufferUsageHint usageHint; \
-	size_t private_ivar(vertexSize);
+	size_t private_ivar(vertexSize); \
+	void * private_ivar(mappedVertices);
 
 stemobject_struct_definition(VertexBuffer)
 
