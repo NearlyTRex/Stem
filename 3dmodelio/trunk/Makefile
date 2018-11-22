@@ -19,7 +19,7 @@ HUMAN_READABLE_TARGET_NAME_testharness = 3D\ Model\ IO
 
 # Patterns: PLATFORMS, PLATFORMS_${target}
 PLATFORMS = macosx iphonesimulator iphoneos linux32 linux64 win32 win64
-PLATFORMS_meshutils = macosx linux32, linux64 win32 win64
+PLATFORMS_meshutils = macosx linux32 linux64 win32 win64
 TARGET_PLATFORMS_meshutils = ${filter ${TARGET_PLATFORMS},${PLATFORMS_meshutils}}
 CONFIGURATIONS_meshutils = debug profile
 

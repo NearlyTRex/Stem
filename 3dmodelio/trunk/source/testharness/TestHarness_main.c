@@ -78,14 +78,14 @@ static bool Target_draw() {
 }
 
 static void setMaterialTexture(Material * material, const char * textureResourceName, enum MaterialTextureType textureType, bool magnifyNearest) {
-	BitmapImage * colorImage;
+	BitmapImage * image;
 	
-	colorImage = ResourceManager_referenceResource(resourceManager, ATOM("png"), textureResourceName);
-	if (colorImage != NULL) {
-		Material_setTexture(material, textureType, magnifyNearest, colorImage->width, colorImage->height, colorImage->pixels);
-		ResourceManager_releaseResource(resourceManager, colorImage);
+	image = ResourceManager_referenceResource(resourceManager, ATOM("png"), textureResourceName);
+	if (image != NULL) {
+		Material_setTexture(material, textureType, magnifyNearest, image->width, image->height, image->pixels);
+		ResourceManager_releaseResource(resourceManager, image);
 	} else {
-		fprintf(stderr, "Couldn't load color texture image \"%s\"\n", textureResourceName);
+		fprintf(stderr, "Couldn't load texture image \"%s\"\n", textureResourceName);
 	}
 }
 
