@@ -70,8 +70,9 @@ struct RenderLayer {
 	Color4f ambientColor; \
 	Matrix4x4f projectionMatrix; \
 	Matrix4x4f viewMatrix; \
-	GLSLShader * shaderStatic; \
-	GLSLShader * shaderAnimated; \
+	GLSLShader * shaderStaticMesh; \
+	GLSLShader * shaderAnimatedMesh; \
+	GLSLShader * shaderSprite; \
 	Material * nullMaterial;
 
 stemobject_struct_definition(Renderer)

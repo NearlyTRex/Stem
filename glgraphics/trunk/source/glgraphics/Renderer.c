@@ -23,14 +23,17 @@
 #include "glgraphics/Renderer.h"
 #include "glgraphics/GLIncludes.h"
 #include "glgraphics/MeshRenderable.h"
+#include "glgraphics/SpriteRenderable.h"
 #include "glgraphics/VertexTypes.h"
 #include <stdio.h>
 #include <stdlib.h>
 
 // Generated sources
-#include "glgraphics/StaticVertexShader.h"
-#include "glgraphics/AnimatedVertexShader.h"
+#include "glgraphics/StaticMeshVertexShader.h"
+#include "glgraphics/AnimatedMeshVertexShader.h"
 #include "glgraphics/LitSurfaceFragmentShader.h"
+#include "glgraphics/SpriteVertexShader.h"
+#include "glgraphics/SpriteFragmentShader.h"
 
 #define SUPERCLASS StemObject
 #define BONE_COUNT_MAX 128
@@ -55,14 +58,14 @@ bool Renderer_init(Renderer * self, unsigned int layerCount) {
 	self->layerCount = layerCount;
 	self->projectionMatrix = MATRIX4x4f_IDENTITY;
 	self->viewMatrix = MATRIX4x4f_IDENTITY;
-	self->shaderStatic = GLSLShader_create(STATIC_StaticVertexShader, sizeof(STATIC_StaticVertexShader), STATIC_LitSurfaceFragmentShader, sizeof(STATIC_LitSurfaceFragmentShader),
+	self->shaderStaticMesh = GLSLShader_create(STATIC_StaticMeshVertexShader, sizeof(STATIC_StaticMeshVertexShader), STATIC_LitSurfaceFragmentShader, sizeof(STATIC_LitSurfaceFragmentShader),
 		"inPosition", VERTEX_ATTRIB_POSITION,
 		"inTexCoord", VERTEX_ATTRIB_TEXTURE_COORD,
 		"inNormal", VERTEX_ATTRIB_NORMAL,
 		"inTangent", VERTEX_ATTRIB_TANGENT,
 		"inColor", VERTEX_ATTRIB_COLOR,
 	NULL);
-	self->shaderAnimated = GLSLShader_create(STATIC_AnimatedVertexShader, sizeof(STATIC_AnimatedVertexShader), STATIC_LitSurfaceFragmentShader, sizeof(STATIC_LitSurfaceFragmentShader),
+	self->shaderAnimatedMesh = GLSLShader_create(STATIC_AnimatedMeshVertexShader, sizeof(STATIC_AnimatedMeshVertexShader), STATIC_LitSurfaceFragmentShader, sizeof(STATIC_LitSurfaceFragmentShader),
 		"inPosition", VERTEX_ATTRIB_POSITION,
 		"inTexCoord", VERTEX_ATTRIB_TEXTURE_COORD,
 		"inNormal", VERTEX_ATTRIB_NORMAL,
@@ -70,6 +73,11 @@ bool Renderer_init(Renderer * self, unsigned int layerCount) {
 		"inColor", VERTEX_ATTRIB_COLOR,
 		"inBoneID", VERTEX_ATTRIB_BONE_ID,
 		"inBoneWeight", VERTEX_ATTRIB_BONE_WEIGHT,
+	NULL);
+	self->shaderSprite = GLSLShader_create(STATIC_SpriteVertexShader, sizeof(STATIC_SpriteVertexShader), STATIC_SpriteFragmentShader, sizeof(STATIC_SpriteFragmentShader),
+		"inPosition", VERTEX_ATTRIB_POSITION,
+		"inTexCoord", VERTEX_ATTRIB_TEXTURE_COORD,
+		"inColor", VERTEX_ATTRIB_COLOR,
 	NULL);
 	self->nullMaterial = Material_create(COLOR4f(1.0f, 1.0f, 1.0f, 1.0f), 0.875f, 32.0f, 0.0f);
 	Material_setTexture(self->nullMaterial, MaterialTextureType_color, true, 1, 1, nullMaterialColor);
@@ -84,8 +92,9 @@ void Renderer_dispose(Renderer * self) {
 		free(self->layers[layerIndex].renderables);
 	}
 	free(self->layers);
-	GLSLShader_dispose(self->shaderStatic);
-	GLSLShader_dispose(self->shaderAnimated);
+	GLSLShader_dispose(self->shaderStaticMesh);
+	GLSLShader_dispose(self->shaderAnimatedMesh);
+	GLSLShader_dispose(self->shaderSprite);
 	glBindVertexArray(0);
 	Material_dispose(self->nullMaterial);
 	call_super(dispose, self);
@@ -222,7 +231,7 @@ void Renderer_drawSingle(Renderer * self, Renderable * renderable) {
 			GLSLShader * shader;
 			Vector3f cameraPosition;
 			
-			shader = mesh->animationState == NULL ? self->shaderStatic : self->shaderAnimated;
+			shader = mesh->animationState == NULL ? self->shaderStaticMesh : self->shaderAnimatedMesh;
 			glUseProgram(shader->programID);
 			glUniformMatrix4fv(GLSLShader_getUniformLocation(shader, "projectionTransform"), 1, GL_FALSE, self->projectionMatrix.m);
 			glUniformMatrix4fv(GLSLShader_getUniformLocation(shader, "viewTransform"), 1, GL_FALSE, self->viewMatrix.m);
@@ -276,6 +285,27 @@ void Renderer_drawSingle(Renderer * self, Renderable * renderable) {
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, 0);
 			glActiveTexture(GL_TEXTURE1);
+			glBindTexture(GL_TEXTURE_2D, 0);
+			glUseProgram(0);
+			
+			break;
+		}
+		case RENDERABLE_SPRITE: {
+			// TODO: Batch by atlas
+			SpriteRenderable * sprite = (SpriteRenderable *) renderable;
+			
+			glUseProgram(self->shaderSprite->programID);
+			glUniformMatrix4fv(GLSLShader_getUniformLocation(self->shaderSprite, "projectionTransform"), 1, GL_FALSE, self->projectionMatrix.m);
+			glUniformMatrix4fv(GLSLShader_getUniformLocation(self->shaderSprite, "viewTransform"), 1, GL_FALSE, self->viewMatrix.m);
+			glUniformMatrix4fv(GLSLShader_getUniformLocation(self->shaderSprite, "modelTransform"), 1, GL_FALSE, sprite->transform.m);
+			glUniform1i(GLSLShader_getUniformLocation(self->shaderSprite, "colorTexture"), 0);
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, sprite->atlas->textureID);
+			
+			glBindVertexArray(sprite->vaoID);
+			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, 0);
+			glBindVertexArray(0);
+			
 			glBindTexture(GL_TEXTURE_2D, 0);
 			glUseProgram(0);
 			

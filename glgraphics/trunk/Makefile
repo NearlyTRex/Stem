@@ -33,6 +33,7 @@ PROJECT_LIBRARY_DEPENDENCIES_testharness = library
 # STEM_LIBRARY_DEPENDENCIES is specified as ${PROJECT_NAME}/${PROJECT_VERSION} for each stem library to be linked when building
 # Patterns: STEM_LIBRARY_DEPENDENCIES, STEM_LIBRARY_DEPENDENCIES_${target}, STEM_LIBRARY_DEPENDENCIES_${platform}, STEM_LIBRARY_DEPENDENCIES_${target}_${platform}
 STEM_LIBRARY_DEPENDENCIES = \
+	dynamictypes/latest \
 	gamemath/latest \
 	stemobject/latest \
 	utilities/latest
@@ -49,9 +50,11 @@ THIRDPARTY_LIBRARY_DEPENDENCIES_win32 = glew/2.0.0/libglew.a
 THIRDPARTY_LIBRARY_DEPENDENCIES_win64 = glew/2.0.0/libglew.a
 
 GENERATED_SOURCES = \
-	build/intermediate/generated/${PROJECT_NAME}/StaticVertexShader.h \
-	build/intermediate/generated/${PROJECT_NAME}/AnimatedVertexShader.h \
-	build/intermediate/generated/${PROJECT_NAME}/LitSurfaceFragmentShader.h
+	build/intermediate/generated/${PROJECT_NAME}/StaticMeshVertexShader.h \
+	build/intermediate/generated/${PROJECT_NAME}/AnimatedMeshVertexShader.h \
+	build/intermediate/generated/${PROJECT_NAME}/LitSurfaceFragmentShader.h \
+	build/intermediate/generated/${PROJECT_NAME}/SpriteVertexShader.h \
+	build/intermediate/generated/${PROJECT_NAME}/SpriteFragmentShader.h
 
 # Additional build prerequisites per target
 # Patterns: PREREQS, PREREQS_${target}
@@ -67,6 +70,8 @@ SOURCES_library = \
 	source/${PROJECT_NAME}/OrbitCamera.c \
 	source/${PROJECT_NAME}/Renderable.c \
 	source/${PROJECT_NAME}/Renderer.c \
+	source/${PROJECT_NAME}/SpriteRenderable.c \
+	source/${PROJECT_NAME}/TextureAtlas.c \
 	source/${PROJECT_NAME}/VertexBuffer.c
 
 # Executable targets named "unittest" should usually specify only SOURCES_unittest_suites, which must contain only test suite files.
@@ -90,6 +95,8 @@ INCLUDES = \
 	source/${PROJECT_NAME}/OrbitCamera.h \
 	source/${PROJECT_NAME}/Renderable.h \
 	source/${PROJECT_NAME}/Renderer.h \
+	source/${PROJECT_NAME}/SpriteRenderable.h \
+	source/${PROJECT_NAME}/TextureAtlas.h \
 	source/${PROJECT_NAME}/VertexBuffer.h \
 	source/${PROJECT_NAME}/VertexTypes.h
 
@@ -103,11 +110,6 @@ ANALYZER_EXCLUDE_SOURCES_splint = \
 
 CLANGFLAGS = -I build/intermediate/generated
 SPLINTFLAGS = -I build/intermediate/generated
-
-DEPENDENCY_SED_COMMANDS = \
-	s,source/${PROJECT_NAME}/DefaultVertexShader,build/intermediate/generated/${PROJECT_NAME}/StaticVertexShader,g; \
-	s,source/${PROJECT_NAME}/DefaultVertexShader,build/intermediate/generated/${PROJECT_NAME}/AnimatedVertexShader,g; \
-	s,source/${PROJECT_NAME}/DefaultFragmentShader,build/intermediate/generated/${PROJECT_NAME}/LitSurfaceFragmentShader,g
 
 # Pattern: PLIST_FILE_${target}_${platform} (required for application targets on macosx, iphoneos, and iphonesimulator)
 PLIST_FILE_testharness_macosx = resources/Info_testharness_macosx.plist
@@ -135,6 +137,8 @@ build/intermediate/generated/${PROJECT_NAME}/$1.h: resources/$2 | build/intermed
 	ruby embed.rb $1 $$^ $$@
 endef
 
-${eval ${call generated_header_template,StaticVertexShader,static.vert}}
-${eval ${call generated_header_template,AnimatedVertexShader,animated.vert}}
+${eval ${call generated_header_template,StaticMeshVertexShader,static.vert}}
+${eval ${call generated_header_template,AnimatedMeshVertexShader,animated.vert}}
 ${eval ${call generated_header_template,LitSurfaceFragmentShader,litsurface.frag}}
+${eval ${call generated_header_template,SpriteVertexShader,sprite.vert}}
+${eval ${call generated_header_template,SpriteFragmentShader,sprite.frag}}

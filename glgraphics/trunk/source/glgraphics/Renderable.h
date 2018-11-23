@@ -30,7 +30,8 @@ typedef struct Renderable Renderable;
 
 typedef enum {
 	RENDERABLE_MESH,
-	RENDERABLE_DYNAMIC_MESH
+	RENDERABLE_DYNAMIC_MESH,
+	RENDERABLE_SPRITE
 } RenderableType;
 
 #include "stemobject/StemObject.h"
