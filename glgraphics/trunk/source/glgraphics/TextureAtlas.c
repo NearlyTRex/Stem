@@ -140,50 +140,50 @@ Vector2f TextureAtlas_getEntryDimensions(TextureAtlas * self, const char * key, 
 }
 
 #define getVertices_writePosition() \
-	outVertices[*ioVertexCount + 0].position[0] = \
-	outVertices[*ioVertexCount + 3].position[0] = offset.x - size.x * relativeOrigin.x; \
-	outVertices[*ioVertexCount + 0].position[1] = \
-	outVertices[*ioVertexCount + 1].position[1] = offset.y - size.y * relativeOrigin.y; \
-	outVertices[*ioVertexCount + 1].position[0] = \
-	outVertices[*ioVertexCount + 2].position[0] = offset.x + size.x * (1.0f - relativeOrigin.x); \
-	outVertices[*ioVertexCount + 2].position[1] = \
-	outVertices[*ioVertexCount + 3].position[1] = offset.y + size.y * (1.0f - relativeOrigin.y)
+	outVertices[vertexCount + 0].position[0] = \
+	outVertices[vertexCount + 3].position[0] = offset.x - size.x * relativeOrigin.x; \
+	outVertices[vertexCount + 0].position[1] = \
+	outVertices[vertexCount + 1].position[1] = offset.y - size.y * relativeOrigin.y; \
+	outVertices[vertexCount + 1].position[0] = \
+	outVertices[vertexCount + 2].position[0] = offset.x + size.x * (1.0f - relativeOrigin.x); \
+	outVertices[vertexCount + 2].position[1] = \
+	outVertices[vertexCount + 3].position[1] = offset.y + size.y * (1.0f - relativeOrigin.y)
 
 #define getVertices_writeTexCoords() \
-	outVertices[*ioVertexCount + 0].texCoords[0] = entry.left; \
-	outVertices[*ioVertexCount + 0].texCoords[1] = entry.bottom; \
-	outVertices[*ioVertexCount + 1].texCoords[0] = entry.right; \
-	outVertices[*ioVertexCount + 1].texCoords[1] = entry.bottom; \
-	outVertices[*ioVertexCount + 2].texCoords[0] = entry.right; \
-	outVertices[*ioVertexCount + 2].texCoords[1] = entry.top; \
-	outVertices[*ioVertexCount + 3].texCoords[0] = entry.left; \
-	outVertices[*ioVertexCount + 3].texCoords[1] = entry.top
+	outVertices[vertexCount + 0].texCoords[0] = entry.left; \
+	outVertices[vertexCount + 0].texCoords[1] = entry.bottom; \
+	outVertices[vertexCount + 1].texCoords[0] = entry.right; \
+	outVertices[vertexCount + 1].texCoords[1] = entry.bottom; \
+	outVertices[vertexCount + 2].texCoords[0] = entry.right; \
+	outVertices[vertexCount + 2].texCoords[1] = entry.top; \
+	outVertices[vertexCount + 3].texCoords[0] = entry.left; \
+	outVertices[vertexCount + 3].texCoords[1] = entry.top
 
 #define getVertices_writeColor() \
-	outVertices[*ioVertexCount + 0].color[0] = \
-	outVertices[*ioVertexCount + 1].color[0] = \
-	outVertices[*ioVertexCount + 2].color[0] = \
-	outVertices[*ioVertexCount + 3].color[0] = color.red; \
-	outVertices[*ioVertexCount + 0].color[1] = \
-	outVertices[*ioVertexCount + 1].color[1] = \
-	outVertices[*ioVertexCount + 2].color[1] = \
-	outVertices[*ioVertexCount + 3].color[1] = color.green; \
-	outVertices[*ioVertexCount + 0].color[2] = \
-	outVertices[*ioVertexCount + 1].color[2] = \
-	outVertices[*ioVertexCount + 2].color[2] = \
-	outVertices[*ioVertexCount + 3].color[2] = color.blue; \
-	outVertices[*ioVertexCount + 0].color[3] = \
-	outVertices[*ioVertexCount + 1].color[3] = \
-	outVertices[*ioVertexCount + 2].color[3] = \
-	outVertices[*ioVertexCount + 3].color[3] = color.alpha
+	outVertices[vertexCount + 0].color[0] = \
+	outVertices[vertexCount + 1].color[0] = \
+	outVertices[vertexCount + 2].color[0] = \
+	outVertices[vertexCount + 3].color[0] = color.red; \
+	outVertices[vertexCount + 0].color[1] = \
+	outVertices[vertexCount + 1].color[1] = \
+	outVertices[vertexCount + 2].color[1] = \
+	outVertices[vertexCount + 3].color[1] = color.green; \
+	outVertices[vertexCount + 0].color[2] = \
+	outVertices[vertexCount + 1].color[2] = \
+	outVertices[vertexCount + 2].color[2] = \
+	outVertices[vertexCount + 3].color[2] = color.blue; \
+	outVertices[vertexCount + 0].color[3] = \
+	outVertices[vertexCount + 1].color[3] = \
+	outVertices[vertexCount + 2].color[3] = \
+	outVertices[vertexCount + 3].color[3] = color.alpha
 
 #define getVertices_writeTypedIndexes(indexes) \
-	indexes[*ioIndexCount + 0] = *ioVertexCount; \
-	indexes[*ioIndexCount + 1] = *ioVertexCount + 1; \
-	indexes[*ioIndexCount + 2] = *ioVertexCount + 2; \
-	indexes[*ioIndexCount + 3] = *ioVertexCount + 2; \
-	indexes[*ioIndexCount + 4] = *ioVertexCount + 3; \
-	indexes[*ioIndexCount + 5] = *ioVertexCount;
+	indexes[indexCount + 0] = vertexCount; \
+	indexes[indexCount + 1] = vertexCount + 1; \
+	indexes[indexCount + 2] = vertexCount + 2; \
+	indexes[indexCount + 3] = vertexCount + 2; \
+	indexes[indexCount + 4] = vertexCount + 3; \
+	indexes[indexCount + 5] = vertexCount;
 
 #define getVertices_writeIndexes() \
 	switch (indexType) { \
@@ -205,6 +205,11 @@ Vector2f TextureAtlas_getEntryDimensions(TextureAtlas * self, const char * key, 
 	}
 
 void TextureAtlas_getVertices(TextureAtlas * self, const char * key, Vector2f offset, Vector2f relativeOrigin, Vector2f size, GLenum indexType, struct vertex_p2f_t2f * outVertices, void * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount) {
+	unsigned int vertexCount = 0;
+	
+	if (ioVertexCount != NULL) {
+		vertexCount = *ioVertexCount;
+	}
 	if (outVertices != NULL) {
 		struct TextureAtlas_entry entry;
 		
@@ -212,11 +217,17 @@ void TextureAtlas_getVertices(TextureAtlas * self, const char * key, Vector2f of
 		getVertices_writePosition();
 		getVertices_writeTexCoords();
 	}
+	vertexCount += 4;
 	if (outIndexes != NULL) {
+		unsigned int indexCount = 0;
+		
+		if (ioIndexCount != NULL) {
+			indexCount = *ioIndexCount;
+		}
 		getVertices_writeIndexes();
 	}
 	if (ioVertexCount != NULL) {
-		*ioVertexCount += 4;
+		*ioVertexCount = vertexCount;
 	}
 	if (ioIndexCount != NULL) {
 		*ioIndexCount += 6;
@@ -224,6 +235,11 @@ void TextureAtlas_getVertices(TextureAtlas * self, const char * key, Vector2f of
 }
 
 void TextureAtlas_getVerticesWithColor(TextureAtlas * self, const char * key, Vector2f offset, Vector2f relativeOrigin, Vector2f size, Color4f color, GLenum indexType, struct vertex_p2f_t2f_c4f * outVertices, void * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount) {
+	unsigned int vertexCount = 0;
+	
+	if (ioVertexCount != NULL) {
+		vertexCount = *ioVertexCount;
+	}
 	if (outVertices != NULL) {
 		struct TextureAtlas_entry entry;
 		
@@ -232,11 +248,17 @@ void TextureAtlas_getVerticesWithColor(TextureAtlas * self, const char * key, Ve
 		getVertices_writeTexCoords();
 		getVertices_writeColor();
 	}
+	vertexCount += 4;
 	if (outIndexes != NULL) {
+		unsigned int indexCount = 0;
+		
+		if (ioIndexCount != NULL) {
+			indexCount = *ioIndexCount;
+		}
 		getVertices_writeIndexes();
 	}
 	if (ioVertexCount != NULL) {
-		*ioVertexCount += 4;
+		*ioVertexCount = vertexCount;
 	}
 	if (ioIndexCount != NULL) {
 		*ioIndexCount += 6;

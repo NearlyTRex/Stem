@@ -5,6 +5,8 @@
 #include "glgraphics/MeshRenderable.h"
 #include "glgraphics/OrbitCamera.h"
 #include "glgraphics/Renderer.h"
+#include "glgraphics/SpriteRenderable.h"
+#include "glgraphics/TextureAtlas.h"
 #include "shell/Shell.h"
 #include "shell/ShellCallbacks.h"
 #include "shell/ShellKeyCodes.h"
@@ -38,14 +40,18 @@ static VertexBuffer * vertexBuffer;
 static VertexBuffer * armatureVertexBuffer;
 static MeshRenderable * renderable;
 static MeshRenderable * armatureRenderable;
+static TextureAtlas * atlas;
+static SpriteRenderable * sprite;
 static Armature * armature;
 static Animation * animation;
 static AnimationState * animationState;
 static OrbitCamera * camera;
 static bool shiftKeyDown, controlKeyDown;
 static unsigned int viewWidth = 1280, viewHeight = 720;
+static float viewRatio = 16.0f / 9.0f;
 static double animationStartTime, lastAnimationTime;
 static bool animating;
+static bool spriteMode;
 
 static bool Target_draw() {
 	if (animating && animationState != NULL) {
@@ -56,8 +62,13 @@ static bool Target_draw() {
 	}
 	
 	Renderer_clear(renderer);
-	Renderer_setViewMatrix(renderer, OrbitCamera_getMatrix(camera));
-	Renderer_setDrawMode(renderer, RENDERER_3D_OPAQUE);
+	if (spriteMode) {
+		Renderer_setViewMatrix(renderer, MATRIX4x4f_IDENTITY);
+		Renderer_setDrawMode(renderer, RENDERER_2D_OPAQUE);
+	} else {
+		Renderer_setViewMatrix(renderer, OrbitCamera_getMatrix(camera));
+		Renderer_setDrawMode(renderer, RENDERER_3D_OPAQUE);
+	}
 	Renderer_drawLayer(renderer, 0);
 	return true;
 }
@@ -75,8 +86,13 @@ static void initScene1() {
 	Renderer_clearAllRenderables(renderer);
 	Renderer_setClearColor(renderer, COLOR4f(0.0f, 0.125f, 0.25f, 0.0f));
 	Renderer_setLights(renderer, VECTOR3f(0.0f, 8.0f, 8.0f), COLOR4f(1.0f, 1.0f, 0.95f, 1.0f), VECTOR3f(-1.0f, -2.0f, -8.0f), COLOR4f(0.8f, 0.8f, 0.8f, 1.0f), COLOR4f(0.1f, 0.1f, 0.105f, 1.0f));
-	Renderer_setProjectionMatrix(renderer, Matrix4x4f_perspective(MATRIX4x4f_IDENTITY, PROJECTION_FOV, (float) viewWidth / (float) viewHeight, 0.5f, 100.0f));
+	Renderer_setProjectionMatrix(renderer, Matrix4x4f_perspective(MATRIX4x4f_IDENTITY, PROJECTION_FOV, viewRatio, 0.5f, 100.0f));
 	
+	if (sprite != NULL) {
+		SpriteRenderable_dispose(sprite);
+		sprite = NULL;
+	}
+	spriteMode = false;
 	if (renderable != NULL) {
 		MeshRenderable_dispose(renderable);
 	}
@@ -125,8 +141,13 @@ static void initScene2() {
 	Renderer_clearAllRenderables(renderer);
 	Renderer_setClearColor(renderer, COLOR4f(0.25f, 0.0f, 0.125f, 0.0f));
 	Renderer_setLights(renderer, VECTOR3f(0.0f, 8.0f, 8.0f), COLOR4f(1.0f, 1.0f, 0.95f, 1.0f), VECTOR3f(-1.0f, -2.0f, -8.0f), COLOR4f(0.8f, 0.8f, 0.8f, 1.0f), COLOR4f(0.1f, 0.1f, 0.105f, 1.0f));
-	Renderer_setProjectionMatrix(renderer, Matrix4x4f_perspective(MATRIX4x4f_IDENTITY, PROJECTION_FOV, (float) viewWidth / (float) viewHeight, 0.5f, 100.0f));
+	Renderer_setProjectionMatrix(renderer, Matrix4x4f_perspective(MATRIX4x4f_IDENTITY, PROJECTION_FOV, viewRatio, 0.5f, 100.0f));
 	
+	if (sprite != NULL) {
+		SpriteRenderable_dispose(sprite);
+		sprite = NULL;
+	}
+	spriteMode = false;
 	if (armature != NULL) {
 		Armature_dispose(armature);
 	}
@@ -292,8 +313,13 @@ static void initScene3() {
 	Renderer_clearAllRenderables(renderer);
 	Renderer_setClearColor(renderer, COLOR4f(0.125f, 0.0625f, 0.0f, 0.0f));
 	Renderer_setLights(renderer, VECTOR3f(2.0f, 8.0f, 8.0f), COLOR4f(1.0f, 1.0f, 0.95f, 1.0f), VECTOR3f(-3.0f, -2.0f, -8.0f), COLOR4f(0.8f, 0.8f, 0.8f, 1.0f), COLOR4f(0.1f, 0.1f, 0.105f, 1.0f));
-	Renderer_setProjectionMatrix(renderer, Matrix4x4f_perspective(MATRIX4x4f_IDENTITY, PROJECTION_FOV, (float) viewWidth / (float) viewHeight, 0.5f, 100.0f));
+	Renderer_setProjectionMatrix(renderer, Matrix4x4f_perspective(MATRIX4x4f_IDENTITY, PROJECTION_FOV, viewRatio, 0.5f, 100.0f));
 	
+	if (sprite != NULL) {
+		SpriteRenderable_dispose(sprite);
+		sprite = NULL;
+	}
+	spriteMode = false;
 	if (armature != NULL) {
 		Armature_dispose(armature);
 	}
@@ -337,6 +363,27 @@ static void initScene3() {
 	animating = true;
 }
 
+static void initScene4() {
+	Renderer_clearAllRenderables(renderer);
+	Renderer_setClearColor(renderer, COLOR4f(0.0f, 0.125f, 0.0f, 0.0f));
+	Renderer_setProjectionMatrix(renderer, Matrix4x4f_ortho(MATRIX4x4f_IDENTITY, -viewRatio, viewRatio, -1.0f, 1.0f, -1.0f, 1.0f));
+	
+	if (renderable != NULL) {
+		MeshRenderable_dispose(renderable);
+		renderable = NULL;
+	}
+	if (vertexBuffer != NULL) {
+		VertexBuffer_dispose(vertexBuffer);
+		vertexBuffer = NULL;
+	}
+	if (sprite != NULL) {
+		SpriteRenderable_dispose(sprite);
+	}
+	spriteMode = true;
+	sprite = SpriteRenderable_create(atlas, "key1", VECTOR2f_ZERO, Matrix4x4f_scaled(MATRIX4x4f_IDENTITY, 0.25f, 0.25f, 1.0f));
+	Renderer_addRenderable(renderer, 0, (Renderable *) sprite);
+}
+
 static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned int modifiers, bool isRepeat) {
 	switch (keyCode) {
 		case KEYBOARD_1:
@@ -349,6 +396,10 @@ static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned
 			break;
 		case KEYBOARD_3:
 			initScene3();
+			Shell_redisplay();
+			break;
+		case KEYBOARD_4:
+			initScene4();
 			Shell_redisplay();
 			break;
 		case KEYBOARD_TAB:
@@ -369,8 +420,10 @@ static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned
 			}
 			break;
 		case KEYBOARD_F:
-			OrbitCamera_frameBoundingBox(camera, renderable->vertexBuffer->bounds, PROJECTION_FOV, (float) viewWidth / (float) viewHeight);
-			Shell_redisplay();
+			if (renderable != NULL) {
+				OrbitCamera_frameBoundingBox(camera, renderable->vertexBuffer->bounds, PROJECTION_FOV, viewRatio);
+				Shell_redisplay();
+			}
 			break;
 	}
 }
@@ -394,19 +447,25 @@ static void Target_mouseUp(unsigned int buttonNumber, float x, float y) {
 static void Target_mouseMoved(float x, float y) {
 }
 
+#define SPRITE_DRAG_RATIO 0.0125f
+
 static void Target_mouseDragged(unsigned int buttonMask, float x, float y) {
-	if (shiftKeyDown) {
-		if (controlKeyDown) {
-			OrbitCamera_offset(camera, 0.0f, 0.0f, y);
-		} else {
-			OrbitCamera_offset(camera, -x, y, 0.0f);
-		}
-		
-	} else if (controlKeyDown) {
-		OrbitCamera_zoom(camera, y);
-		
+	if (spriteMode) {
+		Matrix4x4f_translate(&sprite->transform, x * SPRITE_DRAG_RATIO, -y * SPRITE_DRAG_RATIO, 0.0f);
 	} else {
-		OrbitCamera_rotate(camera, x, y);
+		if (shiftKeyDown) {
+			if (controlKeyDown) {
+				OrbitCamera_offset(camera, 0.0f, 0.0f, y);
+			} else {
+				OrbitCamera_offset(camera, -x, y, 0.0f);
+			}
+		
+		} else if (controlKeyDown) {
+			OrbitCamera_zoom(camera, y);
+		
+		} else {
+			OrbitCamera_rotate(camera, x, y);
+		}
 	}
 	Shell_redisplay();
 }
@@ -417,9 +476,14 @@ static void Target_scrollWheel(int deltaX, int deltaY) {
 static void Target_resized(unsigned int newWidth, unsigned int newHeight) {
 	viewWidth = newWidth;
 	viewHeight = newHeight;
+	viewRatio = (float) newWidth / newHeight;
 	glViewport(0, 0, viewWidth, viewHeight);
 	if (renderer != NULL) {
-		Renderer_setProjectionMatrix(renderer, Matrix4x4f_perspective(MATRIX4x4f_IDENTITY, PROJECTION_FOV, (float) viewWidth / (float) viewHeight, 0.5f, 100.0f));
+		if (spriteMode) {
+			Renderer_setProjectionMatrix(renderer, Matrix4x4f_ortho(MATRIX4x4f_IDENTITY, -viewRatio, viewRatio, -1.0f, 1.0f, -1.0f, 1.0f));
+		} else {
+			Renderer_setProjectionMatrix(renderer, Matrix4x4f_perspective(MATRIX4x4f_IDENTITY, PROJECTION_FOV, viewRatio, 0.5f, 100.0f));
+		}
 	}
 }
 
@@ -470,6 +534,10 @@ void Target_init() {
 		0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0xFF,
 		0x00, 0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF
 	};
+	unsigned char atlasPixels[] = {
+		0xFF, 0x00, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF,
+		0x00, 0x00, 0xFF, 0x00, 0xFF, 0xFF, 0xFF, 0xFF
+	};
 	
 	chdir(Shell_getResourcePath());
 	
@@ -477,6 +545,13 @@ void Target_init() {
 	material = Material_create(COLOR4f(1.0f, 1.0f, 1.0f, 1.0f), 0.875f, 32.0f, 0.0f);
 	Material_setTexture(material, MaterialTextureType_color, true, 2, 2, checkerboardPixels);
 	armatureMaterial = Material_create(COLOR4f(1.0f, 1.0f, 0.9375f, 1.0f), 0.875f, 32.0f, 0.0f);
+	
+	atlas = TextureAtlas_create();
+	TextureAtlas_setEntry(atlas, "key1", (struct TextureAtlas_entry) {0.0f, 0.75f, 0.0f, 0.75f});
+	TextureAtlas_setEntry(atlas, "key2", (struct TextureAtlas_entry) {0.25f, 1.0f, 0.0f, 0.75f});
+	TextureAtlas_setEntry(atlas, "key3", (struct TextureAtlas_entry) {0.0f, 0.75f, 0.25f, 1.0f});
+	TextureAtlas_setEntry(atlas, "key4", (struct TextureAtlas_entry) {0.25f, 1.0f, 0.25f, 1.0f});
+	TextureAtlas_setTexture(atlas, true, 2, 2, atlasPixels);
 	
 	initScene1();
 	Shell_mainLoop();

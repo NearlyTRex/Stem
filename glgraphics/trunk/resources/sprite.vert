@@ -16,7 +16,7 @@ out vec2 texCoord;
 void main() {
 	texCoord = inTexCoord;
 	// TODO: How to foreColor/backColor math? (black backColor, white foreColor = normal; white backColor, black foreColor = invert; white both = white, black both = black)
-	color = (inColor * foreColor) + backColor;
+	color = (inColor * foreColor) + vec4(vec3(backColor), 0.0);
 	
 	gl_Position = projectionTransform * viewTransform * modelTransform * vec4(inPosition, 0.0, 1.0);
 }

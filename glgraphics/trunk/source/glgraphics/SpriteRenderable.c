@@ -33,7 +33,7 @@ SpriteRenderable * SpriteRenderable_create(TextureAtlas * atlas, const char * at
 
 static void bufferVertexData(SpriteRenderable * self) {
 	struct vertex_p2f_t2f_c4f vertices[4];
-	GLubyte indexes[6] = {0, 1, 2, 2, 3, 0};
+	GLuint indexes[6] = {0, 1, 2, 2, 3, 0};
 	
 	glBindBuffer(GL_ARRAY_BUFFER, self->vertexBufferID);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self->indexBufferID);
@@ -43,9 +43,9 @@ static void bufferVertexData(SpriteRenderable * self) {
 	                                  self->drawOrigin,
 	                                  TextureAtlas_getEntryDimensions(self->atlas, self->atlasKey, TEXTUREATLAS_SIZE_AUTO, TEXTUREATLAS_SIZE_AUTO),
 	                                  COLOR4f(1.0f, 1.0f, 1.0f, 1.0f), 
-	                                  GL_UNSIGNED_BYTE,
+	                                  GL_UNSIGNED_INT,
 	                                  vertices,
-	                                  indexes,
+	                                  NULL,
 	                                  NULL,
 	                                  NULL);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
@@ -58,19 +58,20 @@ bool SpriteRenderable_init(SpriteRenderable * self, TextureAtlas * atlas, const 
 	
 	self->atlas = atlas;
 	self->atlasKey = atlasKey;
+	self->drawOrigin = drawOrigin;
 	self->transform = transform;
 	
 	glGenVertexArrays(1, &self->vaoID);
 	glBindVertexArray(self->vaoID);
 	glGenBuffers(1, &self->vertexBufferID);
 	glGenBuffers(1, &self->indexBufferID);
+	bufferVertexData(self);
 	glEnableVertexAttribArray(VERTEX_ATTRIB_POSITION);
 	glEnableVertexAttribArray(VERTEX_ATTRIB_TEXTURE_COORD);
 	glEnableVertexAttribArray(VERTEX_ATTRIB_COLOR);
 	glVertexAttribPointer(VERTEX_ATTRIB_POSITION, 2, GL_FLOAT, GL_FALSE, sizeof(struct vertex_p2f_t2f_c4f), (void *) offsetof(struct vertex_p2f_t2f_c4f, position));
 	glVertexAttribPointer(VERTEX_ATTRIB_TEXTURE_COORD, 2, GL_FLOAT, GL_FALSE, sizeof(struct vertex_p2f_t2f_c4f), (void *) offsetof(struct vertex_p2f_t2f_c4f, texCoords));
 	glVertexAttribPointer(VERTEX_ATTRIB_COLOR, 4, GL_FLOAT, GL_FALSE, sizeof(struct vertex_p2f_t2f_c4f), (void *) offsetof(struct vertex_p2f_t2f_c4f, color));
-	bufferVertexData(self);
 	glBindVertexArray(0);
 	
 	return true;

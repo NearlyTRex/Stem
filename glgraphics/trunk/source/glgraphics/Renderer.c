@@ -299,11 +299,13 @@ void Renderer_drawSingle(Renderer * self, Renderable * renderable) {
 			glUniformMatrix4fv(GLSLShader_getUniformLocation(self->shaderSprite, "viewTransform"), 1, GL_FALSE, self->viewMatrix.m);
 			glUniformMatrix4fv(GLSLShader_getUniformLocation(self->shaderSprite, "modelTransform"), 1, GL_FALSE, sprite->transform.m);
 			glUniform1i(GLSLShader_getUniformLocation(self->shaderSprite, "colorTexture"), 0);
+			glUniform4f(GLSLShader_getUniformLocation(self->shaderSprite, "foreColor"), 1.0f, 1.0f, 1.0f, 1.0f);
+			glUniform4f(GLSLShader_getUniformLocation(self->shaderSprite, "backColor"), 0.0f, 0.0f, 0.0f, 1.0f);
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, sprite->atlas->textureID);
 			
 			glBindVertexArray(sprite->vaoID);
-			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, 0);
+			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 			glBindVertexArray(0);
 			
 			glBindTexture(GL_TEXTURE_2D, 0);
