@@ -144,3 +144,7 @@ void MaterialData_serialize(MaterialData * self, compat_type(SerializationContex
 	context->endDictionary(context);
 	context->endStructure(context);
 }
+
+Material * MaterialData_createMaterial(MaterialData * self) {
+	return Material_create(self->color, self->specularity, self->shininess, self->emissiveness);
+}

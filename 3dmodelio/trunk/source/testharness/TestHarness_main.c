@@ -3,6 +3,7 @@
 #include "3dmodelio/MaterialData.h"
 #include "3dmodelio/MeshData.h"
 #include "3dmodelio/Obj3DModelIO.h"
+#include "3dmodelio/TextureAtlasData.h"
 #include "binaryserialization/BinaryDeserializationContext.h"
 #include "gamemath/Matrix4x4f.h"
 #include "glgraphics/Animation.h"
@@ -10,6 +11,8 @@
 #include "glgraphics/MeshRenderable.h"
 #include "glgraphics/OrbitCamera.h"
 #include "glgraphics/Renderer.h"
+#include "glgraphics/SpriteRenderable.h"
+#include "glgraphics/TextureAtlas.h"
 #include "jsonserialization/JSONDeserializationContext.h"
 #include "pngimageio/PNGImageIO.h"
 #include "resourcemanager/ResourceManager.h"
@@ -58,8 +61,13 @@ static Renderer * renderer;
 static OrbitCamera * camera;
 static bool shiftKeyDown, controlKeyDown;
 static unsigned int viewWidth = 1280, viewHeight = 720;
+static float viewRatio = 16.0f / 9.0f;
 static double animationStartTime, lastAnimationTime;
 static bool animating;
+static bool textureAtlasMode;
+static TextureAtlas * textureAtlas;
+static unsigned int spriteCount;
+static SpriteRenderable ** spriteRenderables;
 
 static bool Target_draw() {
 	if (animating && animationState != NULL && animation != NULL) {
@@ -70,8 +78,13 @@ static bool Target_draw() {
 	}
 	
 	Renderer_clear(renderer);
-	Renderer_setViewMatrix(renderer, OrbitCamera_getMatrix(camera));
-	Renderer_setDrawMode(renderer, RENDERER_3D_OPAQUE);
+	if (textureAtlasMode) {
+		Renderer_setViewMatrix(renderer, MATRIX4x4f_IDENTITY);
+		Renderer_setDrawMode(renderer, RENDERER_2D_TRANSLUCENT);
+	} else {
+		Renderer_setViewMatrix(renderer, OrbitCamera_getMatrix(camera));
+		Renderer_setDrawMode(renderer, RENDERER_3D_OPAQUE);
+	}
 	Renderer_drawLayer(renderer, 0);
 	AutoFreePool_empty();
 	return true;
@@ -89,9 +102,22 @@ static void setMaterialTexture(Material * material, const char * textureResource
 	}
 }
 
-static void useMesh(MeshData * meshData) {
+static void purgeAllRenderables() {
 	Renderer_clearAllRenderables(renderer);
-	
+	if (textureAtlas != NULL) {
+		TextureAtlas_dispose(textureAtlas);
+		textureAtlas = NULL;
+	}
+	if (spriteRenderables != NULL) {
+		unsigned int spriteIndex;
+		
+		for (spriteIndex = 0; spriteIndex < spriteCount; spriteIndex++) {
+			SpriteRenderable_dispose(spriteRenderables[spriteIndex]);
+		}
+		free(spriteRenderables);
+		spriteRenderables = NULL;
+		spriteCount = 0;
+	}
 	if (material != NULL) {
 		Material_dispose(material);
 		material = NULL;
@@ -110,27 +136,37 @@ static void useMesh(MeshData * meshData) {
 	}
 	if (renderable != NULL) {
 		MeshRenderable_dispose(renderable);
+		renderable = NULL;
 	}
 	if (vertexBuffer != NULL) {
 		VertexBuffer_dispose(vertexBuffer);
+		vertexBuffer = NULL;
 	}
 	if (armatureVertexBuffer != NULL ){
 		VertexBuffer_dispose(armatureVertexBuffer);
+		armatureVertexBuffer = NULL;
 	}
 	if (armatureRenderable != NULL) {
 		MeshRenderable_dispose(armatureRenderable);
 		armatureRenderable = NULL;
 	}
-	animating = false;
-	
 	ResourceManager_purgeAll(resourceManager);
+}
+
+static void useMesh(MeshData * meshData) {
+	purgeAllRenderables();
+	
+	textureAtlasMode = false;
+	animating = false;
+	Renderer_setProjectionMatrix(renderer, Matrix4x4f_perspective(MATRIX4x4f_IDENTITY, PROJECTION_FOV, viewRatio, 0.02f, 20.0f));
+	Renderer_setClearColor(renderer, COLOR4f(0.0f, 0.125f, 0.25f, 0.0f));
 	
 	if (meshData->materialName != NULL) {
 		MaterialData * materialData;
 		
 		materialData = ResourceManager_referenceResource(resourceManager, ATOM("material"), meshData->materialName);
 		if (materialData != NULL) {
-			material = Material_create(materialData->color, materialData->specularity, materialData->shininess, materialData->emissiveness);
+			material = MaterialData_createMaterial(materialData);
 			if (materialData->colorMapName != NULL) {
 				setMaterialTexture(material, materialData->colorMapName, MaterialTextureType_color, materialData->magnifyColorMapNearest);
 			}
@@ -174,6 +210,54 @@ static void useAnimation(Animation * animationToUse) {
 	animation = animationToUse;
 	animationStartTime = Shell_getCurrentTime();
 	animating = true;
+	Shell_redisplay();
+}
+
+static void updateSpriteLayout() {
+	unsigned int spriteIndex;
+	unsigned int columnCount;
+	float scale;
+	
+	columnCount = ceil(sqrt(spriteCount)); // TODO: Make rectangular; how?
+	for (spriteIndex = 0; spriteIndex < spriteCount; spriteIndex++) {
+		if (spriteRenderables[spriteIndex]->pixelWidth > spriteRenderables[spriteIndex]->pixelHeight) {
+			scale = 2.0f / spriteRenderables[spriteIndex]->pixelWidth / columnCount;
+		} else {
+			scale = 2.0f / spriteRenderables[spriteIndex]->pixelHeight / columnCount;
+		}
+		spriteRenderables[spriteIndex]->transform = Matrix4x4f_scaled(Matrix4x4f_translated(MATRIX4x4f_IDENTITY, -1.0f + (spriteIndex % columnCount + 1) * 2.0f / columnCount, -1.0f + (spriteIndex / columnCount + 1) * 2.0f / columnCount, 0.0f), scale, scale, 1.0f);
+	}
+}
+
+static void useTextureAtlas(TextureAtlasData * atlasData) {
+	BitmapImage * image;
+	
+	purgeAllRenderables();
+	
+	textureAtlasMode = true;
+	animating = false;
+	Renderer_setProjectionMatrix(renderer, Matrix4x4f_ortho(MATRIX4x4f_IDENTITY, -viewRatio, viewRatio, -1.0f, 1.0f, -1.0f, 1.0f));
+	Renderer_setClearColor(renderer, COLOR4f(0.0f, 0.125f, 0.0f, 0.0f));
+	
+	image = ResourceManager_referenceResource(resourceManager, ATOM("png"), atlasData->textureMapName);
+	if (image != NULL) {
+		unsigned int spriteIndex;
+		
+		textureAtlas = TextureAtlasData_createTextureAtlas(atlasData);
+		TextureAtlas_setTexture(textureAtlas, atlasData->magnifyNearest, image->width, image->height, image->pixels);
+		ResourceManager_releaseResource(resourceManager, image);
+		
+		spriteCount = atlasData->entryCount;
+		spriteRenderables = malloc(sizeof(SpriteRenderable *) * spriteCount);
+		for (spriteIndex = 0; spriteIndex < spriteCount; spriteIndex++) {
+			spriteRenderables[spriteIndex] = SpriteRenderable_create(textureAtlas, atlasData->entries[spriteIndex].name, VECTOR2f(0.5f, 0.5f), MATRIX4x4f_IDENTITY);
+			Renderer_addRenderable(renderer, 0, (Renderable *) spriteRenderables[spriteIndex]);
+		}
+		updateSpriteLayout();
+	} else {
+		fprintf(stderr, "Couldn't load texture image \"%s\"\n", atlasData->textureMapName);
+	}
+	
 	Shell_redisplay();
 }
 
@@ -230,7 +314,7 @@ static void * deserializeFile(const char * filePath, void * (* deserializeFuncti
 	}
 	result = deserializeFunction(context);
 	if (result == NULL) {
-		fprintf(stderr, "Couldn't deserialize \"%s\" (error %d)", filePath, context->status);
+		fprintf(stderr, "Couldn't deserialize \"%s\" (error %d)\n", filePath, context->status);
 		context->dispose(context);
 		return NULL;
 	}
@@ -288,6 +372,16 @@ static void loadStem3DMesh(const char * filePath) {
 	}
 }
 
+static void loadTextureAtlas(const char * filePath) {
+	TextureAtlasData * atlasData = deserializeFile(filePath, (void * (*)(void *)) TextureAtlasData_deserialize);
+	
+	if (atlasData != NULL) {
+		ResourceManager_addSearchPath(resourceManager, getDirectory(filePath));
+		useTextureAtlas(atlasData);
+		TextureAtlasData_dispose(atlasData);
+	}
+}
+
 static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned int modifiers, bool isRepeat) {
 	switch (keyCode) {
 		case KEYBOARD_O: {
@@ -307,6 +401,9 @@ static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned
 					if (loadedAnimation != NULL) {
 						useAnimation(loadedAnimation);
 					}
+					
+				} else if (!strcmp(fileExtension, "atlas")) {
+					loadTextureAtlas(filePath);
 					
 				} else {
 					fprintf(stderr, "Didn't know how to handle file extension \"%s\"\n", fileExtension);
@@ -332,8 +429,10 @@ static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned
 			}
 			break;
 		case KEYBOARD_F:
-			OrbitCamera_frameBoundingBox(camera, renderable->vertexBuffer->bounds, PROJECTION_FOV, (float) viewWidth / (float) viewHeight);
-			Shell_redisplay();
+			if (!textureAtlasMode) {
+				OrbitCamera_frameBoundingBox(camera, renderable->vertexBuffer->bounds, PROJECTION_FOV, viewRatio);
+				Shell_redisplay();
+			}
 			break;
 		case KEYBOARD_P: {
 			if (animationState == NULL) {
@@ -386,18 +485,22 @@ static void Target_mouseMoved(float x, float y) {
 }
 
 static void Target_mouseDragged(unsigned int buttonMask, float x, float y) {
-	if (shiftKeyDown) {
-		if (controlKeyDown) {
-			OrbitCamera_offset(camera, 0.0f, 0.0f, y);
-		} else {
-			OrbitCamera_offset(camera, -x, y, 0.0f);
-		}
-		
-	} else if (controlKeyDown) {
-		OrbitCamera_zoom(camera, y);
-		
+	if (textureAtlasMode) {
+		// ?
 	} else {
-		OrbitCamera_rotate(camera, x, y);
+		if (shiftKeyDown) {
+			if (controlKeyDown) {
+				OrbitCamera_offset(camera, 0.0f, 0.0f, y);
+			} else {
+				OrbitCamera_offset(camera, -x, y, 0.0f);
+			}
+		
+		} else if (controlKeyDown) {
+			OrbitCamera_zoom(camera, y);
+		
+		} else {
+			OrbitCamera_rotate(camera, x, y);
+		}
 	}
 	Shell_redisplay();
 }
@@ -408,9 +511,15 @@ static void Target_scrollWheel(int deltaX, int deltaY) {
 static void Target_resized(unsigned int newWidth, unsigned int newHeight) {
 	viewWidth = newWidth;
 	viewHeight = newHeight;
+	viewRatio = (float) newWidth / newHeight;
 	glViewport(0, 0, viewWidth, viewHeight);
 	if (renderer != NULL) {
-		Renderer_setProjectionMatrix(renderer, Matrix4x4f_perspective(MATRIX4x4f_IDENTITY, PROJECTION_FOV, (float) viewWidth / (float) viewHeight, 0.02f, 20.0f));
+		if (textureAtlasMode) {
+			//updateSpriteLayout();
+			Renderer_setProjectionMatrix(renderer, Matrix4x4f_ortho(MATRIX4x4f_IDENTITY, -viewRatio, viewRatio, -1.0f, 1.0f, -1.0f, 1.0f));
+		} else {
+			Renderer_setProjectionMatrix(renderer, Matrix4x4f_perspective(MATRIX4x4f_IDENTITY, PROJECTION_FOV, viewRatio, 0.02f, 20.0f));
+		}
 	}
 }
 
@@ -467,7 +576,7 @@ void Target_init() {
 	renderer = Renderer_create(1);
 	Renderer_setClearColor(renderer, COLOR4f(0.0f, 0.125f, 0.25f, 0.0f));
 	Renderer_setLights(renderer, VECTOR3f(0.0f, 8.0f, 8.0f), COLOR4f(1.0f, 1.0f, 0.95f, 1.0f), VECTOR3f(-1.0f, -2.0f, -8.0f), COLOR4f(0.8f, 0.8f, 0.8f, 1.0f), COLOR4f(0.1f, 0.1f, 0.105f, 1.0f));
-	Renderer_setProjectionMatrix(renderer, Matrix4x4f_perspective(MATRIX4x4f_IDENTITY, PROJECTION_FOV, (float) viewWidth / (float) viewHeight, 0.02f, 20.0f));
+	Renderer_setProjectionMatrix(renderer, Matrix4x4f_perspective(MATRIX4x4f_IDENTITY, PROJECTION_FOV, viewRatio, 0.02f, 20.0f));
 	
 	resourceManager = ResourceManager_create(Shell_getCurrentTime);
 	ResourceManager_addTypeHandler(resourceManager, ATOM("mesh"), loadMeshResource, unloadMeshResource, PURGE_DEFERRED, NULL);

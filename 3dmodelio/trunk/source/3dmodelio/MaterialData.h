@@ -28,6 +28,7 @@ extern "C" {
 
 typedef struct MaterialData MaterialData;
 
+#include "glgraphics/Material.h"
 #include "glgraphics/VertexTypes.h"
 #include "serialization/DeserializationContext.h"
 #include "serialization/SerializationContext.h"
@@ -59,6 +60,11 @@ void MaterialData_dispose(MaterialData * self);
 MaterialData * MaterialData_deserialize(compat_type(DeserializationContext *) deserializationContext);
 bool MaterialData_loadSerializedData(MaterialData * self, compat_type(DeserializationContext *) deserializationContext);
 void MaterialData_serialize(MaterialData * self, compat_type(SerializationContext *) serializationContext);
+
+// Creates a Material object initialized with this MaterialData's color, specularity, shininess, and emissiveness.
+// Does not call Material_setTexture(); the caller must fetch the texture images themselves and call this function
+// to fully initialize the returned Material.
+Material * MaterialData_createMaterial(MaterialData * self);
 
 #ifdef __cplusplus
 }

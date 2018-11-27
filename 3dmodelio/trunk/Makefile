@@ -73,7 +73,8 @@ SOURCES_library = \
 	source/${PROJECT_NAME}/MaterialData.c \
 	source/${PROJECT_NAME}/MeshData.c \
 	source/${PROJECT_NAME}/Obj3DModelIO.c \
-	source/${PROJECT_NAME}/SceneLayout.c
+	source/${PROJECT_NAME}/SceneLayout.c \
+	source/${PROJECT_NAME}/TextureAtlasData.c
 
 SOURCES_meshutils = \
 	source/meshutils.c
@@ -92,7 +93,8 @@ INCLUDES = \
 	source/${PROJECT_NAME}/MaterialData.h \
 	source/${PROJECT_NAME}/MeshData.h \
 	source/${PROJECT_NAME}/Obj3DModelIO.h \
-	source/${PROJECT_NAME}/SceneLayout.h
+	source/${PROJECT_NAME}/SceneLayout.h \
+	source/${PROJECT_NAME}/TextureAtlasData.h
 
 # Patterns: RESOURCES, RESOURCES_${target}, RESOURCES_${platform}, RESOURCES_${target}_${platform}
 RESOURCES_testharness = \
