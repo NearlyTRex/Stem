@@ -34,14 +34,18 @@ SpriteRenderable * SpriteRenderable_create(TextureAtlas * atlas, const char * at
 static void bufferVertexData(SpriteRenderable * self) {
 	struct vertex_p2f_t2f_c4f vertices[4];
 	GLuint indexes[6] = {0, 1, 2, 2, 3, 0};
+	Vector2f dimensions;
 	
 	glBindBuffer(GL_ARRAY_BUFFER, self->vertexBufferID);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self->indexBufferID);
+	dimensions = TextureAtlas_getEntryDimensions(self->atlas, self->atlasKey, TEXTUREATLAS_SIZE_AUTO, TEXTUREATLAS_SIZE_AUTO);
+	self->pixelWidth = dimensions.x;
+	self->pixelHeight = dimensions.y;
 	TextureAtlas_getVerticesWithColor(self->atlas,
 	                                  self->atlasKey,
 	                                  VECTOR2f_ZERO,
 	                                  self->drawOrigin,
-	                                  TextureAtlas_getEntryDimensions(self->atlas, self->atlasKey, TEXTUREATLAS_SIZE_AUTO, TEXTUREATLAS_SIZE_AUTO),
+	                                  dimensions,
 	                                  COLOR4f(1.0f, 1.0f, 1.0f, 1.0f), 
 	                                  GL_UNSIGNED_INT,
 	                                  vertices,
@@ -61,6 +65,7 @@ bool SpriteRenderable_init(SpriteRenderable * self, TextureAtlas * atlas, const 
 	self->drawOrigin = drawOrigin;
 	self->transform = transform;
 	
+	// TODO: This shouldn't have its own VAO or VBO. Renderer should store one VAO for all sprites and regenerate the VBO every draw?
 	glGenVertexArrays(1, &self->vaoID);
 	glBindVertexArray(self->vaoID);
 	glGenBuffers(1, &self->vertexBufferID);

@@ -40,6 +40,8 @@ typedef struct SpriteRenderable SpriteRenderable;
 	const char * atlasKey; \
 	Vector2f drawOrigin; \
 	Matrix4x4f transform; \
+	unsigned int pixelWidth; /* Read only */ \
+	unsigned int pixelHeight; /* Read only */ \
 	GLuint vaoID; \
 	GLuint vertexBufferID; \
 	GLuint indexBufferID;
