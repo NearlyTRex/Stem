@@ -217,14 +217,20 @@ static void updateSpriteLayout() {
 	unsigned int spriteIndex;
 	unsigned int columnCount;
 	float scale;
+	unsigned int maxDimension = 1;
 	
 	columnCount = ceil(sqrt(spriteCount)); // TODO: Make rectangular; how?
 	for (spriteIndex = 0; spriteIndex < spriteCount; spriteIndex++) {
-		if (spriteRenderables[spriteIndex]->pixelWidth > spriteRenderables[spriteIndex]->pixelHeight) {
-			scale = 2.0f / spriteRenderables[spriteIndex]->pixelWidth / columnCount;
-		} else {
-			scale = 2.0f / spriteRenderables[spriteIndex]->pixelHeight / columnCount;
+		if (spriteRenderables[spriteIndex]->pixelWidth > maxDimension) {
+			maxDimension = spriteRenderables[spriteIndex]->pixelWidth;
 		}
+		if (spriteRenderables[spriteIndex]->pixelHeight > maxDimension) {
+			maxDimension = spriteRenderables[spriteIndex]->pixelHeight;
+		}
+	}
+	scale = 2.0f / maxDimension / columnCount;
+	// TODO: Add some borders?
+	for (spriteIndex = 0; spriteIndex < spriteCount; spriteIndex++) {
 		spriteRenderables[spriteIndex]->transform = Matrix4x4f_scaled(Matrix4x4f_translated(MATRIX4x4f_IDENTITY, -1.0f + (spriteIndex % columnCount + 1) * 2.0f / columnCount, -1.0f + (spriteIndex / columnCount + 1) * 2.0f / columnCount, 0.0f), scale, scale, 1.0f);
 	}
 }
