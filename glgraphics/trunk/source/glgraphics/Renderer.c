@@ -376,7 +376,6 @@ void Renderer_drawLayer(Renderer * self, unsigned int layerIndex, bool sortForTr
 			renderableIndex++;
 		}
 		if (submitting3DStatic) {
-			// TODO: Boundaries
 			struct vertex_p3f_t2f_n3f_x4f_c4f * vertices = NULL;
 			GLuint * indexes = NULL;
 			
@@ -401,16 +400,15 @@ void Renderer_drawLayer(Renderer * self, unsigned int layerIndex, bool sortForTr
 				bindMeshTextures(self, mesh);
 				
 				if (mesh->vertexBuffer->storageType == VERTEX_BUFFER_STORAGE_CPU_ONLY) {
+					// TODO: This is all completely wrong. Don't glDrawElements while the buffer is mapped!
 					unsigned int lastIndexCount = indexCount3DStatic;
 					mesh->getVertices(mesh, vertices, indexes, &vertexCount3DStatic, &indexCount3DStatic);
 					glBindVertexArray(self->layers[layerIndex].vertexBuffers[RENDERER_VERTEX_TYPE_3D_STATIC]->vaoID);
-					// Do I or don't I need to specifically bind GL_ARRAY_BUFFER for glDrawElements? glBindVertexArrays documentation gives mixed messages about this. Test.
 					glDrawElements(GL_TRIANGLES, indexCount3DStatic - lastIndexCount, GL_UNSIGNED_INT, (GLvoid *) (lastIndexCount * sizeof(GLuint)));
 				} else {
 					glBindVertexArray(mesh->vertexBuffer->vaoID);
 					glDrawElements(GL_TRIANGLES, mesh->vertexBuffer->indexCount, GL_UNSIGNED_INT, 0);
 				}
-				renderableIndex++;
 			}
 			if (vertexCount3DStatic > 0) {
 				VertexBuffer_unmapData(self->layers[layerIndex].vertexBuffers[RENDERER_VERTEX_TYPE_3D_STATIC], VERTEX_BUFFER_DATA_TYPE_VERTEX);
@@ -422,7 +420,6 @@ void Renderer_drawLayer(Renderer * self, unsigned int layerIndex, bool sortForTr
 			renderableIndex++;
 		}
 		if (submitting3DAnimated) {
-			// TODO: Boundaries
 			struct vertex_p3f_t2f_n3f_x4f_c4f_b4f_w4f * vertices = NULL;
 			GLuint * indexes = NULL;
 			
@@ -447,6 +444,7 @@ void Renderer_drawLayer(Renderer * self, unsigned int layerIndex, bool sortForTr
 				glUniformMatrix4fv(GLSLShader_getUniformLocation(self->shaders[RENDERER_VERTEX_TYPE_3D_ANIMATED], "boneTransforms"), mesh->animationState->armature->boneCount, GL_FALSE, (GLfloat *) mesh->animationState->computedBoneTransforms);
 				
 				if (mesh->vertexBuffer->storageType == VERTEX_BUFFER_STORAGE_CPU_ONLY) {
+					// TODO: This is all completely wrong. Don't glDrawElements while the buffer is mapped!
 					unsigned int lastIndexCount = indexCount3DAnimated;
 					mesh->getVertices(mesh, vertices, indexes, &vertexCount3DAnimated, &indexCount3DAnimated);
 					glBindVertexArray(self->layers[layerIndex].vertexBuffers[RENDERER_VERTEX_TYPE_3D_ANIMATED]->vaoID);
@@ -455,7 +453,6 @@ void Renderer_drawLayer(Renderer * self, unsigned int layerIndex, bool sortForTr
 					glBindVertexArray(mesh->vertexBuffer->vaoID);
 					glDrawElements(GL_TRIANGLES, mesh->vertexBuffer->indexCount, GL_UNSIGNED_INT, 0);
 				}
-				renderableIndex++;
 			}
 			if (vertexCount3DAnimated > 0) {
 				VertexBuffer_unmapData(self->layers[layerIndex].vertexBuffers[RENDERER_VERTEX_TYPE_3D_ANIMATED], VERTEX_BUFFER_DATA_TYPE_VERTEX);
@@ -508,7 +505,6 @@ void Renderer_drawLayer(Renderer * self, unsigned int layerIndex, bool sortForTr
 				}
 				
 				sprite->getVertices(sprite, vertices, indexes, &vertexCount2DTextured, &indexCount2DTextured);
-				renderableIndex++;
 			}
 			
 			if (vertexCount2DTextured > 0) {
