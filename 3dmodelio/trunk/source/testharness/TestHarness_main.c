@@ -85,7 +85,7 @@ static bool Target_draw() {
 		Renderer_setViewMatrix(renderer, OrbitCamera_getMatrix(camera));
 		Renderer_setDrawMode(renderer, RENDERER_3D_OPAQUE);
 	}
-	Renderer_drawLayer(renderer, 0);
+	Renderer_drawLayer(renderer, 0, false);
 	AutoFreePool_empty();
 	return true;
 }
@@ -184,7 +184,7 @@ static void useMesh(MeshData * meshData) {
 		if (armature != NULL) {
 			animationState = AnimationState_create(armature);
 			armatureVertexBuffer = Armature_createDebugVertexBuffer(armature);
-			armatureRenderable = MeshRenderable_create(GL_TRIANGLES, armatureVertexBuffer, armatureMaterial, animationState, MATRIX4x4f_IDENTITY);
+			armatureRenderable = MeshRenderable_create(armatureVertexBuffer, armatureMaterial, animationState, MATRIX4x4f_IDENTITY);
 			armatureRenderable->visible = false;
 			Renderer_addRenderable(renderer, 0, (Renderable *) armatureRenderable);
 		} else {
@@ -193,11 +193,11 @@ static void useMesh(MeshData * meshData) {
 	}
 	
 	if (animationState != NULL) {
-		vertexBuffer = VertexBuffer_createPTNXCBW(meshData->vertices, meshData->vertexCount, meshData->indexes, meshData->indexCount, VERTEX_BUFFER_USAGE_STATIC);
+		vertexBuffer = VertexBuffer_createPTNXCBW(meshData->vertices, meshData->vertexCount, meshData->indexes, meshData->indexCount, VERTEX_BUFFER_STORAGE_GPU_ONLY, VERTEX_BUFFER_USAGE_STATIC);
 	} else {
-		vertexBuffer = VertexBuffer_createPTNXC(meshData->vertices, meshData->vertexCount, meshData->indexes, meshData->indexCount, VERTEX_BUFFER_USAGE_STATIC);
+		vertexBuffer = VertexBuffer_createPTNXC(meshData->vertices, meshData->vertexCount, meshData->indexes, meshData->indexCount, VERTEX_BUFFER_STORAGE_GPU_ONLY, VERTEX_BUFFER_USAGE_STATIC);
 	}
-	renderable = MeshRenderable_create(GL_TRIANGLES, vertexBuffer, material, animationState, MATRIX4x4f_IDENTITY);
+	renderable = MeshRenderable_create(vertexBuffer, material, animationState, MATRIX4x4f_IDENTITY);
 	Renderer_addRenderable(renderer, 0, (Renderable *) renderable);
 	
 	Shell_redisplay();
@@ -218,20 +218,24 @@ static void updateSpriteLayout() {
 	unsigned int columnCount;
 	float scale;
 	unsigned int maxDimension = 1;
+	Vector2f pixelSize;
 	
 	columnCount = ceil(sqrt(spriteCount)); // TODO: Make rectangular; how?
 	for (spriteIndex = 0; spriteIndex < spriteCount; spriteIndex++) {
-		if (spriteRenderables[spriteIndex]->pixelWidth > maxDimension) {
-			maxDimension = spriteRenderables[spriteIndex]->pixelWidth;
+		pixelSize = TextureAtlas_getEntryDimensions(spriteRenderables[spriteIndex]->atlas, spriteRenderables[spriteIndex]->atlasKey, TEXTUREATLAS_SIZE_AUTO, TEXTUREATLAS_SIZE_AUTO);
+		if (pixelSize.x > maxDimension) {
+			maxDimension = pixelSize.x;
 		}
-		if (spriteRenderables[spriteIndex]->pixelHeight > maxDimension) {
-			maxDimension = spriteRenderables[spriteIndex]->pixelHeight;
+		if (pixelSize.y > maxDimension) {
+			maxDimension = pixelSize.y;
 		}
 	}
 	scale = 2.0f / maxDimension / columnCount;
 	// TODO: Add some borders?
 	for (spriteIndex = 0; spriteIndex < spriteCount; spriteIndex++) {
-		spriteRenderables[spriteIndex]->transform = Matrix4x4f_scaled(Matrix4x4f_translated(MATRIX4x4f_IDENTITY, -1.0f + (spriteIndex % columnCount + 1) * 2.0f / columnCount, -1.0f + (spriteIndex / columnCount + 1) * 2.0f / columnCount, 0.0f), scale, scale, 1.0f);
+		pixelSize = TextureAtlas_getEntryDimensions(spriteRenderables[spriteIndex]->atlas, spriteRenderables[spriteIndex]->atlasKey, TEXTUREATLAS_SIZE_AUTO, TEXTUREATLAS_SIZE_AUTO);
+		spriteRenderables[spriteIndex]->offset = VECTOR2f(-1.0f + (spriteIndex % columnCount + 1) * 2.0f / columnCount, -1.0f + (spriteIndex / columnCount + 1) * 2.0f / columnCount);
+		spriteRenderables[spriteIndex]->size = VECTOR2f(pixelSize.x * scale, pixelSize.y * scale);
 	}
 }
 
@@ -256,7 +260,7 @@ static void useTextureAtlas(TextureAtlasData * atlasData) {
 		spriteCount = atlasData->entryCount;
 		spriteRenderables = malloc(sizeof(SpriteRenderable *) * spriteCount);
 		for (spriteIndex = 0; spriteIndex < spriteCount; spriteIndex++) {
-			spriteRenderables[spriteIndex] = SpriteRenderable_create(textureAtlas, atlasData->entries[spriteIndex].name, VECTOR2f(0.5f, 0.5f), MATRIX4x4f_IDENTITY);
+			spriteRenderables[spriteIndex] = SpriteRenderable_create(textureAtlas, atlasData->entries[spriteIndex].name, VECTOR2f(0.5f, 0.5f), VECTOR2f_ZERO, VECTOR2f_ZERO, COLOR4f(1.0f, 1.0f, 1.0f, 1.0f));
 			Renderer_addRenderable(renderer, 0, (Renderable *) spriteRenderables[spriteIndex]);
 		}
 		updateSpriteLayout();
