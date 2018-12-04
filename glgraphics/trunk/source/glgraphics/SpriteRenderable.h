@@ -30,6 +30,7 @@ typedef struct SpriteRenderable SpriteRenderable;
 
 #include "gamemath/Matrix4x4f.h"
 #include "gamemath/Vector2f.h"
+#include "gamemath/Vector2i.h"
 #include "glgraphics/Renderable.h"
 #include "glgraphics/TextureAtlas.h"
 
@@ -38,21 +39,19 @@ typedef struct SpriteRenderable SpriteRenderable;
 	\
 	TextureAtlas * atlas; \
 	const char * atlasKey; \
-	Vector2f drawOrigin; \
-	Matrix4x4f transform; \
-	unsigned int pixelWidth; /* Read only */ \
-	unsigned int pixelHeight; /* Read only */ \
-	GLuint vaoID; \
-	GLuint vertexBufferID; \
-	GLuint indexBufferID;
+	Vector2f relativeOrigin; \
+	Vector2f offset; \
+	Vector2f size; \
+	Color4f color;
 
 stemobject_struct_definition(SpriteRenderable)
 
-SpriteRenderable * SpriteRenderable_create(TextureAtlas * atlas, const char * atlasKey, Vector2f drawOrigin, Matrix4x4f transform);
-bool SpriteRenderable_init(SpriteRenderable * self, TextureAtlas * atlas, const char * atlasKey, Vector2f drawOrigin, Matrix4x4f transform);
+// See TextureAtlas.h for documentation on the meaning of drawOrigin, offset, size, and color. These values can be mutated after initialization.
+SpriteRenderable * SpriteRenderable_create(TextureAtlas * atlas, const char * atlasKey, Vector2f relativeOrigin, Vector2f offset, Vector2f size, Color4f color);
+bool SpriteRenderable_init(SpriteRenderable * self, TextureAtlas * atlas, const char * atlasKey, Vector2f relativeOrigin, Vector2f offset, Vector2f size, Color4f color);
 void SpriteRenderable_dispose(SpriteRenderable * self);
-
-void SpriteRenderable_updateAtlasKey(SpriteRenderable * self, const char * atlasKey, Vector2f drawOrigin);
+unsigned int SpriteRenderable_getTextureBindID(SpriteRenderable * self);
+void SpriteRenderable_getVertices(SpriteRenderable * self, void * outVertices, GLuint * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount);
 
 #ifdef __cplusplus
 }

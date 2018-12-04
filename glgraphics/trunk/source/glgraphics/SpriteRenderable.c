@@ -27,72 +27,46 @@
 
 #define SUPERCLASS Renderable
 
-SpriteRenderable * SpriteRenderable_create(TextureAtlas * atlas, const char * atlasKey, Vector2f drawOrigin, Matrix4x4f transform) {
-	stemobject_create_implementation(SpriteRenderable, init, atlas, atlasKey, drawOrigin, transform)
+SpriteRenderable * SpriteRenderable_create(TextureAtlas * atlas, const char * atlasKey, Vector2f relativeOrigin, Vector2f offset, Vector2f size, Color4f color) {
+	stemobject_create_implementation(SpriteRenderable, init, atlas, atlasKey, relativeOrigin, offset, size, color)
 }
 
-static void bufferVertexData(SpriteRenderable * self) {
-	struct vertex_p2f_t2f_c4f vertices[4];
-	GLuint indexes[6] = {0, 1, 2, 2, 3, 0};
-	Vector2f dimensions;
-	
-	glBindBuffer(GL_ARRAY_BUFFER, self->vertexBufferID);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self->indexBufferID);
-	dimensions = TextureAtlas_getEntryDimensions(self->atlas, self->atlasKey, TEXTUREATLAS_SIZE_AUTO, TEXTUREATLAS_SIZE_AUTO);
-	self->pixelWidth = dimensions.x;
-	self->pixelHeight = dimensions.y;
-	TextureAtlas_getVerticesWithColor(self->atlas,
-	                                  self->atlasKey,
-	                                  VECTOR2f_ZERO,
-	                                  self->drawOrigin,
-	                                  dimensions,
-	                                  COLOR4f(1.0f, 1.0f, 1.0f, 1.0f), 
-	                                  GL_UNSIGNED_INT,
-	                                  vertices,
-	                                  NULL,
-	                                  NULL,
-	                                  NULL);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indexes), indexes, GL_STATIC_DRAW);
-}
-
-bool SpriteRenderable_init(SpriteRenderable * self, TextureAtlas * atlas, const char * atlasKey, Vector2f drawOrigin, Matrix4x4f transform) {
+bool SpriteRenderable_init(SpriteRenderable * self, TextureAtlas * atlas, const char * atlasKey, Vector2f relativeOrigin, Vector2f offset, Vector2f size, Color4f color) {
 	call_super(init, self, RENDERABLE_SPRITE);
 	self->dispose = SpriteRenderable_dispose;
+	self->getTextureBindID = SpriteRenderable_getTextureBindID;
+	self->getVertices = SpriteRenderable_getVertices;
 	
 	self->atlas = atlas;
 	self->atlasKey = atlasKey;
-	self->drawOrigin = drawOrigin;
-	self->transform = transform;
-	
-	// TODO: This shouldn't have its own VAO or VBO. Renderer should store one VAO for all sprites and regenerate the VBO every draw?
-	glGenVertexArrays(1, &self->vaoID);
-	glBindVertexArray(self->vaoID);
-	glGenBuffers(1, &self->vertexBufferID);
-	glGenBuffers(1, &self->indexBufferID);
-	bufferVertexData(self);
-	glEnableVertexAttribArray(VERTEX_ATTRIB_POSITION);
-	glEnableVertexAttribArray(VERTEX_ATTRIB_TEXTURE_COORD);
-	glEnableVertexAttribArray(VERTEX_ATTRIB_COLOR);
-	glVertexAttribPointer(VERTEX_ATTRIB_POSITION, 2, GL_FLOAT, GL_FALSE, sizeof(struct vertex_p2f_t2f_c4f), (void *) offsetof(struct vertex_p2f_t2f_c4f, position));
-	glVertexAttribPointer(VERTEX_ATTRIB_TEXTURE_COORD, 2, GL_FLOAT, GL_FALSE, sizeof(struct vertex_p2f_t2f_c4f), (void *) offsetof(struct vertex_p2f_t2f_c4f, texCoords));
-	glVertexAttribPointer(VERTEX_ATTRIB_COLOR, 4, GL_FLOAT, GL_FALSE, sizeof(struct vertex_p2f_t2f_c4f), (void *) offsetof(struct vertex_p2f_t2f_c4f, color));
-	glBindVertexArray(0);
+	self->relativeOrigin = relativeOrigin;
+	self->offset = offset;
+	self->size = size;
+	self->color = color;
 	
 	return true;
 }
 
 void SpriteRenderable_dispose(SpriteRenderable * self) {
-	glDeleteBuffers(1, &self->vertexBufferID);
-	glDeleteBuffers(1, &self->indexBufferID);
-	glDeleteVertexArrays(1, &self->vaoID);
 	call_super(dispose, self);
 }
 
-void SpriteRenderable_updateAtlasKey(SpriteRenderable * self, const char * atlasKey, Vector2f drawOrigin) {
-	self->atlasKey = atlasKey;
-	self->drawOrigin = drawOrigin;
-	glBindVertexArray(self->vaoID);
-	bufferVertexData(self);
-	glBindVertexArray(0);
+unsigned int SpriteRenderable_getTextureBindID(SpriteRenderable * self) {
+	if (self->atlas == NULL) {
+		return 0;
+	}
+	return self->atlas->textureID;
+}
+
+void SpriteRenderable_getVertices(SpriteRenderable * self, void * outVertices, GLuint * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount) {
+	TextureAtlas_getVertices(self->atlas,
+	                         self->atlasKey,
+	                         self->offset,
+	                         self->relativeOrigin,
+	                         TextureAtlas_getEntryDimensions(self->atlas, self->atlasKey, self->size.x, self->size.y),
+	                         self->color,
+	                         outVertices,
+	                         outIndexes,
+	                         ioVertexCount,
+	                         ioIndexCount);
 }

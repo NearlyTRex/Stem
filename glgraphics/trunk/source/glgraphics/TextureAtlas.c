@@ -177,64 +177,15 @@ Vector2f TextureAtlas_getEntryDimensions(TextureAtlas * self, const char * key, 
 	outVertices[vertexCount + 2].color[3] = \
 	outVertices[vertexCount + 3].color[3] = color.alpha
 
-#define getVertices_writeTypedIndexes(indexes) \
-	indexes[indexCount + 0] = vertexCount; \
-	indexes[indexCount + 1] = vertexCount + 1; \
-	indexes[indexCount + 2] = vertexCount + 2; \
-	indexes[indexCount + 3] = vertexCount + 2; \
-	indexes[indexCount + 4] = vertexCount + 3; \
-	indexes[indexCount + 5] = vertexCount;
-
 #define getVertices_writeIndexes() \
-	switch (indexType) { \
-		case GL_UNSIGNED_BYTE: { \
-			GLubyte * indexesByte = outIndexes; \
-			getVertices_writeTypedIndexes(indexesByte); \
-			break; \
-		} \
-		case GL_UNSIGNED_SHORT: { \
-			GLushort * indexesShort = outIndexes; \
-			getVertices_writeTypedIndexes(indexesShort); \
-			break; \
-		} \
-		case GL_UNSIGNED_INT: { \
-			GLuint * indexesInt = outIndexes; \
-			getVertices_writeTypedIndexes(indexesInt); \
-			break; \
-		} \
-	}
+	outIndexes[indexCount + 0] = vertexCount; \
+	outIndexes[indexCount + 1] = vertexCount + 1; \
+	outIndexes[indexCount + 2] = vertexCount + 2; \
+	outIndexes[indexCount + 3] = vertexCount + 2; \
+	outIndexes[indexCount + 4] = vertexCount + 3; \
+	outIndexes[indexCount + 5] = vertexCount;
 
-void TextureAtlas_getVertices(TextureAtlas * self, const char * key, Vector2f offset, Vector2f relativeOrigin, Vector2f size, GLenum indexType, struct vertex_p2f_t2f * outVertices, void * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount) {
-	unsigned int vertexCount = 0;
-	
-	if (ioVertexCount != NULL) {
-		vertexCount = *ioVertexCount;
-	}
-	if (outVertices != NULL) {
-		struct TextureAtlas_entry entry;
-		
-		entry = TextureAtlas_lookup(self, key);
-		getVertices_writePosition();
-		getVertices_writeTexCoords();
-	}
-	vertexCount += 4;
-	if (outIndexes != NULL) {
-		unsigned int indexCount = 0;
-		
-		if (ioIndexCount != NULL) {
-			indexCount = *ioIndexCount;
-		}
-		getVertices_writeIndexes();
-	}
-	if (ioVertexCount != NULL) {
-		*ioVertexCount = vertexCount;
-	}
-	if (ioIndexCount != NULL) {
-		*ioIndexCount += 6;
-	}
-}
-
-void TextureAtlas_getVerticesWithColor(TextureAtlas * self, const char * key, Vector2f offset, Vector2f relativeOrigin, Vector2f size, Color4f color, GLenum indexType, struct vertex_p2f_t2f_c4f * outVertices, void * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount) {
+void TextureAtlas_getVertices(TextureAtlas * self, const char * key, Vector2f offset, Vector2f relativeOrigin, Vector2f size, Color4f color, struct vertex_p2f_t2f_c4f * outVertices, GLuint * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount) {
 	unsigned int vertexCount = 0;
 	
 	if (ioVertexCount != NULL) {
@@ -248,7 +199,6 @@ void TextureAtlas_getVerticesWithColor(TextureAtlas * self, const char * key, Ve
 		getVertices_writeTexCoords();
 		getVertices_writeColor();
 	}
-	vertexCount += 4;
 	if (outIndexes != NULL) {
 		unsigned int indexCount = 0;
 		
@@ -258,7 +208,7 @@ void TextureAtlas_getVerticesWithColor(TextureAtlas * self, const char * key, Ve
 		getVertices_writeIndexes();
 	}
 	if (ioVertexCount != NULL) {
-		*ioVertexCount = vertexCount;
+		*ioVertexCount += 4;
 	}
 	if (ioIndexCount != NULL) {
 		*ioIndexCount += 6;

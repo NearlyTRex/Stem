@@ -77,9 +77,9 @@ Vector2f TextureAtlas_getEntryDimensions(TextureAtlas * self, const char * key, 
 // - offset: Drawing origin. These values are added to all returned vertex positions.
 // - relativeOrigin: Sprite's origin point in normalized coordinates. A value of {0, 0} will place the lower left vertex at the position specified by offset; {0.5, 0.5} will place the center at offset; {1, 1} will place the upper right corner at offset, and so on.
 // - size: Dimensions of the sprite. TextureAtlas_getEntryDimensions() returns values appropriate for this parameter.
-// - indexType: Data type of outIndexes. Must be one of GL_UNSIGNED_BYTE, GL_UNSIGNED_SHORT, or GL_UNSIGNED_INT.
+// - color: All returned vertex color values will be set to the specified value.
 // - outVertices: If not NULL, vertex data will be written to this pointer.
-// - outIndexes: If not NULL, vertex index data of the type specified by indexType will be written to this pointer.
+// - outIndexes: If not NULL, vertex index data will be written to this pointer.
 // - ioVertexCount: Returns the number of vertices written to outVertices, or if outVertices is NULL, the amount of space required to write to it. If this value is nonzero when called, the number of vertices written is added to it. Also used as the base value for any indexes written to outIndexes.
 // - ioIndexCount: Returns the number of indexes written to outIndexes, or if outIndexes is NULL, the amount of space required to write to it. If this value is nonzero when called, the number of indexes written is added to it.
 // 
@@ -91,25 +91,11 @@ void TextureAtlas_getVertices(TextureAtlas * self,
                               Vector2f offset,
                               Vector2f relativeOrigin,
                               Vector2f size,
-                              GLenum indexType,
-                              struct vertex_p2f_t2f * outVertices,
-                              void * outIndexes,
+                              Color4f color,
+                              struct vertex_p2f_t2f_c4f * outVertices,
+                              GLuint * outIndexes,
                               unsigned int * ioVertexCount,
                               unsigned int * ioIndexCount);
-
-// Same as above, but uses vertex_p2f_t2f_c4f instead of vertex_p2f_t2f. All vertex colors will be set to
-// the values specified by the color parameter.
-void TextureAtlas_getVerticesWithColor(TextureAtlas * self,
-                                       const char * key,
-                                       Vector2f offset,
-                                       Vector2f relativeOrigin,
-                                       Vector2f size,
-                                       Color4f color,
-                                       GLenum indexType,
-                                       struct vertex_p2f_t2f_c4f * outVertices,
-                                       void * outIndexes,
-                                       unsigned int * ioVertexCount,
-                                       unsigned int * ioIndexCount);
 
 #ifdef __cplusplus
 }

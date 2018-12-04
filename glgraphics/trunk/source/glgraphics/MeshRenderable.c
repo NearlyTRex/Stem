@@ -21,19 +21,21 @@
 */
 
 #include "glgraphics/MeshRenderable.h"
+#include <assert.h>
 #include <stdlib.h>
 
 #define SUPERCLASS Renderable
 
-MeshRenderable * MeshRenderable_create(GLenum primitiveType, VertexBuffer * vertexBuffer, Material * material, AnimationState * animationState, Matrix4x4f transform) {
-	stemobject_create_implementation(MeshRenderable, init, primitiveType, vertexBuffer, material, animationState, transform)
+MeshRenderable * MeshRenderable_create(VertexBuffer * vertexBuffer, Material * material, AnimationState * animationState, Matrix4x4f transform) {
+	stemobject_create_implementation(MeshRenderable, init, vertexBuffer, material, animationState, transform)
 }
 
-bool MeshRenderable_init(MeshRenderable * self, GLenum primitiveType, VertexBuffer * vertexBuffer, Material * material, AnimationState * animationState, Matrix4x4f transform) {
+bool MeshRenderable_init(MeshRenderable * self, VertexBuffer * vertexBuffer, Material * material, AnimationState * animationState, Matrix4x4f transform) {
 	call_super(init, self, RENDERABLE_MESH);
 	self->dispose = MeshRenderable_dispose;
+	self->getTextureBindID = MeshRenderable_getTextureBindID;
+	self->getVertices = MeshRenderable_getVertices;
 	
-	self->primitiveType = primitiveType;
 	self->vertexBuffer = vertexBuffer;
 	self->transform = transform;
 	self->material = material;
@@ -42,7 +44,20 @@ bool MeshRenderable_init(MeshRenderable * self, GLenum primitiveType, VertexBuff
 	return true;
 }
 
+unsigned int MeshRenderable_getTextureBindID(MeshRenderable * self) {
+	if (self->material == NULL) {
+		return 0;
+	}
+	// If there's ever a possibility of generating more than 65535 texture names, this will fail
+	assert(self->material->colorTextureID < 1 << 16);
+	assert(self->material->normalTextureID < 1 << 16);
+	return self->material->colorTextureID | self->material->normalTextureID << 16;
+}
+
 void MeshRenderable_dispose(MeshRenderable * self) {
-	// Decrease reference count for vertexBuffer, material, and animationState?
 	call_super(dispose, self);
+}
+
+void MeshRenderable_getVertices(MeshRenderable * self, void * outVertices, GLuint * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount) {
+	VertexBuffer_getVertices(self->vertexBuffer, outVertices, outIndexes, ioVertexCount, ioIndexCount);
 }

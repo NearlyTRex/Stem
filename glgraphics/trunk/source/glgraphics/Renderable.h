@@ -30,22 +30,43 @@ typedef struct Renderable Renderable;
 
 typedef enum {
 	RENDERABLE_MESH,
-	RENDERABLE_DYNAMIC_MESH,
 	RENDERABLE_SPRITE
 } RenderableType;
 
 #include "stemobject/StemObject.h"
+#include "glgraphics/GLIncludes.h"
 
 #define Renderable_structContents(self_type) \
 	StemObject_structContents(self_type) \
 	\
 	RenderableType type; \
-	bool visible;
+	/* Set by owner. Renderer ignores for drawing any Renderable that's not visible. True by default. */ \
+	bool visible; \
+	/* Set by owner. Groups of objects with the same drawOrder will be drawn in an unspecified order determined by what Renderer */ \
+	/* decides is optimal. This can be overridden by assigning a specific value to this field, which will be respected even at */ \
+	/* the potential cost of performance. Default is 0. */ \
+	int drawOrder; \
+	\
+	/* Overridden by subclass. Returns a stable, arbitrary, unique* identifier for the set of texture binds that will be used */ \
+	/* to draw this object. Renderer will attempt to batch draw calls for objects that have the same drawOrder and texture binds. */ \
+	/* Default implementation returns 0. */ \
+	/* *Note: This identifier is only required to be unique within the vertex type group to which it belongs. */ \
+	unsigned int (* getTextureBindID)(self_type * self); \
+	/* Overridden by subclass. Fills the buffers specified by outVertices and outIndexes with the appropriate data for drawing */ \
+	/* this object. outVertices is assumed to be in the appropriate format for this type of renderable (see RendererVertexType enum), */ \
+	/* and both it and outIndexes are assumed to have enough room in it to hold the data being written. */ \
+	/* ioVertexCount and ioIndexCount will be used as indexes into outVertices and outIndexes, and updated with the additional */ \
+	/* data appended to them. If outVertices and/or outIndexes is NULL, ioVertexCount and ioIndexCount will still be updated, */ \
+	/* allowing this function to be used to measure the space that needs to be allocated for them. */ \
+	/* The default implementation of this function does nothing. */ \
+	void (* getVertices)(self_type * self, void * outVertices, GLuint * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount);
 
 stemobject_struct_definition(Renderable)
 
 bool Renderable_init(Renderable * self, RenderableType type);
 void Renderable_dispose(Renderable * self);
+unsigned int Renderable_getTextureBindID(Renderable * self);
+void Renderable_getVertices(Renderable * self, void * outVertices, GLuint * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount);
 
 #ifdef __cplusplus
 }

@@ -29,10 +29,20 @@ bool Renderable_init(Renderable * self, RenderableType type) {
 	call_super(init, self);
 	self->type = type;
 	self->visible = true;
+	self->drawOrder = 0;
 	self->dispose = Renderable_dispose;
+	self->getTextureBindID = Renderable_getTextureBindID;
+	self->getVertices = Renderable_getVertices;
 	return true;
 }
 
 void Renderable_dispose(Renderable * self) {
 	call_super(dispose, self);
+}
+
+unsigned int Renderable_getTextureBindID(Renderable * self) {
+	return 0;	
+}
+
+void Renderable_getVertices(Renderable * self, void * outVertices, GLuint * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount) {
 }

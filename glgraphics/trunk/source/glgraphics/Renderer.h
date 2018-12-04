@@ -35,6 +35,13 @@ enum RendererDrawMode {
 	RENDERER_2D_TRANSLUCENT
 };
 
+enum RendererVertexType {
+	RENDERER_VERTEX_TYPE_3D_STATIC, // struct vertex_p3f_t2f_n3f_x4f_c4f
+	RENDERER_VERTEX_TYPE_3D_ANIMATED, // struct vertex_p3f_t2f_n3f_x4f_c4f_b4f_w4f
+	RENDERER_VERTEX_TYPE_2D_TEXTURED, // struct vertex_p2f_t2f_c4f
+	RENDERER_VERTEX_TYPE_COUNT
+};
+
 enum {
 	VERTEX_ATTRIB_POSITION,
 	VERTEX_ATTRIB_TEXTURE_COORD,
@@ -50,12 +57,14 @@ enum {
 #include "glgraphics/GLSLShader.h"
 #include "glgraphics/Material.h"
 #include "glgraphics/Renderable.h"
+#include "glgraphics/VertexBuffer.h"
 #include "glgraphics/VertexTypes.h"
 
 struct RenderLayer {
 	unsigned int renderableCount;
 	unsigned int allocatedCount;
 	Renderable ** renderables;
+	VertexBuffer * vertexBuffers[RENDERER_VERTEX_TYPE_COUNT]; \
 };
 
 #define Renderer_structContents(self_type) \
@@ -63,17 +72,15 @@ struct RenderLayer {
 	\
 	struct RenderLayer * layers; \
 	unsigned int layerCount; \
+	GLSLShader * shaders[RENDERER_VERTEX_TYPE_COUNT]; \
+	Material * nullMaterial; \
 	Vector3f light0Position; \
 	Color4f light0Color; \
 	Vector3f light1Position; \
 	Color4f light1Color; \
 	Color4f ambientColor; \
 	Matrix4x4f projectionMatrix; \
-	Matrix4x4f viewMatrix; \
-	GLSLShader * shaderStaticMesh; \
-	GLSLShader * shaderAnimatedMesh; \
-	GLSLShader * shaderSprite; \
-	Material * nullMaterial;
+	Matrix4x4f viewMatrix;
 
 stemobject_struct_definition(Renderer)
 
@@ -91,8 +98,8 @@ void Renderer_setProjectionMatrix(Renderer * self, Matrix4x4f matrix);
 void Renderer_setViewMatrix(Renderer * self, Matrix4x4f matrix);
 void Renderer_setLights(Renderer * self, Vector3f light0Position, Color4f light0Color, Vector3f light1Position, Color4f light1Color, Color4f ambientColor);
 void Renderer_setDrawMode(Renderer * self, enum RendererDrawMode mode);
-void Renderer_drawLayer(Renderer * self, unsigned int layerIndex);
-void Renderer_drawSingle(Renderer * self, Renderable * renderable);
+void Renderer_drawLayer(Renderer * self, unsigned int layerIndex, bool sortForTranslucency);
+//void Renderer_drawSingle(Renderer * self, Renderable * renderable);
 
 #ifdef __cplusplus
 }

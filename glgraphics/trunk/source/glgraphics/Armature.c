@@ -165,7 +165,7 @@ VertexBuffer * Armature_createDebugVertexBuffer(Armature * self) {
 		}
 	}
 	
-	vertexBuffer = VertexBuffer_createPTNXCBW(vertices, sizeof(boneVertices) / sizeof(boneVertices[0]) * self->boneCount, indexes, sizeof(boneIndexes) / sizeof(boneIndexes[0]) * self->boneCount, VERTEX_BUFFER_USAGE_STATIC);
+	vertexBuffer = VertexBuffer_createPTNXCBW(vertices, sizeof(boneVertices) / sizeof(boneVertices[0]) * self->boneCount, indexes, sizeof(boneIndexes) / sizeof(boneIndexes[0]) * self->boneCount, VERTEX_BUFFER_STORAGE_GPU_ONLY, VERTEX_BUFFER_USAGE_STATIC);
 	free(vertices);
 	free(indexes);
 	

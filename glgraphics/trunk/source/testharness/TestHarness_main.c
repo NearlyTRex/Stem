@@ -69,7 +69,7 @@ static bool Target_draw() {
 		Renderer_setViewMatrix(renderer, OrbitCamera_getMatrix(camera));
 		Renderer_setDrawMode(renderer, RENDERER_3D_OPAQUE);
 	}
-	Renderer_drawLayer(renderer, 0);
+	Renderer_drawLayer(renderer, 0, false);
 	return true;
 }
 
@@ -99,8 +99,8 @@ static void initScene1() {
 	if (vertexBuffer != NULL) {
 		VertexBuffer_dispose(vertexBuffer);
 	}
-	vertexBuffer = VertexBuffer_createPTNXC(vertices, sizeof(vertices) / sizeof(struct vertex_p3f_t2f_n3f_x4f_c4f), indexes, sizeof(indexes) / sizeof(GLuint), VERTEX_BUFFER_USAGE_STATIC);
-	renderable = MeshRenderable_create(GL_TRIANGLES, vertexBuffer, material, NULL, MATRIX4x4f_IDENTITY);
+	vertexBuffer = VertexBuffer_createPTNXC(vertices, sizeof(vertices) / sizeof(struct vertex_p3f_t2f_n3f_x4f_c4f), indexes, sizeof(indexes) / sizeof(GLuint), VERTEX_BUFFER_STORAGE_GPU_ONLY, VERTEX_BUFFER_USAGE_STATIC);
+	renderable = MeshRenderable_create(vertexBuffer, material, NULL, MATRIX4x4f_IDENTITY);
 	Renderer_addRenderable(renderer, 0, (Renderable *) renderable);
 	
 	if (camera != NULL) {
@@ -167,8 +167,8 @@ static void initScene2() {
 	animation = Animation_create(ATOM("animation"), true, sizeof(keyframes) / sizeof(keyframes[0]), keyframes, 0, NULL);
 	animationState = AnimationState_create(armature);
 	Animation_poseAnimationStateAtTime(animation, animationState, 0.0, 1.0f);
-	vertexBuffer = VertexBuffer_createPTNXCBW(vertices, sizeof(vertices) / sizeof(struct vertex_p3f_t2f_n3f_x4f_c4f_b4f_w4f), indexes, sizeof(indexes) / sizeof(GLuint), VERTEX_BUFFER_USAGE_STATIC);
-	renderable = MeshRenderable_create(GL_TRIANGLES, vertexBuffer, material, animationState, MATRIX4x4f_IDENTITY);
+	vertexBuffer = VertexBuffer_createPTNXCBW(vertices, sizeof(vertices) / sizeof(struct vertex_p3f_t2f_n3f_x4f_c4f_b4f_w4f), indexes, sizeof(indexes) / sizeof(GLuint), VERTEX_BUFFER_STORAGE_GPU_ONLY, VERTEX_BUFFER_USAGE_STATIC);
+	renderable = MeshRenderable_create(vertexBuffer, material, animationState, MATRIX4x4f_IDENTITY);
 	Renderer_addRenderable(renderer, 0, (Renderable *) renderable);
 	
 	if (armatureVertexBuffer != NULL ){
@@ -178,7 +178,7 @@ static void initScene2() {
 		MeshRenderable_dispose(armatureRenderable);
 	}
 	armatureVertexBuffer = Armature_createDebugVertexBuffer(armature);
-	armatureRenderable = MeshRenderable_create(GL_TRIANGLES, armatureVertexBuffer, armatureMaterial, animationState, MATRIX4x4f_IDENTITY);
+	armatureRenderable = MeshRenderable_create(armatureVertexBuffer, armatureMaterial, animationState, MATRIX4x4f_IDENTITY);
 	armatureRenderable->visible = false;
 	Renderer_addRenderable(renderer, 0, (Renderable *) armatureRenderable);
 	
@@ -339,8 +339,8 @@ static void initScene3() {
 	animation = Animation_create(ATOM("animation"), true, sizeof(keyframes) / sizeof(keyframes[0]), keyframes, 0, NULL);
 	animationState = AnimationState_create(armature);
 	Animation_poseAnimationStateAtTime(animation, animationState, 0.0, 1.0f);
-	vertexBuffer = VertexBuffer_createPTNXCBW(vertices, sizeof(vertices) / sizeof(struct vertex_p3f_t2f_n3f_x4f_c4f_b4f_w4f), indexes, sizeof(indexes) / sizeof(GLuint), VERTEX_BUFFER_USAGE_STATIC);
-	renderable = MeshRenderable_create(GL_TRIANGLES, vertexBuffer, material, animationState, MATRIX4x4f_IDENTITY);
+	vertexBuffer = VertexBuffer_createPTNXCBW(vertices, sizeof(vertices) / sizeof(struct vertex_p3f_t2f_n3f_x4f_c4f_b4f_w4f), indexes, sizeof(indexes) / sizeof(GLuint), VERTEX_BUFFER_STORAGE_GPU_ONLY, VERTEX_BUFFER_USAGE_STATIC);
+	renderable = MeshRenderable_create(vertexBuffer, material, animationState, MATRIX4x4f_IDENTITY);
 	Renderer_addRenderable(renderer, 0, (Renderable *) renderable);
 	
 	if (armatureVertexBuffer != NULL ){
@@ -350,7 +350,7 @@ static void initScene3() {
 		MeshRenderable_dispose(armatureRenderable);
 	}
 	armatureVertexBuffer = Armature_createDebugVertexBuffer(armature);
-	armatureRenderable = MeshRenderable_create(GL_TRIANGLES, armatureVertexBuffer, armatureMaterial, animationState, MATRIX4x4f_IDENTITY);
+	armatureRenderable = MeshRenderable_create(armatureVertexBuffer, armatureMaterial, animationState, MATRIX4x4f_IDENTITY);
 	armatureRenderable->visible = false;
 	Renderer_addRenderable(renderer, 0, (Renderable *) armatureRenderable);
 	
@@ -380,7 +380,7 @@ static void initScene4() {
 		SpriteRenderable_dispose(sprite);
 	}
 	spriteMode = true;
-	sprite = SpriteRenderable_create(atlas, "key1", VECTOR2f_ZERO, Matrix4x4f_scaled(MATRIX4x4f_IDENTITY, 0.25f, 0.25f, 1.0f));
+	sprite = SpriteRenderable_create(atlas, "key1", VECTOR2f(0.5f, 0.5f), VECTOR2f_ZERO, VECTOR2f(TEXTUREATLAS_SIZE_AUTO, 1.0f), COLOR4f(1.0f, 1.0f, 1.0f, 1.0f));
 	Renderer_addRenderable(renderer, 0, (Renderable *) sprite);
 }
 
@@ -451,7 +451,7 @@ static void Target_mouseMoved(float x, float y) {
 
 static void Target_mouseDragged(unsigned int buttonMask, float x, float y) {
 	if (spriteMode) {
-		Matrix4x4f_translate(&sprite->transform, x * SPRITE_DRAG_RATIO, -y * SPRITE_DRAG_RATIO, 0.0f);
+		//Matrix4x4f_translate(&sprite->transform, x * SPRITE_DRAG_RATIO, -y * SPRITE_DRAG_RATIO, 0.0f);
 	} else {
 		if (shiftKeyDown) {
 			if (controlKeyDown) {

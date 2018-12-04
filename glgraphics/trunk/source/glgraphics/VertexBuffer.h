@@ -40,6 +40,12 @@ enum VertexBufferUsageHint {
 	VERTEX_BUFFER_USAGE_DYNAMIC
 };
 
+enum VertexBufferStorage {
+	VERTEX_BUFFER_STORAGE_CPU_ONLY,
+	VERTEX_BUFFER_STORAGE_GPU_ONLY,
+	VERTEX_BUFFER_STORAGE_CPU_AND_GPU
+};
+
 enum VertexBufferDataType {
 	VERTEX_BUFFER_DATA_TYPE_VERTEX,
 	VERTEX_BUFFER_DATA_TYPE_INDEX
@@ -59,23 +65,39 @@ enum VertexBufferDataType {
 	GLuint indexBufferID; \
 	unsigned int vertexCount; \
 	unsigned int indexCount; \
+	void * vertices; \
+	GLuint * indexes; \
 	Box6f bounds; \
 	enum VertexBufferUsageHint usageHint; \
+	enum VertexBufferStorage storageType; \
 	size_t private_ivar(vertexSize); \
-	void * private_ivar(mappedVertices);
+	bool private_ivar(hasZComponent); \
+	void * private_ivar(mappedVertices); \
+	void * private_ivar(mappedIndexes);
 
 stemobject_struct_definition(VertexBuffer)
 
-VertexBuffer * VertexBuffer_createPTNXC(const struct vertex_p3f_t2f_n3f_x4f_c4f * vertices, unsigned int vertexCount, const GLuint * indexes, unsigned int indexCount, enum VertexBufferUsageHint usageHint);
-VertexBuffer * VertexBuffer_createPTNXCBW(const struct vertex_p3f_t2f_n3f_x4f_c4f_b4f_w4f * vertices, unsigned int vertexCount, const GLuint * indexes, unsigned int indexCount, enum VertexBufferUsageHint usageHint);
-bool VertexBuffer_initPTNXC(VertexBuffer * self, const struct vertex_p3f_t2f_n3f_x4f_c4f * vertices, unsigned int vertexCount, const GLuint * indexes, unsigned int indexCount, enum VertexBufferUsageHint usageHint);
-bool VertexBuffer_initPTNXCBW(VertexBuffer * self, const struct vertex_p3f_t2f_n3f_x4f_c4f_b4f_w4f * vertices, unsigned int vertexCount, const GLuint * indexes, unsigned int indexCount, enum VertexBufferUsageHint usageHint);
+// storageType determines whether vertex and index data will be retained in CPU memory within this object, uploaded to the GPU, or both.
+// If storageType is VERTEX_BUFFER_STORAGE_CPU_ONLY, no VBO or VAO will be created for this object, and usageHint will be ignored.
+// If data is to be stored on the CPU, it will be copied, so the caller retains ownership of vertices and indexes.
+// Leaves VAO bound after being called.
+VertexBuffer * VertexBuffer_createPTC(const struct vertex_p2f_t2f_c4f * vertices, unsigned int vertexCount, const GLuint * indexes, unsigned int indexCount, enum VertexBufferStorage storageType, enum VertexBufferUsageHint usageHint);
+VertexBuffer * VertexBuffer_createPTNXC(const struct vertex_p3f_t2f_n3f_x4f_c4f * vertices, unsigned int vertexCount, const GLuint * indexes, unsigned int indexCount, enum VertexBufferStorage storageType, enum VertexBufferUsageHint usageHint);
+VertexBuffer * VertexBuffer_createPTNXCBW(const struct vertex_p3f_t2f_n3f_x4f_c4f_b4f_w4f * vertices, unsigned int vertexCount, const GLuint * indexes, unsigned int indexCount, enum VertexBufferStorage storageType, enum VertexBufferUsageHint usageHint);
+bool VertexBuffer_initPTC(VertexBuffer * self, const struct vertex_p2f_t2f_c4f * vertices, unsigned int vertexCount, const GLuint * indexes, unsigned int indexCount, enum VertexBufferStorage storageType, enum VertexBufferUsageHint usageHint);
+bool VertexBuffer_initPTNXC(VertexBuffer * self, const struct vertex_p3f_t2f_n3f_x4f_c4f * vertices, unsigned int vertexCount, const GLuint * indexes, unsigned int indexCount, enum VertexBufferStorage storageType, enum VertexBufferUsageHint usageHint);
+bool VertexBuffer_initPTNXCBW(VertexBuffer * self, const struct vertex_p3f_t2f_n3f_x4f_c4f_b4f_w4f * vertices, unsigned int vertexCount, const GLuint * indexes, unsigned int indexCount, enum VertexBufferStorage storageType, enum VertexBufferUsageHint usageHint);
+
 void VertexBuffer_dispose(VertexBuffer * self);
 
-// vertices must be of the same type this VertexBuffer was initialized with
+// vertices must be of the same type this VertexBuffer was initialized with. Updates values in all storage types used by this VertexBuffer.
+// Leaves VBO bound after being called.
 void VertexBuffer_bufferData(VertexBuffer * self, const void * vertices, unsigned int vertexCount, const GLuint * indexes, unsigned int indexCount);
 void * VertexBuffer_mapData(VertexBuffer * self, enum VertexBufferDataType dataType, enum VertexBufferAccessMode accessMode);
 void VertexBuffer_unmapData(VertexBuffer * self, enum VertexBufferDataType dataType);
+
+// Does nothing for VertexBuffers with storageType of VERTEX_BUFFER_STORAGE_GPU_ONLY
+void VertexBuffer_getVertices(VertexBuffer * self, void * outVertices, GLuint * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount);
 
 #ifdef __cplusplus
 }

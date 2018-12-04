@@ -17,8 +17,8 @@ static void testInit() {
 	Renderable_dispose(&renderable);
 	
 	memset(&renderable, 0x00, sizeof(Renderable));
-	Renderable_init(&renderable, RENDERABLE_DYNAMIC_MESH);
-	TestCase_assert(renderable.type == RENDERABLE_DYNAMIC_MESH, "Expected %d but got %d", RENDERABLE_DYNAMIC_MESH, renderable.type);
+	Renderable_init(&renderable, RENDERABLE_SPRITE);
+	TestCase_assert(renderable.type == RENDERABLE_SPRITE, "Expected %d but got %d", RENDERABLE_SPRITE, renderable.type);
 	TestCase_assert(renderable.dispose == Renderable_dispose, "Expected %p but got %p", Renderable_dispose, renderable.dispose);
 	Renderable_dispose(&renderable);
 }

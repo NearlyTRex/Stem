@@ -40,15 +40,16 @@ typedef struct MeshRenderable MeshRenderable;
 	VertexBuffer * vertexBuffer; \
 	Material * material; \
 	AnimationState * animationState; \
-	Matrix4x4f transform; \
-	GLenum primitiveType;
+	Matrix4x4f transform;
 
 stemobject_struct_definition(MeshRenderable)
 
 // If animationState is NULL, vertexBuffer must be in PTNXC format. If animationState is non-NULL, vertexBuffer must be in PTNXCBW format.
-MeshRenderable * MeshRenderable_create(GLenum primitiveType, VertexBuffer * vertexBuffer, Material * material, AnimationState * animationState, Matrix4x4f transform);
-bool MeshRenderable_init(MeshRenderable * self, GLenum primitiveType, VertexBuffer * vertexBuffer, Material * material, AnimationState * animationState, Matrix4x4f transform);
+MeshRenderable * MeshRenderable_create(VertexBuffer * vertexBuffer, Material * material, AnimationState * animationState, Matrix4x4f transform);
+bool MeshRenderable_init(MeshRenderable * self, VertexBuffer * vertexBuffer, Material * material, AnimationState * animationState, Matrix4x4f transform);
 void MeshRenderable_dispose(MeshRenderable * self);
+unsigned int MeshRenderable_getTextureBindID(MeshRenderable * self);
+void MeshRenderable_getVertices(MeshRenderable * self, void * outVertices, GLuint * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount);
 
 #ifdef __cplusplus
 }
