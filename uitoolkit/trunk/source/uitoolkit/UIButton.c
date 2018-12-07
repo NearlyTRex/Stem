@@ -80,6 +80,7 @@ bool UIButton_mouseUp(UIButton * self, unsigned int buttonNumber, float x, float
 		// Do button action
 		return true;
 	}
+	self->clickInProgress = false;
 	return false;
 }
 

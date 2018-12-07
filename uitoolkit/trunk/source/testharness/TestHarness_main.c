@@ -1,4 +1,5 @@
 #include "3dmodelio/TextureAtlasData.h"
+#include "gamemath/MouseCoordinateTransforms.h"
 #include "glbitmapfont/GLBitmapFont.h"
 #include "glgraphics/DynamicSpriteRenderable.h"
 #include "glgraphics/GLIncludes.h"
@@ -57,36 +58,58 @@ static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned
 		}
 		
 	} else {
-		//UIInputController_keyDown(uiInputController, charCode, keyCode, modifiers, isRepeat);
+		button->keyDown(button, charCode, keyCode, modifiers, isRepeat);
 	}
 }
 
 static void Target_keyUp(unsigned int keyCode, unsigned int modifiers) {
-	//UIInputController_keyUp(uiInputController, keyCode, modifiers);
+	if (button->keyUp(button, keyCode, modifiers)) {
+		Shell_redisplay();
+	}
 }
 
 static void Target_keyModifiersChanged(unsigned int modifiers) {
-	//UIInputController_keyModifiersChanged(uiInputController, modifiers);
+	if (button->keyModifiersChanged(button, modifiers)) {
+		Shell_redisplay();
+	}
+}
+
+static Vector2f transformMousePosition(float x, float y) {
+	return VECTOR2f(x / 2, (viewHeight - y) / 2);
 }
 
 static void Target_mouseDown(unsigned int buttonNumber, float x, float y) {
-	//UIInputController_mouseDown(uiInputController, buttonNumber, x, y);
+	Vector2f position = transformMousePosition(x, y);
+	if (button->mouseDown(button, buttonNumber, position.x, position.y)) {
+		Shell_redisplay();
+	}
 }
 
 static void Target_mouseUp(unsigned int buttonNumber, float x, float y) {
-	//UIInputController_mouseUp(uiInputController, buttonNumber, x, y);
+	Vector2f position = transformMousePosition(x, y);
+	if (button->mouseUp(button, buttonNumber, position.x, position.y)) {
+		Shell_redisplay();
+	}
 }
 
 static void Target_mouseMoved(float x, float y) {
-	//UIInputController_mouseMoved(uiInputController, x, y);
+	Vector2f position = transformMousePosition(x, y);
+	if (button->mouseMoved(button, position.x, position.y)) {
+		Shell_redisplay();
+	}
 }
 
 static void Target_mouseDragged(unsigned int buttonMask, float x, float y) {
-	//UIInputController_mouseDragged(uiInputController, buttonMask, x, y);
+	Vector2f position = transformMousePosition(x, y);
+	if (button->mouseDragged(button, buttonMask, position.x, position.y)) {
+		Shell_redisplay();
+	}
 }
 
 static void Target_scrollWheel(int deltaX, int deltaY) {
-	//UIInputController_scrollWheel(uiInputController, deltaX, deltaY);
+	if (button->scrollWheel(button, deltaX, deltaY)) {
+		Shell_redisplay();
+	}
 }
 
 static void Target_resized(unsigned int newWidth, unsigned int newHeight) {
