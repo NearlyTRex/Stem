@@ -1,6 +1,9 @@
 {
-	"format_version": 1,
-	"texture_name": "test_font_texture.json",
+	"format_version": 2,
+	"format_type": "texture_atlas",
+	"name": "Water Tower font",
+	"texture_name": "test_font_texture.png",
+	"magnify_nearest": false,
 	"entries": {
 		" ": {
 			"left": 0,

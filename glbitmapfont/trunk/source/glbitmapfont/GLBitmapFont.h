@@ -28,7 +28,7 @@ extern "C" {
 
 #include "gamemath/Vector2f.h"
 #include "glgraphics/VertexTypes.h"
-#include "gltexture/GLTextureAtlas.h"
+#include "glgraphics/TextureAtlas.h"
 #include "serialization/DeserializationContext.h"
 #include "serialization/SerializationContext.h"
 #include "stemobject/StemObject.h"
@@ -70,7 +70,7 @@ struct GLBitmapFont_charEntry {
 	\
 	char * atlasName; \
 	bool private_ivar(atlasNameOwned); \
-	GLTextureAtlas * atlas; \
+	TextureAtlas * atlas; \
 	bool private_ivar(atlasOwned); \
 	struct GLBitmapFont_charEntry characters[GLBITMAPFONT_NUM_CHARS];
 
@@ -84,7 +84,7 @@ GLBitmapFont * GLBitmapFont_deserialize(compat_type(DeserializationContext *) de
 bool GLBitmapFont_loadSerializedData(GLBitmapFont * self, compat_type(DeserializationContext *) deserializationContext);
 void GLBitmapFont_serialize(GLBitmapFont * self, compat_type(SerializationContext *) serializationContext);
 
-void GLBitmapFont_setTextureAtlas(GLBitmapFont * self, GLTextureAtlas * atlas, bool takeOwnership);
+void GLBitmapFont_setTextureAtlas(GLBitmapFont * self, TextureAtlas * atlas, bool takeOwnership);
 
 // Returns the width of string (of length UTF-8 bytes) in ems
 float GLBitmapFont_measureString(GLBitmapFont * self, const char * string, size_t length);

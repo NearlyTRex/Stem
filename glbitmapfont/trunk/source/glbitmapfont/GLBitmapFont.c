@@ -185,7 +185,7 @@ void GLBitmapFont_serialize(GLBitmapFont * self, compat_type(SerializationContex
 	context->endStructure(context);
 }
 
-void GLBitmapFont_setTextureAtlas(GLBitmapFont * self, GLTextureAtlas * atlas, bool takeOwnership) {
+void GLBitmapFont_setTextureAtlas(GLBitmapFont * self, TextureAtlas * atlas, bool takeOwnership) {
 	if (self->private_ivar(atlasOwned)) {
 		self->atlas->dispose(self->atlas);
 	}
@@ -408,7 +408,7 @@ void GLBitmapFont_getStringVertices(GLBitmapFont * self,
 	float positionX = 0.0f;
 	unsigned int charEntryIndex;
 	unsigned int vertexCount = *ioVertexCount, indexCount = *ioIndexCount;
-	struct GLTextureAtlas_entry atlasEntry;
+	struct TextureAtlas_entry atlasEntry;
 	
 	if (length == GLBITMAPFONT_USE_STRLEN) {
 		length = strlen(string);
@@ -419,7 +419,7 @@ void GLBitmapFont_getStringVertices(GLBitmapFont * self,
 		if (string[charIndex] >= GLBITMAPFONT_PRINTABLE_MIN && string[charIndex] <= GLBITMAPFONT_PRINTABLE_MAX) {
 			if (outVertices != NULL) {
 				charEntryIndex = string[charIndex] - GLBITMAPFONT_PRINTABLE_MIN;
-				atlasEntry = GLTextureAtlas_lookup(self->atlas, self->characters[charEntryIndex].atlasKey);
+				atlasEntry = TextureAtlas_lookup(self->atlas, self->characters[charEntryIndex].atlasKey);
 				getVertices_kern();
 				getVertices_writePosition();
 				getVertices_writeTexCoords();
@@ -452,7 +452,7 @@ void GLBitmapFont_getStringVerticesWithColor(GLBitmapFont * self,
 	float positionX = 0.0f;
 	unsigned int charEntryIndex;
 	unsigned int vertexCount = *ioVertexCount, indexCount = *ioIndexCount;
-	struct GLTextureAtlas_entry atlasEntry;
+	struct TextureAtlas_entry atlasEntry;
 	
 	if (length == GLBITMAPFONT_USE_STRLEN) {
 		length = strlen(string);
@@ -463,7 +463,7 @@ void GLBitmapFont_getStringVerticesWithColor(GLBitmapFont * self,
 		if (string[charIndex] >= GLBITMAPFONT_PRINTABLE_MIN && string[charIndex] <= GLBITMAPFONT_PRINTABLE_MAX) {
 			if (outVertices != NULL) {
 				charEntryIndex = string[charIndex] - GLBITMAPFONT_PRINTABLE_MIN;
-				atlasEntry = GLTextureAtlas_lookup(self->atlas, self->characters[charEntryIndex].atlasKey);
+				atlasEntry = TextureAtlas_lookup(self->atlas, self->characters[charEntryIndex].atlasKey);
 				getVertices_kern();
 				getVertices_writePosition();
 				getVertices_writeTexCoords();

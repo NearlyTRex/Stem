@@ -1,10 +1,10 @@
 #include "shell/Shell.h"
 #include "shell/ShellCallbacks.h"
 #include "shell/ShellKeyCodes.h"
+#include "3dmodelio/TextureAtlasData.h"
 #include "gamemath/Matrix4x4f.h"
 #include "glbitmapfont/GLBitmapFont.h"
 #include "glgraphics/GLIncludes.h"
-#include "gltexture/GLTexture.h"
 #include "jsonserialization/JSONDeserializationContext.h"
 #include "pngimageio/PNGImageIO.h"
 #include "utilities/IOUtilities.h"
@@ -74,9 +74,12 @@ static void drawString(GLBitmapFont * font, const char * string, size_t length, 
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	glVertexPointer(2, GL_FLOAT, sizeof(struct vertex_p2f_t2f), (void *) offsetof(struct vertex_p2f_t2f, position));
 	glTexCoordPointer(2, GL_FLOAT, sizeof(struct vertex_p2f_t2f), (void *) offsetof(struct vertex_p2f_t2f, texCoords));
-	GLTexture_activate(font->atlas->texture);
+	glEnable(GL_TEXTURE_2D);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glBindTexture(GL_TEXTURE_2D, font->atlas->textureID);
 	glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_SHORT, 0);
-	GLTexture_deactivate(font->atlas->texture);
+	glBindTexture(GL_TEXTURE_2D, 0);
 	
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -254,10 +257,10 @@ void GLUTTarget_configure(int argc, const char ** argv, struct GLUTShellConfigur
 
 void Target_init() {
 	const char * fontJSONFilePath;
-	char atlasJSONFilePath[PATH_MAX], textureJSONFilePath[PATH_MAX], textureImageFilePath[PATH_MAX];
+	char atlasJSONFilePath[PATH_MAX], textureImageFilePath[PATH_MAX];
 	JSONDeserializationContext * context;
-	GLTextureAtlas * atlas;
-	GLTexture * texture;
+	TextureAtlasData * atlasData;
+	TextureAtlas * atlas;
 	BitmapImage * image;
 	
 	if (jsonPath == NULL) {
@@ -300,43 +303,16 @@ void Target_init() {
 		fprintf(stderr, "Fatal error: Couldn't load %s (status %d)\n", atlasJSONFilePath, context->status);
 		exit(EXIT_FAILURE);
 	}
-	atlas = GLTextureAtlas_deserialize(context);
+	atlasData = TextureAtlasData_deserialize(context);
 	context->dispose(context);
-	if (atlas == NULL) {
+	if (atlasData == NULL) {
 		fprintf(stderr, "Fatal error: Couldn't deserialize %s (status %d)\n", atlasJSONFilePath, context->status);
 		exit(EXIT_FAILURE);
 	}
+	atlas = TextureAtlasData_createTextureAtlas(atlasData);
 	
 	if (jsonPath == NULL) {
-		strncpy(textureJSONFilePath, atlas->textureName, PATH_MAX);
-		
-	} else {
-		size_t charIndex;
-		
-		strncpy(textureJSONFilePath, jsonPath, PATH_MAX);
-		for (charIndex = strlen(textureJSONFilePath) - 1; charIndex > 0; charIndex--) {
-			if (textureJSONFilePath[charIndex] == '/') {
-				charIndex++;
-				break;
-			}
-		}
-		strncpy(textureJSONFilePath + charIndex, atlas->textureName, PATH_MAX - charIndex);
-	}
-	
-	context = JSONDeserializationContext_createWithFile(textureJSONFilePath);
-	if (context->status != SERIALIZATION_ERROR_OK) {
-		fprintf(stderr, "Fatal error: Couldn't load %s (status %d)\n", textureJSONFilePath, context->status);
-		exit(EXIT_FAILURE);
-	}
-	texture = GLTexture_deserialize(context);
-	context->dispose(context);
-	if (texture == NULL) {
-		fprintf(stderr, "Fatal error: Couldn't deserialize %s (status %d)\n", textureJSONFilePath, context->status);
-		exit(EXIT_FAILURE);
-	}
-	
-	if (jsonPath == NULL) {
-		strncpy(textureImageFilePath, texture->imageName, PATH_MAX);
+		strncpy(textureImageFilePath, atlasData->textureMapName, PATH_MAX);
 		
 	} else {
 		size_t charIndex;
@@ -348,18 +324,18 @@ void Target_init() {
 				break;
 			}
 		}
-		strncpy(textureImageFilePath + charIndex, texture->imageName, PATH_MAX - charIndex);
+		strncpy(textureImageFilePath + charIndex, atlasData->textureMapName, PATH_MAX - charIndex);
 	}
 	
-	image = PNGImageIO_loadPNGFile(textureImageFilePath, PNG_PIXEL_FORMAT_AUTOMATIC, true);
+	image = PNGImageIO_loadPNGFile(textureImageFilePath, BITMAP_PIXEL_FORMAT_RGBA_8888, true);
 	if (image == NULL) {
 		fprintf(stderr, "Fatal error: Couldn't load %s\n", textureImageFilePath);
 		exit(EXIT_FAILURE);
 	}
-	texture->setImage(texture, 0, image->width, image->height, image->bytesPerRow, image->pixels);
+	TextureAtlas_setTexture(atlas, atlasData->magnifyNearest, image->width, image->height, image->pixels);
 	image->dispose(image);
-	GLTextureAtlas_setTexture(atlas, texture, true);
 	GLBitmapFont_setTextureAtlas(font, atlas, true);
+	TextureAtlasData_dispose(atlasData);
 	
 	memset(freeformText, 0, FREEFORM_LENGTH_MAX + 1);
 	/*

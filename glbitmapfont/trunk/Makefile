@@ -2,8 +2,8 @@ PROJECT_NAME = glbitmapfont
 
 # VERSION_MAJOR, VERSION_MINOR, and VERSION_TWEAK are available as preprocessor macros for all source files in the project
 VERSION_MAJOR = 2
-VERSION_MINOR = 0
-VERSION_TWEAK = 1
+VERSION_MINOR = 1
+VERSION_TWEAK = 0
 PROJECT_VERSION = ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_TWEAK}
 
 LIBRARY_TARGETS = library
@@ -24,8 +24,13 @@ PLATFORMS_unittest = macosx linux32 linux64 win32 win64
 CCFLAGS_linux32 = -Wno-unused-result
 CCFLAGS_linux64 = -Wno-unused-result
 
-# Patterns: LINKFLAGS, LINKFLAGS_${target}, LINKFLAGS_${platform}, LINKFLAGS_${target}_${platform}
+# Patterns: LINKFLAGS, LINKFLAGS_${target}, LINKFLAGS_${configuration}, LINKFLAGS_${platform}, LINKFLAGS_${target}_${configuration}, LINKFLAGS_${target}_${platform}, LINKFLAGS_${configuration}_${platform}
 LINKFLAGS = 
+LINKFLAGS_unittest_macosx = -framework OpenGL
+LINKFLAGS_unittest_win32 = -lopengl32
+LINKFLAGS_unittest_win64 = -lopengl32
+LINKFLAGS_unittest_linux32 = -lGL
+LINKFLAGS_unittest_linux64 = -lGL
 
 # PROJECT_LIBRARY_DEPENDENCIES_* refers to entries in LIBRARY_TARGETS to be linked when building the specified target
 # Patterns: PROJECT_LIBRARY_DEPENDENCIES_${target}, PROJECT_LIBRARY_DEPENDENCIES_${target}_${platform}
@@ -37,13 +42,13 @@ PROJECT_LIBRARY_DEPENDENCIES_testharness = library
 STEM_LIBRARY_DEPENDENCIES = \
 	gamemath/latest \
 	glgraphics/latest \
-	gltexture/latest \
 	serialization/latest \
 	stemobject/latest
 STEM_LIBRARY_DEPENDENCIES_unittest = \
 	utilities/latest \
 	unittest/latest
 STEM_LIBRARY_DEPENDENCIES_testharness = \
+	3dmodelio/latest \
 	pngimageio/latest \
 	bitmapimage/latest \
 	jsonserialization/latest \
@@ -51,10 +56,10 @@ STEM_LIBRARY_DEPENDENCIES_testharness = \
 	utilities/latest \
 	shell/latest
 STEM_LIBRARY_DEPENDENCIES_testharness_macosx = nsopenglshell/latest
-STEM_LIBRARY_DEPENDENCIES_testharness_win32 = glutshell/latest
-STEM_LIBRARY_DEPENDENCIES_testharness_win64 = glutshell/latest
-STEM_LIBRARY_DEPENDENCIES_testharness_linux32 = glutshell/latest
-STEM_LIBRARY_DEPENDENCIES_testharness_linux64 = glutshell/latest
+STEM_LIBRARY_DEPENDENCIES_testharness_win32 = wglshell/latest
+STEM_LIBRARY_DEPENDENCIES_testharness_win64 = wglshell/latest
+STEM_LIBRARY_DEPENDENCIES_testharness_linux32 = glxshell/latest
+STEM_LIBRARY_DEPENDENCIES_testharness_linux64 = glxshell/latest
 STEM_LIBRARY_DEPENDENCIES_testharness_iphonesimulator = eaglshell/latest
 STEM_LIBRARY_DEPENDENCIES_testharness_iphoneos = eaglshell/latest
 
@@ -84,7 +89,6 @@ INCLUDES = \
 # Patterns: RESOURCES, RESOURCES_${target}, RESOURCES_${platform}, RESOURCES_${target}_${platform}
 RESOURCES_testharness = \
 	resources/test_font_atlas.json \
-	resources/test_font_texture.json \
 	resources/test_font_texture.png \
 	resources/test_font.json
 RESOURCES_testharness_iphonesimulator = \
