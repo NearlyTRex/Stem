@@ -1,7 +1,7 @@
-PROJECT_NAME = template_stemlib
+PROJECT_NAME = uitoolkit
 
 # VERSION_MAJOR, VERSION_MINOR, and VERSION_TWEAK are available as preprocessor macros for all source files in the project
-VERSION_MAJOR = 2
+VERSION_MAJOR = 0
 VERSION_MINOR = 0
 VERSION_TWEAK = 0
 PROJECT_VERSION = ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_TWEAK}
@@ -14,7 +14,7 @@ APPLICATION_TARGETS = testharness
 #TARGET_NAME_library = libstem_${PROJECT_NAME}
 #TARGET_NAME_unittest = ${PROJECT_NAME}_unittest
 #TARGET_NAME_testharness = ${PROJECT_NAME}_testharness
-HUMAN_READABLE_TARGET_NAME_testharness = Stem\ Template
+HUMAN_READABLE_TARGET_NAME_testharness = UIToolkit
 
 # Patterns: PLATFORMS, PLATFORMS_${target}
 PLATFORMS = macosx iphonesimulator iphoneos linux32 linux64 win32 win64
@@ -32,7 +32,28 @@ PROJECT_LIBRARY_DEPENDENCIES_testharness = library
 
 # STEM_LIBRARY_DEPENDENCIES is specified as ${PROJECT_NAME}/${PROJECT_VERSION} for each stem library to be linked when building
 # Patterns: STEM_LIBRARY_DEPENDENCIES, STEM_LIBRARY_DEPENDENCIES_${target}, STEM_LIBRARY_DEPENDENCIES_${platform}, STEM_LIBRARY_DEPENDENCIES_${target}_${platform}
+STEM_LIBRARY_DEPENDENCIES = \
+	dynamictypes/latest \
+	gamemath/latest \
+	glbitmapfont/latest \
+	glgraphics/latest \
+	inputcontroller/latest \
+	stemobject/latest
 STEM_LIBRARY_DEPENDENCIES_unittest = unittest/latest
+STEM_LIBRARY_DEPENDENCIES_testharness = \
+	3dmodelio/latest \
+	jsonserialization/latest \
+	pngimageio/latest \
+	resourcemanager/latest \
+	serialization/latest \
+	shell/latest
+STEM_LIBRARY_DEPENDENCIES_testharness_macosx = nsopenglshell/latest
+STEM_LIBRARY_DEPENDENCIES_testharness_win32 = wglshell/latest
+STEM_LIBRARY_DEPENDENCIES_testharness_win64 = wglshell/latest
+STEM_LIBRARY_DEPENDENCIES_testharness_linux32 = glxshell/latest
+STEM_LIBRARY_DEPENDENCIES_testharness_linux64 = glxshell/latest
+STEM_LIBRARY_DEPENDENCIES_testharness_iphonesimulator = eaglshell/latest
+STEM_LIBRARY_DEPENDENCIES_testharness_iphoneos = eaglshell/latest
 
 # THIRDPARTY_LIBRARY_DEPENDENCIES is specified as ${PROJECT_NAME}/${PROJECT_VERSION} for each thirdparty library to be linked when building
 # Patterns: THIRDPARTY_LIBRARY_DEPENDENCIES, THIRDPARTY_LIBRARY_DEPENDENCIES_${target}, THIRDPARTY_LIBRARY_DEPENDENCIES_${platform}, THIRDPARTY_LIBRARY_DEPENDENCIES_${target}_${platform}
@@ -43,22 +64,28 @@ THIRDPARTY_LIBRARY_DEPENDENCIES =
 PREREQS = 
 
 SOURCES_library = \
-	source/${PROJECT_NAME}/HelloWorld.c
+	source/${PROJECT_NAME}/UIAppearance.c \
+	source/${PROJECT_NAME}/UIButton.c \
+	source/${PROJECT_NAME}/UIElement.c
 
 # Executable targets named "unittest" should usually specify only SOURCES_unittest_suites, which must contain only test suite files.
 # If files other than test suites are required, specify SOURCES_unittest.
-SOURCES_unittest_suites = \
-	source/unittest/HelloWorldTest.c
+SOURCES_unittest_suites = 
 
 SOURCES_testharness = \
 	source/testharness/TestHarness_main.c
 
 # Public-facing include files to be distributed with the library, if any
 INCLUDES = \
-	source/${PROJECT_NAME}/HelloWorld.h
+	source/${PROJECT_NAME}/UIAppearance.h \
+	source/${PROJECT_NAME}/UIButton.h \
+	source/${PROJECT_NAME}/UIElement.h
 
 # Patterns: RESOURCES, RESOURCES_${target}, RESOURCES_${platform}, RESOURCES_${target}_${platform}
-RESOURCES = 
+RESOURCES_testharness = \
+	resources/testappearance_atlas.png \
+	resources/testappearance.atlas \
+	resources/testappearance.bitmapfont
 
 # Pattern: ANALYZER_EXCLUDE_SOURCES_${analyzer}
 ANALYZER_EXCLUDE_SOURCES_clang = 
@@ -81,3 +108,9 @@ else
 STEM_SHARED_DIR ?= C:/stem
 endif
 include ${STEM_SHARED_DIR}/Makefile.global
+
+.PHONY: testappearance
+testappearance: resources/testappearance.atlas
+
+resources/testappearance.atlas: resources/atlas_data/texturepacker_config.json
+	/Projects/Tools/texturepacker_trunk/build/mainapp/profile-macosx/texturepacker -c resources/atlas_data/texturepacker_config.json

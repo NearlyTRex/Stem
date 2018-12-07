@@ -1,0 +1,21 @@
+{
+	"output": {
+		"png": "resources/testappearance_atlas.png",
+		"json": "resources/testappearance.atlas"
+	},
+	"pixel_format": "rgba",
+	"magnify_nearest": true,
+	"atlas_name": "UIToolkit test appearance",
+	"texture_map_name": "testappearance.png",
+	"margin": 1,
+	"images": [
+		"resources/atlas_data/button_up.png",
+		"resources/atlas_data/button_down.png"
+	],
+	"font": "Helvetica",
+	"font_size": 24,
+	"ascii": {
+		"prefix": "h24_",
+		"output": "resources/testappearance.bitmapfont"
+	}
+}

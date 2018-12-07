@@ -1,18 +1,2 @@
-2.0.0 (2014-12-25)
- * Stripped Makefile down to its bare project-specific essentials. Shared makefile logic now lives in stemconfig.
- * Merged version file with Makefile
-
-1.1.0 (2014-06-29)
- * Added support for modern Xcode/iOS SDK versions
- * Removed obsolete source dependency mechanism
-
-1.0.1
- * Makefile no longer attempts to delete .svn dirs from nonexistent Resources directories
- * Added support for spaces in human-readable application target names
-
-1.0.0 (2013-12-25)
- * Began tracking template_stemlib changes
- * Updated structure: test_source/unittest/suites -> source/unittest, test_source/testharness -> source/testharness, test_resources -> resources
- * Switched from UnitTestFramework Stable_2013-12-23 to libstem_unittest 1.0.0
- * Updated Makefile to generate TestList.c as required by libstem_unittest
- * Removed unused CONFIGURATIONS makefile variable
+0.0.0 (2018-12-06)
+ * Initial version

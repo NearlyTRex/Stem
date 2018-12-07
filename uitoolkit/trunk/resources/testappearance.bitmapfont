@@ -1,0 +1,766 @@
+{
+	"format_version": 2,
+	"atlas_name": "resources/testappearance.atlas",
+	"characters": {
+		" ": {
+			"advance": 0.2222656309604644775390625,
+			"glyph_offset": 0,
+			"glyph_width": 0.2222656309604644775390625,
+			"atlas_key": "h24_ ",
+			"kerning_table": {
+			}
+		},
+		"!": {
+			"advance": 0.2222656309604644775390625,
+			"glyph_offset": 0,
+			"glyph_width": 0.2222656309604644775390625,
+			"atlas_key": "h24_!",
+			"kerning_table": {
+			}
+		},
+		"\"": {
+			"advance": 0.283984363079071044921875,
+			"glyph_offset": 0,
+			"glyph_width": 0.283984363079071044921875,
+			"atlas_key": "h24_\"",
+			"kerning_table": {
+			}
+		},
+		"#": {
+			"advance": 0.4449218809604644775390625,
+			"glyph_offset": 0,
+			"glyph_width": 0.4449218809604644775390625,
+			"atlas_key": "h24_#",
+			"kerning_table": {
+			}
+		},
+		"$": {
+			"advance": 0.4449218809604644775390625,
+			"glyph_offset": 0,
+			"glyph_width": 0.4449218809604644775390625,
+			"atlas_key": "h24_$",
+			"kerning_table": {
+			}
+		},
+		"%": {
+			"advance": 0.71132814884185791015625,
+			"glyph_offset": 0,
+			"glyph_width": 0.71132814884185791015625,
+			"atlas_key": "h24_%",
+			"kerning_table": {
+			}
+		},
+		"&": {
+			"advance": 0.53359377384185791015625,
+			"glyph_offset": 0,
+			"glyph_width": 0.53359377384185791015625,
+			"atlas_key": "h24_&",
+			"kerning_table": {
+			}
+		},
+		"'": {
+			"advance": 0.1527343690395355224609375,
+			"glyph_offset": 0,
+			"glyph_width": 0.1527343690395355224609375,
+			"atlas_key": "h24_'",
+			"kerning_table": {
+			}
+		},
+		"(": {
+			"advance": 0.266406238079071044921875,
+			"glyph_offset": 0,
+			"glyph_width": 0.266406238079071044921875,
+			"atlas_key": "h24_(",
+			"kerning_table": {
+			}
+		},
+		")": {
+			"advance": 0.266406238079071044921875,
+			"glyph_offset": 0,
+			"glyph_width": 0.266406238079071044921875,
+			"atlas_key": "h24_)",
+			"kerning_table": {
+			}
+		},
+		"*": {
+			"advance": 0.311328113079071044921875,
+			"glyph_offset": 0,
+			"glyph_width": 0.311328113079071044921875,
+			"atlas_key": "h24_*",
+			"kerning_table": {
+			}
+		},
+		"+": {
+			"advance": 0.4671874940395355224609375,
+			"glyph_offset": 0,
+			"glyph_width": 0.4671874940395355224609375,
+			"atlas_key": "h24_+",
+			"kerning_table": {
+			}
+		},
+		",": {
+			"advance": 0.2222656309604644775390625,
+			"glyph_offset": 0,
+			"glyph_width": 0.2222656309604644775390625,
+			"atlas_key": "h24_,",
+			"kerning_table": {
+			}
+		},
+		"-": {
+			"advance": 0.266406238079071044921875,
+			"glyph_offset": 0,
+			"glyph_width": 0.266406238079071044921875,
+			"atlas_key": "h24_-",
+			"kerning_table": {
+			}
+		},
+		".": {
+			"advance": 0.2222656309604644775390625,
+			"glyph_offset": 0,
+			"glyph_width": 0.2222656309604644775390625,
+			"atlas_key": "h24_.",
+			"kerning_table": {
+			}
+		},
+		"/": {
+			"advance": 0.2222656309604644775390625,
+			"glyph_offset": 0,
+			"glyph_width": 0.2222656309604644775390625,
+			"atlas_key": "h24_/",
+			"kerning_table": {
+			}
+		},
+		"0": {
+			"advance": 0.4449218809604644775390625,
+			"glyph_offset": 0,
+			"glyph_width": 0.4449218809604644775390625,
+			"atlas_key": "h24_0",
+			"kerning_table": {
+			}
+		},
+		"1": {
+			"advance": 0.4449218809604644775390625,
+			"glyph_offset": 0,
+			"glyph_width": 0.4449218809604644775390625,
+			"atlas_key": "h24_1",
+			"kerning_table": {
+			}
+		},
+		"2": {
+			"advance": 0.4449218809604644775390625,
+			"glyph_offset": 0,
+			"glyph_width": 0.4449218809604644775390625,
+			"atlas_key": "h24_2",
+			"kerning_table": {
+			}
+		},
+		"3": {
+			"advance": 0.4449218809604644775390625,
+			"glyph_offset": 0,
+			"glyph_width": 0.4449218809604644775390625,
+			"atlas_key": "h24_3",
+			"kerning_table": {
+			}
+		},
+		"4": {
+			"advance": 0.4449218809604644775390625,
+			"glyph_offset": 0,
+			"glyph_width": 0.4449218809604644775390625,
+			"atlas_key": "h24_4",
+			"kerning_table": {
+			}
+		},
+		"5": {
+			"advance": 0.4449218809604644775390625,
+			"glyph_offset": 0,
+			"glyph_width": 0.4449218809604644775390625,
+			"atlas_key": "h24_5",
+			"kerning_table": {
+			}
+		},
+		"6": {
+			"advance": 0.4449218809604644775390625,
+			"glyph_offset": 0,
+			"glyph_width": 0.4449218809604644775390625,
+			"atlas_key": "h24_6",
+			"kerning_table": {
+			}
+		},
+		"7": {
+			"advance": 0.4449218809604644775390625,
+			"glyph_offset": 0,
+			"glyph_width": 0.4449218809604644775390625,
+			"atlas_key": "h24_7",
+			"kerning_table": {
+			}
+		},
+		"8": {
+			"advance": 0.4449218809604644775390625,
+			"glyph_offset": 0,
+			"glyph_width": 0.4449218809604644775390625,
+			"atlas_key": "h24_8",
+			"kerning_table": {
+			}
+		},
+		"9": {
+			"advance": 0.4449218809604644775390625,
+			"glyph_offset": 0,
+			"glyph_width": 0.4449218809604644775390625,
+			"atlas_key": "h24_9",
+			"kerning_table": {
+			}
+		},
+		":": {
+			"advance": 0.2222656309604644775390625,
+			"glyph_offset": 0,
+			"glyph_width": 0.2222656309604644775390625,
+			"atlas_key": "h24_:",
+			"kerning_table": {
+			}
+		},
+		";": {
+			"advance": 0.2222656309604644775390625,
+			"glyph_offset": 0,
+			"glyph_width": 0.2222656309604644775390625,
+			"atlas_key": "h24_;",
+			"kerning_table": {
+			}
+		},
+		"<": {
+			"advance": 0.4671874940395355224609375,
+			"glyph_offset": 0,
+			"glyph_width": 0.4671874940395355224609375,
+			"atlas_key": "h24_<",
+			"kerning_table": {
+			}
+		},
+		"=": {
+			"advance": 0.4671874940395355224609375,
+			"glyph_offset": 0,
+			"glyph_width": 0.4671874940395355224609375,
+			"atlas_key": "h24_=",
+			"kerning_table": {
+			}
+		},
+		">": {
+			"advance": 0.4671874940395355224609375,
+			"glyph_offset": 0,
+			"glyph_width": 0.4671874940395355224609375,
+			"atlas_key": "h24_>",
+			"kerning_table": {
+			}
+		},
+		"?": {
+			"advance": 0.4449218809604644775390625,
+			"glyph_offset": 0,
+			"glyph_width": 0.4449218809604644775390625,
+			"atlas_key": "h24_?",
+			"kerning_table": {
+			}
+		},
+		"@": {
+			"advance": 0.81210935115814208984375,
+			"glyph_offset": 0,
+			"glyph_width": 0.81210935115814208984375,
+			"atlas_key": "h24_@",
+			"kerning_table": {
+			}
+		},
+		"A": {
+			"advance": 0.53359377384185791015625,
+			"glyph_offset": 0,
+			"glyph_width": 0.53359377384185791015625,
+			"atlas_key": "h24_A",
+			"kerning_table": {
+			}
+		},
+		"B": {
+			"advance": 0.53359377384185791015625,
+			"glyph_offset": 0,
+			"glyph_width": 0.53359377384185791015625,
+			"atlas_key": "h24_B",
+			"kerning_table": {
+			}
+		},
+		"C": {
+			"advance": 0.57773435115814208984375,
+			"glyph_offset": 0,
+			"glyph_width": 0.57773435115814208984375,
+			"atlas_key": "h24_C",
+			"kerning_table": {
+			}
+		},
+		"D": {
+			"advance": 0.57773435115814208984375,
+			"glyph_offset": 0,
+			"glyph_width": 0.57773435115814208984375,
+			"atlas_key": "h24_D",
+			"kerning_table": {
+			}
+		},
+		"E": {
+			"advance": 0.53359377384185791015625,
+			"glyph_offset": 0,
+			"glyph_width": 0.53359377384185791015625,
+			"atlas_key": "h24_E",
+			"kerning_table": {
+			}
+		},
+		"F": {
+			"advance": 0.4886718690395355224609375,
+			"glyph_offset": 0,
+			"glyph_width": 0.4886718690395355224609375,
+			"atlas_key": "h24_F",
+			"kerning_table": {
+			}
+		},
+		"G": {
+			"advance": 0.622265636920928955078125,
+			"glyph_offset": 0,
+			"glyph_width": 0.622265636920928955078125,
+			"atlas_key": "h24_G",
+			"kerning_table": {
+			}
+		},
+		"H": {
+			"advance": 0.57773435115814208984375,
+			"glyph_offset": 0,
+			"glyph_width": 0.57773435115814208984375,
+			"atlas_key": "h24_H",
+			"kerning_table": {
+			}
+		},
+		"I": {
+			"advance": 0.2222656309604644775390625,
+			"glyph_offset": 0,
+			"glyph_width": 0.2222656309604644775390625,
+			"atlas_key": "h24_I",
+			"kerning_table": {
+			}
+		},
+		"J": {
+			"advance": 0.4000000059604644775390625,
+			"glyph_offset": 0,
+			"glyph_width": 0.4000000059604644775390625,
+			"atlas_key": "h24_J",
+			"kerning_table": {
+			}
+		},
+		"K": {
+			"advance": 0.53359377384185791015625,
+			"glyph_offset": 0,
+			"glyph_width": 0.53359377384185791015625,
+			"atlas_key": "h24_K",
+			"kerning_table": {
+			}
+		},
+		"L": {
+			"advance": 0.4449218809604644775390625,
+			"glyph_offset": 0,
+			"glyph_width": 0.4449218809604644775390625,
+			"atlas_key": "h24_L",
+			"kerning_table": {
+			}
+		},
+		"M": {
+			"advance": 0.66640627384185791015625,
+			"glyph_offset": 0,
+			"glyph_width": 0.66640627384185791015625,
+			"atlas_key": "h24_M",
+			"kerning_table": {
+			}
+		},
+		"N": {
+			"advance": 0.57773435115814208984375,
+			"glyph_offset": 0,
+			"glyph_width": 0.57773435115814208984375,
+			"atlas_key": "h24_N",
+			"kerning_table": {
+			}
+		},
+		"O": {
+			"advance": 0.622265636920928955078125,
+			"glyph_offset": 0,
+			"glyph_width": 0.622265636920928955078125,
+			"atlas_key": "h24_O",
+			"kerning_table": {
+			}
+		},
+		"P": {
+			"advance": 0.53359377384185791015625,
+			"glyph_offset": 0,
+			"glyph_width": 0.53359377384185791015625,
+			"atlas_key": "h24_P",
+			"kerning_table": {
+			}
+		},
+		"Q": {
+			"advance": 0.622265636920928955078125,
+			"glyph_offset": 0,
+			"glyph_width": 0.622265636920928955078125,
+			"atlas_key": "h24_Q",
+			"kerning_table": {
+			}
+		},
+		"R": {
+			"advance": 0.57773435115814208984375,
+			"glyph_offset": 0,
+			"glyph_width": 0.57773435115814208984375,
+			"atlas_key": "h24_R",
+			"kerning_table": {
+			}
+		},
+		"S": {
+			"advance": 0.53359377384185791015625,
+			"glyph_offset": 0,
+			"glyph_width": 0.53359377384185791015625,
+			"atlas_key": "h24_S",
+			"kerning_table": {
+			}
+		},
+		"T": {
+			"advance": 0.4886718690395355224609375,
+			"glyph_offset": 0,
+			"glyph_width": 0.4886718690395355224609375,
+			"atlas_key": "h24_T",
+			"kerning_table": {
+			}
+		},
+		"U": {
+			"advance": 0.57773435115814208984375,
+			"glyph_offset": 0,
+			"glyph_width": 0.57773435115814208984375,
+			"atlas_key": "h24_U",
+			"kerning_table": {
+			}
+		},
+		"V": {
+			"advance": 0.53359377384185791015625,
+			"glyph_offset": 0,
+			"glyph_width": 0.53359377384185791015625,
+			"atlas_key": "h24_V",
+			"kerning_table": {
+			}
+		},
+		"W": {
+			"advance": 0.755078136920928955078125,
+			"glyph_offset": 0,
+			"glyph_width": 0.755078136920928955078125,
+			"atlas_key": "h24_W",
+			"kerning_table": {
+			}
+		},
+		"X": {
+			"advance": 0.53359377384185791015625,
+			"glyph_offset": 0,
+			"glyph_width": 0.53359377384185791015625,
+			"atlas_key": "h24_X",
+			"kerning_table": {
+			}
+		},
+		"Y": {
+			"advance": 0.53359377384185791015625,
+			"glyph_offset": 0,
+			"glyph_width": 0.53359377384185791015625,
+			"atlas_key": "h24_Y",
+			"kerning_table": {
+			}
+		},
+		"Z": {
+			"advance": 0.4886718690395355224609375,
+			"glyph_offset": 0,
+			"glyph_width": 0.4886718690395355224609375,
+			"atlas_key": "h24_Z",
+			"kerning_table": {
+			}
+		},
+		"[": {
+			"advance": 0.2222656309604644775390625,
+			"glyph_offset": 0,
+			"glyph_width": 0.2222656309604644775390625,
+			"atlas_key": "h24_[",
+			"kerning_table": {
+			}
+		},
+		"\\": {
+			"advance": 0.2222656309604644775390625,
+			"glyph_offset": 0,
+			"glyph_width": 0.2222656309604644775390625,
+			"atlas_key": "h24_\\",
+			"kerning_table": {
+			}
+		},
+		"]": {
+			"advance": 0.2222656309604644775390625,
+			"glyph_offset": 0,
+			"glyph_width": 0.2222656309604644775390625,
+			"atlas_key": "h24_]",
+			"kerning_table": {
+			}
+		},
+		"^": {
+			"advance": 0.3753906190395355224609375,
+			"glyph_offset": 0,
+			"glyph_width": 0.3753906190395355224609375,
+			"atlas_key": "h24_^",
+			"kerning_table": {
+			}
+		},
+		"_": {
+			"advance": 0.4449218809604644775390625,
+			"glyph_offset": 0,
+			"glyph_width": 0.4449218809604644775390625,
+			"atlas_key": "h24__",
+			"kerning_table": {
+			}
+		},
+		"`": {
+			"advance": 0.266406238079071044921875,
+			"glyph_offset": 0,
+			"glyph_width": 0.266406238079071044921875,
+			"atlas_key": "h24_`",
+			"kerning_table": {
+			}
+		},
+		"a": {
+			"advance": 0.4449218809604644775390625,
+			"glyph_offset": 0,
+			"glyph_width": 0.4449218809604644775390625,
+			"atlas_key": "h24_a",
+			"kerning_table": {
+			}
+		},
+		"b": {
+			"advance": 0.4449218809604644775390625,
+			"glyph_offset": 0,
+			"glyph_width": 0.4449218809604644775390625,
+			"atlas_key": "h24_b",
+			"kerning_table": {
+			}
+		},
+		"c": {
+			"advance": 0.4000000059604644775390625,
+			"glyph_offset": 0,
+			"glyph_width": 0.4000000059604644775390625,
+			"atlas_key": "h24_c",
+			"kerning_table": {
+			}
+		},
+		"d": {
+			"advance": 0.4449218809604644775390625,
+			"glyph_offset": 0,
+			"glyph_width": 0.4449218809604644775390625,
+			"atlas_key": "h24_d",
+			"kerning_table": {
+			}
+		},
+		"e": {
+			"advance": 0.4449218809604644775390625,
+			"glyph_offset": 0,
+			"glyph_width": 0.4449218809604644775390625,
+			"atlas_key": "h24_e",
+			"kerning_table": {
+			}
+		},
+		"f": {
+			"advance": 0.2222656309604644775390625,
+			"glyph_offset": 0,
+			"glyph_width": 0.2222656309604644775390625,
+			"atlas_key": "h24_f",
+			"kerning_table": {
+			}
+		},
+		"g": {
+			"advance": 0.4449218809604644775390625,
+			"glyph_offset": 0,
+			"glyph_width": 0.4449218809604644775390625,
+			"atlas_key": "h24_g",
+			"kerning_table": {
+			}
+		},
+		"h": {
+			"advance": 0.4449218809604644775390625,
+			"glyph_offset": 0,
+			"glyph_width": 0.4449218809604644775390625,
+			"atlas_key": "h24_h",
+			"kerning_table": {
+			}
+		},
+		"i": {
+			"advance": 0.177734375,
+			"glyph_offset": 0,
+			"glyph_width": 0.177734375,
+			"atlas_key": "h24_i",
+			"kerning_table": {
+			}
+		},
+		"j": {
+			"advance": 0.177734375,
+			"glyph_offset": 0,
+			"glyph_width": 0.177734375,
+			"atlas_key": "h24_j",
+			"kerning_table": {
+			}
+		},
+		"k": {
+			"advance": 0.4000000059604644775390625,
+			"glyph_offset": 0,
+			"glyph_width": 0.4000000059604644775390625,
+			"atlas_key": "h24_k",
+			"kerning_table": {
+			}
+		},
+		"l": {
+			"advance": 0.177734375,
+			"glyph_offset": 0,
+			"glyph_width": 0.177734375,
+			"atlas_key": "h24_l",
+			"kerning_table": {
+			}
+		},
+		"m": {
+			"advance": 0.66640627384185791015625,
+			"glyph_offset": 0,
+			"glyph_width": 0.66640627384185791015625,
+			"atlas_key": "h24_m",
+			"kerning_table": {
+			}
+		},
+		"n": {
+			"advance": 0.4449218809604644775390625,
+			"glyph_offset": 0,
+			"glyph_width": 0.4449218809604644775390625,
+			"atlas_key": "h24_n",
+			"kerning_table": {
+			}
+		},
+		"o": {
+			"advance": 0.4449218809604644775390625,
+			"glyph_offset": 0,
+			"glyph_width": 0.4449218809604644775390625,
+			"atlas_key": "h24_o",
+			"kerning_table": {
+			}
+		},
+		"p": {
+			"advance": 0.4449218809604644775390625,
+			"glyph_offset": 0,
+			"glyph_width": 0.4449218809604644775390625,
+			"atlas_key": "h24_p",
+			"kerning_table": {
+			}
+		},
+		"q": {
+			"advance": 0.4449218809604644775390625,
+			"glyph_offset": 0,
+			"glyph_width": 0.4449218809604644775390625,
+			"atlas_key": "h24_q",
+			"kerning_table": {
+			}
+		},
+		"r": {
+			"advance": 0.266406238079071044921875,
+			"glyph_offset": 0,
+			"glyph_width": 0.266406238079071044921875,
+			"atlas_key": "h24_r",
+			"kerning_table": {
+			}
+		},
+		"s": {
+			"advance": 0.4000000059604644775390625,
+			"glyph_offset": 0,
+			"glyph_width": 0.4000000059604644775390625,
+			"atlas_key": "h24_s",
+			"kerning_table": {
+			}
+		},
+		"t": {
+			"advance": 0.2222656309604644775390625,
+			"glyph_offset": 0,
+			"glyph_width": 0.2222656309604644775390625,
+			"atlas_key": "h24_t",
+			"kerning_table": {
+			}
+		},
+		"u": {
+			"advance": 0.4449218809604644775390625,
+			"glyph_offset": 0,
+			"glyph_width": 0.4449218809604644775390625,
+			"atlas_key": "h24_u",
+			"kerning_table": {
+			}
+		},
+		"v": {
+			"advance": 0.4000000059604644775390625,
+			"glyph_offset": 0,
+			"glyph_width": 0.4000000059604644775390625,
+			"atlas_key": "h24_v",
+			"kerning_table": {
+			}
+		},
+		"w": {
+			"advance": 0.57773435115814208984375,
+			"glyph_offset": 0,
+			"glyph_width": 0.57773435115814208984375,
+			"atlas_key": "h24_w",
+			"kerning_table": {
+			}
+		},
+		"x": {
+			"advance": 0.4000000059604644775390625,
+			"glyph_offset": 0,
+			"glyph_width": 0.4000000059604644775390625,
+			"atlas_key": "h24_x",
+			"kerning_table": {
+			}
+		},
+		"y": {
+			"advance": 0.4000000059604644775390625,
+			"glyph_offset": 0,
+			"glyph_width": 0.4000000059604644775390625,
+			"atlas_key": "h24_y",
+			"kerning_table": {
+			}
+		},
+		"z": {
+			"advance": 0.4000000059604644775390625,
+			"glyph_offset": 0,
+			"glyph_width": 0.4000000059604644775390625,
+			"atlas_key": "h24_z",
+			"kerning_table": {
+			}
+		},
+		"{": {
+			"advance": 0.2671875059604644775390625,
+			"glyph_offset": 0,
+			"glyph_width": 0.2671875059604644775390625,
+			"atlas_key": "h24_{",
+			"kerning_table": {
+			}
+		},
+		"|": {
+			"advance": 0.20781250298023223876953125,
+			"glyph_offset": 0,
+			"glyph_width": 0.20781250298023223876953125,
+			"atlas_key": "h24_|",
+			"kerning_table": {
+			}
+		},
+		"}": {
+			"advance": 0.2671875059604644775390625,
+			"glyph_offset": 0,
+			"glyph_width": 0.2671875059604644775390625,
+			"atlas_key": "h24_}",
+			"kerning_table": {
+			}
+		},
+		"~": {
+			"advance": 0.4671874940395355224609375,
+			"glyph_offset": 0,
+			"glyph_width": 0.4671874940395355224609375,
+			"atlas_key": "h24_~",
+			"kerning_table": {
+			}
+		}
+	}
+}
