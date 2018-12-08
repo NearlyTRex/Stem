@@ -3,6 +3,7 @@
 		"png": "resources/testappearance_atlas.png",
 		"json": "resources/testappearance.atlas"
 	},
+	"verbose": true,
 	"pixel_format": "rgba",
 	"magnify_nearest": true,
 	"atlas_name": "UIToolkit test appearance",

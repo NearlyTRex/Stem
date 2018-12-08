@@ -75,7 +75,7 @@ static void Target_keyModifiersChanged(unsigned int modifiers) {
 }
 
 static Vector2f transformMousePosition(float x, float y) {
-	return VECTOR2f(x / 2, (viewHeight - y) / 2);
+	return VECTOR2f(x, viewHeight - y);
 }
 
 static void Target_mouseDown(unsigned int buttonNumber, float x, float y) {
@@ -118,7 +118,7 @@ static void Target_resized(unsigned int newWidth, unsigned int newHeight) {
 	viewRatio = (float) newWidth / newHeight;
 	glViewport(0, 0, viewWidth, viewHeight);
 	if (renderer != NULL) {
-		Renderer_setProjectionMatrix(renderer, Matrix4x4f_ortho(MATRIX4x4f_IDENTITY, 0.0f, viewWidth / 2, 0.0f, viewHeight / 2, -1.0f, 1.0f));
+		Renderer_setProjectionMatrix(renderer, Matrix4x4f_ortho(MATRIX4x4f_IDENTITY, 0.0f, viewWidth, 0.0f, viewHeight, -1.0f, 1.0f));
 	}
 }
 
@@ -134,7 +134,7 @@ static void getUIVertices(DynamicSpriteRenderable * sprite, struct vertex_p2f_t2
 
 static void initTestUI() {
 	struct UIAppearance_metrics metrics = {
-		.buttonLabelHeight = 16.0f,
+		.buttonLabelHeight = 30.0f,
 		.buttonLabelPadding = 4.0f,
 		.buttonLabelColor = COLOR4f(0.0f, 0.0f, 0.0f, 1.0f),
 		.buttonSlices = {2, 1, 2, 2, 1, 2}
@@ -229,7 +229,7 @@ void Target_init() {
 	
 	renderer = Renderer_create(1);
 	Renderer_setClearColor(renderer, COLOR4f(1.0f, 1.0f, 1.0f, 0.0f));
-	Renderer_setProjectionMatrix(renderer, Matrix4x4f_ortho(MATRIX4x4f_IDENTITY, 0.0f, viewWidth / 2, 0.0f, viewHeight / 2, -1.0f, 1.0f));
+	Renderer_setProjectionMatrix(renderer, Matrix4x4f_ortho(MATRIX4x4f_IDENTITY, 0.0f, viewWidth, 0.0f, viewHeight, -1.0f, 1.0f));
 	
 	initTestUI();
 	

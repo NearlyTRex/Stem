@@ -38,6 +38,7 @@ STEM_LIBRARY_DEPENDENCIES = \
 	glbitmapfont/latest \
 	glgraphics/latest \
 	inputcontroller/latest \
+	serialization/latest \
 	stemobject/latest
 STEM_LIBRARY_DEPENDENCIES_unittest = unittest/latest
 STEM_LIBRARY_DEPENDENCIES_testharness = \
@@ -45,7 +46,6 @@ STEM_LIBRARY_DEPENDENCIES_testharness = \
 	jsonserialization/latest \
 	pngimageio/latest \
 	resourcemanager/latest \
-	serialization/latest \
 	shell/latest
 STEM_LIBRARY_DEPENDENCIES_testharness_macosx = nsopenglshell/latest
 STEM_LIBRARY_DEPENDENCIES_testharness_win32 = wglshell/latest
@@ -65,6 +65,7 @@ PREREQS =
 
 SOURCES_library = \
 	source/${PROJECT_NAME}/UIAppearance.c \
+	source/${PROJECT_NAME}/UIAppearanceData.c \
 	source/${PROJECT_NAME}/UIButton.c \
 	source/${PROJECT_NAME}/UIElement.c
 
@@ -78,6 +79,7 @@ SOURCES_testharness = \
 # Public-facing include files to be distributed with the library, if any
 INCLUDES = \
 	source/${PROJECT_NAME}/UIAppearance.h \
+	source/${PROJECT_NAME}/UIAppearanceData.h \
 	source/${PROJECT_NAME}/UIButton.h \
 	source/${PROJECT_NAME}/UIElement.h
 

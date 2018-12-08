@@ -46,7 +46,7 @@ bool UIButton_init(UIButton * self, const char * label, Vector2f position, Vecto
 	self->relativeOrigin = relativeOrigin;
 	self->appearance = appearance;
 	if (width == UIBUTTON_SIZE_TO_FIT_LABEL) {
-		self->width = GLBitmapFont_measureString(self->appearance->font, label, GLBITMAPFONT_USE_STRLEN) * self->appearance->metrics.buttonLabelHeight + self->appearance->metrics.buttonLabelPadding * 2;
+		self->width = ceilf(GLBitmapFont_measureString(self->appearance->font, label, GLBITMAPFONT_USE_STRLEN) * self->appearance->metrics.buttonLabelHeight + self->appearance->metrics.buttonLabelPadding * 2);
 	} else {
 		self->width = width;
 	}
@@ -180,7 +180,7 @@ void UIButton_getVertices(UIButton * self, struct vertex_p2f_t2f_c4f * outVertic
 	                                        self->label,
 	                                        GLBITMAPFONT_USE_STRLEN,
 	                                        self->appearance->metrics.buttonLabelHeight,
-	                                        VECTOR2f(bounds.left + (bounds.right - bounds.left) * 0.5f, bounds.bottom + (bounds.top - bounds.bottom) * 0.5f),
+	                                        VECTOR2f(roundf(bounds.left + (bounds.right - bounds.left) * 0.5f), roundf(bounds.bottom + (bounds.top - bounds.bottom) * 0.5f)),
 	                                        VECTOR2f(0.5f, 0.5f),
 	                                        self->appearance->metrics.buttonLabelColor,
 	                                        GL_UNSIGNED_INT,

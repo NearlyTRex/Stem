@@ -68,6 +68,8 @@ UIAppearance * UIAppearance_create(TextureAtlas * atlas, GLBitmapFont * font, st
 bool UIAppearance_init(UIAppearance * self, TextureAtlas * atlas, GLBitmapFont * font, struct UIAppearance_metrics metrics);
 void UIAppearance_dispose(UIAppearance * self);
 
+struct UIAppearance_metrics UIAppearance_defaultMetrics(void);
+
 #ifdef __cplusplus
 }
 #endif

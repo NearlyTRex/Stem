@@ -41,3 +41,19 @@ bool UIAppearance_init(UIAppearance * self, TextureAtlas * atlas, GLBitmapFont *
 void UIAppearance_dispose(UIAppearance * self) {
 	call_super(dispose, self);
 }
+
+struct UIAppearance_metrics UIAppearance_defaultMetrics(void) {
+	struct UIAppearance_metrics metrics;
+	
+	metrics.buttonLabelHeight = 12.0f;
+	metrics.buttonLabelPadding = 4.0f;
+	metrics.buttonLabelColor = COLOR4f(1.0f, 1.0f, 1.0f, 1.0f);
+	metrics.buttonSlices.leftColumn = 2.0f;
+	metrics.buttonSlices.centerColumn = 1.0f;
+	metrics.buttonSlices.rightColumn = 2.0f;
+	metrics.buttonSlices.bottomRow = 2.0f;
+	metrics.buttonSlices.centerRow = 1.0f;
+	metrics.buttonSlices.topRow = 2.0f;
+	
+	return metrics;
+}
