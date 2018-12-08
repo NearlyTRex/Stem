@@ -35,18 +35,18 @@ typedef struct DynamicSpriteRenderable DynamicSpriteRenderable;
 
 typedef void (* DynamicSpriteRenderable_getVerticesCallback)(DynamicSpriteRenderable * self, struct vertex_p2f_t2f_c4f * outVertices, GLuint * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount, void * context);
 
+// Implementation note: Renderer currently assumes atlas is the first field in both SpriteRenderable and DynamicSpriteRenderable, so don't move it
 #define DynamicSpriteRenderable_structContents(self_type) \
 	Renderable_structContents(self_type) \
 	\
 	TextureAtlas * atlas; \
-	Matrix4x4f transform; \
 	DynamicSpriteRenderable_getVerticesCallback callback; \
 	void * context;
 
 stemobject_struct_definition(DynamicSpriteRenderable)
 
-DynamicSpriteRenderable * DynamicSpriteRenderable_create(TextureAtlas * atlas, DynamicSpriteRenderable_getVerticesCallback, void * context, Matrix4x4f transform);
-bool DynamicSpriteRenderable_init(DynamicSpriteRenderable * self, TextureAtlas * atlas, DynamicSpriteRenderable_getVerticesCallback, void * context, Matrix4x4f transform);
+DynamicSpriteRenderable * DynamicSpriteRenderable_create(TextureAtlas * atlas, DynamicSpriteRenderable_getVerticesCallback, void * context);
+bool DynamicSpriteRenderable_init(DynamicSpriteRenderable * self, TextureAtlas * atlas, DynamicSpriteRenderable_getVerticesCallback, void * context);
 void DynamicSpriteRenderable_dispose(DynamicSpriteRenderable * self);
 unsigned int DynamicSpriteRenderable_getTextureBindID(DynamicSpriteRenderable * self);
 void DynamicSpriteRenderable_getVertices(DynamicSpriteRenderable * self, void * outVertices, GLuint * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount);

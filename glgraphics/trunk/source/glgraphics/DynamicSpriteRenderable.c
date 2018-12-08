@@ -27,11 +27,11 @@
 
 #define SUPERCLASS Renderable
 
-DynamicSpriteRenderable * DynamicSpriteRenderable_create(TextureAtlas * atlas, DynamicSpriteRenderable_getVerticesCallback callback, void * context, Matrix4x4f transform) {
-	stemobject_create_implementation(DynamicSpriteRenderable, init, atlas, callback, context, transform)
+DynamicSpriteRenderable * DynamicSpriteRenderable_create(TextureAtlas * atlas, DynamicSpriteRenderable_getVerticesCallback callback, void * context) {
+	stemobject_create_implementation(DynamicSpriteRenderable, init, atlas, callback, context)
 }
 
-bool DynamicSpriteRenderable_init(DynamicSpriteRenderable * self, TextureAtlas * atlas, DynamicSpriteRenderable_getVerticesCallback callback, void * context, Matrix4x4f transform) {
+bool DynamicSpriteRenderable_init(DynamicSpriteRenderable * self, TextureAtlas * atlas, DynamicSpriteRenderable_getVerticesCallback callback, void * context) {
 	call_super(init, self, RENDERABLE_SPRITE);
 	self->dispose = DynamicSpriteRenderable_dispose;
 	self->getTextureBindID = DynamicSpriteRenderable_getTextureBindID;
@@ -40,7 +40,6 @@ bool DynamicSpriteRenderable_init(DynamicSpriteRenderable * self, TextureAtlas *
 	self->atlas = atlas;
 	self->callback = callback;
 	self->context = context;
-	self->transform = transform;
 	
 	return true;
 }

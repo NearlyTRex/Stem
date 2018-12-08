@@ -289,9 +289,10 @@ static void bindMeshTextures(Renderer * self, MeshRenderable * mesh) {
 	}
 }
 
-static void bindSpriteTexture(Renderer * self, SpriteRenderable * sprite) {
+static void bindSpriteTexture(Renderer * self, Renderable * sprite) {
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, sprite->atlas->textureID);
+	// Dangerous; assumes both SpriteRenderable and DynamicSpriteRenderable have the same layout with respect to the atlas field
+	glBindTexture(GL_TEXTURE_2D, ((SpriteRenderable *) sprite)->atlas->textureID);
 }
 
 static void setMeshUniforms(Renderer * self, GLSLShader * shader, MeshRenderable * mesh) {
@@ -362,7 +363,7 @@ void Renderer_drawLayer(Renderer * self, unsigned int layerIndex, bool sortForTr
 			}
 		}
 		while (renderableIndex < self->layers[layerIndex].renderableCount && self->layers[layerIndex].renderables[renderableIndex]->type == RENDERABLE_SPRITE) {
-			SpriteRenderable * sprite = (SpriteRenderable *) self->layers[layerIndex].renderables[renderableIndex];
+			Renderable * sprite = self->layers[layerIndex].renderables[renderableIndex];
 			renderableIndex++;
 			if (!sprite->visible) {
 				continue;
@@ -464,7 +465,7 @@ void Renderer_drawLayer(Renderer * self, unsigned int layerIndex, bool sortForTr
 			renderableIndex++;
 		}
 		if (submitting2DTextured) {
-			SpriteRenderable * sprite = NULL, * firstSprite = (SpriteRenderable *) self->layers[layerIndex].renderables[renderableIndex];
+			Renderable * sprite = NULL, * firstSprite = self->layers[layerIndex].renderables[renderableIndex];
 			unsigned int textureBindID, currentTextureBindID = firstSprite->getTextureBindID(firstSprite);
 			struct vertex_p2f_t2f_c4f * vertices = NULL;
 			GLuint * indexes = NULL;
@@ -472,8 +473,6 @@ void Renderer_drawLayer(Renderer * self, unsigned int layerIndex, bool sortForTr
 			
 			bindShader2D(self, self->shaders[RENDERER_VERTEX_TYPE_2D_TEXTURED]);
 			glBindVertexArray(self->layers[layerIndex].vertexBuffers[RENDERER_VERTEX_TYPE_2D_TEXTURED]->vaoID);
-			//glBindBuffer(GL_ARRAY_BUFFER, self->layers[layerIndex].vertexBuffers[RENDERER_VERTEX_TYPE_2D_TEXTURED]->vertexBufferID);
-			//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self->layers[layerIndex].vertexBuffers[RENDERER_VERTEX_TYPE_2D_TEXTURED]->indexBufferID);
 			
 			if (vertexCount2DTextured > 0) {
 				VertexBuffer_bufferData(self->layers[layerIndex].vertexBuffers[RENDERER_VERTEX_TYPE_2D_TEXTURED], NULL, vertexCount2DTextured, NULL, indexCount2DTextured);
@@ -488,7 +487,7 @@ void Renderer_drawLayer(Renderer * self, unsigned int layerIndex, bool sortForTr
 				if (!self->layers[layerIndex].renderables[renderableIndex - 1]->visible) {
 					continue;
 				}
-				sprite = (SpriteRenderable *) self->layers[layerIndex].renderables[renderableIndex - 1];
+				sprite = self->layers[layerIndex].renderables[renderableIndex - 1];
 				
 				textureBindID = sprite->getTextureBindID(sprite);
 				if (textureBindID != currentTextureBindID) {
@@ -499,7 +498,7 @@ void Renderer_drawLayer(Renderer * self, unsigned int layerIndex, bool sortForTr
 					boundaries[boundaryCount].indexOffset = lastIndexCount;
 					boundaries[boundaryCount].indexCount = indexCount2DTextured - lastIndexCount;
 					boundaries[boundaryCount].textureBindID = currentTextureBindID;
-					boundaries[boundaryCount].renderable = (Renderable *) sprite;
+					boundaries[boundaryCount].renderable = sprite;
 					++boundaryCount;
 					lastIndexCount = indexCount2DTextured;
 				}
@@ -520,12 +519,12 @@ void Renderer_drawLayer(Renderer * self, unsigned int layerIndex, bool sortForTr
 				boundaries[boundaryCount].indexOffset = lastIndexCount;
 				boundaries[boundaryCount].indexCount = indexCount2DTextured - lastIndexCount;
 				boundaries[boundaryCount].textureBindID = currentTextureBindID;
-				boundaries[boundaryCount].renderable = (Renderable *) sprite;
+				boundaries[boundaryCount].renderable = sprite;
 				++boundaryCount;
 			}
 			
 			for (boundaryIndex = 0; boundaryIndex < boundaryCount; boundaryIndex++) {
-				bindSpriteTexture(self, (SpriteRenderable *) boundaries[boundaryIndex].renderable);
+				bindSpriteTexture(self, boundaries[boundaryIndex].renderable);
 				glDrawElements(GL_TRIANGLES, boundaries[boundaryIndex].indexCount, GL_UNSIGNED_INT, (GLvoid *) (boundaries[boundaryIndex].indexOffset * sizeof(GLuint)));
 			}
 		}
@@ -541,103 +540,3 @@ void Renderer_drawLayer(Renderer * self, unsigned int layerIndex, bool sortForTr
 		fprintf(stderr, "Warning: Renderer_drawLayer called with a layerIndex of %u, while Renderer %p has been initialized with only %u layers\n", layerIndex, self, self->layerCount);
 	}
 }
-
-/*
-void Renderer_drawSingle(Renderer * self, Renderable * renderable) {
-	if (!renderable->visible) {
-		return;
-	}
-	
-	switch (renderable->type) {
-		case RENDERABLE_MESH: {
-			MeshRenderable * mesh = (MeshRenderable *) renderable;
-			GLSLShader * shader;
-			Vector3f cameraPosition;
-			
-			shader = mesh->animationState == NULL ? self->shaders[RENDERER_VERTEX_TYPE_3D_STATIC] : self->shaders[RENDERER_VERTEX_TYPE_3D_ANIMATED];
-			glUseProgram(shader->programID);
-			glUniformMatrix4fv(GLSLShader_getUniformLocation(shader, "projectionTransform"), 1, GL_FALSE, self->projectionMatrix.m);
-			glUniformMatrix4fv(GLSLShader_getUniformLocation(shader, "viewTransform"), 1, GL_FALSE, self->viewMatrix.m);
-			glUniformMatrix4fv(GLSLShader_getUniformLocation(shader, "modelTransform"), 1, GL_FALSE, mesh->transform.m);
-			// TODO: Compute normal matrix so vertex shader doesn't have to; see https://learnopengl.com/#!Lighting/Basic-Lighting
-			glUniform3f(GLSLShader_getUniformLocation(shader, "light0Position"), self->light0Position.x, self->light0Position.y, self->light0Position.z);
-			glUniform3f(GLSLShader_getUniformLocation(shader, "light0Color"), self->light0Color.red, self->light0Color.green, self->light0Color.blue);
-			glUniform3f(GLSLShader_getUniformLocation(shader, "light1Position"), self->light1Position.x, self->light1Position.y, self->light1Position.z);
-			glUniform3f(GLSLShader_getUniformLocation(shader, "light1Color"), self->light1Color.red, self->light1Color.green, self->light1Color.blue);
-			glUniform3f(GLSLShader_getUniformLocation(shader, "ambientColor"), self->ambientColor.red, self->ambientColor.green, self->ambientColor.blue);
-			cameraPosition = Matrix4x4f_multiplyVector3f(Matrix4x4f_inverted(self->viewMatrix), VECTOR3f_ZERO);
-			glUniform3f(GLSLShader_getUniformLocation(shader, "cameraPosition"), cameraPosition.x, cameraPosition.y, -cameraPosition.z);
-			glUniform1i(GLSLShader_getUniformLocation(shader, "colorTexture"), 0);
-			glUniform1i(GLSLShader_getUniformLocation(shader, "normalTexture"), 1);
-			if (mesh->animationState != NULL) {
-				glUniformMatrix4fv(GLSLShader_getUniformLocation(shader, "boneTransforms"), mesh->animationState->armature->boneCount, GL_FALSE, (GLfloat *) mesh->animationState->computedBoneTransforms);
-			}
-			
-			if (mesh->material == NULL) {
-				glUniform1f(GLSLShader_getUniformLocation(shader, "specularity"), 0.875f);
-				glUniform1f(GLSLShader_getUniformLocation(shader, "shininess"), 32.0f);
-				glUniform1f(GLSLShader_getUniformLocation(shader, "emissiveness"), 0.0f);
-				glUniform4f(GLSLShader_getUniformLocation(shader, "materialColor"), 1.0f, 1.0f, 1.0f, 1.0f);
-				glActiveTexture(GL_TEXTURE0);
-				glBindTexture(GL_TEXTURE_2D, self->nullMaterial->colorTextureID);
-				glActiveTexture(GL_TEXTURE1);
-				glBindTexture(GL_TEXTURE_2D, self->nullMaterial->normalTextureID);
-			} else {
-				glUniform1f(GLSLShader_getUniformLocation(shader, "specularity"), mesh->material->specularity);
-				glUniform1f(GLSLShader_getUniformLocation(shader, "shininess"), mesh->material->shininess);
-				glUniform1f(GLSLShader_getUniformLocation(shader, "emissiveness"), mesh->material->emissiveness);
-				glUniform4f(GLSLShader_getUniformLocation(shader, "materialColor"), mesh->material->color.red, mesh->material->color.green, mesh->material->color.blue, mesh->material->color.alpha);
-				glActiveTexture(GL_TEXTURE0);
-				if (mesh->material->colorTextureID == 0) {
-					glBindTexture(GL_TEXTURE_2D, self->nullMaterial->colorTextureID);
-				} else {
-					glBindTexture(GL_TEXTURE_2D, mesh->material->colorTextureID);
-				}
-				glActiveTexture(GL_TEXTURE1);
-				if (mesh->material->normalTextureID == 0) {
-					glBindTexture(GL_TEXTURE_2D, self->nullMaterial->normalTextureID);
-				} else {
-					glBindTexture(GL_TEXTURE_2D, mesh->material->normalTextureID);
-				}
-			}
-			
-			glBindVertexArray(mesh->vertexBuffer->vaoID);
-			glDrawElements(GL_TRIANGLES, mesh->vertexBuffer->indexCount, GL_UNSIGNED_INT, 0);
-			glBindVertexArray(0);
-			
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, 0);
-			glActiveTexture(GL_TEXTURE1);
-			glBindTexture(GL_TEXTURE_2D, 0);
-			glUseProgram(0);
-			
-			break;
-		}
-		case RENDERABLE_SPRITE: {
-			SpriteRenderable * sprite = (SpriteRenderable *) renderable;
-			
-			glUseProgram(self->shaders[RENDERER_VERTEX_TYPE_2D_TEXTURED]->programID);
-			glUniformMatrix4fv(GLSLShader_getUniformLocation(self->shaders[RENDERER_VERTEX_TYPE_2D_TEXTURED], "projectionTransform"), 1, GL_FALSE, self->projectionMatrix.m);
-			glUniformMatrix4fv(GLSLShader_getUniformLocation(self->shaders[RENDERER_VERTEX_TYPE_2D_TEXTURED], "viewTransform"), 1, GL_FALSE, self->viewMatrix.m);
-			glUniformMatrix4fv(GLSLShader_getUniformLocation(self->shaders[RENDERER_VERTEX_TYPE_2D_TEXTURED], "modelTransform"), 1, GL_FALSE, sprite->transform.m);
-			glUniform1i(GLSLShader_getUniformLocation(self->shaders[RENDERER_VERTEX_TYPE_2D_TEXTURED], "colorTexture"), 0);
-			glUniform4f(GLSLShader_getUniformLocation(self->shaders[RENDERER_VERTEX_TYPE_2D_TEXTURED], "foreColor"), 1.0f, 1.0f, 1.0f, 1.0f);
-			glUniform4f(GLSLShader_getUniformLocation(self->shaders[RENDERER_VERTEX_TYPE_2D_TEXTURED], "backColor"), 0.0f, 0.0f, 0.0f, 1.0f);
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, sprite->atlas->textureID);
-			
-			glBindVertexArray(sprite->vaoID);
-			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-			glBindVertexArray(0);
-			
-			glBindTexture(GL_TEXTURE_2D, 0);
-			glUseProgram(0);
-			
-			break;
-		}
-		default:
-			fprintf(stderr, "Warning: Unknown renderable type %d\n", renderable->type);
-			break;
-	}
-}
-*/

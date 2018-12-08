@@ -34,6 +34,7 @@ typedef struct SpriteRenderable SpriteRenderable;
 #include "glgraphics/Renderable.h"
 #include "glgraphics/TextureAtlas.h"
 
+// Implementation note: Renderer currently assumes atlas is the first field in both SpriteRenderable and DynamicSpriteRenderable, so don't move it
 #define SpriteRenderable_structContents(self_type) \
 	Renderable_structContents(self_type) \
 	\

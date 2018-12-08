@@ -73,6 +73,8 @@ MATERIAL STUFF
 
 
 TODO:
+- Test: Multiple textures for static/animated/2D renderables; drawOrder
+- Depth sorting
 - Fresnel effect
 - No current mechanism for anything other than built-in shaders. Is this a problem?
 - Animation controller object with graph logic? Also event dispatching
@@ -80,7 +82,6 @@ TODO:
 - Advanced lighting (research needed)
  - Idea: Keep multiple fragment shaders compiled and ready; on CPU, compute the number of influencing lights for each object, and select shader with appropriate number of lights in it to draw that object, up to a reasonable maximum
  - Multipass with deferred lighting
-- Depth sorting
 - VR
 
 LOWER PRIORITY:

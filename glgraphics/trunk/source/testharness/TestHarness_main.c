@@ -447,11 +447,12 @@ static void Target_mouseUp(unsigned int buttonNumber, float x, float y) {
 static void Target_mouseMoved(float x, float y) {
 }
 
-#define SPRITE_DRAG_RATIO 0.0125f
+#define SPRITE_DRAG_RATIO 0.00625f
 
 static void Target_mouseDragged(unsigned int buttonMask, float x, float y) {
 	if (spriteMode) {
-		//Matrix4x4f_translate(&sprite->transform, x * SPRITE_DRAG_RATIO, -y * SPRITE_DRAG_RATIO, 0.0f);
+		sprite->offset.x += x * SPRITE_DRAG_RATIO;
+		sprite->offset.y -= y * SPRITE_DRAG_RATIO;
 	} else {
 		if (shiftKeyDown) {
 			if (controlKeyDown) {

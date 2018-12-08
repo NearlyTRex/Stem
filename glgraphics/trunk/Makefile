@@ -64,6 +64,7 @@ SOURCES_library = \
 	source/${PROJECT_NAME}/Animation.c \
 	source/${PROJECT_NAME}/AnimationState.c \
 	source/${PROJECT_NAME}/Armature.c \
+	source/${PROJECT_NAME}/DynamicSpriteRenderable.c \
 	source/${PROJECT_NAME}/GLSLShader.c \
 	source/${PROJECT_NAME}/Material.c \
 	source/${PROJECT_NAME}/MeshRenderable.c \
@@ -88,6 +89,7 @@ INCLUDES = \
 	source/${PROJECT_NAME}/Animation.h \
 	source/${PROJECT_NAME}/AnimationState.h \
 	source/${PROJECT_NAME}/Armature.h \
+	source/${PROJECT_NAME}/DynamicSpriteRenderable.h \
 	source/${PROJECT_NAME}/GLIncludes.h \
 	source/${PROJECT_NAME}/GLSLShader.h \
 	source/${PROJECT_NAME}/Material.h \
