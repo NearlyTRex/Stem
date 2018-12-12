@@ -333,8 +333,13 @@ unsigned int GLBitmapFont_getStringIndexes(GLBitmapFont * self,
 	outVertices[vertexCount + 1].position[0] = offset.x + positionX + self->characters[charEntryIndex].glyphOffset * fabs(emHeight); \
 	outVertices[vertexCount + 0].position[1] = \
 	outVertices[vertexCount + 3].position[1] = offset.y + emHeight; \
-	outVertices[vertexCount + 2].position[0] = \
-	outVertices[vertexCount + 3].position[0] = offset.x + positionX + (self->characters[charEntryIndex].glyphOffset + self->characters[charEntryIndex].glyphWidth) * fabs(emHeight); \
+	if (pixelSnapping) { \
+		outVertices[vertexCount + 2].position[0] = \
+		outVertices[vertexCount + 3].position[0] = offset.x + positionX + floorf((self->characters[charEntryIndex].glyphOffset + self->characters[charEntryIndex].glyphWidth) * fabs(emHeight)); \
+	} else { \
+		outVertices[vertexCount + 2].position[0] = \
+		outVertices[vertexCount + 3].position[0] = offset.x + positionX + (self->characters[charEntryIndex].glyphOffset + self->characters[charEntryIndex].glyphWidth) * fabs(emHeight); \
+	} \
 	outVertices[vertexCount + 1].position[1] = \
 	outVertices[vertexCount + 2].position[1] = offset.y
 
