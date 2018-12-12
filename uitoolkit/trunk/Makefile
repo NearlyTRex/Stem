@@ -39,7 +39,8 @@ STEM_LIBRARY_DEPENDENCIES = \
 	glgraphics/latest \
 	inputcontroller/latest \
 	serialization/latest \
-	stemobject/latest
+	stemobject/latest \
+	utilities/latest
 STEM_LIBRARY_DEPENDENCIES_unittest = unittest/latest
 STEM_LIBRARY_DEPENDENCIES_testharness = \
 	3dmodelio/latest \
@@ -67,6 +68,7 @@ SOURCES_library = \
 	source/${PROJECT_NAME}/UIAppearance.c \
 	source/${PROJECT_NAME}/UIAppearanceData.c \
 	source/${PROJECT_NAME}/UIButton.c \
+	source/${PROJECT_NAME}/UIContainer.c \
 	source/${PROJECT_NAME}/UIElement.c
 
 # Executable targets named "unittest" should usually specify only SOURCES_unittest_suites, which must contain only test suite files.
@@ -81,6 +83,7 @@ INCLUDES = \
 	source/${PROJECT_NAME}/UIAppearance.h \
 	source/${PROJECT_NAME}/UIAppearanceData.h \
 	source/${PROJECT_NAME}/UIButton.h \
+	source/${PROJECT_NAME}/UIContainer.h \
 	source/${PROJECT_NAME}/UIElement.h
 
 # Patterns: RESOURCES, RESOURCES_${target}, RESOURCES_${platform}, RESOURCES_${target}_${platform}

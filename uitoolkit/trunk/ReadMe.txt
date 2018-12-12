@@ -42,9 +42,17 @@ GAMEPAD
   - What about menuCancel? What about other buttons?
 KEYBOARD
  - Expect InputController as above, but also need text input
+ - Tab/reverse tab; need deep enumeration
 
 
 Concepts:
 - Input: Mouse (hit test, down/drag/up), keyboard/gamepad (menuUp/Left/Right/Down, accept, cancel)
 - Appearance: Texture atlas, dimensions, slices for all graphical elements; bitmap font; metrics?
 - Layout: Container, anchor zone, offset (container and layout can be one and the same?)
+
+TODO:
+- Create UILabel, UICheckBox, UIRadioGroup, UIEditText
+- Figure out menuLeft/Right/Up/Down
+- Figure out UIContainer subclasses
+- Figure out how hierarchical position offsets will propagate
+- Maybe don't bother with any of that yet, try to use this API, and see where it's deficient?

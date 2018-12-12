@@ -7,7 +7,7 @@
 	"pixel_format": "rgba",
 	"magnify_nearest": true,
 	"atlas_name": "UIToolkit test appearance",
-	"texture_map_name": "testappearance.png",
+	"texture_map_name": "testappearance_atlas.png",
 	"margin": 1,
 	"images": [
 		"resources/atlas_data/button_up.png",

@@ -25,24 +25,37 @@
 
 #define SUPERCLASS StemObject
 
-UIElement * UIElement_create() {
-	stemobject_create_implementation(UIElement, init)
+UIElement * UIElement_create(UIElementType type, UIAppearance * appearance, Vector2f position, Vector2f relativeOrigin) {
+	stemobject_create_implementation(UIElement, init, type, appearance, position, relativeOrigin)
 }
 
-bool UIElement_init(UIElement * self) {
+bool UIElement_init(UIElement * self, UIElementType type, UIAppearance * appearance, Vector2f position, Vector2f relativeOrigin) {
 	call_super(init, self);
+	self->type = type;
+	self->appearance = appearance;
+	self->position = position;
+	self->relativeOrigin = relativeOrigin;
 	self->dispose             = UIElement_dispose;
 	self->hitTest             = UIElement_hitTest;
 	self->mouseDown           = UIElement_mouseDown;
 	self->mouseUp             = UIElement_mouseUp;
 	self->mouseMoved          = UIElement_mouseMoved;
 	self->mouseDragged        = UIElement_mouseDragged;
+	self->scrollWheel         = UIElement_scrollWheel;
 	self->keyDown             = UIElement_keyDown;
 	self->keyUp               = UIElement_keyUp;
 	self->keyModifiersChanged = UIElement_keyModifiersChanged;
-	self->scrollWheel         = UIElement_scrollWheel;
-	self->actionDown          = UIElement_actionDown;
-	self->actionUp            = UIElement_actionUp;
+	self->menuAction          = UIElement_menuAction;
+	self->menuCancel          = UIElement_menuCancel;
+	self->menuLeft            = UIElement_menuLeft;
+	self->menuRight           = UIElement_menuRight;
+	self->menuUp              = UIElement_menuUp;
+	self->menuDown            = UIElement_menuDown;
+	self->menuNext            = UIElement_menuNext;
+	self->menuPrevious        = UIElement_menuPrevious;
+	self->setFocusedElement   = UIElement_setFocusedElement;
+	self->getFocusedElement   = UIElement_getFocusedElement;
+	self->acceptsFocus        = UIElement_acceptsFocus;
 	self->getBounds           = UIElement_getBounds;
 	self->getVertices         = UIElement_getVertices;
 	return true;
@@ -52,8 +65,8 @@ void UIElement_dispose(UIElement * self) {
 	call_super(dispose, self);
 }
 
-bool UIElement_hitTest(UIElement * self, float x, float y) {
-	return false;
+UIElement * UIElement_hitTest(UIElement * self, float x, float y) {
+	return NULL;
 }
 
 bool UIElement_mouseDown(UIElement * self, unsigned int buttonNumber, float x, float y) {
@@ -72,6 +85,10 @@ bool UIElement_mouseDragged(UIElement * self, unsigned int buttonMask, float x, 
 	return false;
 }
 
+bool UIElement_scrollWheel(UIElement * self, int deltaX, int deltaY) {
+	return false;
+}
+
 bool UIElement_keyDown(UIElement * self, unsigned int charCode, unsigned int keyCode, unsigned int modifiers, bool isRepeat) {
 	return false;
 }
@@ -84,15 +101,47 @@ bool UIElement_keyModifiersChanged(UIElement * self, unsigned int modifiers) {
 	return false;
 }
 
-bool UIElement_scrollWheel(UIElement * self, int deltaX, int deltaY) {
+bool UIElement_menuAction(UIElement * self) {
 	return false;
 }
 
-bool UIElement_actionDown(UIElement * self) {
+bool UIElement_menuCancel(UIElement * self) {
 	return false;
 }
 
-bool UIElement_actionUp(UIElement * self) {
+bool UIElement_menuLeft(UIElement * self) {
+	return false;
+}
+
+bool UIElement_menuRight(UIElement * self) {
+	return false;
+}
+
+bool UIElement_menuUp(UIElement * self) {
+	return false;
+}
+
+bool UIElement_menuDown(UIElement * self) {
+	return false;
+}
+
+bool UIElement_menuNext(UIElement * self) {
+	return false;
+}
+
+bool UIElement_menuPrevious(UIElement * self) {
+	return false;
+}
+
+bool UIElement_setFocusedElement(UIElement * self, UIElement * element) {
+	return false;
+}
+
+UIElement * UIElement_getFocusedElement(UIElement * self) {
+	return NULL;
+}
+
+bool UIElement_acceptsFocus(UIElement * self) {
 	return false;
 }
 

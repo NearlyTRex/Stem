@@ -28,21 +28,20 @@ extern "C" {
 
 typedef struct UIButton UIButton;
 
-#include "gamemath/Vector2f.h"
-#include "uitoolkit/UIAppearance.h"
 #include "uitoolkit/UIElement.h"
 #include <math.h>
 
 #define UIBUTTON_SIZE_TO_FIT_LABEL INFINITY
 
+typedef void (* UIButtonActionCallback)(UIButton * sender, void * context);
+
 #define UIButton_structContents(self_type) \
 	UIElement_structContents(self_type) \
 	\
 	char * label; \
-	Vector2f position; \
-	Vector2f relativeOrigin; \
 	float width; \
-	UIAppearance * appearance; \
+	UIButtonActionCallback actionCallback; \
+	void * actionCallbackContext; \
 	\
 	bool clickInProgress; \
 	bool down;
@@ -50,15 +49,18 @@ typedef struct UIButton UIButton;
 stemobject_struct_definition(UIButton)
 
 // label is copied
-UIButton * UIButton_create(const char * label, Vector2f position, Vector2f relativeOrigin, float width, UIAppearance * appearance);
-bool UIButton_init(UIButton * self, const char * label, Vector2f position, Vector2f relativeOrigin, float width, UIAppearance * appearance);
+UIButton * UIButton_create(UIAppearance * appearance, Vector2f position, Vector2f relativeOrigin, const char * label, float width, UIButtonActionCallback actionCallback, void * actionCallbackContext);
+bool UIButton_init(UIButton * self, UIAppearance * appearance, Vector2f position, Vector2f relativeOrigin, const char * label, float width, UIButtonActionCallback actionCallback, void * actionCallbackContext);
 void UIButton_dispose(UIButton * self);
 
-bool UIButton_hitTest(UIButton * self, float x, float y);
+UIElement * UIButton_hitTest(UIButton * self, float x, float y);
 bool UIButton_mouseDown(UIButton * self, unsigned int buttonNumber, float x, float y);
 bool UIButton_mouseUp(UIButton * self, unsigned int buttonNumber, float x, float y);
 bool UIButton_mouseDragged(UIButton * self, unsigned int buttonMask, float x, float y);
-bool UIButton_actionDown(UIButton * self);
+bool UIButton_menuAction(UIButton * self);
+bool UIButton_setFocusedElement(UIButton * self, UIElement * element);
+UIElement * UIButton_getFocusedElement(UIButton * self);
+bool UIButton_acceptsFocus(UIButton * self);
 
 Rect4f UIButton_getBounds(UIButton * self);
 void UIButton_getVertices(UIButton * self, struct vertex_p2f_t2f_c4f * outVertices, GLuint * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount);

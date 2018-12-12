@@ -26,25 +26,24 @@
 
 #define SUPERCLASS UIElement
 
-UIButton * UIButton_create(const char * label, Vector2f position, Vector2f relativeOrigin, float width, UIAppearance * appearance) {
-	stemobject_create_implementation(UIButton, init, label, position, relativeOrigin, width, appearance)
+UIButton * UIButton_create(UIAppearance * appearance, Vector2f position, Vector2f relativeOrigin, const char * label, float width, UIButtonActionCallback actionCallback, void * actionCallbackContext) {
+	stemobject_create_implementation(UIButton, init, appearance, position, relativeOrigin, label, width, actionCallback, actionCallbackContext)
 }
 
-bool UIButton_init(UIButton * self, const char * label, Vector2f position, Vector2f relativeOrigin, float width, UIAppearance * appearance) {
-	call_super(init, self);
+bool UIButton_init(UIButton * self, UIAppearance * appearance, Vector2f position, Vector2f relativeOrigin, const char * label, float width, UIButtonActionCallback actionCallback, void * actionCallbackContext) {
+	call_super(init, self, UIELEMENT_BUTTON, appearance, position, relativeOrigin);
 	self->dispose = UIButton_dispose;
 	self->hitTest = UIButton_hitTest;
 	self->mouseDown = UIButton_mouseDown;
 	self->mouseUp = UIButton_mouseUp;
 	self->mouseDragged = UIButton_mouseDragged;
-	self->actionDown = UIButton_actionDown;
+	self->menuAction = UIButton_menuAction;
 	self->getBounds = UIButton_getBounds;
 	self->getVertices = UIButton_getVertices;
 	
 	self->label = strdup(label);
-	self->position = position;
-	self->relativeOrigin = relativeOrigin;
-	self->appearance = appearance;
+	self->actionCallback = actionCallback;
+	self->actionCallbackContext = actionCallbackContext;
 	if (width == UIBUTTON_SIZE_TO_FIT_LABEL) {
 		self->width = ceilf(GLBitmapFont_measureString(self->appearance->font, label, GLBITMAPFONT_USE_STRLEN) * self->appearance->metrics.buttonLabelHeight + self->appearance->metrics.buttonLabelPadding * 2);
 	} else {
@@ -60,12 +59,15 @@ void UIButton_dispose(UIButton * self) {
 	call_super(dispose, self);
 }
 
-bool UIButton_hitTest(UIButton * self, float x, float y) {
-	return Rect4f_containsVector2f(self->getBounds(self), VECTOR2f(x, y));
+UIElement * UIButton_hitTest(UIButton * self, float x, float y) {
+	if (Rect4f_containsVector2f(self->getBounds(self), VECTOR2f(x, y))) {
+		return (UIElement *) self;
+	}
+	return NULL;
 }
 
 bool UIButton_mouseDown(UIButton * self, unsigned int buttonNumber, float x, float y) {
-	if (buttonNumber == 0 && self->hitTest(self, x, y)) {
+	if (buttonNumber == 0) {
 		self->clickInProgress = true;
 		self->down = true;
 		return true;
@@ -77,7 +79,9 @@ bool UIButton_mouseUp(UIButton * self, unsigned int buttonNumber, float x, float
 	if (self->clickInProgress && self->down) {
 		self->clickInProgress = false;
 		self->down = false;
-		// Do button action
+		if (self->actionCallback != NULL) {
+			self->actionCallback(self, self->actionCallbackContext);
+		}
 		return true;
 	}
 	self->clickInProgress = false;
@@ -92,9 +96,23 @@ bool UIButton_mouseDragged(UIButton * self, unsigned int buttonMask, float x, fl
 	return false;
 }
 
-bool UIButton_actionDown(UIButton * self) {
-	// Do button action
+bool UIButton_menuAction(UIButton * self) {
+	if (self->actionCallback != NULL) {
+		self->actionCallback(self, self->actionCallbackContext);
+	}
 	return false;
+}
+
+bool UIButton_setFocusedElement(UIButton * self, UIElement * element) {
+	return true;
+}
+
+UIElement * UIButton_getFocusedElement(UIButton * self) {
+	return (UIElement *) self;
+}
+
+bool UIButton_acceptsFocus(UIButton * self) {
+	return true;
 }
 
 Rect4f UIButton_getBounds(UIButton * self) {
@@ -118,6 +136,7 @@ Rect4f UIButton_getBounds(UIButton * self) {
 void UIButton_getVertices(UIButton * self, struct vertex_p2f_t2f_c4f * outVertices, GLuint * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount) {
 	unsigned int vertexCount = 0, indexCount = 0;
 	Rect4f bounds = self->getBounds(self);
+	float stringWidth;
 	
 	if (ioVertexCount != NULL) {
 		vertexCount = *ioVertexCount;
@@ -176,16 +195,17 @@ void UIButton_getVertices(UIButton * self, struct vertex_p2f_t2f_c4f * outVertic
 		*ioIndexCount += 6 * 3 * 3;
 	}
 	
-	GLBitmapFont_getStringVerticesWithColor(self->appearance->font,
-	                                        self->label,
-	                                        GLBITMAPFONT_USE_STRLEN,
-	                                        self->appearance->metrics.buttonLabelHeight,
-	                                        VECTOR2f(roundf(bounds.left + (bounds.right - bounds.left) * 0.5f), roundf(bounds.bottom + (bounds.top - bounds.bottom) * 0.5f)),
-	                                        VECTOR2f(0.5f, 0.5f),
-	                                        self->appearance->metrics.buttonLabelColor,
-	                                        GL_UNSIGNED_INT,
-	                                        outVertices,
-	                                        outIndexes,
-	                                        ioVertexCount,
-	                                        ioIndexCount);
+	stringWidth = GLBitmapFont_measureString(self->appearance->font, self->label, GLBITMAPFONT_USE_STRLEN) * self->appearance->metrics.buttonLabelHeight;
+	GLBitmapFont_getStringVertices(self->appearance->font,
+	                               self->label,
+	                               GLBITMAPFONT_USE_STRLEN,
+	                               self->appearance->metrics.buttonLabelHeight,
+	                               VECTOR2f(roundf(bounds.left + (bounds.right - bounds.left - stringWidth) * 0.5f), roundf(bounds.bottom + (bounds.top - bounds.bottom - self->appearance->metrics.buttonLabelHeight) * 0.5f)),
+	                               VECTOR2f(0.0f, 0.0f),
+	                               true,
+	                               self->appearance->metrics.buttonLabelColor,
+	                               outVertices,
+	                               outIndexes,
+	                               ioVertexCount,
+	                               ioIndexCount);
 }

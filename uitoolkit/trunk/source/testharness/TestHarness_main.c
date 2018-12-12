@@ -12,6 +12,7 @@
 #include "shell/ShellKeyCodes.h"
 #include "uitoolkit/UIAppearance.h"
 #include "uitoolkit/UIButton.h"
+#include "uitoolkit/UIContainer.h"
 
 #if defined(STEM_PLATFORM_macosx)
 #include "nsopenglshell/NSOpenGLShell.h"
@@ -35,7 +36,7 @@
 static Renderer * renderer;
 static unsigned int viewWidth = 1280, viewHeight = 720;
 static float viewRatio = 16.0f / 9.0f;
-static UIButton * button;
+static UIElement * rootElement;
 static UIAppearance * appearance;
 static TextureAtlas * atlas;
 static GLBitmapFont * font;
@@ -58,18 +59,51 @@ static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned
 		}
 		
 	} else {
-		button->keyDown(button, charCode, keyCode, modifiers, isRepeat);
+		bool handled = rootElement->keyDown(rootElement, charCode, keyCode, modifiers, isRepeat);
+		if (!handled) {
+			switch (keyCode) {
+				case KEYBOARD_LEFT_ARROW:
+					handled = rootElement->menuLeft(rootElement);
+					break;
+				case KEYBOARD_RIGHT_ARROW:
+					handled = rootElement->menuRight(rootElement);
+					break;
+				case KEYBOARD_UP_ARROW:
+					handled = rootElement->menuUp(rootElement);
+					break;
+				case KEYBOARD_DOWN_ARROW:
+					handled = rootElement->menuDown(rootElement);
+					break;
+				case KEYBOARD_RETURN_OR_ENTER:
+				case KEYBOARD_SPACEBAR:
+					handled = rootElement->menuAction(rootElement);
+					break;
+				case KEYBOARD_ESCAPE:
+					handled = rootElement->menuCancel(rootElement);
+					break;
+				case KEYBOARD_TAB:
+					if (modifiers & MODIFIER_SHIFT_BIT) {
+						handled = rootElement->menuPrevious(rootElement);
+					} else {
+						handled = rootElement->menuNext(rootElement);
+					}
+					break;
+			}
+		}
+		if (handled) {
+			Shell_redisplay();
+		}
 	}
 }
 
 static void Target_keyUp(unsigned int keyCode, unsigned int modifiers) {
-	if (button->keyUp(button, keyCode, modifiers)) {
+	if (rootElement->keyUp(rootElement, keyCode, modifiers)) {
 		Shell_redisplay();
 	}
 }
 
 static void Target_keyModifiersChanged(unsigned int modifiers) {
-	if (button->keyModifiersChanged(button, modifiers)) {
+	if (rootElement->keyModifiersChanged(rootElement, modifiers)) {
 		Shell_redisplay();
 	}
 }
@@ -80,34 +114,34 @@ static Vector2f transformMousePosition(float x, float y) {
 
 static void Target_mouseDown(unsigned int buttonNumber, float x, float y) {
 	Vector2f position = transformMousePosition(x, y);
-	if (button->mouseDown(button, buttonNumber, position.x, position.y)) {
+	if (rootElement->mouseDown(rootElement, buttonNumber, position.x, position.y)) {
 		Shell_redisplay();
 	}
 }
 
 static void Target_mouseUp(unsigned int buttonNumber, float x, float y) {
 	Vector2f position = transformMousePosition(x, y);
-	if (button->mouseUp(button, buttonNumber, position.x, position.y)) {
+	if (rootElement->mouseUp(rootElement, buttonNumber, position.x, position.y)) {
 		Shell_redisplay();
 	}
 }
 
 static void Target_mouseMoved(float x, float y) {
 	Vector2f position = transformMousePosition(x, y);
-	if (button->mouseMoved(button, position.x, position.y)) {
+	if (rootElement->mouseMoved(rootElement, position.x, position.y)) {
 		Shell_redisplay();
 	}
 }
 
 static void Target_mouseDragged(unsigned int buttonMask, float x, float y) {
 	Vector2f position = transformMousePosition(x, y);
-	if (button->mouseDragged(button, buttonMask, position.x, position.y)) {
+	if (rootElement->mouseDragged(rootElement, buttonMask, position.x, position.y)) {
 		Shell_redisplay();
 	}
 }
 
 static void Target_scrollWheel(int deltaX, int deltaY) {
-	if (button->scrollWheel(button, deltaX, deltaY)) {
+	if (rootElement->scrollWheel(rootElement, deltaX, deltaY)) {
 		Shell_redisplay();
 	}
 }
@@ -129,7 +163,15 @@ static void Target_foregrounded() {
 }
 
 static void getUIVertices(DynamicSpriteRenderable * sprite, struct vertex_p2f_t2f_c4f * outVertices, GLuint * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount, void * context) {
-	UIButton_getVertices(button, outVertices, outIndexes, ioVertexCount, ioIndexCount);
+	rootElement->getVertices(rootElement, outVertices, outIndexes, ioVertexCount, ioIndexCount);
+}
+
+static void button1ActionCallback(UIButton * sender, void * context) {
+	printf("Button 1 action\n");
+}
+
+static void button2ActionCallback(UIButton * sender, void * context) {
+	printf("Button 2 action\n");
 }
 
 static void initTestUI() {
@@ -142,6 +184,9 @@ static void initTestUI() {
 	JSONDeserializationContext * context;
 	TextureAtlasData * atlasData;
 	BitmapImage * image;
+	UIButton * button1, * button2;
+	UIElement * containerElements[2];
+	UIContainer * container;
 	
 	context = JSONDeserializationContext_createWithFile("testappearance.atlas");
 	if (context->status != SERIALIZATION_ERROR_OK) {
@@ -179,7 +224,13 @@ static void initTestUI() {
 	GLBitmapFont_setTextureAtlas(font, atlas, false);
 	
 	appearance = UIAppearance_create(atlas, font, metrics);
-	button = UIButton_create("I'm a button", VECTOR2f(20.0f, 20.0f), VECTOR2f(0.0f, 0.0f), UIBUTTON_SIZE_TO_FIT_LABEL, appearance);
+	button1 = UIButton_create(appearance, VECTOR2f(20.0f, 20.0f), VECTOR2f(0.0f, 0.0f), "I'm a button", UIBUTTON_SIZE_TO_FIT_LABEL, button1ActionCallback, NULL);
+	button2 = UIButton_create(appearance, VECTOR2f(20.0f, 60.0f), VECTOR2f(0.0f, 0.0f), "Hello", UIBUTTON_SIZE_TO_FIT_LABEL, button2ActionCallback, NULL);
+	containerElements[0] = (UIElement *) button1;
+	containerElements[1] = (UIElement *) button2;
+	container = UIContainer_create(appearance, containerElements, sizeof(containerElements) / sizeof(containerElements[0]));
+	rootElement = (UIElement *) container;
+	
 	renderable = DynamicSpriteRenderable_create(atlas, getUIVertices, NULL);
 	Renderer_addRenderable(renderer, 0, (Renderable *) renderable);
 }

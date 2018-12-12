@@ -2,7 +2,7 @@
 	"format_version": 2,
 	"format_type": "texture_atlas",
 	"name": "UIToolkit test appearance",
-	"texture_name": "testappearance.png",
+	"texture_name": "testappearance_atlas.png",
 	"magnify_nearest": true,
 	"entries": {
 		"h24_~": {
