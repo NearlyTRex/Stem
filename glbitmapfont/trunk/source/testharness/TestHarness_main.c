@@ -50,35 +50,35 @@ static float scale = 1.0f;
 static void drawString(GLBitmapFont * font, const char * string, size_t length, float emHeight, float offsetX, float offsetY) {
 	static GLuint indexBufferID, vertexBufferID;
 	unsigned int indexCount, vertexCount;
-	struct vertex_p2f_t2f * vertices;
-	GLushort * indexes;
+	struct vertex_p2f_t2f_c4f * vertices;
+	GLuint * indexes;
 	
 	if (indexBufferID == 0) {
 		glGenBuffersARB(1, &indexBufferID);
 		glGenBuffersARB(1, &vertexBufferID);
 	}
 	vertexCount = indexCount = 0;
-	GLBitmapFont_getStringVertices(font, string, length, emHeight, VECTOR2f(offsetX, offsetY), VECTOR2f(0.0f, 0.0f), GL_UNSIGNED_SHORT, NULL, NULL, &vertexCount, &indexCount);
+	GLBitmapFont_getStringVertices(font, string, length, emHeight, VECTOR2f(offsetX, offsetY), VECTOR2f(0.0f, 0.0f), false, COLOR4f(1.0f, 1.0f, 1.0f, 1.0f), NULL, NULL, &vertexCount, &indexCount);
 	glBindBufferARB(GL_ARRAY_BUFFER, vertexBufferID);
 	glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER, indexBufferID);
-	glBufferDataARB(GL_ARRAY_BUFFER, sizeof(struct vertex_p2f_t2f) * vertexCount, NULL, GL_STREAM_DRAW);
-	glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLushort) * indexCount, NULL, GL_STREAM_DRAW);
+	glBufferDataARB(GL_ARRAY_BUFFER, sizeof(struct vertex_p2f_t2f_c4f) * vertexCount, NULL, GL_STREAM_DRAW);
+	glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint) * indexCount, NULL, GL_STREAM_DRAW);
 	vertices = glMapBufferARB(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
 	indexes = glMapBufferARB(GL_ELEMENT_ARRAY_BUFFER, GL_WRITE_ONLY);
 	vertexCount = indexCount = 0;
-	GLBitmapFont_getStringVertices(font, string, length, emHeight, VECTOR2f(offsetX, offsetY), VECTOR2f(0.0f, 0.0f), GL_UNSIGNED_SHORT, vertices, indexes, &vertexCount, &indexCount);
+	GLBitmapFont_getStringVertices(font, string, length, emHeight, VECTOR2f(offsetX, offsetY), VECTOR2f(0.0f, 0.0f), false, COLOR4f(1.0f, 1.0f, 1.0f, 1.0f), vertices, indexes, &vertexCount, &indexCount);
 	glUnmapBufferARB(GL_ARRAY_BUFFER);
 	glUnmapBufferARB(GL_ELEMENT_ARRAY_BUFFER);
 	
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	glVertexPointer(2, GL_FLOAT, sizeof(struct vertex_p2f_t2f), (void *) offsetof(struct vertex_p2f_t2f, position));
-	glTexCoordPointer(2, GL_FLOAT, sizeof(struct vertex_p2f_t2f), (void *) offsetof(struct vertex_p2f_t2f, texCoords));
+	glVertexPointer(2, GL_FLOAT, sizeof(struct vertex_p2f_t2f_c4f), (void *) offsetof(struct vertex_p2f_t2f_c4f, position));
+	glTexCoordPointer(2, GL_FLOAT, sizeof(struct vertex_p2f_t2f_c4f), (void *) offsetof(struct vertex_p2f_t2f_c4f, texCoords));
 	glEnable(GL_TEXTURE_2D);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glBindTexture(GL_TEXTURE_2D, font->atlas->textureID);
-	glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_SHORT, 0);
+	glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, 0);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	
 	glBindBuffer(GL_ARRAY_BUFFER, 0);

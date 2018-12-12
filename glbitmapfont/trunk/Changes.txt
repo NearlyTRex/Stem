@@ -1,8 +1,10 @@
 2.1.0 (2018-09-01)
- * Removed baseIndex parameter from GLBitmapFont_getStringVertices() and GLBitmapFont_getStringVerticesWithColor(). It's now inferred from ioVertexCount.
-  * Transition: Delete argument 8 from calls to GLBitmapFont_getStringVertices() (arg 9 from GLBitmapFont_getStringVerticesWithColor()), and pass the direct pointer to vertices and indexes without offsetting it.
- * Fixed crash when deserializing malformed GLBitmapFont data
- * Updated to use TextureAtlas from glgraphics instead of GLTextureAtlas from gltexture
+ * Removed GLBitmapFont_getStringVerticesWithColor(). GLBitmapFont_getStringVertices() now takes struct vertex_p2f_t2f_c4f. struct vertex_p2f_t2f is no longer supported.
+ * Removed baseIndex parameter from GLBitmapFont_getStringVertices(). It's now inferred from ioVertexCount.
+ * Removed indexType parameter from GLBitmapFont_getStringVertices(). GL_UNSIGNED_INT is now the only valid index type.
+ * Added pixelSnapping parameter to GLBitmapFont_getStringVertices() for less blurry pixel-exact text rendering.
+ * Fixed crash when deserializing malformed GLBitmapFont data.
+ * Updated to use TextureAtlas from glgraphics instead of GLTextureAtlas from gltexture.
 
 2.0.0 (2014-11-20)
  * GLBitmapFont's texture coordinate storage has been superseded by GLTextureAtlas. Instead of texture coordinates, GLBitmapFont now stores a key for atlas lookup.

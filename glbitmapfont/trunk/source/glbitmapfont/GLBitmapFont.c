@@ -322,7 +322,7 @@ unsigned int GLBitmapFont_getStringIndexes(GLBitmapFont * self,
 	if (charIndex > 0) { \
 		for (kernCharIndex = 0; kernCharIndex < self->characters[charEntryIndex].kernCharCount; kernCharIndex++) { \
 			if (string[charIndex - 1] == self->characters[charEntryIndex].kernChars[kernCharIndex].previous) { \
-				positionX += self->characters[charEntryIndex].kernChars[kernCharIndex].offset; \
+				positionX += self->characters[charEntryIndex].kernChars[kernCharIndex].offset * emHeight; \
 				break; \
 			} \
 		} \
@@ -330,11 +330,11 @@ unsigned int GLBitmapFont_getStringIndexes(GLBitmapFont * self,
 
 #define getVertices_writePosition() \
 	outVertices[vertexCount + 0].position[0] = \
-	outVertices[vertexCount + 1].position[0] = offset.x + (positionX + self->characters[charEntryIndex].glyphOffset) * fabs(emHeight); \
+	outVertices[vertexCount + 1].position[0] = offset.x + positionX + self->characters[charEntryIndex].glyphOffset * fabs(emHeight); \
 	outVertices[vertexCount + 0].position[1] = \
 	outVertices[vertexCount + 3].position[1] = offset.y + emHeight; \
 	outVertices[vertexCount + 2].position[0] = \
-	outVertices[vertexCount + 3].position[0] = offset.x + (positionX + self->characters[charEntryIndex].glyphOffset + self->characters[charEntryIndex].glyphWidth) * fabs(emHeight); \
+	outVertices[vertexCount + 3].position[0] = offset.x + positionX + (self->characters[charEntryIndex].glyphOffset + self->characters[charEntryIndex].glyphWidth) * fabs(emHeight); \
 	outVertices[vertexCount + 1].position[1] = \
 	outVertices[vertexCount + 2].position[1] = offset.y
 
@@ -366,32 +366,13 @@ unsigned int GLBitmapFont_getStringIndexes(GLBitmapFont * self,
 	outVertices[vertexCount + 2].color[3] = \
 	outVertices[vertexCount + 3].color[3] = color.alpha
 
-#define getVertices_writeTypedIndexes(indexes) \
-	indexes[indexCount + 0] = vertexCount; \
-	indexes[indexCount + 1] = vertexCount + 1; \
-	indexes[indexCount + 2] = vertexCount + 2; \
-	indexes[indexCount + 3] = vertexCount + 2; \
-	indexes[indexCount + 4] = vertexCount + 3; \
-	indexes[indexCount + 5] = vertexCount;
-
 #define getVertices_writeIndexes() \
-	switch (indexType) { \
-		case GL_UNSIGNED_BYTE: { \
-			GLubyte * indexesByte = outIndexes; \
-			getVertices_writeTypedIndexes(indexesByte); \
-			break; \
-		} \
-		case GL_UNSIGNED_SHORT: { \
-			GLushort * indexesShort = outIndexes; \
-			getVertices_writeTypedIndexes(indexesShort); \
-			break; \
-		} \
-		case GL_UNSIGNED_INT: { \
-			GLuint * indexesInt = outIndexes; \
-			getVertices_writeTypedIndexes(indexesInt); \
-			break; \
-		} \
-	}
+	outIndexes[indexCount + 0] = vertexCount; \
+	outIndexes[indexCount + 1] = vertexCount + 1; \
+	outIndexes[indexCount + 2] = vertexCount + 2; \
+	outIndexes[indexCount + 3] = vertexCount + 2; \
+	outIndexes[indexCount + 4] = vertexCount + 3; \
+	outIndexes[indexCount + 5] = vertexCount;
 
 void GLBitmapFont_getStringVertices(GLBitmapFont * self,
                                     const char * string,
@@ -399,9 +380,10 @@ void GLBitmapFont_getStringVertices(GLBitmapFont * self,
                                     float emHeight,
                                     Vector2f offset,
                                     Vector2f relativeOrigin,
-                                    GLenum indexType,
-                                    struct vertex_p2f_t2f * outVertices,
-                                    void * outIndexes,
+                                    bool pixelSnapping,
+                                    Color4f color,
+                                    struct vertex_p2f_t2f_c4f * outVertices,
+                                    GLuint * outIndexes,
                                     unsigned int * ioVertexCount,
                                     unsigned int * ioIndexCount) {
 	size_t charIndex, kernCharIndex;
@@ -423,52 +405,11 @@ void GLBitmapFont_getStringVertices(GLBitmapFont * self,
 				getVertices_kern();
 				getVertices_writePosition();
 				getVertices_writeTexCoords();
-				positionX += self->characters[charEntryIndex].advance;
-			}
-			if (outIndexes != NULL) {
-				getVertices_writeIndexes();
-			}
-			vertexCount += 4;
-			indexCount += 6;
-		}
-	}
-	*ioVertexCount += vertexCount;
-	*ioIndexCount += indexCount;
-}
-
-void GLBitmapFont_getStringVerticesWithColor(GLBitmapFont * self,
-                                             const char * string,
-                                             size_t length,
-                                             float emHeight,
-                                             Vector2f offset,
-                                             Vector2f relativeOrigin,
-                                             Color4f color,
-                                             GLenum indexType,
-                                             struct vertex_p2f_t2f_c4f * outVertices,
-                                             void * outIndexes,
-                                             unsigned int * ioVertexCount,
-                                             unsigned int * ioIndexCount) {
-	size_t charIndex, kernCharIndex;
-	float positionX = 0.0f;
-	unsigned int charEntryIndex;
-	unsigned int vertexCount = *ioVertexCount, indexCount = *ioIndexCount;
-	struct TextureAtlas_entry atlasEntry;
-	
-	if (length == GLBITMAPFONT_USE_STRLEN) {
-		length = strlen(string);
-	}
-	offset.x -= GLBitmapFont_measureString(self, string, length) * fabs(emHeight) * relativeOrigin.x;
-	offset.y -= emHeight * relativeOrigin.y;
-	for (charIndex = 0; charIndex < length; charIndex++) {
-		if (string[charIndex] >= GLBITMAPFONT_PRINTABLE_MIN && string[charIndex] <= GLBITMAPFONT_PRINTABLE_MAX) {
-			if (outVertices != NULL) {
-				charEntryIndex = string[charIndex] - GLBITMAPFONT_PRINTABLE_MIN;
-				atlasEntry = TextureAtlas_lookup(self->atlas, self->characters[charEntryIndex].atlasKey);
-				getVertices_kern();
-				getVertices_writePosition();
-				getVertices_writeTexCoords();
 				getVertices_writeColor();
-				positionX += self->characters[charEntryIndex].advance;
+				positionX += self->characters[charEntryIndex].advance * emHeight;
+				if (pixelSnapping) {
+					positionX = roundf(positionX);
+				}
 			}
 			if (outIndexes != NULL) {
 				getVertices_writeIndexes();
