@@ -216,7 +216,7 @@ float GLBitmapFont_measureString(GLBitmapFont * self, const char * string, size_
 	return width;
 }
 
-size_t GLBitmapFont_indexAtWidth(GLBitmapFont * self, const char * string, size_t length, float emWidth, bool * outLeadingEdge) {
+size_t GLBitmapFont_indexAtWidth(GLBitmapFont * self, const char * string, size_t length, float widthInEms, bool * outLeadingEdge) {
 	float totalWidth = 0.0f, charWidth, halfKernOffset = 0.0f;
 	size_t charIndex, kernCharIndex;
 	
@@ -237,9 +237,9 @@ size_t GLBitmapFont_indexAtWidth(GLBitmapFont * self, const char * string, size_
 				}
 			}
 			totalWidth += charWidth;
-			if (totalWidth > emWidth) {
+			if (totalWidth > widthInEms) {
 				if (outLeadingEdge != NULL) {
-					*outLeadingEdge = totalWidth - charWidth * 0.5f > emWidth;
+					*outLeadingEdge = totalWidth - charWidth * 0.5f > widthInEms;
 				}
 				return charIndex;
 			}
@@ -322,7 +322,7 @@ unsigned int GLBitmapFont_getStringIndexes(GLBitmapFont * self,
 	if (charIndex > 0) { \
 		for (kernCharIndex = 0; kernCharIndex < self->characters[charEntryIndex].kernCharCount; kernCharIndex++) { \
 			if (string[charIndex - 1] == self->characters[charEntryIndex].kernChars[kernCharIndex].previous) { \
-				positionX += self->characters[charEntryIndex].kernChars[kernCharIndex].offset * emHeight; \
+				positionX += self->characters[charEntryIndex].kernChars[kernCharIndex].offset * emSize; \
 				break; \
 			} \
 		} \
@@ -330,15 +330,15 @@ unsigned int GLBitmapFont_getStringIndexes(GLBitmapFont * self,
 
 #define getVertices_writePosition() \
 	outVertices[vertexCount + 0].position[0] = \
-	outVertices[vertexCount + 1].position[0] = offset.x + positionX + self->characters[charEntryIndex].glyphOffset * fabs(emHeight); \
+	outVertices[vertexCount + 1].position[0] = offset.x + positionX + self->characters[charEntryIndex].glyphOffset * fabs(emSize); \
 	outVertices[vertexCount + 0].position[1] = \
-	outVertices[vertexCount + 3].position[1] = offset.y + emHeight; \
+	outVertices[vertexCount + 3].position[1] = offset.y + emSize; \
 	if (pixelSnapping) { \
 		outVertices[vertexCount + 2].position[0] = \
-		outVertices[vertexCount + 3].position[0] = offset.x + positionX + floorf((self->characters[charEntryIndex].glyphOffset + self->characters[charEntryIndex].glyphWidth) * fabs(emHeight)); \
+		outVertices[vertexCount + 3].position[0] = offset.x + positionX + floorf((self->characters[charEntryIndex].glyphOffset + self->characters[charEntryIndex].glyphWidth) * fabs(emSize)); \
 	} else { \
 		outVertices[vertexCount + 2].position[0] = \
-		outVertices[vertexCount + 3].position[0] = offset.x + positionX + (self->characters[charEntryIndex].glyphOffset + self->characters[charEntryIndex].glyphWidth) * fabs(emHeight); \
+		outVertices[vertexCount + 3].position[0] = offset.x + positionX + (self->characters[charEntryIndex].glyphOffset + self->characters[charEntryIndex].glyphWidth) * fabs(emSize); \
 	} \
 	outVertices[vertexCount + 1].position[1] = \
 	outVertices[vertexCount + 2].position[1] = offset.y
@@ -382,10 +382,12 @@ unsigned int GLBitmapFont_getStringIndexes(GLBitmapFont * self,
 void GLBitmapFont_getStringVertices(GLBitmapFont * self,
                                     const char * string,
                                     size_t length,
-                                    float emHeight,
+                                    float emSize,
                                     Vector2f offset,
                                     Vector2f relativeOrigin,
                                     bool pixelSnapping,
+                                    float clipWidth,
+                                    float clipHeight,
                                     Color4f color,
                                     struct vertex_p2f_t2f_c4f * outVertices,
                                     GLuint * outIndexes,
@@ -397,11 +399,14 @@ void GLBitmapFont_getStringVertices(GLBitmapFont * self,
 	unsigned int vertexCount = *ioVertexCount, indexCount = *ioIndexCount;
 	struct TextureAtlas_entry atlasEntry;
 	
+	// TODO: clipWidth and clipHeight
 	if (length == GLBITMAPFONT_USE_STRLEN) {
 		length = strlen(string);
 	}
-	offset.x -= GLBitmapFont_measureString(self, string, length) * fabs(emHeight) * relativeOrigin.x;
-	offset.y -= emHeight * relativeOrigin.y;
+	if (relativeOrigin.x != 0.0f) {
+		offset.x -= GLBitmapFont_measureString(self, string, length) * fabs(emSize) * relativeOrigin.x;
+	}
+	offset.y -= emSize * relativeOrigin.y;
 	for (charIndex = 0; charIndex < length; charIndex++) {
 		if (string[charIndex] >= GLBITMAPFONT_PRINTABLE_MIN && string[charIndex] <= GLBITMAPFONT_PRINTABLE_MAX) {
 			if (outVertices != NULL) {
@@ -411,7 +416,7 @@ void GLBitmapFont_getStringVertices(GLBitmapFont * self,
 				getVertices_writePosition();
 				getVertices_writeTexCoords();
 				getVertices_writeColor();
-				positionX += self->characters[charEntryIndex].advance * emHeight;
+				positionX += self->characters[charEntryIndex].advance * emSize;
 				if (pixelSnapping) {
 					positionX = roundf(positionX);
 				}

@@ -4,11 +4,13 @@
 #include "3dmodelio/TextureAtlasData.h"
 #include "gamemath/Matrix4x4f.h"
 #include "glbitmapfont/GLBitmapFont.h"
+#include "glbitmapfont/TextFlow.h"
 #include "glgraphics/GLIncludes.h"
 #include "jsonserialization/JSONDeserializationContext.h"
 #include "pngimageio/PNGImageIO.h"
 #include "utilities/IOUtilities.h"
 
+// TODO: This test harness is a big mess; redo to use more modern rendering techniques
 #if defined(STEM_PLATFORM_iphonesimulator) || defined(STEM_PLATFORM_iphoneos)
 #include "eaglshell/EAGLShell.h"
 #include "eaglshell/EAGLTarget.h"
@@ -29,23 +31,11 @@
 static char freeformText[FREEFORM_LENGTH_MAX + 1];
 static unsigned int viewportWidth = 800, viewportHeight = 600;
 static GLBitmapFont * font;
+static TextFlow * textFlow;
 static const char * jsonPath = NULL;
 static size_t lastIndexAtWidth = 0;
 static bool lastLeadingEdge = false;
-//static GLint matrixUniform;
-//static GLint textureUniform;
 static float scale = 1.0f;
-
-#if defined(STEM_PLATFORM_iphoneos) || defined(STEM_PLATFORM_iphonesimulator)
-#define glGenBuffersARB glGenBuffers
-#define glDeleteBuffersARB glDeleteBuffers
-#define glBindBufferARB glBindBuffer
-#define glBufferDataARB glBufferData
-#define glBufferSubDataARB glBufferSubData
-#define glMapBufferARB glMapBufferOES
-#define glUnmapBufferARB glUnmapBufferOES
-#define GL_WRITE_ONLY GL_WRITE_ONLY_OES
-#endif
 
 static void drawString(GLBitmapFont * font, const char * string, size_t length, float emHeight, float offsetX, float offsetY) {
 	static GLuint indexBufferID, vertexBufferID;
@@ -58,7 +48,7 @@ static void drawString(GLBitmapFont * font, const char * string, size_t length, 
 		glGenBuffersARB(1, &vertexBufferID);
 	}
 	vertexCount = indexCount = 0;
-	GLBitmapFont_getStringVertices(font, string, length, emHeight, VECTOR2f(offsetX, offsetY), VECTOR2f(0.0f, 0.0f), false, COLOR4f(1.0f, 1.0f, 1.0f, 1.0f), NULL, NULL, &vertexCount, &indexCount);
+	GLBitmapFont_getStringVertices(font, string, length, emHeight, VECTOR2f(offsetX, offsetY), VECTOR2f(0.0f, 0.0f), false, GLBITMAPFONT_NO_CLIP, GLBITMAPFONT_NO_CLIP, COLOR4f(1.0f, 1.0f, 1.0f, 1.0f), NULL, NULL, &vertexCount, &indexCount);
 	glBindBufferARB(GL_ARRAY_BUFFER, vertexBufferID);
 	glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER, indexBufferID);
 	glBufferDataARB(GL_ARRAY_BUFFER, sizeof(struct vertex_p2f_t2f_c4f) * vertexCount, NULL, GL_STREAM_DRAW);
@@ -66,7 +56,47 @@ static void drawString(GLBitmapFont * font, const char * string, size_t length, 
 	vertices = glMapBufferARB(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
 	indexes = glMapBufferARB(GL_ELEMENT_ARRAY_BUFFER, GL_WRITE_ONLY);
 	vertexCount = indexCount = 0;
-	GLBitmapFont_getStringVertices(font, string, length, emHeight, VECTOR2f(offsetX, offsetY), VECTOR2f(0.0f, 0.0f), false, COLOR4f(1.0f, 1.0f, 1.0f, 1.0f), vertices, indexes, &vertexCount, &indexCount);
+	GLBitmapFont_getStringVertices(font, string, length, emHeight, VECTOR2f(offsetX, offsetY), VECTOR2f(0.0f, 0.0f), false, GLBITMAPFONT_NO_CLIP, GLBITMAPFONT_NO_CLIP, COLOR4f(1.0f, 1.0f, 1.0f, 1.0f), vertices, indexes, &vertexCount, &indexCount);
+	glUnmapBufferARB(GL_ARRAY_BUFFER);
+	glUnmapBufferARB(GL_ELEMENT_ARRAY_BUFFER);
+	
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	glVertexPointer(2, GL_FLOAT, sizeof(struct vertex_p2f_t2f_c4f), (void *) offsetof(struct vertex_p2f_t2f_c4f, position));
+	glTexCoordPointer(2, GL_FLOAT, sizeof(struct vertex_p2f_t2f_c4f), (void *) offsetof(struct vertex_p2f_t2f_c4f, texCoords));
+	glEnable(GL_TEXTURE_2D);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glBindTexture(GL_TEXTURE_2D, font->atlas->textureID);
+	glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, 0);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	glDisableClientState(GL_VERTEX_ARRAY);
+	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+}
+
+static void drawTextFlow(TextFlow * textFlow, float emHeight, float offsetX, float offsetY) {
+	static GLuint indexBufferID, vertexBufferID;
+	unsigned int indexCount, vertexCount;
+	struct vertex_p2f_t2f_c4f * vertices;
+	GLuint * indexes;
+	
+	if (indexBufferID == 0) {
+		glGenBuffersARB(1, &indexBufferID);
+		glGenBuffersARB(1, &vertexBufferID);
+	}
+	vertexCount = indexCount = 0;
+	TextFlow_getVertices(textFlow, emHeight, VECTOR2f(offsetX, offsetY), VECTOR2f(0.0f, 0.0f), false, GLBITMAPFONT_NO_CLIP, GLBITMAPFONT_NO_CLIP, COLOR4f(1.0f, 1.0f, 1.0f, 1.0f), NULL, NULL, &vertexCount, &indexCount);
+	glBindBufferARB(GL_ARRAY_BUFFER, vertexBufferID);
+	glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER, indexBufferID);
+	glBufferDataARB(GL_ARRAY_BUFFER, sizeof(struct vertex_p2f_t2f_c4f) * vertexCount, NULL, GL_STREAM_DRAW);
+	glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint) * indexCount, NULL, GL_STREAM_DRAW);
+	vertices = glMapBufferARB(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+	indexes = glMapBufferARB(GL_ELEMENT_ARRAY_BUFFER, GL_WRITE_ONLY);
+	vertexCount = indexCount = 0;
+	TextFlow_getVertices(textFlow, emHeight, VECTOR2f(offsetX, offsetY), VECTOR2f(0.0f, 0.0f), false, GLBITMAPFONT_NO_CLIP, GLBITMAPFONT_NO_CLIP, COLOR4f(1.0f, 1.0f, 1.0f, 1.0f), vertices, indexes, &vertexCount, &indexCount);
 	glUnmapBufferARB(GL_ARRAY_BUFFER);
 	glUnmapBufferARB(GL_ELEMENT_ARRAY_BUFFER);
 	
@@ -99,16 +129,11 @@ static bool Target_draw() {
 	ratio = (float) viewportWidth / viewportHeight;
 	projectionMatrix = Matrix4x4f_ortho(MATRIX4x4f_IDENTITY, -ratio, ratio, -1.0f, 1.0f, -1.0f, 1.0f);
 	
-	/*if (GLGraphics_getOpenGLAPIVersion() == GL_API_VERSION_ES2) {
-		glUniformMatrix4fv(matrixUniform, 1, GL_FALSE, projectionMatrix.m);
-		glUniform1i(textureUniform, 0);
-		glVertexAttrib4f(2, 1.0f, 1.0f, 1.0f, 1.0f);
-		
-	} else {*/
-		glMatrixMode(GL_PROJECTION);
-		glLoadMatrixf(projectionMatrix.m);
-		glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-	//}
+	glMatrixMode(GL_PROJECTION);
+	glLoadMatrixf(projectionMatrix.m);
+	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+	
+	drawTextFlow(textFlow, 0.0625f * scale, -6.0f * 0.0625f * scale, 0.625f);
 	
 	stringWidth = GLBitmapFont_measureString(font, "Hello, world!", 13);
 	drawString(font, "Hello, world!", 13, 0.1f * scale, stringWidth * -0.05f * scale, 0.0f);
@@ -116,11 +141,7 @@ static bool Target_draw() {
 	stringWidth = GLBitmapFont_measureString(font, freeformText, strlen(freeformText));
 	drawString(font, freeformText, strlen(freeformText), 0.0625f * scale, stringWidth * -0.03125f * scale, -0.0625f * scale);
 	
-	//if (GLGraphics_getOpenGLAPIVersion() == GL_API_VERSION_ES2) {
-	//	glVertexAttrib4f(2, 0.875f, 0.875f, 0.5f, 1.0f);
-	//} else {
-		glColor4f(0.875f, 0.875f, 0.5f, 1.0f);
-	//}
+	glColor4f(0.875f, 0.875f, 0.5f, 1.0f);
 	snprintf(indexString, 32, "%u, %s", (unsigned int) lastIndexAtWidth, lastLeadingEdge ? "true" : "false");
 	stringWidth = GLBitmapFont_measureString(font, indexString, strlen(indexString));
 	drawString(font, indexString, strlen(indexString), 0.05f * scale, stringWidth * -0.025f * scale, 0.1f * scale);
@@ -337,75 +358,8 @@ void Target_init() {
 	GLBitmapFont_setTextureAtlas(font, atlas, true);
 	TextureAtlasData_dispose(atlasData);
 	
+	textFlow = TextFlow_create(font, "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut eleifend commodo placerat. Aenean a viverra leo.", WORD_WRAP_NORMAL, 12.0f);
+	
 	memset(freeformText, 0, FREEFORM_LENGTH_MAX + 1);
-	/*
-	if (GLGraphics_getOpenGLAPIVersion() == GL_API_VERSION_ES2) {
-		void * fileContents;
-		size_t fileLength;
-		GLint shaderLength;
-		GLuint vertexShader, fragmentShader;
-		GLuint shaderProgram;
-		GLint logLength;
-		
-		chdir(Shell_getResourcePath());
-		
-		shaderProgram = glCreateProgram();
-		vertexShader = glCreateShader(GL_VERTEX_SHADER);
-		fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-		
-		fileContents = readFileSimple("basic.vert", &fileLength);
-		shaderLength = fileLength;
-		glShaderSource(vertexShader, 1, (const GLchar **) &fileContents, &shaderLength);
-		free(fileContents);
-		
-		fileContents = readFileSimple("basic.frag", &fileLength);
-		shaderLength = fileLength;
-		glShaderSource(fragmentShader, 1, (const GLchar **) &fileContents, &shaderLength);
-		free(fileContents);
-		
-		glCompileShader(vertexShader);
-		glCompileShader(fragmentShader);
-		glGetShaderiv(vertexShader, GL_INFO_LOG_LENGTH, &logLength);
-		if (logLength > 0) {
-			GLchar * log = malloc(logLength);
-			glGetShaderInfoLog(vertexShader, logLength, &logLength, log);
-			fprintf(stderr, "Vertex shader compile log:\n%s\n", log);
-			free(log);
-		}
-		glGetShaderiv(fragmentShader, GL_INFO_LOG_LENGTH, &logLength);
-		if (logLength > 0) {
-			GLchar * log = malloc(logLength);
-			glGetShaderInfoLog(fragmentShader, logLength, &logLength, log);
-			fprintf(stderr, "Fragment shader compile log:\n%s\n", log);
-			free(log);
-		}
-		glAttachShader(shaderProgram, vertexShader);
-		glAttachShader(shaderProgram, fragmentShader);
-		glBindAttribLocation(shaderProgram, 0, "vertexPositionAttrib");
-		glBindAttribLocation(shaderProgram, 1, "vertexTexCoordAttrib");
-		glBindAttribLocation(shaderProgram, 2, "vertexColorAttrib");
-		glLinkProgram(shaderProgram);
-		glGetProgramiv(shaderProgram, GL_INFO_LOG_LENGTH, &logLength);
-		if (logLength > 0) {
-			GLchar * log = malloc(logLength);
-			glGetProgramInfoLog(shaderProgram, logLength, &logLength, log);
-			fprintf(stderr, "Program link log:\n%s\n", log);
-			free(log);
-		}
-		glValidateProgram(shaderProgram);
-		glGetProgramiv(shaderProgram, GL_INFO_LOG_LENGTH, &logLength);
-		if (logLength > 0) {
-			GLchar * log = malloc(logLength);
-			glGetProgramInfoLog(shaderProgram, logLength, &logLength, log);
-			fprintf(stderr, "Program validation log:\n%s\n", log);
-			free(log);
-		}
-		matrixUniform = glGetUniformLocation(shaderProgram, "matrix");
-		textureUniform = glGetUniformLocation(shaderProgram, "texture");
-		glDeleteShader(vertexShader);
-		glDeleteShader(fragmentShader);
-		glUseProgram(shaderProgram);
-	}
-	*/
 	Shell_mainLoop();
 }

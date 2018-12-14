@@ -33,6 +33,7 @@ extern "C" {
 #include "serialization/SerializationContext.h"
 #include "stemobject/StemObject.h"
 #include <stdbool.h>
+#include <math.h>
 
 typedef struct GLBitmapFont GLBitmapFont;
 
@@ -44,6 +45,7 @@ typedef struct GLBitmapFont GLBitmapFont;
 #define GLBITMAPFONT_SERIALIZATION_FORMAT_VERSION 2
 
 #define GLBITMAPFONT_USE_STRLEN ((size_t) -1)
+#define GLBITMAPFONT_NO_CLIP INFINITY
 
 struct GLBitmapFont_charEntry {
 	// Number of total ems advanced after drawing this glyph
@@ -89,18 +91,20 @@ void GLBitmapFont_setTextureAtlas(GLBitmapFont * self, TextureAtlas * atlas, boo
 // Returns the width of string (of length UTF-8 bytes) in ems
 float GLBitmapFont_measureString(GLBitmapFont * self, const char * string, size_t length);
 
-// Returns the closest character index to emWidth, as measured from the beginning of string (of length UTF-8 bytes).
-// If outLeadingEdge is non-NULL, it will be set to true if emWidth falls on the leading half of the
+// Returns the closest character index to widthInEms, as measured from the beginning of string (of length UTF-8 bytes).
+// If outLeadingEdge is non-NULL, it will be set to true if widthInEms falls on the leading half of the
 // character whose index is returned, or false if it does not.
-size_t GLBitmapFont_indexAtWidth(GLBitmapFont * self, const char * string, size_t length, float emWidth, bool * outLeadingEdge);
+size_t GLBitmapFont_indexAtWidth(GLBitmapFont * self, const char * string, size_t length, float widthInEms, bool * outLeadingEdge);
 
 // Returns vertex data suitable for drawing a sprite with GL_TRIANGLES. Parameters:
 // - string: Text to be drawn.
 // - length: Length of string. You can pass GLBITMAPFONT_USE_STRLEN if string is null-terminated.
-// - emHeight: Desired text height. Text is scaled on both axes relative to this value.
+// - emSize: The height of a character. Text is scaled on both axes relative to this value.
 // - offset: Drawing origin. These values are added to all returned vertex positions.
 // - relativeOrigin: Sprite's origin point in normalized coordinates. A value of {0, 0} will place the lower left vertex at the position specified by offset; {0.5, 0.5} will place the center at offset; {1, 1} will place the upper right corner at offset, and so on.
-// - pixelSnapping: If true, returned vertices will be snapped to the nearest integer value for each character. This may help text look less blurry in some cases. Passing a non-pixel-exact value for emHeight while this parameter is true may have unexpected results.
+// - pixelSnapping: If true, returned vertices will be snapped to the nearest integer value for each character. This may help text look less blurry in some cases. Passing a non-pixel-exact value for emSize while this parameter is true may have unexpected results.
+// - clipWidth: Specifies a maximum width beyond which returned vertices will be clipped. Pass GLBITMAPFONT_NO_CLIP if you don't want to clip.
+// - clipHeight: Specifies a maximum height beyond which returned vertices will be clipped. Pass GLBITMAPFONT_NO_CLIP if you don't want to clip.
 // - color: Value to be assigned to all returned vertex colors.
 // - outVertices: If not NULL, vertex data will be written to this pointer.
 // - outIndexes: If not NULL, index data will be written to this pointer.
@@ -115,10 +119,12 @@ size_t GLBitmapFont_indexAtWidth(GLBitmapFont * self, const char * string, size_
 void GLBitmapFont_getStringVertices(GLBitmapFont * self,
                                     const char * string,
                                     size_t length,
-                                    float emHeight,
+                                    float emSize,
                                     Vector2f offset,
                                     Vector2f relativeOrigin,
                                     bool pixelSnapping,
+                                    float clipWidth,
+                                    float clipHeight,
                                     Color4f color,
                                     struct vertex_p2f_t2f_c4f * outVertices,
                                     GLuint * outIndexes,
