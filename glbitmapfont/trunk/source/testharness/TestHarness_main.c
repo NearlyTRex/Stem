@@ -133,7 +133,7 @@ static bool Target_draw() {
 	glLoadMatrixf(projectionMatrix.m);
 	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 	
-	drawTextFlow(textFlow, 0.0625f * scale, -6.0f * 0.0625f * scale, 0.625f);
+	drawTextFlow(textFlow, 0.0625f * scale, -6.0f * 0.0625f * scale, 0.75f);
 	
 	stringWidth = GLBitmapFont_measureString(font, "Hello, world!", 13);
 	drawString(font, "Hello, world!", 13, 0.1f * scale, stringWidth * -0.05f * scale, 0.0f);
@@ -358,7 +358,7 @@ void Target_init() {
 	GLBitmapFont_setTextureAtlas(font, atlas, true);
 	TextureAtlasData_dispose(atlasData);
 	
-	textFlow = TextFlow_create(font, "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut eleifend commodo placerat. Aenean a viverra leo.", WORD_WRAP_NORMAL, 12.0f);
+	textFlow = TextFlow_create(font, "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut eleifend\nn\n n wwwwwwwwwwwwwwwwwwwwwwwwww commodo placerat. Aenean a viverra leo.", WORD_WRAP_NORMAL, 12.0f);
 	
 	memset(freeformText, 0, FREEFORM_LENGTH_MAX + 1);
 	Shell_mainLoop();

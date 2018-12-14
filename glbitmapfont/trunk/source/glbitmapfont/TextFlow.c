@@ -108,10 +108,24 @@ static void updateWrapInfo(TextFlow * self) {
 						if (wrapIndex == lastWrapIndex) {
 							// Line contains no wrappable whitespace prior to overflow
 							if (self->wrapMode == WORD_WRAP_AGGRESSIVE) {
+								// Split the overflowing word without whitespace
 								addWrapPoint(self, edgeCharIndex);
 								lastWrapIndex = edgeCharIndex;
 								continue;
 							}
+							
+							// Allow overflow and wrap at the next available whitespace
+							wrapIndex = edgeCharIndex;
+							while (wrapIndex < lineEndCharIndex && !isWrappableWhitespace(self->string[wrapIndex])) {
+								wrapIndex++;
+							}
+							while (wrapIndex < lineEndCharIndex && isWrappableWhitespace(self->string[wrapIndex])) {
+								wrapIndex++;
+							}
+							addWrapPoint(self, wrapIndex);
+							lastWrapIndex = wrapIndex + 1;
+							continue;
+							
 						} else {
 							// Found wrappable whitespace prior to overflow
 							addWrapPoint(self, wrapIndex + 1);
