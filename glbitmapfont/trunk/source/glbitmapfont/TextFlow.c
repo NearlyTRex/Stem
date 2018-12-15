@@ -23,6 +23,7 @@
 #include "glbitmapfont/TextFlow.h"
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 #define SUPERCLASS StemObject
 
@@ -67,7 +68,7 @@ static void updateWrapInfo(TextFlow * self) {
 	    self->wrapMode != self->private_ivar(wrapInfo).wrapMode ||
 	    self->wrapWidth != self->private_ivar(wrapInfo).wrapWidth) {
 		float measuredWidth;
-		size_t lineEndCharIndex, edgeCharIndex, length = strlen(self->string), wrapIndex, lastWrapIndex = 0;
+		size_t lineEndCharIndex, edgeCharIndex, length = strlen(self->string), wrapIndex, lastWrapIndex = 0, lastLastWrapIndex = 1;
 		
 		self->private_ivar(wrapInfo).font = self->font;
 		self->private_ivar(wrapInfo).string = self->string;
@@ -76,13 +77,18 @@ static void updateWrapInfo(TextFlow * self) {
 		
 		self->private_ivar(wrapInfo).wrapPointCount = 0;
 		
-		for (;;) {
+		for (; lastWrapIndex < length;) {
+			if (lastLastWrapIndex == lastWrapIndex) {
+				printf("Infinite loop detected!\n");
+				break;
+			}
+			lastLastWrapIndex = lastWrapIndex;
 			for (lineEndCharIndex = lastWrapIndex; lineEndCharIndex < length; lineEndCharIndex++) {
 				if (self->string[lineEndCharIndex] == '\n') {
 					break;
 				}
 			}
-			if (self->wrapMode != WORD_WRAP_NONE) {
+			if (lineEndCharIndex != lastWrapIndex && self->wrapMode != WORD_WRAP_NONE) {
 				measuredWidth = GLBitmapFont_measureString(self->font, self->string + lastWrapIndex, lineEndCharIndex - lastWrapIndex);
 				if (measuredWidth >= self->wrapWidth) {
 					// Line needs to wrap
@@ -105,26 +111,36 @@ static void updateWrapInfo(TextFlow * self) {
 						while (wrapIndex > lastWrapIndex && !isWrappableWhitespace(self->string[wrapIndex])) {
 							wrapIndex--;
 						}
-						if (wrapIndex == lastWrapIndex) {
+						if (wrapIndex == lastWrapIndex && !isWrappableWhitespace(self->string[wrapIndex])) {
 							// Line contains no wrappable whitespace prior to overflow
 							if (self->wrapMode == WORD_WRAP_AGGRESSIVE) {
 								// Split the overflowing word without whitespace
-								addWrapPoint(self, edgeCharIndex);
-								lastWrapIndex = edgeCharIndex;
-								continue;
+								if (edgeCharIndex == lastWrapIndex) {
+									// This single character doesn't fit; let it overflow and move forward
+									edgeCharIndex++;
+								}
+								if (self->string[edgeCharIndex] != '\n') {
+									addWrapPoint(self, edgeCharIndex);
+									lastWrapIndex = edgeCharIndex;
+									continue;
+								}
+								
+							} else {
+								// Allow overflow and wrap at the next available whitespace
+								wrapIndex = edgeCharIndex;
+								while (wrapIndex < lineEndCharIndex && !isWrappableWhitespace(self->string[wrapIndex])) {
+									wrapIndex++;
+								}
+								while (wrapIndex < lineEndCharIndex && isWrappableWhitespace(self->string[wrapIndex])) {
+									wrapIndex++;
+								}
+								// If this line ends with a newline, just let that wrap by itself instead of inserting an extra break
+								if (self->string[wrapIndex] != '\n') {
+									addWrapPoint(self, wrapIndex);
+									lastWrapIndex = wrapIndex;
+									continue;
+								}
 							}
-							
-							// Allow overflow and wrap at the next available whitespace
-							wrapIndex = edgeCharIndex;
-							while (wrapIndex < lineEndCharIndex && !isWrappableWhitespace(self->string[wrapIndex])) {
-								wrapIndex++;
-							}
-							while (wrapIndex < lineEndCharIndex && isWrappableWhitespace(self->string[wrapIndex])) {
-								wrapIndex++;
-							}
-							addWrapPoint(self, wrapIndex);
-							lastWrapIndex = wrapIndex + 1;
-							continue;
 							
 						} else {
 							// Found wrappable whitespace prior to overflow
@@ -135,7 +151,7 @@ static void updateWrapInfo(TextFlow * self) {
 					}
 				}
 			}
-			if (lineEndCharIndex == length) {
+			if (lineEndCharIndex >= length) {
 				// Reached the natural end of the string with no unhandled newlines or overflows
 				break;
 			}

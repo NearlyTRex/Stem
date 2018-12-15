@@ -379,6 +379,13 @@ unsigned int GLBitmapFont_getStringIndexes(GLBitmapFont * self,
 	outIndexes[indexCount + 4] = vertexCount + 3; \
 	outIndexes[indexCount + 5] = vertexCount;
 
+// TODO: This is wrong; needs to work for relativeOrigin.x != 0.0f
+#define getVertices_clip() \
+	if (outVertices[vertexCount + 2].position[0] > offset.x + clipWidth) { \
+		outVertices[vertexCount + 2].texCoords[0] = outVertices[vertexCount + 3].texCoords[0] = atlasEntry.left + (atlasEntry.right - atlasEntry.left) * (offset.x + clipWidth - outVertices[vertexCount + 0].position[0]) / (outVertices[vertexCount + 2].position[0] - outVertices[vertexCount + 0].position[0]); \
+		outVertices[vertexCount + 2].position[0] = outVertices[vertexCount + 3].position[0] = offset.x + clipWidth; \
+	}
+
 void GLBitmapFont_getStringVertices(GLBitmapFont * self,
                                     const char * string,
                                     size_t length,
@@ -409,23 +416,29 @@ void GLBitmapFont_getStringVertices(GLBitmapFont * self,
 	offset.y -= emSize * relativeOrigin.y;
 	for (charIndex = 0; charIndex < length; charIndex++) {
 		if (string[charIndex] >= GLBITMAPFONT_PRINTABLE_MIN && string[charIndex] <= GLBITMAPFONT_PRINTABLE_MAX) {
+			charEntryIndex = string[charIndex] - GLBITMAPFONT_PRINTABLE_MIN;
+			getVertices_kern();
 			if (outVertices != NULL) {
-				charEntryIndex = string[charIndex] - GLBITMAPFONT_PRINTABLE_MIN;
 				atlasEntry = TextureAtlas_lookup(self->atlas, self->characters[charEntryIndex].atlasKey);
-				getVertices_kern();
 				getVertices_writePosition();
 				getVertices_writeTexCoords();
 				getVertices_writeColor();
-				positionX += self->characters[charEntryIndex].advance * emSize;
-				if (pixelSnapping) {
-					positionX = roundf(positionX);
-				}
+				getVertices_clip();
 			}
 			if (outIndexes != NULL) {
 				getVertices_writeIndexes();
 			}
 			vertexCount += 4;
 			indexCount += 6;
+			
+			positionX += self->characters[charEntryIndex].advance * emSize;
+			if (pixelSnapping) {
+				positionX = roundf(positionX);
+			}
+			// TODO: This is wrong; needs to work for relativeOrigin.x != 0.0f
+			if (positionX > clipWidth) {
+				break;
+			}
 		}
 	}
 	*ioVertexCount = vertexCount;

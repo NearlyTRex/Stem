@@ -3,6 +3,7 @@
 #include "shell/ShellKeyCodes.h"
 #include "3dmodelio/TextureAtlasData.h"
 #include "gamemath/Matrix4x4f.h"
+#include "gamemath/MouseCoordinateTransforms.h"
 #include "glbitmapfont/GLBitmapFont.h"
 #include "glbitmapfont/TextFlow.h"
 #include "glgraphics/GLIncludes.h"
@@ -36,8 +37,12 @@ static const char * jsonPath = NULL;
 static size_t lastIndexAtWidth = 0;
 static bool lastLeadingEdge = false;
 static float scale = 1.0f;
+static bool shiftKeyDown;
+static bool draggingTextFlow;
+static float lastDragX;
+static float textFlowWidth;
 
-static void drawString(GLBitmapFont * font, const char * string, size_t length, float emHeight, float offsetX, float offsetY) {
+static void drawString(GLBitmapFont * font, const char * string, size_t length, float emSize, float offsetX, float offsetY) {
 	static GLuint indexBufferID, vertexBufferID;
 	unsigned int indexCount, vertexCount;
 	struct vertex_p2f_t2f_c4f * vertices;
@@ -48,7 +53,7 @@ static void drawString(GLBitmapFont * font, const char * string, size_t length, 
 		glGenBuffersARB(1, &vertexBufferID);
 	}
 	vertexCount = indexCount = 0;
-	GLBitmapFont_getStringVertices(font, string, length, emHeight, VECTOR2f(offsetX, offsetY), VECTOR2f(0.0f, 0.0f), false, GLBITMAPFONT_NO_CLIP, GLBITMAPFONT_NO_CLIP, COLOR4f(1.0f, 1.0f, 1.0f, 1.0f), NULL, NULL, &vertexCount, &indexCount);
+	GLBitmapFont_getStringVertices(font, string, length, emSize, VECTOR2f(offsetX, offsetY), VECTOR2f(0.0f, 0.0f), false, GLBITMAPFONT_NO_CLIP, GLBITMAPFONT_NO_CLIP, COLOR4f(1.0f, 1.0f, 1.0f, 1.0f), NULL, NULL, &vertexCount, &indexCount);
 	glBindBufferARB(GL_ARRAY_BUFFER, vertexBufferID);
 	glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER, indexBufferID);
 	glBufferDataARB(GL_ARRAY_BUFFER, sizeof(struct vertex_p2f_t2f_c4f) * vertexCount, NULL, GL_STREAM_DRAW);
@@ -56,7 +61,7 @@ static void drawString(GLBitmapFont * font, const char * string, size_t length, 
 	vertices = glMapBufferARB(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
 	indexes = glMapBufferARB(GL_ELEMENT_ARRAY_BUFFER, GL_WRITE_ONLY);
 	vertexCount = indexCount = 0;
-	GLBitmapFont_getStringVertices(font, string, length, emHeight, VECTOR2f(offsetX, offsetY), VECTOR2f(0.0f, 0.0f), false, GLBITMAPFONT_NO_CLIP, GLBITMAPFONT_NO_CLIP, COLOR4f(1.0f, 1.0f, 1.0f, 1.0f), vertices, indexes, &vertexCount, &indexCount);
+	GLBitmapFont_getStringVertices(font, string, length, emSize, VECTOR2f(offsetX, offsetY), VECTOR2f(0.0f, 0.0f), false, GLBITMAPFONT_NO_CLIP, GLBITMAPFONT_NO_CLIP, COLOR4f(1.0f, 1.0f, 1.0f, 1.0f), vertices, indexes, &vertexCount, &indexCount);
 	glUnmapBufferARB(GL_ARRAY_BUFFER);
 	glUnmapBufferARB(GL_ELEMENT_ARRAY_BUFFER);
 	
@@ -77,7 +82,7 @@ static void drawString(GLBitmapFont * font, const char * string, size_t length, 
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 }
 
-static void drawTextFlow(TextFlow * textFlow, float emHeight, float offsetX, float offsetY) {
+static void drawTextFlow(TextFlow * textFlow, float emSize, float offsetX, float offsetY) {
 	static GLuint indexBufferID, vertexBufferID;
 	unsigned int indexCount, vertexCount;
 	struct vertex_p2f_t2f_c4f * vertices;
@@ -88,7 +93,7 @@ static void drawTextFlow(TextFlow * textFlow, float emHeight, float offsetX, flo
 		glGenBuffersARB(1, &vertexBufferID);
 	}
 	vertexCount = indexCount = 0;
-	TextFlow_getVertices(textFlow, emHeight, VECTOR2f(offsetX, offsetY), VECTOR2f(0.0f, 0.0f), false, GLBITMAPFONT_NO_CLIP, GLBITMAPFONT_NO_CLIP, COLOR4f(1.0f, 1.0f, 1.0f, 1.0f), NULL, NULL, &vertexCount, &indexCount);
+	TextFlow_getVertices(textFlow, emSize, VECTOR2f(offsetX, offsetY), VECTOR2f(0.0f, 0.0f), false, textFlowWidth * 0.0625f * scale, GLBITMAPFONT_NO_CLIP, COLOR4f(1.0f, 1.0f, 1.0f, 1.0f), NULL, NULL, &vertexCount, &indexCount);
 	glBindBufferARB(GL_ARRAY_BUFFER, vertexBufferID);
 	glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER, indexBufferID);
 	glBufferDataARB(GL_ARRAY_BUFFER, sizeof(struct vertex_p2f_t2f_c4f) * vertexCount, NULL, GL_STREAM_DRAW);
@@ -96,7 +101,7 @@ static void drawTextFlow(TextFlow * textFlow, float emHeight, float offsetX, flo
 	vertices = glMapBufferARB(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
 	indexes = glMapBufferARB(GL_ELEMENT_ARRAY_BUFFER, GL_WRITE_ONLY);
 	vertexCount = indexCount = 0;
-	TextFlow_getVertices(textFlow, emHeight, VECTOR2f(offsetX, offsetY), VECTOR2f(0.0f, 0.0f), false, GLBITMAPFONT_NO_CLIP, GLBITMAPFONT_NO_CLIP, COLOR4f(1.0f, 1.0f, 1.0f, 1.0f), vertices, indexes, &vertexCount, &indexCount);
+	TextFlow_getVertices(textFlow, emSize, VECTOR2f(offsetX, offsetY), VECTOR2f(0.0f, 0.0f), false, textFlowWidth * 0.0625f * scale, GLBITMAPFONT_NO_CLIP, COLOR4f(1.0f, 1.0f, 1.0f, 1.0f), vertices, indexes, &vertexCount, &indexCount);
 	glUnmapBufferARB(GL_ARRAY_BUFFER);
 	glUnmapBufferARB(GL_ELEMENT_ARRAY_BUFFER);
 	
@@ -159,9 +164,15 @@ static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned
 	if (keyCode == KEYBOARD_DELETE_OR_BACKSPACE && strlen(freeformText) > 0) {
 		freeformText[strlen(freeformText) - 1] = '\x00';
 		Shell_redisplay();
+		
+	} else if (keyCode == KEYBOARD_TAB) {
+		textFlow->wrapMode = (textFlow->wrapMode == WORD_WRAP_NORMAL ? WORD_WRAP_AGGRESSIVE : WORD_WRAP_NORMAL);
+		Shell_redisplay();
+		
 	} else if (charCode >= GLBITMAPFONT_PRINTABLE_MIN && charCode <= GLBITMAPFONT_PRINTABLE_MAX && strlen(freeformText) < FREEFORM_LENGTH_MAX) {
 		freeformText[strlen(freeformText)] = charCode;
 		Shell_redisplay();
+		
 #if defined(STEM_PLATFORM_iphonesimulator) || defined(STEM_PLATFORM_iphoneos)
 	} else if (keyCode == KEYBOARD_RETURN_OR_ENTER) {
 		EAGLShell_hideKeyboard();
@@ -169,30 +180,42 @@ static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned
 	}
 }
 
+static void Target_keyModifiersChanged(unsigned int modifiers) {
+	shiftKeyDown = !!(modifiers & MODIFIER_SHIFT_BIT);
+}
+
 static void queryIndexAtPosition(float x, float y) {
 	float stringWidth;
 	const char * string;
 	size_t stringLength;
-	float emHeight;
+	float emSize;
 	
 	if (y > viewportHeight / 2) {
 		string = freeformText;
 		stringLength = strlen(freeformText);
-		emHeight = 0.0625f;
+		emSize = 0.0625f;
 		
 	} else {
 		string = "Hello, world!";
 		stringLength = 13;
-		emHeight = 0.1f;
+		emSize = 0.1f;
 	}
 	
 	stringWidth = GLBitmapFont_measureString(font, string, stringLength);
-	lastIndexAtWidth = GLBitmapFont_indexAtWidth(font, string, stringLength, (x / (float) viewportHeight * 2.0f - (float) viewportWidth / viewportHeight + stringWidth * emHeight * 0.5f) / emHeight, &lastLeadingEdge);
+	lastIndexAtWidth = GLBitmapFont_indexAtWidth(font, string, stringLength, (x / (float) viewportHeight * 2.0f - (float) viewportWidth / viewportHeight + stringWidth * emSize * 0.5f) / emSize, &lastLeadingEdge);
 	Shell_redisplay();
 }
 
 static void Target_mouseDown(unsigned int buttonNumber, float x, float y) {
-	queryIndexAtPosition(x, y);
+	if (shiftKeyDown) {
+		Vector2f transformedPosition;
+		
+		transformedPosition = transformMousePosition_signedCenter(VECTOR2f(x, y), viewportWidth, viewportHeight, 1.0f / (0.0625f * scale));
+		lastDragX = transformedPosition.x;
+		draggingTextFlow = true;
+	} else {
+		queryIndexAtPosition(x, y);
+	}
 #if defined(STEM_PLATFORM_iphonesimulator) || defined(STEM_PLATFORM_iphoneos)
 	if (buttonNumber > 0) {
 		EAGLShell_showKeyboard();
@@ -201,15 +224,32 @@ static void Target_mouseDown(unsigned int buttonNumber, float x, float y) {
 }
 
 static void Target_mouseDragged(unsigned int buttonMask, float x, float y) {
-	queryIndexAtPosition(x, y);
+	if (draggingTextFlow) {
+		Vector2f transformedPosition;
+		
+		transformedPosition = transformMousePosition_signedCenter(VECTOR2f(x, y), viewportWidth, viewportHeight, 1.0f / (0.0625f * scale));
+		textFlowWidth += transformedPosition.x - lastDragX;
+		textFlow->wrapWidth = textFlowWidth;
+		Shell_redisplay();
+		lastDragX = transformedPosition.x;
+		
+	} else {
+		queryIndexAtPosition(x, y);
+	}
+}
+
+static void Target_mouseUp(unsigned int buttonNumber, float x, float y) {
+	draggingTextFlow = false;
 }
 
 static void registerShellCallbacks() {
 	Shell_drawFunc(Target_draw);
 	Shell_resizeFunc(Target_resized);
 	Shell_keyDownFunc(Target_keyDown);
+	Shell_keyModifiersChangedFunc(Target_keyModifiersChanged);
 	Shell_mouseDownFunc(Target_mouseDown);
 	Shell_mouseDraggedFunc(Target_mouseDragged);
+	Shell_mouseUpFunc(Target_mouseUp);
 }
 
 static void printUsage() {
@@ -358,7 +398,8 @@ void Target_init() {
 	GLBitmapFont_setTextureAtlas(font, atlas, true);
 	TextureAtlasData_dispose(atlasData);
 	
-	textFlow = TextFlow_create(font, "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut eleifend\nn\n n wwwwwwwwwwwwwwwwwwwwwwwwww commodo placerat. Aenean a viverra leo.", WORD_WRAP_NORMAL, 12.0f);
+	textFlowWidth = 12.0f;
+	textFlow = TextFlow_create(font, "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut eleifend commodo placerat. Aenean a viverra leo.", WORD_WRAP_NORMAL, textFlowWidth);
 	
 	memset(freeformText, 0, FREEFORM_LENGTH_MAX + 1);
 	Shell_mainLoop();
