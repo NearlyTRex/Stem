@@ -79,7 +79,7 @@ static void updateWrapInfo(TextFlow * self) {
 		
 		for (; lastWrapIndex < length;) {
 			if (lastLastWrapIndex == lastWrapIndex) {
-				printf("Infinite loop detected!\n");
+				fprintf(stderr, "Infinite loop detected in TextFlow word wrapping!\n");
 				break;
 			}
 			lastLastWrapIndex = lastWrapIndex;
@@ -119,7 +119,7 @@ static void updateWrapInfo(TextFlow * self) {
 									// This single character doesn't fit; let it overflow and move forward
 									edgeCharIndex++;
 								}
-								if (self->string[edgeCharIndex] != '\n') {
+								if (self->string[edgeCharIndex] != '\n' && edgeCharIndex < length) {
 									addWrapPoint(self, edgeCharIndex);
 									lastWrapIndex = edgeCharIndex;
 									continue;
@@ -134,8 +134,8 @@ static void updateWrapInfo(TextFlow * self) {
 								while (wrapIndex < lineEndCharIndex && isWrappableWhitespace(self->string[wrapIndex])) {
 									wrapIndex++;
 								}
-								// If this line ends with a newline, just let that wrap by itself instead of inserting an extra break
-								if (self->string[wrapIndex] != '\n') {
+								// If this line ends with a newline, allow that to be the cause of wrapping instead of inserting an extra break
+								if (self->string[wrapIndex] != '\n' && wrapIndex < length) {
 									addWrapPoint(self, wrapIndex);
 									lastWrapIndex = wrapIndex;
 									continue;
@@ -178,8 +178,34 @@ void TextFlow_getVertices(TextFlow * self,
 	
 	updateWrapInfo(self);
 	for (wrapPointIndex = 0; wrapPointIndex < self->private_ivar(wrapInfo).wrapPointCount; wrapPointIndex++) {
-		GLBitmapFont_getStringVertices(self->font, self->string + charIndex, self->private_ivar(wrapInfo).wrapPoints[wrapPointIndex] - charIndex, emSize, VECTOR2f(offset.x, offset.y - wrapPointIndex * emSize + self->private_ivar(wrapInfo).wrapPointCount * emSize * relativeOrigin.y), relativeOrigin, pixelSnapping, clipWidth, clipHeight, color, outVertices, outIndexes, ioVertexCount, ioIndexCount);
+		GLBitmapFont_getStringVertices(self->font,
+		                               self->string + charIndex,
+		                               self->private_ivar(wrapInfo).wrapPoints[wrapPointIndex] - charIndex,
+		                               emSize,
+		                               VECTOR2f(offset.x, offset.y - wrapPointIndex * emSize + self->private_ivar(wrapInfo).wrapPointCount * emSize * (1.0f - relativeOrigin.y)),
+		                               relativeOrigin,
+		                               pixelSnapping,
+		                               clipWidth,
+		                               clipHeight - wrapPointIndex * emSize + self->private_ivar(wrapInfo).wrapPointCount * emSize * relativeOrigin.y,
+		                               color,
+		                               outVertices,
+		                               outIndexes,
+		                               ioVertexCount,
+		                               ioIndexCount);
 		charIndex = self->private_ivar(wrapInfo).wrapPoints[wrapPointIndex];
 	}
-	GLBitmapFont_getStringVertices(self->font, self->string + charIndex, length - charIndex, emSize, VECTOR2f(offset.x, offset.y - self->private_ivar(wrapInfo).wrapPointCount * emSize + self->private_ivar(wrapInfo).wrapPointCount * emSize * relativeOrigin.y), relativeOrigin, pixelSnapping, clipWidth, clipHeight, color, outVertices, outIndexes, ioVertexCount, ioIndexCount);
+	GLBitmapFont_getStringVertices(self->font,
+	                               self->string + charIndex,
+	                               length - charIndex,
+	                               emSize,
+	                               VECTOR2f(offset.x, offset.y - self->private_ivar(wrapInfo).wrapPointCount * emSize + self->private_ivar(wrapInfo).wrapPointCount * emSize * (1.0f - relativeOrigin.y)),
+	                               relativeOrigin,
+	                               pixelSnapping,
+	                               clipWidth,
+	                               clipHeight - wrapPointIndex * emSize + self->private_ivar(wrapInfo).wrapPointCount * emSize * relativeOrigin.y,
+	                               color,
+	                               outVertices,
+	                               outIndexes,
+	                               ioVertexCount,
+	                               ioIndexCount);
 }

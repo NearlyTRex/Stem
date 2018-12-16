@@ -39,8 +39,8 @@ static bool lastLeadingEdge = false;
 static float scale = 1.0f;
 static bool shiftKeyDown;
 static bool draggingTextFlow;
-static float lastDragX;
-static float textFlowWidth;
+static float lastDragX, lastDragY;
+static float textFlowWidth, textFlowHeight;
 
 static void drawString(GLBitmapFont * font, const char * string, size_t length, float emSize, float offsetX, float offsetY) {
 	static GLuint indexBufferID, vertexBufferID;
@@ -93,7 +93,7 @@ static void drawTextFlow(TextFlow * textFlow, float emSize, float offsetX, float
 		glGenBuffersARB(1, &vertexBufferID);
 	}
 	vertexCount = indexCount = 0;
-	TextFlow_getVertices(textFlow, emSize, VECTOR2f(offsetX, offsetY), VECTOR2f(0.0f, 0.0f), false, textFlowWidth * 0.0625f * scale, GLBITMAPFONT_NO_CLIP, COLOR4f(1.0f, 1.0f, 1.0f, 1.0f), NULL, NULL, &vertexCount, &indexCount);
+	TextFlow_getVertices(textFlow, emSize, VECTOR2f(offsetX, offsetY), VECTOR2f(0.0f, 1.0f), false, textFlowWidth * 0.0625f * scale, GLBITMAPFONT_NO_CLIP/*textFlowHeight * 0.0625f * scale*/, COLOR4f(1.0f, 1.0f, 1.0f, 1.0f), NULL, NULL, &vertexCount, &indexCount);
 	glBindBufferARB(GL_ARRAY_BUFFER, vertexBufferID);
 	glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER, indexBufferID);
 	glBufferDataARB(GL_ARRAY_BUFFER, sizeof(struct vertex_p2f_t2f_c4f) * vertexCount, NULL, GL_STREAM_DRAW);
@@ -101,7 +101,7 @@ static void drawTextFlow(TextFlow * textFlow, float emSize, float offsetX, float
 	vertices = glMapBufferARB(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
 	indexes = glMapBufferARB(GL_ELEMENT_ARRAY_BUFFER, GL_WRITE_ONLY);
 	vertexCount = indexCount = 0;
-	TextFlow_getVertices(textFlow, emSize, VECTOR2f(offsetX, offsetY), VECTOR2f(0.0f, 0.0f), false, textFlowWidth * 0.0625f * scale, GLBITMAPFONT_NO_CLIP, COLOR4f(1.0f, 1.0f, 1.0f, 1.0f), vertices, indexes, &vertexCount, &indexCount);
+	TextFlow_getVertices(textFlow, emSize, VECTOR2f(offsetX, offsetY), VECTOR2f(0.0f, 1.0f), false, textFlowWidth * 0.0625f * scale, GLBITMAPFONT_NO_CLIP/*textFlowHeight * 0.0625f * scale*/, COLOR4f(1.0f, 1.0f, 1.0f, 1.0f), vertices, indexes, &vertexCount, &indexCount);
 	glUnmapBufferARB(GL_ARRAY_BUFFER);
 	glUnmapBufferARB(GL_ELEMENT_ARRAY_BUFFER);
 	
@@ -229,9 +229,11 @@ static void Target_mouseDragged(unsigned int buttonMask, float x, float y) {
 		
 		transformedPosition = transformMousePosition_signedCenter(VECTOR2f(x, y), viewportWidth, viewportHeight, 1.0f / (0.0625f * scale));
 		textFlowWidth += transformedPosition.x - lastDragX;
+		textFlowHeight += transformedPosition.y - lastDragY;
 		textFlow->wrapWidth = textFlowWidth;
 		Shell_redisplay();
 		lastDragX = transformedPosition.x;
+		lastDragY = transformedPosition.y;
 		
 	} else {
 		queryIndexAtPosition(x, y);
@@ -399,6 +401,7 @@ void Target_init() {
 	TextureAtlasData_dispose(atlasData);
 	
 	textFlowWidth = 12.0f;
+	textFlowHeight = 8.0f;
 	textFlow = TextFlow_create(font, "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut eleifend commodo placerat. Aenean a viverra leo.", WORD_WRAP_NORMAL, textFlowWidth);
 	
 	memset(freeformText, 0, FREEFORM_LENGTH_MAX + 1);

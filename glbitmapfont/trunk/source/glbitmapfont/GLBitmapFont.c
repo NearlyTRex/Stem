@@ -379,11 +379,15 @@ unsigned int GLBitmapFont_getStringIndexes(GLBitmapFont * self,
 	outIndexes[indexCount + 4] = vertexCount + 3; \
 	outIndexes[indexCount + 5] = vertexCount;
 
-// TODO: This is wrong; needs to work for relativeOrigin.x != 0.0f
+// TODO: This is wrong; needs to work for relativeOrigin != {0.0f, 0.0f}
 #define getVertices_clip() \
 	if (outVertices[vertexCount + 2].position[0] > offset.x + clipWidth) { \
 		outVertices[vertexCount + 2].texCoords[0] = outVertices[vertexCount + 3].texCoords[0] = atlasEntry.left + (atlasEntry.right - atlasEntry.left) * (offset.x + clipWidth - outVertices[vertexCount + 0].position[0]) / (outVertices[vertexCount + 2].position[0] - outVertices[vertexCount + 0].position[0]); \
 		outVertices[vertexCount + 2].position[0] = outVertices[vertexCount + 3].position[0] = offset.x + clipWidth; \
+	} \
+	if (outVertices[vertexCount + 0].position[1] > offset.y + clipHeight) { \
+		outVertices[vertexCount + 0].texCoords[1] = outVertices[vertexCount + 3].texCoords[1] = atlasEntry.bottom + (atlasEntry.top - atlasEntry.bottom) * (offset.y + clipHeight - outVertices[vertexCount + 1].position[1]) / (outVertices[vertexCount + 0].position[1] - outVertices[vertexCount + 1].position[1]); \
+		outVertices[vertexCount + 0].position[1] = outVertices[vertexCount + 3].position[1] = offset.y + clipHeight; \
 	}
 
 void GLBitmapFont_getStringVertices(GLBitmapFont * self,
@@ -406,7 +410,9 @@ void GLBitmapFont_getStringVertices(GLBitmapFont * self,
 	unsigned int vertexCount = *ioVertexCount, indexCount = *ioIndexCount;
 	struct TextureAtlas_entry atlasEntry;
 	
-	// TODO: clipWidth and clipHeight
+	if (clipWidth <= 0.0f || clipHeight <= 0.0f) {
+		return;
+	}
 	if (length == GLBITMAPFONT_USE_STRLEN) {
 		length = strlen(string);
 	}
