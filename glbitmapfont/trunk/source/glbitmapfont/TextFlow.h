@@ -66,9 +66,9 @@ void TextFlow_dispose(TextFlow * self);
 // Returns number of lines used by the wrapped string, including both word wrapping and hard line breaks.
 unsigned int TextFlow_getLineCount(TextFlow * self);
 
-// Returns the actual width and height occupied by the wrapped string. The width may be greater than wrapWidth, even
-// with WORD_WRAP_AGGRESSIVE, if wrapWidth is small enough that a single wide charater doesn't fit. If only height is
-// needed, it can be calculated more simply by multiplying the return value of TextFlow_getLineCount() by the em size.
+// Returns the width and height occupied by the wrapped string, measured in ems. The width may be greater than wrapWidth,
+// even with WORD_WRAP_AGGRESSIVE, if wrapWidth is small enough that a single wide charater doesn't fit. If only height
+// is needed, it can be retrieved more quickly by calling TextFlow_getLineCount().
 Vector2f TextFlow_measureString(TextFlow * self);
 
 // Returns the closest character index to position, as measured from the beginning of string (of length UTF-8 bytes).

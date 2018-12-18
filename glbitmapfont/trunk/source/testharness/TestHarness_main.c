@@ -209,32 +209,23 @@ static void Target_keyModifiersChanged(unsigned int modifiers) {
 }
 
 static void queryIndexAtPosition(float x, float y) {
-	const char * string;
-	size_t stringLength;
-	float emSize;
-	Vector2f transformedPosition;
-	
-	transformedPosition = transformMousePosition_signedCenter(VECTOR2f(x, y), viewportWidth, viewportHeight, 1.0f / (0.0625f * scale));
-	
-	if (transformedPosition.y > 0.0f) {
-		string = freeformText;
-		stringLength = strlen(freeformText);
-		emSize = 0.0625f;
+	if (y < 0.0f) {
+		lastIndexAtPositionX = GLBitmapFont_indexAtPositionX(font, freeformText, GLBITMAPFONT_USE_STRLEN, 0.0625f, x, 0.5f, &lastLeadingEdge);
+		
+	} else if (y < 0.1f) {
+		lastIndexAtPositionX = GLBitmapFont_indexAtPositionX(font, "Hello, world!", 13, 0.1f, x, 0.5f, &lastLeadingEdge);
 		
 	} else {
-		string = "Hello, world!";
-		stringLength = 13;
-		emSize = 0.1f;
+		lastIndexAtPositionX = TextFlow_indexAtPosition(textFlow, 0.0625f, VECTOR2f(x + 6.0f * 0.0625f, y - 0.75f), VECTOR2f(0.0f, 1.0f), &lastLeadingEdge);
 	}
 	
-	lastIndexAtPositionX = GLBitmapFont_indexAtPositionX(font, string, stringLength, emSize, transformedPosition.x, 0.5f, &lastLeadingEdge);
 	Shell_redisplay();
 }
 
 static void Target_mouseDown(unsigned int buttonNumber, float x, float y) {
 	Vector2f transformedPosition;
 	
-	transformedPosition = transformMousePosition_signedCenter(VECTOR2f(x, y), viewportWidth, viewportHeight, 1.0f / (0.0625f * scale));
+	transformedPosition = transformMousePosition_signedCenter(VECTOR2f(x, y), viewportWidth, viewportHeight, 1.0f);
 	lastDragX = transformedPosition.x;
 	lastDragY = transformedPosition.y;
 	
@@ -247,7 +238,7 @@ static void Target_mouseDown(unsigned int buttonNumber, float x, float y) {
 	} else if (shiftKeyDown) {
 		draggingTextFlow = true;
 	} else {
-		queryIndexAtPosition(x, y);
+		queryIndexAtPosition(transformedPosition.x, transformedPosition.y);
 	}
 #if defined(STEM_PLATFORM_iphonesimulator) || defined(STEM_PLATFORM_iphoneos)
 	if (buttonNumber > 0) {
@@ -259,10 +250,10 @@ static void Target_mouseDown(unsigned int buttonNumber, float x, float y) {
 static void Target_mouseDragged(unsigned int buttonMask, float x, float y) {
 	Vector2f transformedPosition;
 	
-	transformedPosition = transformMousePosition_signedCenter(VECTOR2f(x, y), viewportWidth, viewportHeight, 1.0f / (0.0625f * scale));
+	transformedPosition = transformMousePosition_signedCenter(VECTOR2f(x, y), viewportWidth, viewportHeight, 1.0f);
 	
 	if (draggingTextFlow) {
-		textFlowWidth += transformedPosition.x - lastDragX;
+		textFlowWidth += transformedPosition.x / (0.0625f * scale) - lastDragX;
 		textFlow->wrapWidth = textFlowWidth;
 		Shell_redisplay();
 		
@@ -277,7 +268,7 @@ static void Target_mouseDragged(unsigned int buttonMask, float x, float y) {
 		Shell_redisplay();
 		
 	} else {
-		queryIndexAtPosition(x, y);
+		queryIndexAtPosition(transformedPosition.x, transformedPosition.y);
 	}
 	
 	lastDragX = transformedPosition.x;

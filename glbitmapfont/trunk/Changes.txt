@@ -1,4 +1,4 @@
-2.1.0 (2018-09-01)
+2.1.0 (2018-12-17)
  * Removed GLBitmapFont_getStringVerticesWithColor(). GLBitmapFont_getStringVertices() now takes struct vertex_p2f_t2f_c4f. struct vertex_p2f_t2f is no longer supported.
  * Removed baseIndex parameter from GLBitmapFont_getStringVertices(). It's now inferred from ioVertexCount.
  * Removed indexType parameter from GLBitmapFont_getStringVertices(). GL_UNSIGNED_INT is now the only valid index type.

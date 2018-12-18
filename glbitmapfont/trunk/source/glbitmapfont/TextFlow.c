@@ -168,11 +168,50 @@ unsigned int TextFlow_getLineCount(TextFlow * self) {
 }
 
 Vector2f TextFlow_measureString(TextFlow * self) {
-	return VECTOR2f_ZERO; // TODO
+	float width, maxWidth = 0.0f;
+	size_t wrapPointIndex, charIndex = 0;
+	
+	updateWrapInfo(self);
+	for (wrapPointIndex = 0; wrapPointIndex < self->private_ivar(wrapInfo).wrapPointCount; wrapPointIndex++) {
+		width = GLBitmapFont_measureString(self->font, self->string + charIndex, self->private_ivar(wrapInfo).wrapPoints[wrapPointIndex] - charIndex);
+		if (width > maxWidth) {
+			maxWidth = width;
+		}
+		charIndex = self->private_ivar(wrapInfo).wrapPoints[wrapPointIndex];
+	}
+	width = GLBitmapFont_measureString(self->font, self->string + charIndex, strlen(self->string) - charIndex);
+	if (width > maxWidth) {
+		maxWidth = width;
+	}
+	return VECTOR2f(maxWidth, self->private_ivar(wrapInfo).wrapPointCount + 1);
 }
 
 size_t TextFlow_indexAtPosition(TextFlow * self, float emSize, Vector2f position, Vector2f relativeOrigin, bool * outLeadingEdge) {
-	return 0; // TODO
+	int lineIndex;
+	
+	updateWrapInfo(self);
+	
+	position.x /= emSize;
+	position.y /= emSize;
+	position.y += (self->private_ivar(wrapInfo).wrapPointCount + 1) * relativeOrigin.y;
+	
+	lineIndex = floorf((self->private_ivar(wrapInfo).wrapPointCount + 1) - position.y);
+	if (lineIndex < 0) {
+		if (outLeadingEdge != NULL) {
+			*outLeadingEdge = true;
+		}
+		return 0;
+	}
+	if (lineIndex > (int) self->private_ivar(wrapInfo).wrapPointCount) {
+		if (outLeadingEdge != NULL) {
+			*outLeadingEdge = false;
+		}
+		return strlen(self->string) - 1;
+	}
+	if (lineIndex == 0) {
+		return GLBitmapFont_indexAtPositionX(self->font, self->string, self->private_ivar(wrapInfo).wrapPointCount > 0 ? self->private_ivar(wrapInfo).wrapPoints[0] : strlen(self->string), 1.0f, position.x, relativeOrigin.x, outLeadingEdge);
+	}
+	return GLBitmapFont_indexAtPositionX(self->font, self->string + self->private_ivar(wrapInfo).wrapPoints[lineIndex - 1], lineIndex == (int) self->private_ivar(wrapInfo).wrapPointCount ? strlen(self->string) - self->private_ivar(wrapInfo).wrapPoints[lineIndex - 1] : self->private_ivar(wrapInfo).wrapPoints[lineIndex] - self->private_ivar(wrapInfo).wrapPoints[lineIndex - 1], 1.0f, position.x, relativeOrigin.x, outLeadingEdge) + self->private_ivar(wrapInfo).wrapPoints[lineIndex - 1];
 }
 
 void TextFlow_getVertices(TextFlow * self,

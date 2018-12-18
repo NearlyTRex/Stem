@@ -224,7 +224,7 @@ size_t GLBitmapFont_indexAtPositionX(GLBitmapFont * self, const char * string, s
 		length = strlen(string);
 	}
 	if (relativeOriginX != 0.0f) {
-		positionX -= GLBitmapFont_measureString(self, string, length) * fabs(emSize) * relativeOriginX;
+		positionX += GLBitmapFont_measureString(self, string, length) * fabs(emSize) * relativeOriginX;
 	}
 	positionX /= emSize;
 	for (charIndex = 0; charIndex < length; charIndex++) {
@@ -254,6 +254,9 @@ size_t GLBitmapFont_indexAtPositionX(GLBitmapFont * self, const char * string, s
 	}
 	if (outLeadingEdge != NULL) {
 		*outLeadingEdge = false;
+	}
+	if (length == 0) {
+		return 0;
 	}
 	return length - 1;
 }
