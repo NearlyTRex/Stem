@@ -45,7 +45,7 @@ bool UIButton_init(UIButton * self, UIAppearance * appearance, Vector2f position
 	self->actionCallback = actionCallback;
 	self->actionCallbackContext = actionCallbackContext;
 	if (width == UIBUTTON_SIZE_TO_FIT_LABEL) {
-		self->width = ceilf(GLBitmapFont_measureString(self->appearance->font, label, GLBITMAPFONT_USE_STRLEN) * self->appearance->metrics.buttonLabelHeight + self->appearance->metrics.buttonLabelPadding * 2);
+		self->width = ceilf(GLBitmapFont_measureString(self->appearance->font, label, GLBITMAPFONT_USE_STRLEN) * self->appearance->metrics.fontHeight + self->appearance->metrics.buttonLabelPadding * 2);
 	} else {
 		self->width = width;
 	}
@@ -117,7 +117,7 @@ bool UIButton_acceptsFocus(UIButton * self) {
 
 Rect4f UIButton_getBounds(UIButton * self) {
 	Rect4f result;
-	float height = self->appearance->metrics.buttonLabelHeight + self->appearance->metrics.buttonLabelPadding * 2;
+	float height = self->appearance->metrics.fontHeight + self->appearance->metrics.buttonLabelPadding * 2;
 	
 	result.left = self->position.x - self->width * self->relativeOrigin.x;
 	result.bottom = self->position.y - height * self->relativeOrigin.y;
@@ -195,14 +195,15 @@ void UIButton_getVertices(UIButton * self, struct vertex_p2f_t2f_c4f * outVertic
 		*ioIndexCount += 6 * 3 * 3;
 	}
 	
-	stringWidth = GLBitmapFont_measureString(self->appearance->font, self->label, GLBITMAPFONT_USE_STRLEN) * self->appearance->metrics.buttonLabelHeight;
+	stringWidth = GLBitmapFont_measureString(self->appearance->font, self->label, GLBITMAPFONT_USE_STRLEN) * self->appearance->metrics.fontHeight;
 	GLBitmapFont_getStringVertices(self->appearance->font,
 	                               self->label,
 	                               GLBITMAPFONT_USE_STRLEN,
-	                               self->appearance->metrics.buttonLabelHeight,
-	                               VECTOR2f(roundf(bounds.left + (bounds.right - bounds.left - stringWidth) * 0.5f), roundf(bounds.bottom + (bounds.top - bounds.bottom - self->appearance->metrics.buttonLabelHeight) * 0.5f)),
+	                               self->appearance->metrics.fontHeight,
+	                               VECTOR2f(roundf(bounds.left + (bounds.right - bounds.left - stringWidth) * 0.5f), roundf(bounds.bottom + (bounds.top - bounds.bottom - self->appearance->metrics.fontHeight) * 0.5f)),
 	                               VECTOR2f(0.0f, 0.0f),
 	                               true,
+	                               GLBITMAPFONT_NO_CLIP,
 	                               self->appearance->metrics.buttonLabelColor,
 	                               outVertices,
 	                               outIndexes,

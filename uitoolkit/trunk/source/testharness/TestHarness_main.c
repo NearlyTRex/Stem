@@ -13,6 +13,7 @@
 #include "uitoolkit/UIAppearance.h"
 #include "uitoolkit/UIButton.h"
 #include "uitoolkit/UIContainer.h"
+#include "uitoolkit/UILabel.h"
 
 #if defined(STEM_PLATFORM_macosx)
 #include "nsopenglshell/NSOpenGLShell.h"
@@ -176,7 +177,7 @@ static void button2ActionCallback(UIButton * sender, void * context) {
 
 static void initTestUI() {
 	struct UIAppearance_metrics metrics = {
-		.buttonLabelHeight = 30.0f,
+		.fontHeight = 30.0f,
 		.buttonLabelPadding = 4.0f,
 		.buttonLabelColor = COLOR4f(0.0f, 0.0f, 0.0f, 1.0f),
 		.buttonSlices = {2, 1, 2, 2, 1, 2}
@@ -185,8 +186,9 @@ static void initTestUI() {
 	TextureAtlasData * atlasData;
 	BitmapImage * image;
 	UIButton * button1, * button2;
-	UIElement * containerElements[2];
+	UIElement * containerElements[3];
 	UIContainer * container;
+	UILabel * label;
 	
 	context = JSONDeserializationContext_createWithFile("testappearance.atlas");
 	if (context->status != SERIALIZATION_ERROR_OK) {
@@ -226,8 +228,10 @@ static void initTestUI() {
 	appearance = UIAppearance_create(atlas, font, metrics);
 	button1 = UIButton_create(appearance, VECTOR2f(20.0f, 20.0f), VECTOR2f(0.0f, 0.0f), "I'm a button", UIBUTTON_SIZE_TO_FIT_LABEL, button1ActionCallback, NULL);
 	button2 = UIButton_create(appearance, VECTOR2f(20.0f, 60.0f), VECTOR2f(0.0f, 0.0f), "Hello", UIBUTTON_SIZE_TO_FIT_LABEL, button2ActionCallback, NULL);
+	label = UILabel_create(appearance, VECTOR2f(30.0f, 120.0f), VECTOR2f_ZERO, VECTOR2f(0.0f, 0.0f), "I'm a label", COLOR4f(0.0f, 0.5f, 0.5f, 1.0f), WORD_WRAP_NONE, UILABEL_OVERFLOW_RESIZE, UILABEL_OVERFLOW_RESIZE);
 	containerElements[0] = (UIElement *) button1;
 	containerElements[1] = (UIElement *) button2;
+	containerElements[2] = (UIElement *) label;
 	container = UIContainer_create(appearance, containerElements, sizeof(containerElements) / sizeof(containerElements[0]));
 	rootElement = (UIElement *) container;
 	

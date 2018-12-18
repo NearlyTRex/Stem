@@ -53,6 +53,9 @@ Concepts:
 TODO:
 - Create UILabel, UICheckBox, UIRadioGroup, UIEditText
 - Figure out menuLeft/Right/Up/Down
+ - Remove from uitoolkit. These will be handled externally. Keep menuAction and add whatever is necessary to facilitate, but this isn't the right place for this responsibility.
 - Figure out UIContainer subclasses
 - Figure out how hierarchical position offsets will propagate
-- Maybe don't bother with any of that yet, try to use this API, and see where it's deficient?
+ - Offset parameters to getVertices should be sufficient
+- Come up with a way to make text rendering work in both pixel-exact and non-pixel-exact modes (appearance parameter?)
+* Maybe don't bother with any of that yet, try to use this API, and see where it's deficient?

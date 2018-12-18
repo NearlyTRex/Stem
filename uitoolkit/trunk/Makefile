@@ -69,7 +69,8 @@ SOURCES_library = \
 	source/${PROJECT_NAME}/UIAppearanceData.c \
 	source/${PROJECT_NAME}/UIButton.c \
 	source/${PROJECT_NAME}/UIContainer.c \
-	source/${PROJECT_NAME}/UIElement.c
+	source/${PROJECT_NAME}/UIElement.c \
+	source/${PROJECT_NAME}/UILabel.c
 
 # Executable targets named "unittest" should usually specify only SOURCES_unittest_suites, which must contain only test suite files.
 # If files other than test suites are required, specify SOURCES_unittest.
@@ -84,7 +85,8 @@ INCLUDES = \
 	source/${PROJECT_NAME}/UIAppearanceData.h \
 	source/${PROJECT_NAME}/UIButton.h \
 	source/${PROJECT_NAME}/UIContainer.h \
-	source/${PROJECT_NAME}/UIElement.h
+	source/${PROJECT_NAME}/UIElement.h \
+	source/${PROJECT_NAME}/UILabel.h
 
 # Patterns: RESOURCES, RESOURCES_${target}, RESOURCES_${platform}, RESOURCES_${target}_${platform}
 RESOURCES_testharness = \

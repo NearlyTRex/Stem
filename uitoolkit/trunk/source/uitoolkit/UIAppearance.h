@@ -48,7 +48,7 @@ struct UIAppearance_sliceGrid {
 };
 
 struct UIAppearance_metrics {
-	float buttonLabelHeight;
+	float fontHeight;
 	float buttonLabelPadding;
 	Color4f buttonLabelColor;
 	struct UIAppearance_sliceGrid buttonSlices;

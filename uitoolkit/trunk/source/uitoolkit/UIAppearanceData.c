@@ -96,8 +96,8 @@ bool UIAppearanceData_loadSerializedData(UIAppearanceData * self, compat_type(De
 	keyCount = context->beginDictionary(context, "metrics");
 	for (keyIndex = 0; keyIndex < keyCount; keyIndex++) {
 		metricName = context->readNextDictionaryKey(context);
-		if (!strcmp(metricName, "buttonLabelHeight")) {
-			metrics.buttonLabelHeight = context->readFloat(context, metricName);
+		if (!strcmp(metricName, "fontHeight")) {
+			metrics.fontHeight = context->readFloat(context, metricName);
 			
 		} else if (!strcmp(metricName, "buttonLabelPadding")) {
 			metrics.buttonLabelPadding = context->readFloat(context, metricName);
@@ -149,7 +149,7 @@ void UIAppearanceData_serialize(UIAppearanceData * self, compat_type(Serializati
 	context->writeStringNullable(context, "atlas_name", self->atlasName);
 	context->writeStringNullable(context, "font_name", self->fontName);
 	context->beginDictionary(context, "metrics");
-	context->writeFloat(context, "buttonLabelHeight", self->metrics.buttonLabelHeight);
+	context->writeFloat(context, "fontHeight", self->metrics.fontHeight);
 	context->writeFloat(context, "buttonLabelPadding", self->metrics.buttonLabelPadding);
 	writeColor4f(context, "buttonLabelColor", self->metrics.buttonLabelColor);
 	writeSliceGrid(context, "buttonSlices", self->metrics.buttonSlices);
