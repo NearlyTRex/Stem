@@ -46,8 +46,14 @@ bool TextFlow_init(TextFlow * self, GLBitmapFont * font, const char * string, en
 }
 
 void TextFlow_dispose(TextFlow * self) {
+	free((void *) self->string);
 	free(self->private_ivar(wrapInfo).wrapPoints);
 	call_super(dispose, self);
+}
+
+void TextFlow_setString(TextFlow * self, const char * string) {
+	free((void *) self->string);
+	self->string = strdup(string);
 }
 
 static inline bool isWrappableWhitespace(char character) {

@@ -231,9 +231,9 @@ static void Target_mouseDown(unsigned int buttonNumber, float x, float y) {
 	
 	if (clipping && controlKeyDown) {
 		if (shiftKeyDown) {
-			draggingClipBounds2 = true;
-		} else {
 			draggingClipBounds1 = true;
+		} else {
+			draggingClipBounds2 = true;
 		}
 	} else if (shiftKeyDown) {
 		draggingTextFlow = true;
@@ -253,18 +253,18 @@ static void Target_mouseDragged(unsigned int buttonMask, float x, float y) {
 	transformedPosition = transformMousePosition_signedCenter(VECTOR2f(x, y), viewportWidth, viewportHeight, 1.0f);
 	
 	if (draggingTextFlow) {
-		textFlowWidth += transformedPosition.x / (0.0625f * scale) - lastDragX;
+		textFlowWidth += (transformedPosition.x - lastDragX) / (0.0625f * scale);
 		textFlow->wrapWidth = textFlowWidth;
 		Shell_redisplay();
 		
 	} else if (draggingClipBounds1) {
-		clipBounds.left += (transformedPosition.x - lastDragX) * 0.0625f;
-		clipBounds.bottom += (transformedPosition.y - lastDragY) * 0.0625f;
+		clipBounds.left += transformedPosition.x - lastDragX;
+		clipBounds.bottom += transformedPosition.y - lastDragY;
 		Shell_redisplay();
 		
 	} else if (draggingClipBounds2) {
-		clipBounds.right += (transformedPosition.x - lastDragX) * 0.0625f;
-		clipBounds.top += (transformedPosition.y - lastDragY) * 0.0625f;
+		clipBounds.right += transformedPosition.x - lastDragX;
+		clipBounds.top += transformedPosition.y - lastDragY;
 		Shell_redisplay();
 		
 	} else {

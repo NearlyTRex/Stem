@@ -58,10 +58,13 @@ struct TextFlow_wrapInfo {
 
 stemobject_struct_definition(TextFlow)
 
-// string is copied; wrapWidth is expressed in ems
+// wrapWidth is expressed in ems
+// Don't mutate string directly after initialization; use TextFlow_setString() instead. Feel free to modify wrapMode, wrapWidth, or font directly.
 TextFlow * TextFlow_create(GLBitmapFont * font, const char * string, enum TextFlow_wordWrapMode wrapMode, float wrapWidth);
 bool TextFlow_init(TextFlow * self, GLBitmapFont * font, const char * string, enum TextFlow_wordWrapMode wrapMode, float wrapWidth);
 void TextFlow_dispose(TextFlow * self);
+
+void TextFlow_setString(TextFlow * self, const char * string);
 
 // Returns number of lines used by the wrapped string, including both word wrapping and hard line breaks.
 unsigned int TextFlow_getLineCount(TextFlow * self);
