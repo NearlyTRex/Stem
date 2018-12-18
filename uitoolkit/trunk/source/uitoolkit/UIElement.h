@@ -57,19 +57,11 @@ typedef enum UIElementType {
 	bool (* keyDown)(self_type * self, unsigned int charCode, unsigned int keyCode, unsigned int modifiers, bool isRepeat); \
 	bool (* keyUp)(self_type * self, unsigned int keyCode, unsigned int modifiers); \
 	bool (* keyModifiersChanged)(self_type * self, unsigned int modifiers); \
-	bool (* menuAction)(self_type * self); \
-	bool (* menuCancel)(self_type * self); \
-	bool (* menuLeft)(self_type * self); \
-	bool (* menuRight)(self_type * self); \
-	bool (* menuDown)(self_type * self); \
-	bool (* menuUp)(self_type * self); \
-	bool (* menuNext)(self_type * self); \
-	bool (* menuPrevious)(self_type * self); \
 	bool (* setFocusedElement)(self_type * self, UIElement * element); \
 	UIElement * (* getFocusedElement)(self_type * self); \
 	bool (* acceptsFocus)(self_type * self); \
 	Rect4f (* getBounds)(self_type * self); \
-	void (* getVertices)(self_type * self, struct vertex_p2f_t2f_c4f * outVertices, GLuint * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount);
+	void (* getVertices)(self_type * self, Vector2f offset, struct vertex_p2f_t2f_c4f * outVertices, GLuint * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount);
 
 stemobject_struct_definition(UIElement)
 
@@ -77,7 +69,7 @@ UIElement * UIElement_create(UIElementType type, UIAppearance * appearance, Vect
 bool UIElement_init(UIElement * self, UIElementType type, UIAppearance * appearance, Vector2f position, Vector2f relativeOrigin);
 void UIElement_dispose(UIElement * self);
 
-// Caller conventions: Before sending mouswDown to an element, caller should call hitTest and receive a positive return value.
+// Caller conventions: Before sending mouseDown to an element, caller should call hitTest and receive a positive return value.
 // When hitTest returns true and mouseDown returns true, caller should remember which element returned true from mouseDown,
 // and send mouseDragged and mouseUp events only to that element until mouseUp. Be cautious of different button numbers;
 // remember that a new mouseDown on a different button number can start before a previous one has finished with a mouseUp.
@@ -98,31 +90,14 @@ bool UIElement_mouseDragged(UIElement * self, unsigned int buttonMask, float x, 
 // mouse position. Return true if it changed your state in a way that necessitates a redraw.
 bool UIElement_scrollWheel(UIElement * self, int deltaX, int deltaY);
 
-// Caller conventions: Caller should keep track of which element is in focus, and send keyDown, menuAction, and menuCancel
-// events only to that element. All keyUp events should be sent only to the element that most recently received a keyDown
-// and returned true from it. However, keyModifiersChanged events should go to *all* elements, regardless of focus and key
-// up/down state.
+// Caller conventions: Caller should keep track of which element is in focus, and send keyDown events only to that element.
+// All keyUp events should be sent only to the element that most recently received a keyDown and returned true from it.
+// However, keyModifiersChanged events should go to *all* elements, regardless of focus and key up/down state.
 // Receiver conventions: Return true from key events if the key event has changed your state in some way that requires a
 // redraw, or if you want to receive a followup keyUp event from a keyDown.
 bool UIElement_keyDown(UIElement * self, unsigned int charCode, unsigned int keyCode, unsigned int modifiers, bool isRepeat);
 bool UIElement_keyUp(UIElement * self, unsigned int keyCode, unsigned int modifiers);
 bool UIElement_keyModifiersChanged(UIElement * self, unsigned int modifiers);
-bool UIElement_menuAction(UIElement * self);
-bool UIElement_menuCancel(UIElement * self);
-
-// Caller conventions: For keyboard navigation, callers should typically first call keyDown on the root element, and if it
-// returns false and the key that was pressed is used for navigation, make a call to menuLeft/Right/Up/Down/Next/Previous as
-// a fallback. This allows keys that are bound to menu navigation actions to be used for text entry and other purposes when
-// necessary.
-// Receiver conventions: Update the focused element to the next/previous in numeric order, or the one logically in the
-// specified direction onscreen, depending on which function was called. Return true if your focused element changed, or if
-// the focused element of an element you own changed.
-bool UIElement_menuLeft(UIElement * self);
-bool UIElement_menuRight(UIElement * self);
-bool UIElement_menuUp(UIElement * self);
-bool UIElement_menuDown(UIElement * self);
-bool UIElement_menuNext(UIElement * self);
-bool UIElement_menuPrevious(UIElement * self);
 
 // Return true if the specified element was found and focus has been set to it. Clears focus if called with NULL.
 // Non-container elements should return true if element == self and they currently can accept focus.
@@ -130,12 +105,11 @@ bool UIElement_setFocusedElement(UIElement * self, UIElement * element);
 // Return the deepest element in the focus hierarchy, or NULL if no element is focused. Non-container elements that return
 // true from acceptsFocus should return self from getFocusedElement.
 UIElement * UIElement_getFocusedElement(UIElement * self);
-// Return true if this element can currently accept focus; as in, whether a call to menuAction, menuCancel, or keyDown would
-// be processed in some meaningful way.
+// Return true if this element can accept focus; as in, whether a call to keyDown would be processed in some meaningful way.
 bool UIElement_acceptsFocus(UIElement * self);
 
 Rect4f UIElement_getBounds(UIElement * self);
-void UIElement_getVertices(UIElement * self, struct vertex_p2f_t2f_c4f * outVertices, GLuint * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount);
+void UIElement_getVertices(UIElement * self, Vector2f offset, struct vertex_p2f_t2f_c4f * outVertices, GLuint * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount);
 
 #ifdef __cplusplus
 }

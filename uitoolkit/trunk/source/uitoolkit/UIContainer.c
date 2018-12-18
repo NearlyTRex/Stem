@@ -26,14 +26,14 @@
 
 #define SUPERCLASS UIElement
 
-UIContainer * UIContainer_create(UIAppearance * appearance, UIElement ** elements, unsigned int elementCount) {
-	stemobject_create_implementation(UIContainer, init, appearance, elements, elementCount)
+UIContainer * UIContainer_create(UIAppearance * appearance, Vector2f position, UIElement ** elements, unsigned int elementCount) {
+	stemobject_create_implementation(UIContainer, init, appearance, position, elements, elementCount)
 }
 
-bool UIContainer_init(UIContainer * self, UIAppearance * appearance, UIElement ** elements, unsigned int elementCount) {
+bool UIContainer_init(UIContainer * self, UIAppearance * appearance, Vector2f position, UIElement ** elements, unsigned int elementCount) {
 	unsigned int elementIndex, buttonIndex;
 	
-	call_super(init, self, UIELEMENT_CONTAINER, appearance, VECTOR2f_ZERO, VECTOR2f_ZERO);
+	call_super(init, self, UIELEMENT_CONTAINER, appearance, position, VECTOR2f_ZERO);
 	self->dispose             = UIContainer_dispose;
 	self->hitTest             = UIContainer_hitTest;
 	self->mouseDown           = UIContainer_mouseDown;
@@ -44,14 +44,6 @@ bool UIContainer_init(UIContainer * self, UIAppearance * appearance, UIElement *
 	self->keyDown             = UIContainer_keyDown;
 	self->keyUp               = UIContainer_keyUp;
 	self->keyModifiersChanged = UIContainer_keyModifiersChanged;
-	self->menuAction          = UIContainer_menuAction;
-	self->menuCancel          = UIContainer_menuCancel;
-	self->menuLeft            = UIContainer_menuLeft;
-	self->menuRight           = UIContainer_menuRight;
-	self->menuUp              = UIContainer_menuUp;
-	self->menuDown            = UIContainer_menuDown;
-	self->menuNext            = UIContainer_menuNext;
-	self->menuPrevious        = UIContainer_menuPrevious;
 	self->setFocusedElement   = UIContainer_setFocusedElement;
 	self->getFocusedElement   = UIContainer_getFocusedElement;
 	self->acceptsFocus        = UIContainer_acceptsFocus;
@@ -83,6 +75,8 @@ UIElement * UIContainer_hitTest(UIContainer * self, float x, float y) {
 	unsigned int elementIndex;
 	UIElement * result;
 	
+	x -= self->position.x;
+	y -= self->position.y;
 	for (elementIndex = self->elementCount - 1; elementIndex < self->elementCount; elementIndex--) {
 		result = self->elements[elementIndex]->hitTest(self->elements[elementIndex], x, y);
 		if (result != NULL) {
@@ -98,6 +92,8 @@ bool UIContainer_mouseDown(UIContainer * self, unsigned int buttonNumber, float 
 	if (buttonNumber >= UICONTAINER_MOUSE_BUTTON_NUMBER_RESPONSE_COUNT) {
 		return false;
 	}
+	x -= self->position.x;
+	y -= self->position.y;
 	for (elementIndex = 0; elementIndex < self->elementCount; elementIndex++) {
 		if (self->elements[elementIndex]->hitTest(self->elements[elementIndex], x, y) && self->elements[elementIndex]->mouseDown(self->elements[elementIndex], buttonNumber, x, y)) {
 			self->lastMouseDownTargets[buttonNumber] = self->elements[elementIndex];
@@ -111,6 +107,8 @@ bool UIContainer_mouseUp(UIContainer * self, unsigned int buttonNumber, float x,
 	if (buttonNumber >= UICONTAINER_MOUSE_BUTTON_NUMBER_RESPONSE_COUNT || self->lastMouseDownTargets[buttonNumber] == NULL) {
 		return false;
 	}
+	x -= self->position.x;
+	y -= self->position.y;
 	return self->lastMouseDownTargets[buttonNumber]->mouseUp(self->lastMouseDownTargets[buttonNumber], buttonNumber, x, y);
 }
 
@@ -118,6 +116,8 @@ bool UIContainer_mouseMoved(UIContainer * self, float x, float y) {
 	unsigned int elementIndex;
 	bool handled = false;
 	
+	x -= self->position.x;
+	y -= self->position.y;
 	for (elementIndex = 0; elementIndex < self->elementCount; elementIndex++) {
 		if (self->elements[elementIndex]->mouseMoved(self->elements[elementIndex], x, y)) {
 			handled = true;
@@ -130,6 +130,8 @@ bool UIContainer_mouseDragged(UIContainer * self, unsigned int buttonMask, float
 	unsigned int buttonIndex;
 	bool handled = false;
 	
+	x -= self->position.x;
+	y -= self->position.y;
 	for (buttonIndex = 0; buttonIndex < UICONTAINER_MOUSE_BUTTON_NUMBER_RESPONSE_COUNT; buttonIndex++) {
 		if ((buttonMask & 1 << buttonIndex) && self->lastMouseDownTargets[buttonIndex] != NULL) {
 			if (self->lastMouseDownTargets[buttonIndex]->mouseDragged(self->lastMouseDownTargets[buttonIndex], buttonMask, x, y)) {
@@ -172,76 +174,6 @@ bool UIContainer_keyModifiersChanged(UIContainer * self, unsigned int modifiers)
 		}
 	}
 	return handled;
-}
-
-bool UIContainer_menuAction(UIContainer * self) {
-	if (self->focusedElementIndex != UICONTAINER_FOCUS_NONE) {
-		return self->elements[self->focusedElementIndex]->menuAction(self->elements[self->focusedElementIndex]);
-	}
-	return false;
-}
-
-bool UIContainer_menuCancel(UIContainer * self) {
-	if (self->focusedElementIndex != UICONTAINER_FOCUS_NONE) {
-		return self->elements[self->focusedElementIndex]->menuCancel(self->elements[self->focusedElementIndex]);
-	}
-	return false;
-}
-
-bool UIContainer_menuLeft(UIContainer * self) {
-	// If currently focused element can process menuLeft, do that first
-	// Otherwise, search leftward (with what metrics?) for a focusable element, and change focus to it
-	// Wrapping parameters? Tiebreaking? This is going to be messy
-	return false;
-}
-
-bool UIContainer_menuRight(UIContainer * self) {
-	return false;
-}
-
-bool UIContainer_menuUp(UIContainer * self) {
-	return false;
-}
-
-bool UIContainer_menuDown(UIContainer * self) {
-	return false;
-}
-
-bool UIContainer_menuNext(UIContainer * self) {
-	unsigned int focusOffset, elementIndex, offsetElementIndex;
-	
-	if (self->focusedElementIndex == UICONTAINER_FOCUS_NONE) {
-		focusOffset = 0;
-	} else {
-		focusOffset = (self->focusedElementIndex + 1) % self->elementCount;
-	}
-	for (elementIndex = 0; elementIndex < self->elementCount - 1; elementIndex++) {
-		offsetElementIndex = (elementIndex + focusOffset) % self->elementCount;
-		if (self->elements[offsetElementIndex]->acceptsFocus(self->elements[offsetElementIndex])) {
-			// TODO: This seems incorrect; may need to propagate focus inward, because if the target is a container with nothing focused at the moment, the chain will stop there
-			self->focusedElementIndex = offsetElementIndex;
-			return true;
-		}
-	}
-	return false;
-}
-
-bool UIContainer_menuPrevious(UIContainer * self) {
-	unsigned int focusOffset, elementIndex, offsetElementIndex;
-	
-	if (self->focusedElementIndex == UICONTAINER_FOCUS_NONE) {
-		focusOffset = 0;
-	} else {
-		focusOffset = (self->focusedElementIndex + 1) % self->elementCount;
-	}
-	for (elementIndex = 1; elementIndex < self->elementCount; elementIndex++) {
-		offsetElementIndex = (self->elementCount - elementIndex + focusOffset) % self->elementCount;
-		if (self->elements[offsetElementIndex]->acceptsFocus(self->elements[offsetElementIndex])) {
-			self->focusedElementIndex = offsetElementIndex;
-			return true;
-		}
-	}
-	return false;
 }
 
 bool UIContainer_setFocusedElement(UIContainer * self, UIElement * element) {
@@ -289,11 +221,10 @@ Rect4f UIContainer_getBounds(UIContainer * self) {
 	return result;
 }
 
-void UIContainer_getVertices(UIContainer * self, struct vertex_p2f_t2f_c4f * outVertices, GLuint * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount) {
+void UIContainer_getVertices(UIContainer * self, Vector2f offset, struct vertex_p2f_t2f_c4f * outVertices, GLuint * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount) {
 	unsigned int elementIndex;
 	
-	// TODO: This container's position needs to somehow offset returned positions of children. How will that happen?
 	for (elementIndex = 0; elementIndex < self->elementCount; elementIndex++) {
-		self->elements[elementIndex]->getVertices(self->elements[elementIndex], outVertices, outIndexes, ioVertexCount, ioIndexCount);
+		self->elements[elementIndex]->getVertices(self->elements[elementIndex], VECTOR2f(offset.x + self->position.x, offset.y + self->position.y), outVertices, outIndexes, ioVertexCount, ioIndexCount);
 	}
 }

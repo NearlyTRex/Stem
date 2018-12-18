@@ -57,13 +57,12 @@ UIElement * UIButton_hitTest(UIButton * self, float x, float y);
 bool UIButton_mouseDown(UIButton * self, unsigned int buttonNumber, float x, float y);
 bool UIButton_mouseUp(UIButton * self, unsigned int buttonNumber, float x, float y);
 bool UIButton_mouseDragged(UIButton * self, unsigned int buttonMask, float x, float y);
-bool UIButton_menuAction(UIButton * self);
 bool UIButton_setFocusedElement(UIButton * self, UIElement * element);
 UIElement * UIButton_getFocusedElement(UIButton * self);
 bool UIButton_acceptsFocus(UIButton * self);
 
 Rect4f UIButton_getBounds(UIButton * self);
-void UIButton_getVertices(UIButton * self, struct vertex_p2f_t2f_c4f * outVertices, GLuint * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount);
+void UIButton_getVertices(UIButton * self, Vector2f offset, struct vertex_p2f_t2f_c4f * outVertices, GLuint * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount);
 
 #ifdef __cplusplus
 }

@@ -56,7 +56,7 @@ void UILabel_dispose(UILabel * self);
 
 void UILabel_setText(UILabel * self, const char * text);
 Rect4f UILabel_getBounds(UILabel * self);
-void UILabel_getVertices(UILabel * self, struct vertex_p2f_t2f_c4f * outVertices, GLuint * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount);
+void UILabel_getVertices(UILabel * self, Vector2f offset, struct vertex_p2f_t2f_c4f * outVertices, GLuint * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount);
 
 #ifdef __cplusplus
 }

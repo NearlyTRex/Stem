@@ -79,7 +79,7 @@ Rect4f UILabel_getBounds(UILabel * self) {
 	return result;
 }
 
-void UILabel_getVertices(UILabel * self, struct vertex_p2f_t2f_c4f * outVertices, GLuint * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount) {
+void UILabel_getVertices(UILabel * self, Vector2f offset, struct vertex_p2f_t2f_c4f * outVertices, GLuint * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount) {
 	Rect4f clipBounds = GLBITMAPFONT_NO_CLIP;
 	
 	if (self->overflowModeX == UILABEL_OVERFLOW_TRUNCATE || self->overflowModeY == UILABEL_OVERFLOW_TRUNCATE) {
@@ -96,7 +96,7 @@ void UILabel_getVertices(UILabel * self, struct vertex_p2f_t2f_c4f * outVertices
 	}
 	TextFlow_getVertices(self->textFlow,
 	                     self->appearance->metrics.fontHeight,
-	                     self->position,
+	                     VECTOR2f(offset.x + self->position.x, offset.y + self->position.y),
 	                     self->relativeOrigin,
 	                     true,
 	                     clipBounds,

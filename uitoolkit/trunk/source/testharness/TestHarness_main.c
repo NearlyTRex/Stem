@@ -61,36 +61,6 @@ static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned
 		
 	} else {
 		bool handled = rootElement->keyDown(rootElement, charCode, keyCode, modifiers, isRepeat);
-		if (!handled) {
-			switch (keyCode) {
-				case KEYBOARD_LEFT_ARROW:
-					handled = rootElement->menuLeft(rootElement);
-					break;
-				case KEYBOARD_RIGHT_ARROW:
-					handled = rootElement->menuRight(rootElement);
-					break;
-				case KEYBOARD_UP_ARROW:
-					handled = rootElement->menuUp(rootElement);
-					break;
-				case KEYBOARD_DOWN_ARROW:
-					handled = rootElement->menuDown(rootElement);
-					break;
-				case KEYBOARD_RETURN_OR_ENTER:
-				case KEYBOARD_SPACEBAR:
-					handled = rootElement->menuAction(rootElement);
-					break;
-				case KEYBOARD_ESCAPE:
-					handled = rootElement->menuCancel(rootElement);
-					break;
-				case KEYBOARD_TAB:
-					if (modifiers & MODIFIER_SHIFT_BIT) {
-						handled = rootElement->menuPrevious(rootElement);
-					} else {
-						handled = rootElement->menuNext(rootElement);
-					}
-					break;
-			}
-		}
 		if (handled) {
 			Shell_redisplay();
 		}
@@ -164,7 +134,7 @@ static void Target_foregrounded() {
 }
 
 static void getUIVertices(DynamicSpriteRenderable * sprite, struct vertex_p2f_t2f_c4f * outVertices, GLuint * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount, void * context) {
-	rootElement->getVertices(rootElement, outVertices, outIndexes, ioVertexCount, ioIndexCount);
+	rootElement->getVertices(rootElement, VECTOR2f_ZERO, outVertices, outIndexes, ioVertexCount, ioIndexCount);
 }
 
 static void button1ActionCallback(UIButton * sender, void * context) {
@@ -232,7 +202,7 @@ static void initTestUI() {
 	containerElements[0] = (UIElement *) button1;
 	containerElements[1] = (UIElement *) button2;
 	containerElements[2] = (UIElement *) label;
-	container = UIContainer_create(appearance, containerElements, sizeof(containerElements) / sizeof(containerElements[0]));
+	container = UIContainer_create(appearance, VECTOR2f(100.0f, 100.0f), containerElements, sizeof(containerElements) / sizeof(containerElements[0]));
 	rootElement = (UIElement *) container;
 	
 	renderable = DynamicSpriteRenderable_create(atlas, getUIVertices, NULL);

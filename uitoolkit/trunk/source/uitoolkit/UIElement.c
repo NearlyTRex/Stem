@@ -45,14 +45,6 @@ bool UIElement_init(UIElement * self, UIElementType type, UIAppearance * appeara
 	self->keyDown             = UIElement_keyDown;
 	self->keyUp               = UIElement_keyUp;
 	self->keyModifiersChanged = UIElement_keyModifiersChanged;
-	self->menuAction          = UIElement_menuAction;
-	self->menuCancel          = UIElement_menuCancel;
-	self->menuLeft            = UIElement_menuLeft;
-	self->menuRight           = UIElement_menuRight;
-	self->menuUp              = UIElement_menuUp;
-	self->menuDown            = UIElement_menuDown;
-	self->menuNext            = UIElement_menuNext;
-	self->menuPrevious        = UIElement_menuPrevious;
 	self->setFocusedElement   = UIElement_setFocusedElement;
 	self->getFocusedElement   = UIElement_getFocusedElement;
 	self->acceptsFocus        = UIElement_acceptsFocus;
@@ -101,38 +93,6 @@ bool UIElement_keyModifiersChanged(UIElement * self, unsigned int modifiers) {
 	return false;
 }
 
-bool UIElement_menuAction(UIElement * self) {
-	return false;
-}
-
-bool UIElement_menuCancel(UIElement * self) {
-	return false;
-}
-
-bool UIElement_menuLeft(UIElement * self) {
-	return false;
-}
-
-bool UIElement_menuRight(UIElement * self) {
-	return false;
-}
-
-bool UIElement_menuUp(UIElement * self) {
-	return false;
-}
-
-bool UIElement_menuDown(UIElement * self) {
-	return false;
-}
-
-bool UIElement_menuNext(UIElement * self) {
-	return false;
-}
-
-bool UIElement_menuPrevious(UIElement * self) {
-	return false;
-}
-
 bool UIElement_setFocusedElement(UIElement * self, UIElement * element) {
 	return false;
 }
@@ -149,5 +109,5 @@ Rect4f UIElement_getBounds(UIElement * self) {
 	return RECT4f_EMPTY;
 }
 
-void UIElement_getVertices(UIElement * self, struct vertex_p2f_t2f_c4f * outVertices, GLuint * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount) {
+void UIElement_getVertices(UIElement * self, Vector2f offset, struct vertex_p2f_t2f_c4f * outVertices, GLuint * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount) {
 }

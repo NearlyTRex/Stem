@@ -47,8 +47,8 @@ typedef struct UIContainer UIContainer;
 stemobject_struct_definition(UIContainer)
 
 // elements is copied, and should be treated as immutable after initialization
-UIContainer * UIContainer_create(UIAppearance * appearance, UIElement ** elements, unsigned int elementCount);
-bool UIContainer_init(UIContainer * self, UIAppearance * appearance, UIElement ** elements, unsigned int elementCount);
+UIContainer * UIContainer_create(UIAppearance * appearance, Vector2f position, UIElement ** elements, unsigned int elementCount);
+bool UIContainer_init(UIContainer * self, UIAppearance * appearance, Vector2f position, UIElement ** elements, unsigned int elementCount);
 void UIContainer_dispose(UIContainer * self);
 
 UIElement * UIContainer_hitTest(UIContainer * self, float x, float y);
@@ -74,7 +74,7 @@ UIElement * UIContainer_getFocusedElement(UIContainer * self);
 bool UIContainer_acceptsFocus(UIContainer * self);
 
 Rect4f UIContainer_getBounds(UIContainer * self);
-void UIContainer_getVertices(UIContainer * self, struct vertex_p2f_t2f_c4f * outVertices, GLuint * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount);
+void UIContainer_getVertices(UIContainer * self, Vector2f offset, struct vertex_p2f_t2f_c4f * outVertices, GLuint * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount);
 
 #ifdef __cplusplus
 }

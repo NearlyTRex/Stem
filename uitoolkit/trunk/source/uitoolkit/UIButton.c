@@ -37,7 +37,6 @@ bool UIButton_init(UIButton * self, UIAppearance * appearance, Vector2f position
 	self->mouseDown = UIButton_mouseDown;
 	self->mouseUp = UIButton_mouseUp;
 	self->mouseDragged = UIButton_mouseDragged;
-	self->menuAction = UIButton_menuAction;
 	self->getBounds = UIButton_getBounds;
 	self->getVertices = UIButton_getVertices;
 	
@@ -96,13 +95,6 @@ bool UIButton_mouseDragged(UIButton * self, unsigned int buttonMask, float x, fl
 	return false;
 }
 
-bool UIButton_menuAction(UIButton * self) {
-	if (self->actionCallback != NULL) {
-		self->actionCallback(self, self->actionCallbackContext);
-	}
-	return false;
-}
-
 bool UIButton_setFocusedElement(UIButton * self, UIElement * element) {
 	return true;
 }
@@ -133,7 +125,7 @@ Rect4f UIButton_getBounds(UIButton * self) {
 	vertex.texCoords[1] = textureY; \
 	outVertices[index] = vertex
 
-void UIButton_getVertices(UIButton * self, struct vertex_p2f_t2f_c4f * outVertices, GLuint * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount) {
+void UIButton_getVertices(UIButton * self, Vector2f offset, struct vertex_p2f_t2f_c4f * outVertices, GLuint * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount) {
 	unsigned int vertexCount = 0, indexCount = 0;
 	Rect4f bounds = self->getBounds(self);
 	float stringWidth;
@@ -154,25 +146,25 @@ void UIButton_getVertices(UIButton * self, struct vertex_p2f_t2f_c4f * outVertic
 		texCoordScaleX = (atlasEntry.right - atlasEntry.left) / (slices.leftColumn + slices.centerColumn + slices.rightColumn);
 		texCoordScaleY = (atlasEntry.top - atlasEntry.bottom) / (slices.bottomRow + slices.centerRow + slices.topRow);
 		
-		writeVertex(vertexCount + 0, bounds.left, bounds.bottom, atlasEntry.left, atlasEntry.bottom);
-		writeVertex(vertexCount + 1, bounds.left + slices.leftColumn, bounds.bottom, atlasEntry.left + slices.leftColumn * texCoordScaleX, atlasEntry.bottom);
-		writeVertex(vertexCount + 2, bounds.right - slices.rightColumn, bounds.bottom, atlasEntry.right - slices.rightColumn * texCoordScaleX, atlasEntry.bottom);
-		writeVertex(vertexCount + 3, bounds.right, bounds.bottom, atlasEntry.right, atlasEntry.bottom);
+		writeVertex(vertexCount + 0, offset.x + bounds.left, offset.y + bounds.bottom, atlasEntry.left, atlasEntry.bottom);
+		writeVertex(vertexCount + 1, offset.x + bounds.left + slices.leftColumn, offset.y + bounds.bottom, atlasEntry.left + slices.leftColumn * texCoordScaleX, atlasEntry.bottom);
+		writeVertex(vertexCount + 2, offset.x + bounds.right - slices.rightColumn, offset.y + bounds.bottom, atlasEntry.right - slices.rightColumn * texCoordScaleX, atlasEntry.bottom);
+		writeVertex(vertexCount + 3, offset.x + bounds.right, offset.y + bounds.bottom, atlasEntry.right, atlasEntry.bottom);
 		
-		writeVertex(vertexCount + 4, bounds.left, bounds.bottom + slices.bottomRow, atlasEntry.left, atlasEntry.bottom + slices.bottomRow * texCoordScaleY);
-		writeVertex(vertexCount + 5, bounds.left + slices.leftColumn, bounds.bottom + slices.bottomRow, atlasEntry.left + slices.leftColumn * texCoordScaleX, atlasEntry.bottom + slices.bottomRow * texCoordScaleY);
-		writeVertex(vertexCount + 6, bounds.right - slices.rightColumn, bounds.bottom + slices.bottomRow, atlasEntry.right - slices.rightColumn * texCoordScaleX, atlasEntry.bottom + slices.bottomRow * texCoordScaleY);
-		writeVertex(vertexCount + 7, bounds.right, bounds.bottom + slices.bottomRow, atlasEntry.right, atlasEntry.bottom + slices.bottomRow * texCoordScaleY);
+		writeVertex(vertexCount + 4, offset.x + bounds.left, offset.y + bounds.bottom + slices.bottomRow, atlasEntry.left, atlasEntry.bottom + slices.bottomRow * texCoordScaleY);
+		writeVertex(vertexCount + 5, offset.x + bounds.left + slices.leftColumn, offset.y + bounds.bottom + slices.bottomRow, atlasEntry.left + slices.leftColumn * texCoordScaleX, atlasEntry.bottom + slices.bottomRow * texCoordScaleY);
+		writeVertex(vertexCount + 6, offset.x + bounds.right - slices.rightColumn, offset.y + bounds.bottom + slices.bottomRow, atlasEntry.right - slices.rightColumn * texCoordScaleX, atlasEntry.bottom + slices.bottomRow * texCoordScaleY);
+		writeVertex(vertexCount + 7, offset.x + bounds.right, offset.y + bounds.bottom + slices.bottomRow, atlasEntry.right, atlasEntry.bottom + slices.bottomRow * texCoordScaleY);
 		
-		writeVertex(vertexCount + 8, bounds.left, bounds.top - slices.topRow, atlasEntry.left, atlasEntry.top - slices.topRow * texCoordScaleY);
-		writeVertex(vertexCount + 9, bounds.left + slices.leftColumn, bounds.top - slices.topRow, atlasEntry.left + slices.leftColumn * texCoordScaleX, atlasEntry.top - slices.topRow * texCoordScaleY);
-		writeVertex(vertexCount + 10, bounds.right - slices.rightColumn, bounds.top - slices.topRow, atlasEntry.right - slices.rightColumn * texCoordScaleX, atlasEntry.top - slices.topRow * texCoordScaleY);
-		writeVertex(vertexCount + 11, bounds.right, bounds.top - slices.topRow, atlasEntry.right, atlasEntry.top - slices.topRow * texCoordScaleY);
+		writeVertex(vertexCount + 8, offset.x + bounds.left, offset.y + bounds.top - slices.topRow, atlasEntry.left, atlasEntry.top - slices.topRow * texCoordScaleY);
+		writeVertex(vertexCount + 9, offset.x + bounds.left + slices.leftColumn, offset.y + bounds.top - slices.topRow, atlasEntry.left + slices.leftColumn * texCoordScaleX, atlasEntry.top - slices.topRow * texCoordScaleY);
+		writeVertex(vertexCount + 10, offset.x + bounds.right - slices.rightColumn, offset.y + bounds.top - slices.topRow, atlasEntry.right - slices.rightColumn * texCoordScaleX, atlasEntry.top - slices.topRow * texCoordScaleY);
+		writeVertex(vertexCount + 11, offset.x + bounds.right, offset.y + bounds.top - slices.topRow, atlasEntry.right, atlasEntry.top - slices.topRow * texCoordScaleY);
 		
-		writeVertex(vertexCount + 12, bounds.left, bounds.top, atlasEntry.left, atlasEntry.top);
-		writeVertex(vertexCount + 13, bounds.left + slices.leftColumn, bounds.top, atlasEntry.left + slices.leftColumn * texCoordScaleX, atlasEntry.top);
-		writeVertex(vertexCount + 14, bounds.right - slices.rightColumn, bounds.top, atlasEntry.right - slices.rightColumn * texCoordScaleX, atlasEntry.top);
-		writeVertex(vertexCount + 15, bounds.right, bounds.top, atlasEntry.right, atlasEntry.top);
+		writeVertex(vertexCount + 12, offset.x + bounds.left, offset.y + bounds.top, atlasEntry.left, atlasEntry.top);
+		writeVertex(vertexCount + 13, offset.x + bounds.left + slices.leftColumn, offset.y + bounds.top, atlasEntry.left + slices.leftColumn * texCoordScaleX, atlasEntry.top);
+		writeVertex(vertexCount + 14, offset.x + bounds.right - slices.rightColumn, offset.y + bounds.top, atlasEntry.right - slices.rightColumn * texCoordScaleX, atlasEntry.top);
+		writeVertex(vertexCount + 15, offset.x + bounds.right, offset.y + bounds.top, atlasEntry.right, atlasEntry.top);
 	}
 	if (outIndexes != NULL) {
 		unsigned int rowIndex, columnIndex;
@@ -200,7 +192,7 @@ void UIButton_getVertices(UIButton * self, struct vertex_p2f_t2f_c4f * outVertic
 	                               self->label,
 	                               GLBITMAPFONT_USE_STRLEN,
 	                               self->appearance->metrics.fontHeight,
-	                               VECTOR2f(roundf(bounds.left + (bounds.right - bounds.left - stringWidth) * 0.5f), roundf(bounds.bottom + (bounds.top - bounds.bottom - self->appearance->metrics.fontHeight) * 0.5f)),
+	                               VECTOR2f(roundf(offset.x + bounds.left + (bounds.right - bounds.left - stringWidth) * 0.5f), roundf(offset.y + bounds.bottom + (bounds.top - bounds.bottom - self->appearance->metrics.fontHeight) * 0.5f)),
 	                               VECTOR2f(0.0f, 0.0f),
 	                               true,
 	                               GLBITMAPFONT_NO_CLIP,
