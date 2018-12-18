@@ -34,13 +34,15 @@ static unsigned int viewportWidth = 800, viewportHeight = 600;
 static GLBitmapFont * font;
 static TextFlow * textFlow;
 static const char * jsonPath = NULL;
-static size_t lastIndexAtWidth = 0;
+static size_t lastIndexAtPositionX = 0;
 static bool lastLeadingEdge = false;
 static float scale = 1.0f;
-static bool shiftKeyDown;
-static bool draggingTextFlow;
+static bool shiftKeyDown, controlKeyDown;
+static bool draggingTextFlow, draggingClipBounds1, draggingClipBounds2;
 static float lastDragX, lastDragY;
-static float textFlowWidth, textFlowHeight;
+static float textFlowWidth;
+static Rect4f clipBounds;
+static bool clipping;
 
 static void drawString(GLBitmapFont * font, const char * string, size_t length, float emSize, float offsetX, float offsetY) {
 	static GLuint indexBufferID, vertexBufferID;
@@ -53,7 +55,7 @@ static void drawString(GLBitmapFont * font, const char * string, size_t length, 
 		glGenBuffersARB(1, &vertexBufferID);
 	}
 	vertexCount = indexCount = 0;
-	GLBitmapFont_getStringVertices(font, string, length, emSize, VECTOR2f(offsetX, offsetY), VECTOR2f(0.0f, 0.0f), false, GLBITMAPFONT_NO_CLIP, GLBITMAPFONT_NO_CLIP, COLOR4f(1.0f, 1.0f, 1.0f, 1.0f), NULL, NULL, &vertexCount, &indexCount);
+	GLBitmapFont_getStringVertices(font, string, length, emSize, VECTOR2f(offsetX, offsetY), VECTOR2f(0.0f, 0.0f), false, GLBITMAPFONT_NO_CLIP, COLOR4f(1.0f, 1.0f, 1.0f, 1.0f), NULL, NULL, &vertexCount, &indexCount);
 	glBindBufferARB(GL_ARRAY_BUFFER, vertexBufferID);
 	glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER, indexBufferID);
 	glBufferDataARB(GL_ARRAY_BUFFER, sizeof(struct vertex_p2f_t2f_c4f) * vertexCount, NULL, GL_STREAM_DRAW);
@@ -61,7 +63,7 @@ static void drawString(GLBitmapFont * font, const char * string, size_t length, 
 	vertices = glMapBufferARB(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
 	indexes = glMapBufferARB(GL_ELEMENT_ARRAY_BUFFER, GL_WRITE_ONLY);
 	vertexCount = indexCount = 0;
-	GLBitmapFont_getStringVertices(font, string, length, emSize, VECTOR2f(offsetX, offsetY), VECTOR2f(0.0f, 0.0f), false, GLBITMAPFONT_NO_CLIP, GLBITMAPFONT_NO_CLIP, COLOR4f(1.0f, 1.0f, 1.0f, 1.0f), vertices, indexes, &vertexCount, &indexCount);
+	GLBitmapFont_getStringVertices(font, string, length, emSize, VECTOR2f(offsetX, offsetY), VECTOR2f(0.0f, 0.0f), false, GLBITMAPFONT_NO_CLIP, COLOR4f(1.0f, 1.0f, 1.0f, 1.0f), vertices, indexes, &vertexCount, &indexCount);
 	glUnmapBufferARB(GL_ARRAY_BUFFER);
 	glUnmapBufferARB(GL_ELEMENT_ARRAY_BUFFER);
 	
@@ -93,7 +95,7 @@ static void drawTextFlow(TextFlow * textFlow, float emSize, float offsetX, float
 		glGenBuffersARB(1, &vertexBufferID);
 	}
 	vertexCount = indexCount = 0;
-	TextFlow_getVertices(textFlow, emSize, VECTOR2f(offsetX, offsetY), VECTOR2f(0.0f, 1.0f), false, textFlowWidth * 0.0625f * scale, GLBITMAPFONT_NO_CLIP/*textFlowHeight * 0.0625f * scale*/, COLOR4f(1.0f, 1.0f, 1.0f, 1.0f), NULL, NULL, &vertexCount, &indexCount);
+	TextFlow_getVertices(textFlow, emSize, VECTOR2f(offsetX, offsetY), VECTOR2f(0.0f, 1.0f), false, clipping ? clipBounds : GLBITMAPFONT_NO_CLIP, COLOR4f(1.0f, 1.0f, 1.0f, 1.0f), NULL, NULL, &vertexCount, &indexCount);
 	glBindBufferARB(GL_ARRAY_BUFFER, vertexBufferID);
 	glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER, indexBufferID);
 	glBufferDataARB(GL_ARRAY_BUFFER, sizeof(struct vertex_p2f_t2f_c4f) * vertexCount, NULL, GL_STREAM_DRAW);
@@ -101,7 +103,7 @@ static void drawTextFlow(TextFlow * textFlow, float emSize, float offsetX, float
 	vertices = glMapBufferARB(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
 	indexes = glMapBufferARB(GL_ELEMENT_ARRAY_BUFFER, GL_WRITE_ONLY);
 	vertexCount = indexCount = 0;
-	TextFlow_getVertices(textFlow, emSize, VECTOR2f(offsetX, offsetY), VECTOR2f(0.0f, 1.0f), false, textFlowWidth * 0.0625f * scale, GLBITMAPFONT_NO_CLIP/*textFlowHeight * 0.0625f * scale*/, COLOR4f(1.0f, 1.0f, 1.0f, 1.0f), vertices, indexes, &vertexCount, &indexCount);
+	TextFlow_getVertices(textFlow, emSize, VECTOR2f(offsetX, offsetY), VECTOR2f(0.0f, 1.0f), false, clipping ? clipBounds : GLBITMAPFONT_NO_CLIP, COLOR4f(1.0f, 1.0f, 1.0f, 1.0f), vertices, indexes, &vertexCount, &indexCount);
 	glUnmapBufferARB(GL_ARRAY_BUFFER);
 	glUnmapBufferARB(GL_ELEMENT_ARRAY_BUFFER);
 	
@@ -147,9 +149,26 @@ static bool Target_draw() {
 	drawString(font, freeformText, strlen(freeformText), 0.0625f * scale, stringWidth * -0.03125f * scale, -0.0625f * scale);
 	
 	glColor4f(0.875f, 0.875f, 0.5f, 1.0f);
-	snprintf(indexString, 32, "%u, %s", (unsigned int) lastIndexAtWidth, lastLeadingEdge ? "true" : "false");
+	snprintf(indexString, 32, "%u, %s", (unsigned int) lastIndexAtPositionX, lastLeadingEdge ? "true" : "false");
 	stringWidth = GLBitmapFont_measureString(font, indexString, strlen(indexString));
 	drawString(font, indexString, strlen(indexString), 0.05f * scale, stringWidth * -0.025f * scale, 0.1f * scale);
+	
+	glBegin(GL_LINES);
+	if (clipping) {
+		glColor4f(0.5f, 0.0f, 0.0f, 1.0f);
+		glVertex2f(clipBounds.left, clipBounds.bottom);
+		glVertex2f(clipBounds.right, clipBounds.bottom);
+		glVertex2f(clipBounds.right, clipBounds.bottom);
+		glVertex2f(clipBounds.right, clipBounds.top);
+		glVertex2f(clipBounds.right, clipBounds.top);
+		glVertex2f(clipBounds.left, clipBounds.top);
+		glVertex2f(clipBounds.left, clipBounds.top);
+		glVertex2f(clipBounds.left, clipBounds.bottom);
+	}
+	glColor4f(0.5f, 0.5f, 0.0f, 1.0f);
+	glVertex2f((-6.0f + textFlowWidth) * 0.0625f * scale, -1.0f);
+	glVertex2f((-6.0f + textFlowWidth) * 0.0625f * scale, 1.0f);
+	glEnd();
 	
 	return true;
 }
@@ -166,7 +185,11 @@ static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned
 		Shell_redisplay();
 		
 	} else if (keyCode == KEYBOARD_TAB) {
-		textFlow->wrapMode = (textFlow->wrapMode == WORD_WRAP_NORMAL ? WORD_WRAP_AGGRESSIVE : WORD_WRAP_NORMAL);
+		if (shiftKeyDown) {
+			clipping = !clipping;
+		} else {
+			textFlow->wrapMode = (textFlow->wrapMode == WORD_WRAP_NORMAL ? WORD_WRAP_AGGRESSIVE : WORD_WRAP_NORMAL);
+		}
 		Shell_redisplay();
 		
 	} else if (charCode >= GLBITMAPFONT_PRINTABLE_MIN && charCode <= GLBITMAPFONT_PRINTABLE_MAX && strlen(freeformText) < FREEFORM_LENGTH_MAX) {
@@ -182,15 +205,18 @@ static void Target_keyDown(unsigned int charCode, unsigned int keyCode, unsigned
 
 static void Target_keyModifiersChanged(unsigned int modifiers) {
 	shiftKeyDown = !!(modifiers & MODIFIER_SHIFT_BIT);
+	controlKeyDown = !!(modifiers & MODIFIER_CONTROL_BIT);
 }
 
 static void queryIndexAtPosition(float x, float y) {
-	float stringWidth;
 	const char * string;
 	size_t stringLength;
 	float emSize;
+	Vector2f transformedPosition;
 	
-	if (y > viewportHeight / 2) {
+	transformedPosition = transformMousePosition_signedCenter(VECTOR2f(x, y), viewportWidth, viewportHeight, 1.0f / (0.0625f * scale));
+	
+	if (transformedPosition.y > 0.0f) {
 		string = freeformText;
 		stringLength = strlen(freeformText);
 		emSize = 0.0625f;
@@ -201,17 +227,24 @@ static void queryIndexAtPosition(float x, float y) {
 		emSize = 0.1f;
 	}
 	
-	stringWidth = GLBitmapFont_measureString(font, string, stringLength);
-	lastIndexAtWidth = GLBitmapFont_indexAtWidth(font, string, stringLength, (x / (float) viewportHeight * 2.0f - (float) viewportWidth / viewportHeight + stringWidth * emSize * 0.5f) / emSize, &lastLeadingEdge);
+	lastIndexAtPositionX = GLBitmapFont_indexAtPositionX(font, string, stringLength, emSize, transformedPosition.x, 0.5f, &lastLeadingEdge);
 	Shell_redisplay();
 }
 
 static void Target_mouseDown(unsigned int buttonNumber, float x, float y) {
-	if (shiftKeyDown) {
-		Vector2f transformedPosition;
-		
-		transformedPosition = transformMousePosition_signedCenter(VECTOR2f(x, y), viewportWidth, viewportHeight, 1.0f / (0.0625f * scale));
-		lastDragX = transformedPosition.x;
+	Vector2f transformedPosition;
+	
+	transformedPosition = transformMousePosition_signedCenter(VECTOR2f(x, y), viewportWidth, viewportHeight, 1.0f / (0.0625f * scale));
+	lastDragX = transformedPosition.x;
+	lastDragY = transformedPosition.y;
+	
+	if (clipping && controlKeyDown) {
+		if (shiftKeyDown) {
+			draggingClipBounds2 = true;
+		} else {
+			draggingClipBounds1 = true;
+		}
+	} else if (shiftKeyDown) {
 		draggingTextFlow = true;
 	} else {
 		queryIndexAtPosition(x, y);
@@ -224,24 +257,37 @@ static void Target_mouseDown(unsigned int buttonNumber, float x, float y) {
 }
 
 static void Target_mouseDragged(unsigned int buttonMask, float x, float y) {
+	Vector2f transformedPosition;
+	
+	transformedPosition = transformMousePosition_signedCenter(VECTOR2f(x, y), viewportWidth, viewportHeight, 1.0f / (0.0625f * scale));
+	
 	if (draggingTextFlow) {
-		Vector2f transformedPosition;
-		
-		transformedPosition = transformMousePosition_signedCenter(VECTOR2f(x, y), viewportWidth, viewportHeight, 1.0f / (0.0625f * scale));
 		textFlowWidth += transformedPosition.x - lastDragX;
-		textFlowHeight += transformedPosition.y - lastDragY;
 		textFlow->wrapWidth = textFlowWidth;
 		Shell_redisplay();
-		lastDragX = transformedPosition.x;
-		lastDragY = transformedPosition.y;
+		
+	} else if (draggingClipBounds1) {
+		clipBounds.left += (transformedPosition.x - lastDragX) * 0.0625f;
+		clipBounds.bottom += (transformedPosition.y - lastDragY) * 0.0625f;
+		Shell_redisplay();
+		
+	} else if (draggingClipBounds2) {
+		clipBounds.right += (transformedPosition.x - lastDragX) * 0.0625f;
+		clipBounds.top += (transformedPosition.y - lastDragY) * 0.0625f;
+		Shell_redisplay();
 		
 	} else {
 		queryIndexAtPosition(x, y);
 	}
+	
+	lastDragX = transformedPosition.x;
+	lastDragY = transformedPosition.y;
 }
 
 static void Target_mouseUp(unsigned int buttonNumber, float x, float y) {
 	draggingTextFlow = false;
+	draggingClipBounds1 = false;
+	draggingClipBounds2 = false;
 }
 
 static void registerShellCallbacks() {
@@ -401,7 +447,7 @@ void Target_init() {
 	TextureAtlasData_dispose(atlasData);
 	
 	textFlowWidth = 12.0f;
-	textFlowHeight = 8.0f;
+	clipBounds = RECT4f(-6.0f * 0.0625f, 6.0f * 0.0625f, 0.25f, 0.75f);
 	textFlow = TextFlow_create(font, "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut eleifend commodo placerat. Aenean a viverra leo.", WORD_WRAP_NORMAL, textFlowWidth);
 	
 	memset(freeformText, 0, FREEFORM_LENGTH_MAX + 1);

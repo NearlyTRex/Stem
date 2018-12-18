@@ -3,6 +3,9 @@
  * Removed baseIndex parameter from GLBitmapFont_getStringVertices(). It's now inferred from ioVertexCount.
  * Removed indexType parameter from GLBitmapFont_getStringVertices(). GL_UNSIGNED_INT is now the only valid index type.
  * Added pixelSnapping parameter to GLBitmapFont_getStringVertices() for less blurry pixel-exact text rendering.
+ * Added clipBounds parameter to GLBitmapFont_getStringVertices() to allow drawing a partial region of a string.
+ * Added TextFlow to assist with handling multiline and word wrapped text.
+ * Renamed GLBitmapFont_indexAtWidth() to GLBitmapFont_indexAtPositionX(). It also now takes a few more arguments.
  * Fixed crash when deserializing malformed GLBitmapFont data.
  * Updated to use TextureAtlas from glgraphics instead of GLTextureAtlas from gltexture.
 

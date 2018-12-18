@@ -26,6 +26,7 @@
 extern "C" {
 #endif
 
+#include "gamemath/Rect4f.h"
 #include "gamemath/Vector2f.h"
 #include "glgraphics/VertexTypes.h"
 #include "glgraphics/TextureAtlas.h"
@@ -45,7 +46,7 @@ typedef struct GLBitmapFont GLBitmapFont;
 #define GLBITMAPFONT_SERIALIZATION_FORMAT_VERSION 2
 
 #define GLBITMAPFONT_USE_STRLEN ((size_t) -1)
-#define GLBITMAPFONT_NO_CLIP INFINITY
+#define GLBITMAPFONT_NO_CLIP RECT4f(-INFINITY, INFINITY, -INFINITY, INFINITY)
 
 struct GLBitmapFont_charEntry {
 	// Number of total ems advanced after drawing this glyph
@@ -91,10 +92,11 @@ void GLBitmapFont_setTextureAtlas(GLBitmapFont * self, TextureAtlas * atlas, boo
 // Returns the width of string (of length UTF-8 bytes) in ems
 float GLBitmapFont_measureString(GLBitmapFont * self, const char * string, size_t length);
 
-// Returns the closest character index to widthInEms, as measured from the beginning of string (of length UTF-8 bytes).
-// If outLeadingEdge is non-NULL, it will be set to true if widthInEms falls on the leading half of the
-// character whose index is returned, or false if it does not.
-size_t GLBitmapFont_indexAtWidth(GLBitmapFont * self, const char * string, size_t length, float widthInEms, bool * outLeadingEdge);
+// Returns the closest character index to positionX, as measured from the beginning of string (of length UTF-8 bytes).
+// If outLeadingEdge is non-NULL, it will be set to true if positionX falls on the leading half of the character whose
+// index is returned, or false if it does not.
+// positionX is expressed in coordinates relative to this string's origin, as specified by relativeOriginX.
+size_t GLBitmapFont_indexAtPositionX(GLBitmapFont * self, const char * string, size_t length, float emSize, float positionX, float relativeOriginX, bool * outLeadingEdge);
 
 // Returns vertex data suitable for drawing a sprite with GL_TRIANGLES. Parameters:
 // - string: Text to be drawn.
@@ -103,8 +105,7 @@ size_t GLBitmapFont_indexAtWidth(GLBitmapFont * self, const char * string, size_
 // - offset: Drawing origin. These values are added to all returned vertex positions.
 // - relativeOrigin: Sprite's origin point in normalized coordinates. A value of {0, 0} will place the lower left vertex at the position specified by offset; {0.5, 0.5} will place the center at offset; {1, 1} will place the upper right corner at offset, and so on.
 // - pixelSnapping: If true, returned vertices will be snapped to the nearest integer value for each character. This may help text look less blurry in some cases. Passing a non-pixel-exact value for emSize while this parameter is true may have unexpected results.
-// - clipWidth: Specifies a maximum width beyond which returned vertices will be clipped. Pass GLBITMAPFONT_NO_CLIP if you don't want to clip.
-// - clipHeight: Specifies a maximum height beyond which returned vertices will be clipped. Pass GLBITMAPFONT_NO_CLIP if you don't want to clip.
+// - clipBounds: Specifies a draw region. Any vertices that fall outside these bounds will be clipped. Pass GLBITMAPFONT_NO_CLIP if you don't want to clip.
 // - color: Value to be assigned to all returned vertex colors.
 // - outVertices: If not NULL, vertex data will be written to this pointer.
 // - outIndexes: If not NULL, index data will be written to this pointer.
@@ -123,8 +124,7 @@ void GLBitmapFont_getStringVertices(GLBitmapFont * self,
                                     Vector2f offset,
                                     Vector2f relativeOrigin,
                                     bool pixelSnapping,
-                                    float clipWidth,
-                                    float clipHeight,
+                                    Rect4f clipBounds,
                                     Color4f color,
                                     struct vertex_p2f_t2f_c4f * outVertices,
                                     GLuint * outIndexes,

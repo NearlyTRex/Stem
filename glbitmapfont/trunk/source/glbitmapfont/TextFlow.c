@@ -92,7 +92,7 @@ static void updateWrapInfo(TextFlow * self) {
 				measuredWidth = GLBitmapFont_measureString(self->font, self->string + lastWrapIndex, lineEndCharIndex - lastWrapIndex);
 				if (measuredWidth >= self->wrapWidth) {
 					// Line needs to wrap
-					edgeCharIndex = GLBitmapFont_indexAtWidth(self->font, self->string + lastWrapIndex, lineEndCharIndex - lastWrapIndex, self->wrapWidth, NULL) + lastWrapIndex;
+					edgeCharIndex = GLBitmapFont_indexAtPositionX(self->font, self->string + lastWrapIndex, lineEndCharIndex - lastWrapIndex, 1.0f, self->wrapWidth, 0.0f, NULL) + lastWrapIndex;
 					wrapIndex = edgeCharIndex;
 					while (wrapIndex < lineEndCharIndex && isWrappableWhitespace(self->string[wrapIndex])) {
 						wrapIndex++;
@@ -162,13 +162,25 @@ static void updateWrapInfo(TextFlow * self) {
 	}
 }
 
+unsigned int TextFlow_getLineCount(TextFlow * self) {
+	updateWrapInfo(self);
+	return self->private_ivar(wrapInfo).wrapPointCount + 1;
+}
+
+Vector2f TextFlow_measureString(TextFlow * self) {
+	return VECTOR2f_ZERO; // TODO
+}
+
+size_t TextFlow_indexAtPosition(TextFlow * self, float emSize, Vector2f position, Vector2f relativeOrigin, bool * outLeadingEdge) {
+	return 0; // TODO
+}
+
 void TextFlow_getVertices(TextFlow * self,
                           float emSize,
                           Vector2f offset,
                           Vector2f relativeOrigin,
                           bool pixelSnapping,
-                          float clipWidth,
-                          float clipHeight,
+                          Rect4f clipBounds,
                           Color4f color,
                           struct vertex_p2f_t2f_c4f * outVertices,
                           GLuint * outIndexes,
@@ -185,8 +197,7 @@ void TextFlow_getVertices(TextFlow * self,
 		                               VECTOR2f(offset.x, offset.y - wrapPointIndex * emSize + self->private_ivar(wrapInfo).wrapPointCount * emSize * (1.0f - relativeOrigin.y)),
 		                               relativeOrigin,
 		                               pixelSnapping,
-		                               clipWidth,
-		                               clipHeight - wrapPointIndex * emSize + self->private_ivar(wrapInfo).wrapPointCount * emSize * relativeOrigin.y,
+		                               clipBounds,
 		                               color,
 		                               outVertices,
 		                               outIndexes,
@@ -201,8 +212,7 @@ void TextFlow_getVertices(TextFlow * self,
 	                               VECTOR2f(offset.x, offset.y - self->private_ivar(wrapInfo).wrapPointCount * emSize + self->private_ivar(wrapInfo).wrapPointCount * emSize * (1.0f - relativeOrigin.y)),
 	                               relativeOrigin,
 	                               pixelSnapping,
-	                               clipWidth,
-	                               clipHeight - wrapPointIndex * emSize + self->private_ivar(wrapInfo).wrapPointCount * emSize * relativeOrigin.y,
+	                               clipBounds,
 	                               color,
 	                               outVertices,
 	                               outIndexes,

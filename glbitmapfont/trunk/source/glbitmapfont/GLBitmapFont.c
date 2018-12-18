@@ -216,13 +216,17 @@ float GLBitmapFont_measureString(GLBitmapFont * self, const char * string, size_
 	return width;
 }
 
-size_t GLBitmapFont_indexAtWidth(GLBitmapFont * self, const char * string, size_t length, float widthInEms, bool * outLeadingEdge) {
+size_t GLBitmapFont_indexAtPositionX(GLBitmapFont * self, const char * string, size_t length, float emSize, float positionX, float relativeOriginX, bool * outLeadingEdge) {
 	float totalWidth = 0.0f, charWidth, halfKernOffset = 0.0f;
 	size_t charIndex, kernCharIndex;
 	
 	if (length == GLBITMAPFONT_USE_STRLEN) {
 		length = strlen(string);
 	}
+	if (relativeOriginX != 0.0f) {
+		positionX -= GLBitmapFont_measureString(self, string, length) * fabs(emSize) * relativeOriginX;
+	}
+	positionX /= emSize;
 	for (charIndex = 0; charIndex < length; charIndex++) {
 		if (string[charIndex] >= GLBITMAPFONT_PRINTABLE_MIN && string[charIndex] <= GLBITMAPFONT_PRINTABLE_MAX) {
 			charWidth = self->characters[string[charIndex] - GLBITMAPFONT_PRINTABLE_MIN].advance + halfKernOffset;
@@ -237,9 +241,9 @@ size_t GLBitmapFont_indexAtWidth(GLBitmapFont * self, const char * string, size_
 				}
 			}
 			totalWidth += charWidth;
-			if (totalWidth > widthInEms) {
+			if (totalWidth > positionX) {
 				if (outLeadingEdge != NULL) {
-					*outLeadingEdge = totalWidth - charWidth * 0.5f > widthInEms;
+					*outLeadingEdge = totalWidth - charWidth * 0.5f > positionX;
 				}
 				return charIndex;
 			}
@@ -254,142 +258,6 @@ size_t GLBitmapFont_indexAtWidth(GLBitmapFont * self, const char * string, size_
 	return length - 1;
 }
 
-struct vertex_p4f_t2f {
-	GLfloat position[4];
-	GLfloat texCoords[2];
-};
-
-unsigned int GLBitmapFont_getStringIndexes(GLBitmapFont * self,
-                                           const char * string,
-                                           size_t length,
-                                           void * outIndexes,
-                                           GLenum indexType,
-                                           unsigned int indexOffset) {
-	size_t charIndex;
-	unsigned int indexCount = 0, vertexCount = indexOffset;
-	
-	if (length == GLBITMAPFONT_USE_STRLEN) {
-		length = strlen(string);
-	}
-	for (charIndex = 0; charIndex < length; charIndex++) {
-		if (string[charIndex] >= GLBITMAPFONT_PRINTABLE_MIN && string[charIndex] <= GLBITMAPFONT_PRINTABLE_MAX) {
-			if (outIndexes != NULL) {
-				switch (indexType) {
-					case GL_UNSIGNED_BYTE: {
-						GLubyte * indexesByte = outIndexes;
-				
-						indexesByte[indexCount + 0] = vertexCount;
-						indexesByte[indexCount + 1] = vertexCount + 1;
-						indexesByte[indexCount + 2] = vertexCount + 2;
-						indexesByte[indexCount + 3] = vertexCount + 2;
-						indexesByte[indexCount + 4] = vertexCount + 3;
-						indexesByte[indexCount + 5] = vertexCount;
-						break;
-					}
-					case GL_UNSIGNED_SHORT: {
-						GLushort * indexesShort = outIndexes;
-				
-						indexesShort[indexCount + 0] = vertexCount;
-						indexesShort[indexCount + 1] = vertexCount + 1;
-						indexesShort[indexCount + 2] = vertexCount + 2;
-						indexesShort[indexCount + 3] = vertexCount + 2;
-						indexesShort[indexCount + 4] = vertexCount + 3;
-						indexesShort[indexCount + 5] = vertexCount;
-						break;
-					}
-					case GL_UNSIGNED_INT: {
-						GLuint * indexesUint = outIndexes;
-				
-						indexesUint[indexCount + 0] = vertexCount;
-						indexesUint[indexCount + 1] = vertexCount + 1;
-						indexesUint[indexCount + 2] = vertexCount + 2;
-						indexesUint[indexCount + 3] = vertexCount + 2;
-						indexesUint[indexCount + 4] = vertexCount + 3;
-						indexesUint[indexCount + 5] = vertexCount;
-						break;
-					}
-				}
-			}
-			vertexCount += 4;
-			indexCount += 6;
-		}
-	}
-	
-	return indexCount;
-}
-
-#define getVertices_kern() \
-	if (charIndex > 0) { \
-		for (kernCharIndex = 0; kernCharIndex < self->characters[charEntryIndex].kernCharCount; kernCharIndex++) { \
-			if (string[charIndex - 1] == self->characters[charEntryIndex].kernChars[kernCharIndex].previous) { \
-				positionX += self->characters[charEntryIndex].kernChars[kernCharIndex].offset * emSize; \
-				break; \
-			} \
-		} \
-	}
-
-#define getVertices_writePosition() \
-	outVertices[vertexCount + 0].position[0] = \
-	outVertices[vertexCount + 1].position[0] = offset.x + positionX + self->characters[charEntryIndex].glyphOffset * fabs(emSize); \
-	outVertices[vertexCount + 0].position[1] = \
-	outVertices[vertexCount + 3].position[1] = offset.y + emSize; \
-	if (pixelSnapping) { \
-		outVertices[vertexCount + 2].position[0] = \
-		outVertices[vertexCount + 3].position[0] = offset.x + positionX + floorf((self->characters[charEntryIndex].glyphOffset + self->characters[charEntryIndex].glyphWidth) * fabs(emSize)); \
-	} else { \
-		outVertices[vertexCount + 2].position[0] = \
-		outVertices[vertexCount + 3].position[0] = offset.x + positionX + (self->characters[charEntryIndex].glyphOffset + self->characters[charEntryIndex].glyphWidth) * fabs(emSize); \
-	} \
-	outVertices[vertexCount + 1].position[1] = \
-	outVertices[vertexCount + 2].position[1] = offset.y
-
-#define getVertices_writeTexCoords() \
-	outVertices[vertexCount + 0].texCoords[0] = \
-	outVertices[vertexCount + 1].texCoords[0] = atlasEntry.left; \
-	outVertices[vertexCount + 1].texCoords[1] = \
-	outVertices[vertexCount + 2].texCoords[1] = atlasEntry.bottom; \
-	outVertices[vertexCount + 2].texCoords[0] = \
-	outVertices[vertexCount + 3].texCoords[0] = atlasEntry.right; \
-	outVertices[vertexCount + 0].texCoords[1] = \
-	outVertices[vertexCount + 3].texCoords[1] = atlasEntry.top
-
-#define getVertices_writeColor() \
-	outVertices[vertexCount + 0].color[0] = \
-	outVertices[vertexCount + 1].color[0] = \
-	outVertices[vertexCount + 2].color[0] = \
-	outVertices[vertexCount + 3].color[0] = color.red; \
-	outVertices[vertexCount + 0].color[1] = \
-	outVertices[vertexCount + 1].color[1] = \
-	outVertices[vertexCount + 2].color[1] = \
-	outVertices[vertexCount + 3].color[1] = color.green; \
-	outVertices[vertexCount + 0].color[2] = \
-	outVertices[vertexCount + 1].color[2] = \
-	outVertices[vertexCount + 2].color[2] = \
-	outVertices[vertexCount + 3].color[2] = color.blue; \
-	outVertices[vertexCount + 0].color[3] = \
-	outVertices[vertexCount + 1].color[3] = \
-	outVertices[vertexCount + 2].color[3] = \
-	outVertices[vertexCount + 3].color[3] = color.alpha
-
-#define getVertices_writeIndexes() \
-	outIndexes[indexCount + 0] = vertexCount; \
-	outIndexes[indexCount + 1] = vertexCount + 1; \
-	outIndexes[indexCount + 2] = vertexCount + 2; \
-	outIndexes[indexCount + 3] = vertexCount + 2; \
-	outIndexes[indexCount + 4] = vertexCount + 3; \
-	outIndexes[indexCount + 5] = vertexCount;
-
-// TODO: This is wrong; needs to work for relativeOrigin != {0.0f, 0.0f}
-#define getVertices_clip() \
-	if (outVertices[vertexCount + 2].position[0] > offset.x + clipWidth) { \
-		outVertices[vertexCount + 2].texCoords[0] = outVertices[vertexCount + 3].texCoords[0] = atlasEntry.left + (atlasEntry.right - atlasEntry.left) * (offset.x + clipWidth - outVertices[vertexCount + 0].position[0]) / (outVertices[vertexCount + 2].position[0] - outVertices[vertexCount + 0].position[0]); \
-		outVertices[vertexCount + 2].position[0] = outVertices[vertexCount + 3].position[0] = offset.x + clipWidth; \
-	} \
-	if (outVertices[vertexCount + 0].position[1] > offset.y + clipHeight) { \
-		outVertices[vertexCount + 0].texCoords[1] = outVertices[vertexCount + 3].texCoords[1] = atlasEntry.bottom + (atlasEntry.top - atlasEntry.bottom) * (offset.y + clipHeight - outVertices[vertexCount + 1].position[1]) / (outVertices[vertexCount + 0].position[1] - outVertices[vertexCount + 1].position[1]); \
-		outVertices[vertexCount + 0].position[1] = outVertices[vertexCount + 3].position[1] = offset.y + clipHeight; \
-	}
-
 void GLBitmapFont_getStringVertices(GLBitmapFont * self,
                                     const char * string,
                                     size_t length,
@@ -397,8 +265,7 @@ void GLBitmapFont_getStringVertices(GLBitmapFont * self,
                                     Vector2f offset,
                                     Vector2f relativeOrigin,
                                     bool pixelSnapping,
-                                    float clipWidth,
-                                    float clipHeight,
+                                    Rect4f clipBounds,
                                     Color4f color,
                                     struct vertex_p2f_t2f_c4f * outVertices,
                                     GLuint * outIndexes,
@@ -409,8 +276,9 @@ void GLBitmapFont_getStringVertices(GLBitmapFont * self,
 	unsigned int charEntryIndex;
 	unsigned int vertexCount = *ioVertexCount, indexCount = *ioIndexCount;
 	struct TextureAtlas_entry atlasEntry;
+	Rect4f vertexBounds;
 	
-	if (clipWidth <= 0.0f || clipHeight <= 0.0f) {
+	if (clipBounds.right - clipBounds.left <= 0.0f || clipBounds.top - clipBounds.bottom <= 0.0f) {
 		return;
 	}
 	if (length == GLBITMAPFONT_USE_STRLEN) {
@@ -423,27 +291,79 @@ void GLBitmapFont_getStringVertices(GLBitmapFont * self,
 	for (charIndex = 0; charIndex < length; charIndex++) {
 		if (string[charIndex] >= GLBITMAPFONT_PRINTABLE_MIN && string[charIndex] <= GLBITMAPFONT_PRINTABLE_MAX) {
 			charEntryIndex = string[charIndex] - GLBITMAPFONT_PRINTABLE_MIN;
-			getVertices_kern();
-			if (outVertices != NULL) {
-				atlasEntry = TextureAtlas_lookup(self->atlas, self->characters[charEntryIndex].atlasKey);
-				getVertices_writePosition();
-				getVertices_writeTexCoords();
-				getVertices_writeColor();
-				getVertices_clip();
+			
+			if (charIndex > 0) {
+				for (kernCharIndex = 0; kernCharIndex < self->characters[charEntryIndex].kernCharCount; kernCharIndex++) {
+					if (string[charIndex - 1] == self->characters[charEntryIndex].kernChars[kernCharIndex].previous) {
+						positionX += self->characters[charEntryIndex].kernChars[kernCharIndex].offset * emSize;
+						break;
+					}
+				}
 			}
-			if (outIndexes != NULL) {
-				getVertices_writeIndexes();
+			
+			vertexBounds.left = offset.x + positionX + self->characters[charEntryIndex].glyphOffset * fabs(emSize);
+			if (pixelSnapping) {
+				vertexBounds.right = offset.x + positionX + floorf((self->characters[charEntryIndex].glyphOffset + self->characters[charEntryIndex].glyphWidth) * fabs(emSize));
+			} else {
+				vertexBounds.right = offset.x + positionX + (self->characters[charEntryIndex].glyphOffset + self->characters[charEntryIndex].glyphWidth) * fabs(emSize);
 			}
-			vertexCount += 4;
-			indexCount += 6;
+			vertexBounds.bottom = offset.y;
+			vertexBounds.top = offset.y + emSize;
+			
+			if (vertexBounds.left < clipBounds.right &&
+			    vertexBounds.right > clipBounds.left &&
+			    vertexBounds.top > clipBounds.bottom &&
+			    vertexBounds.bottom < clipBounds.top) {
+				if (outVertices != NULL) {
+					atlasEntry = TextureAtlas_lookup(self->atlas, self->characters[charEntryIndex].atlasKey);
+				
+					outVertices[vertexCount + 0].position[0] = outVertices[vertexCount + 1].position[0] = vertexBounds.left;
+					outVertices[vertexCount + 0].position[1] = outVertices[vertexCount + 3].position[1] = vertexBounds.top;
+					outVertices[vertexCount + 2].position[0] = outVertices[vertexCount + 3].position[0] = vertexBounds.right;
+					outVertices[vertexCount + 1].position[1] = outVertices[vertexCount + 2].position[1] = vertexBounds.bottom;
+				
+					outVertices[vertexCount + 0].texCoords[0] = outVertices[vertexCount + 1].texCoords[0] = atlasEntry.left;
+					outVertices[vertexCount + 1].texCoords[1] = outVertices[vertexCount + 2].texCoords[1] = atlasEntry.bottom;
+					outVertices[vertexCount + 2].texCoords[0] = outVertices[vertexCount + 3].texCoords[0] = atlasEntry.right;
+					outVertices[vertexCount + 0].texCoords[1] = outVertices[vertexCount + 3].texCoords[1] = atlasEntry.top;
+				
+					outVertices[vertexCount + 0].color[0] = outVertices[vertexCount + 1].color[0] = outVertices[vertexCount + 2].color[0] = outVertices[vertexCount + 3].color[0] = color.red;
+					outVertices[vertexCount + 0].color[1] = outVertices[vertexCount + 1].color[1] = outVertices[vertexCount + 2].color[1] = outVertices[vertexCount + 3].color[1] = color.green;
+					outVertices[vertexCount + 0].color[2] = outVertices[vertexCount + 1].color[2] = outVertices[vertexCount + 2].color[2] = outVertices[vertexCount + 3].color[2] = color.blue;
+					outVertices[vertexCount + 0].color[3] = outVertices[vertexCount + 1].color[3] = outVertices[vertexCount + 2].color[3] = outVertices[vertexCount + 3].color[3] = color.alpha;
+					
+					if (vertexBounds.left < clipBounds.left) {
+						outVertices[vertexCount + 0].texCoords[0] = outVertices[vertexCount + 1].texCoords[0] = atlasEntry.right - (atlasEntry.right - atlasEntry.left) * (vertexBounds.right - clipBounds.left) / (vertexBounds.right - vertexBounds.left);
+						outVertices[vertexCount + 0].position[0] = outVertices[vertexCount + 1].position[0] = clipBounds.left;
+					}
+					if (vertexBounds.right > clipBounds.right) {
+						outVertices[vertexCount + 2].texCoords[0] = outVertices[vertexCount + 3].texCoords[0] = atlasEntry.left + (atlasEntry.right - atlasEntry.left) * (clipBounds.right - vertexBounds.left) / (vertexBounds.right - vertexBounds.left);
+						outVertices[vertexCount + 2].position[0] = outVertices[vertexCount + 3].position[0] = clipBounds.right;
+					}
+					if (vertexBounds.bottom < clipBounds.bottom) {
+						outVertices[vertexCount + 1].texCoords[1] = outVertices[vertexCount + 2].texCoords[1] = atlasEntry.top - (atlasEntry.top - atlasEntry.bottom) * (vertexBounds.top - clipBounds.bottom) / (vertexBounds.top - vertexBounds.bottom);
+						outVertices[vertexCount + 1].position[1] = outVertices[vertexCount + 2].position[1] = clipBounds.bottom;
+					}
+					if (vertexBounds.top > clipBounds.top) {
+						outVertices[vertexCount + 0].texCoords[1] = outVertices[vertexCount + 3].texCoords[1] = atlasEntry.bottom + (atlasEntry.top - atlasEntry.bottom) * (clipBounds.top - vertexBounds.bottom) / (vertexBounds.top - vertexBounds.bottom);
+						outVertices[vertexCount + 0].position[1] = outVertices[vertexCount + 3].position[1] = clipBounds.top;
+					}
+				}
+				if (outIndexes != NULL) {
+					outIndexes[indexCount + 0] = vertexCount;
+					outIndexes[indexCount + 1] = vertexCount + 1;
+					outIndexes[indexCount + 2] = vertexCount + 2;
+					outIndexes[indexCount + 3] = vertexCount + 2;
+					outIndexes[indexCount + 4] = vertexCount + 3;
+					outIndexes[indexCount + 5] = vertexCount;
+				}
+				vertexCount += 4;
+				indexCount += 6;
+			}
 			
 			positionX += self->characters[charEntryIndex].advance * emSize;
 			if (pixelSnapping) {
 				positionX = roundf(positionX);
-			}
-			// TODO: This is wrong; needs to work for relativeOrigin.x != 0.0f
-			if (positionX > clipWidth) {
-				break;
 			}
 		}
 	}

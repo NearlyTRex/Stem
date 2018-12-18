@@ -63,7 +63,19 @@ TextFlow * TextFlow_create(GLBitmapFont * font, const char * string, enum TextFl
 bool TextFlow_init(TextFlow * self, GLBitmapFont * font, const char * string, enum TextFlow_wordWrapMode wrapMode, float wrapWidth);
 void TextFlow_dispose(TextFlow * self);
 
-// TODO: TextFlow_indexAtPosition(), TextFlow_getLineCount()
+// Returns number of lines used by the wrapped string, including both word wrapping and hard line breaks.
+unsigned int TextFlow_getLineCount(TextFlow * self);
+
+// Returns the actual width and height occupied by the wrapped string. The width may be greater than wrapWidth, even
+// with WORD_WRAP_AGGRESSIVE, if wrapWidth is small enough that a single wide charater doesn't fit. If only height is
+// needed, it can be calculated more simply by multiplying the return value of TextFlow_getLineCount() by the em size.
+Vector2f TextFlow_measureString(TextFlow * self);
+
+// Returns the closest character index to position, as measured from the beginning of string (of length UTF-8 bytes).
+// If outLeadingEdge is non-NULL, it will be set to true if position falls on the leading half of the
+// character whose index is returned, or false if it does not.
+// position is expressed in coordinates relative to this TextFlow's origin, as specified by relativeOrigin.
+size_t TextFlow_indexAtPosition(TextFlow * self, float emSize, Vector2f position, Vector2f relativeOrigin, bool * outLeadingEdge);
 
 // See GLBitmapFont.h for parameter documentation
 void TextFlow_getVertices(TextFlow * self,
@@ -71,8 +83,7 @@ void TextFlow_getVertices(TextFlow * self,
                           Vector2f offset,
                           Vector2f relativeOrigin,
                           bool pixelSnapping,
-                          float clipWidth,
-                          float clipHeight,
+                          Rect4f clipBounds,
                           Color4f color,
                           struct vertex_p2f_t2f_c4f * outVertices,
                           GLuint * outIndexes,
