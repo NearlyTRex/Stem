@@ -26,11 +26,11 @@
 
 #define SUPERCLASS UIElement
 
-UIButton * UIButton_create(UIAppearance * appearance, Vector2f position, Vector2f relativeOrigin, const char * label, float width, UIButtonActionCallback actionCallback, void * actionCallbackContext) {
-	stemobject_create_implementation(UIButton, init, appearance, position, relativeOrigin, label, width, actionCallback, actionCallbackContext)
+UIButton * UIButton_create(UIAppearance * appearance, Vector2f position, Vector2f relativeOrigin, const char * text, float width, enum UIElement_overflowMode overflowMode, UIButtonActionCallback actionCallback, void * actionCallbackContext) {
+	stemobject_create_implementation(UIButton, init, appearance, position, relativeOrigin, text, width, overflowMode, actionCallback, actionCallbackContext)
 }
 
-bool UIButton_init(UIButton * self, UIAppearance * appearance, Vector2f position, Vector2f relativeOrigin, const char * label, float width, UIButtonActionCallback actionCallback, void * actionCallbackContext) {
+bool UIButton_init(UIButton * self, UIAppearance * appearance, Vector2f position, Vector2f relativeOrigin, const char * text, float width, enum UIElement_overflowMode overflowMode, UIButtonActionCallback actionCallback, void * actionCallbackContext) {
 	call_super(init, self, UIELEMENT_BUTTON, appearance, position, relativeOrigin);
 	self->dispose = UIButton_dispose;
 	self->hitTest = UIButton_hitTest;
@@ -40,11 +40,12 @@ bool UIButton_init(UIButton * self, UIAppearance * appearance, Vector2f position
 	self->getBounds = UIButton_getBounds;
 	self->getVertices = UIButton_getVertices;
 	
-	self->label = strdup(label);
+	self->text = strdup(text);
 	self->actionCallback = actionCallback;
 	self->actionCallbackContext = actionCallbackContext;
-	if (width == UIBUTTON_SIZE_TO_FIT_LABEL) {
-		self->width = ceilf(GLBitmapFont_measureString(self->appearance->font, label, GLBITMAPFONT_USE_STRLEN) * self->appearance->metrics.fontHeight + self->appearance->metrics.buttonLabelPadding * 2);
+	self->overflowMode = overflowMode;
+	if (overflowMode == OVERFLOW_RESIZE) {
+		self->width = ceilf(GLBitmapFont_measureString(self->appearance->font, text, GLBITMAPFONT_USE_STRLEN) * self->appearance->metrics.fontHeight + self->appearance->metrics.buttonTextPadding * 2);
 	} else {
 		self->width = width;
 	}
@@ -54,8 +55,22 @@ bool UIButton_init(UIButton * self, UIAppearance * appearance, Vector2f position
 }
 
 void UIButton_dispose(UIButton * self) {
-	free(self->label);
+	free(self->text);
 	call_super(dispose, self);
+}
+
+void UIButton_setText(UIButton * self, const char * text) {
+	free(self->text);
+	self->text = strdup(text);
+	if (self->overflowMode == OVERFLOW_RESIZE) {
+		self->width = ceilf(GLBitmapFont_measureString(self->appearance->font, text, GLBITMAPFONT_USE_STRLEN) * self->appearance->metrics.fontHeight + self->appearance->metrics.buttonTextPadding * 2);
+	}
+}
+
+void UIButton_action(UIButton * self) {
+	if (self->actionCallback != NULL) {
+		self->actionCallback(self, self->actionCallbackContext);
+	}
 }
 
 UIElement * UIButton_hitTest(UIButton * self, float x, float y) {
@@ -95,21 +110,9 @@ bool UIButton_mouseDragged(UIButton * self, unsigned int buttonMask, float x, fl
 	return false;
 }
 
-bool UIButton_setFocusedElement(UIButton * self, UIElement * element) {
-	return true;
-}
-
-UIElement * UIButton_getFocusedElement(UIButton * self) {
-	return (UIElement *) self;
-}
-
-bool UIButton_acceptsFocus(UIButton * self) {
-	return true;
-}
-
 Rect4f UIButton_getBounds(UIButton * self) {
 	Rect4f result;
-	float height = self->appearance->metrics.fontHeight + self->appearance->metrics.buttonLabelPadding * 2;
+	float height = self->appearance->metrics.fontHeight + self->appearance->metrics.buttonTextPadding * 2;
 	
 	result.left = self->position.x - self->width * self->relativeOrigin.x;
 	result.bottom = self->position.y - height * self->relativeOrigin.y;
@@ -187,16 +190,16 @@ void UIButton_getVertices(UIButton * self, Vector2f offset, struct vertex_p2f_t2
 		*ioIndexCount += 6 * 3 * 3;
 	}
 	
-	stringWidth = GLBitmapFont_measureString(self->appearance->font, self->label, GLBITMAPFONT_USE_STRLEN) * self->appearance->metrics.fontHeight;
+	stringWidth = GLBitmapFont_measureString(self->appearance->font, self->text, GLBITMAPFONT_USE_STRLEN) * self->appearance->metrics.fontHeight;
 	GLBitmapFont_getStringVertices(self->appearance->font,
-	                               self->label,
+	                               self->text,
 	                               GLBITMAPFONT_USE_STRLEN,
 	                               self->appearance->metrics.fontHeight,
 	                               VECTOR2f(roundf(offset.x + bounds.left + (bounds.right - bounds.left - stringWidth) * 0.5f), roundf(offset.y + bounds.bottom + (bounds.top - bounds.bottom - self->appearance->metrics.fontHeight) * 0.5f)),
 	                               VECTOR2f(0.0f, 0.0f),
 	                               true,
-	                               GLBITMAPFONT_NO_CLIP,
-	                               self->appearance->metrics.buttonLabelColor,
+	                               self->overflowMode == OVERFLOW_TRUNCATE ? bounds : GLBITMAPFONT_NO_CLIP,
+	                               self->appearance->metrics.buttonTextColor,
 	                               outVertices,
 	                               outIndexes,
 	                               ioVertexCount,

@@ -46,14 +46,20 @@ struct UIAppearance_metrics UIAppearance_defaultMetrics(void) {
 	struct UIAppearance_metrics metrics;
 	
 	metrics.fontHeight = 30.0f;
-	metrics.buttonLabelPadding = 4.0f;
-	metrics.buttonLabelColor = COLOR4f(1.0f, 1.0f, 1.0f, 1.0f);
+	
+	metrics.buttonTextPadding = 4.0f;
+	metrics.buttonTextColor = COLOR4f(0.0f, 0.0f, 0.0f, 1.0f);
 	metrics.buttonSlices.leftColumn = 2.0f;
 	metrics.buttonSlices.centerColumn = 1.0f;
 	metrics.buttonSlices.rightColumn = 2.0f;
 	metrics.buttonSlices.bottomRow = 2.0f;
 	metrics.buttonSlices.centerRow = 1.0f;
 	metrics.buttonSlices.topRow = 2.0f;
+	
+	metrics.checkboxGraphicWidth = 22.0f;
+	metrics.checkboxGraphicHeight = 22.0f;
+	metrics.checkboxTextPadding = 6.0f;
+	metrics.checkboxTextColor = COLOR4f(0.0f, 0.0f, 0.0f, 1.0f);
 	
 	return metrics;
 }

@@ -34,8 +34,10 @@ typedef struct UIAppearance UIAppearance;
 
 #define UIAPPEARANCE_KEY_BUTTON_UP "button_up"
 #define UIAPPEARANCE_KEY_BUTTON_DOWN "button_down"
-#define UIAPPEARANCE_KEY_BUTTON_DISABLED "button_disabled"
-#define UIAPPEARANCE_KEY_POINTER "pointer"
+#define UIAPPEARANCE_KEY_CHECKBOX_UP "checkbox_up"
+#define UIAPPEARANCE_KEY_CHECKBOX_DOWN "checkbox_down"
+#define UIAPPEARANCE_KEY_CHECKBOX_UP_CHECKED "checkbox_up_checked"
+#define UIAPPEARANCE_KEY_CHECKBOX_DOWN_CHECKED "checkbox_down_checked"
 
 // Measured in pixels
 struct UIAppearance_sliceGrid {
@@ -49,9 +51,15 @@ struct UIAppearance_sliceGrid {
 
 struct UIAppearance_metrics {
 	float fontHeight;
-	float buttonLabelPadding;
-	Color4f buttonLabelColor;
+	
+	float buttonTextPadding;
+	Color4f buttonTextColor;
 	struct UIAppearance_sliceGrid buttonSlices;
+	
+	float checkboxGraphicWidth;
+	float checkboxGraphicHeight;
+	float checkboxTextPadding;
+	Color4f checkboxTextColor;
 };
 
 #define UIAppearance_structContents(self_type) \

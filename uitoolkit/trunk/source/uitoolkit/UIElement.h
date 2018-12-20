@@ -30,8 +30,17 @@ typedef struct UIElement UIElement;
 
 typedef enum UIElementType {
 	UIELEMENT_BUTTON,
+	UIELEMENT_LABEL,
+	UIELEMENT_CHECKBOX,
+	UIELEMENT_RADIO_BUTTON,
 	UIELEMENT_CONTAINER
 } UIElementType;
+
+enum UIElement_overflowMode {
+	OVERFLOW_TRUNCATE, // Clip text where it's larger than the element's bounds
+	OVERFLOW_SPILL, // Allow text to spill outside the element's bounds if it's larger, without actually changing this object's bounds
+	OVERFLOW_RESIZE // Change this element's bounds to fit the measured size of the text
+};
 
 #include "gamemath/Rect4f.h"
 #include "gamemath/Vector2f.h"

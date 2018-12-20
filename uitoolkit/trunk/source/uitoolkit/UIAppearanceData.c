@@ -99,14 +99,26 @@ bool UIAppearanceData_loadSerializedData(UIAppearanceData * self, compat_type(De
 		if (!strcmp(metricName, "fontHeight")) {
 			metrics.fontHeight = context->readFloat(context, metricName);
 			
-		} else if (!strcmp(metricName, "buttonLabelPadding")) {
-			metrics.buttonLabelPadding = context->readFloat(context, metricName);
+		} else if (!strcmp(metricName, "buttonTextPadding")) {
+			metrics.buttonTextPadding = context->readFloat(context, metricName);
 			
-		} else if (!strcmp(metricName, "buttonLabelColor")) {
-			metrics.buttonLabelColor = readColor4f(context, metricName);
+		} else if (!strcmp(metricName, "buttonTextColor")) {
+			metrics.buttonTextColor = readColor4f(context, metricName);
 			
 		} else if (!strcmp(metricName, "buttonSlices")) {
 			metrics.buttonSlices = readSliceGrid(context, metricName);
+			
+		} else if (!strcmp(metricName, "checkboxGraphicWidth")) {
+			metrics.checkboxGraphicWidth = context->readFloat(context, metricName);
+			
+		} else if (!strcmp(metricName, "checkboxGraphicHeight")) {
+			metrics.checkboxGraphicHeight = context->readFloat(context, metricName);
+			
+		} else if (!strcmp(metricName, "checkboxTextPadding")) {
+			metrics.checkboxTextPadding = context->readFloat(context, metricName);
+			
+		} else if (!strcmp(metricName, "checkboxTextColor")) {
+			metrics.checkboxTextColor = readColor4f(context, metricName);
 		}
 	}
 	context->endDictionary(context);
@@ -150,9 +162,13 @@ void UIAppearanceData_serialize(UIAppearanceData * self, compat_type(Serializati
 	context->writeStringNullable(context, "font_name", self->fontName);
 	context->beginDictionary(context, "metrics");
 	context->writeFloat(context, "fontHeight", self->metrics.fontHeight);
-	context->writeFloat(context, "buttonLabelPadding", self->metrics.buttonLabelPadding);
-	writeColor4f(context, "buttonLabelColor", self->metrics.buttonLabelColor);
+	context->writeFloat(context, "buttonTextPadding", self->metrics.buttonTextPadding);
+	writeColor4f(context, "buttonTextColor", self->metrics.buttonTextColor);
 	writeSliceGrid(context, "buttonSlices", self->metrics.buttonSlices);
+	context->writeFloat(context, "checkboxGraphicWidth", self->metrics.checkboxGraphicWidth);
+	context->writeFloat(context, "checkboxGraphicHeight", self->metrics.checkboxGraphicHeight);
+	context->writeFloat(context, "checkboxTextPadding", self->metrics.checkboxTextPadding);
+	writeColor4f(context, "checkboxTextColor", self->metrics.buttonTextColor);
 	context->endDictionary(context);
 	context->endStructure(context);
 }

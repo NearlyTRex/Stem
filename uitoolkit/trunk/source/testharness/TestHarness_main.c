@@ -12,6 +12,7 @@
 #include "shell/ShellKeyCodes.h"
 #include "uitoolkit/UIAppearance.h"
 #include "uitoolkit/UIButton.h"
+#include "uitoolkit/UICheckbox.h"
 #include "uitoolkit/UIContainer.h"
 #include "uitoolkit/UILabel.h"
 
@@ -145,20 +146,19 @@ static void button2ActionCallback(UIButton * sender, void * context) {
 	printf("Button 2 action\n");
 }
 
+static void checkboxActionCallback(UICheckbox * sender, void * context, bool checked) {
+	printf("Checkbox action (%schecked)\n", checked ? "" : "not ");
+}
+
 static void initTestUI() {
-	struct UIAppearance_metrics metrics = {
-		.fontHeight = 30.0f,
-		.buttonLabelPadding = 4.0f,
-		.buttonLabelColor = COLOR4f(0.0f, 0.0f, 0.0f, 1.0f),
-		.buttonSlices = {2, 1, 2, 2, 1, 2}
-	};
 	JSONDeserializationContext * context;
 	TextureAtlasData * atlasData;
 	BitmapImage * image;
 	UIButton * button1, * button2;
-	UIElement * containerElements[3];
+	UIElement * containerElements[4];
 	UIContainer * container;
 	UILabel * label;
+	UICheckbox * checkbox;
 	
 	context = JSONDeserializationContext_createWithFile("testappearance.atlas");
 	if (context->status != SERIALIZATION_ERROR_OK) {
@@ -195,13 +195,15 @@ static void initTestUI() {
 	}
 	GLBitmapFont_setTextureAtlas(font, atlas, false);
 	
-	appearance = UIAppearance_create(atlas, font, metrics);
-	button1 = UIButton_create(appearance, VECTOR2f(20.0f, 20.0f), VECTOR2f(0.0f, 0.0f), "I'm a button", UIBUTTON_SIZE_TO_FIT_LABEL, button1ActionCallback, NULL);
-	button2 = UIButton_create(appearance, VECTOR2f(20.0f, 60.0f), VECTOR2f(0.0f, 0.0f), "Hello", UIBUTTON_SIZE_TO_FIT_LABEL, button2ActionCallback, NULL);
-	label = UILabel_create(appearance, VECTOR2f(30.0f, 120.0f), VECTOR2f_ZERO, VECTOR2f(0.0f, 0.0f), "I'm a label", COLOR4f(0.0f, 0.5f, 0.5f, 1.0f), WORD_WRAP_NONE, UILABEL_OVERFLOW_RESIZE, UILABEL_OVERFLOW_RESIZE);
+	appearance = UIAppearance_create(atlas, font, UIAppearance_defaultMetrics());
+	button1 = UIButton_create(appearance, VECTOR2f(20.0f, 20.0f), VECTOR2f(0.0f, 0.0f), "I'm a button", 100.0f, OVERFLOW_RESIZE, button1ActionCallback, NULL);
+	button2 = UIButton_create(appearance, VECTOR2f(20.0f, 60.0f), VECTOR2f(0.0f, 0.0f), "Hello", 100.0f, OVERFLOW_RESIZE, button2ActionCallback, NULL);
+	label = UILabel_create(appearance, VECTOR2f(30.0f, 120.0f), VECTOR2f_ZERO, VECTOR2f(0.0f, 0.0f), "I'm a label", COLOR4f(0.0f, 0.5f, 0.5f, 1.0f), WORD_WRAP_NONE, OVERFLOW_RESIZE, OVERFLOW_RESIZE);
+	checkbox = UICheckbox_create(appearance, VECTOR2f(20.0f, 160.0f), VECTOR2f(0.0f, 0.0f), "Checkbox", 50.0f, OVERFLOW_RESIZE, false, checkboxActionCallback, NULL);
 	containerElements[0] = (UIElement *) button1;
 	containerElements[1] = (UIElement *) button2;
 	containerElements[2] = (UIElement *) label;
+	containerElements[3] = (UIElement *) checkbox;
 	container = UIContainer_create(appearance, VECTOR2f(100.0f, 100.0f), containerElements, sizeof(containerElements) / sizeof(containerElements[0]));
 	rootElement = (UIElement *) container;
 	

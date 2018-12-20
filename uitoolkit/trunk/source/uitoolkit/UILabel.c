@@ -26,12 +26,12 @@
 
 #define SUPERCLASS UIElement
 
-UILabel * UILabel_create(UIAppearance * appearance, Vector2f position, Vector2f size, Vector2f relativeOrigin, const char * text, Color4f textColor, enum TextFlow_wordWrapMode wrapMode, enum UILabel_overflowMode overflowModeX, enum UILabel_overflowMode overflowModeY) {
+UILabel * UILabel_create(UIAppearance * appearance, Vector2f position, Vector2f size, Vector2f relativeOrigin, const char * text, Color4f textColor, enum TextFlow_wordWrapMode wrapMode, enum UIElement_overflowMode overflowModeX, enum UIElement_overflowMode overflowModeY) {
 	stemobject_create_implementation(UILabel, init, appearance, position, size, relativeOrigin, text, textColor, wrapMode, overflowModeX, overflowModeY)
 }
 
-bool UILabel_init(UILabel * self, UIAppearance * appearance, Vector2f position, Vector2f size, Vector2f relativeOrigin, const char * text, Color4f textColor, enum TextFlow_wordWrapMode wrapMode, enum UILabel_overflowMode overflowModeX, enum UILabel_overflowMode overflowModeY) {
-	call_super(init, self, UIELEMENT_BUTTON, appearance, position, relativeOrigin);
+bool UILabel_init(UILabel * self, UIAppearance * appearance, Vector2f position, Vector2f size, Vector2f relativeOrigin, const char * text, Color4f textColor, enum TextFlow_wordWrapMode wrapMode, enum UIElement_overflowMode overflowModeX, enum UIElement_overflowMode overflowModeY) {
+	call_super(init, self, UIELEMENT_LABEL, appearance, position, relativeOrigin);
 	self->dispose = UILabel_dispose;
 	self->getBounds = UILabel_getBounds;
 	self->getVertices = UILabel_getVertices;
@@ -41,12 +41,12 @@ bool UILabel_init(UILabel * self, UIAppearance * appearance, Vector2f position, 
 	self->overflowModeX = overflowModeX;
 	self->overflowModeY = overflowModeY;
 	
-	if (overflowModeX == UILABEL_OVERFLOW_RESIZE) {
+	if (overflowModeX == OVERFLOW_RESIZE) {
 		self->size.x = ceilf(TextFlow_measureString(self->textFlow).x * self->appearance->metrics.fontHeight);
 	} else {
 		self->size.x = size.x;
 	}
-	if (overflowModeY == UILABEL_OVERFLOW_RESIZE) {
+	if (overflowModeY == OVERFLOW_RESIZE) {
 		self->size.y = ceilf(TextFlow_getLineCount(self->textFlow) * self->appearance->metrics.fontHeight);
 	} else {
 		self->size.y = size.y;
@@ -61,10 +61,10 @@ void UILabel_dispose(UILabel * self) {
 
 void UILabel_setText(UILabel * self, const char * text) {
 	TextFlow_setString(self->textFlow, text);
-	if (self->overflowModeX == UILABEL_OVERFLOW_RESIZE) {
+	if (self->overflowModeX == OVERFLOW_RESIZE) {
 		self->size.x = ceilf(TextFlow_measureString(self->textFlow).x * self->appearance->metrics.fontHeight);
 	}
-	if (self->overflowModeY == UILABEL_OVERFLOW_RESIZE) {
+	if (self->overflowModeY == OVERFLOW_RESIZE) {
 		self->size.y = ceilf(TextFlow_getLineCount(self->textFlow) * self->appearance->metrics.fontHeight);
 	}
 }
@@ -82,14 +82,14 @@ Rect4f UILabel_getBounds(UILabel * self) {
 void UILabel_getVertices(UILabel * self, Vector2f offset, struct vertex_p2f_t2f_c4f * outVertices, GLuint * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount) {
 	Rect4f clipBounds = GLBITMAPFONT_NO_CLIP;
 	
-	if (self->overflowModeX == UILABEL_OVERFLOW_TRUNCATE || self->overflowModeY == UILABEL_OVERFLOW_TRUNCATE) {
+	if (self->overflowModeX == OVERFLOW_TRUNCATE || self->overflowModeY == OVERFLOW_TRUNCATE) {
 		Rect4f bounds = UILabel_getBounds(self);
 		
-		if (self->overflowModeX == UILABEL_OVERFLOW_TRUNCATE) {
+		if (self->overflowModeX == OVERFLOW_TRUNCATE) {
 			clipBounds.left = bounds.left;
 			clipBounds.right = bounds.right;
 		}
-		if (self->overflowModeY == UILABEL_OVERFLOW_TRUNCATE) {
+		if (self->overflowModeY == OVERFLOW_TRUNCATE) {
 			clipBounds.bottom = bounds.bottom;
 			clipBounds.top = bounds.top;
 		}

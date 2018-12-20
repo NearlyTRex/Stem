@@ -68,6 +68,7 @@ SOURCES_library = \
 	source/${PROJECT_NAME}/UIAppearance.c \
 	source/${PROJECT_NAME}/UIAppearanceData.c \
 	source/${PROJECT_NAME}/UIButton.c \
+	source/${PROJECT_NAME}/UICheckbox.c \
 	source/${PROJECT_NAME}/UIContainer.c \
 	source/${PROJECT_NAME}/UIElement.c \
 	source/${PROJECT_NAME}/UILabel.c
@@ -84,6 +85,7 @@ INCLUDES = \
 	source/${PROJECT_NAME}/UIAppearance.h \
 	source/${PROJECT_NAME}/UIAppearanceData.h \
 	source/${PROJECT_NAME}/UIButton.h \
+	source/${PROJECT_NAME}/UICheckbox.h \
 	source/${PROJECT_NAME}/UIContainer.h \
 	source/${PROJECT_NAME}/UIElement.h \
 	source/${PROJECT_NAME}/UILabel.h

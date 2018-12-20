@@ -31,27 +31,21 @@ typedef struct UILabel UILabel;
 #include "glbitmapfont/TextFlow.h"
 #include "uitoolkit/UIElement.h"
 
-enum UILabel_overflowMode {
-	UILABEL_OVERFLOW_TRUNCATE, // Clip text where it's larger than the UILabel's bounds
-	UILABEL_OVERFLOW_SPILL, // Allow text to spill outside the UILabel's bounds if it's larger, without actually changing this object's bounds
-	UILABEL_OVERFLOW_RESIZE // Change this UILabel's bounds to fit the text inside it
-};
-
 #define UILabel_structContents(self_type) \
 	UIElement_structContents(self_type) \
 	\
 	TextFlow * textFlow; \
 	Color4f textColor; \
 	Vector2f size; \
-	enum UILabel_overflowMode overflowModeX; \
-	enum UILabel_overflowMode overflowModeY;
+	enum UIElement_overflowMode overflowModeX; \
+	enum UIElement_overflowMode overflowModeY;
 
 stemobject_struct_definition(UILabel)
 
 // Initialization properties should generally be treated as immutable for this UILabel's lifetime. If text needs to be updated, use UILabel_setText().
-// If wrapMode is not WORD_WRAP_NONE, size.x will determine the wrap width, so set it to a sane value even if you're using UILABEL_OVERFLOW_RESIZE for overflowModeX.
-UILabel * UILabel_create(UIAppearance * appearance, Vector2f position, Vector2f size, Vector2f relativeOrigin, const char * text, Color4f textColor, enum TextFlow_wordWrapMode wrapMode, enum UILabel_overflowMode overflowModeX, enum UILabel_overflowMode overflowModeY);
-bool UILabel_init(UILabel * self, UIAppearance * appearance, Vector2f position, Vector2f size, Vector2f relativeOrigin, const char * text, Color4f textColor, enum TextFlow_wordWrapMode wrapMode, enum UILabel_overflowMode overflowModeX, enum UILabel_overflowMode overflowModeY);
+// If wrapMode is not WORD_WRAP_NONE, size.x will determine the wrap width, so set it to a sane value even if you're using OVERFLOW_RESIZE for overflowModeX.
+UILabel * UILabel_create(UIAppearance * appearance, Vector2f position, Vector2f size, Vector2f relativeOrigin, const char * text, Color4f textColor, enum TextFlow_wordWrapMode wrapMode, enum UIElement_overflowMode overflowModeX, enum UIElement_overflowMode overflowModeY);
+bool UILabel_init(UILabel * self, UIAppearance * appearance, Vector2f position, Vector2f size, Vector2f relativeOrigin, const char * text, Color4f textColor, enum TextFlow_wordWrapMode wrapMode, enum UIElement_overflowMode overflowModeX, enum UIElement_overflowMode overflowModeY);
 void UILabel_dispose(UILabel * self);
 
 void UILabel_setText(UILabel * self, const char * text);

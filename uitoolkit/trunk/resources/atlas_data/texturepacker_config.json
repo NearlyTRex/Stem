@@ -11,7 +11,15 @@
 	"margin": 1,
 	"images": [
 		"resources/atlas_data/button_up.png",
-		"resources/atlas_data/button_down.png"
+		"resources/atlas_data/button_down.png",
+		"resources/atlas_data/checkbox_up.png",
+		"resources/atlas_data/checkbox_down.png",
+		"resources/atlas_data/checkbox_up_checked.png",
+		"resources/atlas_data/checkbox_down_checked.png",
+		"resources/atlas_data/radio_up.png",
+		"resources/atlas_data/radio_down.png",
+		"resources/atlas_data/radio_up_checked.png",
+		"resources/atlas_data/radio_down_checked.png"
 	],
 	"font": "Helvetica",
 	"font_size": 24,
