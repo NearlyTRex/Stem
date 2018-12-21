@@ -119,6 +119,18 @@ bool UIAppearanceData_loadSerializedData(UIAppearanceData * self, compat_type(De
 			
 		} else if (!strcmp(metricName, "checkboxTextColor")) {
 			metrics.checkboxTextColor = readColor4f(context, metricName);
+			
+		} else if (!strcmp(metricName, "radioButtonGraphicWidth")) {
+			metrics.radioButtonGraphicWidth = context->readFloat(context, metricName);
+			
+		} else if (!strcmp(metricName, "radioButtonGraphicHeight")) {
+			metrics.radioButtonGraphicHeight = context->readFloat(context, metricName);
+			
+		} else if (!strcmp(metricName, "radioButtonTextPadding")) {
+			metrics.radioButtonTextPadding = context->readFloat(context, metricName);
+			
+		} else if (!strcmp(metricName, "radioButtonTextColor")) {
+			metrics.radioButtonTextColor = readColor4f(context, metricName);
 		}
 	}
 	context->endDictionary(context);
@@ -168,7 +180,11 @@ void UIAppearanceData_serialize(UIAppearanceData * self, compat_type(Serializati
 	context->writeFloat(context, "checkboxGraphicWidth", self->metrics.checkboxGraphicWidth);
 	context->writeFloat(context, "checkboxGraphicHeight", self->metrics.checkboxGraphicHeight);
 	context->writeFloat(context, "checkboxTextPadding", self->metrics.checkboxTextPadding);
-	writeColor4f(context, "checkboxTextColor", self->metrics.buttonTextColor);
+	writeColor4f(context, "checkboxTextColor", self->metrics.checkboxTextColor);
+	context->writeFloat(context, "radioButtonGraphicWidth", self->metrics.radioButtonGraphicWidth);
+	context->writeFloat(context, "radioButtonGraphicHeight", self->metrics.radioButtonGraphicHeight);
+	context->writeFloat(context, "radioButtonTextPadding", self->metrics.radioButtonTextPadding);
+	writeColor4f(context, "radioButtonTextColor", self->metrics.radioButtonTextColor);
 	context->endDictionary(context);
 	context->endStructure(context);
 }

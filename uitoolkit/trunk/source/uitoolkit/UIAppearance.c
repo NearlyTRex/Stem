@@ -61,5 +61,10 @@ struct UIAppearance_metrics UIAppearance_defaultMetrics(void) {
 	metrics.checkboxTextPadding = 6.0f;
 	metrics.checkboxTextColor = COLOR4f(0.0f, 0.0f, 0.0f, 1.0f);
 	
+	metrics.radioButtonGraphicWidth = 22.0f;
+	metrics.radioButtonGraphicHeight = 22.0f;
+	metrics.radioButtonTextPadding = 6.0f;
+	metrics.radioButtonTextColor = COLOR4f(0.0f, 0.0f, 0.0f, 1.0f);
+	
 	return metrics;
 }

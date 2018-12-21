@@ -71,7 +71,9 @@ SOURCES_library = \
 	source/${PROJECT_NAME}/UICheckbox.c \
 	source/${PROJECT_NAME}/UIContainer.c \
 	source/${PROJECT_NAME}/UIElement.c \
-	source/${PROJECT_NAME}/UILabel.c
+	source/${PROJECT_NAME}/UILabel.c \
+	source/${PROJECT_NAME}/UIRadioButton.c \
+	source/${PROJECT_NAME}/UIRadioGroup.c
 
 # Executable targets named "unittest" should usually specify only SOURCES_unittest_suites, which must contain only test suite files.
 # If files other than test suites are required, specify SOURCES_unittest.
@@ -88,7 +90,9 @@ INCLUDES = \
 	source/${PROJECT_NAME}/UICheckbox.h \
 	source/${PROJECT_NAME}/UIContainer.h \
 	source/${PROJECT_NAME}/UIElement.h \
-	source/${PROJECT_NAME}/UILabel.h
+	source/${PROJECT_NAME}/UILabel.h \
+	source/${PROJECT_NAME}/UIRadioButton.h \
+	source/${PROJECT_NAME}/UIRadioGroup.h
 
 # Patterns: RESOURCES, RESOURCES_${target}, RESOURCES_${platform}, RESOURCES_${target}_${platform}
 RESOURCES_testharness = \

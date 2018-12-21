@@ -15,6 +15,8 @@
 #include "uitoolkit/UICheckbox.h"
 #include "uitoolkit/UIContainer.h"
 #include "uitoolkit/UILabel.h"
+#include "uitoolkit/UIRadioButton.h"
+#include "uitoolkit/UIRadioGroup.h"
 
 #if defined(STEM_PLATFORM_macosx)
 #include "nsopenglshell/NSOpenGLShell.h"
@@ -43,6 +45,7 @@ static UIAppearance * appearance;
 static TextureAtlas * atlas;
 static GLBitmapFont * font;
 static DynamicSpriteRenderable * renderable;
+static UIRadioGroup * radioGroup1, * radioGroup2;
 
 static bool Target_draw() {
 	Renderer_clear(renderer);
@@ -150,15 +153,20 @@ static void checkboxActionCallback(UICheckbox * sender, void * context, bool che
 	printf("Checkbox action (%schecked)\n", checked ? "" : "not ");
 }
 
+static void radioActionCallback(UIRadioButton * sender, void * context) {
+	printf("Radio button action for button %p\n", sender);
+}
+
 static void initTestUI() {
 	JSONDeserializationContext * context;
 	TextureAtlasData * atlasData;
 	BitmapImage * image;
 	UIButton * button1, * button2;
-	UIElement * containerElements[4];
+	UIElement * containerElements[9];
 	UIContainer * container;
 	UILabel * label;
 	UICheckbox * checkbox;
+	UIRadioButton * radio1, * radio2, * radio3, * radio4, * radio5;
 	
 	context = JSONDeserializationContext_createWithFile("testappearance.atlas");
 	if (context->status != SERIALIZATION_ERROR_OK) {
@@ -200,10 +208,22 @@ static void initTestUI() {
 	button2 = UIButton_create(appearance, VECTOR2f(20.0f, 60.0f), VECTOR2f(0.0f, 0.0f), "Hello", 100.0f, OVERFLOW_RESIZE, button2ActionCallback, NULL);
 	label = UILabel_create(appearance, VECTOR2f(30.0f, 120.0f), VECTOR2f_ZERO, VECTOR2f(0.0f, 0.0f), "I'm a label", COLOR4f(0.0f, 0.5f, 0.5f, 1.0f), WORD_WRAP_NONE, OVERFLOW_RESIZE, OVERFLOW_RESIZE);
 	checkbox = UICheckbox_create(appearance, VECTOR2f(20.0f, 160.0f), VECTOR2f(0.0f, 0.0f), "Checkbox", 50.0f, OVERFLOW_RESIZE, false, checkboxActionCallback, NULL);
+	radioGroup1 = UIRadioGroup_create();
+	radio1 = UIRadioButton_create(appearance, VECTOR2f(20.0f, 200.0f), VECTOR2f(0.0f, 0.0f), "Group 1 radio 1", 50.0f, OVERFLOW_RESIZE, true, radioGroup1, radioActionCallback, NULL);
+	radio2 = UIRadioButton_create(appearance, VECTOR2f(20.0f, 230.0f), VECTOR2f(0.0f, 0.0f), "Group 1 radio 2", 50.0f, OVERFLOW_RESIZE, false, radioGroup1, radioActionCallback, NULL);
+	radio3 = UIRadioButton_create(appearance, VECTOR2f(20.0f, 260.0f), VECTOR2f(0.0f, 0.0f), "Group 1 radio 3", 50.0f, OVERFLOW_RESIZE, false, radioGroup1, radioActionCallback, NULL);
+	radioGroup2 = UIRadioGroup_create();
+	radio4 = UIRadioButton_create(appearance, VECTOR2f(20.0f, 300.0f), VECTOR2f(0.0f, 0.0f), "Group 2 radio 1", 50.0f, OVERFLOW_RESIZE, false, radioGroup2, radioActionCallback, NULL);
+	radio5 = UIRadioButton_create(appearance, VECTOR2f(20.0f, 330.0f), VECTOR2f(0.0f, 0.0f), "Group 2 radio 2", 50.0f, OVERFLOW_RESIZE, false, radioGroup2, radioActionCallback, NULL);
 	containerElements[0] = (UIElement *) button1;
 	containerElements[1] = (UIElement *) button2;
 	containerElements[2] = (UIElement *) label;
 	containerElements[3] = (UIElement *) checkbox;
+	containerElements[4] = (UIElement *) radio1;
+	containerElements[5] = (UIElement *) radio2;
+	containerElements[6] = (UIElement *) radio3;
+	containerElements[7] = (UIElement *) radio4;
+	containerElements[8] = (UIElement *) radio5;
 	container = UIContainer_create(appearance, VECTOR2f(100.0f, 100.0f), containerElements, sizeof(containerElements) / sizeof(containerElements[0]));
 	rootElement = (UIElement *) container;
 	

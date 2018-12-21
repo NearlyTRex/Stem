@@ -38,6 +38,10 @@ typedef struct UIAppearance UIAppearance;
 #define UIAPPEARANCE_KEY_CHECKBOX_DOWN "checkbox_down"
 #define UIAPPEARANCE_KEY_CHECKBOX_UP_CHECKED "checkbox_up_checked"
 #define UIAPPEARANCE_KEY_CHECKBOX_DOWN_CHECKED "checkbox_down_checked"
+#define UIAPPEARANCE_KEY_RADIO_UP "radio_up"
+#define UIAPPEARANCE_KEY_RADIO_DOWN "radio_down"
+#define UIAPPEARANCE_KEY_RADIO_UP_CHECKED "radio_up_checked"
+#define UIAPPEARANCE_KEY_RADIO_DOWN_CHECKED "radio_down_checked"
 
 // Measured in pixels
 struct UIAppearance_sliceGrid {
@@ -60,6 +64,11 @@ struct UIAppearance_metrics {
 	float checkboxGraphicHeight;
 	float checkboxTextPadding;
 	Color4f checkboxTextColor;
+	
+	float radioButtonGraphicWidth;
+	float radioButtonGraphicHeight;
+	float radioButtonTextPadding;
+	Color4f radioButtonTextColor;
 };
 
 #define UIAppearance_structContents(self_type) \

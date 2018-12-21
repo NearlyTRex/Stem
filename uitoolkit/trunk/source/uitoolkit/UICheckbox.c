@@ -69,6 +69,7 @@ void UICheckbox_setText(UICheckbox * self, const char * text) {
 }
 
 void UICheckbox_action(UICheckbox * self) {
+	self->checked = !self->checked;
 	if (self->actionCallback != NULL) {
 		self->actionCallback(self, self->actionCallbackContext, self->checked);
 	}
