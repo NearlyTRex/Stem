@@ -35,7 +35,6 @@ static void sharedInit(GLBitmapFont * self) {
 	call_super(init, self);
 	
 	self->atlasName = NULL;
-	self->private_ivar(atlasNameOwned) = false;
 	self->atlas = NULL;
 	self->private_ivar(atlasOwned) = false;
 	self->dispose = GLBitmapFont_dispose;
@@ -58,9 +57,6 @@ bool GLBitmapFont_init(GLBitmapFont * self, struct GLBitmapFont_charEntry charac
 void GLBitmapFont_dispose(GLBitmapFont * self) {
 	unsigned int charIndex;
 	
-	if (self->private_ivar(atlasNameOwned)) {
-		free(self->atlasName);
-	}
 	if (self->private_ivar(atlasOwned)) {
 		self->atlas->dispose(self->atlas);
 	}
@@ -151,8 +147,7 @@ bool GLBitmapFont_loadSerializedData(GLBitmapFont * self, compat_type(Deserializ
 		return false;
 	}
 	
-	self->atlasName = strdup(atlasName);
-	self->private_ivar(atlasNameOwned) = true;
+	self->atlasName = Atom_fromString(atlasName);
 	
 	return true;
 }

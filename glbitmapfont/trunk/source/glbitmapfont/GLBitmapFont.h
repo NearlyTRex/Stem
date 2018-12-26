@@ -33,6 +33,7 @@ extern "C" {
 #include "serialization/DeserializationContext.h"
 #include "serialization/SerializationContext.h"
 #include "stemobject/StemObject.h"
+#include "utilities/Atom.h"
 #include <stdbool.h>
 #include <math.h>
 
@@ -71,8 +72,7 @@ struct GLBitmapFont_charEntry {
 #define GLBitmapFont_structContents(self_type) \
 	StemObject_structContents(self_type) \
 	\
-	char * atlasName; \
-	bool private_ivar(atlasNameOwned); \
+	Atom atlasName; \
 	TextureAtlas * atlas; \
 	bool private_ivar(atlasOwned); \
 	struct GLBitmapFont_charEntry characters[GLBITMAPFONT_NUM_CHARS];
