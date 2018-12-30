@@ -54,4 +54,4 @@ TODO:
 - Create UICheckBox, UIRadioGroup, UIEditText, UISlider, UIPopUpMenu, UIScrollingContainer
 - Figure out UIContainer subclasses
 - Come up with a way to make text rendering work in both pixel-exact and non-pixel-exact modes (appearance parameter?)
-* Maybe don't bother with any of that yet, try to use this API, and see where it's deficient?
+- Make UIContainer_removeElement() safe for iteration

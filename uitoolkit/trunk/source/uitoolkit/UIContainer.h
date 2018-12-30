@@ -35,21 +35,29 @@ typedef struct UIContainer UIContainer;
 #define UICONTAINER_MOUSE_BUTTON_NUMBER_RESPONSE_COUNT 3
 #define UICONTAINER_FOCUS_NONE ((unsigned int) -1)
 
+struct UIContainer_element {
+	UIElement * element;
+	bool owned;
+};
+
 #define UIContainer_structContents(self_type) \
 	UIElement_structContents(self_type) \
 	\
 	unsigned int elementCount; \
-	UIElement ** elements; \
+	unsigned int private_ivar(elementAllocatedCount); \
+	struct UIContainer_element * elements; \
 	unsigned int focusedElementIndex; \
 	UIElement * lastMouseDownTargets[UICONTAINER_MOUSE_BUTTON_NUMBER_RESPONSE_COUNT]; \
 	UIElement * lastKeyDownTarget;
 
 stemobject_struct_definition(UIContainer)
 
-// elements is copied, and should be treated as immutable after initialization
-UIContainer * UIContainer_create(UIAppearance * appearance, Vector2f position, UIElement ** elements, unsigned int elementCount);
-bool UIContainer_init(UIContainer * self, UIAppearance * appearance, Vector2f position, UIElement ** elements, unsigned int elementCount);
+UIContainer * UIContainer_create(UIAppearance * appearance, Vector2f position);
+bool UIContainer_init(UIContainer * self, UIAppearance * appearance, Vector2f position);
 void UIContainer_dispose(UIContainer * self);
+
+void UIContainer_addElement(UIContainer * self, UIElement * element, bool takeOwnership);
+void UIContainer_removeElement(UIContainer * self, UIElement * element);
 
 UIElement * UIContainer_hitTest(UIContainer * self, float x, float y);
 bool UIContainer_mouseDown(UIContainer * self, unsigned int buttonNumber, float x, float y);

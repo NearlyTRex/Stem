@@ -26,12 +26,12 @@
 
 #define SUPERCLASS UIElement
 
-UIContainer * UIContainer_create(UIAppearance * appearance, Vector2f position, UIElement ** elements, unsigned int elementCount) {
-	stemobject_create_implementation(UIContainer, init, appearance, position, elements, elementCount)
+UIContainer * UIContainer_create(UIAppearance * appearance, Vector2f position) {
+	stemobject_create_implementation(UIContainer, init, appearance, position)
 }
 
-bool UIContainer_init(UIContainer * self, UIAppearance * appearance, Vector2f position, UIElement ** elements, unsigned int elementCount) {
-	unsigned int elementIndex, buttonIndex;
+bool UIContainer_init(UIContainer * self, UIAppearance * appearance, Vector2f position) {
+	unsigned int buttonIndex;
 	
 	call_super(init, self, UIELEMENT_CONTAINER, appearance, position, VECTOR2f_ZERO);
 	self->dispose             = UIContainer_dispose;
@@ -49,16 +49,10 @@ bool UIContainer_init(UIContainer * self, UIAppearance * appearance, Vector2f po
 	self->acceptsFocus        = UIContainer_acceptsFocus;
 	self->getBounds           = UIContainer_getBounds;
 	self->getVertices         = UIContainer_getVertices;
-	self->elementCount = elementCount;
-	self->elements = malloc(sizeof(*elements) * elementCount);
-	memcpy(self->elements, elements, sizeof(*elements) * elementCount);
+	self->elementCount = 0;
+	self->private_ivar(elementAllocatedCount) = 8;
+	self->elements = malloc(sizeof(*self->elements) * self->private_ivar(elementAllocatedCount));
 	self->focusedElementIndex = UICONTAINER_FOCUS_NONE;
-	for (elementIndex = 0; elementIndex < self->elementCount; elementIndex++) {
-		if (self->elements[elementIndex]->acceptsFocus(self->elements[elementIndex])) {
-			self->focusedElementIndex = elementIndex;
-			break;
-		}
-	}
 	for (buttonIndex = 0; buttonIndex < UICONTAINER_MOUSE_BUTTON_NUMBER_RESPONSE_COUNT; buttonIndex++) {
 		self->lastMouseDownTargets[buttonIndex] = NULL;
 	}
@@ -67,8 +61,43 @@ bool UIContainer_init(UIContainer * self, UIAppearance * appearance, Vector2f po
 }
 
 void UIContainer_dispose(UIContainer * self) {
+	unsigned int elementIndex;
+	
+	for (elementIndex = 0; elementIndex < self->elementCount; elementIndex++) {
+		if (self->elements[elementIndex].owned) {
+			self->elements[elementIndex].element->dispose(self->elements[elementIndex].element);
+		}
+	}
 	free(self->elements);
 	call_super(dispose, self);
+}
+
+void UIContainer_addElement(UIContainer * self, UIElement * element, bool takeOwnership) {
+	if (self->private_ivar(elementAllocatedCount) <= self->elementCount) {
+		self->private_ivar(elementAllocatedCount) *= 2;
+		self->elements = realloc(self->elements, sizeof(*self->elements) * self->private_ivar(elementAllocatedCount));
+	}
+	self->elements[self->elementCount].element = element;
+	self->elements[self->elementCount].owned = takeOwnership;
+	++self->elementCount;
+}
+
+void UIContainer_removeElement(UIContainer * self, UIElement * element) {
+	// TODO: Potentially dangerous if this happens during iteration! Add safeguards just in case
+	unsigned int elementIndex;
+	
+	for (elementIndex = 0; elementIndex < self->elementCount; elementIndex++) {
+		if (self->elements[elementIndex].element == element) {
+			if (self->elements[elementIndex].owned) {
+				self->elements[elementIndex].element->dispose(self->elements[elementIndex].element);
+			}
+			--self->elementCount;
+			for (; elementIndex < self->elementCount; elementIndex++) {
+				self->elements[elementIndex] = self->elements[elementIndex + 1];
+			}
+			break;
+		}
+	}
 }
 
 UIElement * UIContainer_hitTest(UIContainer * self, float x, float y) {
@@ -78,7 +107,7 @@ UIElement * UIContainer_hitTest(UIContainer * self, float x, float y) {
 	x -= self->position.x;
 	y -= self->position.y;
 	for (elementIndex = self->elementCount - 1; elementIndex < self->elementCount; elementIndex--) {
-		result = self->elements[elementIndex]->hitTest(self->elements[elementIndex], x, y);
+		result = self->elements[elementIndex].element->hitTest(self->elements[elementIndex].element, x, y);
 		if (result != NULL) {
 			return result;
 		}
@@ -95,8 +124,8 @@ bool UIContainer_mouseDown(UIContainer * self, unsigned int buttonNumber, float 
 	x -= self->position.x;
 	y -= self->position.y;
 	for (elementIndex = 0; elementIndex < self->elementCount; elementIndex++) {
-		if (self->elements[elementIndex]->hitTest(self->elements[elementIndex], x, y) && self->elements[elementIndex]->mouseDown(self->elements[elementIndex], buttonNumber, x, y)) {
-			self->lastMouseDownTargets[buttonNumber] = self->elements[elementIndex];
+		if (self->elements[elementIndex].element->hitTest(self->elements[elementIndex].element, x, y) && self->elements[elementIndex].element->mouseDown(self->elements[elementIndex].element, buttonNumber, x, y)) {
+			self->lastMouseDownTargets[buttonNumber] = self->elements[elementIndex].element;
 			return true;
 		}
 	}
@@ -119,7 +148,7 @@ bool UIContainer_mouseMoved(UIContainer * self, float x, float y) {
 	x -= self->position.x;
 	y -= self->position.y;
 	for (elementIndex = 0; elementIndex < self->elementCount; elementIndex++) {
-		if (self->elements[elementIndex]->mouseMoved(self->elements[elementIndex], x, y)) {
+		if (self->elements[elementIndex].element->mouseMoved(self->elements[elementIndex].element, x, y)) {
 			handled = true;
 		}
 	}
@@ -149,8 +178,8 @@ bool UIContainer_scrollWheel(UIContainer * self, int deltaX, int deltaY) {
 
 bool UIContainer_keyDown(UIContainer * self, unsigned int charCode, unsigned int keyCode, unsigned int modifiers, bool isRepeat) {
 	if (self->focusedElementIndex != UICONTAINER_FOCUS_NONE) {
-		self->lastKeyDownTarget = self->elements[self->focusedElementIndex];
-		return self->elements[self->focusedElementIndex]->keyDown(self->elements[self->focusedElementIndex], charCode, keyCode, modifiers, isRepeat);
+		self->lastKeyDownTarget = self->elements[self->focusedElementIndex].element;
+		return self->elements[self->focusedElementIndex].element->keyDown(self->elements[self->focusedElementIndex].element, charCode, keyCode, modifiers, isRepeat);
 	}
 	return false;
 }
@@ -169,7 +198,7 @@ bool UIContainer_keyModifiersChanged(UIContainer * self, unsigned int modifiers)
 	bool handled = false;
 	
 	for (elementIndex = 0; elementIndex < self->elementCount; elementIndex++) {
-		if (self->elements[elementIndex]->keyModifiersChanged(self->elements[elementIndex], modifiers)) {
+		if (self->elements[elementIndex].element->keyModifiersChanged(self->elements[elementIndex].element, modifiers)) {
 			handled = true;
 		}
 	}
@@ -185,7 +214,7 @@ bool UIContainer_setFocusedElement(UIContainer * self, UIElement * element) {
 	}
 	
 	for (elementIndex = 0; elementIndex < self->elementCount; elementIndex++) {
-		if (self->elements[elementIndex]->setFocusedElement(self->elements[elementIndex], element)) {
+		if (self->elements[elementIndex].element->setFocusedElement(self->elements[elementIndex].element, element)) {
 			self->focusedElementIndex = elementIndex;
 			return true;
 		} 
@@ -194,17 +223,17 @@ bool UIContainer_setFocusedElement(UIContainer * self, UIElement * element) {
 }
 
 UIElement * UIContainer_getFocusedElement(UIContainer * self) {
-	if (self->focusedElementIndex == UICONTAINER_FOCUS_NONE || !self->elements[self->focusedElementIndex]->acceptsFocus(self->elements[self->focusedElementIndex])) {
+	if (self->focusedElementIndex == UICONTAINER_FOCUS_NONE || !self->elements[self->focusedElementIndex].element->acceptsFocus(self->elements[self->focusedElementIndex].element)) {
 		return NULL;
 	}
-	return self->elements[self->focusedElementIndex]->getFocusedElement(self->elements[self->focusedElementIndex]);
+	return self->elements[self->focusedElementIndex].element->getFocusedElement(self->elements[self->focusedElementIndex].element);
 }
 
 bool UIContainer_acceptsFocus(UIContainer * self) {
 	unsigned int elementIndex;
 	
 	for (elementIndex = 0; elementIndex < self->elementCount; elementIndex++) {
-		if (self->elements[elementIndex]->acceptsFocus(self->elements[elementIndex])) {
+		if (self->elements[elementIndex].element->acceptsFocus(self->elements[elementIndex].element)) {
 			return true;
 		}
 	}
@@ -216,7 +245,7 @@ Rect4f UIContainer_getBounds(UIContainer * self) {
 	unsigned int elementIndex;
 	
 	for (elementIndex = 0; elementIndex < self->elementCount; elementIndex++) {
-		result = Rect4f_union(result, self->elements[elementIndex]->getBounds(self->elements[elementIndex]));
+		result = Rect4f_union(result, self->elements[elementIndex].element->getBounds(self->elements[elementIndex].element));
 	}
 	return result;
 }
@@ -225,6 +254,6 @@ void UIContainer_getVertices(UIContainer * self, Vector2f offset, struct vertex_
 	unsigned int elementIndex;
 	
 	for (elementIndex = 0; elementIndex < self->elementCount; elementIndex++) {
-		self->elements[elementIndex]->getVertices(self->elements[elementIndex], VECTOR2f(offset.x + self->position.x, offset.y + self->position.y), outVertices, outIndexes, ioVertexCount, ioIndexCount);
+		self->elements[elementIndex].element->getVertices(self->elements[elementIndex].element, VECTOR2f(offset.x + self->position.x, offset.y + self->position.y), outVertices, outIndexes, ioVertexCount, ioIndexCount);
 	}
 }

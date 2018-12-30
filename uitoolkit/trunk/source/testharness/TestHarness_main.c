@@ -162,7 +162,6 @@ static void initTestUI() {
 	TextureAtlasData * atlasData;
 	BitmapImage * image;
 	UIButton * button1, * button2;
-	UIElement * containerElements[9];
 	UIContainer * container;
 	UILabel * label;
 	UICheckbox * checkbox;
@@ -215,16 +214,16 @@ static void initTestUI() {
 	radioGroup2 = UIRadioGroup_create();
 	radio4 = UIRadioButton_create(appearance, VECTOR2f(20.0f, 300.0f), VECTOR2f(0.0f, 0.0f), "Group 2 radio 1", 50.0f, OVERFLOW_RESIZE, false, radioGroup2, radioActionCallback, NULL);
 	radio5 = UIRadioButton_create(appearance, VECTOR2f(20.0f, 330.0f), VECTOR2f(0.0f, 0.0f), "Group 2 radio 2", 50.0f, OVERFLOW_RESIZE, false, radioGroup2, radioActionCallback, NULL);
-	containerElements[0] = (UIElement *) button1;
-	containerElements[1] = (UIElement *) button2;
-	containerElements[2] = (UIElement *) label;
-	containerElements[3] = (UIElement *) checkbox;
-	containerElements[4] = (UIElement *) radio1;
-	containerElements[5] = (UIElement *) radio2;
-	containerElements[6] = (UIElement *) radio3;
-	containerElements[7] = (UIElement *) radio4;
-	containerElements[8] = (UIElement *) radio5;
-	container = UIContainer_create(appearance, VECTOR2f(100.0f, 100.0f), containerElements, sizeof(containerElements) / sizeof(containerElements[0]));
+	container = UIContainer_create(appearance, VECTOR2f(100.0f, 100.0f));
+	UIContainer_addElement(container, (UIElement *) button1, true);
+	UIContainer_addElement(container, (UIElement *) button2, true);
+	UIContainer_addElement(container, (UIElement *) label, true);
+	UIContainer_addElement(container, (UIElement *) checkbox, true);
+	UIContainer_addElement(container, (UIElement *) radio1, true);
+	UIContainer_addElement(container, (UIElement *) radio2, true);
+	UIContainer_addElement(container, (UIElement *) radio3, true);
+	UIContainer_addElement(container, (UIElement *) radio4, true);
+	UIContainer_addElement(container, (UIElement *) radio5, true);
 	rootElement = (UIElement *) container;
 	
 	renderable = DynamicSpriteRenderable_create(atlas, getUIVertices, NULL);
