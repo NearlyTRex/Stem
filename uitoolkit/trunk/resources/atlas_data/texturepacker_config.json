@@ -6,7 +6,7 @@
 	"verbose": true,
 	"pixel_format": "rgba",
 	"magnify_nearest": true,
-	"atlas_name": "UIToolkit test appearance",
+	"atlas_name": "testappearance.atlas",
 	"texture_map_name": "testappearance_atlas.png",
 	"margin": 1,
 	"images": [

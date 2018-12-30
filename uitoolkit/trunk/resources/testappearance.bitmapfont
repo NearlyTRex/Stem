@@ -1,6 +1,6 @@
 {
 	"format_version": 2,
-	"atlas_name": "UIToolkit test appearance",
+	"atlas_name": "testappearance.atlas",
 	"characters": {
 		" ": {
 			"advance": 0.2222656309604644775390625,
