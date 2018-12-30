@@ -100,6 +100,17 @@ void UIContainer_removeElement(UIContainer * self, UIElement * element) {
 	}
 }
 
+void UIContainer_removeAllElements(UIContainer * self) {
+	unsigned int elementIndex;
+	
+	for (elementIndex = 0; elementIndex < self->elementCount; elementIndex++) {
+		if (self->elements[elementIndex].owned) {
+			self->elements[elementIndex].element->dispose(self->elements[elementIndex].element);
+		}
+	}
+	self->elementCount = 0;
+}
+
 UIElement * UIContainer_hitTest(UIContainer * self, float x, float y) {
 	unsigned int elementIndex;
 	UIElement * result;

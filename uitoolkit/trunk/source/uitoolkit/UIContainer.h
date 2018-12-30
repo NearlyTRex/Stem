@@ -58,6 +58,7 @@ void UIContainer_dispose(UIContainer * self);
 
 void UIContainer_addElement(UIContainer * self, UIElement * element, bool takeOwnership);
 void UIContainer_removeElement(UIContainer * self, UIElement * element);
+void UIContainer_removeAllElements(UIContainer * self);
 
 UIElement * UIContainer_hitTest(UIContainer * self, float x, float y);
 bool UIContainer_mouseDown(UIContainer * self, unsigned int buttonNumber, float x, float y);
