@@ -26,12 +26,12 @@
 
 #define SUPERCLASS UIElement
 
-UIRadioButton * UIRadioButton_create(UIAppearance * appearance, Vector2f position, Vector2f relativeOrigin, const char * text, float width, enum UIElement_overflowMode overflowMode, bool checked, UIRadioGroup * radioGroup, UIRadioButtonActionCallback actionCallback, void * actionCallbackContext) {
-	stemobject_create_implementation(UIRadioButton, init, appearance, position, relativeOrigin, text, width, overflowMode, checked, radioGroup, actionCallback, actionCallbackContext)
+UIRadioButton * UIRadioButton_create(const char * text, Vector2f position, Vector2f relativeOrigin, float width, enum UIElement_overflowMode overflowMode, bool checked, UIRadioGroup * radioGroup, UIRadioButtonActionCallback actionCallback, void * actionCallbackContext, UIAppearance * appearance) {
+	stemobject_create_implementation(UIRadioButton, init, text, position, relativeOrigin, width, overflowMode, checked, radioGroup, actionCallback, actionCallbackContext, appearance)
 }
 
-bool UIRadioButton_init(UIRadioButton * self, UIAppearance * appearance, Vector2f position, Vector2f relativeOrigin, const char * text, float width, enum UIElement_overflowMode overflowMode, bool checked, UIRadioGroup * radioGroup, UIRadioButtonActionCallback actionCallback, void * actionCallbackContext) {
-	call_super(init, self, UIELEMENT_RADIO_BUTTON, appearance, position, relativeOrigin);
+bool UIRadioButton_init(UIRadioButton * self, const char * text, Vector2f position, Vector2f relativeOrigin, float width, enum UIElement_overflowMode overflowMode, bool checked, UIRadioGroup * radioGroup, UIRadioButtonActionCallback actionCallback, void * actionCallbackContext, UIAppearance * appearance) {
+	call_super(init, self, UIELEMENT_RADIO_BUTTON, position, relativeOrigin, appearance);
 	self->dispose = UIRadioButton_dispose;
 	self->hitTest = UIRadioButton_hitTest;
 	self->mouseDown = UIRadioButton_mouseDown;

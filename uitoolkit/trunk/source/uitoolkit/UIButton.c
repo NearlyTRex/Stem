@@ -26,12 +26,12 @@
 
 #define SUPERCLASS UIElement
 
-UIButton * UIButton_create(UIAppearance * appearance, Vector2f position, Vector2f relativeOrigin, const char * text, float width, enum UIElement_overflowMode overflowMode, UIButtonActionCallback actionCallback, void * actionCallbackContext) {
-	stemobject_create_implementation(UIButton, init, appearance, position, relativeOrigin, text, width, overflowMode, actionCallback, actionCallbackContext)
+UIButton * UIButton_create(const char * text, Vector2f position, Vector2f relativeOrigin, float width, enum UIElement_overflowMode overflowMode, UIButtonActionCallback actionCallback, void * actionCallbackContext, UIAppearance * appearance) {
+	stemobject_create_implementation(UIButton, init, text, position, relativeOrigin, width, overflowMode, actionCallback, actionCallbackContext, appearance)
 }
 
-bool UIButton_init(UIButton * self, UIAppearance * appearance, Vector2f position, Vector2f relativeOrigin, const char * text, float width, enum UIElement_overflowMode overflowMode, UIButtonActionCallback actionCallback, void * actionCallbackContext) {
-	call_super(init, self, UIELEMENT_BUTTON, appearance, position, relativeOrigin);
+bool UIButton_init(UIButton * self, const char * text, Vector2f position, Vector2f relativeOrigin, float width, enum UIElement_overflowMode overflowMode, UIButtonActionCallback actionCallback, void * actionCallbackContext, UIAppearance * appearance) {
+	call_super(init, self, UIELEMENT_BUTTON, position, relativeOrigin, appearance);
 	self->dispose = UIButton_dispose;
 	self->hitTest = UIButton_hitTest;
 	self->mouseDown = UIButton_mouseDown;

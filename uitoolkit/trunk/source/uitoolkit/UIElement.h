@@ -33,7 +33,8 @@ typedef enum UIElementType {
 	UIELEMENT_LABEL,
 	UIELEMENT_CHECKBOX,
 	UIELEMENT_RADIO_BUTTON,
-	UIELEMENT_CONTAINER
+	UIELEMENT_CONTAINER,
+	UIELEMENT_CUSTOM
 } UIElementType;
 
 enum UIElement_overflowMode {
@@ -74,8 +75,7 @@ enum UIElement_overflowMode {
 
 stemobject_struct_definition(UIElement)
 
-UIElement * UIElement_create(UIElementType type, UIAppearance * appearance, Vector2f position, Vector2f relativeOrigin);
-bool UIElement_init(UIElement * self, UIElementType type, UIAppearance * appearance, Vector2f position, Vector2f relativeOrigin);
+bool UIElement_init(UIElement * self, UIElementType type, Vector2f position, Vector2f relativeOrigin, UIAppearance * appearance);
 void UIElement_dispose(UIElement * self);
 
 // Caller conventions: Before sending mouseDown to an element, caller should call hitTest and receive a positive return value.

@@ -52,8 +52,8 @@ struct UIContainer_element {
 
 stemobject_struct_definition(UIContainer)
 
-UIContainer * UIContainer_create(UIAppearance * appearance, Vector2f position);
-bool UIContainer_init(UIContainer * self, UIAppearance * appearance, Vector2f position);
+UIContainer * UIContainer_create(Vector2f position, UIAppearance * appearance);
+bool UIContainer_init(UIContainer * self, Vector2f position, UIAppearance * appearance);
 void UIContainer_dispose(UIContainer * self);
 
 void UIContainer_addElement(UIContainer * self, UIElement * element, bool takeOwnership);

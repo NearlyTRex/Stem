@@ -29,7 +29,6 @@ extern "C" {
 typedef struct UIButton UIButton;
 
 #include "uitoolkit/UIElement.h"
-#include <math.h>
 
 typedef void (* UIButtonActionCallback)(UIButton * sender, void * context);
 
@@ -48,8 +47,8 @@ typedef void (* UIButtonActionCallback)(UIButton * sender, void * context);
 stemobject_struct_definition(UIButton)
 
 // text is copied
-UIButton * UIButton_create(UIAppearance * appearance, Vector2f position, Vector2f relativeOrigin, const char * text, float width, enum UIElement_overflowMode overflowMode, UIButtonActionCallback actionCallback, void * actionCallbackContext);
-bool UIButton_init(UIButton * self, UIAppearance * appearance, Vector2f position, Vector2f relativeOrigin, const char * text, float width, enum UIElement_overflowMode overflowMode, UIButtonActionCallback actionCallback, void * actionCallbackContext);
+UIButton * UIButton_create(const char * text, Vector2f position, Vector2f relativeOrigin, float width, enum UIElement_overflowMode overflowMode, UIButtonActionCallback actionCallback, void * actionCallbackContext, UIAppearance * appearance);
+bool UIButton_init(UIButton * self, const char * text, Vector2f position, Vector2f relativeOrigin, float width, enum UIElement_overflowMode overflowMode, UIButtonActionCallback actionCallback, void * actionCallbackContext, UIAppearance * appearance);
 void UIButton_dispose(UIButton * self);
 
 void UIButton_setText(UIButton * self, const char * text);

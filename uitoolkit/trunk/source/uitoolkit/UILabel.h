@@ -44,8 +44,8 @@ stemobject_struct_definition(UILabel)
 
 // Initialization properties should generally be treated as immutable for this UILabel's lifetime. If text needs to be updated, use UILabel_setText().
 // If wrapMode is not WORD_WRAP_NONE, size.x will determine the wrap width, so set it to a sane value even if you're using OVERFLOW_RESIZE for overflowModeX.
-UILabel * UILabel_create(UIAppearance * appearance, Vector2f position, Vector2f size, Vector2f relativeOrigin, const char * text, Color4f textColor, enum TextFlow_wordWrapMode wrapMode, enum UIElement_overflowMode overflowModeX, enum UIElement_overflowMode overflowModeY);
-bool UILabel_init(UILabel * self, UIAppearance * appearance, Vector2f position, Vector2f size, Vector2f relativeOrigin, const char * text, Color4f textColor, enum TextFlow_wordWrapMode wrapMode, enum UIElement_overflowMode overflowModeX, enum UIElement_overflowMode overflowModeY);
+UILabel * UILabel_create(const char * text, Vector2f position, Vector2f size, Vector2f relativeOrigin, Color4f textColor, enum TextFlow_wordWrapMode wrapMode, enum UIElement_overflowMode overflowModeX, enum UIElement_overflowMode overflowModeY, UIAppearance * appearance);
+bool UILabel_init(UILabel * self, const char * text, Vector2f position, Vector2f size, Vector2f relativeOrigin, Color4f textColor, enum TextFlow_wordWrapMode wrapMode, enum UIElement_overflowMode overflowModeX, enum UIElement_overflowMode overflowModeY, UIAppearance * appearance);
 void UILabel_dispose(UILabel * self);
 
 void UILabel_setText(UILabel * self, const char * text);

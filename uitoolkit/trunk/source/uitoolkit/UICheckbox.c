@@ -26,12 +26,12 @@
 
 #define SUPERCLASS UIElement
 
-UICheckbox * UICheckbox_create(UIAppearance * appearance, Vector2f position, Vector2f relativeOrigin, const char * text, float width, enum UIElement_overflowMode overflowMode, bool checked, UICheckboxActionCallback actionCallback, void * actionCallbackContext) {
-	stemobject_create_implementation(UICheckbox, init, appearance, position, relativeOrigin, text, width, overflowMode, checked, actionCallback, actionCallbackContext)
+UICheckbox * UICheckbox_create(const char * text, Vector2f position, Vector2f relativeOrigin, float width, enum UIElement_overflowMode overflowMode, bool checked, UICheckboxActionCallback actionCallback, void * actionCallbackContext, UIAppearance * appearance) {
+	stemobject_create_implementation(UICheckbox, init, text, position, relativeOrigin, width, overflowMode, checked, actionCallback, actionCallbackContext, appearance)
 }
 
-bool UICheckbox_init(UICheckbox * self, UIAppearance * appearance, Vector2f position, Vector2f relativeOrigin, const char * text, float width, enum UIElement_overflowMode overflowMode, bool checked, UICheckboxActionCallback actionCallback, void * actionCallbackContext) {
-	call_super(init, self, UIELEMENT_CHECKBOX, appearance, position, relativeOrigin);
+bool UICheckbox_init(UICheckbox * self, const char * text, Vector2f position, Vector2f relativeOrigin, float width, enum UIElement_overflowMode overflowMode, bool checked, UICheckboxActionCallback actionCallback, void * actionCallbackContext, UIAppearance * appearance) {
+	call_super(init, self, UIELEMENT_CHECKBOX, position, relativeOrigin, appearance);
 	self->dispose = UICheckbox_dispose;
 	self->hitTest = UICheckbox_hitTest;
 	self->mouseDown = UICheckbox_mouseDown;

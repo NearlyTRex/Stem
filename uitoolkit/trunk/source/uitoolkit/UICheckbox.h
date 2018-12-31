@@ -49,8 +49,8 @@ typedef void (* UICheckboxActionCallback)(UICheckbox * sender, void * context, b
 stemobject_struct_definition(UICheckbox)
 
 // text is copied
-UICheckbox * UICheckbox_create(UIAppearance * appearance, Vector2f position, Vector2f relativeOrigin, const char * text, float width, enum UIElement_overflowMode overflowMode, bool checked, UICheckboxActionCallback actionCallback, void * actionCallbackContext);
-bool UICheckbox_init(UICheckbox * self, UIAppearance * appearance, Vector2f position, Vector2f relativeOrigin, const char * text, float width, enum UIElement_overflowMode overflowMode, bool checked, UICheckboxActionCallback actionCallback, void * actionCallbackContext);
+UICheckbox * UICheckbox_create(const char * text, Vector2f position, Vector2f relativeOrigin, float width, enum UIElement_overflowMode overflowMode, bool checked, UICheckboxActionCallback actionCallback, void * actionCallbackContext, UIAppearance * appearance);
+bool UICheckbox_init(UICheckbox * self, const char * text, Vector2f position, Vector2f relativeOrigin, float width, enum UIElement_overflowMode overflowMode, bool checked, UICheckboxActionCallback actionCallback, void * actionCallbackContext, UIAppearance * appearance);
 void UICheckbox_dispose(UICheckbox * self);
 
 void UICheckbox_setText(UICheckbox * self, const char * text);

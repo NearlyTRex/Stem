@@ -26,12 +26,12 @@
 
 #define SUPERCLASS UIElement
 
-UILabel * UILabel_create(UIAppearance * appearance, Vector2f position, Vector2f size, Vector2f relativeOrigin, const char * text, Color4f textColor, enum TextFlow_wordWrapMode wrapMode, enum UIElement_overflowMode overflowModeX, enum UIElement_overflowMode overflowModeY) {
-	stemobject_create_implementation(UILabel, init, appearance, position, size, relativeOrigin, text, textColor, wrapMode, overflowModeX, overflowModeY)
+UILabel * UILabel_create(const char * text, Vector2f position, Vector2f size, Vector2f relativeOrigin, Color4f textColor, enum TextFlow_wordWrapMode wrapMode, enum UIElement_overflowMode overflowModeX, enum UIElement_overflowMode overflowModeY, UIAppearance * appearance) {
+	stemobject_create_implementation(UILabel, init, text, position, size, relativeOrigin, textColor, wrapMode, overflowModeX, overflowModeY, appearance)
 }
 
-bool UILabel_init(UILabel * self, UIAppearance * appearance, Vector2f position, Vector2f size, Vector2f relativeOrigin, const char * text, Color4f textColor, enum TextFlow_wordWrapMode wrapMode, enum UIElement_overflowMode overflowModeX, enum UIElement_overflowMode overflowModeY) {
-	call_super(init, self, UIELEMENT_LABEL, appearance, position, relativeOrigin);
+bool UILabel_init(UILabel * self, const char * text, Vector2f position, Vector2f size, Vector2f relativeOrigin, Color4f textColor, enum TextFlow_wordWrapMode wrapMode, enum UIElement_overflowMode overflowModeX, enum UIElement_overflowMode overflowModeY, UIAppearance * appearance) {
+	call_super(init, self, UIELEMENT_LABEL, position, relativeOrigin, appearance);
 	self->dispose = UILabel_dispose;
 	self->getBounds = UILabel_getBounds;
 	self->getVertices = UILabel_getVertices;

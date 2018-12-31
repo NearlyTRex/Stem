@@ -25,11 +25,7 @@
 
 #define SUPERCLASS StemObject
 
-UIElement * UIElement_create(UIElementType type, UIAppearance * appearance, Vector2f position, Vector2f relativeOrigin) {
-	stemobject_create_implementation(UIElement, init, type, appearance, position, relativeOrigin)
-}
-
-bool UIElement_init(UIElement * self, UIElementType type, UIAppearance * appearance, Vector2f position, Vector2f relativeOrigin) {
+bool UIElement_init(UIElement * self, UIElementType type, Vector2f position, Vector2f relativeOrigin, UIAppearance * appearance) {
 	call_super(init, self);
 	self->type = type;
 	self->appearance = appearance;

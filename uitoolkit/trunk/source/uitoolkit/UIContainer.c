@@ -26,14 +26,14 @@
 
 #define SUPERCLASS UIElement
 
-UIContainer * UIContainer_create(UIAppearance * appearance, Vector2f position) {
-	stemobject_create_implementation(UIContainer, init, appearance, position)
+UIContainer * UIContainer_create(Vector2f position, UIAppearance * appearance) {
+	stemobject_create_implementation(UIContainer, init, position, appearance)
 }
 
-bool UIContainer_init(UIContainer * self, UIAppearance * appearance, Vector2f position) {
+bool UIContainer_init(UIContainer * self, Vector2f position, UIAppearance * appearance) {
 	unsigned int buttonIndex;
 	
-	call_super(init, self, UIELEMENT_CONTAINER, appearance, position, VECTOR2f_ZERO);
+	call_super(init, self, UIELEMENT_CONTAINER, position, VECTOR2f_ZERO, appearance);
 	self->dispose             = UIContainer_dispose;
 	self->hitTest             = UIContainer_hitTest;
 	self->mouseDown           = UIContainer_mouseDown;

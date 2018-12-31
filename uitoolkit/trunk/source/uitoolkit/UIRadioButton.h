@@ -51,8 +51,8 @@ typedef void (* UIRadioButtonActionCallback)(UIRadioButton * sender, void * cont
 stemobject_struct_definition(UIRadioButton)
 
 // text is copied
-UIRadioButton * UIRadioButton_create(UIAppearance * appearance, Vector2f position, Vector2f relativeOrigin, const char * text, float width, enum UIElement_overflowMode overflowMode, bool checked, UIRadioGroup * radioGroup, UIRadioButtonActionCallback actionCallback, void * actionCallbackContext);
-bool UIRadioButton_init(UIRadioButton * self, UIAppearance * appearance, Vector2f position, Vector2f relativeOrigin, const char * text, float width, enum UIElement_overflowMode overflowMode, bool checked, UIRadioGroup * radioGroup, UIRadioButtonActionCallback actionCallback, void * actionCallbackContext);
+UIRadioButton * UIRadioButton_create(const char * text, Vector2f position, Vector2f relativeOrigin, float width, enum UIElement_overflowMode overflowMode, bool checked, UIRadioGroup * radioGroup, UIRadioButtonActionCallback actionCallback, void * actionCallbackContext, UIAppearance * appearance);
+bool UIRadioButton_init(UIRadioButton * self, const char * text, Vector2f position, Vector2f relativeOrigin, float width, enum UIElement_overflowMode overflowMode, bool checked, UIRadioGroup * radioGroup, UIRadioButtonActionCallback actionCallback, void * actionCallbackContext, UIAppearance * appearance);
 void UIRadioButton_dispose(UIRadioButton * self);
 
 void UIRadioButton_setText(UIRadioButton * self, const char * text);
