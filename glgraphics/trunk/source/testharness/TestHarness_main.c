@@ -548,10 +548,10 @@ void Target_init() {
 	armatureMaterial = Material_create(COLOR4f(1.0f, 1.0f, 0.9375f, 1.0f), 0.875f, 32.0f, 0.0f);
 	
 	atlas = TextureAtlas_create();
-	TextureAtlas_setEntry(atlas, "key1", (struct TextureAtlas_entry) {0.0f, 0.75f, 0.0f, 0.75f});
-	TextureAtlas_setEntry(atlas, "key2", (struct TextureAtlas_entry) {0.25f, 1.0f, 0.0f, 0.75f});
-	TextureAtlas_setEntry(atlas, "key3", (struct TextureAtlas_entry) {0.0f, 0.75f, 0.25f, 1.0f});
-	TextureAtlas_setEntry(atlas, "key4", (struct TextureAtlas_entry) {0.25f, 1.0f, 0.25f, 1.0f});
+	TextureAtlas_setEntry(atlas, "key1", RECT4f(0.0f, 0.75f, 0.0f, 0.75f));
+	TextureAtlas_setEntry(atlas, "key2", RECT4f(0.25f, 1.0f, 0.0f, 0.75f));
+	TextureAtlas_setEntry(atlas, "key3", RECT4f(0.0f, 0.75f, 0.25f, 1.0f));
+	TextureAtlas_setEntry(atlas, "key4", RECT4f(0.25f, 1.0f, 0.25f, 1.0f));
 	TextureAtlas_setTexture(atlas, true, 2, 2, atlasPixels);
 	
 	initScene1();

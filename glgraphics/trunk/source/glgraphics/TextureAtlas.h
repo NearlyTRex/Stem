@@ -29,17 +29,11 @@ extern "C" {
 typedef struct TextureAtlas TextureAtlas;
 
 #include "dynamictypes/HashTable.h"
+#include "gamemath/Rect4f.h"
 #include "gamemath/Vector2f.h"
 #include "glgraphics/VertexTypes.h"
 #include "stemobject/StemObject.h"
 #include <math.h>
-
-struct TextureAtlas_entry {
-	float left;
-	float right;
-	float bottom;
-	float top;
-};
 
 #define TextureAtlas_structContents(self_type) \
 	StemObject_structContents(self_type) \
@@ -59,9 +53,9 @@ void TextureAtlas_setTexture(TextureAtlas * self, bool magnifyNearest, unsigned 
 // Caller is responsible for freeing returned pointer (but not elements within it)
 const char ** TextureAtlas_getKeys(TextureAtlas * self, size_t * outCount);
 bool TextureAtlas_hasKey(TextureAtlas * self, const char * key);
-void TextureAtlas_setEntry(TextureAtlas * self, const char * key, struct TextureAtlas_entry entry);
+void TextureAtlas_setEntry(TextureAtlas * self, const char * key, Rect4f entry);
 void TextureAtlas_removeEntry(TextureAtlas * self, const char * key);
-struct TextureAtlas_entry TextureAtlas_lookup(TextureAtlas * self, const char * key);
+Rect4f TextureAtlas_lookup(TextureAtlas * self, const char * key);
 
 #define TEXTUREATLAS_SIZE_AUTO INFINITY
 // Returns the size of the specified entry, according to the following rules:

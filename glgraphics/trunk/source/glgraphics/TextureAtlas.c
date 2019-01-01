@@ -80,7 +80,7 @@ bool TextureAtlas_hasKey(TextureAtlas * self, const char * key) {
 	return hashHas(self->private_ivar(hashTable), key);
 }
 
-void TextureAtlas_setEntry(TextureAtlas * self, const char * key, struct TextureAtlas_entry entry) {
+void TextureAtlas_setEntry(TextureAtlas * self, const char * key, Rect4f entry) {
 	hashSet(self->private_ivar(hashTable), key, valueCreateArray(arrayCreateWithValues(
 		valueCreateFloat(entry.left),
 		valueCreateFloat(entry.right),
@@ -93,8 +93,8 @@ void TextureAtlas_removeEntry(TextureAtlas * self, const char * key) {
 	hashDelete(self->private_ivar(hashTable), key);
 }
 
-struct TextureAtlas_entry TextureAtlas_lookup(TextureAtlas * self, const char * key) {
-	struct TextureAtlas_entry entry = {0.0f, 0.0f, 0.0f, 0.0f};
+Rect4f TextureAtlas_lookup(TextureAtlas * self, const char * key) {
+	Rect4f entry = {0.0f, 0.0f, 0.0f, 0.0f};
 	DataValue * value;
 	
 	value = hashGet(self->private_ivar(hashTable), key);
@@ -109,7 +109,7 @@ struct TextureAtlas_entry TextureAtlas_lookup(TextureAtlas * self, const char * 
 
 Vector2f TextureAtlas_getEntryDimensions(TextureAtlas * self, const char * key, float width, float height) {
 	Vector2f dimensions;
-	struct TextureAtlas_entry entry;
+	Rect4f entry;
 	
 	if (self->textureID == 0 || self->textureWidth == 0 || self->textureHeight == 0 || (width != TEXTUREATLAS_SIZE_AUTO && height != TEXTUREATLAS_SIZE_AUTO)) {
 		dimensions.x = width;
@@ -192,7 +192,7 @@ void TextureAtlas_getVertices(TextureAtlas * self, const char * key, Vector2f of
 		vertexCount = *ioVertexCount;
 	}
 	if (outVertices != NULL) {
-		struct TextureAtlas_entry entry;
+		Rect4f entry;
 		
 		entry = TextureAtlas_lookup(self, key);
 		getVertices_writePosition();
