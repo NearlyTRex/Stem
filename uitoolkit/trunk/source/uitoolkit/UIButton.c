@@ -21,6 +21,7 @@
 */
 
 #include "uitoolkit/UIButton.h"
+#include "uitoolkit/UIToolkitDrawing.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -129,73 +130,24 @@ Rect4f UIButton_getBounds(UIButton * self) {
 	outVertices[index] = vertex
 
 void UIButton_getVertices(UIButton * self, Vector2f offset, struct vertex_p2f_t2f_c4f * outVertices, GLuint * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount) {
-	unsigned int vertexCount = 0, indexCount = 0;
-	Rect4f bounds = self->getBounds(self);
+	Rect4f bounds = Rect4f_offset(self->getBounds(self), offset);
 	float stringWidth;
 	
-	if (ioVertexCount != NULL) {
-		vertexCount = *ioVertexCount;
-	}
-	if (ioIndexCount != NULL) {
-		indexCount = *ioIndexCount;
-	}
-	if (outVertices != NULL) {
-		struct TextureAtlas_entry atlasEntry = TextureAtlas_lookup(self->appearance->atlas, self->down ? UIAPPEARANCE_KEY_BUTTON_DOWN : UIAPPEARANCE_KEY_BUTTON_UP);
-		struct vertex_p2f_t2f_c4f vertex;
-		struct UIAppearance_sliceGrid slices = self->appearance->metrics.buttonSlices;
-		float texCoordScaleX, texCoordScaleY;
-		
-		vertex.color[0] = vertex.color[1] = vertex.color[2] = vertex.color[3] = 1.0f;
-		texCoordScaleX = (atlasEntry.right - atlasEntry.left) / (slices.leftColumn + slices.centerColumn + slices.rightColumn);
-		texCoordScaleY = (atlasEntry.top - atlasEntry.bottom) / (slices.bottomRow + slices.centerRow + slices.topRow);
-		
-		writeVertex(vertexCount + 0, offset.x + bounds.left, offset.y + bounds.bottom, atlasEntry.left, atlasEntry.bottom);
-		writeVertex(vertexCount + 1, offset.x + bounds.left + slices.leftColumn, offset.y + bounds.bottom, atlasEntry.left + slices.leftColumn * texCoordScaleX, atlasEntry.bottom);
-		writeVertex(vertexCount + 2, offset.x + bounds.right - slices.rightColumn, offset.y + bounds.bottom, atlasEntry.right - slices.rightColumn * texCoordScaleX, atlasEntry.bottom);
-		writeVertex(vertexCount + 3, offset.x + bounds.right, offset.y + bounds.bottom, atlasEntry.right, atlasEntry.bottom);
-		
-		writeVertex(vertexCount + 4, offset.x + bounds.left, offset.y + bounds.bottom + slices.bottomRow, atlasEntry.left, atlasEntry.bottom + slices.bottomRow * texCoordScaleY);
-		writeVertex(vertexCount + 5, offset.x + bounds.left + slices.leftColumn, offset.y + bounds.bottom + slices.bottomRow, atlasEntry.left + slices.leftColumn * texCoordScaleX, atlasEntry.bottom + slices.bottomRow * texCoordScaleY);
-		writeVertex(vertexCount + 6, offset.x + bounds.right - slices.rightColumn, offset.y + bounds.bottom + slices.bottomRow, atlasEntry.right - slices.rightColumn * texCoordScaleX, atlasEntry.bottom + slices.bottomRow * texCoordScaleY);
-		writeVertex(vertexCount + 7, offset.x + bounds.right, offset.y + bounds.bottom + slices.bottomRow, atlasEntry.right, atlasEntry.bottom + slices.bottomRow * texCoordScaleY);
-		
-		writeVertex(vertexCount + 8, offset.x + bounds.left, offset.y + bounds.top - slices.topRow, atlasEntry.left, atlasEntry.top - slices.topRow * texCoordScaleY);
-		writeVertex(vertexCount + 9, offset.x + bounds.left + slices.leftColumn, offset.y + bounds.top - slices.topRow, atlasEntry.left + slices.leftColumn * texCoordScaleX, atlasEntry.top - slices.topRow * texCoordScaleY);
-		writeVertex(vertexCount + 10, offset.x + bounds.right - slices.rightColumn, offset.y + bounds.top - slices.topRow, atlasEntry.right - slices.rightColumn * texCoordScaleX, atlasEntry.top - slices.topRow * texCoordScaleY);
-		writeVertex(vertexCount + 11, offset.x + bounds.right, offset.y + bounds.top - slices.topRow, atlasEntry.right, atlasEntry.top - slices.topRow * texCoordScaleY);
-		
-		writeVertex(vertexCount + 12, offset.x + bounds.left, offset.y + bounds.top, atlasEntry.left, atlasEntry.top);
-		writeVertex(vertexCount + 13, offset.x + bounds.left + slices.leftColumn, offset.y + bounds.top, atlasEntry.left + slices.leftColumn * texCoordScaleX, atlasEntry.top);
-		writeVertex(vertexCount + 14, offset.x + bounds.right - slices.rightColumn, offset.y + bounds.top, atlasEntry.right - slices.rightColumn * texCoordScaleX, atlasEntry.top);
-		writeVertex(vertexCount + 15, offset.x + bounds.right, offset.y + bounds.top, atlasEntry.right, atlasEntry.top);
-	}
-	if (outIndexes != NULL) {
-		unsigned int rowIndex, columnIndex;
-		
-		for (rowIndex = 0; rowIndex < 3; rowIndex++) {
-			for (columnIndex = 0; columnIndex < 9; columnIndex++) {
-				outIndexes[indexCount + (rowIndex * 3 + columnIndex) * 6 + 0] = vertexCount + rowIndex * 4 + columnIndex;
-				outIndexes[indexCount + (rowIndex * 3 + columnIndex) * 6 + 1] = vertexCount + rowIndex * 4 + columnIndex + 1;
-				outIndexes[indexCount + (rowIndex * 3 + columnIndex) * 6 + 2] = vertexCount + (rowIndex + 1) * 4 + columnIndex + 1;
-				outIndexes[indexCount + (rowIndex * 3 + columnIndex) * 6 + 3] = vertexCount + (rowIndex + 1) * 4 + columnIndex + 1;
-				outIndexes[indexCount + (rowIndex * 3 + columnIndex) * 6 + 4] = vertexCount + (rowIndex + 1) * 4 + columnIndex;
-				outIndexes[indexCount + (rowIndex * 3 + columnIndex) * 6 + 5] = vertexCount + rowIndex * 4 + columnIndex;
-			}
-		}
-	}
-	if (ioVertexCount != NULL) {
-		*ioVertexCount += 4 * 4;
-	}
-	if (ioIndexCount != NULL) {
-		*ioIndexCount += 6 * 3 * 3;
-	}
+	UIToolkit_getFrameVerticesWithSlices(bounds,
+	                                     TextureAtlas_lookup(self->appearance->atlas, self->down ? UIAPPEARANCE_KEY_BUTTON_DOWN : UIAPPEARANCE_KEY_BUTTON_UP),
+	                                     self->appearance->metrics.buttonSlices,
+	                                     COLOR4f(1.0f, 1.0f, 1.0f, 1.0f),
+	                                     outVertices,
+	                                     outIndexes,
+	                                     ioVertexCount,
+	                                     ioIndexCount);
 	
 	stringWidth = GLBitmapFont_measureString(self->appearance->font, self->text, GLBITMAPFONT_USE_STRLEN) * self->appearance->metrics.fontHeight;
 	GLBitmapFont_getStringVertices(self->appearance->font,
 	                               self->text,
 	                               GLBITMAPFONT_USE_STRLEN,
 	                               self->appearance->metrics.fontHeight,
-	                               VECTOR2f(roundf(offset.x + bounds.left + (bounds.right - bounds.left - stringWidth) * 0.5f), roundf(offset.y + bounds.bottom + (bounds.top - bounds.bottom - self->appearance->metrics.fontHeight) * 0.5f)),
+	                               VECTOR2f(roundf(bounds.left + (bounds.right - bounds.left - stringWidth) * 0.5f), roundf(bounds.bottom + (bounds.top - bounds.bottom - self->appearance->metrics.fontHeight) * 0.5f)),
 	                               VECTOR2f(0.0f, 0.0f),
 	                               true,
 	                               self->overflowMode == OVERFLOW_TRUNCATE ? bounds : GLBITMAPFONT_NO_CLIP,

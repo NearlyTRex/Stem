@@ -159,7 +159,7 @@ void UIRadioButton_getVertices(UIRadioButton * self, Vector2f offset, struct ver
 		indexCount = *ioIndexCount;
 	}
 	if (outVertices != NULL) {
-		struct TextureAtlas_entry atlasEntry = TextureAtlas_lookup(self->appearance->atlas, self->down ? self->checked ? UIAPPEARANCE_KEY_RADIO_DOWN_CHECKED : UIAPPEARANCE_KEY_RADIO_DOWN : self->checked ? UIAPPEARANCE_KEY_RADIO_UP_CHECKED : UIAPPEARANCE_KEY_RADIO_UP);
+		Rect4f atlasEntry = TextureAtlas_lookup(self->appearance->atlas, self->down ? self->checked ? UIAPPEARANCE_KEY_RADIO_DOWN_CHECKED : UIAPPEARANCE_KEY_RADIO_DOWN : self->checked ? UIAPPEARANCE_KEY_RADIO_UP_CHECKED : UIAPPEARANCE_KEY_RADIO_UP);
 		struct vertex_p2f_t2f_c4f vertex;
 		
 		vertex.color[0] = vertex.color[1] = vertex.color[2] = vertex.color[3] = 1.0f;

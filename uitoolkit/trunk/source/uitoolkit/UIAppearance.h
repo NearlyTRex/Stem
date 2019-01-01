@@ -44,21 +44,21 @@ typedef struct UIAppearance UIAppearance;
 #define UIAPPEARANCE_KEY_RADIO_DOWN_CHECKED "radio_down_checked"
 
 // Measured in pixels
-struct UIAppearance_sliceGrid {
+typedef struct UIAppearance_sliceGrid {
 	float leftColumn;
 	float centerColumn;
 	float rightColumn;
 	float bottomRow;
 	float centerRow;
 	float topRow;
-};
+} UIAppearance_sliceGrid;
 
-struct UIAppearance_metrics {
+typedef struct UIAppearance_metrics {
 	float fontHeight;
 	
 	float buttonTextPadding;
 	Color4f buttonTextColor;
-	struct UIAppearance_sliceGrid buttonSlices;
+	UIAppearance_sliceGrid buttonSlices;
 	
 	float checkboxGraphicWidth;
 	float checkboxGraphicHeight;
@@ -69,23 +69,23 @@ struct UIAppearance_metrics {
 	float radioButtonGraphicHeight;
 	float radioButtonTextPadding;
 	Color4f radioButtonTextColor;
-};
+} UIAppearance_metrics;
 
 #define UIAppearance_structContents(self_type) \
 	StemObject_structContents(self_type) \
 	\
 	TextureAtlas * atlas; \
 	GLBitmapFont * font; \
-	struct UIAppearance_metrics metrics;
+	UIAppearance_metrics metrics;
 
 stemobject_struct_definition(UIAppearance)
 
 // Copies entries; retains references to atlas and font
-UIAppearance * UIAppearance_create(TextureAtlas * atlas, GLBitmapFont * font, struct UIAppearance_metrics metrics);
-bool UIAppearance_init(UIAppearance * self, TextureAtlas * atlas, GLBitmapFont * font, struct UIAppearance_metrics metrics);
+UIAppearance * UIAppearance_create(TextureAtlas * atlas, GLBitmapFont * font, UIAppearance_metrics metrics);
+bool UIAppearance_init(UIAppearance * self, TextureAtlas * atlas, GLBitmapFont * font, UIAppearance_metrics metrics);
 void UIAppearance_dispose(UIAppearance * self);
 
-struct UIAppearance_metrics UIAppearance_defaultMetrics(void);
+UIAppearance_metrics UIAppearance_defaultMetrics(void);
 
 #ifdef __cplusplus
 }

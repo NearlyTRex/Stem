@@ -25,11 +25,11 @@
 
 #define SUPERCLASS StemObject
 
-UIAppearance * UIAppearance_create(TextureAtlas * atlas, GLBitmapFont * font, struct UIAppearance_metrics metrics) {
+UIAppearance * UIAppearance_create(TextureAtlas * atlas, GLBitmapFont * font, UIAppearance_metrics metrics) {
 	stemobject_create_implementation(UIAppearance, init, atlas, font, metrics)
 }
 
-bool UIAppearance_init(UIAppearance * self, TextureAtlas * atlas, GLBitmapFont * font, struct UIAppearance_metrics metrics) {
+bool UIAppearance_init(UIAppearance * self, TextureAtlas * atlas, GLBitmapFont * font, UIAppearance_metrics metrics) {
 	call_super(init, self);
 	self->dispose = UIAppearance_dispose;
 	self->atlas = atlas;
@@ -42,8 +42,8 @@ void UIAppearance_dispose(UIAppearance * self) {
 	call_super(dispose, self);
 }
 
-struct UIAppearance_metrics UIAppearance_defaultMetrics(void) {
-	struct UIAppearance_metrics metrics;
+UIAppearance_metrics UIAppearance_defaultMetrics(void) {
+	UIAppearance_metrics metrics;
 	
 	metrics.fontHeight = 30.0f;
 	

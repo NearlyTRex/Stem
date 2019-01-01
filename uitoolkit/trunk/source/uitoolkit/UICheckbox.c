@@ -145,7 +145,7 @@ void UICheckbox_getVertices(UICheckbox * self, Vector2f offset, struct vertex_p2
 		indexCount = *ioIndexCount;
 	}
 	if (outVertices != NULL) {
-		struct TextureAtlas_entry atlasEntry = TextureAtlas_lookup(self->appearance->atlas, self->down ? self->checked ? UIAPPEARANCE_KEY_CHECKBOX_DOWN_CHECKED : UIAPPEARANCE_KEY_CHECKBOX_DOWN : self->checked ? UIAPPEARANCE_KEY_CHECKBOX_UP_CHECKED : UIAPPEARANCE_KEY_CHECKBOX_UP);
+		Rect4f atlasEntry = TextureAtlas_lookup(self->appearance->atlas, self->down ? self->checked ? UIAPPEARANCE_KEY_CHECKBOX_DOWN_CHECKED : UIAPPEARANCE_KEY_CHECKBOX_DOWN : self->checked ? UIAPPEARANCE_KEY_CHECKBOX_UP_CHECKED : UIAPPEARANCE_KEY_CHECKBOX_UP);
 		struct vertex_p2f_t2f_c4f vertex;
 		
 		vertex.color[0] = vertex.color[1] = vertex.color[2] = vertex.color[3] = 1.0f;
