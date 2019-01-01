@@ -247,7 +247,7 @@ static void useTextureAtlas(TextureAtlasData * atlasData) {
 	textureAtlasMode = true;
 	animating = false;
 	Renderer_setProjectionMatrix(renderer, Matrix4x4f_ortho(MATRIX4x4f_IDENTITY, -viewRatio, viewRatio, -1.0f, 1.0f, -1.0f, 1.0f));
-	Renderer_setClearColor(renderer, COLOR4f(0.0f, 0.125f, 0.0f, 0.0f));
+	Renderer_setClearColor(renderer, COLOR4f(0.0f, 0.0625f, 0.0f, 0.0f));
 	
 	image = ResourceManager_referenceResource(resourceManager, ATOM("png"), atlasData->textureMapName);
 	if (image != NULL) {

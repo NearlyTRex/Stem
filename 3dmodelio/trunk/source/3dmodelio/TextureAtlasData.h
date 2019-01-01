@@ -57,6 +57,7 @@ struct TextureAtlasData_entry {
 
 stemobject_struct_definition(TextureAtlasData)
 
+// entries is copied
 TextureAtlasData * TextureAtlasData_create(Atom name, Atom textureMapName, bool magnifyNearest, unsigned int entryCount, struct TextureAtlasData_entry * entries);
 bool TextureAtlasData_init(TextureAtlasData * self, Atom name, Atom textureMapName, bool magnifyNearest, unsigned int entryCount, struct TextureAtlasData_entry * entries);
 void TextureAtlasData_dispose(TextureAtlasData * self);

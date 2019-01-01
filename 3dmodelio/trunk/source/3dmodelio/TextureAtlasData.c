@@ -134,7 +134,7 @@ void TextureAtlasData_serialize(TextureAtlasData * self, compat_type(Serializati
 TextureAtlas * TextureAtlasData_createTextureAtlas(TextureAtlasData * self) {
 	TextureAtlas * textureAtlas = TextureAtlas_create();
 	unsigned int entryIndex;
-	struct TextureAtlas_entry entry;
+	Rect4f entry;
 	
 	for (entryIndex = 0; entryIndex < self->entryCount; entryIndex++) {
 		entry.left = self->entries[entryIndex].left;
