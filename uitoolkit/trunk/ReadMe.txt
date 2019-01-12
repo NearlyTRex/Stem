@@ -52,6 +52,7 @@ Concepts:
 
 TODO:
 - Create UICheckBox, UIRadioGroup, UIEditText, UISlider, UIPopUpMenu, UIScrollingContainer
+ - Scroll/clip view renders to its own FBO? Need some facilities in Renderer. Maybe can just set up a clip region instead of an FBO. See https://www.khronos.org/opengl/wiki/Vertex_Post-Processing#User-defined_clipping
 - Figure out UIContainer subclasses
 - Come up with a way to make text rendering work in both pixel-exact and non-pixel-exact modes (appearance parameter?)
 - Make UIContainer_removeElement() safe for iteration

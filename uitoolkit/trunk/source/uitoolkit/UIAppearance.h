@@ -44,21 +44,33 @@ typedef struct UIAppearance UIAppearance;
 #define UIAPPEARANCE_KEY_RADIO_DOWN_CHECKED "radio_down_checked"
 
 // Measured in pixels
-typedef struct UIAppearance_sliceGrid {
+typedef struct UIAppearance_sliceGrid3x3 {
 	float leftColumn;
 	float centerColumn;
 	float rightColumn;
 	float bottomRow;
 	float centerRow;
 	float topRow;
-} UIAppearance_sliceGrid;
+} UIAppearance_sliceGrid3x3;
+
+typedef struct UIAppearance_sliceGrid3x1 {
+	float leftColumn;
+	float centerColumn;
+	float rightColumn;
+} UIAppearance_sliceGrid3x1;
+
+typedef struct UIAppearance_sliceGrid1x3 {
+	float bottomRow;
+	float centerRow;
+	float topRow;
+} UIAppearance_sliceGrid1x3;
 
 typedef struct UIAppearance_metrics {
 	float fontHeight;
 	
 	float buttonTextPadding;
 	Color4f buttonTextColor;
-	UIAppearance_sliceGrid buttonSlices;
+	UIAppearance_sliceGrid3x3 buttonSlices;
 	
 	float checkboxGraphicWidth;
 	float checkboxGraphicHeight;

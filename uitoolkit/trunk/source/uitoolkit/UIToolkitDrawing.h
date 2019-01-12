@@ -30,14 +30,32 @@ extern "C" {
 #include "glgraphics/VertexTypes.h"
 #include "uitoolkit/UIAppearance.h"
 
-void UIToolkit_getFrameVerticesWithSlices(Rect4f drawBounds,
-                                          Rect4f textureBounds,
-                                          UIAppearance_sliceGrid slices,
-                                          Color4f color,
-                                          struct vertex_p2f_t2f_c4f * outVertices,
-                                          GLuint * outIndexes,
-                                          unsigned int * ioVertexCount,
-                                          unsigned int * ioIndexCount);
+void UIToolkit_getVerticesWithSlices3x3(Rect4f drawBounds,
+                                        Rect4f textureBounds,
+                                        UIAppearance_sliceGrid3x3 slices,
+                                        Color4f color,
+                                        struct vertex_p2f_t2f_c4f * outVertices,
+                                        GLuint * outIndexes,
+                                        unsigned int * ioVertexCount,
+                                        unsigned int * ioIndexCount);
+
+void UIToolkit_getVerticesWithSlices3x1(Rect4f drawBounds,
+                                        Rect4f textureBounds,
+                                        UIAppearance_sliceGrid3x1 slices,
+                                        Color4f color,
+                                        struct vertex_p2f_t2f_c4f * outVertices,
+                                        GLuint * outIndexes,
+                                        unsigned int * ioVertexCount,
+                                        unsigned int * ioIndexCount);
+
+void UIToolkit_getVerticesWithSlices1x3(Rect4f drawBounds,
+                                        Rect4f textureBounds,
+                                        UIAppearance_sliceGrid1x3 slices,
+                                        Color4f color,
+                                        struct vertex_p2f_t2f_c4f * outVertices,
+                                        GLuint * outIndexes,
+                                        unsigned int * ioVertexCount,
+                                        unsigned int * ioIndexCount);
 
 #ifdef __cplusplus
 }

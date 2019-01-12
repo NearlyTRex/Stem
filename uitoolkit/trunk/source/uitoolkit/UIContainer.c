@@ -23,6 +23,7 @@
 #include "uitoolkit/UIContainer.h"
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 #define SUPERCLASS UIElement
 
@@ -73,6 +74,11 @@ void UIContainer_dispose(UIContainer * self) {
 }
 
 void UIContainer_addElement(UIContainer * self, UIElement * element, bool takeOwnership) {
+	if (element == NULL) {
+		fprintf(stderr, "Warning: Attempt to add a NULL UIElement to UIContainer %p\n", self);
+		return;
+	}
+	
 	if (self->private_ivar(elementAllocatedCount) <= self->elementCount) {
 		self->private_ivar(elementAllocatedCount) *= 2;
 		self->elements = realloc(self->elements, sizeof(*self->elements) * self->private_ivar(elementAllocatedCount));
@@ -258,7 +264,7 @@ Rect4f UIContainer_getBounds(UIContainer * self) {
 	for (elementIndex = 0; elementIndex < self->elementCount; elementIndex++) {
 		result = Rect4f_union(result, self->elements[elementIndex].element->getBounds(self->elements[elementIndex].element));
 	}
-	return result;
+	return Rect4f_offset(result, self->position);
 }
 
 void UIContainer_getVertices(UIContainer * self, Vector2f offset, struct vertex_p2f_t2f_c4f * outVertices, GLuint * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount) {

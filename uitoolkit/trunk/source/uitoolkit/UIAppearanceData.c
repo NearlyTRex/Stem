@@ -59,8 +59,8 @@ static Color4f readColor4f(DeserializationContext * context, const char * key) {
 	return color;
 }
 
-static struct UIAppearance_sliceGrid readSliceGrid(DeserializationContext * context, const char * key) {
-	struct UIAppearance_sliceGrid sliceGrid;
+static UIAppearance_sliceGrid3x3 readSliceGrid3x3(DeserializationContext * context, const char * key) {
+	UIAppearance_sliceGrid3x3 sliceGrid;
 	context->beginStructure(context, key);
 	sliceGrid.leftColumn = context->readFloat(context, "leftColumn");
 	sliceGrid.centerColumn = context->readFloat(context, "centerColumn");
@@ -106,7 +106,7 @@ bool UIAppearanceData_loadSerializedData(UIAppearanceData * self, compat_type(De
 			metrics.buttonTextColor = readColor4f(context, metricName);
 			
 		} else if (!strcmp(metricName, "buttonSlices")) {
-			metrics.buttonSlices = readSliceGrid(context, metricName);
+			metrics.buttonSlices = readSliceGrid3x3(context, metricName);
 			
 		} else if (!strcmp(metricName, "checkboxGraphicWidth")) {
 			metrics.checkboxGraphicWidth = context->readFloat(context, metricName);
@@ -152,7 +152,7 @@ static void writeColor4f(SerializationContext * context, const char * key, Color
 	context->endStructure(context);
 }
 
-static void writeSliceGrid(SerializationContext * context, const char * key, struct UIAppearance_sliceGrid sliceGrid) {
+static void writeSliceGrid3x3(SerializationContext * context, const char * key, UIAppearance_sliceGrid3x3 sliceGrid) {
 	context->beginStructure(context, key);
 	context->writeFloat(context, "leftColumn", sliceGrid.leftColumn);
 	context->writeFloat(context, "centerColumn", sliceGrid.centerColumn);
@@ -176,7 +176,7 @@ void UIAppearanceData_serialize(UIAppearanceData * self, compat_type(Serializati
 	context->writeFloat(context, "fontHeight", self->metrics.fontHeight);
 	context->writeFloat(context, "buttonTextPadding", self->metrics.buttonTextPadding);
 	writeColor4f(context, "buttonTextColor", self->metrics.buttonTextColor);
-	writeSliceGrid(context, "buttonSlices", self->metrics.buttonSlices);
+	writeSliceGrid3x3(context, "buttonSlices", self->metrics.buttonSlices);
 	context->writeFloat(context, "checkboxGraphicWidth", self->metrics.checkboxGraphicWidth);
 	context->writeFloat(context, "checkboxGraphicHeight", self->metrics.checkboxGraphicHeight);
 	context->writeFloat(context, "checkboxTextPadding", self->metrics.checkboxTextPadding);

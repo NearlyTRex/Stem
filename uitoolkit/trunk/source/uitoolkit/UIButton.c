@@ -133,14 +133,14 @@ void UIButton_getVertices(UIButton * self, Vector2f offset, struct vertex_p2f_t2
 	Rect4f bounds = Rect4f_offset(self->getBounds(self), offset);
 	float stringWidth;
 	
-	UIToolkit_getFrameVerticesWithSlices(bounds,
-	                                     TextureAtlas_lookup(self->appearance->atlas, self->down ? UIAPPEARANCE_KEY_BUTTON_DOWN : UIAPPEARANCE_KEY_BUTTON_UP),
-	                                     self->appearance->metrics.buttonSlices,
-	                                     COLOR4f(1.0f, 1.0f, 1.0f, 1.0f),
-	                                     outVertices,
-	                                     outIndexes,
-	                                     ioVertexCount,
-	                                     ioIndexCount);
+	UIToolkit_getVerticesWithSlices3x3(bounds,
+	                                   TextureAtlas_lookup(self->appearance->atlas, self->down ? UIAPPEARANCE_KEY_BUTTON_DOWN : UIAPPEARANCE_KEY_BUTTON_UP),
+	                                   self->appearance->metrics.buttonSlices,
+	                                   COLOR4f(1.0f, 1.0f, 1.0f, 1.0f),
+	                                   outVertices,
+	                                   outIndexes,
+	                                   ioVertexCount,
+	                                   ioIndexCount);
 	
 	stringWidth = GLBitmapFont_measureString(self->appearance->font, self->text, GLBITMAPFONT_USE_STRLEN) * self->appearance->metrics.fontHeight;
 	GLBitmapFont_getStringVertices(self->appearance->font,

@@ -29,14 +29,14 @@
 	vertex.texCoords[1] = textureY; \
 	outVertices[index] = vertex
 
-void UIToolkit_getFrameVerticesWithSlices(Rect4f drawBounds,
-                                          Rect4f textureBounds,
-                                          UIAppearance_sliceGrid slices,
-                                          Color4f color,
-                                          struct vertex_p2f_t2f_c4f * outVertices,
-                                          GLuint * outIndexes,
-                                          unsigned int * ioVertexCount,
-                                          unsigned int * ioIndexCount) {
+void UIToolkit_getVerticesWithSlices3x3(Rect4f drawBounds,
+                                        Rect4f textureBounds,
+                                        UIAppearance_sliceGrid3x3 slices,
+                                        Color4f color,
+                                        struct vertex_p2f_t2f_c4f * outVertices,
+                                        GLuint * outIndexes,
+                                        unsigned int * ioVertexCount,
+                                        unsigned int * ioIndexCount) {
 	unsigned int vertexCount = 0, indexCount = 0;
 	
 	if (ioVertexCount != NULL) {
@@ -80,7 +80,7 @@ void UIToolkit_getFrameVerticesWithSlices(Rect4f drawBounds,
 		unsigned int rowIndex, columnIndex;
 		
 		for (rowIndex = 0; rowIndex < 3; rowIndex++) {
-			for (columnIndex = 0; columnIndex < 9; columnIndex++) {
+			for (columnIndex = 0; columnIndex < 3; columnIndex++) {
 				outIndexes[indexCount + (rowIndex * 3 + columnIndex) * 6 + 0] = vertexCount + rowIndex * 4 + columnIndex;
 				outIndexes[indexCount + (rowIndex * 3 + columnIndex) * 6 + 1] = vertexCount + rowIndex * 4 + columnIndex + 1;
 				outIndexes[indexCount + (rowIndex * 3 + columnIndex) * 6 + 2] = vertexCount + (rowIndex + 1) * 4 + columnIndex + 1;
@@ -95,5 +95,117 @@ void UIToolkit_getFrameVerticesWithSlices(Rect4f drawBounds,
 	}
 	if (ioIndexCount != NULL) {
 		*ioIndexCount += 6 * 3 * 3;
+	}
+}
+
+void UIToolkit_getVerticesWithSlices3x1(Rect4f drawBounds,
+                                        Rect4f textureBounds,
+                                        UIAppearance_sliceGrid3x1 slices,
+                                        Color4f color,
+                                        struct vertex_p2f_t2f_c4f * outVertices,
+                                        GLuint * outIndexes,
+                                        unsigned int * ioVertexCount,
+                                        unsigned int * ioIndexCount) {
+	unsigned int vertexCount = 0, indexCount = 0;
+	
+	if (ioVertexCount != NULL) {
+		vertexCount = *ioVertexCount;
+	}
+	if (ioIndexCount != NULL) {
+		indexCount = *ioIndexCount;
+	}
+	if (outVertices != NULL) {
+		struct vertex_p2f_t2f_c4f vertex;
+		float texCoordScaleX;
+		
+		vertex.color[0] = color.red;
+		vertex.color[1] = color.green;
+		vertex.color[2] = color.blue;
+		vertex.color[3] = color.alpha;
+		texCoordScaleX = (textureBounds.right - textureBounds.left) / (slices.leftColumn + slices.centerColumn + slices.rightColumn);
+		
+		writeVertex(vertexCount + 0, drawBounds.left, drawBounds.bottom, textureBounds.left, textureBounds.bottom);
+		writeVertex(vertexCount + 1, drawBounds.left + slices.leftColumn, drawBounds.bottom, textureBounds.left + slices.leftColumn * texCoordScaleX, textureBounds.bottom);
+		writeVertex(vertexCount + 2, drawBounds.right - slices.rightColumn, drawBounds.bottom, textureBounds.right - slices.rightColumn * texCoordScaleX, textureBounds.bottom);
+		writeVertex(vertexCount + 3, drawBounds.right, drawBounds.bottom, textureBounds.right, textureBounds.bottom);
+		
+		writeVertex(vertexCount + 4, drawBounds.left, drawBounds.top, textureBounds.left, textureBounds.top);
+		writeVertex(vertexCount + 5, drawBounds.left + slices.leftColumn, drawBounds.top, textureBounds.left + slices.leftColumn * texCoordScaleX, textureBounds.top);
+		writeVertex(vertexCount + 6, drawBounds.right - slices.rightColumn, drawBounds.top, textureBounds.right - slices.rightColumn * texCoordScaleX, textureBounds.top);
+		writeVertex(vertexCount + 7, drawBounds.right, drawBounds.top, textureBounds.right, textureBounds.top);
+	}
+	if (outIndexes != NULL) {
+		unsigned int columnIndex;
+		
+		for (columnIndex = 0; columnIndex < 3; columnIndex++) {
+			outIndexes[indexCount + columnIndex * 6 + 0] = vertexCount + columnIndex;
+			outIndexes[indexCount + columnIndex * 6 + 1] = vertexCount + columnIndex + 1;
+			outIndexes[indexCount + columnIndex * 6 + 2] = vertexCount + 4 + columnIndex + 1;
+			outIndexes[indexCount + columnIndex * 6 + 3] = vertexCount + 4 + columnIndex + 1;
+			outIndexes[indexCount + columnIndex * 6 + 4] = vertexCount + 4 + columnIndex;
+			outIndexes[indexCount + columnIndex * 6 + 5] = vertexCount + columnIndex;
+		}
+	}
+	if (ioVertexCount != NULL) {
+		*ioVertexCount += 4 * 2;
+	}
+	if (ioIndexCount != NULL) {
+		*ioIndexCount += 6 * 3;
+	}
+}
+
+void UIToolkit_getVerticesWithSlices1x3(Rect4f drawBounds,
+                                        Rect4f textureBounds,
+                                        UIAppearance_sliceGrid1x3 slices,
+                                        Color4f color,
+                                        struct vertex_p2f_t2f_c4f * outVertices,
+                                        GLuint * outIndexes,
+                                        unsigned int * ioVertexCount,
+                                        unsigned int * ioIndexCount) {
+	unsigned int vertexCount = 0, indexCount = 0;
+	
+	if (ioVertexCount != NULL) {
+		vertexCount = *ioVertexCount;
+	}
+	if (ioIndexCount != NULL) {
+		indexCount = *ioIndexCount;
+	}
+	if (outVertices != NULL) {
+		struct vertex_p2f_t2f_c4f vertex;
+		float texCoordScaleY;
+		
+		vertex.color[0] = color.red;
+		vertex.color[1] = color.green;
+		vertex.color[2] = color.blue;
+		vertex.color[3] = color.alpha;
+		texCoordScaleY = (textureBounds.top - textureBounds.bottom) / (slices.bottomRow + slices.centerRow + slices.topRow);
+		
+		writeVertex(vertexCount + 0, drawBounds.left, drawBounds.bottom, textureBounds.left, textureBounds.bottom);
+		writeVertex(vertexCount + 1, drawBounds.left, drawBounds.bottom + slices.bottomRow, textureBounds.left, textureBounds.bottom + slices.bottomRow * texCoordScaleY);
+		writeVertex(vertexCount + 2, drawBounds.left, drawBounds.top - slices.topRow, textureBounds.left, textureBounds.top - slices.topRow * texCoordScaleY);
+		writeVertex(vertexCount + 3, drawBounds.left, drawBounds.top, textureBounds.left, textureBounds.top);
+		
+		writeVertex(vertexCount + 4, drawBounds.right, drawBounds.bottom, textureBounds.right, textureBounds.bottom);
+		writeVertex(vertexCount + 5, drawBounds.right, drawBounds.bottom + slices.bottomRow, textureBounds.right, textureBounds.bottom + slices.bottomRow * texCoordScaleY);
+		writeVertex(vertexCount + 6, drawBounds.right, drawBounds.top - slices.topRow, textureBounds.right, textureBounds.top - slices.topRow * texCoordScaleY);
+		writeVertex(vertexCount + 7, drawBounds.right, drawBounds.top, textureBounds.right, textureBounds.top);
+	}
+	if (outIndexes != NULL) {
+		unsigned int rowIndex;
+		
+		for (rowIndex = 0; rowIndex < 3; rowIndex++) {
+			outIndexes[indexCount + rowIndex * 6 + 0] = vertexCount + rowIndex;
+			outIndexes[indexCount + rowIndex * 6 + 1] = vertexCount + rowIndex + 1;
+			outIndexes[indexCount + rowIndex * 6 + 2] = vertexCount + 4 + rowIndex + 1;
+			outIndexes[indexCount + rowIndex * 6 + 3] = vertexCount + 4 + rowIndex + 1;
+			outIndexes[indexCount + rowIndex * 6 + 4] = vertexCount + 4 + rowIndex;
+			outIndexes[indexCount + rowIndex * 6 + 5] = vertexCount + rowIndex;
+		}
+	}
+	if (ioVertexCount != NULL) {
+		*ioVertexCount += 4 * 2;
+	}
+	if (ioIndexCount != NULL) {
+		*ioIndexCount += 6 * 3;
 	}
 }
