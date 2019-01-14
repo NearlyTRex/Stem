@@ -273,7 +273,7 @@ void GLBitmapFont_getStringVertices(GLBitmapFont * self,
 	float positionX = 0.0f;
 	unsigned int charEntryIndex;
 	unsigned int vertexCount = *ioVertexCount, indexCount = *ioIndexCount;
-	struct TextureAtlas_entry atlasEntry;
+	Rect4f atlasEntry;
 	Rect4f vertexBounds;
 	
 	if (clipBounds.right - clipBounds.left <= 0.0f || clipBounds.top - clipBounds.bottom <= 0.0f) {
