@@ -8,7 +8,7 @@ in vec4 inColor;
 in vec4 inBoneID;
 in vec4 inBoneWeight;
 
-#define BONE_COUNT_MAX 128
+#define BONE_COUNT_MAX 120
 
 uniform mat4 projectionTransform;
 uniform mat4 viewTransform;

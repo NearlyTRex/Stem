@@ -37,7 +37,7 @@
 #include "glgraphics/SpriteFragmentShader.h"
 
 #define SUPERCLASS StemObject
-#define BONE_COUNT_MAX 128
+#define BONE_COUNT_MAX 120
 
 Renderer * Renderer_create(unsigned int layerCount) {
 	stemobject_create_implementation(Renderer, init, layerCount)
