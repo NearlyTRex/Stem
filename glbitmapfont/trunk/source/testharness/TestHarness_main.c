@@ -18,8 +18,14 @@
 #elif defined(STEM_PLATFORM_macosx)
 #include "nsopenglshell/NSOpenGLShell.h"
 #include "nsopenglshell/NSOpenGLTarget.h"
+#elif defined(STEM_PLATFORM_win32) || defined(STEM_PLATFORM_win64)
+#include "wglshell/WGLShell.h"
+#include "wglshell/WGLTarget.h"
+#elif defined(STEM_PLATFORM_linux32) || defined(STEM_PLATFORM_linux64)
+#include "glxshell/GLXShell.h"
+#include "glxshell/GLXTarget.h"
 #else
-#include "glutshell/GLUTTarget.h"
+#error Unsupported platform
 #endif
 
 #include <stddef.h>
@@ -347,13 +353,19 @@ void NSOpenGLTarget_configure(int argc, const char ** argv, struct NSOpenGLShell
 	configuration->windowTitle = "GLBitmapFont Test Harness";
 	registerShellCallbacks();
 }
-#else
-void GLUTTarget_configure(int argc, const char ** argv, struct GLUTShellConfiguration * configuration) {
+#elif defined(STEM_PLATFORM_win32) || defined(STEM_PLATFORM_win64)
+void WGLTarget_configure(void * instance, void * prevInstance, char * commandLine, int command, int argc, const char ** argv, struct WGLShellConfiguration * configuration) {
 	parseArgs(argc, argv);
-	configuration->windowTitle = "GLBitmapFont Test Harness";
+	configuration->windowTitle = "GLGraphics";
+#elif defined(STEM_PLATFORM_linux32) || defined(STEM_PLATFORM_linux64)
+void GLXTarget_configure(int argc, const char ** argv, struct GLXShellConfiguration * configuration) {
+	parseArgs(argc, argv);
+	configuration->windowTitle = "GLGraphics";
+#else
+#error Unsupported platform
+#endif
 	registerShellCallbacks();
 }
-#endif
 
 void Target_init() {
 	const char * fontJSONFilePath;
