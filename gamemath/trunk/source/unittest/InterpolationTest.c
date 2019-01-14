@@ -239,7 +239,7 @@ static void testBuiltInCurveFuncs() {
 	TestCase_assert(value == 1.0f, "Expected 1.0 but got %f", value);
 	
 	value = InterpolationCurveFunc_easeInOutSin(0.0f, NULL);
-	TestCase_assert(value == 0.0f, "Expected 0.0 but got %f", value);
+	TestCase_assert(fabs(value) < EPSILON, "Expected 0.0 but got %f", value);
 	value = InterpolationCurveFunc_easeInOutSin(0.25f, NULL);
 	TestCase_assert(fabs(value - (1.0 - cos(M_PI * 0.25)) * 0.5) < EPSILON, "Expected %f but got %f", (1.0 - cos(M_PI * 0.25)) * 0.5, value);
 	value = InterpolationCurveFunc_easeInOutSin(0.5f, NULL);
@@ -247,7 +247,7 @@ static void testBuiltInCurveFuncs() {
 	value = InterpolationCurveFunc_easeInOutSin(0.75f, NULL);
 	TestCase_assert(fabs(value - (0.5 + sin(M_PI * 0.25) * 0.5)) < EPSILON, "Expected %f but got %f", 0.5 + sin(M_PI * 0.25) * 0.5, value);
 	value = InterpolationCurveFunc_easeInOutSin(1.0f, NULL);
-	TestCase_assert(value == 1.0f, "Expected 1.0 but got %f", value);
+	TestCase_assert(fabs(value - 1.0f) < EPSILON, "Expected 1.0 but got %f", value);
 }
 
 TEST_SUITE(InterpolationTest,
