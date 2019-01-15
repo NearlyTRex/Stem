@@ -36,6 +36,7 @@ bool TextFlow_init(TextFlow * self, GLBitmapFont * font, const char * string, en
 	self->dispose = TextFlow_dispose;
 	self->font = font;
 	self->string = strdup(string);
+	self->dirty = false;
 	self->wrapMode = wrapMode;
 	self->wrapWidth = wrapWidth;
 	self->private_ivar(wrapInfo).wrapPointAllocatedCount = 8;
@@ -54,6 +55,7 @@ void TextFlow_dispose(TextFlow * self) {
 void TextFlow_setString(TextFlow * self, const char * string) {
 	free((void *) self->string);
 	self->string = strdup(string);
+	self->dirty = true;
 }
 
 static inline bool isWrappableWhitespace(char character) {
@@ -69,13 +71,15 @@ static void addWrapPoint(TextFlow * self, size_t wrapPoint) {
 }
 
 static void updateWrapInfo(TextFlow * self) {
-	if (self->font != self->private_ivar(wrapInfo).font ||
+	if (self->dirty ||
+	    self->font != self->private_ivar(wrapInfo).font ||
 	    self->string != self->private_ivar(wrapInfo).string ||
 	    self->wrapMode != self->private_ivar(wrapInfo).wrapMode ||
 	    self->wrapWidth != self->private_ivar(wrapInfo).wrapWidth) {
 		float measuredWidth;
 		size_t lineEndCharIndex, edgeCharIndex, length = strlen(self->string), wrapIndex, lastWrapIndex = 0, lastLastWrapIndex = 1;
 		
+		self->dirty = false;
 		self->private_ivar(wrapInfo).font = self->font;
 		self->private_ivar(wrapInfo).string = self->string;
 		self->private_ivar(wrapInfo).wrapMode = self->wrapMode;

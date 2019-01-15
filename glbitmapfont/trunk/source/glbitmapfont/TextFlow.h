@@ -52,6 +52,7 @@ struct TextFlow_wrapInfo {
 	\
 	GLBitmapFont * font; \
 	const char * string; \
+	bool dirty; \
 	enum TextFlow_wordWrapMode wrapMode; \
 	float wrapWidth; \
 	struct TextFlow_wrapInfo private_ivar(wrapInfo);
