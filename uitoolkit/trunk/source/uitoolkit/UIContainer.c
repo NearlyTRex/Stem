@@ -90,7 +90,7 @@ void UIContainer_addElement(UIContainer * self, UIElement * element, bool takeOw
 
 void UIContainer_removeElement(UIContainer * self, UIElement * element) {
 	// TODO: Potentially dangerous if this happens during iteration! Add safeguards just in case
-	unsigned int elementIndex;
+	unsigned int elementIndex, buttonIndex;
 	
 	for (elementIndex = 0; elementIndex < self->elementCount; elementIndex++) {
 		if (self->elements[elementIndex].element == element) {
@@ -103,6 +103,14 @@ void UIContainer_removeElement(UIContainer * self, UIElement * element) {
 			}
 			break;
 		}
+	}
+	for (buttonIndex = 0; buttonIndex < UICONTAINER_MOUSE_BUTTON_NUMBER_RESPONSE_COUNT; buttonIndex++) {
+		if (self->lastMouseDownTargets[buttonIndex] == element) {
+			self->lastMouseDownTargets[buttonIndex] = NULL;
+		}
+	}
+	if (element == self->lastKeyDownTarget) {
+		self->lastKeyDownTarget = NULL;
 	}
 }
 
@@ -150,12 +158,16 @@ bool UIContainer_mouseDown(UIContainer * self, unsigned int buttonNumber, float 
 }
 
 bool UIContainer_mouseUp(UIContainer * self, unsigned int buttonNumber, float x, float y) {
+	UIElement * target;
+	
 	if (buttonNumber >= UICONTAINER_MOUSE_BUTTON_NUMBER_RESPONSE_COUNT || self->lastMouseDownTargets[buttonNumber] == NULL) {
 		return false;
 	}
 	x -= self->position.x;
 	y -= self->position.y;
-	return self->lastMouseDownTargets[buttonNumber]->mouseUp(self->lastMouseDownTargets[buttonNumber], buttonNumber, x, y);
+	target = self->lastMouseDownTargets[buttonNumber];
+	self->lastMouseDownTargets[buttonNumber] = NULL;
+	return target->mouseUp(target, buttonNumber, x, y);
 }
 
 bool UIContainer_mouseMoved(UIContainer * self, float x, float y) {
