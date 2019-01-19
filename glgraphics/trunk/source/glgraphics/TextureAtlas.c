@@ -188,6 +188,9 @@ Vector2f TextureAtlas_getEntryDimensions(TextureAtlas * self, const char * key, 
 void TextureAtlas_getVertices(TextureAtlas * self, const char * key, Vector2f offset, Vector2f relativeOrigin, Vector2f size, Color4f color, struct vertex_p2f_t2f_c4f * outVertices, GLuint * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount) {
 	unsigned int vertexCount = 0;
 	
+	if (key == NULL) {
+		return;
+	}
 	if (ioVertexCount != NULL) {
 		vertexCount = *ioVertexCount;
 	}
