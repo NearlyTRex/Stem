@@ -57,6 +57,7 @@ enum UIElement_overflowMode {
 	Vector2f position; \
 	Vector2f relativeOrigin; \
 	UIAppearance * appearance; \
+	bool visible; \
 	\
 	UIElement * (* hitTest)(self_type * self, float x, float y); \
 	bool (* mouseDown)(self_type * self, unsigned int buttonNumber, float x, float y); \

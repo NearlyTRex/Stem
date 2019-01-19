@@ -75,6 +75,9 @@ void UIButton_action(UIButton * self) {
 }
 
 UIElement * UIButton_hitTest(UIButton * self, float x, float y) {
+	if (!self->visible) {
+		return NULL;
+	}
 	if (Rect4f_containsVector2f(self->getBounds(self), VECTOR2f(x, y))) {
 		return (UIElement *) self;
 	}
@@ -82,6 +85,9 @@ UIElement * UIButton_hitTest(UIButton * self, float x, float y) {
 }
 
 bool UIButton_mouseDown(UIButton * self, unsigned int buttonNumber, float x, float y) {
+	if (!self->visible) {
+		return false;
+	}
 	if (buttonNumber == 0) {
 		self->clickInProgress = true;
 		self->down = true;
@@ -130,6 +136,10 @@ Rect4f UIButton_getBounds(UIButton * self) {
 	outVertices[index] = vertex
 
 void UIButton_getVertices(UIButton * self, Vector2f offset, struct vertex_p2f_t2f_c4f * outVertices, GLuint * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount) {
+	if (!self->visible) {
+		return;
+	}
+	
 	Rect4f bounds = Rect4f_offset(self->getBounds(self), offset);
 	float stringWidth;
 	

@@ -76,6 +76,9 @@ void UICheckbox_action(UICheckbox * self) {
 }
 
 UIElement * UICheckbox_hitTest(UICheckbox * self, float x, float y) {
+	if (!self->visible) {
+		return NULL;
+	}
 	if (Rect4f_containsVector2f(self->getBounds(self), VECTOR2f(x, y))) {
 		return (UIElement *) self;
 	}
@@ -83,6 +86,9 @@ UIElement * UICheckbox_hitTest(UICheckbox * self, float x, float y) {
 }
 
 bool UICheckbox_mouseDown(UICheckbox * self, unsigned int buttonNumber, float x, float y) {
+	if (!self->visible) {
+		return false;
+	}
 	if (buttonNumber == 0) {
 		self->clickInProgress = true;
 		self->down = true;
@@ -135,6 +141,10 @@ Rect4f UICheckbox_getBounds(UICheckbox * self) {
 	outVertices[index] = vertex
 
 void UICheckbox_getVertices(UICheckbox * self, Vector2f offset, struct vertex_p2f_t2f_c4f * outVertices, GLuint * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount) {
+	if (!self->visible) {
+		return;
+	}
+	
 	unsigned int vertexCount = 0, indexCount = 0;
 	Rect4f bounds = self->getBounds(self);
 	

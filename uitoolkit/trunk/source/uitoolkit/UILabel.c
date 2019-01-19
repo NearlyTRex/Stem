@@ -82,6 +82,9 @@ Rect4f UILabel_getBounds(UILabel * self) {
 void UILabel_getVertices(UILabel * self, Vector2f offset, struct vertex_p2f_t2f_c4f * outVertices, GLuint * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount) {
 	Rect4f clipBounds = GLBITMAPFONT_NO_CLIP;
 	
+	if (!self->visible) {
+		return;
+	}
 	if (self->overflowModeX == OVERFLOW_TRUNCATE || self->overflowModeY == OVERFLOW_TRUNCATE) {
 		Rect4f bounds = UILabel_getBounds(self);
 		

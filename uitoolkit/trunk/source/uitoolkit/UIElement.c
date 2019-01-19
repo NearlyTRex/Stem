@@ -29,6 +29,7 @@ bool UIElement_init(UIElement * self, UIElementType type, Vector2f position, Vec
 	call_super(init, self);
 	self->type = type;
 	self->appearance = appearance;
+	self->visible = true;
 	self->position = position;
 	self->relativeOrigin = relativeOrigin;
 	self->dispose             = UIElement_dispose;

@@ -129,6 +129,9 @@ UIElement * UIContainer_hitTest(UIContainer * self, float x, float y) {
 	unsigned int elementIndex;
 	UIElement * result;
 	
+	if (!self->visible) {
+		return NULL;
+	}
 	x -= self->position.x;
 	y -= self->position.y;
 	for (elementIndex = self->elementCount - 1; elementIndex < self->elementCount; elementIndex--) {
@@ -143,6 +146,9 @@ UIElement * UIContainer_hitTest(UIContainer * self, float x, float y) {
 bool UIContainer_mouseDown(UIContainer * self, unsigned int buttonNumber, float x, float y) {
 	unsigned int elementIndex;
 	
+	if (!self->visible) {
+		return false;
+	}
 	if (buttonNumber >= UICONTAINER_MOUSE_BUTTON_NUMBER_RESPONSE_COUNT) {
 		return false;
 	}
@@ -206,6 +212,9 @@ bool UIContainer_scrollWheel(UIContainer * self, int deltaX, int deltaY) {
 }
 
 bool UIContainer_keyDown(UIContainer * self, unsigned int charCode, unsigned int keyCode, unsigned int modifiers, bool isRepeat) {
+	if (!self->visible) {
+		return false;
+	}
 	if (self->focusedElementIndex != UICONTAINER_FOCUS_NONE) {
 		self->lastKeyDownTarget = self->elements[self->focusedElementIndex].element;
 		return self->elements[self->focusedElementIndex].element->keyDown(self->elements[self->focusedElementIndex].element, charCode, keyCode, modifiers, isRepeat);
@@ -282,6 +291,9 @@ Rect4f UIContainer_getBounds(UIContainer * self) {
 void UIContainer_getVertices(UIContainer * self, Vector2f offset, struct vertex_p2f_t2f_c4f * outVertices, GLuint * outIndexes, unsigned int * ioVertexCount, unsigned int * ioIndexCount) {
 	unsigned int elementIndex;
 	
+	if (!self->visible) {
+		return;
+	}
 	for (elementIndex = 0; elementIndex < self->elementCount; elementIndex++) {
 		self->elements[elementIndex].element->getVertices(self->elements[elementIndex].element, VECTOR2f(offset.x + self->position.x, offset.y + self->position.y), outVertices, outIndexes, ioVertexCount, ioIndexCount);
 	}

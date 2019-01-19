@@ -87,6 +87,9 @@ void UIRadioButton_uncheck(UIRadioButton * self) {
 }
 
 UIElement * UIRadioButton_hitTest(UIRadioButton * self, float x, float y) {
+	if (!self->visible) {
+		return NULL;
+	}
 	if (Rect4f_containsVector2f(self->getBounds(self), VECTOR2f(x, y))) {
 		return (UIElement *) self;
 	}
@@ -94,6 +97,9 @@ UIElement * UIRadioButton_hitTest(UIRadioButton * self, float x, float y) {
 }
 
 bool UIRadioButton_mouseDown(UIRadioButton * self, unsigned int buttonNumber, float x, float y) {
+	if (!self->visible) {
+		return false;
+	}
 	if (buttonNumber == 0) {
 		self->clickInProgress = true;
 		self->down = true;
@@ -152,6 +158,9 @@ void UIRadioButton_getVertices(UIRadioButton * self, Vector2f offset, struct ver
 	unsigned int vertexCount = 0, indexCount = 0;
 	Rect4f bounds = self->getBounds(self);
 	
+	if (!self->visible) {
+		return;
+	}
 	if (ioVertexCount != NULL) {
 		vertexCount = *ioVertexCount;
 	}
