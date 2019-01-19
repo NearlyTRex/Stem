@@ -345,14 +345,10 @@ static void parseArgs(int argc, const char ** argv) {
 void EAGLTarget_configure(int argc, char ** argv, struct EAGLShellConfiguration * configuration) {
 	parseArgs(argc, (const char **) argv);
 	configuration->preferredOpenGLAPIVersion = EAGLShellOpenGLVersion_ES1 | EAGLShellOpenGLVersion_ES2;
-	registerShellCallbacks();
-}
 #elif defined(STEM_PLATFORM_macosx)
 void NSOpenGLTarget_configure(int argc, const char ** argv, struct NSOpenGLShellConfiguration * configuration) {
 	parseArgs(argc, argv);
 	configuration->windowTitle = "GLBitmapFont Test Harness";
-	registerShellCallbacks();
-}
 #elif defined(STEM_PLATFORM_win32) || defined(STEM_PLATFORM_win64)
 void WGLTarget_configure(void * instance, void * prevInstance, char * commandLine, int command, int argc, const char ** argv, struct WGLShellConfiguration * configuration) {
 	parseArgs(argc, argv);
